@@ -607,7 +607,7 @@ vi.mock("@/core/auth/useAuth", () => ({
 ### "AADSTS50011: Reply URL mismatch"
 
 Ensure the redirect URI in Azure AD B2C matches exactly:
-- Development: `http://localhost:5173`
+- Development: `http://localhost:5197`
 - Production: `https://your-app.azurestaticapps.net`
 
 ### "Token validation failed"

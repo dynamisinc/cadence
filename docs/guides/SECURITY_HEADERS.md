@@ -226,9 +226,9 @@ public class CorsMiddleware : IFunctionsWorkerMiddleware
         // Always allow localhost in development
         if (string.IsNullOrEmpty(configuration["WEBSITE_SITE_NAME"]))
         {
-            _allowedOrigins.Add("http://localhost:5173");
+            _allowedOrigins.Add("http://localhost:5197");
             _allowedOrigins.Add("http://localhost:3000");
-            _allowedOrigins.Add("http://127.0.0.1:5173");
+            _allowedOrigins.Add("http://127.0.0.1:5197");
         }
 
         _logger.LogInformation("CORS configured for origins: {Origins}", string.Join(", ", _allowedOrigins));
@@ -323,7 +323,7 @@ Update `local.settings.json`:
 ```json
 {
   "Values": {
-    "Cors:AllowedOrigins": "http://localhost:5173,http://localhost:3000",
+    "Cors:AllowedOrigins": "http://localhost:5197,http://localhost:3000",
     "Cors:AllowCredentials": "true"
   }
 }
@@ -375,7 +375,7 @@ curl -X OPTIONS \
   -H "Origin: https://your-app.azurestaticapps.net" \
   -H "Access-Control-Request-Method: POST" \
   -H "Access-Control-Request-Headers: Content-Type" \
-  -i http://localhost:7071/api/notes
+  -i http://localhost:5071/api/notes
 
 # Expected response headers:
 # Access-Control-Allow-Origin: https://your-app.azurestaticapps.net
@@ -385,7 +385,7 @@ curl -X OPTIONS \
 # Test blocked origin
 curl -X OPTIONS \
   -H "Origin: https://evil-site.com" \
-  -i http://localhost:7071/api/notes
+  -i http://localhost:5071/api/notes
 
 # Should NOT include Access-Control-Allow-Origin header
 ```
@@ -393,7 +393,7 @@ curl -X OPTIONS \
 ### Test Security Headers
 
 ```bash
-curl -i http://localhost:7071/api/health
+curl -i http://localhost:5071/api/health
 
 # Expected headers:
 # X-Content-Type-Options: nosniff
@@ -461,7 +461,7 @@ Test your production site with:
 ```json
 {
   "Values": {
-    "Cors:AllowedOrigins": "http://localhost:5173,http://localhost:3000",
+    "Cors:AllowedOrigins": "http://localhost:5197,http://localhost:3000",
     "Cors:AllowCredentials": "true"
   }
 }

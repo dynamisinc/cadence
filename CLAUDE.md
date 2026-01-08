@@ -258,8 +258,8 @@ func start
 ```
 
 **API Endpoints:**
-- Health: http://localhost:7071/api/health
-- Notes: http://localhost:7071/api/notes
+- Health: http://localhost:5071/api/health
+- Notes: http://localhost:5071/api/notes
 
 #### 3. Frontend Setup
 ```bash
@@ -275,7 +275,7 @@ npm install
 npm run dev
 ```
 
-**Frontend:** http://localhost:5173
+**Frontend:** http://localhost:5197
 
 ### Useful Commands
 
@@ -1161,7 +1161,7 @@ global.ResizeObserver = ResizeObserverMock;
 #### API Calls Return 404
 Check that:
 1. Backend is running (`func start`)
-2. `.env` has correct `VITE_API_URL=http://localhost:7071`
+2. `.env` has correct `VITE_API_URL=http://localhost:5071`
 3. Service uses correct path (`/api/notes` not `/notes`)
 
 #### Type Import Errors

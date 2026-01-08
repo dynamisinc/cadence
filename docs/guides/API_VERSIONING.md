@@ -354,7 +354,7 @@ info:
     | V1 | Current | N/A |
 
 servers:
-  - url: http://localhost:7071/api/v1
+  - url: http://localhost:5071/api/v1
     description: Local Development (V1)
   - url: https://your-app.azurewebsites.net/api/v1
     description: Production (V1)

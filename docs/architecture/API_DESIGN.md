@@ -10,7 +10,7 @@ This document describes the REST API design patterns used in the reference app.
 
 | Environment | Base URL |
 |-------------|----------|
-| Local | `http://localhost:7071/api` |
+| Local | `http://localhost:5071/api` |
 | Production | `https://{function-app}.azurewebsites.net/api` |
 
 ### HTTP Methods
@@ -73,7 +73,7 @@ This document describes the REST API design patterns used in the reference app.
 
 ```http
 GET /api/notes HTTP/1.1
-Host: localhost:7071
+Host: localhost:5071
 X-User-Id: user@example.com
 X-Correlation-Id: abc123
 ```
@@ -97,7 +97,7 @@ Content-Type: application/json
 
 ```http
 GET /api/notes/550e8400-e29b-41d4-a716-446655440000 HTTP/1.1
-Host: localhost:7071
+Host: localhost:5071
 X-User-Id: user@example.com
 ```
 
@@ -118,7 +118,7 @@ Content-Type: application/json
 
 ```http
 POST /api/notes HTTP/1.1
-Host: localhost:7071
+Host: localhost:5071
 Content-Type: application/json
 X-User-Id: user@example.com
 
@@ -146,7 +146,7 @@ Location: /api/notes/660e8400-e29b-41d4-a716-446655440001
 
 ```http
 PUT /api/notes/550e8400-e29b-41d4-a716-446655440000 HTTP/1.1
-Host: localhost:7071
+Host: localhost:5071
 Content-Type: application/json
 X-User-Id: user@example.com
 
@@ -173,7 +173,7 @@ Content-Type: application/json
 
 ```http
 DELETE /api/notes/550e8400-e29b-41d4-a716-446655440000 HTTP/1.1
-Host: localhost:7071
+Host: localhost:5071
 X-User-Id: user@example.com
 ```
 
@@ -185,7 +185,7 @@ HTTP/1.1 204 No Content
 
 ```http
 POST /api/notes/550e8400-e29b-41d4-a716-446655440000/restore HTTP/1.1
-Host: localhost:7071
+Host: localhost:5071
 X-User-Id: user@example.com
 ```
 

@@ -140,15 +140,15 @@ dotnet run
 **API Documentation:**
 This app uses Scalar for interactive API documentation. After starting the backend, open:
 
-- **Functions:** http://localhost:7071/api/docs
-- **Web API:** http://localhost:5000/scalar/v1
+- **Functions:** http://localhost:7171/api/docs
+- **Web API:** http://localhost:5071/scalar/v1
 
 in your browser to view and test the API endpoints. Scalar loads the OpenAPI spec and provides a modern UI for exploring the API.
 
 **Verify:**
 
-- Functions: http://localhost:7071/api/health
-- Web API: http://localhost:5000/health
+- Functions: http://localhost:7171/api/health
+- Web API: http://localhost:5071/health
 
 ### 3. Set Up the Frontend
 
@@ -167,14 +167,14 @@ npm install
 npm run dev
 ```
 
-**Verify:** Open http://localhost:5173 - you should see the app
+**Verify:** Open http://localhost:5197 - you should see the app
 
 ### 4. You're Ready
 
 Both services should now be running:
 
-- **API:** http://localhost:7071/api (Functions) or http://localhost:5000/api (Web API)
-- **Frontend:** http://localhost:5173
+- **API:** http://localhost:7171/api (Functions) or http://localhost:5071/api (Web API)
+- **Frontend:** http://localhost:5197
 
 Try the Notes feature to see everything working together.
 
@@ -734,7 +734,7 @@ Edit `src/frontend/.env`:
 
 ```env
 # Uncomment and set the SignalR URL
-VITE_SIGNALR_URL=http://localhost:7071/api
+VITE_SIGNALR_URL=http://localhost:7171/api
 ```
 
 #### 5. Restart Both Services

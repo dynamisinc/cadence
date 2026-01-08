@@ -7,7 +7,7 @@ import axios from 'axios'
  * The baseURL is set from environment variables.
  *
  * Environment Configuration:
- * - Development: VITE_API_URL=http://localhost:7071 (Azure Functions local)
+ * - Development: VITE_API_URL=http://localhost:5071 (Azure Functions local)
  * - Production: VITE_API_URL= (empty for same-origin SWA deployment)
  *
  * IMPORTANT: Service files include '/api/' in their paths.

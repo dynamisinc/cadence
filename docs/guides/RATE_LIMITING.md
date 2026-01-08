@@ -704,7 +704,7 @@ export const options = {
 };
 
 export default function () {
-  const res = http.get("http://localhost:7071/api/notes");
+  const res = http.get("http://localhost:5071/api/notes");
 
   check(res, {
     "status is 200 or 429": (r) => r.status === 200 || r.status === 429,

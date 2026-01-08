@@ -1,8 +1,8 @@
-# Dynamis Reference App
+# Cadence
 
-> **A GitHub template for building modern web applications with React, Azure Functions, and COBRA styling**
+> **HSEEP-compliant MSEL management platform for emergency exercise conduct**
 
-[![Azure Functions](https://img.shields.io/badge/Azure%20Functions-.NET%2010-blue)](https://azure.microsoft.com/en-us/services/functions/)
+[![Azure App Service](https://img.shields.io/badge/Azure%20App%20Service-.NET%2010-blue)](https://azure.microsoft.com/en-us/services/app-service/)
 [![React](https://img.shields.io/badge/React-18.x-61DAFB)](https://reactjs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6)](https://www.typescriptlang.org/)
 [![Material-UI](https://img.shields.io/badge/MUI-7.x-007FFF)](https://mui.com/)
@@ -11,16 +11,27 @@
 
 ## Overview
 
-This is Dynamis' reference template for building production-quality web applications. It provides:
+Cadence is a Master Scenario Events List (MSEL) management platform designed for emergency management exercise conduct. Unlike full lifecycle planning tools, Cadence focuses specifically on the **operations phase** of exercises—where Controllers deliver injects, Evaluators record observations, and Exercise Directors maintain situational awareness.
 
-- **Frontend**: React 18 + TypeScript + Vite with COBRA styling system
-- **Backend**: Dual-host architecture supporting:
-  - **Azure Functions** (.NET 10 Isolated Worker) for serverless scale
-  - **Azure App Service** (ASP.NET Core Web API) for always-on enterprise workloads
-- **Database**: Entity Framework Core with Azure SQL
-- **Real-time**: Azure SignalR Service integration
-- **CI/CD**: GitHub Actions with automated deployment to Azure
-- **Documentation**: Comprehensive guides for developers and AI assistants
+### Key Capabilities
+
+| Capability | Description |
+|------------|-------------|
+| **Offline Operation** | Full functionality without internet connectivity |
+| **Dual Time Tracking** | Separate scheduled time (wall clock) and scenario time |
+| **Practice Mode** | Training exercises excluded from production reports |
+| **Excel Workflow** | Import/Export preserves familiar spreadsheet workflows |
+| **HSEEP Compliance** | Aligned with Homeland Security Exercise and Evaluation Program |
+
+### Target Users
+
+| Role | Primary Responsibilities |
+|------|-------------------------|
+| **Administrator** | System configuration, user management |
+| **Exercise Director** | Overall exercise oversight, real-time status |
+| **Controller** | Inject delivery, player guidance |
+| **Evaluator** | Performance observation, documentation |
+| **Observer** | Read-only monitoring |
 
 ## Quick Start
 
@@ -28,55 +39,41 @@ This is Dynamis' reference template for building production-quality web applicat
 
 - [.NET 10 SDK](https://dotnet.microsoft.com/download)
 - [Node.js 20+](https://nodejs.org/)
-- [Azure Functions Core Tools v4](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local)
 - [Azure CLI](https://docs.microsoft.com/en-us/cli/azure/install-azure-cli)
-- [SQL Server](https://www.microsoft.com/en-us/sql-server) or [Azure SQL](https://azure.microsoft.com/en-us/products/azure-sql/)
+- [SQL Server](https://www.microsoft.com/en-us/sql-server) (LocalDB for development)
 
 ### Local Development Setup
 
 1. **Clone the repository**
 
    ```bash
-   git clone https://github.com/dynamisinc/dynamis-reference-app.git
-   cd dynamis-reference-app
+   git clone https://github.com/[your-org]/cadence.git
+   cd cadence
    ```
 
-2. **Set up the backend**
-
-   **Option A: Azure Functions (Serverless)**
+2. **Set up the database**
 
    ```bash
-   cd src/Dynamis.Functions
+   cd src/Cadence.WebApi
 
-   # Copy the example settings file
-   cp local.settings.example.json local.settings.json
+   # Initialize user secrets (one time)
+   dotnet user-secrets init
 
-   # Configure your database connection string
-   func settings add ConnectionStrings:DefaultConnection "Server=(localdb)\\MSSQLLocalDB;Database=DynamisReferenceApp;Trusted_Connection=True;TrustServerCertificate=True;"
+   # Set connection string
+   dotnet user-secrets set "ConnectionStrings:DefaultConnection" "Server=localhost\\cadence;Database=Cadence;Trusted_Connection=True;TrustServerCertificate=True;"
 
-   # Restore dependencies
-   dotnet restore
-
-   # Apply database migrations (run from solution root or point to WebApi project)
-   # dotnet ef database update --project ../Dynamis.WebApi
-
-   # Start the Azure Functions host
-   func start
+   # Apply database migrations
+   dotnet ef database update
    ```
 
-   **Option B: App Service (Web API)**
+3. **Start the backend**
 
    ```bash
-   cd src/Dynamis.WebApi
-
-   # Update appsettings.json with your connection string if needed
-   # (Default uses localdb)
-
-   # Start the Web API host
+   cd src/Cadence.WebApi
    dotnet run
    ```
 
-3. **Set up the frontend**
+4. **Set up the frontend**
 
    ```bash
    cd src/frontend
@@ -91,179 +88,225 @@ This is Dynamis' reference template for building production-quality web applicat
    npm run dev
    ```
 
-4. **Access the application**
-   - Frontend: http://localhost:5173
-   - API: http://localhost:7071/api
-   - Health check: http://localhost:7071/api/health
-   - API Documentation (Scalar): http://localhost:7071/api/docs
+5. **Access the application**
+   - Frontend: http://localhost:5197
+   - API: http://localhost:5071/api
+   - Health check: http://localhost:5071/api/health
+   - API Documentation (Scalar): http://localhost:5071/api/docs
 
 ## Project Structure
 
 ```
-dynamis-reference-app/
+cadence/
 ├── .github/                    # GitHub Actions & templates
 │   ├── workflows/              # CI/CD pipelines
 │   └── ISSUE_TEMPLATE/         # Issue templates
 ├── src/
-│   ├── Dynamis.Core/           # Business logic & Domain models
-│   ├── Dynamis.Functions/      # Azure Functions host
-│   ├── Dynamis.WebApi/         # ASP.NET Core Web API host
-│   ├── Dynamis.Tests/          # Shared test infrastructure
+│   ├── Cadence.Core/           # Business logic & domain models
+│   ├── Cadence.WebApi/         # ASP.NET Core Web API
+│   ├── Cadence.Tests/          # Unit & integration tests
 │   └── frontend/               # React SPA
 │       ├── src/
 │       │   ├── core/           # App infrastructure
 │       │   ├── shared/         # Shared components
-│       │   ├── tools/          # Feature modules
+│       │   ├── features/       # Feature modules
 │       │   └── theme/          # COBRA styling
 │       └── public/
 ├── infrastructure/             # Bicep templates (IaC)
-├── database/                   # SQL scripts
 ├── scripts/                    # Helper scripts
 └── docs/                       # Documentation
+    └── requirements/           # User stories & specifications
 ```
 
 ## Architecture
 
 ```
-┌──────────────────────────────────────┐
-│      Azure Static Web App (SWA)      │
-│  ┌────────────────────────────────┐  │
-│  │        React Frontend          │  │
-│  │   Global CDN + Managed SSL     │  │
-│  └────────────────────────────────┘  │
-└──────────────────────────────────────┘
-                 │
-                 ▼
-┌──────────────────────────────────────┐    ┌──────────────────────────────────────┐
-│     Azure Functions (.NET 10)        │    │     Azure Web API (App Service)      │
-│  ┌────────────────────────────────┐  │ OR │  ┌────────────────────────────────┐  │
-│  │   HTTP Triggers (REST API)     │  │    │   ASP.NET Core Controllers        │  │
-│  │   EF Core + Structured Logging │  │    │   EF Core + Structured Logging    │  │
-│  └────────────────────────────────┘  │    └────────────────────────────────┘  │
-└──────────────────────────────────────┘    └──────────────────────────────────────┘
-                 │                                          │
-        ┌────────┴──────────────────────────────────────────┘
-        ▼                 ▼
-┌───────────────┐  ┌───────────────────┐
-│  Azure SQL    │  │ Azure SignalR     │
-│  Database     │  │ Service           │
-└───────────────┘  └───────────────────┘
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                              CADENCE ARCHITECTURE                            │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                             │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                    React Frontend (Vite + TypeScript)                │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │   │
+│  │  │  Exercise   │  │    MSEL     │  │   Inject    │  │  Offline   │  │   │
+│  │  │  Management │  │  Authoring  │  │   Conduct   │  │   Sync     │  │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘  │   │
+│  │                                                                      │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │   │
+│  │  │  IndexedDB (Offline Storage) + Service Workers               │    │   │
+│  │  └─────────────────────────────────────────────────────────────┘    │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                                    ▼                                        │
+│  ┌─────────────────────────────────────────────────────────────────────┐   │
+│  │                 ASP.NET Core Web API (.NET 10)                       │   │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌─────────────┐  ┌────────────┐  │   │
+│  │  │  Exercise   │  │   Inject    │  │   Excel     │  │  SignalR   │  │   │
+│  │  │    API      │  │    API      │  │   Import    │  │    Hub     │  │   │
+│  │  └─────────────┘  └─────────────┘  └─────────────┘  └────────────┘  │   │
+│  │                                                                      │   │
+│  │  ┌─────────────────────────────────────────────────────────────┐    │   │
+│  │  │  Entity Framework Core + Structured Logging                  │    │   │
+│  │  └─────────────────────────────────────────────────────────────┘    │   │
+│  └─────────────────────────────────────────────────────────────────────┘   │
+│                                    │                                        │
+│                 ┌──────────────────┼──────────────────┐                    │
+│                 ▼                  ▼                  ▼                    │
+│  ┌───────────────────┐  ┌───────────────────┐  ┌───────────────────┐      │
+│  │    Azure SQL      │  │  Azure SignalR    │  │ Application       │      │
+│  │    Database       │  │  Service          │  │ Insights          │      │
+│  └───────────────────┘  └───────────────────┘  └───────────────────┘      │
+│                                                                             │
+└─────────────────────────────────────────────────────────────────────────────┘
 ```
 
 ## Key Features
 
+### Dual Time Tracking
+
+Cadence tracks two distinct timestamps for each inject:
+
+| Time Type | Purpose | Storage |
+|-----------|---------|---------|
+| **Scheduled Time** | When to deliver inject (wall clock) | UTC in database, displayed in exercise time zone |
+| **Scenario Time** | In-scenario time (e.g., "Day 2, 14:00") | Day number + time of day |
+
+### Excel Import/Export
+
+Maintain familiar spreadsheet workflows:
+
+- Import MSELs from Excel (.xlsx, .xls, .csv)
+- Column mapping wizard with saved templates
+- Export preserves formatting for stakeholder sharing
+- Round-trip compatible (export → edit → re-import)
+
+### Offline Capability
+
+Full functionality without internet:
+
+- IndexedDB stores exercises and injects locally
+- Service Workers enable offline access
+- Automatic sync when connectivity restored
+- Conflict resolution with clear user feedback
+
+### HSEEP Compliance
+
+Aligned with [Homeland Security Exercise and Evaluation Program](https://www.fema.gov/emergency-managers/national-preparedness/exercises/hseep) 2020 doctrine:
+
+- Standard terminology (inject, MSEL, Controller, Evaluator)
+- Exercise objective tracking and linking
+- Support for TTX, Functional, and Full-Scale exercises
+- Observation capture for After-Action Reports
+
 ### COBRA Styling System
 
-All UI components use the COBRA design system for consistent styling across Dynamis applications.
+All UI components use the COBRA design system for consistent styling:
 
 ```tsx
-// Always use COBRA components, never raw MUI
 import { CobraPrimaryButton, CobraTextField } from "@/theme/styledComponents";
 import CobraStyles from "@/theme/CobraStyles";
 
 <Stack spacing={CobraStyles.Spacing.FormFields}>
-  <CobraTextField label="Name" fullWidth />
-  <CobraPrimaryButton onClick={handleSave}>Save</CobraPrimaryButton>
-</Stack>;
+  <CobraTextField label="Inject Title" fullWidth />
+  <CobraPrimaryButton onClick={handleFire}>Fire Inject</CobraPrimaryButton>
+</Stack>
 ```
 
 See [docs/COBRA_STYLING.md](docs/COBRA_STYLING.md) for the complete guide.
 
-### Modular Tool Architecture
-
-Features are organized as self-contained "tools" that can be developed independently:
-
-```
-src/api/Tools/
-└── Notes/                    # Example tool
-    ├── Functions/            # API endpoints
-    ├── Models/               # Entities & DTOs
-    ├── Services/             # Business logic
-    └── Mappers/              # Entity ↔ DTO mapping
-
-src/frontend/src/tools/
-└── notes/                    # Matching frontend
-    ├── components/
-    ├── pages/
-    ├── services/
-    ├── hooks/
-    └── types/
-```
-
-### API Documentation (Scalar)
-
-Interactive API documentation powered by [Scalar](https://scalar.com/):
-
-- **OpenAPI Spec**: `/api/openapi.json` - Machine-readable API specification
-- **Scalar UI**: `/api/docs` - Interactive documentation with dark mode, request testing, and code examples
-
-The documentation is automatically generated and includes all endpoints, request/response schemas, and parameter descriptions.
-
-### Robust Logging
-
-Structured logging with optional Application Insights:
-
-```csharp
-_logger.LogInformation("Creating note for user {UserId}", userId);
-_logger.LogError(ex, "Failed to create note: {Error}", ex.Message);
-```
-
-### Real-time Updates
-
-SignalR integration for real-time features:
-
-```tsx
-const { connection, isConnected } = useSignalR("/hubs/notifications");
-
-useEffect(() => {
-  connection?.on("NoteCreated", (note) => {
-    // Handle real-time update
-  });
-}, [connection]);
-```
-
 ## Documentation
 
-| Document                                                | Description                  |
-| ------------------------------------------------------- | ---------------------------- |
-| [CLAUDE.md](docs/CLAUDE.md)                             | AI assistant instructions    |
-| [GETTING_STARTED.md](docs/GETTING_STARTED.md)           | New developer onboarding     |
-| [CODING_STANDARDS.md](docs/CODING_STANDARDS.md)         | Code conventions             |
+### Developer Guides
+
+| Document | Description |
+|----------|-------------|
+| [CLAUDE.md](docs/CLAUDE.md) | AI assistant instructions |
+| [GETTING_STARTED.md](docs/GETTING_STARTED.md) | New developer onboarding |
+| [CODING_STANDARDS.md](docs/CODING_STANDARDS.md) | Code conventions |
 | [DEVELOPMENT_WORKFLOW.md](docs/DEVELOPMENT_WORKFLOW.md) | User stories → GitHub issues |
-| [COBRA_STYLING.md](docs/COBRA_STYLING.md)               | Styling system reference     |
-| [DEPLOYMENT.md](docs/DEPLOYMENT.md)                     | Azure deployment guide       |
-| [LOGGING_GUIDE.md](docs/LOGGING_GUIDE.md)               | Logging patterns             |
+| [COBRA_STYLING.md](docs/COBRA_STYLING.md) | Styling system reference |
+| [DEPLOYMENT.md](docs/DEPLOYMENT.md) | Azure deployment guide |
+| [LOGGING_GUIDE.md](docs/LOGGING_GUIDE.md) | Logging patterns |
+
+### Requirements Documentation
+
+| Document | Description |
+|----------|-------------|
+| [requirements/README.md](docs/requirements/README.md) | Requirements overview |
+| [requirements/ROADMAP.md](docs/requirements/ROADMAP.md) | Development phases (MVP → Standard → Advanced) |
+| [requirements/DOMAIN_GLOSSARY.md](docs/requirements/DOMAIN_GLOSSARY.md) | HSEEP terminology definitions |
+
+#### Feature Requirements
+
+| Feature | Description |
+|---------|-------------|
+| [exercise-crud](docs/requirements/exercise-crud/) | Exercise lifecycle management |
+| [exercise-config](docs/requirements/exercise-config/) | Roles, participants, time zone |
+| [exercise-objectives](docs/requirements/exercise-objectives/) | Objective management |
+| [exercise-phases](docs/requirements/exercise-phases/) | Phase definition |
+| [inject-crud](docs/requirements/inject-crud/) | Inject CRUD with dual time |
+| [excel-import](docs/requirements/excel-import/) | Excel import wizard |
+| [excel-export](docs/requirements/excel-export/) | Excel export |
+| [inject-filtering](docs/requirements/inject-filtering/) | Filter and search |
+| [inject-organization](docs/requirements/inject-organization/) | Sort, group, reorder |
 
 ## Deployment
 
-### GitHub Actions (Recommended)
+### GitHub Actions
 
 Push to `main` branch triggers automatic deployment:
 
-1. Run tests
+1. Run unit tests
 2. Build API + Frontend
-3. Deploy to Azure Functions
-4. Deploy to Azure Static Web App
+3. Deploy to Azure App Service
+4. Deploy frontend to Azure Static Web Apps
 5. Validate with health checks
 
-### Manual Deployment
+### Azure Resources
 
-See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for manual deployment instructions and Azure resource setup.
+| Resource | Purpose |
+|----------|---------|
+| Azure App Service | Web API hosting |
+| Azure SQL Database | Data persistence |
+| Azure SignalR Service | Real-time sync |
+| Azure Static Web Apps | Frontend hosting |
+| Application Insights | Monitoring & logging |
 
-## Creating a New Project
+See [docs/DEPLOYMENT.md](docs/DEPLOYMENT.md) for setup instructions.
 
-1. Click **"Use this template"** on GitHub
-2. Name your new repository
-3. Clone and follow the [Getting Started guide](docs/GETTING_STARTED.md)
-4. Set up Azure resources using the [Deployment guide](docs/DEPLOYMENT.md)
+## Development Workflow
+
+1. **Pick a story** from `docs/requirements/{feature}/`
+2. **Create a branch**: `feat/{feature}/S{number}-{description}`
+3. **Implement** with tests
+4. **Submit PR** referencing the story
+5. **Deploy** to UAT after approval
+
+### Commit Convention
+
+```
+feat(exercise-crud): S01 create exercise form
+fix(inject-crud): S02 edit validation error
+docs(requirements): add excel-import stories
+```
+
+## Roadmap
+
+| Phase | Focus | Status |
+|-------|-------|--------|
+| **MVP** | Core CRUD, Excel import/export, offline | 🔨 In Progress |
+| **Standard** | Grid view, branching injects, exercise clock | 📋 Planned |
+| **Advanced** | Auto AAR, multi-location sync, channel delivery | 📋 Future |
+
+See [docs/requirements/ROADMAP.md](docs/requirements/ROADMAP.md) for detailed feature breakdown.
 
 ## Contributing
 
-1. Create a feature branch from `main`
-2. Write user stories in `docs/features/{feature}/USER_STORIES.md`
-3. Create GitHub issues from user stories
-4. Implement and test
-5. Submit PR with reference to user stories
+1. Review the [CODING_STANDARDS.md](docs/CODING_STANDARDS.md)
+2. Check existing stories in `docs/requirements/`
+3. Create feature branch from `main`
+4. Write tests for new functionality
+5. Submit PR with story reference
 
 ## License
 
@@ -271,4 +314,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**Built with care by Dynamis Inc.**
+**Cadence** - *Bringing rhythm to emergency exercise management*

@@ -3,8 +3,8 @@ import { validateEnvironment, getEnv } from './validateEnv'
 
 describe('validateEnv', () => {
   beforeEach(() => {
-    vi.stubEnv('VITE_API_URL', 'http://localhost:7071')
-    vi.stubEnv('VITE_SIGNALR_URL', 'http://localhost:7071/api')
+    vi.stubEnv('VITE_API_URL', 'http://localhost:5071')
+    vi.stubEnv('VITE_SIGNALR_URL', 'http://localhost:5071/api')
   })
 
   afterEach(() => {
@@ -43,8 +43,8 @@ describe('validateEnv', () => {
     it('returns environment variables', () => {
       const env = getEnv()
 
-      expect(env.apiUrl).toBe('http://localhost:7071')
-      expect(env.signalRUrl).toBe('http://localhost:7071/api')
+      expect(env.apiUrl).toBe('http://localhost:5071')
+      expect(env.signalRUrl).toBe('http://localhost:5071/api')
     })
 
     it('returns empty string for missing signalRUrl', () => {
