@@ -1,0 +1,88 @@
+name: User Story
+description: Create a user story for a new feature
+title: "[Story]: "
+labels: ["user-story", "needs-refinement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## User Story Template
+        Use this template to describe a feature from the user's perspective.
+
+  - type: textarea
+    id: story
+    attributes:
+      label: User Story
+      description: "As a [type of user], I want [goal] so that [benefit]"
+      placeholder: |
+        As a [team member],
+        I want [to be able to do something],
+        so that [I can achieve some goal].
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Define the conditions that must be met for this story to be complete
+      placeholder: |
+        Given [context],
+        When [action],
+        Then [expected result].
+
+        - [ ] Criterion 1
+        - [ ] Criterion 2
+        - [ ] Criterion 3
+    validations:
+      required: true
+
+  - type: textarea
+    id: design-notes
+    attributes:
+      label: Design Notes
+      description: Any UI/UX considerations, mockups, or design references
+      placeholder: |
+        - Button should use CobraPrimaryButton
+        - Form follows standard COBRA layout
+        - See [Figma link] for mockups
+    validations:
+      required: false
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Technical Notes
+      description: Implementation considerations for developers
+      placeholder: |
+        - New API endpoint: POST /api/notes
+        - Database migration required
+        - Uses existing NotesService
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      description: How important is this story?
+      options:
+        - Must Have (MVP)
+        - Should Have
+        - Could Have
+        - Won't Have (this release)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: complexity
+    attributes:
+      label: Complexity
+      description: Estimated effort
+      options:
+        - Small (1-2 hours)
+        - Medium (half day)
+        - Large (1-2 days)
+        - Extra Large (3+ days)
+    validations:
+      required: false

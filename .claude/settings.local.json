@@ -1,0 +1,24 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(dotnet build:*)",
+      "Bash(npm run type-check:*)",
+      "Bash(npx tsc:*)",
+      "Bash(npm run test:run:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push)",
+      "Bash(dotnet test:*)",
+      "Bash(find:*)",
+      "Bash(npm run test:coverage:*)",
+      "Bash(npm install:*)",
+      "Bash(cat:*)",
+      "Bash(npm run lint)",
+      "Bash(npm run format:*)",
+      "Bash(npx markdownlint:*)",
+      "Bash(npx cspell:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

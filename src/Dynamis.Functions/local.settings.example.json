@@ -1,0 +1,39 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
+
+    "// DATABASE": "Choose one of the connection string options below:",
+
+    "// Option 1: SQL Server LocalDB (Windows)": "",
+    "ConnectionStrings:DefaultConnection_LocalDB": "Server=(localdb)\\MSSQLLocalDB;Database=DynamisReferenceApp;Trusted_Connection=True;TrustServerCertificate=True;",
+
+    "// Option 2: SQL Server Instance (Windows)": "",
+    "ConnectionStrings:DefaultConnection": "Server=localhost;Database=DynamisReferenceApp;Trusted_Connection=True;TrustServerCertificate=True;",
+
+    "// Option 3: SQL Server Docker": "",
+    "ConnectionStrings:DefaultConnection_Docker": "Server=localhost,1433;Database=DynamisReferenceApp;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;",
+
+    "// Option 4: Azure SQL": "",
+    "ConnectionStrings:DefaultConnection_Azure": "Server=your-server.database.windows.net;Database=DynamisReferenceApp;User Id=your-user;Password=your-password;Encrypt=True;",
+
+    "// DATABASE OPTIONS": "",
+    "Database:AutoMigrate": "true",
+
+    "// SIGNALR (optional - enables real-time updates between browser sessions)": "",
+    "// To enable: Create Azure SignalR Service (Free tier: 20 concurrent connections)": "",
+    "// Then copy the connection string from Azure Portal > SignalR > Keys": "",
+    "// Leave empty to disable SignalR - app will still work without real-time updates": "",
+    "AzureSignalRConnectionString": "",
+
+    "// APPLICATION INSIGHTS (optional)": "",
+    "ApplicationInsights:Enabled": "false",
+    "APPLICATIONINSIGHTS_CONNECTION_STRING": ""
+  },
+  "Host": {
+    "LocalHttpPort": 7071,
+    "CORS": "*",
+    "CORSCredentials": false
+  }
+}

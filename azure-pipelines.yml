@@ -1,0 +1,195 @@
+trigger:
+  branches:
+    include:
+      - main
+  paths:
+    exclude:
+      - docs/*
+      - README.md
+
+variables:
+  # Azure Service Connection Name (Create this in ADO Project Settings)
+  azureServiceConnection: "AzureConnection"
+  resourceGroupName: "rg-dynamis-refapp-dev"
+  location: "eastus2"
+
+  # Build Variables
+  dotnetVersion: "10.0.x"
+  nodeVersion: "20.x"
+  buildConfiguration: "Release"
+
+  # Paths
+  apiProject: "src/api/Api.csproj"
+  apiTestProject: "src/api.Tests/Api.Tests.csproj"
+  frontendDir: "src/frontend"
+
+stages:
+  - stage: Build_Infrastructure
+    displayName: "Build Infrastructure"
+    jobs:
+      - job: Validate_Bicep
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: AzureCLI@2
+            displayName: "Validate Bicep"
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                az deployment group validate \
+                  --resource-group $(resourceGroupName) \
+                  --template-file infrastructure/main.bicep \
+                  --parameters sqlAdminLogin=sqladmin sqlAdminPassword=$(SqlAdminPassword)
+
+  - stage: Deploy_Infrastructure
+    displayName: "Deploy Infrastructure"
+    dependsOn: Build_Infrastructure
+    condition: succeeded()
+    jobs:
+      - job: Deploy_Resources
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: AzureCLI@2
+            displayName: "Deploy Bicep"
+            inputs:
+              azureSubscription: $(azureServiceConnection)
+              scriptType: "bash"
+              scriptLocation: "inlineScript"
+              inlineScript: |
+                az deployment group create \
+                  --resource-group $(resourceGroupName) \
+                  --template-file infrastructure/main.bicep \
+                  --parameters sqlAdminLogin=sqladmin sqlAdminPassword=$(SqlAdminPassword) \
+                  --name deploy-$(Build.BuildId)
+
+  - stage: Build_Backend
+    displayName: "Build Backend"
+    jobs:
+      - job: Build_DotNet
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: UseDotNet@2
+            displayName: "Setup .NET"
+            inputs:
+              packageType: "sdk"
+              version: $(dotnetVersion)
+              includePreviewVersions: true
+
+          - task: DotNetCoreCLI@2
+            displayName: "Restore"
+            inputs:
+              command: "restore"
+              projects: $(apiProject)
+
+          - task: DotNetCoreCLI@2
+            displayName: "Build"
+            inputs:
+              command: "build"
+              projects: $(apiProject)
+              arguments: "--configuration $(buildConfiguration) --no-restore"
+
+          - task: DotNetCoreCLI@2
+            displayName: "Test"
+            inputs:
+              command: "test"
+              projects: $(apiTestProject)
+              arguments: "--configuration $(buildConfiguration) --verbosity normal"
+
+          - task: DotNetCoreCLI@2
+            displayName: "Publish"
+            inputs:
+              command: "publish"
+              publishWebProjects: false
+              projects: $(apiProject)
+              arguments: "--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)/backend"
+              zipAfterPublish: true
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish Artifact"
+            inputs:
+              PathtoPublish: "$(Build.ArtifactStagingDirectory)/backend"
+              ArtifactName: "backend"
+              publishLocation: "Container"
+
+  - stage: Build_Frontend
+    displayName: "Build Frontend"
+    jobs:
+      - job: Build_Node
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: NodeTool@0
+            inputs:
+              versionSpec: $(nodeVersion)
+            displayName: "Setup Node.js"
+
+          - script: |
+              npm ci
+              npm run test:run
+              npm run build
+            workingDirectory: $(frontendDir)
+            displayName: "Install, Test, Build"
+            env:
+              # These would typically come from the deployed infrastructure outputs
+              # For now, we use placeholders or variables set in the pipeline library
+              VITE_API_URL: $(ViteApiUrl)
+              VITE_SIGNALR_URL: $(ViteSignalRUrl)
+
+          - task: PublishBuildArtifacts@1
+            displayName: "Publish Artifact"
+            inputs:
+              PathtoPublish: "$(frontendDir)/dist"
+              ArtifactName: "frontend"
+              publishLocation: "Container"
+
+  - stage: Deploy_App
+    displayName: "Deploy Application"
+    dependsOn:
+      - Deploy_Infrastructure
+      - Build_Backend
+      - Build_Frontend
+    condition: succeeded()
+    jobs:
+      - job: Deploy_Backend
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: "current"
+              downloadType: "single"
+              artifactName: "backend"
+              downloadPath: "$(System.DefaultWorkingDirectory)"
+
+          - task: AzureFunctionApp@2
+            displayName: "Deploy Function App"
+            inputs:
+              connectedServiceNameARM: $(azureServiceConnection)
+              appType: "functionApp"
+              appName: "func-refapp-dev" # Should match Bicep output, ideally passed via variable
+              package: "$(System.DefaultWorkingDirectory)/backend/**/*.zip"
+
+      - job: Deploy_Frontend
+        pool:
+          vmImage: "ubuntu-latest"
+        steps:
+          - task: DownloadBuildArtifacts@0
+            inputs:
+              buildType: "current"
+              downloadType: "single"
+              artifactName: "frontend"
+              downloadPath: "$(System.DefaultWorkingDirectory)"
+
+          - task: AzureStaticWebApp@0
+            displayName: "Deploy Static Web App"
+            inputs:
+              app_location: "/" # Content is already built in the artifact
+              output_location: "" # Artifact is the dist folder itself
+              skip_app_build: true
+              azure_static_web_apps_api_token: $(DeploymentToken) # Needs to be fetched or stored in secrets
+              # Note: AzureStaticWebApp task usually requires the token.
+              # Alternatively, use the Azure CLI to deploy if the token is retrieved dynamically.

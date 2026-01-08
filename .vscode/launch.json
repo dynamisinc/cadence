@@ -1,0 +1,70 @@
+{
+  // ==========================================================================
+  // Dynamis Reference App - Debug Configurations
+  // ==========================================================================
+  "version": "0.2.0",
+  "configurations": [
+    // ========================================================================
+    // Backend: Azure Functions
+    // ========================================================================
+    {
+      "name": "API: Attach to .NET Functions",
+      "type": "coreclr",
+      "request": "attach",
+      "processId": "${command:azureFunctions.pickProcess}"
+    },
+    {
+      "name": "API: Debug Azure Functions",
+      "type": "coreclr",
+      "request": "launch",
+      "preLaunchTask": "func: host start",
+      "program": "${workspaceFolder}/src/api/bin/Debug/net10.0/api.dll",
+      "args": [],
+      "cwd": "${workspaceFolder}/src/api",
+      "console": "integratedTerminal",
+      "stopAtEntry": false
+    },
+
+    // ========================================================================
+    // Frontend: Vite Dev Server
+    // ========================================================================
+    {
+      "name": "Frontend: Launch Chrome",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src/frontend/src",
+      "sourceMapPathOverrides": {
+        "webpack:///src/*": "${webRoot}/*"
+      }
+    },
+    {
+      "name": "Frontend: Launch Edge",
+      "type": "msedge",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/src/frontend/src"
+    },
+
+    // ========================================================================
+    // Full Stack
+    // ========================================================================
+    {
+      "name": "Full Stack: API + Frontend",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}/src/frontend",
+      "console": "integratedTerminal",
+      "preLaunchTask": "start-api"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Full Stack Debug",
+      "configurations": ["API: Debug Azure Functions", "Frontend: Launch Chrome"],
+      "stopAll": true
+    }
+  ]
+}

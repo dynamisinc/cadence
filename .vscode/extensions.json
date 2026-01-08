@@ -1,0 +1,64 @@
+{
+  // ==========================================================================
+  // Dynamis Reference App - Recommended VS Code Extensions
+  // ==========================================================================
+  "recommendations": [
+    // ========================================================================
+    // Essential - Required for development
+    // ========================================================================
+
+    // C# / .NET
+    "ms-dotnettools.csharp",
+    "ms-dotnettools.csdevkit",
+    "ms-dotnettools.vscode-dotnet-runtime",
+
+    // Azure Functions
+    "ms-azuretools.vscode-azurefunctions",
+    "ms-vscode.azure-account",
+
+    // TypeScript / JavaScript
+    "dbaeumer.vscode-eslint",
+
+    // ========================================================================
+    // Highly Recommended
+    // ========================================================================
+
+    // Git
+    "eamodio.gitlens",
+    "mhutchie.git-graph",
+
+    // Editor enhancements
+    "editorconfig.editorconfig",
+    "streetsidesoftware.code-spell-checker",
+
+    // YAML (for GitHub Actions)
+    "redhat.vscode-yaml",
+
+    // Markdown
+    "yzhang.markdown-all-in-one",
+    "davidanson.vscode-markdownlint",
+
+    // REST API Testing
+    "humao.rest-client",
+
+    // Database
+    "ms-mssql.mssql",
+
+    // Bicep (Infrastructure as Code)
+    "ms-azuretools.vscode-bicep",
+
+    // ========================================================================
+    // Optional but helpful
+    // ========================================================================
+
+    // Docker
+    "github.copilot",
+    "github.copilot-chat",
+
+    // Error Lens (inline error display)
+    "usernamehw.errorlens",
+    "ms-vscode.vscode-node-azure-pack",
+    "github.vscode-pull-request-github"
+  ],
+  "unwantedRecommendations": []
+}

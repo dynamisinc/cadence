@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Documentation
+    url: https://github.com/dynamisinc/dynamis-reference-app/tree/main/docs
+    about: Check our documentation for guides and references
+  - name: Coding Standards
+    url: https://github.com/dynamisinc/dynamis-reference-app/blob/main/docs/CODING_STANDARDS.md
+    about: Review our coding standards before contributing
