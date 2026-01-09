@@ -3,7 +3,7 @@
 > **Status:** Reference Guide - Not Yet Implemented in Template
 > **Priority:** Critical for Production
 
-This guide explains how to implement Azure AD B2C authentication in the Dynamis Reference App.
+This guide explains how to implement Azure AD B2C authentication in the Cadence.
 
 ---
 
@@ -96,7 +96,7 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 using Microsoft.IdentityModel.Tokens;
 
-namespace DynamisReferenceApp.Api.Core.Middleware;
+namespace Cadence.Api.Core.Middleware;
 
 /// <summary>
 /// Middleware to validate Azure AD B2C JWT tokens.
@@ -216,7 +216,7 @@ public class JwtAuthenticationMiddleware : IFunctionsWorkerMiddleware
 Create `src/api/Core/Services/UserContext.cs`:
 
 ```csharp
-namespace DynamisReferenceApp.Api.Core.Services;
+namespace Cadence.Api.Core.Services;
 
 /// <summary>
 /// Provides access to the current authenticated user's information.

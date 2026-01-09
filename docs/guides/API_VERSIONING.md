@@ -3,7 +3,7 @@
 > **Status:** Reference Guide - Not Yet Implemented in Template
 > **Priority:** High for Production
 
-This guide explains how to implement API versioning for the Dynamis Reference App.
+This guide explains how to implement API versioning for the Cadence.
 
 ---
 
@@ -108,7 +108,7 @@ GET /api/notes?version=1
 Create `src/api/Core/Versioning/ApiVersions.cs`:
 
 ```csharp
-namespace DynamisReferenceApp.Api.Core.Versioning;
+namespace Cadence.Api.Core.Versioning;
 
 /// <summary>
 /// API version constants for use in route definitions.
@@ -159,9 +159,9 @@ public static class ApiRoutes
 Update `src/api/Tools/Notes/Functions/NotesFunction.cs`:
 
 ```csharp
-using DynamisReferenceApp.Api.Core.Versioning;
+using Cadence.Api.Core.Versioning;
 
-namespace DynamisReferenceApp.Api.Tools.Notes.Functions;
+namespace Cadence.Api.Tools.Notes.Functions;
 
 /// <summary>
 /// V1 Notes API endpoints.
@@ -337,7 +337,7 @@ Update your OpenAPI spec to document versions:
 ```yaml
 openapi: 3.0.3
 info:
-  title: Dynamis Reference App API
+  title: Cadence API
   version: "1.0"
   description: |
     ## API Versioning

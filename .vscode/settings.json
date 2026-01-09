@@ -1,6 +1,6 @@
 {
   // ==========================================================================
-  // Dynamis Reference App - VS Code Settings
+  // Cadence - VS Code Settings
   // ==========================================================================
 
   // Editor settings
@@ -121,7 +121,7 @@
   "typescript.updateImportsOnFileMove.enabled": "always",
 
   // .NET / C#
-  "dotnet.defaultSolution": "dynamis-reference-app.sln",
+  "dotnet.defaultSolution": "cadence.sln",
   "omnisharp.enableRoslynAnalyzers": true,
   "omnisharp.enableEditorConfigSupport": true,
 
@@ -136,5 +136,5 @@
   // ==========================================================================
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.cwd": "${workspaceFolder}",
-  "cSpell.words": ["Dynamis", "Toastify", "winget"]
+  "cSpell.words": ["Cadence", "Toastify", "winget"]
 }

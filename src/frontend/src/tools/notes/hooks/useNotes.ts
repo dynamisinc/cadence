@@ -135,9 +135,9 @@ export const useNotes = () => {
 
     // Cleanup subscriptions on unmount
     return () => {
-      off('noteCreated', handleNoteCreated)
-      off('noteUpdated', handleNoteUpdated)
-      off('noteDeleted', handleNoteDeleted)
+      off('noteCreated', handleNoteCreated as (...args: unknown[]) => void)
+      off('noteUpdated', handleNoteUpdated as (...args: unknown[]) => void)
+      off('noteDeleted', handleNoteDeleted as (...args: unknown[]) => void)
     }
   }, [signalRUrl, connectionState, on, off, fetchNotes])
 

@@ -3,7 +3,7 @@
 > **Version:** 1.0.0
 > **Last Updated:** 2025-12-04
 
-This guide covers deploying the Dynamis Reference App to Azure, including all required resources and configuration.
+This guide covers deploying the Cadence to Azure, including all required resources and configuration.
 
 ---
 
@@ -178,7 +178,7 @@ az storage account create \
 SQL_SERVER_NAME="dynamis-sql-server"  # Must be globally unique
 SQL_ADMIN="sqladmin"
 SQL_PASSWORD="YourSecurePassword123!"  # Change this!
-SQL_DB_NAME="DynamisReferenceApp"
+SQL_DB_NAME="Cadence"
 
 # Create SQL Server
 az sql server create \

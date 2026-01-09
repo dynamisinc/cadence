@@ -89,24 +89,25 @@ export const useSignalR = (options: UseSignalROptions = {}): UseSignalRReturn =>
   const createConnection = useCallback(() => {
     const negotiateUrl = getNegotiateUrl(hubUrl)
 
-    const connectionBuilder = new signalR.HubConnectionBuilder()
+    let builder = new signalR.HubConnectionBuilder()
       .withUrl(negotiateUrl, {
         headers: userId ? { 'x-user-id': userId } : undefined,
       })
-      .withAutomaticReconnect(
-        autoReconnect
-          ? {
-            nextRetryDelayInMilliseconds: retryContext => {
-              // Exponential backoff: 0s, 2s, 4s, 8s, 16s, max 30s
-              const delay = Math.min(
-                Math.pow(2, retryContext.previousRetryCount) * 1000,
-                30000,
-              )
-              return delay
-            },
-          }
-          : undefined,
-      )
+
+    if (autoReconnect) {
+      builder = builder.withAutomaticReconnect({
+        nextRetryDelayInMilliseconds: (retryContext: signalR.RetryContext) => {
+          // Exponential backoff: 0s, 2s, 4s, 8s, 16s, max 30s
+          const delay = Math.min(
+            Math.pow(2, retryContext.previousRetryCount) * 1000,
+            30000,
+          )
+          return delay
+        },
+      })
+    }
+
+    const connectionBuilder = builder
       .configureLogging(
         import.meta.env.DEV ? signalR.LogLevel.Information : signalR.LogLevel.Warning,
       )
@@ -183,7 +184,7 @@ export const useSignalR = (options: UseSignalROptions = {}): UseSignalRReturn =>
   const on = useCallback(
     <T = unknown>(eventName: string, callback: (data: T) => void) => {
       if (connectionRef.current) {
-        connectionRef.current.on(eventName, callback)
+        connectionRef.current.on(eventName, callback as (...args: unknown[]) => void)
       }
     },
     [],

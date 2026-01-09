@@ -3,7 +3,7 @@ import { alpha, createTheme } from '@mui/material/styles'
 /**
  * COBRA C5 Design System - Material-UI 7 Theme
  *
- * Standardized theme configuration for Dynamis applications
+ * Standardized theme configuration for Cadence applications
  * Based on cobra-styling-package patterns
  *
  * Key Design Principles:

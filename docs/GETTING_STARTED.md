@@ -3,7 +3,7 @@
 > **Version:** 1.0.0
 > **Last Updated:** 2025-12-04
 
-Welcome to the Dynamis Reference App template! This guide will help you set up your development environment and start building.
+Welcome to the Cadence template! This guide will help you set up your development environment and start building.
 
 ---
 
@@ -100,7 +100,7 @@ You can run the backend as either Azure Functions (Serverless) or a standard Web
 **Option A: Azure Functions (Serverless)**
 
 ```bash
-cd src/Dynamis.Functions
+cd src/Cadence.Functions
 
 # Copy the example local settings
 cp local.settings.example.json local.settings.json
@@ -116,7 +116,7 @@ dotnet restore
 dotnet tool restore
 
 # Apply database migrations (point to WebApi project for design-time context)
-# dotnet ef database update --project ../Dynamis.WebApi
+# dotnet ef database update --project ../Cadence.WebApi
 
 # Start the Azure Functions host
 func start
@@ -125,7 +125,7 @@ func start
 **Option B: Web API (App Service)**
 
 ```bash
-cd src/Dynamis.WebApi
+cd src/Cadence.WebApi
 
 # Update appsettings.json with your connection string if needed
 # (Default uses localdb)
@@ -185,21 +185,21 @@ Try the Notes feature to see everything working together.
 ```
 my-app/
 ├── src/
-│   ├── Dynamis.Core/           # Business logic & Domain models
+│   ├── Cadence.Core/           # Business logic & Domain models
 │   │   ├── Data/               # EF Core DbContext
 │   │   ├── Features/           # Feature modules (Tools)
 │   │   │   └── Notes/          # Sample feature
 │   │   └── Shared/             # Shared infrastructure
 │   │
-│   ├── Dynamis.Functions/      # Azure Functions Host
+│   ├── Cadence.Functions/      # Azure Functions Host
 │   │   ├── Functions/          # HTTP Triggers
 │   │   └── Program.cs          # Host configuration
 │   │
-│   ├── Dynamis.WebApi/         # ASP.NET Core Web API Host
+│   ├── Cadence.WebApi/         # ASP.NET Core Web API Host
 │   │   ├── Controllers/        # API Controllers
 │   │   └── Program.cs          # Host configuration
 │   │
-│   ├── Dynamis.Tests/          # Shared test infrastructure
+│   ├── Cadence.Tests/          # Shared test infrastructure
 │   │
 │   └── frontend/               # Frontend (React + TypeScript)
 │       └── src/
@@ -220,7 +220,7 @@ my-app/
 
 2. **COBRA Styling:** All UI components use the COBRA design system. Never use raw MUI components - always use the styled versions from `@/theme/styledComponents`.
 
-3. **Service Layer:** Business logic lives in `Dynamis.Core` (backend) and custom hooks in `hooks/` (frontend). This ensures logic is decoupled from the hosting model (Functions vs Web API).
+3. **Service Layer:** Business logic lives in `Cadence.Core` (backend) and custom hooks in `hooks/` (frontend). This ensures logic is decoupled from the hosting model (Functions vs Web API).
 
 ---
 
@@ -308,7 +308,7 @@ src/api/Tools/Tasks/
 
 ```csharp
 // Tools/Tasks/Models/Entities/TaskItem.cs
-namespace DynamisReferenceApp.Api.Tools.Tasks.Models.Entities;
+namespace Cadence.Api.Tools.Tasks.Models.Entities;
 
 public class TaskItem
 {
@@ -346,7 +346,7 @@ dotnet ef database update
 
 ```csharp
 // Tools/Tasks/Models/DTOs/TaskDto.cs
-namespace DynamisReferenceApp.Api.Tools.Tasks.Models.DTOs;
+namespace Cadence.Api.Tools.Tasks.Models.DTOs;
 
 public record TaskDto(
     string Id,

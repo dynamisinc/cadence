@@ -123,7 +123,7 @@ Create `src/api/Core/RateLimiting/RateLimiterService.cs`:
 ```csharp
 using StackExchange.Redis;
 
-namespace DynamisReferenceApp.Api.Core.RateLimiting;
+namespace Cadence.Api.Core.RateLimiting;
 
 public interface IRateLimiterService
 {
@@ -287,9 +287,9 @@ Create `src/api/Core/Middleware/RateLimitingMiddleware.cs`:
 ```csharp
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
-using DynamisReferenceApp.Api.Core.RateLimiting;
+using Cadence.Api.Core.RateLimiting;
 
-namespace DynamisReferenceApp.Api.Core.Middleware;
+namespace Cadence.Api.Core.Middleware;
 
 public class RateLimitingMiddleware : IFunctionsWorkerMiddleware
 {

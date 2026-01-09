@@ -1,5 +1,5 @@
 /**
- * Shared TypeScript types for Dynamis Reference App
+ * Shared TypeScript types for Cadence
  */
 
 /**

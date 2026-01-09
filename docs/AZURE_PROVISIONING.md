@@ -4,7 +4,7 @@
 > **Estimated Time:** 30-45 minutes
 > **Estimated Cost:** ~$6-15/month for development workloads
 
-This guide walks you through creating and configuring all Azure resources needed to run the Dynamis Reference App. No prior Azure experience required.
+This guide walks you through creating and configuring all Azure resources needed to run the Cadence. No prior Azure experience required.
 
 ---
 

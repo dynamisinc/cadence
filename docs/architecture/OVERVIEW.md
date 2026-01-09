@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This document describes the high-level architecture of the Dynamis Reference App.
+This document describes the high-level architecture of the Cadence.
 
 ---
 

@@ -36,20 +36,25 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore src/api/Api.csproj
+        run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
 
       - name: Build
-        run: dotnet build src/api/Api.csproj --no-restore --configuration Release
+        run: dotnet build src/Cadence.WebApi/Cadence.WebApi.csproj --no-restore --configuration Release
 
-      - name: Run tests
-        run: dotnet test src/api.Tests/Api.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=test-results.trx"
+      - name: Run Core tests
+        run: dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=core-test-results.trx"
+
+      - name: Run WebApi tests
+        run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=webapi-test-results.trx"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: backend-test-results
-          path: src/api.Tests/TestResults/*.trx
+          path: |
+            src/Cadence.Core.Tests/TestResults/*.trx
+            src/Cadence.WebApi.Tests/TestResults/*.trx
 
   build-frontend:
     name: Build & Test Frontend
@@ -113,7 +118,7 @@ jobs:
       - name: Run dotnet security scan
         run: |
           dotnet tool install --global security-scan || true
-          dotnet list src/api/Api.csproj package --vulnerable --include-transitive
+          dotnet list src/Cadence.WebApi/Cadence.WebApi.csproj package --vulnerable --include-transitive
         continue-on-error: true
 
   all-checks-passed:

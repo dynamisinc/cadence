@@ -3,7 +3,7 @@
 > **Version:** 1.0.0
 > **Last Updated:** 2025-12-04
 
-This document describes the COBRA styling system used throughout Dynamis applications. All frontend code must follow these guidelines for visual consistency.
+This document describes the COBRA styling system used throughout Cadence applications. All frontend code must follow these guidelines for visual consistency.
 
 ---
 
@@ -22,7 +22,7 @@ This document describes the COBRA styling system used throughout Dynamis applica
 
 ## Overview
 
-COBRA (COnsistent BRand Architecture) is Dynamis's standardized styling system built on Material-UI (MUI). It ensures visual consistency across all Dynamis applications while maintaining accessibility standards.
+COBRA (COnsistent BRand Architecture) is Cadence's standardized styling system built on Material-UI (MUI). It ensures visual consistency across all Cadence applications while maintaining accessibility standards.
 
 ### Design Principles
 

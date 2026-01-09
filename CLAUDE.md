@@ -29,7 +29,7 @@ A **GitHub template repository** for building modern web applications with:
 - CI/CD via GitHub Actions
 
 ### Template Purpose
-This template provides a starting point for Dynamis projects with:
+This template provides a starting point for Cadence projects with:
 - Pre-configured COBRA design system
 - Structured logging with optional Application Insights
 - Modular "tools" architecture for feature isolation
@@ -105,7 +105,7 @@ The template includes a complete "Notes" feature demonstrating:
 ## Project Structure
 
 ```
-dynamis-reference-app/
+cadence/
 ├── .github/
 │   ├── workflows/              # CI/CD pipelines
 │   │   ├── ci.yml              # PR validation
@@ -233,8 +233,8 @@ dynamis-reference-app/
 
 #### 1. Clone and Configure
 ```bash
-git clone https://github.com/dynamisinc/dynamis-reference-app.git
-cd dynamis-reference-app
+git clone https://github.com/cadence/cadence.git
+cd cadence
 ```
 
 #### 2. Backend Setup
@@ -245,7 +245,7 @@ cd src/api
 cp local.settings.example.json local.settings.json
 
 # Edit local.settings.json with your connection string:
-# "ConnectionStrings:DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=DynamisReferenceApp;..."
+# "ConnectionStrings:DefaultConnection": "Server=(localdb)\\MSSQLLocalDB;Database=Cadence;..."
 
 # Restore packages
 dotnet restore
@@ -670,7 +670,7 @@ src/api/Tools/YourTool/
 #### 2. Create Entity
 ```csharp
 // Models/Entities/YourEntity.cs
-namespace DynamisReferenceApp.Api.Tools.YourTool.Models.Entities;
+namespace Cadence.Api.Tools.YourTool.Models.Entities;
 
 public class YourEntity
 {

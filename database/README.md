@@ -18,7 +18,7 @@ sqllocaldb start MSSQLLocalDB
 
 Connection string:
 ```
-Server=(localdb)\MSSQLLocalDB;Database=DynamisApp;Trusted_Connection=True;
+Server=(localdb)\MSSQLLocalDB;Database=Cadence;Trusted_Connection=True;
 ```
 
 **Option 2: SQL Server Docker**
@@ -31,7 +31,7 @@ docker run -e "ACCEPT_EULA=Y" -e "SA_PASSWORD=YourStrong!Passw0rd" \
 
 Connection string:
 ```
-Server=localhost,1433;Database=DynamisApp;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
+Server=localhost,1433;Database=Cadence;User Id=sa;Password=YourStrong!Passw0rd;TrustServerCertificate=True;
 ```
 
 **Option 3: Azure SQL (Free Tier)**

@@ -40,7 +40,7 @@ const HomePage = () => {
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
       <Typography variant="h4" gutterBottom>
-        Welcome to Dynamis Reference App
+        Welcome to Cadence
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
         This is a template application demonstrating COBRA styling patterns.

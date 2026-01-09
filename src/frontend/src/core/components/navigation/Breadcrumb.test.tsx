@@ -8,7 +8,7 @@
  * - Home icon display
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent } from '../../../test/testUtils'
 import { Breadcrumb, type BreadcrumbItem } from './Breadcrumb'
 import { faHome, faStickyNote } from '@fortawesome/free-solid-svg-icons'

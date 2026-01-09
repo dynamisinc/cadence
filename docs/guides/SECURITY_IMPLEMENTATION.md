@@ -4,7 +4,7 @@
 > **Priority:** Critical for Production
 > **Prerequisite:** A Microsoft Entra ID (formerly Azure AD) tenant.
 
-This guide outlines the steps to upgrade the Dynamis Reference App from "Dev Mode" (mock auth) to "Production Mode" (Entra ID).
+This guide outlines the steps to upgrade the Cadence from "Dev Mode" (mock auth) to "Production Mode" (Entra ID).
 
 ---
 
@@ -145,9 +145,9 @@ public async Task<IActionResult> CreateNote(
 
 ## Phase 3: Role-Based Access Control (RBAC)
 
-1.  **Define App Roles** in the Entra ID App Registration manifest (e.g., `Dynamis.Contributor`, `Dynamis.Admin`).
+1.  **Define App Roles** in the Entra ID App Registration manifest (e.g., `Cadence.Contributor`, `Cadence.Admin`).
 2.  **Assign Users** to these roles in the Enterprise Application blade.
 3.  **Check Roles** in code:
     ```csharp
-    if (!user.IsInRole("Dynamis.Admin")) return new ForbidResult();
+    if (!user.IsInRole("Cadence.Admin")) return new ForbidResult();
     ```

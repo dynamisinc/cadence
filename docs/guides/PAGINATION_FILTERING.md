@@ -71,7 +71,7 @@ Response:
 Create `src/api/Core/Models/PaginationParameters.cs`:
 
 ```csharp
-namespace DynamisReferenceApp.Api.Core.Models;
+namespace Cadence.Api.Core.Models;
 
 /// <summary>
 /// Common query parameters for paginated list endpoints.
@@ -141,7 +141,7 @@ public class PaginationParameters
 Create `src/api/Core/Models/PaginatedResponse.cs`:
 
 ```csharp
-namespace DynamisReferenceApp.Api.Core.Models;
+namespace Cadence.Api.Core.Models;
 
 /// <summary>
 /// Wrapper for paginated API responses.
@@ -191,7 +191,7 @@ Create `src/api/Core/Extensions/QueryableExtensions.cs`:
 ```csharp
 using System.Linq.Expressions;
 
-namespace DynamisReferenceApp.Api.Core.Extensions;
+namespace Cadence.Api.Core.Extensions;
 
 public static class QueryableExtensions
 {

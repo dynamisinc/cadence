@@ -1,14 +1,10 @@
 name: Deploy Backend
 
 on:
-  push:
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
     branches: [main]
-    paths:
-      - "src/Dynamis.Functions/**"
-      - "src/Dynamis.WebApi/**"
-      - "src/Dynamis.Core/**"
-      - "src/Dynamis.Tests/**"
-      - ".github/workflows/deploy-backend.yml"
   workflow_dispatch:
     inputs:
       environment:
@@ -19,32 +15,67 @@ on:
         options:
           - production
           - staging
-      hosting_model:
-        description: "Hosting Model"
-        required: true
-        default: "webapi"
-        type: choice
-        options:
-          - functions
-          - webapi
-          - both
 
 env:
   DOTNET_VERSION: "10.0.x"
-  AZURE_FUNCTIONAPP_NAME: "func-refapp-dev"
-  AZURE_WEBAPP_NAME: "web-refapp-dev"
-  FUNCTIONS_PROJECT_PATH: "src/Dynamis.Functions"
-  WEBAPI_PROJECT_PATH: "src/Dynamis.WebApi"
-  HOSTING_MODEL: ${{ github.event.inputs.hosting_model || 'webapi' }}
+  AZURE_WEBAPP_NAME: "cadence-api"  # TODO: Update with your Azure Web App name
+  WEBAPI_PROJECT_PATH: "src/Cadence.WebApi"
 
 concurrency:
   group: deploy-backend-${{ github.ref }}
   cancel-in-progress: false
 
 jobs:
+  check-changes:
+    name: Check for Backend Changes
+    runs-on: ubuntu-latest
+    if: ${{ github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success' }}
+    outputs:
+      backend_changed: ${{ steps.changes.outputs.backend }}
+      migrations_changed: ${{ steps.changes.outputs.migrations }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Get changed files
+        id: changes
+        run: |
+          # For workflow_run, compare the head commit with its parent
+          if [ "${{ github.event_name }}" == "workflow_run" ]; then
+            BASE_SHA="${{ github.event.workflow_run.head_commit.id }}~1"
+            HEAD_SHA="${{ github.event.workflow_run.head_commit.id }}"
+          else
+            # For manual trigger, always deploy
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "migrations=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          # Check for backend changes (including test projects)
+          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.(Core|WebApi)(\.Tests)?/'; then
+            echo "backend=true" >> $GITHUB_OUTPUT
+            echo "Backend changes detected"
+          else
+            echo "backend=false" >> $GITHUB_OUTPUT
+            echo "No backend changes detected"
+          fi
+
+          # Check specifically for migration changes
+          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.Core/Migrations/'; then
+            echo "migrations=true" >> $GITHUB_OUTPUT
+            echo "Migration changes detected"
+          else
+            echo "migrations=false" >> $GITHUB_OUTPUT
+            echo "No migration changes detected"
+          fi
+
   build:
     name: Build Backend
     runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.backend_changed == 'true'
 
     steps:
       - name: Checkout code
@@ -55,51 +86,22 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore Functions dependencies
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        run: dotnet restore ${{ env.FUNCTIONS_PROJECT_PATH }}/Dynamis.Functions.csproj
-
       - name: Restore WebApi dependencies
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
-        run: dotnet restore ${{ env.WEBAPI_PROJECT_PATH }}/Dynamis.WebApi.csproj
-
-      - name: Build Functions
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        run: dotnet build ${{ env.FUNCTIONS_PROJECT_PATH }}/Dynamis.Functions.csproj --configuration Release --no-restore
+        run: dotnet restore ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj
 
       - name: Build WebApi
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
-        run: dotnet build ${{ env.WEBAPI_PROJECT_PATH }}/Dynamis.WebApi.csproj --configuration Release --no-restore
+        run: dotnet build ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --no-restore
 
       - name: Run Core tests
-        run: dotnet test src/Dynamis.Core.Tests/Dynamis.Core.Tests.csproj --configuration Release --verbosity normal
-
-      - name: Run Functions tests
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        run: dotnet test src/Dynamis.Functions.Tests/Dynamis.Functions.Tests.csproj --configuration Release --verbosity normal
+        run: dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj --configuration Release --verbosity normal
 
       - name: Run WebApi tests
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
-        run: dotnet test src/Dynamis.WebApi.Tests/Dynamis.WebApi.Tests.csproj --configuration Release --verbosity normal
-
-      - name: Publish Functions
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        run: dotnet publish ${{ env.FUNCTIONS_PROJECT_PATH }}/Dynamis.Functions.csproj --configuration Release --output ./publish/functions
+        run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --configuration Release --verbosity normal
 
       - name: Publish WebApi
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
-        run: dotnet publish ${{ env.WEBAPI_PROJECT_PATH }}/Dynamis.WebApi.csproj --configuration Release --output ./publish/webapi
-
-      - name: Upload Functions artifact
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        uses: actions/upload-artifact@v4
-        with:
-          name: functions-app
-          path: ./publish/functions
-          retention-days: 1
+        run: dotnet publish ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --output ./publish/webapi
 
       - name: Upload WebApi artifact
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
         uses: actions/upload-artifact@v4
         with:
           name: web-api
@@ -109,37 +111,51 @@ jobs:
   deploy:
     name: Deploy Backend
     runs-on: ubuntu-latest
-    needs: build
+    needs: [check-changes, build]
     environment:
       name: ${{ github.event.inputs.environment || 'production' }}
       url: ${{ steps.deploy-webapi.outputs.webapp-url }}
 
     steps:
-      - name: Download Functions artifact
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        uses: actions/download-artifact@v4
+      - name: Checkout code (for migrations)
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup .NET (for migrations)
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        uses: actions/setup-dotnet@v4
         with:
-          name: functions-app
-          path: ./functions-app
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install EF Core tools
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: |
+          dotnet tool install --global dotnet-ef || dotnet tool update --global dotnet-ef
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      - name: Restore dependencies (for migrations)
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
+
+      - name: Apply EF Core migrations
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: |
+          echo "Applying EF Core migrations to database..."
+          ~/.dotnet/tools/dotnet-ef database update \
+            --project src/Cadence.Core/Cadence.Core.csproj \
+            --startup-project src/Cadence.WebApi/Cadence.WebApi.csproj \
+            --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" \
+            --verbose
+        env:
+          DOTNET_ENVIRONMENT: Production
 
       - name: Download WebApi artifact
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
         uses: actions/download-artifact@v4
         with:
           name: web-api
           path: ./web-api
 
-      - name: Deploy to Azure Functions
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        id: deploy-functions
-        uses: Azure/functions-action@v1
-        with:
-          app-name: ${{ env.AZURE_FUNCTIONAPP_NAME }}
-          package: ./functions-app
-          publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
-
       - name: Deploy to Azure Web App
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
         id: deploy-webapi
         uses: azure/webapps-deploy@v3
         with:
@@ -147,24 +163,35 @@ jobs:
           package: ./web-api
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 
-      - name: Health check (Functions)
-        if: env.HOSTING_MODEL == 'functions' || env.HOSTING_MODEL == 'both'
-        run: |
-          sleep 30
-          response=$(curl -s -o /dev/null -w "%{http_code}" "https://${{ env.AZURE_FUNCTIONAPP_NAME }}.azurewebsites.net/api/health" || echo "000")
-          if [ "$response" != "200" ]; then
-            echo "Functions health check failed with status: $response"
-            # Don't fail yet, check WebApi too
-          else
-            echo "Functions health check passed!"
-          fi
-
       - name: Health check (WebApi)
-        if: env.HOSTING_MODEL == 'webapi' || env.HOSTING_MODEL == 'both'
         run: |
-          response=$(curl -s -o /dev/null -w "%{http_code}" "https://${{ env.AZURE_WEBAPP_NAME }}.azurewebsites.net/health" || echo "000")
-          if [ "$response" != "200" ]; then
-            echo "WebApi health check failed with status: $response"
-            exit 1
-          fi
-          echo "WebApi health check passed!"
+          WEBAPP_URL="${{ steps.deploy-webapi.outputs.webapp-url }}"
+          echo "Checking health at: ${WEBAPP_URL}/api/health"
+          echo "Waiting 60 seconds for app to warm up..."
+          sleep 60
+
+          # Retry up to 5 times with 15 second intervals
+          for i in 1 2 3 4 5; do
+            echo "Health check attempt $i..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health" || echo "000")
+            if [ "$response" = "200" ]; then
+              echo "WebApi health check passed!"
+              exit 0
+            fi
+            echo "Got status $response, waiting 15 seconds before retry..."
+            sleep 15
+          done
+
+          echo "WebApi health check failed after 5 attempts"
+          exit 1
+
+  skip-deploy:
+    name: Skip Backend Deploy (No Changes)
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.backend_changed == 'false'
+    steps:
+      - name: Log skip reason
+        run: |
+          echo "Skipping backend deployment - no backend file changes detected"
+          echo "To force a deployment, use workflow_dispatch manually"

@@ -62,9 +62,9 @@ Create `src/api/Tools/Notes/Validators/CreateNoteRequestValidator.cs`:
 
 ```csharp
 using FluentValidation;
-using DynamisReferenceApp.Api.Tools.Notes.Models.DTOs;
+using Cadence.Api.Tools.Notes.Models.DTOs;
 
-namespace DynamisReferenceApp.Api.Tools.Notes.Validators;
+namespace Cadence.Api.Tools.Notes.Validators;
 
 public class CreateNoteRequestValidator : AbstractValidator<CreateNoteRequest>
 {
@@ -125,7 +125,7 @@ Create `src/api/Core/Validation/ValidationService.cs`:
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace DynamisReferenceApp.Api.Core.Validation;
+namespace Cadence.Api.Core.Validation;
 
 /// <summary>
 /// Centralized validation service for request DTOs.
@@ -746,10 +746,10 @@ Create `src/api.Tests/Validators/CreateNoteRequestValidatorTests.cs`:
 ```csharp
 using FluentAssertions;
 using FluentValidation.TestHelper;
-using DynamisReferenceApp.Api.Tools.Notes.Models.DTOs;
-using DynamisReferenceApp.Api.Tools.Notes.Validators;
+using Cadence.Api.Tools.Notes.Models.DTOs;
+using Cadence.Api.Tools.Notes.Validators;
 
-namespace DynamisReferenceApp.Api.Tests.Validators;
+namespace Cadence.Api.Tests.Validators;
 
 public class CreateNoteRequestValidatorTests
 {

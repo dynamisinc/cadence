@@ -131,7 +131,7 @@ Create `src/api/Core/Middleware/SecurityHeadersMiddleware.cs`:
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace DynamisReferenceApp.Api.Core.Middleware;
+namespace Cadence.Api.Core.Middleware;
 
 /// <summary>
 /// Adds security headers to all HTTP responses.
@@ -199,7 +199,7 @@ Create `src/api/Core/Middleware/CorsMiddleware.cs`:
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace DynamisReferenceApp.Api.Core.Middleware;
+namespace Cadence.Api.Core.Middleware;
 
 /// <summary>
 /// Custom CORS middleware with more control than Azure Functions built-in CORS.

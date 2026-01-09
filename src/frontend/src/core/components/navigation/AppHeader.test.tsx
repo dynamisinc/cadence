@@ -43,7 +43,7 @@ describe('AppHeader', () => {
 
       const title = screen.getByTestId('app-title')
       expect(title).toBeInTheDocument()
-      expect(title).toHaveTextContent('Dynamis Reference App')
+      expect(title).toHaveTextContent('Cadence')
     })
 
     it('renders mobile menu toggle button', () => {

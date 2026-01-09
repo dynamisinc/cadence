@@ -3,7 +3,7 @@
 > **Version:** 1.0.0
 > **Last Updated:** 2025-12-04
 
-This document defines the coding standards and conventions for the Dynamis Reference App template. All code contributions should follow these guidelines.
+This document defines the coding standards and conventions for the Cadence template. All code contributions should follow these guidelines.
 
 ---
 
@@ -59,7 +59,7 @@ Tools/
 
 | Element | Convention | Example |
 |---------|------------|---------|
-| Namespace | PascalCase, match folder | `DynamisReferenceApp.Api.Tools.Notes` |
+| Namespace | PascalCase, match folder | `Cadence.Api.Tools.Notes` |
 | Class | PascalCase, noun | `NotesService` |
 | Interface | IPascalCase | `INotesService` |
 | Method | PascalCase, verb | `GetAllAsync()` |
@@ -83,7 +83,7 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Logging;
 
 // File-scoped namespaces (C# 10+)
-namespace DynamisReferenceApp.Api.Tools.Notes.Services;
+namespace Cadence.Api.Tools.Notes.Services;
 
 public class NotesService { }
 ```

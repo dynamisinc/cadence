@@ -63,7 +63,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         <Box
           component="img"
           src="/dynamis-logo.jpg"
-          alt="Dynamis Logo"
+          alt="Cadence Logo"
           data-testid="app-logo"
           sx={{
             height: 40,
@@ -86,7 +86,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             pl: { xs: 1, md: 2 },
           }}
         >
-          Dynamis Reference App
+          Cadence
         </Typography>
 
         {/* Profile Menu */}
