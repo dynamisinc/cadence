@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     This script:
-    1. Stops any existing API processes on port 5050
+    1. Stops any existing API processes on port 5071
     2. Creates timestamped log files for both frontend and backend
     3. Starts the backend API with verbose logging
     4. Starts the frontend dev server with verbose logging
@@ -241,7 +241,7 @@ Register-EngineEvent -SourceIdentifier PowerShell.Exiting -Action { Stop-DevEnvi
 try {
     # Stop existing processes
     Write-Step "Stopping Existing Processes"
-    Stop-ProcessOnPort -Port 5050  # Backend API
+    Stop-ProcessOnPort -Port 5071  # Backend API
     Stop-ProcessOnPort -Port 5173  # Frontend Vite
 
     # Give ports time to release
@@ -294,7 +294,7 @@ dotnet run --launch-profile http --no-build 2>&1 | Tee-Object -FilePath `$LogFil
         Log-Message "Backend process started with PID: $($script:BackendProcess.Id)"
 
         # Wait for backend to be ready
-        $backendReady = Wait-ForPort -Port 5050 -TimeoutSeconds 120 -ServiceName "Backend API"
+        $backendReady = Wait-ForPort -Port 5071 -TimeoutSeconds 120 -ServiceName "Backend API"
 
         if (-not $backendReady) {
             Write-Error "Backend failed to start. Check log: $BackendLog"
@@ -376,9 +376,9 @@ npm run dev 2>&1 | Tee-Object -FilePath `$LogFile -Append
     }
     if (-not $SkipBackend) {
         Write-Host "  Backend:   " -NoNewline -ForegroundColor White
-        Write-Host "http://localhost:5050" -ForegroundColor Green
+        Write-Host "http://localhost:5071" -ForegroundColor Green
         Write-Host "  API Docs:  " -NoNewline -ForegroundColor White
-        Write-Host "http://localhost:5050/api/docs" -ForegroundColor Green
+        Write-Host "http://localhost:5071/scalar/v1" -ForegroundColor Green
     }
     Write-Host ""
     Write-Info "Log Files:"
@@ -402,7 +402,7 @@ npm run dev 2>&1 | Tee-Object -FilePath `$LogFile -Append
 
     Log-Message "Development environment ready"
     Log-Message "Frontend URL: http://localhost:$($script:FrontendPort)"
-    Log-Message "Backend URL: http://localhost:5050"
+    Log-Message "Backend URL: http://localhost:5071"
 
     # Keep script running and monitor processes
     while ($true) {

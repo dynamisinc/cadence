@@ -4,7 +4,7 @@
 
 .DESCRIPTION
     This script stops:
-    1. Backend API (dotnet processes on port 5050)
+    1. Backend API (dotnet processes on port 5071)
     2. Frontend dev server (node/vite processes on port 5173)
     3. Any orphaned node processes related to the project
 
@@ -21,22 +21,22 @@ function Write-Warning { param($Message) Write-Host "[WARNING] $Message" -Foregr
 Write-Host "`n=== Stopping Cadence Development Environment ===" -ForegroundColor Magenta
 Write-Host ""
 
-# Stop processes on port 5050 (Backend)
-Write-Info "Checking for backend processes on port 5050..."
+# Stop processes on port 5071 (Backend)
+Write-Info "Checking for backend processes on port 5071..."
 try {
-    $backendConnections = Get-NetTCPConnection -LocalPort 5050 -ErrorAction SilentlyContinue
+    $backendConnections = Get-NetTCPConnection -LocalPort 5071 -ErrorAction SilentlyContinue
     if ($backendConnections) {
         $processIds = $backendConnections | Select-Object -ExpandProperty OwningProcess -Unique
         foreach ($procId in $processIds) {
             $process = Get-Process -Id $procId -ErrorAction SilentlyContinue
             if ($process) {
-                Write-Warning "Stopping $($process.ProcessName) (PID: $procId) on port 5050"
+                Write-Warning "Stopping $($process.ProcessName) (PID: $procId) on port 5071"
                 Stop-Process -Id $procId -Force -ErrorAction SilentlyContinue
             }
         }
         Write-Success "Backend processes stopped"
     } else {
-        Write-Info "No backend processes found on port 5050"
+        Write-Info "No backend processes found on port 5071"
     }
 } catch {
     Write-Info "No backend processes to stop"
@@ -94,13 +94,13 @@ Start-Sleep -Seconds 1
 Write-Host ""
 Write-Info "Verifying ports are released..."
 
-$port5050Free = $null -eq (Get-NetTCPConnection -LocalPort 5050 -ErrorAction SilentlyContinue)
+$port5071Free = $null -eq (Get-NetTCPConnection -LocalPort 5071 -ErrorAction SilentlyContinue)
 $port5173Free = $null -eq (Get-NetTCPConnection -LocalPort 5173 -ErrorAction SilentlyContinue)
 
-if ($port5050Free) {
-    Write-Success "Port 5050 is free"
+if ($port5071Free) {
+    Write-Success "Port 5071 is free"
 } else {
-    Write-Warning "Port 5050 may still be in use"
+    Write-Warning "Port 5071 may still be in use"
 }
 
 if ($port5173Free) {
