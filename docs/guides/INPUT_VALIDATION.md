@@ -58,13 +58,13 @@ dotnet add package FluentValidation.DependencyInjectionExtensions
 
 ### Step 2: Create Validators
 
-Create `src/api/Tools/Notes/Validators/CreateNoteRequestValidator.cs`:
+Create `src/Cadence.Core/Features/Notes/Validators/CreateNoteRequestValidator.cs`:
 
 ```csharp
 using FluentValidation;
-using Cadence.Api.Tools.Notes.Models.DTOs;
+using Cadence.Core.Features.Notes.Models.DTOs;
 
-namespace Cadence.Api.Tools.Notes.Validators;
+namespace Cadence.Core.Features.Notes.Validators;
 
 public class CreateNoteRequestValidator : AbstractValidator<CreateNoteRequest>
 {
@@ -119,13 +119,13 @@ public class UpdateNoteRequestValidator : AbstractValidator<UpdateNoteRequest>
 
 ### Step 3: Create Validation Service
 
-Create `src/api/Core/Validation/ValidationService.cs`:
+Create `src/Cadence.Core/Validation/ValidationService.cs`:
 
 ```csharp
 using FluentValidation;
 using FluentValidation.Results;
 
-namespace Cadence.Api.Core.Validation;
+namespace Cadence.Core.Validation;
 
 /// <summary>
 /// Centralized validation service for request DTOs.
@@ -189,7 +189,7 @@ public class ValidationError
 
 ### Step 4: Register Validators
 
-Update `src/api/Core/Extensions/ServiceCollectionExtensions.cs`:
+Update `src/Cadence.Core/Extensions/ServiceCollectionExtensions.cs`:
 
 ```csharp
 using FluentValidation;
@@ -212,7 +212,7 @@ public static class ServiceCollectionExtensions
 
 ### Step 5: Use in Functions
 
-Update `src/api/Tools/Notes/Functions/NotesFunction.cs`:
+Update `src/Cadence.Functions/Functions/NotesFunction.cs`:
 
 ```csharp
 public class NotesFunction
@@ -312,7 +312,7 @@ npm install zod react-hook-form @hookform/resolvers
 
 ### Step 2: Create Validation Schemas
 
-Create `src/frontend/src/tools/notes/schemas/noteSchemas.ts`:
+Create `src/frontend/src/features/notes/schemas/noteSchemas.ts`:
 
 ```typescript
 import { z } from "zod";
@@ -358,7 +358,7 @@ export type UpdateNoteFormData = z.infer<typeof updateNoteSchema>;
 
 ### Step 3: Create Form Components
 
-Create `src/frontend/src/tools/notes/components/NoteForm.tsx`:
+Create `src/frontend/src/features/notes/components/NoteForm.tsx`:
 
 ```typescript
 import { useForm, Controller } from "react-hook-form";
@@ -741,15 +741,15 @@ tags: z.array(z.string().max(50, "Each tag cannot exceed 50 characters"))
 
 ### Backend Validator Tests
 
-Create `src/api.Tests/Validators/CreateNoteRequestValidatorTests.cs`:
+Create `src/Cadence.Core.Tests/Validators/CreateNoteRequestValidatorTests.cs`:
 
 ```csharp
 using FluentAssertions;
 using FluentValidation.TestHelper;
-using Cadence.Api.Tools.Notes.Models.DTOs;
-using Cadence.Api.Tools.Notes.Validators;
+using Cadence.Core.Features.Notes.Models.DTOs;
+using Cadence.Core.Features.Notes.Validators;
 
-namespace Cadence.Api.Tests.Validators;
+namespace Cadence.Core.Tests.Validators;
 
 public class CreateNoteRequestValidatorTests
 {
@@ -812,7 +812,7 @@ public class CreateNoteRequestValidatorTests
 
 ### Frontend Schema Tests
 
-Create `src/frontend/src/tools/notes/schemas/noteSchemas.test.ts`:
+Create `src/frontend/src/features/notes/schemas/noteSchemas.test.ts`:
 
 ```typescript
 import { describe, it, expect } from "vitest";

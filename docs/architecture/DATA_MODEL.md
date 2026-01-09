@@ -87,7 +87,7 @@ public override Task<int> SaveChangesAsync(CancellationToken cancellationToken =
 ### Entity Class
 
 ```csharp
-// src/api/Tools/Notes/Models/Entities/Note.cs
+// src/Cadence.Core/Features/Notes/Models/Entities/Note.cs
 public class Note : BaseEntity, ISoftDeletable
 {
     public string Title { get; set; } = string.Empty;
@@ -181,7 +181,7 @@ public class UpdateNoteRequest
 ### Entity ↔ DTO Conversion
 
 ```csharp
-// src/api/Tools/Notes/Mappers/NoteMapper.cs
+// src/Cadence.Core/Features/Notes/Mappers/NoteMapper.cs
 public static class NoteMapper
 {
     public static NoteDto ToDto(Note entity)
@@ -302,7 +302,7 @@ The app can auto-apply migrations on startup:
 ### Step 1: Create Entity Class
 
 ```csharp
-// src/api/Tools/YourTool/Models/Entities/YourEntity.cs
+// src/Cadence.Core/Features/YourFeature/Models/Entities/YourEntity.cs
 public class YourEntity : BaseEntity, ISoftDeletable
 {
     public string Name { get; set; } = string.Empty;
@@ -314,7 +314,7 @@ public class YourEntity : BaseEntity, ISoftDeletable
 ### Step 2: Add to DbContext
 
 ```csharp
-// src/api/Core/Data/AppDbContext.cs
+// src/Cadence.Core/Data/AppDbContext.cs
 public DbSet<YourEntity> YourEntities { get; set; }
 
 protected override void OnModelCreating(ModelBuilder modelBuilder)

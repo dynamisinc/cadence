@@ -39,7 +39,7 @@ This document defines the coding standards and conventions for the Cadence templ
 ### File Organization
 
 ```
-Tools/
+Features/
 └── FeatureName/
     ├── Functions/           # Azure Function triggers
     │   └── FeatureFunction.cs
@@ -263,7 +263,7 @@ public class Note
 ### File Organization
 
 ```
-tools/
+features/
 └── featureName/
     ├── components/           # Reusable components for this feature
     │   ├── FeatureCard.tsx
@@ -856,49 +856,49 @@ Common issues and solutions
 
 ---
 
-## Creating a New Tool
+## Creating a New Feature
 
-When creating a new tool (feature module), follow this checklist to ensure consistency with the existing codebase.
+When creating a new feature module, follow this checklist to ensure consistency with the existing codebase.
 
 ### 1. Backend Structure
 
-Create the folder structure under `src/api/Tools/YourTool/`:
+Create the folder structure under `src/Cadence.Core/Features/YourFeature/`:
 
 ```
-Tools/
-└── YourTool/
+Features/
+└── YourFeature/
     ├── Functions/
-    │   └── YourToolFunction.cs
+    │   └── YourFeatureFunction.cs
     ├── Models/
     │   ├── Entities/
     │   │   └── YourEntity.cs
     │   └── DTOs/
     │       └── YourEntityDto.cs
     ├── Services/
-    │   ├── IYourToolService.cs
-    │   └── YourToolService.cs
+    │   ├── IYourFeatureService.cs
+    │   └── YourFeatureService.cs
     └── Mappers/
         └── YourEntityMapper.cs
 ```
 
 ### 2. Frontend Structure
 
-Create the folder structure under `src/frontend/src/tools/yourTool/`:
+Create the folder structure under `src/frontend/src/features/yourFeature/`:
 
 ```
-tools/
-└── yourTool/
+features/
+└── yourFeature/
     ├── components/
     │   └── YourComponent.tsx
     ├── pages/
-    │   ├── YourToolPage.tsx
-    │   └── YourToolPage.test.tsx
+    │   ├── YourFeaturePage.tsx
+    │   └── YourFeaturePage.test.tsx
     ├── hooks/
-    │   ├── useYourTool.ts
-    │   └── useYourTool.test.ts
+    │   ├── useYourFeature.ts
+    │   └── useYourFeature.test.ts
     ├── services/
-    │   ├── yourToolService.ts
-    │   └── yourToolService.test.ts
+    │   ├── yourFeatureService.ts
+    │   └── yourFeatureService.test.ts
     └── types/
         └── index.ts
 ```
@@ -1000,7 +1000,7 @@ dotnet ef migrations add AddYourEntity
 dotnet ef database update
 ```
 
-### 8. New Tool Checklist
+### 8. New Feature Checklist
 
 Before submitting your PR:
 

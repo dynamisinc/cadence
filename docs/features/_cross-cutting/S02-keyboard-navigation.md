@@ -92,7 +92,7 @@ The EXIS analysis identified excessive clicking as a major UX pain point. Contro
 
 - Customizable keyboard shortcuts (Standard phase)
 - Vim-style modal commands (not planned)
-- Gamepad/controller input (not planned)
+- Gaming device input (not planned)
 - Voice commands (not planned)
 
 ## Dependencies

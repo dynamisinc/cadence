@@ -68,10 +68,10 @@ Response:
 
 ### Step 1: Create Query Parameters Model
 
-Create `src/api/Core/Models/PaginationParameters.cs`:
+Create `src/Cadence.Core/Models/PaginationParameters.cs`:
 
 ```csharp
-namespace Cadence.Api.Core.Models;
+namespace Cadence.Core.Models;
 
 /// <summary>
 /// Common query parameters for paginated list endpoints.
@@ -138,10 +138,10 @@ public class PaginationParameters
 
 ### Step 2: Create Paginated Response Model
 
-Create `src/api/Core/Models/PaginatedResponse.cs`:
+Create `src/Cadence.Core/Models/PaginatedResponse.cs`:
 
 ```csharp
-namespace Cadence.Api.Core.Models;
+namespace Cadence.Core.Models;
 
 /// <summary>
 /// Wrapper for paginated API responses.
@@ -186,12 +186,12 @@ public class PaginationMeta
 
 ### Step 3: Create Query Extensions
 
-Create `src/api/Core/Extensions/QueryableExtensions.cs`:
+Create `src/Cadence.Core/Extensions/QueryableExtensions.cs`:
 
 ```csharp
 using System.Linq.Expressions;
 
-namespace Cadence.Api.Core.Extensions;
+namespace Cadence.Core.Extensions;
 
 public static class QueryableExtensions
 {
@@ -296,7 +296,7 @@ public static class QueryableExtensions
 
 ### Step 4: Update Notes Service
 
-Update `src/api/Tools/Notes/Services/NotesService.cs`:
+Update `src/Cadence.Core/Features/Notes/Services/NotesService.cs`:
 
 ```csharp
 public interface INotesService
@@ -359,7 +359,7 @@ public class NotesService : INotesService
 
 ### Step 5: Update Notes Function
 
-Update `src/api/Tools/Notes/Functions/NotesFunction.cs`:
+Update `src/Cadence.Functions/Functions/NotesFunction.cs`:
 
 ```csharp
 [Function("GetNotes")]
@@ -445,7 +445,7 @@ export interface PaginatedResponse<T> {
 
 ### Step 2: Update Notes Service
 
-Update `src/frontend/src/tools/notes/services/notesService.ts`:
+Update `src/frontend/src/features/notes/services/notesService.ts`:
 
 ```typescript
 import { apiClient } from "@/core/services/api";
@@ -588,7 +588,7 @@ export const usePagination = (options: UsePaginationOptions = {}): UsePagination
 
 ### Step 4: Update Notes Hook
 
-Update `src/frontend/src/tools/notes/hooks/useNotes.ts`:
+Update `src/frontend/src/features/notes/hooks/useNotes.ts`:
 
 ```typescript
 import { useState, useEffect, useCallback } from "react";

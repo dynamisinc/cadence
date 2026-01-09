@@ -84,12 +84,12 @@ Click **"Use this template"** on GitHub, or clone and push to your own repo:
 
 ```bash
 # Clone the template
-git clone https://github.com/dynamisinc/dynamis-reference-app.git my-app
+git clone https://github.com/your-org/cadence.git my-app
 cd my-app
 
 # Remove template origin and add your own
 git remote remove origin
-git remote add origin https://github.com/your-org/my-app.git
+git remote add origin https://github.com/your-org/cadence.git
 git push -u origin main
 ```
 
@@ -205,7 +205,7 @@ my-app/
 │       └── src/
 │           ├── core/           # Infrastructure (API client)
 │           ├── shared/         # Shared hooks/components
-│           ├── tools/          # Feature modules
+│           ├── features/       # Feature modules
 │           │   └── notes/      # Sample feature
 │           └── theme/          # COBRA styling
 │
@@ -216,7 +216,7 @@ my-app/
 
 ### Key Concepts
 
-1. **Tools Architecture:** Features are organized as self-contained "tools" in both backend and frontend. This allows features to be developed independently and potentially extracted to separate services.
+1. **Features Architecture:** Features are organized as self-contained modules in both backend and frontend. This allows features to be developed independently and potentially extracted to separate services.
 
 2. **COBRA Styling:** All UI components use the COBRA design system. Never use raw MUI components - always use the styled versions from `@/theme/styledComponents`.
 
@@ -289,7 +289,7 @@ Let's walk through creating a new "Tasks" feature.
 #### 1. Create the folder structure
 
 ```
-src/api/Tools/Tasks/
+src/Cadence.Core/Features/Tasks/
 ├── Functions/
 │   └── TasksFunction.cs
 ├── Models/
@@ -307,8 +307,8 @@ src/api/Tools/Tasks/
 #### 2. Create the entity
 
 ```csharp
-// Tools/Tasks/Models/Entities/TaskItem.cs
-namespace Cadence.Api.Tools.Tasks.Models.Entities;
+// Features/Tasks/Models/Entities/TaskItem.cs
+namespace Cadence.Core.Features.Tasks.Models.Entities;
 
 public class TaskItem
 {
@@ -345,8 +345,8 @@ dotnet ef database update
 #### 5. Create DTO
 
 ```csharp
-// Tools/Tasks/Models/DTOs/TaskDto.cs
-namespace Cadence.Api.Tools.Tasks.Models.DTOs;
+// Features/Tasks/Models/DTOs/TaskDto.cs
+namespace Cadence.Core.Features.Tasks.Models.DTOs;
 
 public record TaskDto(
     string Id,
@@ -364,7 +364,7 @@ public record UpdateTaskDto(string Title, string? Description, bool IsCompleted)
 #### 6. Create service
 
 ```csharp
-// Tools/Tasks/Services/ITasksService.cs
+// Features/Tasks/Services/ITasksService.cs
 public interface ITasksService
 {
     Task<List<TaskDto>> GetAllAsync();
@@ -374,7 +374,7 @@ public interface ITasksService
     Task<bool> DeleteAsync(string id);
 }
 
-// Tools/Tasks/Services/TasksService.cs
+// Features/Tasks/Services/TasksService.cs
 public class TasksService : ITasksService
 {
     private readonly AppDbContext _context;
@@ -406,7 +406,7 @@ builder.Services.AddScoped<ITasksService, TasksService>();
 #### 8. Create Function
 
 ```csharp
-// Tools/Tasks/Functions/TasksFunction.cs
+// Features/Tasks/Functions/TasksFunction.cs
 public class TasksFunction
 {
     private readonly ITasksService _service;
@@ -434,7 +434,7 @@ public class TasksFunction
 #### 1. Create folder structure
 
 ```
-src/frontend/src/tools/tasks/
+src/frontend/src/features/tasks/
 ├── components/
 ├── pages/
 │   ├── TasksPage.tsx
@@ -452,7 +452,7 @@ src/frontend/src/tools/tasks/
 #### 2. Create types
 
 ```typescript
-// tools/tasks/types/index.ts
+// features/tasks/types/index.ts
 export interface TaskDto {
   id: string;
   title: string;
@@ -471,7 +471,7 @@ export interface CreateTaskDto {
 #### 3. Create service
 
 ```typescript
-// tools/tasks/services/tasksService.ts
+// features/tasks/services/tasksService.ts
 import { apiClient } from "@/core/services/api";
 import type { TaskDto, CreateTaskDto } from "../types";
 
@@ -491,7 +491,7 @@ export const tasksService = {
 #### 4. Create hook
 
 ```typescript
-// tools/tasks/hooks/useTasks.ts
+// features/tasks/hooks/useTasks.ts
 import { useState, useEffect, useCallback } from "react";
 import { toast } from "react-toastify";
 import { tasksService } from "../services/tasksService";
@@ -529,7 +529,7 @@ export const useTasks = () => {
 #### 5. Create page
 
 ```typescript
-// tools/tasks/pages/TasksPage.tsx
+// features/tasks/pages/TasksPage.tsx
 import { Box, Typography, CircularProgress } from "@mui/material";
 import { CobraPrimaryButton } from "@/theme/styledComponents";
 import CobraStyles from "@/theme/CobraStyles";
@@ -559,7 +559,7 @@ export const TasksPage: React.FC = () => {
 
 ```typescript
 // App.tsx
-import { TasksPage } from "@/tools/tasks/pages/TasksPage";
+import { TasksPage } from "@/features/tasks/pages/TasksPage";
 
 // In routes:
 <Route path="/tasks" element={<TasksPage />} />;

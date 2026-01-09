@@ -105,10 +105,10 @@ GET /api/notes?version=1
 
 ### Step 1: Create Version Constants
 
-Create `src/api/Core/Versioning/ApiVersions.cs`:
+Create `src/Cadence.Core/Versioning/ApiVersions.cs`:
 
 ```csharp
-namespace Cadence.Api.Core.Versioning;
+namespace Cadence.Core.Versioning;
 
 /// <summary>
 /// API version constants for use in route definitions.
@@ -156,12 +156,12 @@ public static class ApiRoutes
 
 ### Step 2: Update Function Routes
 
-Update `src/api/Tools/Notes/Functions/NotesFunction.cs`:
+Update `src/Cadence.Functions/Functions/NotesFunction.cs`:
 
 ```csharp
-using Cadence.Api.Core.Versioning;
+using Cadence.Core.Versioning;
 
-namespace Cadence.Api.Tools.Notes.Functions;
+namespace Cadence.Functions.Functions;
 
 /// <summary>
 /// V1 Notes API endpoints.

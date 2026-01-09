@@ -125,7 +125,7 @@
 |---------|-------------|------------|
 | Auto AAR Generation | Generate After-Action Report from observations | Standard complete |
 | Multi-location Sync | Real-time sync across distributed exercise sites | Offline capability |
-| Simulation Support | Gaming/simulation run integration | Exercise Clock |
+| Simulation Support | Exercise simulation integration | Exercise Clock |
 | Channel Delivery | Multi-channel inject distribution (email, SMS, radio) | inject-crud/S01 |
 | Approval Workflows | Inject release approval process | Controller Assignment |
 | Timeline Visualization | Interactive exercise timeline view | Basic Metrics |
@@ -153,7 +153,7 @@
 | Layer | Technology | Notes |
 |-------|------------|-------|
 | **Frontend** | React + TypeScript + Vite | Material UI, responsive |
-| **Backend** | .NET 8 + EF Core | Azure App Services |
+| **Backend** | .NET 10 + EF Core | Azure App Services |
 | **Database** | SQL Server | Azure SQL or local |
 | **Offline** | IndexedDB + Service Workers | Dexie.js wrapper |
 | **Real-time** | Azure SignalR | Selective sync |
@@ -191,7 +191,7 @@
 | 2025-01 | Simple RBAC for MVP | Avoid over-engineering permissions |
 | 2025-01 | Dual time tracking required | Scenario time distinct from delivery time |
 | 2025-01 | Practice mode for training | Keep test data out of production reports |
-| 2025-01 | .NET 8 over .NET 10 LTS | Stability and ecosystem maturity |
+| 2025-01 | .NET 10 LTS | Latest long-term support version |
 
 ---
 

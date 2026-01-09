@@ -151,7 +151,7 @@ az account set --subscription "Your Subscription Name"
 
 ```bash
 # Variables
-RESOURCE_GROUP="dynamis-app-rg"
+RESOURCE_GROUP="cadence-app-rg"
 LOCATION="eastus2"
 
 # Create resource group
@@ -163,7 +163,7 @@ az group create \
 ### Step 3: Create Storage Account
 
 ```bash
-STORAGE_NAME="dynamisappstorage"  # Must be globally unique
+STORAGE_NAME="cadenceappstorage"  # Must be globally unique
 
 az storage account create \
   --name $STORAGE_NAME \
@@ -175,7 +175,7 @@ az storage account create \
 ### Step 4: Create Azure SQL Database
 
 ```bash
-SQL_SERVER_NAME="dynamis-sql-server"  # Must be globally unique
+SQL_SERVER_NAME="cadence-sql-server"  # Must be globally unique
 SQL_ADMIN="sqladmin"
 SQL_PASSWORD="YourSecurePassword123!"  # Change this!
 SQL_DB_NAME="Cadence"
@@ -212,7 +212,7 @@ echo "Server=tcp:$SQL_SERVER_NAME.database.windows.net,1433;Database=$SQL_DB_NAM
 ### Step 5: Create SignalR Service
 
 ```bash
-SIGNALR_NAME="dynamis-signalr"  # Must be globally unique
+SIGNALR_NAME="cadence-signalr"  # Must be globally unique
 
 az signalr create \
   --name $SIGNALR_NAME \
@@ -231,7 +231,7 @@ az signalr key list \
 ### Step 6: Create Azure Function App
 
 ```bash
-FUNCTION_APP_NAME="dynamis-api"  # Must be globally unique
+FUNCTION_APP_NAME="cadence-api"  # Must be globally unique
 
 # Create Function App
 az functionapp create \
@@ -249,7 +249,7 @@ az functionapp create \
 ```bash
 # For GitHub-integrated deployment
 az staticwebapp create \
-  --name "dynamis-frontend" \
+  --name "cadence-frontend" \
   --resource-group $RESOURCE_GROUP \
   --location $LOCATION \
   --source "https://github.com/your-org/your-repo" \
@@ -420,7 +420,7 @@ jobs:
       - name: Deploy to Azure Functions
         uses: Azure/functions-action@v1
         with:
-          app-name: "func-refapp-dev" # Pattern: func-<workload>-<environment>
+          app-name: "cadence-api" # Pattern: <project>-<component>
           package: "./publish"
           publish-profile: ${{ secrets.AZURE_FUNCTIONAPP_PUBLISH_PROFILE }}
 
@@ -474,8 +474,8 @@ Configure these Application Settings in Azure Portal or via CLI:
 Create `.env.production` in `src/frontend/`:
 
 ```bash
-VITE_API_URL=https://dynamis-api.azurewebsites.net
-VITE_SIGNALR_URL=https://dynamis-api.azurewebsites.net
+VITE_API_URL=https://cadence-api.azurewebsites.net
+VITE_SIGNALR_URL=https://cadence-api.azurewebsites.net
 ```
 
 ---

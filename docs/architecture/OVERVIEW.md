@@ -1,6 +1,6 @@
 # Architecture Overview
 
-This document describes the high-level architecture of the Cadence.
+This document describes the high-level architecture of Cadence.
 
 ---
 
@@ -72,9 +72,9 @@ This document describes the high-level architecture of the Cadence.
 
 ## Project Structure
 
-### Modular "Tools" Architecture
+### Modular "Features" Architecture
 
-The application is organized around **tools** - self-contained feature modules that can be developed, tested, and potentially extracted independently.
+The application is organized around **features** - self-contained modules that can be developed, tested, and potentially extracted independently.
 
 ```
 src/
@@ -85,11 +85,11 @@ src/
 │   │   ├── Logging/              # Correlation, structured logs
 │   │   └── Middleware/           # Request pipeline
 │   │
-│   ├── Shared/                   # Cross-tool features
+│   ├── Shared/                   # Cross-feature utilities
 │   │   └── Health/               # Health check endpoints
 │   │
-│   ├── Tools/                    # Feature modules
-│   │   └── Notes/                # Example tool
+│   ├── Features/                 # Feature modules
+│   │   └── Notes/                # Example feature
 │   │       ├── Functions/        # HTTP triggers
 │   │       ├── Models/           # Entities & DTOs
 │   │       ├── Services/         # Business logic
@@ -106,11 +106,11 @@ src/
         │   ├── services/         # API client
         │   └── utils/            # Helpers, validation
         │
-        ├── shared/               # Shared across tools
+        ├── shared/               # Shared across features
         │   └── hooks/            # useSignalR, usePermissions
         │
-        ├── tools/                # Feature modules
-        │   └── notes/            # Example tool
+        ├── features/             # Feature modules
+        │   └── notes/            # Example feature
         │       ├── components/   # UI components
         │       ├── pages/        # Route pages
         │       ├── hooks/        # useNotes
@@ -126,9 +126,9 @@ src/
 
 ### Key Principles
 
-1. **Tools are self-contained** - Each tool has its own models, services, and UI
-2. **Core provides infrastructure** - Database, logging, auth shared across tools
-3. **Frontend mirrors backend** - Same `tools/` structure for consistency
+1. **Features are self-contained** - Each feature has its own models, services, and UI
+2. **Core provides infrastructure** - Database, logging, auth shared across features
+3. **Frontend mirrors backend** - Same `features/` structure for consistency
 4. **Tests are colocated** - Frontend tests next to source files
 
 ---
@@ -281,7 +281,7 @@ See [docs/guides/AUTHENTICATION.md](../guides/AUTHENTICATION.md) for implementat
 
 3. **Frontend**
    - Code splitting by route
-   - React.lazy for tools
+   - React.lazy for features
    - Optimistic UI updates
 
 ---
