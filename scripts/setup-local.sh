@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Sets up the local development environment for Dynamis Reference App.
+# Sets up the local development environment for Cadence.
 #
 # This script:
 # - Verifies prerequisites (.NET, Node.js, Azure Functions Core Tools)
@@ -29,12 +29,12 @@ done
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="$(dirname "$SCRIPT_DIR")"
-FUNCTIONS_PATH="$ROOT_DIR/src/Dynamis.Functions"
-WEBAPI_PATH="$ROOT_DIR/src/Dynamis.WebApi"
+FUNCTIONS_PATH="$ROOT_DIR/src/Cadence.Functions"
+WEBAPI_PATH="$ROOT_DIR/src/Cadence.WebApi"
 FRONTEND_PATH="$ROOT_DIR/src/frontend"
 
 echo "================================="
-echo "Dynamis Reference App Setup"
+echo "Cadence Development Setup"
 echo "================================="
 echo ""
 
@@ -107,7 +107,7 @@ echo ""
 
 # Restore NuGet packages
 echo "Restoring NuGet packages..."
-cd "$API_PATH"
+cd "$WEBAPI_PATH"
 if dotnet restore --verbosity minimal; then
     echo "  [OK] NuGet packages restored"
 else
@@ -132,7 +132,7 @@ echo ""
 # Apply migrations
 if [[ "$SKIP_MIGRATIONS" != true ]]; then
     echo "Applying database migrations..."
-    cd "$API_PATH"
+    cd "$WEBAPI_PATH"
     if dotnet ef database update 2>/dev/null; then
         echo "  [OK] Database migrations applied"
     else
@@ -149,7 +149,7 @@ echo "Setup Complete!"
 echo "================================="
 echo ""
 echo "Next steps:"
-echo "  1. Update the connection string in src/api/local.settings.json"
-echo "  2. Start the backend: cd src/api && func start"
+echo "  1. Update the connection string in src/Cadence.WebApi/appsettings.Local.json"
+echo "  2. Start the backend: cd src/Cadence.WebApi && dotnet run"
 echo "  3. Start the frontend: cd src/frontend && npm run dev"
 echo ""

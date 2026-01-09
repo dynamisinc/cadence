@@ -10,7 +10,7 @@ trigger:
 variables:
   # Azure Service Connection Name (Create this in ADO Project Settings)
   azureServiceConnection: "AzureConnection"
-  resourceGroupName: "rg-dynamis-refapp-dev"
+  resourceGroupName: "rg-cadence-dev"
   location: "eastus2"
 
   # Build Variables
@@ -19,8 +19,8 @@ variables:
   buildConfiguration: "Release"
 
   # Paths
-  apiProject: "src/api/Api.csproj"
-  apiTestProject: "src/api.Tests/Api.Tests.csproj"
+  apiProject: "src/Cadence.WebApi/Cadence.WebApi.csproj"
+  apiTestProject: "src/Cadence.Core.Tests/Cadence.Core.Tests.csproj"
   frontendDir: "src/frontend"
 
 stages:
@@ -170,7 +170,7 @@ stages:
             inputs:
               connectedServiceNameARM: $(azureServiceConnection)
               appType: "functionApp"
-              appName: "func-refapp-dev" # Should match Bicep output, ideally passed via variable
+              appName: "func-cadence-dev" # Should match Bicep output, ideally passed via variable
               package: "$(System.DefaultWorkingDirectory)/backend/**/*.zip"
 
       - job: Deploy_Frontend

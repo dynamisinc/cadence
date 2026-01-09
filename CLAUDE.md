@@ -19,11 +19,9 @@
 11. [Code Conventions & Standards](#code-conventions--standards)
 12. [COBRA Styling System](#cobra-styling-system)
 13. [Adding New Features](#adding-new-features)
-14. [Testing Guidelines](#testing-guidelines)
-15. [Real-Time Events](#real-time-events)
-16. [Azure Deployment](#azure-deployment)
-17. [Troubleshooting](#troubleshooting)
-18. [FAQ for AI Assistants](#faq-for-ai-assistants)
+14. [Real-Time Events](#real-time-events)
+15. [Azure Deployment](#azure-deployment)
+16. [FAQ for AI Assistants](#faq-for-ai-assistants)
 
 ---
 
@@ -354,7 +352,7 @@ This project uses specialized agents. Route work based on task type:
 | Term | Definition | Use |
 |------|------------|-----|
 | **Exercise** | Planned event to test capabilities | Top-level container |
-| **MSEL** | Master Scenario Events List | Script of injects |
+| **MSEL** | Master Scenario Events List | Ordered list of injects |
 | **Inject** | Single scenario event | Deliverable to players |
 | **Fire** | Deliver an inject | Action verb |
 | **Controller** | Manages exercise flow | Role |

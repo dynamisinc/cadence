@@ -1,7 +1,7 @@
 # COBRA Styling Guide
 
 > **Version:** 1.0.0
-> **Last Updated:** 2025-12-04
+> **Last Updated:** 2025-01-09
 
 This document describes the COBRA styling system used throughout Cadence applications. All frontend code must follow these guidelines for visual consistency.
 

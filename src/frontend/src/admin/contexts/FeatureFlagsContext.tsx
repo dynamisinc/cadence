@@ -19,7 +19,7 @@ import type {
 } from '../types/featureFlags'
 import { defaultFeatureFlags } from '../types/featureFlags'
 
-const STORAGE_KEY = 'dynamis-feature-flags'
+const STORAGE_KEY = 'cadence-feature-flags'
 
 /**
  * Context value interface

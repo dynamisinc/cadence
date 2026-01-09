@@ -52,7 +52,7 @@ const getInitials = (fullName: string): string => {
  */
 const getStoredProfile = () => {
   try {
-    const stored = localStorage.getItem('dynamisUserProfile')
+    const stored = localStorage.getItem('cadenceUserProfile')
     if (stored) {
       return JSON.parse(stored)
     }
@@ -61,7 +61,7 @@ const getStoredProfile = () => {
   }
   return {
     role: PermissionRole.CONTRIBUTOR,
-    email: 'user@dynamis.com',
+    email: 'user@cadence.app',
     fullName: 'Demo User',
   }
 }
@@ -72,7 +72,7 @@ const getStoredProfile = () => {
 const saveProfile = (role: PermissionRole, email: string, fullName: string) => {
   try {
     localStorage.setItem(
-      'dynamisUserProfile',
+      'cadenceUserProfile',
       JSON.stringify({ role, email, fullName }),
     )
     window.dispatchEvent(new Event('profile-changed'))
@@ -143,7 +143,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
   }
 
   const handleSaveAccount = () => {
-    const newEmail = tempEmail.trim() || 'user@dynamis.com'
+    const newEmail = tempEmail.trim() || 'user@cadence.app'
     const newFullName = tempFullName.trim() || newEmail.split('@')[0]
 
     setAccountEmail(newEmail)
@@ -370,7 +370,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             variant="outlined"
             value={tempEmail}
             onChange={e => setTempEmail(e.target.value)}
-            placeholder="user@dynamis.com"
+            placeholder="user@cadence.app"
             sx={{ mb: 2 }}
           />
           <TextField

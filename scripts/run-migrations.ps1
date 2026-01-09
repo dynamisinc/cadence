@@ -33,7 +33,7 @@ param(
 $ErrorActionPreference = "Stop"
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $rootPath = Split-Path -Parent $scriptPath
-$apiPath = Join-Path $rootPath "src\Dynamis.WebApi"
+$apiPath = Join-Path $rootPath "src\Cadence.WebApi"
 
 Write-Host "=================================" -ForegroundColor Cyan
 Write-Host "EF Core Migration Runner" -ForegroundColor Cyan

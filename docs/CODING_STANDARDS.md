@@ -1,7 +1,7 @@
 # Coding Standards
 
 > **Version:** 1.0.0
-> **Last Updated:** 2025-12-04
+> **Last Updated:** 2025-01-09
 
 This document defines the coding standards and conventions for the Cadence template. All code contributions should follow these guidelines.
 
@@ -59,7 +59,7 @@ Features/
 
 | Element | Convention | Example |
 |---------|------------|---------|
-| Namespace | PascalCase, match folder | `Cadence.Api.Tools.Notes` |
+| Namespace | PascalCase, match folder | `Cadence.Core.Features.Exercises` |
 | Class | PascalCase, noun | `NotesService` |
 | Interface | IPascalCase | `INotesService` |
 | Method | PascalCase, verb | `GetAllAsync()` |
@@ -83,9 +83,9 @@ global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Logging;
 
 // File-scoped namespaces (C# 10+)
-namespace Cadence.Api.Tools.Notes.Services;
+namespace Cadence.Core.Features.Exercises.Services;
 
-public class NotesService { }
+public class ExerciseService { }
 ```
 
 #### Classes and Methods

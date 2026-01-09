@@ -47,7 +47,7 @@ Exercise Program
 | Term | Definition | Cadence Entity |
 |------|------------|----------------|
 | **Exercise** | A planned event to test capabilities | `Exercise` |
-| **MSEL** | Master Scenario Events List - the script of events | `Msel` |
+| **MSEL** | Master Scenario Events List - ordered list of injects | `Msel` |
 | **Inject** | A single scenario event delivered to players | `Inject` |
 | **Expected Action** | What players should do in response | `ExpectedAction` |
 | **Objective** | What the exercise aims to test | `ExerciseObjective` |

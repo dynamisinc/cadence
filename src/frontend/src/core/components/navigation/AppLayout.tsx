@@ -19,7 +19,7 @@ import { Breadcrumb } from './Breadcrumb'
 import type { BreadcrumbItem } from './Breadcrumb'
 import { PermissionRole } from '../../../types'
 
-const SIDEBAR_STATE_KEY = 'dynamis-sidebar-open'
+const SIDEBAR_STATE_KEY = 'cadence-sidebar-open'
 
 interface AppLayoutProps {
   children: React.ReactNode;

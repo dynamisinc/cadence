@@ -20,7 +20,8 @@
       "Bash(tree:*)",
       "Bash(git mv:*)",
       "Bash(cmd.exe /c \"cd /d c:\\\\Code\\\\dynamis\\\\cadence\\\\src && ren Dynamis.Core Cadence.Core\")",
-      "Bash(robocopy:*)"
+      "Bash(robocopy:*)",
+      "Bash(git show:*)"
     ],
     "deny": [],
     "ask": []

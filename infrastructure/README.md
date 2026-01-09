@@ -52,7 +52,7 @@ az deployment group create \
 |-----------|-------------|---------|
 | `environment` | Environment name (dev, staging, prod) | `dev` |
 | `location` | Azure region | Resource group location |
-| `appName` | Application name prefix | `dynamis` |
+| `appName` | Application name prefix | `cadence` |
 | `sqlAdminLogin` | SQL Server admin username | Required |
 | `sqlAdminPassword` | SQL Server admin password | Required |
 

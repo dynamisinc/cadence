@@ -17,7 +17,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { PermissionRole, type MockUserProfile } from '../../types'
 
-const PROFILE_STORAGE_KEYS = ['dynamis-mock-profile', 'dynamisUserProfile']
+const PROFILE_STORAGE_KEYS = ['cadence-mock-profile', 'cadenceUserProfile']
 
 interface UsePermissionsReturn {
   /** Current user role */

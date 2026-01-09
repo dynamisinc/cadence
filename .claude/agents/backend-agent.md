@@ -93,7 +93,7 @@ Cadence is a HSEEP-compliant MSEL management platform. Key domain terms:
 | Term | Description |
 |------|-------------|
 | **Exercise** | A planned event to test emergency response capabilities |
-| **MSEL** | Master Scenario Events List - the script of injects |
+| **MSEL** | Master Scenario Events List - ordered list of injects |
 | **Inject** | A single scenario event delivered to players |
 | **Controller** | Person who delivers injects and manages flow |
 | **Evaluator** | Person who observes and documents performance |

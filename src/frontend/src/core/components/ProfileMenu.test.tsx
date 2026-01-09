@@ -77,7 +77,7 @@ describe('ProfileMenu', () => {
       fireEvent.click(button)
 
       await waitFor(() => {
-        expect(screen.getByText('user@dynamis.com')).toBeInTheDocument()
+        expect(screen.getByText('user@cadence.app')).toBeInTheDocument()
       })
     })
   })
@@ -154,7 +154,7 @@ describe('ProfileMenu', () => {
 
   describe('localStorage persistence', () => {
     it('loads saved profile from localStorage', () => {
-      mockLocalStorage['dynamisUserProfile'] = JSON.stringify({
+      mockLocalStorage['cadenceUserProfile'] = JSON.stringify({
         role: PermissionRole.MANAGE,
         email: 'custom@example.com',
         fullName: 'Custom User',
@@ -178,7 +178,7 @@ describe('ProfileMenu', () => {
         fireEvent.click(manageRadio)
       })
 
-      expect(mockLocalStorage['dynamisUserProfile']).toContain('Manage')
+      expect(mockLocalStorage['cadenceUserProfile']).toContain('Manage')
     })
   })
 })

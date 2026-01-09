@@ -108,7 +108,7 @@ describe('FeatureFlagsAdmin', () => {
 
       await waitFor(() => {
         // Check localStorage was updated
-        expect(mockLocalStorage['dynamis-feature-flags']).toContain('Hidden')
+        expect(mockLocalStorage['cadence-feature-flags']).toContain('Hidden')
       })
     })
 
@@ -123,7 +123,7 @@ describe('FeatureFlagsAdmin', () => {
       fireEvent.click(comingSoonButton)
 
       await waitFor(() => {
-        const stored = JSON.parse(mockLocalStorage['dynamis-feature-flags'])
+        const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
         expect(stored.notes).toBe('ComingSoon')
       })
     })
@@ -132,7 +132,7 @@ describe('FeatureFlagsAdmin', () => {
   describe('reset functionality', () => {
     it('resets all flags to defaults when reset button is clicked', async () => {
       // Pre-set some non-default values
-      mockLocalStorage['dynamis-feature-flags'] = JSON.stringify({
+      mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
         notes: 'Hidden',
         exampleTool1: 'Active',
         exampleTool2: 'Active',
@@ -144,7 +144,7 @@ describe('FeatureFlagsAdmin', () => {
       fireEvent.click(resetButton)
 
       await waitFor(() => {
-        const stored = JSON.parse(mockLocalStorage['dynamis-feature-flags'])
+        const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
         expect(stored).toEqual(defaultFeatureFlags)
       })
     })

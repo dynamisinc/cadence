@@ -1,7 +1,7 @@
 # Azure Deployment Guide
 
 > **Version:** 1.0.0
-> **Last Updated:** 2025-12-04
+> **Last Updated:** 2025-01-09
 
 This guide covers deploying the Cadence to Azure, including all required resources and configuration.
 

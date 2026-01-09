@@ -96,7 +96,7 @@ describe('FeatureFlagsContext', () => {
     })
 
     it('loads saved flags from localStorage', () => {
-      mockLocalStorage['dynamis-feature-flags'] = JSON.stringify({
+      mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
         notes: 'Hidden',
         exampleTool1: 'Active',
         exampleTool2: 'ComingSoon',
@@ -136,13 +136,13 @@ describe('FeatureFlagsContext', () => {
       fireEvent.click(screen.getByTestId('set-notes-hidden'))
 
       await waitFor(() => {
-        const stored = JSON.parse(mockLocalStorage['dynamis-feature-flags'])
+        const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
         expect(stored.notes).toBe('Hidden')
       })
     })
 
     it('resets flags to defaults when resetFlags is called', async () => {
-      mockLocalStorage['dynamis-feature-flags'] = JSON.stringify({
+      mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
         notes: 'Hidden',
         exampleTool1: 'Active',
         exampleTool2: 'ComingSoon',

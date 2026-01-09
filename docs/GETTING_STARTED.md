@@ -1,7 +1,7 @@
 # Getting Started
 
 > **Version:** 1.0.0
-> **Last Updated:** 2025-12-04
+> **Last Updated:** 2025-01-09
 
 Welcome to the Cadence template! This guide will help you set up your development environment and start building.
 

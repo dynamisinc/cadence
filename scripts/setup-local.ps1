@@ -1,7 +1,7 @@
 #Requires -Version 5.1
 <#
 .SYNOPSIS
-    Sets up the local development environment for Dynamis Reference App.
+    Sets up the local development environment for Cadence.
 
 .DESCRIPTION
     This script:
@@ -25,12 +25,12 @@ param(
 $ErrorActionPreference = "Stop"
 $scriptPath = Split-Path -Parent $MyInvocation.MyCommand.Path
 $rootPath = Split-Path -Parent $scriptPath
-$functionsPath = Join-Path $rootPath "src\Dynamis.Functions"
-$webApiPath = Join-Path $rootPath "src\Dynamis.WebApi"
+$functionsPath = Join-Path $rootPath "src\Cadence.Functions"
+$webApiPath = Join-Path $rootPath "src\Cadence.WebApi"
 $frontendPath = Join-Path $rootPath "src\frontend"
 
 Write-Host "=================================" -ForegroundColor Cyan
-Write-Host "Dynamis Reference App Setup" -ForegroundColor Cyan
+Write-Host "Cadence Development Setup" -ForegroundColor Cyan
 Write-Host "=================================" -ForegroundColor Cyan
 Write-Host ""
 
@@ -106,7 +106,7 @@ Write-Host ""
 
 # Restore NuGet packages
 Write-Host "Restoring NuGet packages..." -ForegroundColor Yellow
-Push-Location $apiPath
+Push-Location $webApiPath
 try {
     dotnet restore --verbosity minimal
     Write-Host "  [OK] NuGet packages restored" -ForegroundColor Green
@@ -135,7 +135,7 @@ Write-Host ""
 # Apply migrations
 if (-not $SkipMigrations) {
     Write-Host "Applying database migrations..." -ForegroundColor Yellow
-    Push-Location $apiPath
+    Push-Location $webApiPath
     try {
         dotnet ef database update
         Write-Host "  [OK] Database migrations applied" -ForegroundColor Green
@@ -155,7 +155,7 @@ Write-Host "Setup Complete!" -ForegroundColor Green
 Write-Host "=================================" -ForegroundColor Cyan
 Write-Host ""
 Write-Host "Next steps:" -ForegroundColor Yellow
-Write-Host "  1. Update the connection string in src/api/local.settings.json" -ForegroundColor White
-Write-Host "  2. Start the backend: cd src/api && func start" -ForegroundColor White
+Write-Host "  1. Update the connection string in src/Cadence.WebApi/appsettings.Local.json" -ForegroundColor White
+Write-Host "  2. Start the backend: cd src/Cadence.WebApi && dotnet run" -ForegroundColor White
 Write-Host "  3. Start the frontend: cd src/frontend && npm run dev" -ForegroundColor White
 Write-Host ""

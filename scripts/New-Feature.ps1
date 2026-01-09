@@ -1,17 +1,17 @@
 <#
 .SYNOPSIS
-    Scaffolds a new feature in the Dynamis Reference App.
+    Scaffolds a new feature in the Cadence application.
 
 .DESCRIPTION
     Creates the necessary folder structure and boilerplate files for a new feature
-    in both the backend (API) and frontend (React).
+    in both the backend (Core/WebApi) and frontend (React).
 
 .PARAMETER FeatureName
-    The name of the feature (e.g., "Invoices", "Customers").
+    The name of the feature (e.g., "Exercises", "Injects").
     Should be PascalCase.
 
 .EXAMPLE
-    .\New-Feature.ps1 -FeatureName "Invoices"
+    .\New-Feature.ps1 -FeatureName "Exercises"
 #>
 
 param(
@@ -36,7 +36,7 @@ Write-Host "Scaffolding feature: $featureNamePascal" -ForegroundColor Cyan
 # Core Scaffolding (Business Logic)
 # ==============================================================================
 
-$coreRoot = Join-Path $PSScriptRoot "..\src\Dynamis.Core\Tools\$featureNamePascal"
+$coreRoot = Join-Path $PSScriptRoot "..\src\Cadence.Core\Features\$featureNamePascal"
 if (Test-Path $coreRoot) {
     Write-Warning "Core feature folder already exists: $coreRoot"
 } else {
@@ -49,15 +49,15 @@ if (Test-Path $coreRoot) {
 
     # Create Service Interface
     $serviceInterfaceContent = @"
-using DynamisReferenceApp.Api.Tools.$featureNamePascal.Models.DTOs;
+using Cadence.Core.Features.$featureNamePascal.Models.DTOs;
 
-namespace DynamisReferenceApp.Api.Tools.$featureNamePascal.Services;
+namespace Cadence.Core.Features.$featureNamePascal.Services;
 
 public interface I${featureNamePascal}Service
 {
-    Task<IEnumerable<${featureNamePascal}Dto>> Get${featureNamePascal}sAsync(string userId, CancellationToken cancellationToken = default);
-    Task<${featureNamePascal}Dto?> Get${featureNamePascal}Async(Guid id, string userId, CancellationToken cancellationToken = default);
-    Task<${featureNamePascal}Dto> Create${featureNamePascal}Async(Create${featureNamePascal}Request request, string userId, CancellationToken cancellationToken = default);
+    Task<IEnumerable<${featureNamePascal}Dto>> Get${featureNamePascal}sAsync(Guid userId, CancellationToken cancellationToken = default);
+    Task<${featureNamePascal}Dto?> Get${featureNamePascal}Async(Guid id, Guid userId, CancellationToken cancellationToken = default);
+    Task<${featureNamePascal}Dto> Create${featureNamePascal}Async(Create${featureNamePascal}Request request, Guid userId, CancellationToken cancellationToken = default);
 }
 "@
     Set-Content -Path "$coreRoot\Services\I${featureNamePascal}Service.cs" -Value $serviceInterfaceContent
@@ -66,58 +66,19 @@ public interface I${featureNamePascal}Service
 }
 
 # ==============================================================================
-# Functions Scaffolding (Azure Functions)
+# Functions Scaffolding (Azure Functions - Background Jobs Only)
 # ==============================================================================
 
-$functionsProject = Join-Path $PSScriptRoot "..\src\Dynamis.Functions"
+$functionsProject = Join-Path $PSScriptRoot "..\src\Cadence.Functions"
 if (Test-Path $functionsProject) {
-    $functionsRoot = Join-Path $functionsProject "Tools\$featureNamePascal"
-    if (Test-Path $functionsRoot) {
-        Write-Warning "Functions feature folder already exists: $functionsRoot"
-    } else {
-        Write-Host "Creating Functions folders..."
-        New-Item -ItemType Directory -Path "$functionsRoot\Functions" -Force | Out-Null
-
-        # Create Function Class
-        $functionContent = @"
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Azure.Functions.Worker;
-using DynamisReferenceApp.Api.Tools.$featureNamePascal.Services;
-
-namespace DynamisReferenceApp.Api.Tools.$featureNamePascal.Functions;
-
-public class ${featureNamePascal}Function
-{
-    private readonly I${featureNamePascal}Service _service;
-
-    public ${featureNamePascal}Function(I${featureNamePascal}Service service)
-    {
-        _service = service;
-    }
-
-    [Function("Get${featureNamePascal}s")]
-    public async Task<IActionResult> Get${featureNamePascal}s(
-        [HttpTrigger(AuthorizationLevel.Anonymous, "get", Route = "${featureNameCamel}")] HttpRequest req)
-    {
-        // TODO: Get userId from claims
-        var userId = "anonymous";
-        var result = await _service.Get${featureNamePascal}sAsync(userId);
-        return new OkObjectResult(result);
-    }
-}
-"@
-        Set-Content -Path "$functionsRoot\Functions\${featureNamePascal}Function.cs" -Value $functionContent
-
-        Write-Host "Functions scaffolding complete." -ForegroundColor Green
-    }
+    Write-Host "Note: Azure Functions are for background jobs only. REST API endpoints go in WebApi." -ForegroundColor Yellow
 }
 
 # ==============================================================================
 # WebApi Scaffolding (Controllers)
 # ==============================================================================
 
-$webApiProject = Join-Path $PSScriptRoot "..\src\Dynamis.WebApi"
+$webApiProject = Join-Path $PSScriptRoot "..\src\Cadence.WebApi"
 if (Test-Path $webApiProject) {
     $webApiRoot = Join-Path $webApiProject "Controllers"
     $controllerPath = Join-Path $webApiRoot "${featureNamePascal}Controller.cs"
@@ -130,10 +91,10 @@ if (Test-Path $webApiProject) {
         # Create Controller Class
         $controllerContent = @"
 using Microsoft.AspNetCore.Mvc;
-using DynamisReferenceApp.Api.Tools.$featureNamePascal.Models.DTOs;
-using DynamisReferenceApp.Api.Tools.$featureNamePascal.Services;
+using Cadence.Core.Features.$featureNamePascal.Models.DTOs;
+using Cadence.Core.Features.$featureNamePascal.Services;
 
-namespace DynamisReferenceApp.Web.Controllers;
+namespace Cadence.WebApi.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
@@ -150,7 +111,7 @@ public class ${featureNamePascal}Controller : ControllerBase
     public async Task<ActionResult<IEnumerable<${featureNamePascal}Dto>>> Get${featureNamePascal}s(CancellationToken cancellationToken)
     {
         // TODO: Get userId from User.Identity
-        var userId = "anonymous";
+        var userId = Guid.Empty;
         var result = await _service.Get${featureNamePascal}sAsync(userId, cancellationToken);
         return Ok(result);
     }
@@ -160,11 +121,13 @@ public class ${featureNamePascal}Controller : ControllerBase
 
         Write-Host "WebApi scaffolding complete." -ForegroundColor Green
     }
-}# ==============================================================================
+}
+
+# ==============================================================================
 # Frontend Scaffolding
 # ==============================================================================
 
-$frontendRoot = Join-Path $PSScriptRoot "..\src\frontend\src\tools\$featureNameCamel"
+$frontendRoot = Join-Path $PSScriptRoot "..\src\frontend\src\features\$featureNameCamel"
 if (Test-Path $frontendRoot) {
     Write-Warning "Frontend feature folder already exists: $frontendRoot"
 } else {
@@ -173,6 +136,7 @@ if (Test-Path $frontendRoot) {
     New-Item -ItemType Directory -Path "$frontendRoot\hooks" -Force | Out-Null
     New-Item -ItemType Directory -Path "$frontendRoot\pages" -Force | Out-Null
     New-Item -ItemType Directory -Path "$frontendRoot\services" -Force | Out-Null
+    New-Item -ItemType Directory -Path "$frontendRoot\types" -Force | Out-Null
 
     # Create types file
     $typesContent = @"
@@ -180,18 +144,19 @@ export interface ${featureNamePascal}Dto {
   id: string;
   title: string;
   createdAt: string;
+  updatedAt: string;
 }
 
 export interface Create${featureNamePascal}Request {
   title: string;
 }
 "@
-    Set-Content -Path "$frontendRoot\types.ts" -Value $typesContent
+    Set-Content -Path "$frontendRoot\types\index.ts" -Value $typesContent
 
     # Create Page Component
     $pageContent = @"
 import { Box, Typography } from '@mui/material'
-import CobraStyles from '../../../theme/CobraStyles'
+import CobraStyles from '@/theme/CobraStyles'
 
 export const ${featureNamePascal}Page = () => {
   return (
@@ -213,6 +178,6 @@ export const ${featureNamePascal}Page = () => {
 
 Write-Host "Feature '$featureNamePascal' created successfully!" -ForegroundColor Cyan
 Write-Host "Next steps:"
-Write-Host "1. Implement the backend Service and Function."
-Write-Host "2. Register the service in ServiceCollectionExtensions.cs."
-Write-Host "3. Add the route to App.tsx in the frontend."
+Write-Host "1. Implement the backend Service in Core/Features/$featureNamePascal/Services/"
+Write-Host "2. Register the service in Program.cs"
+Write-Host "3. Add the route to App.tsx in the frontend"

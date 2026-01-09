@@ -12,7 +12,7 @@ import { renderHook, act } from '@testing-library/react'
 import { usePermissions } from './usePermissions'
 import { PermissionRole } from '../../types'
 
-const PROFILE_STORAGE_KEY = 'dynamis-mock-profile'
+const PROFILE_STORAGE_KEY = 'cadence-mock-profile'
 
 describe('usePermissions', () => {
   let mockLocalStorage: Record<string, string> = {}

@@ -123,12 +123,12 @@ describe('AppLayout', () => {
       fireEvent.click(toggles[0])
 
       await waitFor(() => {
-        expect(mockLocalStorage['dynamis-sidebar-open']).toBe('false')
+        expect(mockLocalStorage['cadence-sidebar-open']).toBe('false')
       })
     })
 
     it('loads sidebar state from localStorage on mount', () => {
-      mockLocalStorage['dynamis-sidebar-open'] = 'false'
+      mockLocalStorage['cadence-sidebar-open'] = 'false'
 
       renderAppLayout()
 

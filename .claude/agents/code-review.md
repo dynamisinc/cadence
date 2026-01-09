@@ -122,7 +122,7 @@ find . -name "*.test.ts" -path "*exercises*"
 find . -name "*Tests.cs" -path "*Exercises*"
 
 # Check test naming
-grep -r "it\('" src/frontend/src/features/exercises/ --include="*.test.ts"
+grep -r "it('" src/frontend/src/features/exercises/ --include="*.test.ts"
 grep -r "\[Fact\]" src/Cadence.Core.Tests/Features/Exercises/
 ```
 
