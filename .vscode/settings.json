@@ -136,5 +136,6 @@
   // ==========================================================================
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.cwd": "${workspaceFolder}",
-  "cSpell.words": ["Cadence", "Toastify", "winget"]
+  "cSpell.words": ["Cadence", "Toastify", "winget"],
+  "testing.autoRun.mode": "off"
 }

@@ -190,11 +190,27 @@ function Wait-ForAnyPort {
 
     while ($elapsed -lt $TimeoutSeconds) {
         foreach ($port in $Ports) {
-            $connection = Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue
+            # Try multiple methods to detect if port is in use
+            # Method 1: Get-NetTCPConnection (works for most cases)
+            $connection = Get-NetTCPConnection -LocalPort $port -ErrorAction SilentlyContinue
             if ($connection) {
+                Write-Host ""  # New line after dots
                 Write-Success "$ServiceName is now listening on port $port"
                 Log-Message "$ServiceName started successfully on port $port" "SUCCESS"
                 return $port
+            }
+
+            # Method 2: Test TCP connection (works when binding is complete)
+            try {
+                $tcpClient = New-Object System.Net.Sockets.TcpClient
+                $tcpClient.Connect("127.0.0.1", $port)
+                $tcpClient.Close()
+                Write-Host ""  # New line after dots
+                Write-Success "$ServiceName is now listening on port $port"
+                Log-Message "$ServiceName started successfully on port $port" "SUCCESS"
+                return $port
+            } catch {
+                # Port not ready yet, continue checking
             }
         }
         Start-Sleep -Seconds $interval
@@ -202,6 +218,7 @@ function Wait-ForAnyPort {
         Write-Host "." -NoNewline
     }
 
+    Write-Host ""  # New line after dots
     Write-Error "$ServiceName failed to start within $TimeoutSeconds seconds"
     Log-Message "$ServiceName failed to start within timeout" "ERROR"
     return 0
