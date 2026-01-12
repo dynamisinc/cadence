@@ -1,6 +1,6 @@
-using Cadence.Api.Tools.Notes.Models.Entities;
+using Cadence.Core.Models.Entities;
 
-namespace Cadence.Api.Core.Data;
+namespace Cadence.Core.Data;
 
 /// <summary>
 /// Entity Framework Core database context for the application.
@@ -15,10 +15,7 @@ public class AppDbContext : DbContext
     // DbSets - Add new entities here
     // =========================================================================
 
-    /// <summary>
-    /// Notes table - sample feature demonstrating CRUD patterns.
-    /// </summary>
-    public DbSet<Note> Notes => Set<Note>();
+    // Domain entities will be added here as they are created
 
     // =========================================================================
     // Model Configuration
@@ -31,41 +28,37 @@ public class AppDbContext : DbContext
         // Apply all configurations from the current assembly
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
 
-        // Configure Note entity
-        modelBuilder.Entity<Note>(entity =>
+        // Configure global settings for all entities
+        foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
-            entity.ToTable("Notes");
+            // Configure global datetime2 for all DateTime properties
+            foreach (var property in entityType.GetProperties())
+            {
+                if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
+                {
+                    property.SetColumnType("datetime2");
+                }
+            }
 
-            entity.HasKey(e => e.Id);
+            // Configure global soft delete query filter for ISoftDeletable entities
+            if (typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType))
+            {
+                var method = typeof(AppDbContext)
+                    .GetMethod(nameof(ConfigureSoftDeleteFilter),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?
+                    .MakeGenericMethod(entityType.ClrType);
 
-            entity.Property(e => e.Title)
-                .IsRequired()
-                .HasMaxLength(100);
+                method?.Invoke(null, new object[] { modelBuilder });
+            }
+        }
+    }
 
-            entity.Property(e => e.Content)
-                .HasMaxLength(10000);
-
-            entity.Property(e => e.UserId)
-                .IsRequired()
-                .HasMaxLength(256);
-
-            entity.Property(e => e.CreatedAt)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETUTCDATE()");
-
-            entity.Property(e => e.UpdatedAt)
-                .HasColumnType("datetime2")
-                .HasDefaultValueSql("GETUTCDATE()");
-
-            // Index for user queries
-            entity.HasIndex(e => e.UserId);
-
-            // Index for soft delete queries
-            entity.HasIndex(e => e.IsDeleted);
-
-            // Composite index for common query pattern
-            entity.HasIndex(e => new { e.UserId, e.IsDeleted });
-        });
+    /// <summary>
+    /// Configures a global query filter to exclude soft-deleted entities.
+    /// </summary>
+    private static void ConfigureSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeletable
+    {
+        modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
     }
 
     // =========================================================================

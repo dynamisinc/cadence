@@ -1,7 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace Cadence.Api.Core.Logging;
+namespace Cadence.Functions.Middleware;
 
 /// <summary>
 /// Middleware that ensures each request has a correlation ID for tracing.

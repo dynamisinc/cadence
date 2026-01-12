@@ -14,5 +14,5 @@ global using Microsoft.Extensions.Configuration;
 
 global using Microsoft.EntityFrameworkCore;
 
-global using Cadence.Api.Core.Data;
-global using Cadence.Api.Core.Logging;
+global using Cadence.Core.Data;
+global using Cadence.Core.Logging;

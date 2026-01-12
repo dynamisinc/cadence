@@ -1,10 +1,9 @@
 using System.Net;
 using System.Text.Json;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.Azure.Functions.Worker.Middleware;
 
-namespace Cadence.Api.Core.Middleware;
+namespace Cadence.Functions.Middleware;
 
 /// <summary>
 /// Middleware that handles unhandled exceptions and returns appropriate HTTP responses.

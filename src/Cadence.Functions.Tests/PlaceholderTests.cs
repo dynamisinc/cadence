@@ -1,6 +1,6 @@
-namespace Cadence.WebApi.Tests;
+namespace Cadence.Functions.Tests;
 
-public class UnitTest1
+public class PlaceholderTests
 {
     [Fact]
     public void PlaceholderTest_ShouldPass()

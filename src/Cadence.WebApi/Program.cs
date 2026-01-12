@@ -1,5 +1,5 @@
-using Cadence.Api.Core.Extensions;
-using Cadence.Api.Core.Logging;
+using Cadence.Core.Extensions;
+using Cadence.Core.Logging;
 using Cadence.WebApi.Hubs;
 using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;

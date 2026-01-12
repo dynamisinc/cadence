@@ -1,7 +1,6 @@
-using Cadence.Api.Tools.Notes.Services;
 using FluentValidation;
 
-namespace Cadence.Api.Core.Extensions;
+namespace Cadence.Core.Extensions;
 
 /// <summary>
 /// Extension methods for configuring dependency injection.
@@ -13,11 +12,8 @@ public static class ServiceCollectionExtensions
     /// </summary>
     public static IServiceCollection AddApplicationServices(this IServiceCollection services)
     {
-        // Add tool-specific services
-        services.AddNotesServices();
-
-        // Add Validators
-        services.AddValidatorsFromAssemblyContaining<NotesService>();
+        // Add Validators from this assembly
+        services.AddValidatorsFromAssemblyContaining<AppDbContext>();
 
         return services;
     }
@@ -53,15 +49,6 @@ public static class ServiceCollectionExtensions
 #endif
         });
 
-        return services;
-    }
-
-    /// <summary>
-    /// Adds Notes feature services.
-    /// </summary>
-    public static IServiceCollection AddNotesServices(this IServiceCollection services)
-    {
-        services.AddScoped<INotesService, NotesService>();
         return services;
     }
 }

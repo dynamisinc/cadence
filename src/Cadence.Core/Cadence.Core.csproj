@@ -4,7 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-    <RootNamespace>Cadence.Api</RootNamespace>
+    <RootNamespace>Cadence.Core</RootNamespace>
     <AssemblyName>Cadence.Core</AssemblyName>
   </PropertyGroup>
 

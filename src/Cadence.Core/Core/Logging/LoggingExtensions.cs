@@ -1,4 +1,4 @@
-namespace Cadence.Api.Core.Logging;
+namespace Cadence.Core.Logging;
 
 /// <summary>
 /// Extension methods for structured logging with consistent patterns.

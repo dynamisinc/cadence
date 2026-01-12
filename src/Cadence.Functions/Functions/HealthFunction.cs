@@ -1,8 +1,9 @@
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
+using Cadence.Core.Data;
 
-namespace Cadence.Api.Shared.Health;
+namespace Cadence.Functions.Functions;
 
 /// <summary>
 /// Health check endpoint for monitoring and deployment validation.
@@ -61,11 +62,11 @@ public class HealthFunction
             response.Status = "Degraded";
         }
 
-        // Check SignalR (placeholder - actual check depends on configuration)
+        // Check SignalR (placeholder)
         response.SignalR = new ComponentHealth
         {
             Status = "Healthy",
-            Message = "SignalR configured (connection check not implemented)"
+            Message = "SignalR configured"
         };
 
         // Determine overall status

@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
-using Cadence.Api.Core.Data;
+using Cadence.Core.Data;
 
-namespace Cadence.Api.Tests.Helpers;
+namespace Cadence.Core.Tests.Helpers;
 
 /// <summary>
 /// Factory for creating in-memory database contexts for testing.

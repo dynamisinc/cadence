@@ -5,7 +5,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
-    <RootNamespace>Cadence.Api.Tests</RootNamespace>
+    <RootNamespace>Cadence.Functions.Tests</RootNamespace>
     <RunSettingsFilePath>$(MSBuildProjectDirectory)\..\..\coverlet.runsettings</RunSettingsFilePath>
   </PropertyGroup>
 
