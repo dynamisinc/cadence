@@ -9,6 +9,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
+import { BreadcrumbProvider } from './core/contexts'
 import { PermissionRole } from './types'
 import { NotesPage } from './tools/notes/pages/NotesPage'
 import { AdminPage, FeatureFlagsProvider } from './admin'
@@ -17,6 +18,7 @@ import {
   ExerciseListPage,
   CreateExercisePage,
   ExerciseDetailPage,
+  ExerciseConductPage,
 } from './features/exercises'
 import {
   InjectListPage,
@@ -65,13 +67,15 @@ const NotFoundPage = () => {
 /**
  * Root Layout Component
  *
- * Wraps all routes with the AppLayout shell
+ * Wraps all routes with the AppLayout shell and BreadcrumbProvider
  */
 const RootLayout = () => {
   return (
-    <AppLayout>
-      <Outlet />
-    </AppLayout>
+    <BreadcrumbProvider>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    </BreadcrumbProvider>
   )
 }
 
@@ -95,6 +99,7 @@ const router = createBrowserRouter([
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
       { path: 'exercises/:id', element: <ExerciseDetailPage /> },
+      { path: 'exercises/:id/conduct', element: <ExerciseConductPage /> },
 
       // Inject (MSEL) routes
       { path: 'exercises/:exerciseId/msel', element: <InjectListPage /> },

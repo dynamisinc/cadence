@@ -132,3 +132,44 @@ public enum ExerciseRole
     /// <summary>Read-only exercise monitoring.</summary>
     Observer = 5
 }
+
+// =============================================================================
+// Exercise Clock Enums
+// =============================================================================
+
+/// <summary>
+/// State of the exercise clock during conduct.
+/// </summary>
+public enum ExerciseClockState
+{
+    /// <summary>Clock not started - exercise not yet in conduct.</summary>
+    Stopped,
+
+    /// <summary>Clock actively running - exercise in progress.</summary>
+    Running,
+
+    /// <summary>Clock temporarily paused - exercise on hold.</summary>
+    Paused
+}
+
+// =============================================================================
+// Observation Enums
+// =============================================================================
+
+/// <summary>
+/// HSEEP performance rating scale (P/S/M/U) for evaluator observations.
+/// </summary>
+public enum ObservationRating
+{
+    /// <summary>P - Performed without challenges. The targets/objectives were completed as expected.</summary>
+    Performed,
+
+    /// <summary>S - Performed with some difficulty. Minor issues noted but did not significantly impact achievement.</summary>
+    Satisfactory,
+
+    /// <summary>M - Performed with major difficulty. Significant issues impacted achievement of objectives.</summary>
+    Marginal,
+
+    /// <summary>U - Unable to be performed. The targets/objectives were not achieved.</summary>
+    Unsatisfactory
+}

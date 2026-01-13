@@ -191,4 +191,9 @@ public class Inject : BaseEntity
     /// For historical reports, use IgnoreQueryFilters() to include deleted users.
     /// </summary>
     public User? SkippedByUser { get; set; }
+
+    /// <summary>
+    /// Observations linked to this inject.
+    /// </summary>
+    public ICollection<Observation> Observations { get; set; } = new List<Observation>();
 }

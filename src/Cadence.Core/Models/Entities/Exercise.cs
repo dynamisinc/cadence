@@ -79,6 +79,32 @@ public class Exercise : BaseEntity
     public Guid? ActiveMselId { get; set; }
 
     // =========================================================================
+    // Exercise Clock Properties (Updated During Conduct)
+    // =========================================================================
+
+    /// <summary>
+    /// Current state of the exercise clock.
+    /// </summary>
+    public ExerciseClockState ClockState { get; set; } = ExerciseClockState.Stopped;
+
+    /// <summary>
+    /// UTC timestamp when the clock was last started.
+    /// Used to calculate elapsed time when clock is running.
+    /// </summary>
+    public DateTime? ClockStartedAt { get; set; }
+
+    /// <summary>
+    /// Accumulated elapsed time before the current running period.
+    /// Updated when clock is paused to preserve total elapsed time.
+    /// </summary>
+    public TimeSpan? ClockElapsedBeforePause { get; set; }
+
+    /// <summary>
+    /// User ID of who last started the clock.
+    /// </summary>
+    public Guid? ClockStartedBy { get; set; }
+
+    // =========================================================================
     // Navigation Properties
     // =========================================================================
 
@@ -111,4 +137,14 @@ public class Exercise : BaseEntity
     /// Exercise objectives for evaluation.
     /// </summary>
     public ICollection<Objective> Objectives { get; set; } = new List<Objective>();
+
+    /// <summary>
+    /// Evaluator observations recorded during exercise conduct.
+    /// </summary>
+    public ICollection<Observation> Observations { get; set; } = new List<Observation>();
+
+    /// <summary>
+    /// User who last started the clock (if any).
+    /// </summary>
+    public User? ClockStartedByUser { get; set; }
 }

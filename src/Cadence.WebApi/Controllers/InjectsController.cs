@@ -131,9 +131,8 @@ public class InjectsController : ControllerBase
             .Where(i => i.MselId == mselId)
             .MaxAsync(i => (int?)i.Sequence) ?? 0;
 
-        // Create inject with placeholder user ID (no auth yet)
-        var placeholderUserId = Guid.Empty;
-        var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1, placeholderUserId);
+        // Create inject
+        var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1);
 
         _context.Injects.Add(inject);
         await _context.SaveChangesAsync();

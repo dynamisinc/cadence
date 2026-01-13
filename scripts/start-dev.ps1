@@ -298,6 +298,11 @@ Set-Location '$BackendDir'
 dotnet build 2>&1 | Out-File -FilePath `$LogFile -Append -Encoding UTF8
 "Starting..." | Out-File -FilePath `$LogFile -Append -Encoding UTF8
 dotnet run --launch-profile http --no-build 2>&1 | Tee-Object -FilePath `$LogFile -Append
+
+# Keep window open if process exits unexpectedly
+Write-Host ""
+Write-Host "Backend process exited. Press any key to close this window..." -ForegroundColor Yellow
+`$null = `$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 "@
         $BackendScriptContent | Out-File -FilePath $BackendScriptPath -Encoding UTF8
 
@@ -355,6 +360,11 @@ Set-Location '$FrontendDir'
 
 # Run npm dev with verbose logging
 npm run dev 2>&1 | Tee-Object -FilePath `$LogFile -Append
+
+# Keep window open if process exits unexpectedly
+Write-Host ""
+Write-Host "Frontend process exited. Press any key to close this window..." -ForegroundColor Yellow
+`$null = `$Host.UI.RawUI.ReadKey("NoEcho,IncludeKeyDown")
 "@
         $FrontendScriptContent | Out-File -FilePath $FrontendScriptPath -Encoding UTF8
 

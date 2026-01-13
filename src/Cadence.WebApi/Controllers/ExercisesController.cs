@@ -1,4 +1,6 @@
 using Cadence.Core.Data;
+using Cadence.Core.Features.ExerciseClock.Models.DTOs;
+using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -14,11 +16,16 @@ namespace Cadence.WebApi.Controllers;
 public class ExercisesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IExerciseClockService _clockService;
     private readonly ILogger<ExercisesController> _logger;
 
-    public ExercisesController(AppDbContext context, ILogger<ExercisesController> logger)
+    public ExercisesController(
+        AppDbContext context,
+        IExerciseClockService clockService,
+        ILogger<ExercisesController> logger)
     {
         _context = context;
+        _clockService = clockService;
         _logger = logger;
     }
 
@@ -154,5 +161,121 @@ public class ExercisesController : ControllerBase
         _logger.LogInformation("Updated exercise {ExerciseId}: {ExerciseName}", exercise.Id, exercise.Name);
 
         return Ok(exercise.ToDto());
+    }
+
+    // =========================================================================
+    // Exercise Clock Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Get the current clock state for an exercise.
+    /// </summary>
+    [HttpGet("{id:guid}/clock")]
+    public async Task<ActionResult<ClockStateDto>> GetClockState(Guid id)
+    {
+        var clockState = await _clockService.GetClockStateAsync(id);
+
+        if (clockState == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(clockState);
+    }
+
+    /// <summary>
+    /// Start the exercise clock.
+    /// This also transitions the exercise from Draft to Active status.
+    /// </summary>
+    [HttpPost("{id:guid}/clock/start")]
+    public async Task<ActionResult<ClockStateDto>> StartClock(Guid id)
+    {
+        try
+        {
+            // Placeholder user ID until auth is implemented
+            var startedBy = Guid.Empty;
+
+            var clockState = await _clockService.StartClockAsync(id, startedBy);
+
+            _logger.LogInformation("Started clock for exercise {ExerciseId}", id);
+
+            return Ok(clockState);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Pause the exercise clock.
+    /// Preserves elapsed time for later resumption.
+    /// </summary>
+    [HttpPost("{id:guid}/clock/pause")]
+    public async Task<ActionResult<ClockStateDto>> PauseClock(Guid id)
+    {
+        try
+        {
+            // Placeholder user ID until auth is implemented
+            var pausedBy = Guid.Empty;
+
+            var clockState = await _clockService.PauseClockAsync(id, pausedBy);
+
+            _logger.LogInformation("Paused clock for exercise {ExerciseId}", id);
+
+            return Ok(clockState);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Stop the exercise clock and complete the exercise.
+    /// This transitions the exercise to Completed status.
+    /// </summary>
+    [HttpPost("{id:guid}/clock/stop")]
+    public async Task<ActionResult<ClockStateDto>> StopClock(Guid id)
+    {
+        try
+        {
+            // Placeholder user ID until auth is implemented
+            var stoppedBy = Guid.Empty;
+
+            var clockState = await _clockService.StopClockAsync(id, stoppedBy);
+
+            _logger.LogInformation("Stopped clock for exercise {ExerciseId}. Exercise completed.", id);
+
+            return Ok(clockState);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Reset the exercise clock to zero.
+    /// Only allowed for Draft exercises or when clock is Stopped.
+    /// </summary>
+    [HttpPost("{id:guid}/clock/reset")]
+    public async Task<ActionResult<ClockStateDto>> ResetClock(Guid id)
+    {
+        try
+        {
+            // Placeholder user ID until auth is implemented
+            var resetBy = Guid.Empty;
+
+            var clockState = await _clockService.ResetClockAsync(id, resetBy);
+
+            _logger.LogInformation("Reset clock for exercise {ExerciseId}", id);
+
+            return Ok(clockState);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

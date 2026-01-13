@@ -1,3 +1,6 @@
+using Cadence.Core.Features.ExerciseClock.Services;
+using Cadence.Core.Features.Injects.Services;
+using Cadence.Core.Features.Observations.Services;
 using FluentValidation;
 
 namespace Cadence.Core.Extensions;
@@ -14,6 +17,11 @@ public static class ServiceCollectionExtensions
     {
         // Add Validators from this assembly
         services.AddValidatorsFromAssemblyContaining<AppDbContext>();
+
+        // Add Feature Services
+        services.AddScoped<IObservationService, ObservationService>();
+        services.AddScoped<IInjectService, InjectService>();
+        services.AddScoped<IExerciseClockService, ExerciseClockService>();
 
         return services;
     }

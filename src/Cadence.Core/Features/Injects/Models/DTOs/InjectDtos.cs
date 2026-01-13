@@ -231,7 +231,7 @@ public static class InjectMapper
         entity.Status,
         entity.Sequence,
         entity.ParentInjectId,
-        entity.TriggerCondition,
+        entity.FireCondition,
         entity.ExpectedAction,
         entity.ControllerNotes,
         entity.FiredAt,
@@ -248,7 +248,7 @@ public static class InjectMapper
         entity.UpdatedAt
     );
 
-    public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, Guid createdBy) => new()
+    public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, Guid createdBy = default) => new()
     {
         Id = Guid.NewGuid(),
         InjectNumber = injectNumber,
@@ -264,7 +264,7 @@ public static class InjectMapper
         Status = InjectStatus.Pending,
         Sequence = sequence,
         ParentInjectId = request.ParentInjectId,
-        TriggerCondition = request.TriggerCondition,
+        FireCondition = request.TriggerCondition,
         ExpectedAction = request.ExpectedAction,
         ControllerNotes = request.ControllerNotes,
         MselId = mselId,
@@ -273,7 +273,7 @@ public static class InjectMapper
         ModifiedBy = createdBy
     };
 
-    public static void UpdateFromRequest(this Inject entity, UpdateInjectRequest request, Guid modifiedBy)
+    public static void UpdateFromRequest(this Inject entity, UpdateInjectRequest request, Guid modifiedBy = default)
     {
         entity.Title = request.Title;
         entity.Description = request.Description;
@@ -285,7 +285,7 @@ public static class InjectMapper
         entity.DeliveryMethod = request.DeliveryMethod;
         entity.InjectType = request.InjectType;
         entity.ParentInjectId = request.ParentInjectId;
-        entity.TriggerCondition = request.TriggerCondition;
+        entity.FireCondition = request.TriggerCondition;
         entity.ExpectedAction = request.ExpectedAction;
         entity.ControllerNotes = request.ControllerNotes;
         entity.PhaseId = request.PhaseId;
