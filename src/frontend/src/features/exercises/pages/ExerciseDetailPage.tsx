@@ -149,6 +149,10 @@ export const ExerciseDetailPage = () => {
     navigate('/exercises')
   }
 
+  const handleViewMsel = () => {
+    navigate(`/exercises/${id}/msel`)
+  }
+
   const formatDate = (dateStr: string) => {
     try {
       return format(parseISO(dateStr), 'MMMM d, yyyy')
@@ -253,6 +257,12 @@ export const ExerciseDetailPage = () => {
           <CobraLinkButton onClick={handleBackToList}>
             Back to List
           </CobraLinkButton>
+          <CobraPrimaryButton
+            startIcon={<ListAltIcon />}
+            onClick={handleViewMsel}
+          >
+            View MSEL
+          </CobraPrimaryButton>
           {canEdit && !isEditing && (
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faPen} />}

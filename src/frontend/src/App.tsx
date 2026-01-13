@@ -18,6 +18,12 @@ import {
   CreateExercisePage,
   ExerciseDetailPage,
 } from './features/exercises'
+import {
+  InjectListPage,
+  InjectDetailPage,
+  CreateInjectPage,
+  EditInjectPage,
+} from './features/injects'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
 
@@ -89,6 +95,12 @@ const router = createBrowserRouter([
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
       { path: 'exercises/:id', element: <ExerciseDetailPage /> },
+
+      // Inject (MSEL) routes
+      { path: 'exercises/:exerciseId/msel', element: <InjectListPage /> },
+      { path: 'exercises/:exerciseId/injects/new', element: <CreateInjectPage /> },
+      { path: 'exercises/:exerciseId/injects/:injectId', element: <InjectDetailPage /> },
+      { path: 'exercises/:exerciseId/injects/:injectId/edit', element: <EditInjectPage /> },
 
       // Notes tool
       { path: 'notes', element: <NotesPage /> },
