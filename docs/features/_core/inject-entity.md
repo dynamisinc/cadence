@@ -46,10 +46,10 @@ Cadence supports **dual time tracking**: each inject has both a Scheduled Time (
 
 ### Branching Properties
 
-| Property | Type | Required | Description | Constraints |
-|----------|------|----------|-------------|-------------|
-| `ParentInjectId` | GUID? | No | Parent inject for branching | FK to Inject |
-| `TriggerCondition` | string | No | When to fire this branch | Max 500 characters |
+| Property         | Type   | Required | Description                  | Constraints        |
+|------------------|--------|----------|------------------------------|--------------------|
+| `ParentInjectId` | GUID?  | No       | Parent inject for branching  | FK to Inject       |
+| `FireCondition`  | string | No       | When to fire this branch     | Max 500 characters |
 
 ### Supplemental Properties
 
@@ -238,7 +238,7 @@ public class InjectValidator
         Optional(inject.Source).MaxLength(200);
         Optional(inject.ExpectedAction).MaxLength(2000);
         Optional(inject.ControllerNotes).MaxLength(2000);
-        Optional(inject.TriggerCondition).MaxLength(500);
+        Optional(inject.FireCondition).MaxLength(500);
         Optional(inject.SkipReason).MaxLength(500);
         
         // Scenario time validation
@@ -252,7 +252,7 @@ public class InjectValidator
             .Then(inject.InjectType != InjectType.Standard);
         When(inject.InjectType).In(Contingency, Adaptive, Complexity)
             .And(inject.ParentInjectId).IsNotNull()
-            .Then(inject.TriggerCondition).IsNotEmpty();
+            .Then(inject.FireCondition).IsNotEmpty();
     }
 }
 ```
@@ -389,7 +389,7 @@ CREATE TABLE Injects (
     
     -- Branching
     ParentInjectId UNIQUEIDENTIFIER NULL,
-    TriggerCondition NVARCHAR(500) NULL,
+    FireCondition NVARCHAR(500) NULL,
     
     -- Supplemental
     ExpectedAction NVARCHAR(2000) NULL,

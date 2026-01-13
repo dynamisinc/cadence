@@ -70,7 +70,7 @@ export const useConfirmDialog = () => {
    * to true if confirmed, false if cancelled.
    */
   const confirm = useCallback((options: ConfirmOptions): Promise<boolean> => {
-    return new Promise((resolve) => {
+    return new Promise(resolve => {
       resolveRef.current = resolve
       setState({
         open: true,

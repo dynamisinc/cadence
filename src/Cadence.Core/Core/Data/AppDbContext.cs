@@ -178,7 +178,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.DeliveryMethod).HasConversion<string>().HasMaxLength(20);
             entity.Property(e => e.InjectType).HasConversion<string>().HasMaxLength(20);
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
-            entity.Property(e => e.TriggerCondition).HasMaxLength(500);
+            entity.Property(e => e.FireCondition).HasMaxLength(500);
             entity.Property(e => e.ExpectedAction).HasMaxLength(2000);
             entity.Property(e => e.ControllerNotes).HasMaxLength(2000);
             entity.Property(e => e.SkipReason).HasMaxLength(500);
@@ -242,12 +242,6 @@ public class AppDbContext : DbContext
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // AddedByUser is optional for the same reason
-            entity.HasOne(e => e.AddedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.AddedBy)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

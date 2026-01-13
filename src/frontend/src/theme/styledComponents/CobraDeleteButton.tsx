@@ -1,5 +1,6 @@
 import { Button, type ButtonProps } from '@mui/material'
-import DeleteIcon from '@mui/icons-material/Delete'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import { styled } from '@mui/material/styles'
 
 /**
@@ -36,7 +37,7 @@ export const CobraDeleteButton = ({
   children,
   ...props
 }: CobraDeleteButtonProps) => (
-  <StyledDeleteButton startIcon={!hideIcon ? <DeleteIcon /> : undefined} {...props}>
+  <StyledDeleteButton startIcon={!hideIcon ? <FontAwesomeIcon icon={faTrash} /> : undefined} {...props}>
     {children}
   </StyledDeleteButton>
 )

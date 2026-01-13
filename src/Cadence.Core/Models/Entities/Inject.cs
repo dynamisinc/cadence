@@ -95,7 +95,7 @@ public class Inject : BaseEntity
     /// <summary>
     /// Describes when to fire this branch inject. Max 500 characters.
     /// </summary>
-    public string? TriggerCondition { get; set; }
+    public string? FireCondition { get; set; }
 
     // =========================================================================
     // Supplemental Properties

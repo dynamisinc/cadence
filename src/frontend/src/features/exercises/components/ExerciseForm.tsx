@@ -101,7 +101,7 @@ export const ExerciseForm = ({
   const isFieldDisabled = (field: keyof CreateExerciseFormValues) =>
     disabledFields.includes(field)
 
-  const onFormSubmit = handleSubmit(async (data) => {
+  const onFormSubmit = handleSubmit(async data => {
     await onSubmit(data)
   })
 

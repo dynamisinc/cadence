@@ -15,11 +15,8 @@ import {
   Tooltip,
   Skeleton,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import BuildIcon from '@mui/icons-material/Build'
-import SearchOffIcon from '@mui/icons-material/SearchOff'
-import AssignmentIcon from '@mui/icons-material/Assignment'
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faScrewdriverWrench, faBan, faClipboardList, faListCheck } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useExercises } from '../hooks'
@@ -150,7 +147,7 @@ export const ExerciseListPage = () => {
 
         {canManage && (
           <CobraPrimaryButton
-            startIcon={<AddIcon />}
+            startIcon={<FontAwesomeIcon icon={faPlus} />}
             onClick={handleCreateClick}
           >
             Create Exercise
@@ -338,10 +335,9 @@ const ExerciseRow = ({ exercise, onClick, formatDate }: ExerciseRowProps) => {
       <TableCell>
         {exercise.isPracticeMode && (
           <Tooltip title="Practice Mode - excluded from production reports">
-            <BuildIcon
-              fontSize="small"
-              sx={{ color: 'text.secondary' }}
-            />
+            <Box component="span" sx={{ color: 'text.secondary' }}>
+              <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
+            </Box>
           </Tooltip>
         )}
       </TableCell>
@@ -383,9 +379,11 @@ const EmptyState = ({
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 auto 16px',
+            color: 'grey.500',
+            fontSize: 40,
           }}
         >
-          <SearchOffIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+          <FontAwesomeIcon icon={faBan} />
         </Box>
         <Typography variant="h6" gutterBottom>
           No matching exercises
@@ -421,9 +419,11 @@ const EmptyState = ({
             justifyContent: 'center',
             margin: '0 auto 24px',
             boxShadow: '0 4px 20px rgba(33, 150, 243, 0.15)',
+            color: 'primary.main',
+            fontSize: 50,
           }}
         >
-          <PlaylistAddIcon sx={{ fontSize: 50, color: 'primary.main' }} />
+          <FontAwesomeIcon icon={faListCheck} />
         </Box>
         <Typography variant="h5" gutterBottom fontWeight={500}>
           Create Your First Exercise
@@ -437,7 +437,7 @@ const EmptyState = ({
           functional exercises, or full-scale drills to test your emergency response plans.
         </Typography>
         <CobraPrimaryButton
-          startIcon={<AddIcon />}
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
           onClick={onCreateClick}
           size="large"
         >
@@ -469,9 +469,11 @@ const EmptyState = ({
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 16px',
+          color: 'grey.500',
+          fontSize: 40,
         }}
       >
-        <AssignmentIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+        <FontAwesomeIcon icon={faClipboardList} />
       </Box>
       <Typography variant="h6" gutterBottom>
         No Exercises Assigned

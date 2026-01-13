@@ -26,7 +26,7 @@
  * @param options - Optional configuration for title, message, and button labels
  */
 
-import { useEffect, useCallback } from 'react'
+import { useEffect, useCallback, useMemo } from 'react'
 import { useBlocker } from 'react-router-dom'
 import type { Location } from 'react-router-dom'
 import { ConfirmDialog } from '../components/ConfirmDialog'
@@ -53,7 +53,10 @@ export const useUnsavedChangesWarning = (
   hasUnsavedChanges: boolean,
   options: UnsavedChangesOptions = {},
 ) => {
-  const config = { ...defaultOptions, ...options }
+  const config = useMemo(
+    () => ({ ...defaultOptions, ...options }),
+    [options],
+  )
 
   // Block in-app navigation when there are unsaved changes
   const blocker = useBlocker(

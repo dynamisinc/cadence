@@ -56,24 +56,24 @@ export const useExercise = (id: string | undefined) => {
 
       // Optimistically update in exercises list cache
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.map((exercise) =>
+        old.map(exercise =>
           exercise.id === id
             ? {
-                ...exercise,
-                ...request,
-                updatedAt: new Date().toISOString(),
-              }
+              ...exercise,
+              ...request,
+              updatedAt: new Date().toISOString(),
+            }
             : exercise,
         ),
       )
 
       return { previousExercise, previousExercises }
     },
-    onSuccess: (updatedExercise) => {
+    onSuccess: updatedExercise => {
       // Replace optimistic data with server response
       queryClient.setQueryData(exerciseQueryKey(id!), updatedExercise)
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.map((exercise) =>
+        old.map(exercise =>
           exercise.id === updatedExercise.id ? updatedExercise : exercise,
         ),
       )
