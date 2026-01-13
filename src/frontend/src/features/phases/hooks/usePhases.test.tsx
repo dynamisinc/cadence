@@ -239,7 +239,9 @@ describe('usePhases', () => {
       })
 
       expect(phaseService.createPhase).toHaveBeenCalledWith('exercise-1', request)
-      expect(result.current.phases).toContainEqual(newPhase)
+      await waitFor(() => {
+        expect(result.current.phases).toContainEqual(newPhase)
+      })
     })
 
     it('returns the created phase', async () => {
@@ -350,9 +352,11 @@ describe('usePhases', () => {
         'phase-1',
         request,
       )
-      expect(result.current.phases.find(p => p.id === 'phase-1')?.name).toBe(
-        'Updated Phase Name',
-      )
+      await waitFor(() => {
+        expect(result.current.phases.find(p => p.id === 'phase-1')?.name).toBe(
+          'Updated Phase Name',
+        )
+      })
     })
 
     it('applies optimistic update immediately', async () => {
@@ -442,8 +446,10 @@ describe('usePhases', () => {
       })
 
       expect(phaseService.deletePhase).toHaveBeenCalledWith('exercise-1', 'phase-1')
-      expect(result.current.phases.find(p => p.id === 'phase-1')).toBeUndefined()
-      expect(result.current.phases).toHaveLength(2)
+      await waitFor(() => {
+        expect(result.current.phases.find(p => p.id === 'phase-1')).toBeUndefined()
+        expect(result.current.phases).toHaveLength(2)
+      })
     })
 
     it('applies optimistic delete immediately', async () => {
@@ -534,8 +540,10 @@ describe('usePhases', () => {
       expect(phaseService.reorderPhases).toHaveBeenCalledWith('exercise-1', {
         phaseIds: ['phase-3', 'phase-1', 'phase-2'],
       })
-      expect(result.current.phases[0].id).toBe('phase-3')
-      expect(result.current.phases[0].sequence).toBe(1)
+      await waitFor(() => {
+        expect(result.current.phases[0].id).toBe('phase-3')
+        expect(result.current.phases[0].sequence).toBe(1)
+      })
     })
 
     it('applies optimistic reorder immediately', async () => {
