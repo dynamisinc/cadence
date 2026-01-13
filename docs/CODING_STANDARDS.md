@@ -171,6 +171,40 @@ var titles = await _context.Notes
 var activeNotes = _context.Notes.ToList().Where(n => n.IsActive);
 ```
 
+#### Soft Delete and Historical Queries
+
+User entities use soft delete (`IsDeleted` flag). This creates a challenge for navigation
+properties that reference Users - the User may be filtered out by the global query filter.
+
+**Pattern:** User navigation properties are **optional** (`User?`) to handle this gracefully.
+
+```csharp
+// LIVE QUERIES: Default behavior - soft-deleted users are filtered out
+// User navigation may be null if the user has been soft-deleted
+var participants = await _context.ExerciseParticipants
+    .Include(p => p.User)
+    .Where(p => p.ExerciseId == exerciseId)
+    .ToListAsync();
+
+// Handle potentially null User
+foreach (var p in participants)
+{
+    var displayName = p.User?.DisplayName ?? "[Deleted User]";
+}
+
+// HISTORICAL QUERIES: For reports/audits, include soft-deleted users
+var participants = await _context.ExerciseParticipants
+    .Include(p => p.User)
+    .IgnoreQueryFilters()  // Include soft-deleted entities
+    .Where(p => !p.IsDeleted && p.ExerciseId == exerciseId)
+    .ToListAsync();
+// Note: Must re-apply IsDeleted filter for the main entity
+```
+
+**Entities with optional User navigation:**
+- `ExerciseParticipant.User`, `ExerciseParticipant.AddedByUser`
+- `Inject.FiredByUser`, `Inject.SkippedByUser`
+
 #### Error Handling
 ```csharp
 // Let middleware handle exceptions
@@ -615,7 +649,6 @@ Warn users before losing form data:
 ```typescript
 // shared/hooks/useUnsavedChangesWarning.ts
 import { useEffect } from 'react';
-import { useBlocker } from 'react-router-dom';
 
 export const useUnsavedChangesWarning = (hasUnsavedChanges: boolean) => {
   // Browser refresh/close warning
@@ -623,29 +656,25 @@ export const useUnsavedChangesWarning = (hasUnsavedChanges: boolean) => {
     const handler = (e: BeforeUnloadEvent) => {
       if (hasUnsavedChanges) {
         e.preventDefault();
-        e.returnValue = '';
+        e.returnValue = '';  // Triggers browser's "Leave site?" dialog
       }
     };
     window.addEventListener('beforeunload', handler);
     return () => window.removeEventListener('beforeunload', handler);
   }, [hasUnsavedChanges]);
 
-  // React Router navigation blocking
-  const blocker = useBlocker(({ currentLocation, nextLocation }) =>
-    hasUnsavedChanges && currentLocation.pathname !== nextLocation.pathname
-  );
-
-  useEffect(() => {
-    if (blocker.state === 'blocked') {
-      const shouldLeave = window.confirm('You have unsaved changes. Leave anyway?');
-      shouldLeave ? blocker.proceed() : blocker.reset();
-    }
-  }, [blocker]);
+  return { hasUnsavedChanges };
 };
 
 // Usage in form pages:
 const [isDirty, setIsDirty] = useState(false);
 useUnsavedChangesWarning(isDirty && !isSubmitting);
+
+// For in-app navigation, handle dirty state in cancel handlers:
+const handleCancel = () => {
+  if (isDirty && !window.confirm('Discard unsaved changes?')) return;
+  navigate('/back');
+};
 ```
 
 #### 5. Engaging Empty States

@@ -4,5 +4,6 @@
  * Central export for all shared utilities, hooks, and components
  */
 
+export * from './components'
 export * from './hooks'
 export * from './utils'

@@ -1,3 +1,5 @@
+using System.Text.Json.Serialization;
+using Cadence.Core.Data;
 using Cadence.Core.Extensions;
 using Cadence.Core.Logging;
 using Cadence.WebApi.Hubs;
@@ -7,7 +9,14 @@ using Scalar.AspNetCore;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // Serialize enums as strings, preserving original case (TTX, FSE, Draft, etc.)
+        // Frontend expects enum values to match exactly
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
 builder.Services.AddSignalR();
@@ -50,6 +59,11 @@ if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
+
+    // Seed development data
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    await DevelopmentDataSeeder.SeedAsync(context);
 }
 
 app.UseHttpsRedirection();

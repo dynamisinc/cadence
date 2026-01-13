@@ -1,5 +1,6 @@
-import { BrowserRouter, Routes, Route, useNavigate } from 'react-router-dom'
-import { ProtectedRoute } from './core/components/ProtectedRoute'
+import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { MobileBlocker, ProtectedRoute } from './core/components'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Typography, Stack, Card, CardContent } from '@mui/material'
@@ -19,8 +20,24 @@ import { AppLayout } from './core/components/navigation'
 import { PermissionRole } from './types'
 import { NotesPage } from './tools/notes/pages/NotesPage'
 import { AdminPage, FeatureFlagsProvider } from './admin'
+import {
+  ExerciseListPage,
+  CreateExercisePage,
+  ExerciseDetailPage,
+} from './features/exercises'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
+
+// Create a client with sensible defaults for exercise management
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 1000 * 60, // 1 minute - data considered fresh
+      retry: 1, // Only retry failed requests once
+      refetchOnWindowFocus: false, // Don't refetch on window focus (we'll use SignalR for real-time)
+    },
+  },
+})
 
 /**
  * Home Page Component
@@ -102,57 +119,91 @@ const NotFoundPage = () => {
 }
 
 /**
+ * Root Layout Component
+ *
+ * Wraps all routes with the AppLayout shell
+ */
+const RootLayout = () => {
+  return (
+    <AppLayout>
+      <Outlet />
+    </AppLayout>
+  )
+}
+
+/**
+ * Router configuration using createBrowserRouter (Data Mode)
+ *
+ * This enables modern React Router features including:
+ * - useBlocker for navigation blocking
+ * - Data loading with loaders
+ * - Error boundaries per route
+ */
+const router = createBrowserRouter([
+  {
+    path: '/',
+    element: <RootLayout />,
+    children: [
+      // Home page
+      { index: true, element: <HomePage /> },
+
+      // Exercise routes
+      { path: 'exercises', element: <ExerciseListPage /> },
+      { path: 'exercises/new', element: <CreateExercisePage /> },
+      { path: 'exercises/:id', element: <ExerciseDetailPage /> },
+
+      // Notes tool
+      { path: 'notes', element: <NotesPage /> },
+
+      // Admin page - protected
+      {
+        path: 'admin',
+        element: (
+          <ProtectedRoute requiredRole={PermissionRole.MANAGE}>
+            <AdminPage />
+          </ProtectedRoute>
+        ),
+      },
+
+      // 404 fallback
+      { path: '*', element: <NotFoundPage /> },
+    ],
+  },
+])
+
+/**
  * Main Application Component
  *
  * Provides:
  * - MUI Theme (COBRA styling)
- * - React Router for navigation
+ * - React Router (Data Mode) for navigation with useBlocker support
  * - AppLayout with Header, Sidebar, Breadcrumbs
  * - Toast notifications
  */
 function App() {
   return (
-    <ThemeProvider theme={cobraTheme}>
-      <CssBaseline />
-      <FeatureFlagsProvider>
-        <BrowserRouter>
-          <AppLayout>
-            <Routes>
-              {/* Home page */}
-              <Route path="/" element={<HomePage />} />
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={cobraTheme}>
+        <CssBaseline />
+        <MobileBlocker>
+          <FeatureFlagsProvider>
+            <RouterProvider router={router} />
+          </FeatureFlagsProvider>
+        </MobileBlocker>
 
-              {/* Notes tool */}
-              <Route path="/notes" element={<NotesPage />} />
-
-              {/* Admin page - protected */}
-              <Route
-                path="/admin"
-                element={
-                  <ProtectedRoute requiredRole={PermissionRole.MANAGE}>
-                    <AdminPage />
-                  </ProtectedRoute>
-                }
-              />
-
-              {/* 404 fallback */}
-              <Route path="*" element={<NotFoundPage />} />
-            </Routes>
-          </AppLayout>
-        </BrowserRouter>
-      </FeatureFlagsProvider>
-
-      <ToastContainer
-        position="top-right"
-        autoClose={3000}
-        hideProgressBar={false}
-        newestOnTop
-        closeOnClick
-        rtl={false}
-        pauseOnFocusLoss
-        draggable
-        pauseOnHover
-      />
-    </ThemeProvider>
+        <ToastContainer
+          position="top-right"
+          autoClose={3000}
+          hideProgressBar={false}
+          newestOnTop
+          closeOnClick
+          rtl={false}
+          pauseOnFocusLoss
+          draggable
+          pauseOnHover
+        />
+      </ThemeProvider>
+    </QueryClientProvider>
   )
 }
 

@@ -22,6 +22,8 @@ public class AppDbContext : DbContext
     public DbSet<Phase> Phases => Set<Phase>();
     public DbSet<Inject> Injects => Set<Inject>();
     public DbSet<ExerciseParticipant> ExerciseParticipants => Set<ExerciseParticipant>();
+    public DbSet<Objective> Objectives => Set<Objective>();
+    public DbSet<HseepRole> HseepRoles => Set<HseepRole>();
 
     // =========================================================================
     // Model Configuration
@@ -66,6 +68,8 @@ public class AppDbContext : DbContext
         ConfigurePhase(modelBuilder);
         ConfigureInject(modelBuilder);
         ConfigureExerciseParticipant(modelBuilder);
+        ConfigureObjective(modelBuilder);
+        ConfigureHseepRole(modelBuilder);
     }
 
     /// <summary>
@@ -127,7 +131,7 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.ActiveMsel)
                 .WithMany()
                 .HasForeignKey(e => e.ActiveMselId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 
@@ -193,22 +197,26 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.Phase)
                 .WithMany(p => p.Injects)
                 .HasForeignKey(e => e.PhaseId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(e => e.ParentInject)
                 .WithMany(i => i.ChildInjects)
                 .HasForeignKey(e => e.ParentInjectId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
 
+            // User references are optional to handle soft-deleted users gracefully.
+            // For historical reports, use IgnoreQueryFilters() to include deleted users.
             entity.HasOne(e => e.FiredByUser)
                 .WithMany()
                 .HasForeignKey(e => e.FiredBy)
-                .OnDelete(DeleteBehavior.SetNull);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(e => e.SkippedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.SkippedBy)
-                .OnDelete(DeleteBehavior.SetNull);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 
@@ -226,15 +234,118 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.ExerciseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            // User navigation is optional to handle soft-deleted users gracefully.
+            // For historical reports, use IgnoreQueryFilters() to include deleted users.
             entity.HasOne(e => e.User)
                 .WithMany(u => u.ExerciseParticipations)
                 .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Restrict);
 
+            // AddedByUser is optional for the same reason
             entity.HasOne(e => e.AddedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.AddedBy)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureObjective(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Objective>(entity =>
+        {
+            entity.Property(e => e.ObjectiveNumber).HasMaxLength(10).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(2000);
+
+            entity.HasIndex(e => new { e.ExerciseId, e.ObjectiveNumber });
+
+            entity.HasOne(e => e.Exercise)
+                .WithMany(ex => ex.Objectives)
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureHseepRole(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<HseepRole>(entity =>
+        {
+            entity.Property(e => e.Code).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            entity.HasIndex(e => e.Code).IsUnique();
+
+            // Seed HSEEP-defined roles
+            entity.HasData(
+                new HseepRole
+                {
+                    Id = (int)ExerciseRole.Administrator,
+                    Code = nameof(ExerciseRole.Administrator),
+                    Name = "Administrator",
+                    Description = "System-wide configuration and user management. Has full access to all exercises within their organization.",
+                    SortOrder = 1,
+                    IsSystemWide = true,
+                    CanFireInjects = true,
+                    CanRecordObservations = true,
+                    CanManageExercise = true,
+                    IsActive = true
+                },
+                new HseepRole
+                {
+                    Id = (int)ExerciseRole.ExerciseDirector,
+                    Code = nameof(ExerciseRole.ExerciseDirector),
+                    Name = "Exercise Director",
+                    Description = "Full exercise management authority. Responsible for Go/No-Go decisions and overall exercise conduct.",
+                    SortOrder = 2,
+                    IsSystemWide = false,
+                    CanFireInjects = true,
+                    CanRecordObservations = true,
+                    CanManageExercise = true,
+                    IsActive = true
+                },
+                new HseepRole
+                {
+                    Id = (int)ExerciseRole.Controller,
+                    Code = nameof(ExerciseRole.Controller),
+                    Name = "Controller",
+                    Description = "Delivers injects to players and manages scenario flow during exercise conduct.",
+                    SortOrder = 3,
+                    IsSystemWide = false,
+                    CanFireInjects = true,
+                    CanRecordObservations = false,
+                    CanManageExercise = false,
+                    IsActive = true
+                },
+                new HseepRole
+                {
+                    Id = (int)ExerciseRole.Evaluator,
+                    Code = nameof(ExerciseRole.Evaluator),
+                    Name = "Evaluator",
+                    Description = "Observes and documents player performance for the After-Action Report (AAR).",
+                    SortOrder = 4,
+                    IsSystemWide = false,
+                    CanFireInjects = false,
+                    CanRecordObservations = true,
+                    CanManageExercise = false,
+                    IsActive = true
+                },
+                new HseepRole
+                {
+                    Id = (int)ExerciseRole.Observer,
+                    Code = nameof(ExerciseRole.Observer),
+                    Name = "Observer",
+                    Description = "Watches exercise conduct without interfering. Read-only access to exercise data.",
+                    SortOrder = 5,
+                    IsSystemWide = false,
+                    CanFireInjects = false,
+                    CanRecordObservations = false,
+                    CanManageExercise = false,
+                    IsActive = true
+                }
+            );
         });
     }
 

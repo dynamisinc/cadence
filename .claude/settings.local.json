@@ -21,7 +21,12 @@
       "Bash(git mv:*)",
       "Bash(cmd.exe /c \"cd /d c:\\\\Code\\\\dynamis\\\\cadence\\\\src && ren Dynamis.Core Cadence.Core\")",
       "Bash(robocopy:*)",
-      "Bash(git show:*)"
+      "Bash(git show:*)",
+      "Bash(dir /a \"c:\\\\Code\\\\dynamis\\\\cadence\\\\docs\"\")",
+      "Bash(dotnet ef database:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm show:*)",
+      "Bash(npm test:*)"
     ],
     "deny": [],
     "ask": []

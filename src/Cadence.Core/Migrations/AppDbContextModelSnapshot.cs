@@ -141,6 +141,122 @@ namespace Cadence.Core.Migrations
                     b.ToTable("ExerciseParticipants");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.HseepRole", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<bool>("CanFireInjects")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanManageExercise")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("CanRecordObservations")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Code")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsSystemWide")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Code")
+                        .IsUnique();
+
+                    b.ToTable("HseepRoles");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = 1,
+                            CanFireInjects = true,
+                            CanManageExercise = true,
+                            CanRecordObservations = true,
+                            Code = "Administrator",
+                            Description = "System-wide configuration and user management. Has full access to all exercises within their organization.",
+                            IsActive = true,
+                            IsSystemWide = true,
+                            Name = "Administrator",
+                            SortOrder = 1
+                        },
+                        new
+                        {
+                            Id = 2,
+                            CanFireInjects = true,
+                            CanManageExercise = true,
+                            CanRecordObservations = true,
+                            Code = "ExerciseDirector",
+                            Description = "Full exercise management authority. Responsible for Go/No-Go decisions and overall exercise conduct.",
+                            IsActive = true,
+                            IsSystemWide = false,
+                            Name = "Exercise Director",
+                            SortOrder = 2
+                        },
+                        new
+                        {
+                            Id = 3,
+                            CanFireInjects = true,
+                            CanManageExercise = false,
+                            CanRecordObservations = false,
+                            Code = "Controller",
+                            Description = "Delivers injects to players and manages scenario flow during exercise conduct.",
+                            IsActive = true,
+                            IsSystemWide = false,
+                            Name = "Controller",
+                            SortOrder = 3
+                        },
+                        new
+                        {
+                            Id = 4,
+                            CanFireInjects = false,
+                            CanManageExercise = false,
+                            CanRecordObservations = true,
+                            Code = "Evaluator",
+                            Description = "Observes and documents player performance for the After-Action Report (AAR).",
+                            IsActive = true,
+                            IsSystemWide = false,
+                            Name = "Evaluator",
+                            SortOrder = 4
+                        },
+                        new
+                        {
+                            Id = 5,
+                            CanFireInjects = false,
+                            CanManageExercise = false,
+                            CanRecordObservations = false,
+                            Code = "Observer",
+                            Description = "Watches exercise conduct without interfering. Read-only access to exercise data.",
+                            IsActive = true,
+                            IsSystemWide = false,
+                            Name = "Observer",
+                            SortOrder = 5
+                        });
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Inject", b =>
                 {
                     b.Property<Guid>("Id")
@@ -325,6 +441,57 @@ namespace Cadence.Core.Migrations
                     b.ToTable("Msels");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Objective", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("ObjectiveNumber")
+                        .IsRequired()
+                        .HasMaxLength(10)
+                        .HasColumnType("nvarchar(10)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseId", "ObjectiveNumber");
+
+                    b.ToTable("Objectives");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -479,7 +646,7 @@ namespace Cadence.Core.Migrations
                     b.HasOne("Cadence.Core.Models.Entities.Msel", "ActiveMsel")
                         .WithMany()
                         .HasForeignKey("ActiveMselId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
                         .WithMany("Exercises")
@@ -524,7 +691,7 @@ namespace Cadence.Core.Migrations
                     b.HasOne("Cadence.Core.Models.Entities.User", "FiredByUser")
                         .WithMany()
                         .HasForeignKey("FiredBy")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.Msel", "Msel")
                         .WithMany("Injects")
@@ -535,17 +702,17 @@ namespace Cadence.Core.Migrations
                     b.HasOne("Cadence.Core.Models.Entities.Inject", "ParentInject")
                         .WithMany("ChildInjects")
                         .HasForeignKey("ParentInjectId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.Phase", "Phase")
                         .WithMany("Injects")
                         .HasForeignKey("PhaseId")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.User", "SkippedByUser")
                         .WithMany()
                         .HasForeignKey("SkippedBy")
-                        .OnDelete(DeleteBehavior.SetNull);
+                        .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("FiredByUser");
 
@@ -562,6 +729,17 @@ namespace Cadence.Core.Migrations
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
                         .WithMany("Msels")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Exercise");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Objective", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
+                        .WithMany("Objectives")
                         .HasForeignKey("ExerciseId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -594,6 +772,8 @@ namespace Cadence.Core.Migrations
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
                 {
                     b.Navigation("Msels");
+
+                    b.Navigation("Objectives");
 
                     b.Navigation("Participants");
 

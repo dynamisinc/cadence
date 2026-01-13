@@ -106,4 +106,9 @@ public class Exercise : BaseEntity
     /// Exercise participants and their roles.
     /// </summary>
     public ICollection<ExerciseParticipant> Participants { get; set; } = new List<ExerciseParticipant>();
+
+    /// <summary>
+    /// Exercise objectives for evaluation.
+    /// </summary>
+    public ICollection<Objective> Objectives { get; set; } = new List<Objective>();
 }

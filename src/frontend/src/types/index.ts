@@ -2,9 +2,150 @@
  * Shared TypeScript types for Cadence
  */
 
+// =============================================================================
+// HSEEP Role Types (matches backend ExerciseRole enum)
+// =============================================================================
+
+/**
+ * HSEEP-aligned roles for exercise participation.
+ * Values match the ExerciseRole enum in the backend.
+ */
+export const HseepRole = {
+  /** System-wide configuration and user management */
+  Administrator: 'Administrator',
+  /** Full exercise management authority, Go/No-Go decisions */
+  ExerciseDirector: 'ExerciseDirector',
+  /** Delivers injects, manages scenario flow */
+  Controller: 'Controller',
+  /** Observes and documents player performance */
+  Evaluator: 'Evaluator',
+  /** Watches without interfering */
+  Observer: 'Observer',
+} as const
+
+export type HseepRole = (typeof HseepRole)[keyof typeof HseepRole]
+
+/**
+ * HSEEP Role metadata (matches HseepRole entity from backend)
+ */
+export interface HseepRoleInfo {
+  id: number;
+  code: HseepRole;
+  name: string;
+  description: string;
+  sortOrder: number;
+  isSystemWide: boolean;
+  canFireInjects: boolean;
+  canRecordObservations: boolean;
+  canManageExercise: boolean;
+  isActive: boolean;
+}
+
+/**
+ * Static HSEEP role definitions for client-side use.
+ * Mirrors the seeded data in the database.
+ */
+export const HSEEP_ROLES: readonly HseepRoleInfo[] = [
+  {
+    id: 1,
+    code: HseepRole.Administrator,
+    name: 'Administrator',
+    description: 'System-wide configuration and user management. Has full access to all exercises within their organization.',
+    sortOrder: 1,
+    isSystemWide: true,
+    canFireInjects: true,
+    canRecordObservations: true,
+    canManageExercise: true,
+    isActive: true,
+  },
+  {
+    id: 2,
+    code: HseepRole.ExerciseDirector,
+    name: 'Exercise Director',
+    description: 'Full exercise management authority. Responsible for Go/No-Go decisions and overall exercise conduct.',
+    sortOrder: 2,
+    isSystemWide: false,
+    canFireInjects: true,
+    canRecordObservations: true,
+    canManageExercise: true,
+    isActive: true,
+  },
+  {
+    id: 3,
+    code: HseepRole.Controller,
+    name: 'Controller',
+    description: 'Delivers injects to players and manages scenario flow during exercise conduct.',
+    sortOrder: 3,
+    isSystemWide: false,
+    canFireInjects: true,
+    canRecordObservations: false,
+    canManageExercise: false,
+    isActive: true,
+  },
+  {
+    id: 4,
+    code: HseepRole.Evaluator,
+    name: 'Evaluator',
+    description: 'Observes and documents player performance for the After-Action Report (AAR).',
+    sortOrder: 4,
+    isSystemWide: false,
+    canFireInjects: false,
+    canRecordObservations: true,
+    canManageExercise: false,
+    isActive: true,
+  },
+  {
+    id: 5,
+    code: HseepRole.Observer,
+    name: 'Observer',
+    description: 'Watches exercise conduct without interfering. Read-only access to exercise data.',
+    sortOrder: 5,
+    isSystemWide: false,
+    canFireInjects: false,
+    canRecordObservations: false,
+    canManageExercise: false,
+    isActive: true,
+  },
+] as const
+
+/**
+ * Helper function to get role info by code
+ */
+export const getHseepRoleInfo = (code: HseepRole): HseepRoleInfo | undefined => {
+  return HSEEP_ROLES.find(role => role.code === code)
+}
+
+/**
+ * Helper function to check if a role can fire injects
+ */
+export const canRoleFireInjects = (code: HseepRole): boolean => {
+  return getHseepRoleInfo(code)?.canFireInjects ?? false
+}
+
+/**
+ * Helper function to check if a role can record observations
+ */
+export const canRoleRecordObservations = (code: HseepRole): boolean => {
+  return getHseepRoleInfo(code)?.canRecordObservations ?? false
+}
+
+/**
+ * Helper function to check if a role can manage exercises
+ */
+export const canRoleManageExercise = (code: HseepRole): boolean => {
+  return getHseepRoleInfo(code)?.canManageExercise ?? false
+}
+
+// =============================================================================
+// Legacy Permission Role Types (for demo/testing UI)
+// =============================================================================
+
 /**
  * Permission Role for access control
  * Used by ProfileMenu for client-side role switching (demo/testing)
+ *
+ * @deprecated Use HseepRole for HSEEP-compliant role checking.
+ * This is retained for backwards compatibility with the demo ProfileMenu.
  */
 export const PermissionRole = {
   READONLY: 'Readonly',
@@ -22,3 +163,97 @@ export interface MockUserProfile {
   email: string;
   fullName: string;
 }
+
+// =============================================================================
+// Exercise Types (matches backend enums)
+// =============================================================================
+
+/**
+ * Types of exercises per HSEEP classification
+ */
+export const ExerciseType = {
+  /** Table Top Exercise - Discussion-based scenario walkthrough */
+  TTX: 'TTX',
+  /** Functional Exercise - Simulated operations in controlled environment */
+  FE: 'FE',
+  /** Full-Scale Exercise - Actual deployment of resources */
+  FSE: 'FSE',
+  /** Computer-Aided Exercise - Technology-driven simulation */
+  CAX: 'CAX',
+  /** Hybrid Exercise - Combination of multiple types */
+  Hybrid: 'Hybrid',
+} as const
+
+export type ExerciseType = (typeof ExerciseType)[keyof typeof ExerciseType]
+
+/**
+ * Exercise lifecycle status
+ */
+export const ExerciseStatus = {
+  /** Initial creation state */
+  Draft: 'Draft',
+  /** Currently in conduct */
+  Active: 'Active',
+  /** Conduct finished */
+  Completed: 'Completed',
+  /** Read-only historical record */
+  Archived: 'Archived',
+} as const
+
+export type ExerciseStatus = (typeof ExerciseStatus)[keyof typeof ExerciseStatus]
+
+// =============================================================================
+// Inject Types (matches backend enums)
+// =============================================================================
+
+/**
+ * Types of injects based on their purpose
+ */
+export const InjectType = {
+  /** Standard - Delivered at scheduled time */
+  Standard: 'Standard',
+  /** Contingency - Used if players deviate from expected path */
+  Contingency: 'Contingency',
+  /** Adaptive - Branch based on player decision */
+  Adaptive: 'Adaptive',
+  /** Complexity - Increase difficulty for advanced players */
+  Complexity: 'Complexity',
+} as const
+
+export type InjectType = (typeof InjectType)[keyof typeof InjectType]
+
+/**
+ * Inject delivery status during exercise conduct
+ */
+export const InjectStatus = {
+  /** Not yet delivered */
+  Pending: 'Pending',
+  /** Delivered to players */
+  Fired: 'Fired',
+  /** Intentionally not delivered */
+  Skipped: 'Skipped',
+} as const
+
+export type InjectStatus = (typeof InjectStatus)[keyof typeof InjectStatus]
+
+/**
+ * Methods for delivering injects to players
+ */
+export const DeliveryMethod = {
+  /** Spoken directly to player */
+  Verbal: 'Verbal',
+  /** Simulated phone call */
+  Phone: 'Phone',
+  /** Simulated email */
+  Email: 'Email',
+  /** Radio communication */
+  Radio: 'Radio',
+  /** Paper document */
+  Written: 'Written',
+  /** CAX/simulation input */
+  Simulation: 'Simulation',
+  /** Custom method */
+  Other: 'Other',
+} as const
+
+export type DeliveryMethod = (typeof DeliveryMethod)[keyof typeof DeliveryMethod]

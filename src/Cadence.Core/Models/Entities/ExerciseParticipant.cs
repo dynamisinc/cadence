@@ -47,11 +47,14 @@ public class ExerciseParticipant
 
     /// <summary>
     /// The participating user.
+    /// May be null if the user has been soft-deleted.
+    /// For historical reports, use IgnoreQueryFilters() to include deleted users.
     /// </summary>
-    public User User { get; set; } = null!;
+    public User? User { get; set; }
 
     /// <summary>
     /// The user who added this participant.
+    /// May be null if the user has been soft-deleted.
     /// </summary>
-    public User AddedByUser { get; set; } = null!;
+    public User? AddedByUser { get; set; }
 }

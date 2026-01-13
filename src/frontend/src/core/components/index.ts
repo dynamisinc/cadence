@@ -5,6 +5,7 @@
  */
 
 export { ErrorBoundary } from './ErrorBoundary'
+export { MobileBlocker } from './MobileBlocker'
 export { ProfileMenu } from './ProfileMenu'
 export { ProtectedRoute } from './ProtectedRoute'
 

@@ -113,21 +113,22 @@ public enum DeliveryMethod
 
 /// <summary>
 /// HSEEP-aligned roles for exercise participation.
+/// Values start at 1 to support EF Core seeding (0 is not allowed for seed data PKs).
 /// </summary>
 public enum ExerciseRole
 {
     /// <summary>System-wide configuration and user management.</summary>
-    Administrator,
+    Administrator = 1,
 
     /// <summary>Full exercise management authority.</summary>
-    ExerciseDirector,
+    ExerciseDirector = 2,
 
     /// <summary>Inject delivery and conduct management.</summary>
-    Controller,
+    Controller = 3,
 
     /// <summary>Observation recording for AAR.</summary>
-    Evaluator,
+    Evaluator = 4,
 
     /// <summary>Read-only exercise monitoring.</summary>
-    Observer
+    Observer = 5
 }

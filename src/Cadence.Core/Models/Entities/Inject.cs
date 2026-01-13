@@ -180,11 +180,15 @@ public class Inject : BaseEntity
 
     /// <summary>
     /// User who fired this inject (if fired).
+    /// May be null if inject not fired or if the user has been soft-deleted.
+    /// For historical reports, use IgnoreQueryFilters() to include deleted users.
     /// </summary>
     public User? FiredByUser { get; set; }
 
     /// <summary>
     /// User who skipped this inject (if skipped).
+    /// May be null if inject not skipped or if the user has been soft-deleted.
+    /// For historical reports, use IgnoreQueryFilters() to include deleted users.
     /// </summary>
     public User? SkippedByUser { get; set; }
 }

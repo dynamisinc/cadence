@@ -225,8 +225,7 @@ namespace Cadence.Core.Migrations
                         name: "FK_Injects_Injects_ParentInjectId",
                         column: x => x.ParentInjectId,
                         principalTable: "Injects",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Injects_Msels_MselId",
                         column: x => x.MselId,
@@ -237,20 +236,17 @@ namespace Cadence.Core.Migrations
                         name: "FK_Injects_Phases_PhaseId",
                         column: x => x.PhaseId,
                         principalTable: "Phases",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Injects_Users_FiredBy",
                         column: x => x.FiredBy,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                     table.ForeignKey(
                         name: "FK_Injects_Users_SkippedBy",
                         column: x => x.SkippedBy,
                         principalTable: "Users",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateIndex(
@@ -354,8 +350,7 @@ namespace Cadence.Core.Migrations
                 table: "Exercises",
                 column: "ActiveMselId",
                 principalTable: "Msels",
-                principalColumn: "Id",
-                onDelete: ReferentialAction.SetNull);
+                principalColumn: "Id");
         }
 
         /// <inheritdoc />

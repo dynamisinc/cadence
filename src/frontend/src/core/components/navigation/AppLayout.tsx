@@ -139,12 +139,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         data-testid="main-content"
         sx={{
           flexGrow: 1,
-          ml: `${contentMarginLeft}px`,
           mt: `calc(${theme.cssStyling.headerHeight}px + 40px)`, // 40px = breadcrumb height
-          transition: theme.transitions.create('margin-left', {
-            easing: theme.transitions.easing.sharp,
-            duration: theme.transitions.duration.enteringScreen,
-          }),
           minHeight: `calc(100vh - ${theme.cssStyling.headerHeight}px - 40px)`,
           display: 'flex',
           flexDirection: 'column',
