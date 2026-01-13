@@ -40,17 +40,18 @@ import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledCompon
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { useExerciseSignalR } from '../../../shared/hooks'
-import { ExerciseStatus } from '../../../types'
+import { ExerciseStatus, InjectStatus } from '../../../types'
 
 // Feature imports
 import { ClockDisplay, ClockControls, useExerciseClock, clockQueryKey } from '../../exercise-clock'
-import { InjectList, useInjects, injectsQueryKey } from '../../injects'
+import { InjectListByStatus, ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
 import {
   ObservationForm,
   ObservationList,
   useObservations,
   observationsQueryKey,
 } from '../../observations'
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import type { ObservationDto } from '../../observations/types'
 import type { InjectDto } from '../../injects/types'
 import type { ExerciseClockDto } from '../../exercise-clock/types'
@@ -63,11 +64,19 @@ export const ExerciseConductPage = () => {
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
   const {
-    clock,
+    clockState,
+    displayTime,
+    elapsedTimeMs,
+    exerciseStartTime,
     loading: clockLoading,
     startClock,
     pauseClock,
+    stopClock,
     resetClock,
+    isStarting,
+    isPausing,
+    isStopping,
+    isResetting,
   } = useExerciseClock(exerciseId!)
   const {
     injects,
@@ -90,6 +99,7 @@ export const ExerciseConductPage = () => {
   const [isSubmittingObservation, setIsSubmittingObservation] = useState(false)
   const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null)
   const [observationsExpanded, setObservationsExpanded] = useState(true)
+  const [showStopConfirm, setShowStopConfirm] = useState(false)
 
   // Set breadcrumbs
   useBreadcrumbs(
@@ -106,7 +116,7 @@ export const ExerciseConductPage = () => {
   // SignalR real-time handlers
   const handleInjectFired = useCallback(
     (inject: InjectDto) => {
-      queryClient.setQueryData<InjectDto[]>(injectsQueryKey(exerciseId!), (old) =>
+      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), (old) =>
         old?.map((i) => (i.id === inject.id ? inject : i)) ?? []
       )
     },
@@ -115,7 +125,7 @@ export const ExerciseConductPage = () => {
 
   const handleInjectStatusChanged = useCallback(
     (inject: InjectDto) => {
-      queryClient.setQueryData<InjectDto[]>(injectsQueryKey(exerciseId!), (old) =>
+      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), (old) =>
         old?.map((i) => (i.id === inject.id ? inject : i)) ?? []
       )
     },
@@ -173,6 +183,16 @@ export const ExerciseConductPage = () => {
     return exercise?.status === ExerciseStatus.Active
   }, [exercise])
 
+  // Calculate ready-to-fire count for badge
+  const readyToFireCount = useMemo(() => {
+    if (!injects || injects.length === 0) return 0
+    return injects.filter((inject) => {
+      if (inject.status !== InjectStatus.Pending) return false
+      const offsetMs = calculateScheduledOffset(inject.scheduledTime, exerciseStartTime)
+      return offsetMs <= elapsedTimeMs
+    }).length
+  }, [injects, exerciseStartTime, elapsedTimeMs])
+
   // Handlers
   const handleCreateObservation = async (data: Parameters<typeof createObservation>[0]) => {
     setIsSubmittingObservation(true)
@@ -191,6 +211,16 @@ export const ExerciseConductPage = () => {
     } finally {
       setDeletingObservationId(null)
     }
+  }
+
+  // Stop clock with confirmation
+  const handleStopClick = () => {
+    setShowStopConfirm(true)
+  }
+
+  const handleStopConfirmed = async () => {
+    await stopClock()
+    setShowStopConfirm(false)
   }
 
   // Loading state
@@ -301,32 +331,50 @@ export const ExerciseConductPage = () => {
         <Grid size={{ xs: 12, md: 8 }}>
           {/* Exercise Clock */}
           <Paper sx={{ p: 3, mb: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Exercise Clock
-            </Typography>
+            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+              <Typography variant="h6">
+                Exercise Clock
+              </Typography>
+              <ReadyToFireBadge count={readyToFireCount} />
+            </Stack>
             <Stack spacing={2} alignItems="center">
-              <ClockDisplay clock={clock} loading={clockLoading} size="large" />
+              <ClockDisplay
+                clockState={clockState}
+                displayTime={displayTime}
+                loading={clockLoading}
+                size="large"
+              />
               {canControl && (
                 <ClockControls
-                  clock={clock}
+                  state={clockState?.state}
                   onStart={startClock}
                   onPause={pauseClock}
+                  onStop={handleStopClick}
                   onReset={resetClock}
+                  isStarting={isStarting}
+                  isPausing={isPausing}
+                  isStopping={isStopping}
+                  isResetting={isResetting}
+                  showReset
                 />
               )}
             </Stack>
           </Paper>
 
-          {/* Inject List */}
+          {/* Inject List - Time-Based Sections */}
           <Paper sx={{ p: 3 }}>
             <Typography variant="h6" gutterBottom>
               Injects
             </Typography>
-            <InjectList
+            {/* Visual notification when new injects become ready */}
+            <ReadyNotification readyCount={readyToFireCount} />
+            <InjectListByStatus
               injects={injects}
+              exerciseStartTime={exerciseStartTime}
+              elapsedTimeMs={elapsedTimeMs}
+              canControl={canControl}
               loading={injectsLoading}
               error={injectsError}
-              canControl={canControl}
               onFire={fireInject}
               onSkip={skipInject}
               onReset={resetInject}
@@ -393,6 +441,19 @@ export const ExerciseConductPage = () => {
           </Paper>
         </Grid>
       </Grid>
+
+      {/* Stop Exercise Confirmation Dialog */}
+      <ConfirmDialog
+        open={showStopConfirm}
+        title="Stop Exercise?"
+        message="This will mark the exercise as Completed and end the active conduct phase. The exercise cannot be reopened once completed."
+        confirmLabel="Stop Exercise"
+        cancelLabel="Cancel"
+        severity="warning"
+        onConfirm={handleStopConfirmed}
+        onCancel={() => setShowStopConfirm(false)}
+        isConfirming={isStopping}
+      />
     </Box>
   )
 }

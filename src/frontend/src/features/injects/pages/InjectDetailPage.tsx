@@ -14,19 +14,25 @@ import {
   Divider,
   Grid,
 } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import SkipNextIcon from '@mui/icons-material/SkipNext'
-import ScheduleIcon from '@mui/icons-material/Schedule'
-import PersonIcon from '@mui/icons-material/Person'
-import SendIcon from '@mui/icons-material/Send'
-import DescriptionIcon from '@mui/icons-material/Description'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faArrowLeft,
+  faPen,
+  faTrash,
+  faPlay,
+  faForwardStep,
+  faClock,
+  faUser,
+  faPaperPlane,
+  faFileLines,
+  faHome,
+} from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useInject } from '../hooks/useInject'
 import { useInjects } from '../hooks/useInjects'
+import { useExercise } from '../../exercises/hooks/useExercise'
+import { useBreadcrumbs } from '../../../core/contexts'
 import { InjectStatusChip, InjectTypeChip } from '../components'
 import {
   CobraPrimaryButton,
@@ -59,10 +65,24 @@ export const InjectDetailPage = () => {
     exerciseId: string
     injectId: string
   }>()
+  const { exercise } = useExercise(exerciseId || '')
   const { inject, loading, error } = useInject(exerciseId || '', injectId || '')
   const { fireInject, skipInject, deleteInject, isFiring, isSkipping, isDeleting } =
     useInjects(exerciseId || '')
   const { canFireInjects, canDelete } = usePermissions()
+
+  // Set custom breadcrumbs with exercise name, MSEL, and inject number
+  useBreadcrumbs(
+    exercise && inject
+      ? [
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'MSEL', path: `/exercises/${exerciseId}/msel` },
+        { label: `Inject #${inject.injectNumber}` },
+      ]
+      : undefined,
+  )
 
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipReason, setSkipReason] = useState('')
@@ -157,7 +177,7 @@ export const InjectDetailPage = () => {
       <Box padding={CobraStyles.Padding.MainWindow}>
         <Stack direction="row" alignItems="center" spacing={1} marginBottom={3}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Skeleton variant="text" width={300} height={40} />
         </Stack>
@@ -190,7 +210,7 @@ export const InjectDetailPage = () => {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Box>
             <Typography variant="caption" color="text.secondary">
@@ -210,14 +230,14 @@ export const InjectDetailPage = () => {
           {isPending && canFireInjects && (
             <>
               <CobraPrimaryButton
-                startIcon={<PlayArrowIcon />}
+                startIcon={<FontAwesomeIcon icon={faPlay} />}
                 onClick={handleFireClick}
                 disabled={isFiring}
               >
                 Fire
               </CobraPrimaryButton>
               <CobraSecondaryButton
-                startIcon={<SkipNextIcon />}
+                startIcon={<FontAwesomeIcon icon={faForwardStep} />}
                 onClick={handleSkipClick}
                 disabled={isSkipping}
               >
@@ -228,13 +248,13 @@ export const InjectDetailPage = () => {
 
           {canFireInjects && (
             <IconButton onClick={handleEditClick} size="small">
-              <EditIcon />
+              <FontAwesomeIcon icon={faPen} />
             </IconButton>
           )}
 
           {canDelete && (
             <IconButton onClick={handleDeleteClick} size="small" color="error">
-              <DeleteIcon />
+              <FontAwesomeIcon icon={faTrash} />
             </IconButton>
           )}
         </Stack>
@@ -251,7 +271,7 @@ export const InjectDetailPage = () => {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <ScheduleIcon color="action" fontSize="small" />
+                  <FontAwesomeIcon icon={faClock} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
                   <Box>
                     <Typography variant="caption" color="text.secondary">
                       Scheduled
@@ -262,7 +282,7 @@ export const InjectDetailPage = () => {
               </Grid>
               <Grid size={{ xs: 12, sm: 6 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <DescriptionIcon color="action" fontSize="small" />
+                  <FontAwesomeIcon icon={faFileLines} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
                   <Box>
                     <Typography variant="caption" color="text.secondary">
                       Scenario Time
@@ -349,7 +369,7 @@ export const InjectDetailPage = () => {
             <Grid container spacing={2}>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <SendIcon color="action" fontSize="small" />
+                  <FontAwesomeIcon icon={faPaperPlane} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
                   <Box>
                     <Typography variant="caption" color="text.secondary">
                       From
@@ -362,7 +382,7 @@ export const InjectDetailPage = () => {
               </Grid>
               <Grid size={{ xs: 12, sm: 4 }}>
                 <Stack direction="row" spacing={1} alignItems="center">
-                  <PersonIcon color="action" fontSize="small" />
+                  <FontAwesomeIcon icon={faUser} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
                   <Box>
                     <Typography variant="caption" color="text.secondary">
                       To

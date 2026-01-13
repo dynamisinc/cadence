@@ -22,6 +22,7 @@ export const clockQueryKey = (exerciseId: string) => ['clock', exerciseId] as co
 export const useExerciseClock = (exerciseId: string) => {
   const queryClient = useQueryClient()
   const [displayTime, setDisplayTime] = useState('00:00:00')
+  const [elapsedTimeMs, setElapsedTimeMs] = useState(0)
 
   // Query for fetching clock state
   const {
@@ -40,6 +41,7 @@ export const useExerciseClock = (exerciseId: string) => {
   useEffect(() => {
     if (!clockState) {
       setDisplayTime('00:00:00')
+      setElapsedTimeMs(0)
       return
     }
 
@@ -47,7 +49,6 @@ export const useExerciseClock = (exerciseId: string) => {
 
     if (clockState.state === ExerciseClockState.Running && clockState.startedAt) {
       // Update every second while running
-      const startedAt = new Date(clockState.startedAt).getTime()
       const capturedAt = new Date(clockState.capturedAt).getTime()
 
       const updateDisplay = () => {
@@ -55,6 +56,7 @@ export const useExerciseClock = (exerciseId: string) => {
         const additionalElapsed = now - capturedAt
         const totalElapsed = baseElapsed + additionalElapsed
         setDisplayTime(formatElapsedTime(totalElapsed))
+        setElapsedTimeMs(totalElapsed)
       }
 
       updateDisplay()
@@ -63,6 +65,7 @@ export const useExerciseClock = (exerciseId: string) => {
     } else {
       // Clock is stopped or paused - just show the stored elapsed time
       setDisplayTime(formatElapsedTime(baseElapsed))
+      setElapsedTimeMs(baseElapsed)
     }
   }, [clockState])
 
@@ -149,6 +152,8 @@ export const useExerciseClock = (exerciseId: string) => {
   return {
     clockState,
     displayTime,
+    elapsedTimeMs,
+    exerciseStartTime: clockState?.exerciseStartTime ?? null,
     isRunning: clockState?.state === ExerciseClockState.Running,
     isPaused: clockState?.state === ExerciseClockState.Paused,
     isStopped: clockState?.state === ExerciseClockState.Stopped,

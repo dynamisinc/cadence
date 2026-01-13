@@ -19,14 +19,19 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import SearchOffIcon from '@mui/icons-material/SearchOff'
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import SkipNextIcon from '@mui/icons-material/SkipNext'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faPlus,
+  faArrowLeft,
+  faMagnifyingGlass,
+  faListCheck,
+  faPlay,
+  faForwardStep,
+  faHome,
+} from '@fortawesome/free-solid-svg-icons'
 
 import { useInjects } from '../hooks'
+import { useBreadcrumbs } from '../../../core/contexts'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
 import { PhaseHeader, PhaseFormDialog } from '../../phases/components'
@@ -72,6 +77,18 @@ export const InjectListPage = () => {
     isReordering: isReorderingPhase,
   } = usePhases(exerciseId || '')
   const { canFireInjects, canManage } = usePermissions()
+
+  // Set custom breadcrumbs with exercise name and MSEL
+  useBreadcrumbs(
+    exercise
+      ? [
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'MSEL' },
+      ]
+      : undefined,
+  )
 
   const [searchTerm, setSearchTerm] = useState('')
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
@@ -212,7 +229,7 @@ export const InjectListPage = () => {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Typography variant="h5" component="h1">
             MSEL
@@ -222,13 +239,13 @@ export const InjectListPage = () => {
         {(canFireInjects || canManage) && (
           <Stack direction="row" spacing={1}>
             <CobraSecondaryButton
-              startIcon={<AddIcon />}
+              startIcon={<FontAwesomeIcon icon={faPlus} />}
               onClick={handleAddPhaseClick}
             >
               Add Phase
             </CobraSecondaryButton>
             <CobraPrimaryButton
-              startIcon={<AddIcon />}
+              startIcon={<FontAwesomeIcon icon={faPlus} />}
               onClick={handleCreateClick}
             >
               New Inject
@@ -519,7 +536,7 @@ const InjectRow = ({
                   onClick={onFire}
                   disabled={isFiring || isSkipping}
                 >
-                  <PlayArrowIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faPlay} size="sm" />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Skip inject">
@@ -529,7 +546,7 @@ const InjectRow = ({
                   onClick={onSkip}
                   disabled={isFiring || isSkipping}
                 >
-                  <SkipNextIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faForwardStep} size="sm" />
                 </IconButton>
               </Tooltip>
             </Stack>
@@ -572,7 +589,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
             margin: '0 auto 16px',
           }}
         >
-          <SearchOffIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ fontSize: 40, color: '#9e9e9e' }} />
         </Box>
         <Typography variant="h6" gutterBottom>
           No matching injects
@@ -614,7 +631,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
             boxShadow: '0 4px 20px rgba(33, 150, 243, 0.15)',
           }}
         >
-          <PlaylistAddIcon sx={{ fontSize: 50, color: 'primary.main' }} />
+          <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 50, color: '#1976d2' }} />
         </Box>
         <Typography variant="h5" gutterBottom fontWeight={500}>
           Create Your First Inject
@@ -628,7 +645,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
           message, or action that will be delivered during exercise conduct.
         </Typography>
         <CobraPrimaryButton
-          startIcon={<AddIcon />}
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
           onClick={onCreateClick}
           size="large"
         >
@@ -662,7 +679,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
           margin: '0 auto 16px',
         }}
       >
-        <PlaylistAddIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+        <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 40, color: '#9e9e9e' }} />
       </Box>
       <Typography variant="h6" gutterBottom>
         No Injects Yet

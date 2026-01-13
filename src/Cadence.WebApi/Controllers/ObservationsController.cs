@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
 using Microsoft.AspNetCore.Mvc;
@@ -86,8 +87,8 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            // Placeholder user ID until auth is implemented
-            var createdBy = Guid.Empty;
+            // System user until auth is implemented
+            var createdBy = SystemConstants.SystemUserId;
 
             var observation = await _observationService.CreateObservationAsync(exerciseId, request, createdBy);
 
@@ -132,8 +133,8 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            // Placeholder user ID until auth is implemented
-            var modifiedBy = Guid.Empty;
+            // System user until auth is implemented
+            var modifiedBy = SystemConstants.SystemUserId;
 
             var observation = await _observationService.UpdateObservationAsync(id, request, modifiedBy);
 
@@ -156,8 +157,8 @@ public class ObservationsController : ControllerBase
     [HttpDelete("observations/{id:guid}")]
     public async Task<IActionResult> DeleteObservation(Guid id)
     {
-        // Placeholder user ID until auth is implemented
-        var deletedBy = Guid.Empty;
+        // System user until auth is implemented
+        var deletedBy = SystemConstants.SystemUserId;
 
         var deleted = await _observationService.DeleteObservationAsync(id, deletedBy);
 

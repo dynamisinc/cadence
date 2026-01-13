@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Models.Entities;
 
 namespace Cadence.Core.Data;
@@ -92,6 +93,18 @@ public class AppDbContext : DbContext
         {
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(4000);
+
+            // Seed default organization
+            entity.HasData(new Organization
+            {
+                Id = SystemConstants.DefaultOrganizationId,
+                Name = "Default Organization",
+                Description = "Default organization for the Cadence system",
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            });
         });
     }
 
@@ -108,6 +121,19 @@ public class AppDbContext : DbContext
                 .WithMany(o => o.Users)
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Seed system user
+            entity.HasData(new User
+            {
+                Id = SystemConstants.SystemUserId,
+                Email = "system@cadence.local",
+                DisplayName = "System",
+                OrganizationId = SystemConstants.DefaultOrganizationId,
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            });
         });
     }
 

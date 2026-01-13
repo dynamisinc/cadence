@@ -41,7 +41,14 @@ public record ClockStateDto(
     /// <summary>
     /// UTC timestamp of when this state was captured.
     /// </summary>
-    DateTime CapturedAt
+    DateTime CapturedAt,
+
+    /// <summary>
+    /// Planned start time for the exercise (e.g., 09:00).
+    /// Used by frontend to calculate inject scheduled offsets.
+    /// Null if not set on the exercise.
+    /// </summary>
+    TimeOnly? ExerciseStartTime
 );
 
 /// <summary>
@@ -69,7 +76,8 @@ public static class ClockMapper
             elapsed,
             exercise.ClockStartedBy,
             exercise.ClockStartedByUser?.DisplayName,
-            DateTime.UtcNow
+            DateTime.UtcNow,
+            exercise.StartTime
         );
     }
 }

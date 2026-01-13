@@ -18,6 +18,7 @@ export interface ClockStateDto {
   startedBy: string | null
   startedByName: string | null
   capturedAt: string // DateTime as ISO string
+  exerciseStartTime: string | null // TimeOnly as HH:MM:SS - planned exercise start time
 }
 
 /**

@@ -199,6 +199,57 @@ export const useInjects = (exerciseId: string) => {
     },
   })
 
+  // Mutation for resetting injects
+  const resetMutation = useMutation({
+    mutationFn: (id: string) => injectService.resetInject(exerciseId, id),
+    onMutate: async (id) => {
+      await queryClient.cancelQueries({ queryKey })
+      const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
+
+      // Optimistic update
+      queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
+        old.map((inject) =>
+          inject.id === id
+            ? {
+                ...inject,
+                status: InjectStatus.Pending,
+                firedAt: null,
+                firedBy: null,
+                firedByName: null,
+                skippedAt: null,
+                skippedBy: null,
+                skippedByName: null,
+                skipReason: null,
+                updatedAt: new Date().toISOString(),
+              }
+            : inject,
+        ),
+      )
+
+      return { previousInjects }
+    },
+    onSuccess: (resetInject) => {
+      queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
+        old.map((inject) =>
+          inject.id === resetInject.id ? resetInject : inject,
+        ),
+      )
+      queryClient.setQueryData(
+        injectKeys.detail(exerciseId, resetInject.id),
+        resetInject,
+      )
+      toast.success('Inject reset to pending')
+    },
+    onError: (err, _variables, context) => {
+      if (context?.previousInjects) {
+        queryClient.setQueryData(queryKey, context.previousInjects)
+      }
+      const message =
+        err instanceof Error ? err.message : 'Failed to reset inject'
+      toast.error(message)
+    },
+  })
+
   // Mutation for deleting injects
   const deleteMutation = useMutation({
     mutationFn: (id: string) => injectService.deleteInject(exerciseId, id),
@@ -275,6 +326,10 @@ export const useInjects = (exerciseId: string) => {
     return skipMutation.mutateAsync({ id, request })
   }
 
+  const resetInject = async (id: string) => {
+    return resetMutation.mutateAsync(id)
+  }
+
   const deleteInject = async (id: string) => {
     return deleteMutation.mutateAsync(id)
   }
@@ -293,12 +348,14 @@ export const useInjects = (exerciseId: string) => {
     updateInject,
     fireInject,
     skipInject,
+    resetInject,
     deleteInject,
     // Expose mutation states for loading indicators
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isFiring: fireMutation.isPending,
     isSkipping: skipMutation.isPending,
+    isResetting: resetMutation.isPending,
     isDeleting: deleteMutation.isPending,
   }
 }

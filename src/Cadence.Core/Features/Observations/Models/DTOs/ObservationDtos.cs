@@ -99,7 +99,7 @@ public record ObservationDto(
     string? Location,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    Guid CreatedBy,
+    Guid? CreatedBy,
     string? CreatedByName,
     string? InjectTitle
 );

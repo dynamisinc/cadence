@@ -12,13 +12,15 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowLeft, faHome } from '@fortawesome/free-solid-svg-icons'
 
 import { InjectForm } from '../components/InjectForm'
 import { useInject } from '../hooks/useInject'
 import { useInjects } from '../hooks'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
+import { useBreadcrumbs } from '../../../core/contexts'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -44,6 +46,20 @@ export const EditInjectPage = () => {
   )
   const { updateInject, isUpdating } = useInjects(exerciseId || '')
   const { phases } = usePhases(exerciseId || '')
+
+  // Set custom breadcrumbs with exercise name, MSEL, inject, and Edit
+  useBreadcrumbs(
+    exercise && inject
+      ? [
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'MSEL', path: `/exercises/${exerciseId}/msel` },
+        { label: `Inject #${inject.injectNumber}`, path: `/exercises/${exerciseId}/injects/${injectId}` },
+        { label: 'Edit' },
+      ]
+      : undefined,
+  )
 
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
   // TODO: Track form changes for unsaved warning - for now always false
@@ -101,7 +117,7 @@ export const EditInjectPage = () => {
       <Box padding={CobraStyles.Padding.MainWindow}>
         <Stack direction="row" alignItems="center" spacing={1} marginBottom={3}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Skeleton variant="text" width={200} height={40} />
         </Stack>
@@ -125,7 +141,7 @@ export const EditInjectPage = () => {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Box>
             <Typography variant="caption" color="text.secondary">

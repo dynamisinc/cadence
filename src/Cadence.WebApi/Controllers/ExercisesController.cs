@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Services;
@@ -75,24 +76,16 @@ public class ExercisesController : ControllerBase
             return BadRequest(new { message = "Name must be 200 characters or less" });
         }
 
-        // For now, use a default organization (we'll create one if none exists)
+        // Use default organization (seeded in database)
         var organization = await _context.Organizations.FirstOrDefaultAsync();
         if (organization == null)
         {
-            organization = new Organization
-            {
-                Id = Guid.NewGuid(),
-                Name = "Default Organization",
-                CreatedBy = Guid.Empty,
-                ModifiedBy = Guid.Empty
-            };
-            _context.Organizations.Add(organization);
-            await _context.SaveChangesAsync();
+            return StatusCode(500, new { message = "Default organization not found. Please run database migrations." });
         }
 
-        // Create exercise with placeholder user ID (no auth yet)
-        var placeholderUserId = Guid.Empty;
-        var exercise = request.ToEntity(organization.Id, placeholderUserId);
+        // System user until auth is implemented
+        var createdBy = SystemConstants.SystemUserId;
+        var exercise = request.ToEntity(organization.Id, createdBy);
 
         _context.Exercises.Add(exercise);
         await _context.SaveChangesAsync();
@@ -153,8 +146,8 @@ public class ExercisesController : ControllerBase
         exercise.Location = request.Location;
         exercise.TimeZoneId = request.TimeZoneId;
 
-        // ModifiedBy would be set to current user once auth is implemented
-        exercise.ModifiedBy = Guid.Empty;
+        // System user until auth is implemented
+        exercise.ModifiedBy = SystemConstants.SystemUserId;
 
         await _context.SaveChangesAsync();
 
@@ -192,8 +185,8 @@ public class ExercisesController : ControllerBase
     {
         try
         {
-            // Placeholder user ID until auth is implemented
-            var startedBy = Guid.Empty;
+            // System user until auth is implemented
+            var startedBy = SystemConstants.SystemUserId;
 
             var clockState = await _clockService.StartClockAsync(id, startedBy);
 
@@ -216,8 +209,8 @@ public class ExercisesController : ControllerBase
     {
         try
         {
-            // Placeholder user ID until auth is implemented
-            var pausedBy = Guid.Empty;
+            // System user until auth is implemented
+            var pausedBy = SystemConstants.SystemUserId;
 
             var clockState = await _clockService.PauseClockAsync(id, pausedBy);
 
@@ -240,8 +233,8 @@ public class ExercisesController : ControllerBase
     {
         try
         {
-            // Placeholder user ID until auth is implemented
-            var stoppedBy = Guid.Empty;
+            // System user until auth is implemented
+            var stoppedBy = SystemConstants.SystemUserId;
 
             var clockState = await _clockService.StopClockAsync(id, stoppedBy);
 
@@ -264,8 +257,8 @@ public class ExercisesController : ControllerBase
     {
         try
         {
-            // Placeholder user ID until auth is implemented
-            var resetBy = Guid.Empty;
+            // System user until auth is implemented
+            var resetBy = SystemConstants.SystemUserId;
 
             var clockState = await _clockService.ResetClockAsync(id, resetBy);
 

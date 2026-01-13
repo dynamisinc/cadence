@@ -12,12 +12,14 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faArrowLeft, faHome } from '@fortawesome/free-solid-svg-icons'
 
 import { InjectForm } from '../components/InjectForm'
 import { useInjects } from '../hooks'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
+import { useBreadcrumbs } from '../../../core/contexts'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -36,6 +38,19 @@ export const CreateInjectPage = () => {
   const { exercise, loading: exerciseLoading } = useExercise(exerciseId || '')
   const { createInject, isCreating } = useInjects(exerciseId || '')
   const { phases } = usePhases(exerciseId || '')
+
+  // Set custom breadcrumbs with exercise name, MSEL, and New Inject
+  useBreadcrumbs(
+    exercise
+      ? [
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'MSEL', path: `/exercises/${exerciseId}/msel` },
+        { label: 'New Inject' },
+      ]
+      : undefined,
+  )
 
   const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
   // TODO: Track form changes for unsaved warning - for now always false
@@ -82,7 +97,7 @@ export const CreateInjectPage = () => {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Typography variant="h5" component="h1">
             New Inject

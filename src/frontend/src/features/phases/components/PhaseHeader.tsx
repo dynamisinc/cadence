@@ -10,10 +10,8 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import KeyboardArrowUpIcon from '@mui/icons-material/KeyboardArrowUp'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen, faTrash, faChevronUp, faChevronDown } from '@fortawesome/free-solid-svg-icons'
 
 import {
   CobraSecondaryButton,
@@ -119,7 +117,7 @@ export const PhaseHeader = ({
                   onClick={handleMoveUp}
                   disabled={isFirst || isLoading}
                 >
-                  <KeyboardArrowUpIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faChevronUp} size="sm" />
                 </IconButton>
               </span>
             </Tooltip>
@@ -130,7 +128,7 @@ export const PhaseHeader = ({
                   onClick={handleMoveDown}
                   disabled={isLast || isLoading}
                 >
-                  <KeyboardArrowDownIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faChevronDown} size="sm" />
                 </IconButton>
               </span>
             </Tooltip>
@@ -142,7 +140,7 @@ export const PhaseHeader = ({
                 onClick={handleEditClick}
                 disabled={isLoading}
               >
-                <EditIcon fontSize="small" />
+                <FontAwesomeIcon icon={faPen} size="sm" />
               </IconButton>
             </Tooltip>
 
@@ -161,7 +159,7 @@ export const PhaseHeader = ({
                   disabled={hasInjects || isLoading}
                   color={hasInjects ? 'default' : 'error'}
                 >
-                  <DeleteIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faTrash} size="sm" />
                 </IconButton>
               </span>
             </Tooltip>

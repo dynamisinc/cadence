@@ -190,3 +190,68 @@ export const calculateVariance = (
   const sign = variance > 0 ? '+' : ''
   return `${sign}${variance} min`
 }
+
+/**
+ * Parse a time string (HH:MM:SS or HH:MM) to milliseconds from midnight
+ * @param time Time string in HH:MM:SS or HH:MM format
+ * @returns Milliseconds from midnight
+ */
+export const parseTimeToMs = (time: string): number => {
+  const parts = time.split(':').map(Number)
+  const hours = parts[0] || 0
+  const minutes = parts[1] || 0
+  const seconds = parts[2] || 0
+  return (hours * 3600 + minutes * 60 + seconds) * 1000
+}
+
+/**
+ * Calculate the scheduled offset for an inject relative to exercise start time
+ * @param injectScheduledTime Inject's scheduled time as HH:MM:SS
+ * @param exerciseStartTime Exercise's planned start time as HH:MM:SS (null defaults to 00:00:00)
+ * @returns Offset in milliseconds from exercise start
+ */
+export const calculateScheduledOffset = (
+  injectScheduledTime: string,
+  exerciseStartTime: string | null,
+): number => {
+  const injectMs = parseTimeToMs(injectScheduledTime)
+  const startMs = exerciseStartTime ? parseTimeToMs(exerciseStartTime) : 0
+  return injectMs - startMs
+}
+
+/**
+ * Format an offset in milliseconds to a display string
+ * @param ms Offset in milliseconds
+ * @returns Formatted string like "+00:45" or "+01:30"
+ */
+export const formatOffset = (ms: number): string => {
+  const totalSeconds = Math.floor(Math.abs(ms) / 1000)
+  const hours = Math.floor(totalSeconds / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const sign = ms < 0 ? '-' : '+'
+  return `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+}
+
+/**
+ * Upcoming window in milliseconds (30 minutes)
+ */
+export const UPCOMING_WINDOW_MS = 30 * 60 * 1000
+
+/**
+ * Due soon threshold in milliseconds (5 minutes)
+ * Injects within this window get special highlighting
+ */
+export const DUE_SOON_THRESHOLD_MS = 5 * 60 * 1000
+
+/**
+ * Format time remaining until an inject is due
+ * @param timeRemainingMs Time remaining in milliseconds (positive = time until due)
+ * @returns Formatted string like "04:23" (countdown)
+ */
+export const formatTimeRemaining = (timeRemainingMs: number): string => {
+  const absMs = Math.abs(timeRemainingMs)
+  const totalSeconds = Math.floor(absMs / 1000)
+  const minutes = Math.floor(totalSeconds / 60)
+  const seconds = totalSeconds % 60
+  return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}

@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Phases.Models.DTOs;
 using Cadence.Core.Models.Entities;
@@ -108,9 +109,9 @@ public class PhasesController : ControllerBase
             .Where(p => p.ExerciseId == exerciseId)
             .MaxAsync(p => (int?)p.Sequence) ?? 0;
 
-        // Create phase with placeholder user ID (no auth yet)
-        var placeholderUserId = Guid.Empty;
-        var phase = request.ToEntity(exerciseId, maxSequence + 1, placeholderUserId);
+        // Create phase (system user until auth is implemented)
+        var createdBy = SystemConstants.SystemUserId;
+        var phase = request.ToEntity(exerciseId, maxSequence + 1, createdBy);
 
         _context.Phases.Add(phase);
         await _context.SaveChangesAsync();
@@ -158,8 +159,8 @@ public class PhasesController : ControllerBase
             return BadRequest(new { message = "Archived exercises cannot be modified" });
         }
 
-        // Update phase
-        phase.UpdateFromRequest(request, Guid.Empty);
+        // Update phase (system user until auth is implemented)
+        phase.UpdateFromRequest(request, SystemConstants.SystemUserId);
         await _context.SaveChangesAsync();
 
         var injectCount = await _context.Injects
@@ -250,12 +251,12 @@ public class PhasesController : ControllerBase
             }
         }
 
-        // Update sequences
+        // Update sequences (system user until auth is implemented)
         for (int i = 0; i < request.PhaseIds.Count; i++)
         {
             var phase = phaseDict[request.PhaseIds[i]];
             phase.Sequence = i + 1;
-            phase.ModifiedBy = Guid.Empty;
+            phase.ModifiedBy = SystemConstants.SystemUserId;
         }
 
         await _context.SaveChangesAsync();
