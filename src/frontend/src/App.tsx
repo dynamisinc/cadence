@@ -3,23 +3,16 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MobileBlocker, ProtectedRoute } from './core/components'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
-import { Box, Typography, Stack, Card, CardContent } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import {
-  faCheckCircle,
-  faStickyNote,
-  faUser,
-  faPalette,
-  faHome,
-} from '@fortawesome/free-solid-svg-icons'
 
 import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
 import { PermissionRole } from './types'
 import { NotesPage } from './tools/notes/pages/NotesPage'
 import { AdminPage, FeatureFlagsProvider } from './admin'
+import { HomePage } from './features/home'
 import {
   ExerciseListPage,
   CreateExercisePage,
@@ -38,62 +31,6 @@ const queryClient = new QueryClient({
     },
   },
 })
-
-/**
- * Home Page Component
- *
- * Landing page with quick links and overview
- */
-const HomePage = () => {
-  const navigate = useNavigate()
-
-  const features = [
-    { icon: faPalette, text: 'COBRA/C5 Design System theme' },
-    { icon: faHome, text: 'Navigation layout (Header, Sidebar, Breadcrumbs)' },
-    { icon: faUser, text: 'User profile with role switching' },
-    { icon: faStickyNote, text: 'Notes tool example' },
-  ]
-
-  return (
-    <Box padding={CobraStyles.Padding.MainWindow}>
-      <Typography variant="h4" gutterBottom>
-        Welcome to Cadence
-      </Typography>
-      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-        This is a template application demonstrating COBRA styling patterns.
-      </Typography>
-
-      <Card sx={{ mb: 3 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>
-            Features
-          </Typography>
-          <Stack spacing={1}>
-            {features.map((feature, index) => (
-              <Stack
-                key={index}
-                direction="row"
-                spacing={1.5}
-                alignItems="center"
-              >
-                <FontAwesomeIcon
-                  icon={faCheckCircle}
-                  style={{ color: cobraTheme.palette.success.main }}
-                />
-                <FontAwesomeIcon icon={feature.icon} style={{ width: 16 }} />
-                <Typography variant="body2">{feature.text}</Typography>
-              </Stack>
-            ))}
-          </Stack>
-        </CardContent>
-      </Card>
-
-      <CobraPrimaryButton onClick={() => navigate('/notes')}>
-        Get Started with Notes
-      </CobraPrimaryButton>
-    </Box>
-  )
-}
 
 /**
  * 404 Not Found Page Component
