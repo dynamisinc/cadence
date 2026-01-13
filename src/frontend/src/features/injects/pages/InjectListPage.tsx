@@ -19,14 +19,19 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import ArrowBackIcon from '@mui/icons-material/ArrowBack'
-import SearchOffIcon from '@mui/icons-material/SearchOff'
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
-import PlayArrowIcon from '@mui/icons-material/PlayArrow'
-import SkipNextIcon from '@mui/icons-material/SkipNext'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faPlus,
+  faArrowLeft,
+  faMagnifyingGlass,
+  faListCheck,
+  faPlay,
+  faForwardStep,
+  faHome,
+} from '@fortawesome/free-solid-svg-icons'
 
 import { useInjects } from '../hooks'
+import { useBreadcrumbs } from '../../../core/contexts'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
 import { PhaseHeader, PhaseFormDialog } from '../../phases/components'
@@ -73,6 +78,18 @@ export const InjectListPage = () => {
   } = usePhases(exerciseId || '')
   const { canFireInjects, canManage } = usePermissions()
 
+  // Set custom breadcrumbs with exercise name and MSEL
+  useBreadcrumbs(
+    exercise
+      ? [
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'MSEL' },
+      ]
+      : undefined,
+  )
+
   const [searchTerm, setSearchTerm] = useState('')
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
@@ -90,16 +107,16 @@ export const InjectListPage = () => {
 
     const search = searchTerm.toLowerCase()
     return groupedByPhase
-      .map((group) => ({
+      .map(group => ({
         ...group,
         injects: group.injects.filter(
-          (inject) =>
+          inject =>
             inject.title.toLowerCase().includes(search) ||
             inject.description.toLowerCase().includes(search) ||
             inject.injectNumber.toString().includes(search),
         ),
       }))
-      .filter((group) => group.injects.length > 0)
+      .filter(group => group.injects.length > 0)
   }, [groupedByPhase, searchTerm])
 
   const handleRowClick = (injectId: string) => {
@@ -182,7 +199,7 @@ export const InjectListPage = () => {
   // Get phase data for rendering with inject counts
   const getPhaseForGroup = (phaseId: string | null): PhaseDto | null => {
     if (!phaseId) return null
-    return phases.find((p) => p.id === phaseId) || null
+    return phases.find(p => p.id === phaseId) || null
   }
 
   // Error state
@@ -212,7 +229,7 @@ export const InjectListPage = () => {
       >
         <Stack direction="row" alignItems="center" spacing={1}>
           <IconButton onClick={handleBackClick} size="small">
-            <ArrowBackIcon />
+            <FontAwesomeIcon icon={faArrowLeft} />
           </IconButton>
           <Typography variant="h5" component="h1">
             MSEL
@@ -222,13 +239,13 @@ export const InjectListPage = () => {
         {(canFireInjects || canManage) && (
           <Stack direction="row" spacing={1}>
             <CobraSecondaryButton
-              startIcon={<AddIcon />}
+              startIcon={<FontAwesomeIcon icon={faPlus} />}
               onClick={handleAddPhaseClick}
             >
               Add Phase
             </CobraSecondaryButton>
             <CobraPrimaryButton
-              startIcon={<AddIcon />}
+              startIcon={<FontAwesomeIcon icon={faPlus} />}
               onClick={handleCreateClick}
             >
               New Inject
@@ -251,7 +268,7 @@ export const InjectListPage = () => {
         <CobraTextField
           placeholder="Search injects..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
           sx={{ width: 300 }}
         />
         <Typography variant="body2" color="text.secondary">
@@ -309,34 +326,34 @@ export const InjectListPage = () => {
                 )}
 
                 <TableContainer component={Paper}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell width={60}>#</TableCell>
-                      <TableCell width={100}>Scheduled</TableCell>
-                      <TableCell width={100}>Scenario</TableCell>
-                      <TableCell>Title</TableCell>
-                      <TableCell width={80}>Type</TableCell>
-                      <TableCell width={90}>Status</TableCell>
-                      {canFireInjects && <TableCell width={100}>Actions</TableCell>}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {group.injects.map((inject) => (
-                      <InjectRow
-                        key={inject.id}
-                        inject={inject}
-                        onClick={() => handleRowClick(inject.id)}
-                        canFireInjects={canFireInjects}
-                        onFire={(e) => handleFireClick(e, inject.id)}
-                        onSkip={(e) => handleSkipClick(e, inject.id)}
-                        isFiring={isFiring}
-                        isSkipping={isSkipping}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell width={60}>#</TableCell>
+                        <TableCell width={100}>Scheduled</TableCell>
+                        <TableCell width={100}>Scenario</TableCell>
+                        <TableCell>Title</TableCell>
+                        <TableCell width={80}>Type</TableCell>
+                        <TableCell width={90}>Status</TableCell>
+                        {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {group.injects.map(inject => (
+                        <InjectRow
+                          key={inject.id}
+                          inject={inject}
+                          onClick={() => handleRowClick(inject.id)}
+                          canFireInjects={canFireInjects}
+                          onFire={e => handleFireClick(e, inject.id)}
+                          onSkip={e => handleSkipClick(e, inject.id)}
+                          isFiring={isFiring}
+                          isSkipping={isSkipping}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Box>
             )
           })}
@@ -354,7 +371,7 @@ export const InjectListPage = () => {
           <CobraTextField
             label="Skip Reason"
             value={skipReason}
-            onChange={(e) => setSkipReason(e.target.value)}
+            onChange={e => setSkipReason(e.target.value)}
             multiline
             rows={3}
             fullWidth
@@ -408,7 +425,7 @@ const InjectTableSkeleton = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {skeletonRows.map((index) => (
+          {skeletonRows.map(index => (
             <TableRow key={index}>
               <TableCell>
                 <Skeleton variant="text" width={30} />
@@ -519,7 +536,7 @@ const InjectRow = ({
                   onClick={onFire}
                   disabled={isFiring || isSkipping}
                 >
-                  <PlayArrowIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faPlay} size="sm" />
                 </IconButton>
               </Tooltip>
               <Tooltip title="Skip inject">
@@ -529,7 +546,7 @@ const InjectRow = ({
                   onClick={onSkip}
                   disabled={isFiring || isSkipping}
                 >
-                  <SkipNextIcon fontSize="small" />
+                  <FontAwesomeIcon icon={faForwardStep} size="sm" />
                 </IconButton>
               </Tooltip>
             </Stack>
@@ -572,7 +589,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
             margin: '0 auto 16px',
           }}
         >
-          <SearchOffIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ fontSize: 40, color: '#9e9e9e' }} />
         </Box>
         <Typography variant="h6" gutterBottom>
           No matching injects
@@ -614,7 +631,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
             boxShadow: '0 4px 20px rgba(33, 150, 243, 0.15)',
           }}
         >
-          <PlaylistAddIcon sx={{ fontSize: 50, color: 'primary.main' }} />
+          <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 50, color: '#1976d2' }} />
         </Box>
         <Typography variant="h5" gutterBottom fontWeight={500}>
           Create Your First Inject
@@ -628,7 +645,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
           message, or action that will be delivered during exercise conduct.
         </Typography>
         <CobraPrimaryButton
-          startIcon={<AddIcon />}
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
           onClick={onCreateClick}
           size="large"
         >
@@ -662,7 +679,7 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
           margin: '0 auto 16px',
         }}
       >
-        <PlaylistAddIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+        <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 40, color: '#9e9e9e' }} />
       </Box>
       <Typography variant="h6" gutterBottom>
         No Injects Yet

@@ -42,14 +42,14 @@ export const usePhases = (exerciseId: string) => {
   const createMutation = useMutation({
     mutationFn: (request: CreatePhaseRequest) =>
       phaseService.createPhase(exerciseId, request),
-    onSuccess: (newPhase) => {
+    onSuccess: newPhase => {
       queryClient.setQueryData<PhaseDto[]>(queryKey, (old = []) => [
         ...old,
         newPhase,
       ])
       toast.success('Phase created')
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create phase'
       toast.error(message)
@@ -70,7 +70,7 @@ export const usePhases = (exerciseId: string) => {
       const previousPhases = queryClient.getQueryData<PhaseDto[]>(queryKey)
 
       queryClient.setQueryData<PhaseDto[]>(queryKey, (old = []) =>
-        old.map((phase) =>
+        old.map(phase =>
           phase.id === id
             ? { ...phase, ...request, updatedAt: new Date().toISOString() }
             : phase,
@@ -79,9 +79,9 @@ export const usePhases = (exerciseId: string) => {
 
       return { previousPhases }
     },
-    onSuccess: (updatedPhase) => {
+    onSuccess: updatedPhase => {
       queryClient.setQueryData<PhaseDto[]>(queryKey, (old = []) =>
-        old.map((phase) =>
+        old.map(phase =>
           phase.id === updatedPhase.id ? updatedPhase : phase,
         ),
       )
@@ -100,12 +100,12 @@ export const usePhases = (exerciseId: string) => {
   // Mutation for deleting phases
   const deleteMutation = useMutation({
     mutationFn: (id: string) => phaseService.deletePhase(exerciseId, id),
-    onMutate: async (id) => {
+    onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousPhases = queryClient.getQueryData<PhaseDto[]>(queryKey)
 
       queryClient.setQueryData<PhaseDto[]>(queryKey, (old = []) =>
-        old.filter((phase) => phase.id !== id),
+        old.filter(phase => phase.id !== id),
       )
 
       return { previousPhases }
@@ -131,13 +131,13 @@ export const usePhases = (exerciseId: string) => {
   const reorderMutation = useMutation({
     mutationFn: (phaseIds: string[]) =>
       phaseService.reorderPhases(exerciseId, { phaseIds }),
-    onMutate: async (phaseIds) => {
+    onMutate: async phaseIds => {
       await queryClient.cancelQueries({ queryKey })
       const previousPhases = queryClient.getQueryData<PhaseDto[]>(queryKey)
 
       // Optimistically reorder
       if (previousPhases) {
-        const phaseMap = new Map(previousPhases.map((p) => [p.id, p]))
+        const phaseMap = new Map(previousPhases.map(p => [p.id, p]))
         const reordered = phaseIds
           .map((id, index) => {
             const phase = phaseMap.get(id)
@@ -150,7 +150,7 @@ export const usePhases = (exerciseId: string) => {
 
       return { previousPhases }
     },
-    onSuccess: (updatedPhases) => {
+    onSuccess: updatedPhases => {
       queryClient.setQueryData<PhaseDto[]>(queryKey, updatedPhases)
       toast.success('Phases reordered')
     },
@@ -182,10 +182,10 @@ export const usePhases = (exerciseId: string) => {
   }
 
   const movePhaseUp = async (phaseId: string) => {
-    const index = phases.findIndex((p) => p.id === phaseId)
+    const index = phases.findIndex(p => p.id === phaseId)
     if (index <= 0) return // Already at top
 
-    const newOrder = [...phases.map((p) => p.id)]
+    const newOrder = [...phases.map(p => p.id)]
     ;[newOrder[index - 1], newOrder[index]] = [
       newOrder[index],
       newOrder[index - 1],
@@ -194,10 +194,10 @@ export const usePhases = (exerciseId: string) => {
   }
 
   const movePhaseDown = async (phaseId: string) => {
-    const index = phases.findIndex((p) => p.id === phaseId)
+    const index = phases.findIndex(p => p.id === phaseId)
     if (index < 0 || index >= phases.length - 1) return // Already at bottom
 
-    const newOrder = [...phases.map((p) => p.id)]
+    const newOrder = [...phases.map(p => p.id)]
     ;[newOrder[index], newOrder[index + 1]] = [
       newOrder[index + 1],
       newOrder[index],

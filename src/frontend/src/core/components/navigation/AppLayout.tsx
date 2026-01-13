@@ -16,14 +16,13 @@ import { useTheme } from '@mui/material/styles'
 import { AppHeader } from './AppHeader'
 import { Sidebar } from './Sidebar'
 import { Breadcrumb } from './Breadcrumb'
-import type { BreadcrumbItem } from './Breadcrumb'
+import { useBreadcrumbContext } from '../../contexts'
 import { PermissionRole } from '../../../types'
 
 const SIDEBAR_STATE_KEY = 'cadence-sidebar-open'
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  breadcrumbItems?: BreadcrumbItem[];
   hideBreadcrumb?: boolean;
   onProfileChange?: (role: PermissionRole) => void;
 }
@@ -56,12 +55,12 @@ const saveSidebarState = (isOpen: boolean) => {
 
 export const AppLayout: React.FC<AppLayoutProps> = ({
   children,
-  breadcrumbItems,
   hideBreadcrumb = false,
   onProfileChange,
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
+  const { breadcrumbs } = useBreadcrumbContext()
 
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState)
@@ -121,7 +120,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             }),
           }}
         >
-          <Breadcrumb items={breadcrumbItems} />
+          <Breadcrumb items={breadcrumbs} />
         </Box>
       )}
 

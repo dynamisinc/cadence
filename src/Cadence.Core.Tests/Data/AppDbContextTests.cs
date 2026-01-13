@@ -71,6 +71,10 @@ public class AppDbContextTests
     {
         // Arrange
         var context = TestDbContextFactory.Create();
+
+        // Count existing organizations from seed data
+        var initialCount = await context.Organizations.CountAsync();
+
         var activeOrg = new Organization
         {
             Id = Guid.NewGuid(),
@@ -95,8 +99,8 @@ public class AppDbContextTests
         // Act
         var organizations = await context.Organizations.ToListAsync();
 
-        // Assert
-        organizations.Should().HaveCount(1);
+        // Assert - should have initial seed data + 1 active org (deleted org filtered out)
+        organizations.Should().HaveCount(initialCount + 1);
         organizations.Should().Contain(o => o.Name == "Active Organization");
         organizations.Should().NotContain(o => o.Name == "Deleted Organization");
     }

@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Models.Entities;
 
 namespace Cadence.Core.Data;
@@ -24,6 +25,7 @@ public class AppDbContext : DbContext
     public DbSet<ExerciseParticipant> ExerciseParticipants => Set<ExerciseParticipant>();
     public DbSet<Objective> Objectives => Set<Objective>();
     public DbSet<HseepRole> HseepRoles => Set<HseepRole>();
+    public DbSet<Observation> Observations => Set<Observation>();
 
     // =========================================================================
     // Model Configuration
@@ -70,6 +72,7 @@ public class AppDbContext : DbContext
         ConfigureExerciseParticipant(modelBuilder);
         ConfigureObjective(modelBuilder);
         ConfigureHseepRole(modelBuilder);
+        ConfigureObservation(modelBuilder);
     }
 
     /// <summary>
@@ -90,6 +93,18 @@ public class AppDbContext : DbContext
         {
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(4000);
+
+            // Seed default organization
+            entity.HasData(new Organization
+            {
+                Id = SystemConstants.DefaultOrganizationId,
+                Name = "Default Organization",
+                Description = "Default organization for the Cadence system",
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            });
         });
     }
 
@@ -106,6 +121,19 @@ public class AppDbContext : DbContext
                 .WithMany(o => o.Users)
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Seed system user
+            entity.HasData(new User
+            {
+                Id = SystemConstants.SystemUserId,
+                Email = "system@cadence.local",
+                DisplayName = "System",
+                OrganizationId = SystemConstants.DefaultOrganizationId,
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+            });
         });
     }
 
@@ -120,6 +148,9 @@ public class AppDbContext : DbContext
             entity.Property(e => e.TimeZoneId).HasMaxLength(100).IsRequired();
             entity.Property(e => e.Location).HasMaxLength(500);
 
+            // Clock state configuration
+            entity.Property(e => e.ClockState).HasConversion<string>().HasMaxLength(20);
+
             entity.HasIndex(e => new { e.OrganizationId, e.Status });
             entity.HasIndex(e => e.ScheduledDate);
 
@@ -131,6 +162,13 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.ActiveMsel)
                 .WithMany()
                 .HasForeignKey(e => e.ActiveMselId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Clock started by user reference (optional)
+            entity.HasOne(e => e.ClockStartedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ClockStartedBy)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
         });
     }
@@ -340,6 +378,46 @@ public class AppDbContext : DbContext
                     IsActive = true
                 }
             );
+        });
+    }
+
+    private static void ConfigureObservation(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Observation>(entity =>
+        {
+            entity.Property(e => e.Content).HasMaxLength(4000).IsRequired();
+            entity.Property(e => e.Recommendation).HasMaxLength(2000);
+            entity.Property(e => e.Location).HasMaxLength(200);
+            entity.Property(e => e.Rating).HasConversion<string>().HasMaxLength(20);
+
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => e.InjectId);
+            entity.HasIndex(e => e.ObjectiveId);
+            entity.HasIndex(e => e.ObservedAt);
+
+            entity.HasOne(e => e.Exercise)
+                .WithMany(ex => ex.Observations)
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Inject)
+                .WithMany(i => i.Observations)
+                .HasForeignKey(e => e.InjectId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.Objective)
+                .WithMany()
+                .HasForeignKey(e => e.ObjectiveId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // User who created the observation (optional to handle soft-deleted users)
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedBy)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

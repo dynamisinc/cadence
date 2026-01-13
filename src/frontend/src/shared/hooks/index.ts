@@ -5,6 +5,7 @@
  */
 
 export { useConfirmDialog, type ConfirmOptions } from './useConfirmDialog'
+export { useExerciseSignalR } from './useExerciseSignalR'
 export { usePermissions } from './usePermissions'
 export { useSignalR } from './useSignalR'
 export type { ConnectionState } from './useSignalR'

@@ -102,16 +102,16 @@ export const InjectForm = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: unknown } },
   ) => {
     const value = e.target.value as string
-    setValues((prev) => ({ ...prev, [field]: value }))
+    setValues(prev => ({ ...prev, [field]: value }))
 
     // Clear error when field is modified
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
+      setErrors(prev => ({ ...prev, [field]: undefined }))
     }
   }
 
   const handleBlur = (field: keyof InjectFormValues) => () => {
-    setTouched((prev) => ({ ...prev, [field]: true }))
+    setTouched(prev => ({ ...prev, [field]: true }))
     validateField(field)
   }
 
@@ -189,7 +189,7 @@ export const InjectForm = ({
         break
     }
 
-    setErrors((prev) => ({ ...prev, [field]: error }))
+    setErrors(prev => ({ ...prev, [field]: error }))
     return !error
   }
 
@@ -207,7 +207,7 @@ export const InjectForm = ({
     ]
 
     let isValid = true
-    fieldsToValidate.forEach((field) => {
+    fieldsToValidate.forEach(field => {
       if (!validateField(field)) {
         isValid = false
       }
@@ -456,7 +456,7 @@ export const InjectForm = ({
                   <MenuItem value="">
                     <em>Not assigned</em>
                   </MenuItem>
-                  {phases.map((phase) => (
+                  {phases.map(phase => (
                     <MenuItem key={phase.id} value={phase.id}>
                       {phase.name}
                     </MenuItem>

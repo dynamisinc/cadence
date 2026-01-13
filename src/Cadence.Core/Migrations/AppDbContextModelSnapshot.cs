@@ -31,6 +31,20 @@ namespace Cadence.Core.Migrations
                     b.Property<Guid?>("ActiveMselId")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<TimeSpan?>("ClockElapsedBeforePause")
+                        .HasColumnType("time");
+
+                    b.Property<DateTime?>("ClockStartedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ClockStartedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ClockState")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
@@ -98,6 +112,8 @@ namespace Cadence.Core.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("ActiveMselId");
+
+                    b.HasIndex("ClockStartedBy");
 
                     b.HasIndex("ScheduledDate");
 
@@ -505,6 +521,77 @@ namespace Cadence.Core.Migrations
                     b.ToTable("Objectives");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Observation", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Content")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("InjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Location")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("ObjectiveId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ObservedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Rating")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Recommendation")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CreatedBy");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("InjectId");
+
+                    b.HasIndex("ObjectiveId");
+
+                    b.HasIndex("ObservedAt");
+
+                    b.ToTable("Observations");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Organization", b =>
                 {
                     b.Property<Guid>("Id")
@@ -544,6 +631,19 @@ namespace Cadence.Core.Migrations
                     b.HasKey("Id");
 
                     b.ToTable("Organizations");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Default organization for the Cadence system",
+                            IsDeleted = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Default Organization",
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Phase", b =>
@@ -652,6 +752,21 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("OrganizationId");
 
                     b.ToTable("Users");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            DisplayName = "System",
+                            Email = "system@cadence.local",
+                            IsDeleted = false,
+                            IsSystemAdmin = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            OrganizationId = new Guid("00000000-0000-0000-0000-000000000001"),
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
@@ -661,6 +776,11 @@ namespace Cadence.Core.Migrations
                         .HasForeignKey("ActiveMselId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Cadence.Core.Models.Entities.User", "ClockStartedByUser")
+                        .WithMany()
+                        .HasForeignKey("ClockStartedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
                         .WithMany("Exercises")
                         .HasForeignKey("OrganizationId")
@@ -668,6 +788,8 @@ namespace Cadence.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("ActiveMsel");
+
+                    b.Navigation("ClockStartedByUser");
 
                     b.Navigation("Organization");
                 });
@@ -751,6 +873,38 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Exercise");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Observation", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.User", "CreatedByUser")
+                        .WithMany()
+                        .HasForeignKey("CreatedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
+                        .WithMany("Observations")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "Inject")
+                        .WithMany("Observations")
+                        .HasForeignKey("InjectId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Objective", "Objective")
+                        .WithMany()
+                        .HasForeignKey("ObjectiveId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("CreatedByUser");
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("Inject");
+
+                    b.Navigation("Objective");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Phase", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
@@ -779,6 +933,8 @@ namespace Cadence.Core.Migrations
 
                     b.Navigation("Objectives");
 
+                    b.Navigation("Observations");
+
                     b.Navigation("Participants");
 
                     b.Navigation("Phases");
@@ -787,6 +943,8 @@ namespace Cadence.Core.Migrations
             modelBuilder.Entity("Cadence.Core.Models.Entities.Inject", b =>
                 {
                     b.Navigation("ChildInjects");
+
+                    b.Navigation("Observations");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>

@@ -28,16 +28,20 @@ const StyledDeleteButton = styled(Button)(({ theme }) => ({
   },
 }))
 
-interface CobraDeleteButtonProps extends Omit<ButtonProps, 'startIcon'> {
+interface CobraDeleteButtonProps extends ButtonProps {
   hideIcon?: boolean;
 }
 
 export const CobraDeleteButton = ({
   hideIcon = false,
+  startIcon,
   children,
   ...props
 }: CobraDeleteButtonProps) => (
-  <StyledDeleteButton startIcon={!hideIcon ? <FontAwesomeIcon icon={faTrash} /> : undefined} {...props}>
+  <StyledDeleteButton
+    startIcon={hideIcon ? undefined : (startIcon ?? <FontAwesomeIcon icon={faTrash} />)}
+    {...props}
+  >
     {children}
   </StyledDeleteButton>
 )

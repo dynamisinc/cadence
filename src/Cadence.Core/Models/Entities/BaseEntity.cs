@@ -31,11 +31,13 @@ public abstract class BaseEntity : IHasTimestamps, ISoftDeletable
 
     /// <summary>
     /// The ID of the user who created this entity.
+    /// Uses SystemUserId when auth not available.
     /// </summary>
     public Guid CreatedBy { get; set; }
 
     /// <summary>
     /// The ID of the user who last modified this entity.
+    /// Uses SystemUserId when auth not available.
     /// </summary>
     public Guid ModifiedBy { get; set; }
 

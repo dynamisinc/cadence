@@ -94,6 +94,16 @@ export const injectService = {
   },
 
   /**
+   * Reset an inject back to pending
+   */
+  resetInject: async (exerciseId: string, id: string): Promise<InjectDto> => {
+    const response = await apiClient.post<InjectDto>(
+      `/api/exercises/${exerciseId}/injects/${id}/reset`,
+    )
+    return response.data
+  },
+
+  /**
    * Delete an inject
    */
   deleteInject: async (exerciseId: string, id: string): Promise<void> => {

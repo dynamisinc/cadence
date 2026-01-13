@@ -45,19 +45,44 @@ const useAutoBreadcrumbs = (): BreadcrumbItem[] => {
     return [{ label: 'Home', icon: faHome }]
   }
 
-  // Tool routes mapping
-  const toolMap: Record<string, string> = {
+  // Route mapping
+  const routeMap: Record<string, string> = {
     notes: 'Notes',
-    // Add more tools here as they are implemented
+    exercises: 'Exercises',
+    admin: 'Admin',
   }
 
-  if (toolMap[pathParts[0]]) {
-    items.push({ label: toolMap[pathParts[0]] })
+  const firstPart = pathParts[0]
+
+  // Handle exercises routes with nested paths
+  if (firstPart === 'exercises') {
+    // Add Exercises link (always clickable if we're deeper than /exercises)
+    if (pathParts.length > 1) {
+      items.push({ label: 'Exercises', path: '/exercises' })
+
+      // Handle /exercises/new
+      if (pathParts[1] === 'new') {
+        items.push({ label: 'New Exercise' })
+      } else {
+        // Handle /exercises/:id (exercise detail/edit)
+        // For now, just show the ID. Pages should pass custom items with exercise name.
+        items.push({ label: pathParts[1] })
+      }
+    } else {
+      // Just /exercises
+      items.push({ label: 'Exercises' })
+    }
+    return items
+  }
+
+  // Handle other mapped routes
+  if (routeMap[firstPart]) {
+    items.push({ label: routeMap[firstPart] })
     return items
   }
 
   // Fallback - capitalize first letter
-  const label = pathParts[0].charAt(0).toUpperCase() + pathParts[0].slice(1)
+  const label = firstPart.charAt(0).toUpperCase() + firstPart.slice(1)
   items.push({ label })
 
   return items
@@ -71,10 +96,10 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items: providedItems }) 
   // Use provided items if available, otherwise auto-generate
   const items = providedItems && providedItems.length > 0 ? providedItems : autoItems
 
-  const handleClick = (path?: string) => {
-    if (path) {
-      navigate(path)
-    }
+  const handleClick = (e: React.MouseEvent, path: string) => {
+    e.preventDefault()
+    e.stopPropagation()
+    navigate(path)
   }
 
   return (
@@ -119,8 +144,8 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items: providedItems }) 
               {/* Breadcrumb Item */}
               {isClickable ? (
                 <Link
-                  component="button"
-                  onClick={() => handleClick(item.path)}
+                  href={item.path}
+                  onClick={e => handleClick(e, item.path!)}
                   data-testid={`breadcrumb-link-${index}`}
                   sx={{
                     display: 'flex',

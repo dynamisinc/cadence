@@ -1,6 +1,7 @@
 using System.Text.Json.Serialization;
 using Cadence.Core.Data;
 using Cadence.Core.Extensions;
+using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
 using Cadence.WebApi.Hubs;
 using Microsoft.AspNetCore.Mvc;
@@ -43,6 +44,9 @@ else
     builder.Services.AddDatabase(builder.Configuration);
 }
 builder.Services.AddApplicationServices();
+
+// Add SignalR Hub Context
+builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();
 
 // Add Logging
 builder.Services.AddLogging(logging =>
@@ -97,6 +101,6 @@ app.Use(async (context, next) =>
 });
 
 app.MapControllers();
-app.MapHub<NotificationHub>("/api");
+app.MapHub<ExerciseHub>("/hubs/exercise");
 
 app.Run();

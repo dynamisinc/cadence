@@ -257,3 +257,68 @@ export const DeliveryMethod = {
 } as const
 
 export type DeliveryMethod = (typeof DeliveryMethod)[keyof typeof DeliveryMethod]
+
+// =============================================================================
+// Exercise Clock Types (matches backend enums)
+// =============================================================================
+
+/**
+ * State of the exercise clock during conduct
+ */
+export const ExerciseClockState = {
+  /** Clock not started - exercise not yet in conduct */
+  Stopped: 'Stopped',
+  /** Clock actively running - exercise in progress */
+  Running: 'Running',
+  /** Clock temporarily paused - exercise on hold */
+  Paused: 'Paused',
+} as const
+
+export type ExerciseClockState = (typeof ExerciseClockState)[keyof typeof ExerciseClockState]
+
+// =============================================================================
+// Observation Types (matches backend enums)
+// =============================================================================
+
+/**
+ * HSEEP performance rating scale (P/S/M/U) for evaluator observations
+ */
+export const ObservationRating = {
+  /** P - Performed without challenges */
+  Performed: 'Performed',
+  /** S - Performed with some difficulty */
+  Satisfactory: 'Satisfactory',
+  /** M - Performed with major difficulty */
+  Marginal: 'Marginal',
+  /** U - Unable to be performed */
+  Unsatisfactory: 'Unsatisfactory',
+} as const
+
+export type ObservationRating = (typeof ObservationRating)[keyof typeof ObservationRating]
+
+/**
+ * Human-readable labels for observation ratings
+ */
+export const ObservationRatingLabels: Record<ObservationRating, string> = {
+  [ObservationRating.Performed]: 'P - Performed',
+  [ObservationRating.Satisfactory]: 'S - Satisfactory',
+  [ObservationRating.Marginal]: 'M - Marginal',
+  [ObservationRating.Unsatisfactory]: 'U - Unsatisfactory',
+}
+
+/**
+ * Short labels for observation ratings (for badges)
+ */
+export const ObservationRatingShortLabels: Record<ObservationRating, string> = {
+  [ObservationRating.Performed]: 'P',
+  [ObservationRating.Satisfactory]: 'S',
+  [ObservationRating.Marginal]: 'M',
+  [ObservationRating.Unsatisfactory]: 'U',
+}
+
+/**
+ * Helper function to get human-readable label for an observation rating
+ */
+export const getObservationRatingLabel = (rating: ObservationRating): string => {
+  return ObservationRatingLabels[rating] ?? rating
+}

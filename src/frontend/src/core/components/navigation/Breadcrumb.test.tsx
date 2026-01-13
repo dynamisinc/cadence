@@ -75,6 +75,49 @@ describe('Breadcrumb', () => {
       expect(settingsItem).toBeInTheDocument()
       expect(settingsItem).toHaveTextContent('Settings')
     })
+
+    it('renders Exercises breadcrumb for /exercises route', () => {
+      mockPathname = '/exercises'
+      render(<Breadcrumb />)
+
+      const homeLink = screen.getByTestId('breadcrumb-link-0')
+      expect(homeLink).toHaveTextContent('Home')
+
+      const exercisesItem = screen.getByTestId('breadcrumb-item-1')
+      expect(exercisesItem).toHaveTextContent('Exercises')
+    })
+
+    it('renders Exercises with link for /exercises/new route', () => {
+      mockPathname = '/exercises/new'
+      render(<Breadcrumb />)
+
+      const homeLink = screen.getByTestId('breadcrumb-link-0')
+      expect(homeLink).toHaveTextContent('Home')
+
+      const exercisesLink = screen.getByTestId('breadcrumb-link-1')
+      expect(exercisesLink).toHaveTextContent('Exercises')
+
+      const newItem = screen.getByTestId('breadcrumb-item-2')
+      expect(newItem).toHaveTextContent('New Exercise')
+    })
+
+    it('has correct href for Exercises breadcrumb link', () => {
+      mockPathname = '/exercises/new'
+      render(<Breadcrumb />)
+
+      const exercisesLink = screen.getByTestId('breadcrumb-link-1')
+      expect(exercisesLink).toHaveAttribute('href', '/exercises')
+    })
+
+    it('navigates to exercises list when clicking Exercises breadcrumb', () => {
+      mockPathname = '/exercises/new'
+      render(<Breadcrumb />)
+
+      const exercisesLink = screen.getByTestId('breadcrumb-link-1')
+      fireEvent.click(exercisesLink)
+
+      expect(mockNavigate).toHaveBeenCalledWith('/exercises')
+    })
   })
 
   describe('custom items', () => {
@@ -107,7 +150,15 @@ describe('Breadcrumb', () => {
   })
 
   describe('navigation', () => {
-    it('navigates when clicking a link item', () => {
+    it('renders Home as a link with correct href when not at root', () => {
+      mockPathname = '/notes'
+      render(<Breadcrumb />)
+
+      const homeLink = screen.getByTestId('breadcrumb-link-0')
+      expect(homeLink).toHaveAttribute('href', '/')
+    })
+
+    it('navigates when clicking Home link', () => {
       mockPathname = '/notes'
       render(<Breadcrumb />)
 
@@ -117,18 +168,28 @@ describe('Breadcrumb', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
 
-    it('does not navigate when clicking the last item', () => {
+    it('does not render last item as a link', () => {
       mockPathname = '/notes'
       render(<Breadcrumb />)
 
+      // Last item should be a span (breadcrumb-item), not a link
       const notesItem = screen.getByTestId('breadcrumb-item-1')
-      fireEvent.click(notesItem)
-
-      // Last item is not a link, so navigate should not be called
-      expect(mockNavigate).not.toHaveBeenCalled()
+      expect(notesItem.tagName.toLowerCase()).not.toBe('a')
     })
 
-    it('navigates to custom paths', () => {
+    it('renders custom path items as links with correct href', () => {
+      const customItems: BreadcrumbItem[] = [
+        { label: 'Dashboard', path: '/dashboard' },
+        { label: 'Current Page' },
+      ]
+
+      render(<Breadcrumb items={customItems} />)
+
+      const dashboardLink = screen.getByTestId('breadcrumb-link-0')
+      expect(dashboardLink).toHaveAttribute('href', '/dashboard')
+    })
+
+    it('navigates to custom path when clicking link', () => {
       const customItems: BreadcrumbItem[] = [
         { label: 'Dashboard', path: '/dashboard' },
         { label: 'Current Page' },

@@ -1,0 +1,88 @@
+namespace Cadence.Core.Models.Entities;
+
+/// <summary>
+/// Observation entity - an evaluator's documented assessment of player performance
+/// during exercise conduct. Observations feed into the After-Action Report (AAR).
+/// </summary>
+public class Observation : BaseEntity
+{
+    // =========================================================================
+    // Core Properties
+    // =========================================================================
+
+    /// <summary>
+    /// The observation content. Required, 1-4000 characters.
+    /// Describes what the evaluator observed.
+    /// </summary>
+    public string Content { get; set; } = string.Empty;
+
+    /// <summary>
+    /// HSEEP P/S/M/U performance rating. Optional - some observations
+    /// may be general notes without a formal rating.
+    /// </summary>
+    public ObservationRating? Rating { get; set; }
+
+    /// <summary>
+    /// Evaluator's recommendation based on the observation.
+    /// Max 2000 characters.
+    /// </summary>
+    public string? Recommendation { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when the observation was made (in the exercise).
+    /// Defaults to creation time but can be adjusted.
+    /// </summary>
+    public DateTime ObservedAt { get; set; }
+
+    /// <summary>
+    /// Physical or functional location where the observation was made.
+    /// Max 200 characters.
+    /// </summary>
+    public string? Location { get; set; }
+
+    // =========================================================================
+    // Foreign Keys
+    // =========================================================================
+
+    /// <summary>
+    /// The exercise this observation belongs to. Required.
+    /// </summary>
+    public Guid ExerciseId { get; set; }
+
+    /// <summary>
+    /// The inject this observation relates to. Optional - observations
+    /// can be general or linked to a specific inject.
+    /// </summary>
+    public Guid? InjectId { get; set; }
+
+    /// <summary>
+    /// The objective this observation relates to. Optional - observations
+    /// can be linked to specific exercise objectives.
+    /// </summary>
+    public Guid? ObjectiveId { get; set; }
+
+    // =========================================================================
+    // Navigation Properties
+    // =========================================================================
+
+    /// <summary>
+    /// The exercise this observation belongs to.
+    /// </summary>
+    public Exercise Exercise { get; set; } = null!;
+
+    /// <summary>
+    /// The inject this observation relates to (if any).
+    /// </summary>
+    public Inject? Inject { get; set; }
+
+    /// <summary>
+    /// The objective this observation relates to (if any).
+    /// </summary>
+    public Objective? Objective { get; set; }
+
+    /// <summary>
+    /// The user who created this observation.
+    /// May be null if the user has been soft-deleted.
+    /// </summary>
+    public User? CreatedByUser { get; set; }
+}

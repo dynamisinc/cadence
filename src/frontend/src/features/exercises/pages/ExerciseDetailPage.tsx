@@ -10,7 +10,7 @@ import {
   Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faPen, faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faList, faPen, faPlay, faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useExercise } from '../hooks'
@@ -258,11 +258,19 @@ export const ExerciseDetailPage = () => {
             Back to List
           </CobraLinkButton>
           <CobraPrimaryButton
-            startIcon={<ListAltIcon />}
+            startIcon={<FontAwesomeIcon icon={faList} />}
             onClick={handleViewMsel}
           >
             View MSEL
           </CobraPrimaryButton>
+          {exercise.status === ExerciseStatus.Active && !isEditing && (
+            <CobraPrimaryButton
+              startIcon={<FontAwesomeIcon icon={faPlay} />}
+              onClick={() => navigate(`/exercises/${id}/conduct`)}
+            >
+              Conduct
+            </CobraPrimaryButton>
+          )}
           {canEdit && !isEditing && (
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faPen} />}

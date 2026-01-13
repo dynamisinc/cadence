@@ -3,6 +3,7 @@ export {
   ExerciseListPage,
   CreateExercisePage,
   ExerciseDetailPage,
+  ExerciseConductPage,
 } from './pages'
 
 // Components

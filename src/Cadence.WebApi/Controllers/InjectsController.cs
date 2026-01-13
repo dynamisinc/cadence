@@ -1,5 +1,7 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Injects.Models.DTOs;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -16,11 +18,13 @@ public class InjectsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ILogger<InjectsController> _logger;
+    private readonly IExerciseHubContext _hubContext;
 
-    public InjectsController(AppDbContext context, ILogger<InjectsController> logger)
+    public InjectsController(AppDbContext context, ILogger<InjectsController> logger, IExerciseHubContext hubContext)
     {
         _context = context;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     /// <summary>
@@ -110,8 +114,8 @@ public class InjectsController : ControllerBase
                 Version = 1,
                 IsActive = true,
                 ExerciseId = exerciseId,
-                CreatedBy = Guid.Empty,
-                ModifiedBy = Guid.Empty
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId
             };
             _context.Msels.Add(msel);
             exercise.ActiveMselId = msel.Id;
@@ -131,9 +135,8 @@ public class InjectsController : ControllerBase
             .Where(i => i.MselId == mselId)
             .MaxAsync(i => (int?)i.Sequence) ?? 0;
 
-        // Create inject with placeholder user ID (no auth yet)
-        var placeholderUserId = Guid.Empty;
-        var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1, placeholderUserId);
+        // Create inject (system user until auth is implemented)
+        var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1, SystemConstants.SystemUserId);
 
         _context.Injects.Add(inject);
         await _context.SaveChangesAsync();
@@ -194,12 +197,12 @@ public class InjectsController : ControllerBase
         {
             // Only Notes can be edited on fired injects
             inject.ControllerNotes = request.ControllerNotes;
-            inject.ModifiedBy = Guid.Empty;
+            inject.ModifiedBy = SystemConstants.SystemUserId;
         }
         else
         {
             // Full edit allowed for Pending/Skipped injects
-            inject.UpdateFromRequest(request, Guid.Empty);
+            inject.UpdateFromRequest(request, SystemConstants.SystemUserId);
         }
 
         await _context.SaveChangesAsync();
@@ -238,11 +241,11 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = $"Only pending injects can be fired. Current status: {inject.Status}" });
         }
 
-        // Fire the inject
+        // Fire the inject (system user until auth is implemented)
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredBy = Guid.Empty; // Placeholder until auth is implemented
-        inject.ModifiedBy = Guid.Empty;
+        inject.FiredBy = SystemConstants.SystemUserId;
+        inject.ModifiedBy = SystemConstants.SystemUserId;
 
         // Add notes if provided
         if (!string.IsNullOrWhiteSpace(request?.Notes))
@@ -254,10 +257,18 @@ public class InjectsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        // Reload user navigation property after setting FiredBy
+        await _context.Entry(inject).Reference(i => i.FiredByUser).LoadAsync();
+
+        var dto = inject.ToDto();
+
+        // Broadcast SignalR notifications
+        await _hubContext.NotifyInjectFired(exerciseId, dto);
+
         _logger.LogInformation("Fired inject {InjectId}: {InjectTitle} at {FiredAt}",
             inject.Id, inject.Title, inject.FiredAt);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
     }
 
     /// <summary>
@@ -300,19 +311,78 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = "Skip reason must be 500 characters or less" });
         }
 
-        // Skip the inject
+        // Skip the inject (system user until auth is implemented)
         inject.Status = InjectStatus.Skipped;
         inject.SkippedAt = DateTime.UtcNow;
-        inject.SkippedBy = Guid.Empty; // Placeholder until auth is implemented
+        inject.SkippedBy = SystemConstants.SystemUserId;
         inject.SkipReason = request.Reason;
-        inject.ModifiedBy = Guid.Empty;
+        inject.ModifiedBy = SystemConstants.SystemUserId;
 
         await _context.SaveChangesAsync();
+
+        // Reload user navigation property after setting SkippedBy
+        await _context.Entry(inject).Reference(i => i.SkippedByUser).LoadAsync();
+
+        var dto = inject.ToDto();
+
+        // Broadcast SignalR notifications
+        await _hubContext.NotifyInjectSkipped(exerciseId, dto);
 
         _logger.LogInformation("Skipped inject {InjectId}: {InjectTitle} - Reason: {SkipReason}",
             inject.Id, inject.Title, inject.SkipReason);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
+    }
+
+    /// <summary>
+    /// Reset an inject back to pending status.
+    /// </summary>
+    [HttpPost("{id:guid}/reset")]
+    public async Task<ActionResult<InjectDto>> ResetInject(Guid exerciseId, Guid id)
+    {
+        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        if (exercise == null)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+
+        var inject = await _context.Injects
+            .Include(i => i.Phase)
+            .Include(i => i.FiredByUser)
+            .Include(i => i.SkippedByUser)
+            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
+
+        if (inject == null)
+        {
+            return NotFound(new { message = "Inject not found" });
+        }
+
+        // Only fired or skipped injects can be reset
+        if (inject.Status == InjectStatus.Pending)
+        {
+            return BadRequest(new { message = "Inject is already pending" });
+        }
+
+        // Reset the inject (system user until auth is implemented)
+        inject.Status = InjectStatus.Pending;
+        inject.FiredAt = null;
+        inject.FiredBy = null;
+        inject.SkippedAt = null;
+        inject.SkippedBy = null;
+        inject.SkipReason = null;
+        inject.ModifiedBy = SystemConstants.SystemUserId;
+
+        await _context.SaveChangesAsync();
+
+        var dto = inject.ToDto();
+
+        // Broadcast SignalR notifications
+        await _hubContext.NotifyInjectReset(exerciseId, dto);
+
+        _logger.LogInformation("Reset inject {InjectId}: {InjectTitle} to pending",
+            inject.Id, inject.Title);
+
+        return Ok(dto);
     }
 
     /// <summary>
@@ -340,10 +410,10 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Soft delete
+        // Soft delete (system user until auth is implemented)
         inject.IsDeleted = true;
         inject.DeletedAt = DateTime.UtcNow;
-        inject.DeletedBy = Guid.Empty; // Placeholder until auth is implemented
+        inject.DeletedBy = SystemConstants.SystemUserId;
 
         await _context.SaveChangesAsync();
 
