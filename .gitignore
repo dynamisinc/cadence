@@ -210,3 +210,4 @@ temp_*.json
 ## Claude Code
 .claudecontext
 tmpclaude-*/
+tmpclaude-*-cwd
