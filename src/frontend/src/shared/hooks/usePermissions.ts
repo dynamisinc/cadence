@@ -30,6 +30,8 @@ interface UsePermissionsReturn {
   canDelete: boolean;
   /** Alias for canDelete - full management permissions */
   canManage: boolean;
+  /** Whether user can fire injects (Contributor or higher) */
+  canFireInjects: boolean;
   /** Check if user has a specific role or higher */
   hasRole: (requiredRole: PermissionRole) => boolean;
   /** Check if user has exactly this role */
@@ -149,6 +151,7 @@ export const usePermissions = (): UsePermissionsReturn => {
   const canEdit = hasRole(PermissionRole.CONTRIBUTOR)
   const canDelete = hasRole(PermissionRole.MANAGE)
   const canManage = canDelete
+  const canFireInjects = canEdit // Contributors and above can fire injects
 
   return {
     role,
@@ -156,6 +159,7 @@ export const usePermissions = (): UsePermissionsReturn => {
     canEdit,
     canDelete,
     canManage,
+    canFireInjects,
     hasRole,
     isRole,
   }
