@@ -537,7 +537,7 @@ export const InjectDetailPage = () => {
           <CobraTextField
             label="Skip Reason"
             value={skipReason}
-            onChange={(e) => setSkipReason(e.target.value)}
+            onChange={e => setSkipReason(e.target.value)}
             multiline
             rows={3}
             fullWidth

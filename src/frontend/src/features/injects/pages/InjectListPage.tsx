@@ -107,16 +107,16 @@ export const InjectListPage = () => {
 
     const search = searchTerm.toLowerCase()
     return groupedByPhase
-      .map((group) => ({
+      .map(group => ({
         ...group,
         injects: group.injects.filter(
-          (inject) =>
+          inject =>
             inject.title.toLowerCase().includes(search) ||
             inject.description.toLowerCase().includes(search) ||
             inject.injectNumber.toString().includes(search),
         ),
       }))
-      .filter((group) => group.injects.length > 0)
+      .filter(group => group.injects.length > 0)
   }, [groupedByPhase, searchTerm])
 
   const handleRowClick = (injectId: string) => {
@@ -199,7 +199,7 @@ export const InjectListPage = () => {
   // Get phase data for rendering with inject counts
   const getPhaseForGroup = (phaseId: string | null): PhaseDto | null => {
     if (!phaseId) return null
-    return phases.find((p) => p.id === phaseId) || null
+    return phases.find(p => p.id === phaseId) || null
   }
 
   // Error state
@@ -268,7 +268,7 @@ export const InjectListPage = () => {
         <CobraTextField
           placeholder="Search injects..."
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={e => setSearchTerm(e.target.value)}
           sx={{ width: 300 }}
         />
         <Typography variant="body2" color="text.secondary">
@@ -326,34 +326,34 @@ export const InjectListPage = () => {
                 )}
 
                 <TableContainer component={Paper}>
-                <Table size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell width={60}>#</TableCell>
-                      <TableCell width={100}>Scheduled</TableCell>
-                      <TableCell width={100}>Scenario</TableCell>
-                      <TableCell>Title</TableCell>
-                      <TableCell width={80}>Type</TableCell>
-                      <TableCell width={90}>Status</TableCell>
-                      {canFireInjects && <TableCell width={100}>Actions</TableCell>}
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {group.injects.map((inject) => (
-                      <InjectRow
-                        key={inject.id}
-                        inject={inject}
-                        onClick={() => handleRowClick(inject.id)}
-                        canFireInjects={canFireInjects}
-                        onFire={(e) => handleFireClick(e, inject.id)}
-                        onSkip={(e) => handleSkipClick(e, inject.id)}
-                        isFiring={isFiring}
-                        isSkipping={isSkipping}
-                      />
-                    ))}
-                  </TableBody>
-                </Table>
-              </TableContainer>
+                  <Table size="small">
+                    <TableHead>
+                      <TableRow>
+                        <TableCell width={60}>#</TableCell>
+                        <TableCell width={100}>Scheduled</TableCell>
+                        <TableCell width={100}>Scenario</TableCell>
+                        <TableCell>Title</TableCell>
+                        <TableCell width={80}>Type</TableCell>
+                        <TableCell width={90}>Status</TableCell>
+                        {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {group.injects.map(inject => (
+                        <InjectRow
+                          key={inject.id}
+                          inject={inject}
+                          onClick={() => handleRowClick(inject.id)}
+                          canFireInjects={canFireInjects}
+                          onFire={e => handleFireClick(e, inject.id)}
+                          onSkip={e => handleSkipClick(e, inject.id)}
+                          isFiring={isFiring}
+                          isSkipping={isSkipping}
+                        />
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
               </Box>
             )
           })}
@@ -371,7 +371,7 @@ export const InjectListPage = () => {
           <CobraTextField
             label="Skip Reason"
             value={skipReason}
-            onChange={(e) => setSkipReason(e.target.value)}
+            onChange={e => setSkipReason(e.target.value)}
             multiline
             rows={3}
             fullWidth
@@ -425,7 +425,7 @@ const InjectTableSkeleton = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {skeletonRows.map((index) => (
+          {skeletonRows.map(index => (
             <TableRow key={index}>
               <TableCell>
                 <Skeleton variant="text" width={30} />

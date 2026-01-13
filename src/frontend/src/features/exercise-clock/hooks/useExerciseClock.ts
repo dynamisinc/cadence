@@ -77,17 +77,17 @@ export const useExerciseClock = (exerciseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['exercise', exerciseId] })
       queryClient.invalidateQueries({ queryKey: ['exercises'] })
     },
-    [queryClient, exerciseId]
+    [queryClient, exerciseId],
   )
 
   // Mutation for starting clock
   const startMutation = useMutation({
     mutationFn: () => clockService.startClock(exerciseId),
-    onSuccess: (newState) => {
+    onSuccess: newState => {
       updateClockState(newState)
       toast.success('Exercise clock started')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to start clock'
       toast.error(message)
     },
@@ -96,11 +96,11 @@ export const useExerciseClock = (exerciseId: string) => {
   // Mutation for pausing clock
   const pauseMutation = useMutation({
     mutationFn: () => clockService.pauseClock(exerciseId),
-    onSuccess: (newState) => {
+    onSuccess: newState => {
       updateClockState(newState)
       toast.success('Exercise clock paused')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to pause clock'
       toast.error(message)
     },
@@ -109,11 +109,11 @@ export const useExerciseClock = (exerciseId: string) => {
   // Mutation for stopping clock
   const stopMutation = useMutation({
     mutationFn: () => clockService.stopClock(exerciseId),
-    onSuccess: (newState) => {
+    onSuccess: newState => {
       updateClockState(newState)
       toast.success('Exercise completed')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to stop clock'
       toast.error(message)
     },
@@ -122,11 +122,11 @@ export const useExerciseClock = (exerciseId: string) => {
   // Mutation for resetting clock
   const resetMutation = useMutation({
     mutationFn: () => clockService.resetClock(exerciseId),
-    onSuccess: (newState) => {
+    onSuccess: newState => {
       updateClockState(newState)
       toast.success('Exercise clock reset')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to reset clock'
       toast.error(message)
     },

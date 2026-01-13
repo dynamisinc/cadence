@@ -145,7 +145,7 @@ export const Breadcrumb: React.FC<BreadcrumbProps> = ({ items: providedItems }) 
               {isClickable ? (
                 <Link
                   href={item.path}
-                  onClick={(e) => handleClick(e, item.path!)}
+                  onClick={e => handleClick(e, item.path!)}
                   data-testid={`breadcrumb-link-${index}`}
                   sx={{
                     display: 'flex',

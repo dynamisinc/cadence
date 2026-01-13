@@ -13,18 +13,27 @@ public interface IExerciseHubContext
 {
     /// <summary>
     /// Notify clients that an inject was fired.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
     /// </summary>
     Task NotifyInjectFired(Guid exerciseId, InjectDto inject);
 
     /// <summary>
     /// Notify clients that an inject was skipped.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
     /// </summary>
     Task NotifyInjectSkipped(Guid exerciseId, InjectDto inject);
 
     /// <summary>
     /// Notify clients that an inject was reset to pending.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
     /// </summary>
     Task NotifyInjectReset(Guid exerciseId, InjectDto inject);
+
+    /// <summary>
+    /// Notify clients of a generic inject status change.
+    /// Used when the specific event type (Fired/Skipped/Reset) is not relevant.
+    /// </summary>
+    Task NotifyInjectStatusChanged(Guid exerciseId, InjectDto inject);
 
     /// <summary>
     /// Notify clients that the exercise clock was started.

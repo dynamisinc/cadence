@@ -13,7 +13,7 @@ export const clockService = {
    */
   getClockState: async (exerciseId: string): Promise<ClockStateDto> => {
     const response = await apiClient.get<ClockStateDto>(
-      `/api/exercises/${exerciseId}/clock`
+      `/api/exercises/${exerciseId}/clock`,
     )
     return response.data
   },
@@ -24,7 +24,7 @@ export const clockService = {
    */
   startClock: async (exerciseId: string): Promise<ClockStateDto> => {
     const response = await apiClient.post<ClockStateDto>(
-      `/api/exercises/${exerciseId}/clock/start`
+      `/api/exercises/${exerciseId}/clock/start`,
     )
     return response.data
   },
@@ -35,7 +35,7 @@ export const clockService = {
    */
   pauseClock: async (exerciseId: string): Promise<ClockStateDto> => {
     const response = await apiClient.post<ClockStateDto>(
-      `/api/exercises/${exerciseId}/clock/pause`
+      `/api/exercises/${exerciseId}/clock/pause`,
     )
     return response.data
   },
@@ -46,7 +46,7 @@ export const clockService = {
    */
   stopClock: async (exerciseId: string): Promise<ClockStateDto> => {
     const response = await apiClient.post<ClockStateDto>(
-      `/api/exercises/${exerciseId}/clock/stop`
+      `/api/exercises/${exerciseId}/clock/stop`,
     )
     return response.data
   },
@@ -57,7 +57,7 @@ export const clockService = {
    */
   resetClock: async (exerciseId: string): Promise<ClockStateDto> => {
     const response = await apiClient.post<ClockStateDto>(
-      `/api/exercises/${exerciseId}/clock/reset`
+      `/api/exercises/${exerciseId}/clock/reset`,
     )
     return response.data
   },

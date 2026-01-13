@@ -142,7 +142,7 @@ export const InjectList = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <TableRow key={i}>
                 <TableCell><Skeleton width={30} /></TableCell>
                 <TableCell><Skeleton width={60} /></TableCell>
@@ -183,7 +183,7 @@ export const InjectList = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {injects.map((inject) => {
+            {injects.map(inject => {
               const isPending = inject.status === InjectStatus.Pending
               const isFired = inject.status === InjectStatus.Fired
               const isSkipped = inject.status === InjectStatus.Skipped
@@ -293,7 +293,7 @@ export const InjectList = ({
           <CobraTextField
             label="Skip Reason"
             value={skipReason}
-            onChange={(e) => setSkipReason(e.target.value)}
+            onChange={e => setSkipReason(e.target.value)}
             multiline
             rows={3}
             fullWidth

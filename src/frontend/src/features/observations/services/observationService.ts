@@ -17,7 +17,7 @@ export const observationService = {
    */
   getObservationsByExercise: async (exerciseId: string): Promise<ObservationDto[]> => {
     const response = await apiClient.get<ObservationDto[]>(
-      `/api/exercises/${exerciseId}/observations`
+      `/api/exercises/${exerciseId}/observations`,
     )
     return response.data
   },
@@ -27,7 +27,7 @@ export const observationService = {
    */
   getObservationsByInject: async (injectId: string): Promise<ObservationDto[]> => {
     const response = await apiClient.get<ObservationDto[]>(
-      `/api/injects/${injectId}/observations`
+      `/api/injects/${injectId}/observations`,
     )
     return response.data
   },
@@ -45,11 +45,11 @@ export const observationService = {
    */
   createObservation: async (
     exerciseId: string,
-    request: CreateObservationRequest
+    request: CreateObservationRequest,
   ): Promise<ObservationDto> => {
     const response = await apiClient.post<ObservationDto>(
       `/api/exercises/${exerciseId}/observations`,
-      request
+      request,
     )
     return response.data
   },
@@ -59,11 +59,11 @@ export const observationService = {
    */
   updateObservation: async (
     id: string,
-    request: UpdateObservationRequest
+    request: UpdateObservationRequest,
   ): Promise<ObservationDto> => {
     const response = await apiClient.put<ObservationDto>(
       `/api/observations/${id}`,
-      request
+      request,
     )
     return response.data
   },

@@ -105,57 +105,57 @@ export const ExerciseConductPage = () => {
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'Conduct' },
-        ]
-      : undefined
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'Conduct' },
+      ]
+      : undefined,
   )
 
   // SignalR real-time handlers
   const handleInjectFired = useCallback(
     (inject: InjectDto) => {
-      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), (old) =>
-        old?.map((i) => (i.id === inject.id ? inject : i)) ?? []
+      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), old =>
+        old?.map(i => (i.id === inject.id ? inject : i)) ?? [],
       )
     },
-    [exerciseId, queryClient]
+    [exerciseId, queryClient],
   )
 
   const handleInjectStatusChanged = useCallback(
     (inject: InjectDto) => {
-      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), (old) =>
-        old?.map((i) => (i.id === inject.id ? inject : i)) ?? []
+      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), old =>
+        old?.map(i => (i.id === inject.id ? inject : i)) ?? [],
       )
     },
-    [exerciseId, queryClient]
+    [exerciseId, queryClient],
   )
 
   const handleClockChanged = useCallback(
     (clockDto: ExerciseClockDto) => {
       queryClient.setQueryData<ExerciseClockDto>(clockQueryKey(exerciseId!), clockDto)
     },
-    [exerciseId, queryClient]
+    [exerciseId, queryClient],
   )
 
   const handleObservationAdded = useCallback(
     (observation: ObservationDto) => {
-      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), (old) => [
+      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old => [
         observation,
         ...(old ?? []),
       ])
     },
-    [exerciseId, queryClient]
+    [exerciseId, queryClient],
   )
 
   const handleObservationDeleted = useCallback(
     (observationId: string) => {
-      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), (old) =>
-        old?.filter((o) => o.id !== observationId) ?? []
+      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old =>
+        old?.filter(o => o.id !== observationId) ?? [],
       )
     },
-    [exerciseId, queryClient]
+    [exerciseId, queryClient],
   )
 
   // Connect to SignalR
@@ -186,7 +186,7 @@ export const ExerciseConductPage = () => {
   // Calculate ready-to-fire count for badge
   const readyToFireCount = useMemo(() => {
     if (!injects || injects.length === 0) return 0
-    return injects.filter((inject) => {
+    return injects.filter(inject => {
       if (inject.status !== InjectStatus.Pending) return false
       const offsetMs = calculateScheduledOffset(inject.scheduledTime, exerciseStartTime)
       return offsetMs <= elapsedTimeMs

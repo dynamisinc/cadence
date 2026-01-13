@@ -80,7 +80,7 @@ export const InjectListByStatus = ({
 
   // Calculate offsets for all injects and group by section
   const sections = useMemo(() => {
-    const withOffsets: InjectWithOffset[] = injects.map((inject) => ({
+    const withOffsets: InjectWithOffset[] = injects.map(inject => ({
       inject,
       offsetMs: calculateScheduledOffset(inject.scheduledTime, exerciseStartTime),
     }))
@@ -250,7 +250,7 @@ export const InjectListByStatus = ({
 
   // Keep selectedInject synced with latest inject data (for real-time updates)
   const currentSelectedInject = selectedInject
-    ? injects.find((i) => i.id === selectedInject.id) ?? selectedInject
+    ? injects.find(i => i.id === selectedInject.id) ?? selectedInject
     : null
 
   return (
@@ -391,7 +391,7 @@ export const InjectListByStatus = ({
           <CobraTextField
             label="Skip Reason"
             value={skipReason}
-            onChange={(e) => setSkipReason(e.target.value)}
+            onChange={e => setSkipReason(e.target.value)}
             multiline
             rows={3}
             fullWidth

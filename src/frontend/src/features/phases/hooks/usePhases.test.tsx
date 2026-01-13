@@ -279,7 +279,7 @@ describe('usePhases', () => {
       let resolveCreate: (value: PhaseDto) => void = () => {}
       vi.mocked(phaseService.createPhase).mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveCreate = resolve
           }),
       )
@@ -350,7 +350,7 @@ describe('usePhases', () => {
         'phase-1',
         request,
       )
-      expect(result.current.phases.find((p) => p.id === 'phase-1')?.name).toBe(
+      expect(result.current.phases.find(p => p.id === 'phase-1')?.name).toBe(
         'Updated Phase Name',
       )
     })
@@ -359,7 +359,7 @@ describe('usePhases', () => {
       let resolveUpdate: (value: PhaseDto) => void = () => {}
       vi.mocked(phaseService.updatePhase).mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveUpdate = resolve
           }),
       )
@@ -379,7 +379,7 @@ describe('usePhases', () => {
 
       // Check optimistic update applied before API resolves
       await waitFor(() => {
-        expect(result.current.phases.find((p) => p.id === 'phase-1')?.name).toBe(
+        expect(result.current.phases.find(p => p.id === 'phase-1')?.name).toBe(
           'Optimistic Name',
         )
       })
@@ -417,7 +417,7 @@ describe('usePhases', () => {
 
       // Should roll back to original name
       await waitFor(() => {
-        expect(result.current.phases.find((p) => p.id === 'phase-1')?.name).toBe(
+        expect(result.current.phases.find(p => p.id === 'phase-1')?.name).toBe(
           'Warning Phase',
         )
       })
@@ -442,7 +442,7 @@ describe('usePhases', () => {
       })
 
       expect(phaseService.deletePhase).toHaveBeenCalledWith('exercise-1', 'phase-1')
-      expect(result.current.phases.find((p) => p.id === 'phase-1')).toBeUndefined()
+      expect(result.current.phases.find(p => p.id === 'phase-1')).toBeUndefined()
       expect(result.current.phases).toHaveLength(2)
     })
 
@@ -450,7 +450,7 @@ describe('usePhases', () => {
       let resolveDelete: () => void = () => {}
       vi.mocked(phaseService.deletePhase).mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveDelete = resolve
           }),
       )
@@ -503,7 +503,7 @@ describe('usePhases', () => {
       // Should roll back
       await waitFor(() => {
         expect(result.current.phases).toHaveLength(3)
-        expect(result.current.phases.find((p) => p.id === 'phase-1')).toBeDefined()
+        expect(result.current.phases.find(p => p.id === 'phase-1')).toBeDefined()
       })
     })
   })
@@ -542,7 +542,7 @@ describe('usePhases', () => {
       let resolveReorder: (value: PhaseDto[]) => void = () => {}
       vi.mocked(phaseService.reorderPhases).mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveReorder = resolve
           }),
       )
@@ -707,7 +707,7 @@ describe('usePhases', () => {
       let resolveDelete: () => void = () => {}
       vi.mocked(phaseService.deletePhase).mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveDelete = resolve
           }),
       )
@@ -744,7 +744,7 @@ describe('usePhases', () => {
       let resolveReorder: (value: PhaseDto[]) => void = () => {}
       vi.mocked(phaseService.reorderPhases).mockImplementation(
         () =>
-          new Promise((resolve) => {
+          new Promise(resolve => {
             resolveReorder = resolve
           }),
       )

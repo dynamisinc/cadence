@@ -47,14 +47,14 @@ export const useInjects = (exerciseId: string) => {
   const createMutation = useMutation({
     mutationFn: (request: CreateInjectRequest) =>
       injectService.createInject(exerciseId, request),
-    onSuccess: (newInject) => {
+    onSuccess: newInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) => [
         ...old,
         newInject,
       ])
       toast.success('Inject created')
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create inject'
       toast.error(message)
@@ -75,7 +75,7 @@ export const useInjects = (exerciseId: string) => {
       const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
 
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === id
             ? { ...inject, ...request, updatedAt: new Date().toISOString() }
             : inject,
@@ -84,9 +84,9 @@ export const useInjects = (exerciseId: string) => {
 
       return { previousInjects }
     },
-    onSuccess: (updatedInject) => {
+    onSuccess: updatedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === updatedInject.id ? updatedInject : inject,
         ),
       )
@@ -116,23 +116,23 @@ export const useInjects = (exerciseId: string) => {
 
       // Optimistic update
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === id
             ? {
-                ...inject,
-                status: InjectStatus.Fired,
-                firedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Fired,
+              firedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (firedInject) => {
+    onSuccess: firedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === firedInject.id ? firedInject : inject,
         ),
       )
@@ -162,24 +162,24 @@ export const useInjects = (exerciseId: string) => {
 
       // Optimistic update
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === id
             ? {
-                ...inject,
-                status: InjectStatus.Skipped,
-                skippedAt: new Date().toISOString(),
-                skipReason: request.reason,
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Skipped,
+              skippedAt: new Date().toISOString(),
+              skipReason: request.reason,
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (skippedInject) => {
+    onSuccess: skippedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === skippedInject.id ? skippedInject : inject,
         ),
       )
@@ -202,35 +202,35 @@ export const useInjects = (exerciseId: string) => {
   // Mutation for resetting injects
   const resetMutation = useMutation({
     mutationFn: (id: string) => injectService.resetInject(exerciseId, id),
-    onMutate: async (id) => {
+    onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
 
       // Optimistic update
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === id
             ? {
-                ...inject,
-                status: InjectStatus.Pending,
-                firedAt: null,
-                firedBy: null,
-                firedByName: null,
-                skippedAt: null,
-                skippedBy: null,
-                skippedByName: null,
-                skipReason: null,
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Pending,
+              firedAt: null,
+              firedBy: null,
+              firedByName: null,
+              skippedAt: null,
+              skippedBy: null,
+              skippedByName: null,
+              skipReason: null,
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (resetInject) => {
+    onSuccess: resetInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.map((inject) =>
+        old.map(inject =>
           inject.id === resetInject.id ? resetInject : inject,
         ),
       )
@@ -253,12 +253,12 @@ export const useInjects = (exerciseId: string) => {
   // Mutation for deleting injects
   const deleteMutation = useMutation({
     mutationFn: (id: string) => injectService.deleteInject(exerciseId, id),
-    onMutate: async (id) => {
+    onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
 
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
-        old.filter((inject) => inject.id !== id),
+        old.filter(inject => inject.id !== id),
       )
 
       return { previousInjects }
@@ -281,14 +281,14 @@ export const useInjects = (exerciseId: string) => {
     const groups = new Map<string | null, PhaseGroup>()
 
     // First pass: create groups
-    injects.forEach((inject) => {
+    injects.forEach(inject => {
       const key = inject.phaseId
       if (!groups.has(key)) {
         groups.set(key, {
           phaseId: inject.phaseId,
           phaseName: inject.phaseName,
           sequence: inject.phaseId
-            ? injects.findIndex((i) => i.phaseId === inject.phaseId)
+            ? injects.findIndex(i => i.phaseId === inject.phaseId)
             : Infinity,
           injects: [],
         })
@@ -297,7 +297,7 @@ export const useInjects = (exerciseId: string) => {
     })
 
     // Sort injects within each group by sequence
-    groups.forEach((group) => {
+    groups.forEach(group => {
       group.injects.sort((a, b) => a.sequence - b.sequence)
     })
 

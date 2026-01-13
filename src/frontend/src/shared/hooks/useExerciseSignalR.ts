@@ -77,7 +77,7 @@ const getHubUrl = (): string => {
  * Hook for managing SignalR real-time connections for exercise conduct
  */
 export const useExerciseSignalR = (
-  options: UseExerciseSignalROptions
+  options: UseExerciseSignalROptions,
 ): UseExerciseSignalRReturn => {
   const {
     exerciseId,
@@ -112,13 +112,13 @@ export const useExerciseSignalR = (
           // Exponential backoff: 0s, 2s, 4s, 8s, 16s, max 30s
           const delay = Math.min(
             Math.pow(2, retryContext.previousRetryCount) * 1000,
-            30000
+            30000,
           )
           return delay
         },
       })
       .configureLogging(
-        import.meta.env.DEV ? signalR.LogLevel.Information : signalR.LogLevel.Warning
+        import.meta.env.DEV ? signalR.LogLevel.Information : signalR.LogLevel.Warning,
       )
       .build()
 
@@ -202,7 +202,7 @@ export const useExerciseSignalR = (
       onObservationAdded,
       onObservationUpdated,
       onObservationDeleted,
-    ]
+    ],
   )
 
   /**
@@ -251,7 +251,7 @@ export const useExerciseSignalR = (
       connectionRef.current = newConnection
 
       // Set up connection state handlers
-      newConnection.onclose((err) => {
+      newConnection.onclose(err => {
         setConnectionState('disconnected')
         setIsJoined(false)
         if (err) {
@@ -259,7 +259,7 @@ export const useExerciseSignalR = (
         }
       })
 
-      newConnection.onreconnecting((err) => {
+      newConnection.onreconnecting(err => {
         setConnectionState('reconnecting')
         setIsJoined(false)
         if (err) {

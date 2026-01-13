@@ -1,6 +1,7 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Injects.Models.DTOs;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -17,11 +18,13 @@ public class InjectsController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ILogger<InjectsController> _logger;
+    private readonly IExerciseHubContext _hubContext;
 
-    public InjectsController(AppDbContext context, ILogger<InjectsController> logger)
+    public InjectsController(AppDbContext context, ILogger<InjectsController> logger, IExerciseHubContext hubContext)
     {
         _context = context;
         _logger = logger;
+        _hubContext = hubContext;
     }
 
     /// <summary>
@@ -254,10 +257,18 @@ public class InjectsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        // Reload user navigation property after setting FiredBy
+        await _context.Entry(inject).Reference(i => i.FiredByUser).LoadAsync();
+
+        var dto = inject.ToDto();
+
+        // Broadcast SignalR notifications
+        await _hubContext.NotifyInjectFired(exerciseId, dto);
+
         _logger.LogInformation("Fired inject {InjectId}: {InjectTitle} at {FiredAt}",
             inject.Id, inject.Title, inject.FiredAt);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
     }
 
     /// <summary>
@@ -309,10 +320,18 @@ public class InjectsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        // Reload user navigation property after setting SkippedBy
+        await _context.Entry(inject).Reference(i => i.SkippedByUser).LoadAsync();
+
+        var dto = inject.ToDto();
+
+        // Broadcast SignalR notifications
+        await _hubContext.NotifyInjectSkipped(exerciseId, dto);
+
         _logger.LogInformation("Skipped inject {InjectId}: {InjectTitle} - Reason: {SkipReason}",
             inject.Id, inject.Title, inject.SkipReason);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
     }
 
     /// <summary>
@@ -355,10 +374,15 @@ public class InjectsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        var dto = inject.ToDto();
+
+        // Broadcast SignalR notifications
+        await _hubContext.NotifyInjectReset(exerciseId, dto);
+
         _logger.LogInformation("Reset inject {InjectId}: {InjectTitle} to pending",
             inject.Id, inject.Title);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
     }
 
     /// <summary>

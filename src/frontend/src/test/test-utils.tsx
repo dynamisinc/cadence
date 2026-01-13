@@ -17,7 +17,7 @@ const AllTheProviders = ({ children }: WrapperProps) => {
 
 const customRender = (
   ui: ReactElement,
-  options?: Omit<RenderOptions, 'wrapper'>
+  options?: Omit<RenderOptions, 'wrapper'>,
 ) => render(ui, { wrapper: AllTheProviders, ...options })
 
 // re-export everything

@@ -69,16 +69,16 @@ export const PhaseFormDialog = ({
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
   ) => {
     const value = e.target.value
-    setValues((prev) => ({ ...prev, [field]: value }))
+    setValues(prev => ({ ...prev, [field]: value }))
 
     // Clear error when field is modified
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }))
+      setErrors(prev => ({ ...prev, [field]: undefined }))
     }
   }
 
   const handleBlur = (field: keyof PhaseFormValues) => () => {
-    setTouched((prev) => ({ ...prev, [field]: true }))
+    setTouched(prev => ({ ...prev, [field]: true }))
     validateField(field)
   }
 
@@ -103,7 +103,7 @@ export const PhaseFormDialog = ({
         break
     }
 
-    setErrors((prev) => ({ ...prev, [field]: error }))
+    setErrors(prev => ({ ...prev, [field]: error }))
     return !error
   }
 
@@ -111,7 +111,7 @@ export const PhaseFormDialog = ({
     const fieldsToValidate: (keyof PhaseFormValues)[] = ['name', 'description']
 
     let isValid = true
-    fieldsToValidate.forEach((field) => {
+    fieldsToValidate.forEach(field => {
       if (!validateField(field)) {
         isValid = false
       }

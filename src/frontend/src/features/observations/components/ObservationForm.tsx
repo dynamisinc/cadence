@@ -59,12 +59,12 @@ export const ObservationForm = ({
   isSubmitting = false,
 }: ObservationFormProps) => {
   const [rating, setRating] = useState<ObservationRating>(
-    initialValues?.rating ?? ObservationRating.Satisfactory
+    initialValues?.rating ?? ObservationRating.Satisfactory,
   )
   const [content, setContent] = useState(initialValues?.content ?? '')
   const [recommendation, setRecommendation] = useState(initialValues?.recommendation ?? '')
   const [selectedInjectId, setSelectedInjectId] = useState<string>(
-    inject?.id ?? initialValues?.injectId ?? ''
+    inject?.id ?? initialValues?.injectId ?? '',
   )
 
   const handleRatingChange = (event: SelectChangeEvent<ObservationRating>) => {
@@ -133,7 +133,7 @@ export const ObservationForm = ({
               <MenuItem value="">
                 <em>None</em>
               </MenuItem>
-              {injects.map((inj) => (
+              {injects.map(inj => (
                 <MenuItem key={inj.id} value={inj.id}>
                   #{inj.injectNumber} - {inj.description.slice(0, 50)}
                   {inj.description.length > 50 ? '...' : ''}
@@ -150,7 +150,7 @@ export const ObservationForm = ({
           multiline
           rows={3}
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={e => setContent(e.target.value)}
           required
           fullWidth
         />
@@ -162,7 +162,7 @@ export const ObservationForm = ({
           multiline
           rows={2}
           value={recommendation}
-          onChange={(e) => setRecommendation(e.target.value)}
+          onChange={e => setRecommendation(e.target.value)}
           fullWidth
         />
 

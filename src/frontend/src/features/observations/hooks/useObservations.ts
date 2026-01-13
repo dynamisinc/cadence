@@ -43,10 +43,10 @@ export const useObservations = (exerciseId: string) => {
   const createMutation = useMutation({
     mutationFn: (request: CreateObservationRequest) =>
       observationService.createObservation(exerciseId, request),
-    onSuccess: (newObservation) => {
+    onSuccess: newObservation => {
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
-        (old = []) => [newObservation, ...old]
+        (old = []) => [newObservation, ...old],
       )
       // Also invalidate inject-specific queries if the observation is linked
       if (newObservation.injectId) {
@@ -56,7 +56,7 @@ export const useObservations = (exerciseId: string) => {
       }
       toast.success('Observation recorded')
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create observation'
       toast.error(message)
@@ -67,17 +67,17 @@ export const useObservations = (exerciseId: string) => {
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: string; request: UpdateObservationRequest }) =>
       observationService.updateObservation(id, request),
-    onSuccess: (updatedObservation) => {
+    onSuccess: updatedObservation => {
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
         (old = []) =>
-          old.map((obs) =>
-            obs.id === updatedObservation.id ? updatedObservation : obs
-          )
+          old.map(obs =>
+            obs.id === updatedObservation.id ? updatedObservation : obs,
+          ),
       )
       toast.success('Observation updated')
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to update observation'
       toast.error(message)
@@ -90,11 +90,11 @@ export const useObservations = (exerciseId: string) => {
     onSuccess: (_, deletedId) => {
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
-        (old = []) => old.filter((obs) => obs.id !== deletedId)
+        (old = []) => old.filter(obs => obs.id !== deletedId),
       )
       toast.success('Observation deleted')
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to delete observation'
       toast.error(message)

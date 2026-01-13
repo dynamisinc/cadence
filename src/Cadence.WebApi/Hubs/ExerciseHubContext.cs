@@ -25,9 +25,13 @@ public class ExerciseHubContext : IExerciseHubContext
     /// <inheritdoc />
     public async Task NotifyInjectFired(Guid exerciseId, InjectDto inject)
     {
-        await _hubContext.Clients
-            .Group(GetGroupName(exerciseId))
-            .SendAsync("InjectFired", inject);
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("InjectFired", inject),
+            group.SendAsync("InjectStatusChanged", inject)
+        );
 
         _logger.LogDebug(
             "Broadcast InjectFired for inject {InjectId} to exercise {ExerciseId}",
@@ -37,9 +41,13 @@ public class ExerciseHubContext : IExerciseHubContext
     /// <inheritdoc />
     public async Task NotifyInjectSkipped(Guid exerciseId, InjectDto inject)
     {
-        await _hubContext.Clients
-            .Group(GetGroupName(exerciseId))
-            .SendAsync("InjectSkipped", inject);
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("InjectSkipped", inject),
+            group.SendAsync("InjectStatusChanged", inject)
+        );
 
         _logger.LogDebug(
             "Broadcast InjectSkipped for inject {InjectId} to exercise {ExerciseId}",
@@ -49,12 +57,28 @@ public class ExerciseHubContext : IExerciseHubContext
     /// <inheritdoc />
     public async Task NotifyInjectReset(Guid exerciseId, InjectDto inject)
     {
-        await _hubContext.Clients
-            .Group(GetGroupName(exerciseId))
-            .SendAsync("InjectReset", inject);
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("InjectReset", inject),
+            group.SendAsync("InjectStatusChanged", inject)
+        );
 
         _logger.LogDebug(
             "Broadcast InjectReset for inject {InjectId} to exercise {ExerciseId}",
+            inject.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyInjectStatusChanged(Guid exerciseId, InjectDto inject)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("InjectStatusChanged", inject);
+
+        _logger.LogDebug(
+            "Broadcast InjectStatusChanged for inject {InjectId} to exercise {ExerciseId}",
             inject.Id, exerciseId);
     }
 
