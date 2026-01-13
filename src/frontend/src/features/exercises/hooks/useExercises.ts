@@ -70,7 +70,7 @@ export const useExercises = () => {
       // Return context with snapshot for rollback
       return { previousExercises }
     },
-    onSuccess: (newExercise) => {
+    onSuccess: newExercise => {
       // Replace optimistic exercise with real one
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) => {
         // Remove optimistic entry and add real one
@@ -105,13 +105,13 @@ export const useExercises = () => {
 
       // Optimistically update in list
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.map((exercise) =>
+        old.map(exercise =>
           exercise.id === id
             ? {
-                ...exercise,
-                ...request,
-                updatedAt: new Date().toISOString(),
-              }
+              ...exercise,
+              ...request,
+              updatedAt: new Date().toISOString(),
+            }
             : exercise,
         ),
       )
@@ -127,10 +127,10 @@ export const useExercises = () => {
 
       return { previousExercises, previousExercise }
     },
-    onSuccess: (updatedExercise) => {
+    onSuccess: updatedExercise => {
       // Replace optimistic data with server response
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.map((exercise) =>
+        old.map(exercise =>
           exercise.id === updatedExercise.id ? updatedExercise : exercise,
         ),
       )

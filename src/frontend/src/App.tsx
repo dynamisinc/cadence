@@ -27,7 +27,8 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 1000 * 60, // 1 minute - data considered fresh
       retry: 1, // Only retry failed requests once
-      refetchOnWindowFocus: false, // Don't refetch on window focus (we'll use SignalR for real-time)
+      // Don't refetch on window focus (we'll use SignalR for real-time)
+      refetchOnWindowFocus: false,
     },
   },
 })

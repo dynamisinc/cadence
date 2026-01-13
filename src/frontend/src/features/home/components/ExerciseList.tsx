@@ -16,9 +16,8 @@ import AddIcon from '@mui/icons-material/Add'
 import BuildIcon from '@mui/icons-material/Build'
 import AssignmentIcon from '@mui/icons-material/Assignment'
 import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
-import { format, parseISO } from 'date-fns'
-
 import { ExerciseStatusChip, ExerciseTypeChip } from '../../exercises'
+import { formatDate } from '../../../shared/utils/dateUtils'
 import { CobraPrimaryButton } from '../../../theme/styledComponents'
 import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../../exercises'
@@ -59,14 +58,6 @@ export const ExerciseList = ({
 
   const handleRowClick = (id: string) => {
     navigate(`/exercises/${id}`)
-  }
-
-  const formatDate = (dateStr: string) => {
-    try {
-      return format(parseISO(dateStr), 'MMM d, yyyy')
-    } catch {
-      return dateStr
-    }
   }
 
   // Error state

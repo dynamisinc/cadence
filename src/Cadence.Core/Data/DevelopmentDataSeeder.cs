@@ -593,7 +593,7 @@ public static class DevelopmentDataSeeder
                                  "Update public messaging on route changes.",
                 ControllerNotes = "CONTINGENCY - Use if players complete Inject 5 quickly or need additional challenge. " +
                                   "Tests adaptability and alternate route planning.",
-                TriggerCondition = "Use if players are ahead of schedule or evacuation discussion is too smooth",
+                FireCondition = "Use if players are ahead of schedule or evacuation discussion is too smooth",
                 MselId = HurricaneMselId,
                 PhaseId = Phase2Id,
                 CreatedBy = DirectorUserId,
@@ -704,7 +704,7 @@ public static class DevelopmentDataSeeder
                                  "Prepare patient evacuation plan if power cannot be restored.",
                 ControllerNotes = "ADAPTIVE - Fire this inject if players have good momentum. Creates cascading " +
                                   "decisions about critical infrastructure and medical surge.",
-                TriggerCondition = "Fire if players successfully manage water rescues; skip if overwhelmed",
+                FireCondition = "Fire if players successfully manage water rescues; skip if overwhelmed",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
                 CreatedBy = DirectorUserId,
@@ -756,7 +756,7 @@ public static class DevelopmentDataSeeder
                 Sequence = 12,
                 ExpectedAction = "Dispatch HazMat team. Establish isolation perimeter. Coordinate with EPA and State DEQ.",
                 ControllerNotes = "COMPLEXITY - Use only if players are handling scenario easily and need more challenge.",
-                TriggerCondition = "Exercise Director discretion based on player performance",
+                FireCondition = "Exercise Director discretion based on player performance",
                 SkippedAt = now.AddMinutes(-30),
                 SkippedBy = DirectorUserId,
                 SkipReason = "Time constraints - exercise running behind schedule. Saved for future exercise.",
@@ -908,8 +908,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = AdminUserId,
                 Role = ExerciseRole.Administrator,
-                AddedAt = now.AddDays(-7),
-                AddedBy = AdminUserId
+                CreatedAt = now.AddDays(-7),
+                UpdatedAt = now.AddDays(-7),
+                CreatedBy = AdminUserId,
+                ModifiedBy = AdminUserId
             },
             new ExerciseParticipant
             {
@@ -917,8 +919,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = DirectorUserId,
                 Role = ExerciseRole.ExerciseDirector,
-                AddedAt = now.AddDays(-7),
-                AddedBy = AdminUserId
+                CreatedAt = now.AddDays(-7),
+                UpdatedAt = now.AddDays(-7),
+                CreatedBy = AdminUserId,
+                ModifiedBy = AdminUserId
             },
             new ExerciseParticipant
             {
@@ -926,8 +930,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = Controller1UserId,
                 Role = ExerciseRole.Controller,
-                AddedAt = now.AddDays(-5),
-                AddedBy = DirectorUserId
+                CreatedAt = now.AddDays(-5),
+                UpdatedAt = now.AddDays(-5),
+                CreatedBy = DirectorUserId,
+                ModifiedBy = DirectorUserId
             },
             new ExerciseParticipant
             {
@@ -935,8 +941,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = Controller2UserId,
                 Role = ExerciseRole.Controller,
-                AddedAt = now.AddDays(-5),
-                AddedBy = DirectorUserId
+                CreatedAt = now.AddDays(-5),
+                UpdatedAt = now.AddDays(-5),
+                CreatedBy = DirectorUserId,
+                ModifiedBy = DirectorUserId
             },
             new ExerciseParticipant
             {
@@ -944,8 +952,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = EvaluatorUserId,
                 Role = ExerciseRole.Evaluator,
-                AddedAt = now.AddDays(-3),
-                AddedBy = DirectorUserId
+                CreatedAt = now.AddDays(-3),
+                UpdatedAt = now.AddDays(-3),
+                CreatedBy = DirectorUserId,
+                ModifiedBy = DirectorUserId
             },
             new ExerciseParticipant
             {
@@ -953,8 +963,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = ObserverUserId,
                 Role = ExerciseRole.Observer,
-                AddedAt = now.AddDays(-1),
-                AddedBy = DirectorUserId
+                CreatedAt = now.AddDays(-1),
+                UpdatedAt = now.AddDays(-1),
+                CreatedBy = DirectorUserId,
+                ModifiedBy = DirectorUserId
             }
         };
     }
@@ -969,8 +981,10 @@ public static class DevelopmentDataSeeder
                 ExerciseId = FloodTrainingId,
                 UserId = Controller1UserId,
                 Role = ExerciseRole.ExerciseDirector,
-                AddedAt = now.AddDays(-2),
-                AddedBy = Controller1UserId
+                CreatedAt = now.AddDays(-2),
+                UpdatedAt = now.AddDays(-2),
+                CreatedBy = Controller1UserId,
+                ModifiedBy = Controller1UserId
             }
         };
     }

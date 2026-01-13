@@ -41,7 +41,7 @@ export const createExerciseSchema = z.object({
   startTime: z.string().optional().or(z.literal('')),
   endTime: z.string().optional().or(z.literal('')),
 }).refine(
-  (data) => {
+  data => {
     // If both times are provided, end must be after start
     if (data.startTime && data.endTime) {
       return data.endTime > data.startTime
