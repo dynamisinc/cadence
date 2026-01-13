@@ -1,9 +1,7 @@
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 
-namespace Cadence.Api.Hubs;
+namespace Cadence.Functions.Hubs;
 
 /// <summary>
 /// SignalR hub functions for real-time notifications.
@@ -32,7 +30,6 @@ public class NotificationHub
 
     /// <summary>
     /// Broadcasts a message to all connected clients.
-    /// This is an example of how to send messages from server to clients.
     /// </summary>
     [Function("Broadcast")]
     [SignalROutput(HubName = "notifications")]
@@ -68,45 +65,6 @@ public class NotificationHub
         {
             UserId = userId,
             Arguments = new object[] { new { message = "You have a notification!", timestamp = DateTime.UtcNow } }
-        };
-    }
-}
-
-/// <summary>
-/// Extension methods for broadcasting SignalR messages from services.
-/// </summary>
-public static class SignalRBroadcastExtensions
-{
-    /// <summary>
-    /// Creates a SignalR message for note created event.
-    /// </summary>
-    public static SignalRMessageAction NoteCreated(Guid noteId, string userId)
-    {
-        return new SignalRMessageAction("noteCreated")
-        {
-            Arguments = new object[] { new { noteId, userId, timestamp = DateTime.UtcNow } }
-        };
-    }
-
-    /// <summary>
-    /// Creates a SignalR message for note updated event.
-    /// </summary>
-    public static SignalRMessageAction NoteUpdated(Guid noteId, string userId)
-    {
-        return new SignalRMessageAction("noteUpdated")
-        {
-            Arguments = new object[] { new { noteId, userId, timestamp = DateTime.UtcNow } }
-        };
-    }
-
-    /// <summary>
-    /// Creates a SignalR message for note deleted event.
-    /// </summary>
-    public static SignalRMessageAction NoteDeleted(Guid noteId, string userId)
-    {
-        return new SignalRMessageAction("noteDeleted")
-        {
-            Arguments = new object[] { new { noteId, userId, timestamp = DateTime.UtcNow } }
         };
     }
 }

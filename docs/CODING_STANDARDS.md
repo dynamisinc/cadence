@@ -171,6 +171,40 @@ var titles = await _context.Notes
 var activeNotes = _context.Notes.ToList().Where(n => n.IsActive);
 ```
 
+#### Soft Delete and Historical Queries
+
+User entities use soft delete (`IsDeleted` flag). This creates a challenge for navigation
+properties that reference Users - the User may be filtered out by the global query filter.
+
+**Pattern:** User navigation properties are **optional** (`User?`) to handle this gracefully.
+
+```csharp
+// LIVE QUERIES: Default behavior - soft-deleted users are filtered out
+// User navigation may be null if the user has been soft-deleted
+var participants = await _context.ExerciseParticipants
+    .Include(p => p.User)
+    .Where(p => p.ExerciseId == exerciseId)
+    .ToListAsync();
+
+// Handle potentially null User
+foreach (var p in participants)
+{
+    var displayName = p.User?.DisplayName ?? "[Deleted User]";
+}
+
+// HISTORICAL QUERIES: For reports/audits, include soft-deleted users
+var participants = await _context.ExerciseParticipants
+    .Include(p => p.User)
+    .IgnoreQueryFilters()  // Include soft-deleted entities
+    .Where(p => !p.IsDeleted && p.ExerciseId == exerciseId)
+    .ToListAsync();
+// Note: Must re-apply IsDeleted filter for the main entity
+```
+
+**Entities with optional User navigation:**
+- `ExerciseParticipant.User`, `ExerciseParticipant.AddedByUser`
+- `Inject.FiredByUser`, `Inject.SkippedByUser`
+
 #### Error Handling
 ```csharp
 // Let middleware handle exceptions
@@ -511,6 +545,206 @@ import CobraStyles from '@/theme/CobraStyles';
 // ❌ NEVER import raw MUI for styled elements
 import { Button, TextField } from '@mui/material';
 ```
+
+### Frontend UX Patterns (Required)
+
+All feature implementations MUST include these quality-of-life patterns for a polished user experience.
+
+#### 1. Form Validation with Zod + React Hook Form
+
+Use Zod schemas for type-safe validation with React Hook Form:
+
+```typescript
+// types/validation.ts
+import { z } from 'zod';
+
+export const FIELD_LIMITS = {
+  name: 200,
+  description: 4000,
+} as const;
+
+export const createEntitySchema = z.object({
+  name: z.string()
+    .min(1, 'Name is required')
+    .max(FIELD_LIMITS.name, `Name must be ${FIELD_LIMITS.name} characters or less`),
+  description: z.string()
+    .max(FIELD_LIMITS.description)
+    .optional()
+    .or(z.literal('')),
+});
+
+export type CreateEntityFormValues = z.infer<typeof createEntitySchema>;
+
+// In component:
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+
+const { control, handleSubmit, formState: { errors, isDirty } } = useForm({
+  resolver: zodResolver(createEntitySchema),
+  mode: 'onBlur',
+});
+```
+
+#### 2. Optimistic Updates
+
+Update the UI immediately, rollback on error:
+
+```typescript
+const createMutation = useMutation({
+  mutationFn: service.create,
+  onMutate: async (newItem) => {
+    await queryClient.cancelQueries({ queryKey: ['items'] });
+    const previous = queryClient.getQueryData(['items']);
+
+    // Optimistic update with temp ID
+    queryClient.setQueryData(['items'], (old = []) => [
+      { ...newItem, id: `temp-${Date.now()}` },
+      ...old,
+    ]);
+
+    return { previous };
+  },
+  onSuccess: (created) => {
+    // Replace temp with real data
+    queryClient.setQueryData(['items'], (old = []) =>
+      old.map(item => item.id.startsWith('temp-') ? created : item)
+    );
+  },
+  onError: (_err, _vars, context) => {
+    // Rollback on error
+    if (context?.previous) {
+      queryClient.setQueryData(['items'], context.previous);
+    }
+  },
+});
+```
+
+#### 3. Loading Skeletons
+
+Replace spinners with content-shaped skeletons:
+
+```tsx
+import { Skeleton } from '@mui/material';
+
+const TableSkeleton = () => (
+  <TableBody>
+    {Array.from({ length: 5 }, (_, i) => (
+      <TableRow key={i}>
+        <TableCell><Skeleton variant="text" width={180} /></TableCell>
+        <TableCell><Skeleton variant="rounded" width={70} height={24} /></TableCell>
+        <TableCell><Skeleton variant="text" width={100} /></TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+);
+
+// Use skeleton when loading with no data
+{loading && items.length === 0 ? <TableSkeleton /> : <ActualContent />}
+```
+
+#### 4. Unsaved Changes Warning
+
+Warn users before losing form data:
+
+```typescript
+// shared/hooks/useUnsavedChangesWarning.ts
+import { useEffect } from 'react';
+
+export const useUnsavedChangesWarning = (hasUnsavedChanges: boolean) => {
+  // Browser refresh/close warning
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (hasUnsavedChanges) {
+        e.preventDefault();
+        e.returnValue = '';  // Triggers browser's "Leave site?" dialog
+      }
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [hasUnsavedChanges]);
+
+  return { hasUnsavedChanges };
+};
+
+// Usage in form pages:
+const [isDirty, setIsDirty] = useState(false);
+useUnsavedChangesWarning(isDirty && !isSubmitting);
+
+// For in-app navigation, handle dirty state in cancel handlers:
+const handleCancel = () => {
+  if (isDirty && !window.confirm('Discard unsaved changes?')) return;
+  navigate('/back');
+};
+```
+
+#### 5. Engaging Empty States
+
+Empty states should be visually engaging with clear calls to action:
+
+```tsx
+// Search/filter returned no results
+<Paper sx={{ py: 6, textAlign: 'center', border: '1px dashed', borderColor: 'grey.300' }}>
+  <Box sx={{ /* circular icon container */ }}>
+    <SearchOffIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+  </Box>
+  <Typography variant="h6">No matching items</Typography>
+  <Typography color="text.secondary">
+    Try adjusting your search or filters.
+  </Typography>
+</Paper>
+
+// First-time empty state (user can create)
+<Paper sx={{ py: 8, textAlign: 'center', backgroundColor: 'primary.50' }}>
+  <Box sx={{ /* gradient icon container with shadow */ }}>
+    <PlaylistAddIcon sx={{ fontSize: 50, color: 'primary.main' }} />
+  </Box>
+  <Typography variant="h5">Create Your First Item</Typography>
+  <Typography color="text.secondary" sx={{ mb: 3 }}>
+    Get started by creating an item...
+  </Typography>
+  <CobraPrimaryButton startIcon={<AddIcon />} size="large">
+    Create Item
+  </CobraPrimaryButton>
+</Paper>
+
+// Empty state (user cannot create)
+<Paper sx={{ py: 6, textAlign: 'center', border: '1px dashed' }}>
+  <AssignmentIcon sx={{ fontSize: 40, color: 'grey.500' }} />
+  <Typography variant="h6">No Items Available</Typography>
+  <Typography color="text.secondary">
+    Contact your administrator to get access.
+  </Typography>
+</Paper>
+```
+
+#### 6. Toast Notifications
+
+Use consistent toast patterns for user feedback:
+
+```typescript
+import { toast } from 'react-toastify';
+
+// Success after mutation
+toast.success('Item created');
+toast.success('Changes saved');
+
+// Error handling in mutations
+onError: (err) => {
+  const message = err instanceof Error ? err.message : 'Operation failed';
+  toast.error(message);
+}
+```
+
+#### UX Pattern Checklist
+
+When implementing any CRUD feature, verify:
+
+- [ ] **Forms** use Zod + React Hook Form for validation
+- [ ] **Mutations** include optimistic updates with rollback
+- [ ] **Loading states** use skeletons instead of spinners
+- [ ] **Form pages** warn before losing unsaved changes
+- [ ] **Empty states** are engaging with appropriate icons and CTAs
+- [ ] **Operations** provide toast feedback for success/error
 
 ---
 

@@ -347,9 +347,35 @@ Cadence will support offline operation. Design with this in mind:
 
 1. Read the relevant feature requirements in `docs/features/`
 2. Read `docs/COBRA_STYLING.md` for styling patterns
-3. Write tests for acceptance criteria FIRST
-4. Ensure API contract exists (coordinate with backend-agent if not)
-5. Use correct HSEEP terminology in UI labels
+3. Read `docs/CODING_STANDARDS.md` **"Frontend UX Patterns"** section
+4. Write tests for acceptance criteria FIRST
+5. Ensure API contract exists (coordinate with backend-agent if not)
+6. Use correct HSEEP terminology in UI labels
+
+## Required UX Patterns (All Features)
+
+Every CRUD feature MUST implement these patterns (see `docs/CODING_STANDARDS.md` for details):
+
+| Pattern                | Implementation                                                |
+| ---------------------- | ------------------------------------------------------------- |
+| **Form Validation**    | Zod schemas + React Hook Form with `zodResolver`              |
+| **Optimistic Updates** | `onMutate` → snapshot → update cache → `onError` rollback     |
+| **Loading States**     | Skeleton components matching content shape (not spinners)     |
+| **Unsaved Changes**    | `useUnsavedChangesWarning` hook on form pages                 |
+| **Empty States**       | Engaging designs with icons, CTAs, role-appropriate messaging |
+| **Toast Feedback**     | `toast.success()` / `toast.error()` for all operations        |
+
+```typescript
+// Quick reference - form setup
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { entitySchema, type EntityFormValues } from '../types/validation';
+
+const { control, handleSubmit, formState: { errors, isDirty } } = useForm<EntityFormValues>({
+  resolver: zodResolver(entitySchema),
+  mode: 'onBlur',
+});
+```
 
 ## Output Requirements
 

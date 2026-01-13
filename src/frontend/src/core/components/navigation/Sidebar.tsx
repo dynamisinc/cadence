@@ -35,6 +35,7 @@ import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHome,
+  faClipboardList,
   faStickyNote,
   faChevronLeft,
   faChevronRight,
@@ -59,6 +60,13 @@ interface NavItem {
 
 const navigationItems: NavItem[] = [
   { id: 'home', label: 'Home', icon: faHome, path: '/', section: 'main' },
+  {
+    id: 'exercises',
+    label: 'Exercises',
+    icon: faClipboardList,
+    path: '/exercises',
+    section: 'main',
+  },
   {
     id: 'notes',
     label: 'Notes',

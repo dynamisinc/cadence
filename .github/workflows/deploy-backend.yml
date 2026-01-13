@@ -10,15 +10,15 @@ on:
       environment:
         description: "Environment to deploy to"
         required: true
-        default: "production"
+        default: "uat"
         type: choice
         options:
+          - uat
           - production
-          - staging
 
 env:
   DOTNET_VERSION: "10.0.x"
-  AZURE_WEBAPP_NAME: "cadence-api"  # TODO: Update with your Azure Web App name
+  AZURE_WEBAPP_NAME: "app-cadence-api-uat" # UPDATE after creating resource
   WEBAPI_PROJECT_PATH: "src/Cadence.WebApi"
 
 concurrency:
@@ -42,33 +42,25 @@ jobs:
       - name: Get changed files
         id: changes
         run: |
-          # For workflow_run, compare the head commit with its parent
           if [ "${{ github.event_name }}" == "workflow_run" ]; then
             BASE_SHA="${{ github.event.workflow_run.head_commit.id }}~1"
             HEAD_SHA="${{ github.event.workflow_run.head_commit.id }}"
           else
-            # For manual trigger, always deploy
             echo "backend=true" >> $GITHUB_OUTPUT
             echo "migrations=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          # Check for backend changes (including test projects)
-          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.(Core|WebApi)(\.Tests)?/'; then
+          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.(Core|WebApi|Functions)(\.Tests)?/'; then
             echo "backend=true" >> $GITHUB_OUTPUT
-            echo "Backend changes detected"
           else
             echo "backend=false" >> $GITHUB_OUTPUT
-            echo "No backend changes detected"
           fi
 
-          # Check specifically for migration changes
           if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.Core/Migrations/'; then
             echo "migrations=true" >> $GITHUB_OUTPUT
-            echo "Migration changes detected"
           else
             echo "migrations=false" >> $GITHUB_OUTPUT
-            echo "No migration changes detected"
           fi
 
   build:
@@ -86,10 +78,10 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore WebApi dependencies
+      - name: Restore dependencies
         run: dotnet restore ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj
 
-      - name: Build WebApi
+      - name: Build
         run: dotnet build ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --no-restore
 
       - name: Run Core tests
@@ -98,10 +90,10 @@ jobs:
       - name: Run WebApi tests
         run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --configuration Release --verbosity normal
 
-      - name: Publish WebApi
+      - name: Publish
         run: dotnet publish ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --output ./publish/webapi
 
-      - name: Upload WebApi artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: web-api
@@ -113,7 +105,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: [check-changes, build]
     environment:
-      name: ${{ github.event.inputs.environment || 'production' }}
+      name: ${{ github.event.inputs.environment || 'uat' }}
       url: ${{ steps.deploy-webapi.outputs.webapp-url }}
 
     steps:
@@ -149,7 +141,7 @@ jobs:
         env:
           DOTNET_ENVIRONMENT: Production
 
-      - name: Download WebApi artifact
+      - name: Download artifact
         uses: actions/download-artifact@v4
         with:
           name: web-api
@@ -163,26 +155,25 @@ jobs:
           package: ./web-api
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
 
-      - name: Health check (WebApi)
+      - name: Health check
         run: |
           WEBAPP_URL="${{ steps.deploy-webapi.outputs.webapp-url }}"
           echo "Checking health at: ${WEBAPP_URL}/api/health"
           echo "Waiting 60 seconds for app to warm up..."
           sleep 60
 
-          # Retry up to 5 times with 15 second intervals
           for i in 1 2 3 4 5; do
             echo "Health check attempt $i..."
             response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health" || echo "000")
             if [ "$response" = "200" ]; then
-              echo "WebApi health check passed!"
+              echo "Health check passed!"
               exit 0
             fi
             echo "Got status $response, waiting 15 seconds before retry..."
             sleep 15
           done
 
-          echo "WebApi health check failed after 5 attempts"
+          echo "Health check failed after 5 attempts"
           exit 1
 
   skip-deploy:
@@ -193,5 +184,5 @@ jobs:
     steps:
       - name: Log skip reason
         run: |
-          echo "Skipping backend deployment - no backend file changes detected"
-          echo "To force a deployment, use workflow_dispatch manually"
+          echo "Skipping backend deployment - no backend changes detected"
+          echo "To force deployment, use workflow_dispatch manually"

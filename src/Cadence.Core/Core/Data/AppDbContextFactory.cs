@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore.Design;
 
-namespace Cadence.Api.Core.Data;
+namespace Cadence.Core.Data;
 
 /// <summary>
 /// Design-time factory for AppDbContext.
@@ -20,7 +20,7 @@ public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
         // Azure Functions stores connection strings in Values section
         var connectionString = configuration["Values:ConnectionStrings:DefaultConnection"]
             ?? configuration["ConnectionStrings:DefaultConnection"]
-            ?? "Server=(localdb)\\MSSQLLocalDB;Database=Cadence;Trusted_Connection=True;TrustServerCertificate=True;";
+            ?? "Server=localhost;Database=Cadence;Trusted_Connection=True;TrustServerCertificate=True;";
 
         var optionsBuilder = new DbContextOptionsBuilder<AppDbContext>();
         optionsBuilder.UseSqlServer(connectionString);

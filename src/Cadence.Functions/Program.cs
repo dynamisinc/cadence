@@ -2,9 +2,9 @@ using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Cadence.Api.Core.Extensions;
-using Cadence.Api.Core.Logging;
-using Cadence.Api.Core.Middleware;
+using Cadence.Core.Data;
+using Cadence.Core.Extensions;
+using Cadence.Functions.Middleware;
 
 // =============================================================================
 // Cadence - Azure Functions Entry Point
@@ -73,7 +73,7 @@ if (autoMigrate)
 {
     using var scope = app.Services.CreateScope();
     var logger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    var context = scope.ServiceProvider.GetRequiredService<Cadence.Api.Core.Data.AppDbContext>();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
     try
     {

@@ -134,7 +134,29 @@ declare module '@mui/material/Button' {
 
 const primaryContrastText = '#1a1a1a'
 
+/**
+ * Cadence Breakpoints (per S04-responsive-design.md)
+ *
+ * | Breakpoint | Width      | Cadence Usage              |
+ * |------------|------------|----------------------------|
+ * | xs         | 0-599px    | Unsupported (show message) |
+ * | sm         | 600-767px  | Unsupported (show message) |
+ * | md         | 768-1023px | Tablet portrait            |
+ * | lg         | 1024-1439px| Tablet landscape / Laptop  |
+ * | xl         | 1440px+    | Desktop                    |
+ */
+export const cadenceBreakpoints = {
+  values: {
+    xs: 0,
+    sm: 600,
+    md: 768,    // Tablet portrait - minimum supported
+    lg: 1024,   // Tablet landscape / Laptop
+    xl: 1440,   // Desktop
+  },
+}
+
 export const cobraTheme = createTheme({
+  breakpoints: cadenceBreakpoints,
   cssStyling: {
     drawerClosedWidth: 64,
     drawerOpenWidth: 288,
@@ -320,6 +342,90 @@ export const getStatusChipColor = (
         bg: cobraTheme.palette.primary.main,
         text: cobraTheme.palette.text.primary,
       }
+  }
+}
+
+/**
+ * Helper function to get exercise status chip color
+ * Per S03-view-exercise-list.md:
+ * - Draft: Neutral styling
+ * - Active: Success/green styling
+ * - Completed: Muted styling
+ * - Archived: Hidden from default view (gray if shown)
+ */
+export const getExerciseStatusChipColor = (
+  status: string,
+): { bg: string; text: string } => {
+  const statusLower = status.toLowerCase()
+
+  switch (statusLower) {
+    case 'active':
+      return {
+        bg: cobraTheme.palette.notifications.success,
+        text: cobraTheme.palette.notifications.successText,
+      }
+    case 'draft':
+      return {
+        bg: cobraTheme.palette.grid.main,
+        text: cobraTheme.palette.text.primary,
+      }
+    case 'completed':
+      return {
+        bg: cobraTheme.palette.primary.light,
+        text: cobraTheme.palette.text.secondary,
+      }
+    case 'archived':
+      return {
+        bg: cobraTheme.palette.statusChart.grey,
+        text: cobraTheme.palette.text.secondary,
+      }
+    default:
+      return {
+        bg: cobraTheme.palette.primary.main,
+        text: cobraTheme.palette.text.primary,
+      }
+  }
+}
+
+/**
+ * Helper function to get exercise type display text (abbreviation)
+ */
+export const getExerciseTypeLabel = (type: string): string => {
+  const normalized = type.toUpperCase()
+  switch (normalized) {
+    case 'TTX':
+      return 'TTX'
+    case 'FE':
+      return 'FE'
+    case 'FSE':
+      return 'FSE'
+    case 'CAX':
+      return 'CAX'
+    case 'HYBRID':
+      return 'Hybrid'
+    default:
+      return type
+  }
+}
+
+/**
+ * Helper function to get exercise type full name
+ */
+export const getExerciseTypeFullName = (type: string): string => {
+  const normalized = type.toUpperCase()
+  switch (normalized) {
+    case 'TTX':
+      return 'Tabletop Exercise'
+    case 'FE':
+      return 'Functional Exercise'
+    case 'FSE':
+      return 'Full-Scale Exercise'
+    case 'CAX':
+      return 'Computer-Aided Exercise'
+    case 'HYBRID':
+      return 'Hybrid Exercise'
+    default:
+      return type
   }
 }
 

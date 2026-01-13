@@ -1,5 +1,5 @@
 // =============================================================================
-// Global Usings - Cadence.Api
+// Global Usings - Cadence.Functions
 // =============================================================================
 
 global using System;
@@ -15,5 +15,5 @@ global using Microsoft.AspNetCore.Http;
 
 global using Microsoft.EntityFrameworkCore;
 
-global using Cadence.Api.Core.Data;
-global using Cadence.Api.Core.Logging;
+global using Cadence.Core.Data;
+global using Cadence.Core.Logging;
