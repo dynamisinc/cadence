@@ -418,7 +418,6 @@ export const ExerciseConductPage = () => {
               {showObservationForm && (
                 <Box sx={{ mb: 2 }}>
                   <ObservationForm
-                    exerciseId={exerciseId!}
                     injects={injects}
                     onSubmit={handleCreateObservation}
                     onCancel={() => setShowObservationForm(false)}
