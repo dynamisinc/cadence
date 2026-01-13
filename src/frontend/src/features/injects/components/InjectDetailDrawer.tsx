@@ -59,12 +59,11 @@ interface InjectDetailDrawerProps {
 }
 
 const deliveryMethodLabels: Record<DeliveryMethod, string> = {
-  [DeliveryMethod.InPerson]: 'In Person',
+  [DeliveryMethod.Verbal]: 'Verbal',
   [DeliveryMethod.Phone]: 'Phone',
   [DeliveryMethod.Email]: 'Email',
   [DeliveryMethod.Radio]: 'Radio',
-  [DeliveryMethod.Video]: 'Video',
-  [DeliveryMethod.Document]: 'Document',
+  [DeliveryMethod.Written]: 'Written',
   [DeliveryMethod.Simulation]: 'Simulation',
   [DeliveryMethod.Other]: 'Other',
 }

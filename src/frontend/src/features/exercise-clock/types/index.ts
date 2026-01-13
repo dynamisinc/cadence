@@ -70,3 +70,9 @@ export const formatElapsedTime = (ms: number): string => {
     seconds.toString().padStart(2, '0'),
   ].join(':')
 }
+
+/**
+ * Alias for backwards compatibility
+ * @deprecated Use ClockStateDto instead
+ */
+export type ExerciseClockDto = ClockStateDto

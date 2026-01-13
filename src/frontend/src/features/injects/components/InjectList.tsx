@@ -53,11 +53,11 @@ interface InjectListProps {
   /** Can the user control injects (fire/skip/reset)? */
   canControl?: boolean
   /** Called when fire button is clicked */
-  onFire?: (injectId: string) => Promise<void>
+  onFire?: (injectId: string) => Promise<void> | Promise<InjectDto>
   /** Called when skip button is clicked */
-  onSkip?: (injectId: string, request: SkipInjectRequest) => Promise<void>
+  onSkip?: (injectId: string, request: SkipInjectRequest) => Promise<void> | Promise<InjectDto>
   /** Called when reset button is clicked */
-  onReset?: (injectId: string) => Promise<void>
+  onReset?: (injectId: string) => Promise<void> | Promise<InjectDto>
 }
 
 export const InjectList = ({

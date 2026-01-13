@@ -133,9 +133,9 @@ export const ObservationList = ({
                     <Typography variant="caption" color="text.secondary">
                       {formatTime(observation.createdAt)}
                     </Typography>
-                    {observation.injectNumber && (
+                    {observation.injectTitle && (
                       <Typography variant="caption" color="text.secondary">
-                        Inject #{observation.injectNumber}
+                        {observation.injectTitle}
                       </Typography>
                     )}
                   </Stack>

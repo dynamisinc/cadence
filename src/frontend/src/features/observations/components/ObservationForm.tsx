@@ -77,7 +77,6 @@ export const ObservationForm = ({
 
   const handleSubmit = async () => {
     const data: CreateObservationRequest = {
-      exerciseId,
       rating,
       content: content.trim(),
       recommendation: recommendation.trim() || undefined,

@@ -45,11 +45,11 @@ interface InjectListByStatusProps {
   /** Error message if failed to load */
   error?: string | null
   /** Called when fire button is clicked */
-  onFire?: (injectId: string) => Promise<void>
+  onFire?: (injectId: string) => Promise<void> | Promise<InjectDto>
   /** Called when skip button is clicked */
-  onSkip?: (injectId: string, request: SkipInjectRequest) => Promise<void>
+  onSkip?: (injectId: string, request: SkipInjectRequest) => Promise<void> | Promise<InjectDto>
   /** Called when reset button is clicked */
-  onReset?: (injectId: string) => Promise<void>
+  onReset?: (injectId: string) => Promise<void> | Promise<InjectDto>
 }
 
 interface InjectWithOffset {
