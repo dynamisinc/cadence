@@ -9,8 +9,8 @@ import {
   Tooltip,
   Divider,
 } from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import BuildIcon from '@mui/icons-material/Build'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faHome, faPen, faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useExercise } from '../hooks'
@@ -22,6 +22,7 @@ import {
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { usePermissions, useUnsavedChangesWarning } from '../../../shared/hooks'
+import { useBreadcrumbs } from '../../../core/contexts'
 import { ExerciseStatus } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
@@ -47,6 +48,17 @@ export const ExerciseDetailPage = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
+
+  // Set custom breadcrumbs with exercise name
+  useBreadcrumbs(
+    exercise
+      ? [
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name },
+      ]
+      : undefined,
+  )
 
   // Warn user before navigating away with unsaved changes (only when editing)
   const { UnsavedChangesDialog } = useUnsavedChangesWarning(isEditing && isDirty && !isSubmitting)
@@ -225,7 +237,9 @@ export const ExerciseDetailPage = () => {
             </Typography>
             {exercise.isPracticeMode && (
               <Tooltip title="Practice Mode - excluded from production reports">
-                <BuildIcon color="action" />
+                <Box component="span" sx={{ color: 'action.active' }}>
+                  <FontAwesomeIcon icon={faScrewdriverWrench} />
+                </Box>
               </Tooltip>
             )}
           </Stack>
@@ -241,7 +255,7 @@ export const ExerciseDetailPage = () => {
           </CobraLinkButton>
           {canEdit && !isEditing && (
             <CobraSecondaryButton
-              startIcon={<EditIcon />}
+              startIcon={<FontAwesomeIcon icon={faPen} />}
               onClick={handleEdit}
             >
               Edit

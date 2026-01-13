@@ -59,6 +59,29 @@ import {
 <CobraTextField label="Title" />
 ```
 
+### NEVER Use MUI Icons - Use FontAwesome
+
+Always use FontAwesome icons. Never use `@mui/icons-material`.
+
+```typescript
+// ❌ NEVER DO THIS
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+
+<AddIcon />
+<IconButton><DeleteIcon /></IconButton>
+```
+
+```typescript
+// ✅ ALWAYS DO THIS
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTrash, faPen } from '@fortawesome/free-solid-svg-icons';
+
+<FontAwesomeIcon icon={faPlus} />
+<IconButton><FontAwesomeIcon icon={faTrash} /></IconButton>
+```
+
 ### NEVER Hardcode Colors
 
 ```typescript
@@ -460,9 +483,10 @@ const CreateNoteDialog = ({ open, onClose, onCreate }) => {
 
 ```typescript
 import { Box, Typography, Stack } from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { CobraPrimaryButton } from '@/theme/styledComponents';
 import CobraStyles from '@/theme/CobraStyles';
-import AddIcon from '@mui/icons-material/Add';
 
 const NotesPage = () => {
   return (
@@ -478,7 +502,7 @@ const NotesPage = () => {
           Notes
         </Typography>
 
-        <CobraPrimaryButton startIcon={<AddIcon />} onClick={handleCreate}>
+        <CobraPrimaryButton startIcon={<FontAwesomeIcon icon={faPlus} />} onClick={handleCreate}>
           New Note
         </CobraPrimaryButton>
       </Stack>
@@ -577,8 +601,9 @@ const ErrorDisplay = ({ error, onRetry }) => (
 
 ```typescript
 import { Box, Typography } from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
 import { CobraPrimaryButton } from '@/theme/styledComponents';
-import AddIcon from '@mui/icons-material/Add';
 
 const EmptyState = ({ onCreate }) => (
   <Box textAlign="center" py={4}>
@@ -588,7 +613,7 @@ const EmptyState = ({ onCreate }) => (
     <Typography variant="body2" color="text.secondary" paragraph>
       Create your first note to get started
     </Typography>
-    <CobraPrimaryButton startIcon={<AddIcon />} onClick={onCreate}>
+    <CobraPrimaryButton startIcon={<FontAwesomeIcon icon={faPlus} />} onClick={onCreate}>
       Create Note
     </CobraPrimaryButton>
   </Box>
@@ -650,12 +675,127 @@ Text input field with COBRA styling.
 
 ---
 
+## FontAwesome Icons
+
+### Installation
+
+FontAwesome is already installed in the project:
+- `@fortawesome/fontawesome-svg-core`
+- `@fortawesome/free-solid-svg-icons`
+- `@fortawesome/react-fontawesome`
+
+### Basic Usage
+
+```typescript
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus } from '@fortawesome/free-solid-svg-icons';
+
+// Basic icon
+<FontAwesomeIcon icon={faPlus} />
+
+// With size (xs, sm, lg, xl, 2xl, or 1x-10x)
+<FontAwesomeIcon icon={faPlus} size="lg" />
+
+// With custom color (use theme colors)
+<FontAwesomeIcon icon={faPlus} color={theme.palette.primary.main} />
+
+// Spinning animation (great for loading)
+<FontAwesomeIcon icon={faSpinner} spin />
+
+// Fixed width (useful in lists/menus)
+<FontAwesomeIcon icon={faPlus} fixedWidth />
+```
+
+### Common Icon Reference
+
+| Action | Icon | Import |
+|--------|------|--------|
+| Add/Create | + | `faPlus` |
+| Delete | Trash | `faTrash` |
+| Edit | Pen | `faPen` |
+| Save | Floppy | `faFloppyDisk` |
+| Cancel/Close | X | `faXmark` |
+| Confirm/Success | Check | `faCheck` |
+| Warning | Triangle | `faTriangleExclamation` |
+| Error | Circle X | `faCircleXmark` |
+| Info | Circle i | `faCircleInfo` |
+| Search | Magnifying glass | `faMagnifyingGlass` |
+| No Results | Ban circle | `faBan` |
+| Settings | Gear | `faGear` |
+| User | Person | `faUser` |
+| Calendar | Calendar | `faCalendar` |
+| Clock | Clock | `faClock` |
+| Loading | Spinner | `faSpinner` (with `spin` prop) |
+| Menu | Bars | `faBars` |
+| Chevron Left | < | `faChevronLeft` |
+| Chevron Right | > | `faChevronRight` |
+| Chevron Down | v | `faChevronDown` |
+| Chevron Up | ^ | `faChevronUp` |
+| Arrow Left | <- | `faArrowLeft` |
+| Arrow Right | -> | `faArrowRight` |
+| Home | House | `faHouse` |
+| Download | Download | `faDownload` |
+| Upload | Upload | `faUpload` |
+| Refresh | Rotate | `faRotate` |
+| Eye (View) | Eye | `faEye` |
+| Eye Slash (Hide) | Eye Slash | `faEyeSlash` |
+| Copy | Copy | `faCopy` |
+| Fire (Inject) | Fire | `faFire` |
+| Play | Play | `faPlay` |
+| Pause | Pause | `faPause` |
+| Stop | Stop | `faStop` |
+
+### Using Icons in Buttons
+
+```typescript
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+import { CobraPrimaryButton, CobraDeleteButton } from '@/theme/styledComponents';
+
+// With startIcon
+<CobraPrimaryButton startIcon={<FontAwesomeIcon icon={faPlus} />}>
+  Create Exercise
+</CobraPrimaryButton>
+
+// Delete button (icon usually built-in, but can customize)
+<CobraDeleteButton startIcon={<FontAwesomeIcon icon={faTrash} />}>
+  Delete
+</CobraDeleteButton>
+```
+
+### Using Icons in IconButton
+
+```typescript
+import { IconButton } from '@mui/material';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPen, faTrash } from '@fortawesome/free-solid-svg-icons';
+
+<IconButton onClick={handleEdit} aria-label="Edit">
+  <FontAwesomeIcon icon={faPen} />
+</IconButton>
+
+<IconButton onClick={handleDelete} aria-label="Delete" color="error">
+  <FontAwesomeIcon icon={faTrash} />
+</IconButton>
+```
+
+### Icon Sizing Guide
+
+| MUI Size | FontAwesome Size | Use Case |
+|----------|------------------|----------|
+| small | `size="sm"` | Dense lists, inline text |
+| medium | (default) | Standard buttons, forms |
+| large | `size="lg"` | Prominent actions, empty states |
+
+---
+
 ## Validation Checklist
 
 Before submitting code, verify:
 
 - [ ] No raw MUI Button, TextField, or Dialog imports
 - [ ] All buttons use appropriate COBRA component
+- [ ] **No MUI icons (`@mui/icons-material`) - use FontAwesome**
 - [ ] No hardcoded color values (hex, rgb, etc.)
 - [ ] No hardcoded spacing values
 - [ ] CobraStyles constants used for padding/spacing

@@ -12,10 +12,8 @@ import {
   Tooltip,
   Skeleton,
 } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import BuildIcon from '@mui/icons-material/Build'
-import AssignmentIcon from '@mui/icons-material/Assignment'
-import PlaylistAddIcon from '@mui/icons-material/PlaylistAdd'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faScrewdriverWrench, faClipboardList, faListCheck } from '@fortawesome/free-solid-svg-icons'
 import { ExerciseStatusChip, ExerciseTypeChip } from '../../exercises'
 import { formatDate } from '../../../shared/utils/dateUtils'
 import { CobraPrimaryButton } from '../../../theme/styledComponents'
@@ -148,10 +146,9 @@ export const ExerciseList = ({
               <TableCell>
                 {exercise.isPracticeMode && (
                   <Tooltip title="Practice Mode - excluded from production reports">
-                    <BuildIcon
-                      fontSize="small"
-                      sx={{ color: 'text.secondary' }}
-                    />
+                    <Box component="span" sx={{ color: 'text.secondary' }}>
+                      <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
+                    </Box>
                   </Tooltip>
                 )}
               </TableCell>
@@ -236,9 +233,11 @@ const EmptyState = ({ canManage, onCreateClick }: EmptyStateProps) => {
             justifyContent: 'center',
             margin: '0 auto 20px',
             boxShadow: '0 4px 16px rgba(33, 150, 243, 0.15)',
+            color: 'primary.main',
+            fontSize: 40,
           }}
         >
-          <PlaylistAddIcon sx={{ fontSize: 40, color: 'primary.main' }} />
+          <FontAwesomeIcon icon={faListCheck} />
         </Box>
         <Typography variant="h6" gutterBottom fontWeight={500}>
           Create Your First Exercise
@@ -252,7 +251,7 @@ const EmptyState = ({ canManage, onCreateClick }: EmptyStateProps) => {
           operations-based training.
         </Typography>
         <CobraPrimaryButton
-          startIcon={<AddIcon />}
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
           onClick={onCreateClick}
         >
           Create Exercise
@@ -282,9 +281,11 @@ const EmptyState = ({ canManage, onCreateClick }: EmptyStateProps) => {
           alignItems: 'center',
           justifyContent: 'center',
           margin: '0 auto 16px',
+          color: 'grey.500',
+          fontSize: 32,
         }}
       >
-        <AssignmentIcon sx={{ fontSize: 32, color: 'grey.500' }} />
+        <FontAwesomeIcon icon={faClipboardList} />
       </Box>
       <Typography variant="h6" gutterBottom>
         No Exercises Assigned

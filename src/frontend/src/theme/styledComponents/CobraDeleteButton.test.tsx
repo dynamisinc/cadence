@@ -10,13 +10,15 @@ describe('CobraDeleteButton', () => {
 
   it('shows delete icon by default', () => {
     render(<CobraDeleteButton>Delete</CobraDeleteButton>)
-    // MUI icons render as SVG with data-testid
-    expect(screen.getByTestId('DeleteIcon')).toBeInTheDocument()
+    // FontAwesome icons render as SVG with data-icon attribute
+    const icon = document.querySelector('[data-icon="trash"]')
+    expect(icon).toBeInTheDocument()
   })
 
   it('hides icon when hideIcon is true', () => {
     render(<CobraDeleteButton hideIcon>Delete</CobraDeleteButton>)
-    expect(screen.queryByTestId('DeleteIcon')).not.toBeInTheDocument()
+    const icon = document.querySelector('[data-icon="trash"]')
+    expect(icon).not.toBeInTheDocument()
   })
 
   it('calls onClick when clicked', () => {

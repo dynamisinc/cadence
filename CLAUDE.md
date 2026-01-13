@@ -87,6 +87,7 @@ MUST READ (in order):
 | TypeScript            | 5.x      | Type safety            |
 | Vite                  | 7.x      | Build tool             |
 | Material-UI           | 7.x      | Component library      |
+| FontAwesome           | 7.x      | **Icons (MANDATORY)**  |
 | React Query           | Latest   | Server state management |
 | Axios                 | 1.x      | HTTP client            |
 | @microsoft/signalr    | 10.x     | Real-time client       |
@@ -588,7 +589,7 @@ export const useExercises = () => {};
 
 ## COBRA Styling System
 
-### Critical Rule
+### Critical Rules
 
 **NEVER import raw MUI components for styled elements. ALWAYS use COBRA components.**
 
@@ -600,6 +601,21 @@ import { Button, TextField } from '@mui/material';
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents';
 ```
 
+**NEVER use MUI icons. ALWAYS use FontAwesome icons.**
+
+```typescript
+// ❌ NEVER DO THIS
+import AddIcon from '@mui/icons-material/Add';
+import DeleteIcon from '@mui/icons-material/Delete';
+
+// ✅ ALWAYS DO THIS
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faPlus, faTrash } from '@fortawesome/free-solid-svg-icons';
+
+<FontAwesomeIcon icon={faPlus} />
+<FontAwesomeIcon icon={faTrash} />
+```
+
 ### Available Components
 
 | Component | Use Case |
@@ -609,6 +625,37 @@ import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents';
 | `CobraDeleteButton` | Destructive actions |
 | `CobraLinkButton` | Text-only actions |
 | `CobraTextField` | All text inputs |
+
+### Icon Usage
+
+Always use FontAwesome for icons:
+
+```typescript
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import {
+  faPlus,      // Add/Create
+  faTrash,     // Delete
+  faPen,       // Edit
+  faCheck,     // Confirm/Success
+  faXmark,     // Close/Cancel
+  faChevronLeft, faChevronRight,  // Navigation
+  faSpinner,   // Loading (use spin prop)
+} from '@fortawesome/free-solid-svg-icons';
+
+// Basic usage
+<FontAwesomeIcon icon={faPlus} />
+
+// With size
+<FontAwesomeIcon icon={faTrash} size="lg" />
+
+// Spinning (for loading states)
+<FontAwesomeIcon icon={faSpinner} spin />
+
+// In buttons
+<CobraPrimaryButton startIcon={<FontAwesomeIcon icon={faPlus} />}>
+  Create
+</CobraPrimaryButton>
+```
 
 ---
 
@@ -719,6 +766,9 @@ A: See `cadence-domain-agent.md` or the HSEEP Domain Reference section. Key term
 **Q: Should I use raw MUI components?**
 A: **No.** Always use COBRA styled components from `@/theme/styledComponents`.
 
+**Q: What icon library should I use?**
+A: **FontAwesome only.** Never use `@mui/icons-material`. Import icons from `@fortawesome/free-solid-svg-icons` and use the `FontAwesomeIcon` component from `@fortawesome/react-fontawesome`.
+
 **Q: Where do I put business logic?**
 A: Backend: `Services/` layer in Core. Frontend: Custom hooks (`hooks/`).
 
@@ -739,6 +789,9 @@ A: Dual time: Scenario Time (within the exercise story) and Wall Clock (actual d
 
 **Q: Where are requirements documented?**
 A: `docs/features/{feature-name}/` with FEATURE.md overview and S##-*.md story files.
+
+**Q: How do I verify the frontend compiles without killing the dev server?**
+A: Use `npm run type-check` or `npm run build:check` instead of `npm run build`. The full `vite build` can interfere with the running dev server. Only use `npm run build` for deployment validation.
 
 ---
 

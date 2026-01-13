@@ -34,9 +34,9 @@ import {
   Box,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import WarningAmberIcon from '@mui/icons-material/WarningAmber'
-import ErrorOutlineIcon from '@mui/icons-material/ErrorOutline'
-import InfoOutlinedIcon from '@mui/icons-material/InfoOutlined'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTriangleExclamation, faCircleExclamation, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -66,18 +66,18 @@ export interface ConfirmDialogProps {
   isConfirming?: boolean
 }
 
-const severityConfig = {
+const severityConfig: Record<ConfirmDialogSeverity, { icon: IconDefinition; color: 'info.main' | 'warning.main' | 'error.main' }> = {
   info: {
-    Icon: InfoOutlinedIcon,
-    color: 'info.main' as const,
+    icon: faCircleInfo,
+    color: 'info.main',
   },
   warning: {
-    Icon: WarningAmberIcon,
-    color: 'warning.main' as const,
+    icon: faTriangleExclamation,
+    color: 'warning.main',
   },
   danger: {
-    Icon: ErrorOutlineIcon,
-    color: 'error.main' as const,
+    icon: faCircleExclamation,
+    color: 'error.main',
   },
 }
 
@@ -96,7 +96,7 @@ export const ConfirmDialog = ({
   isConfirming = false,
 }: ConfirmDialogProps) => {
   const theme = useTheme()
-  const { Icon, color } = severityConfig[severity]
+  const { icon, color } = severityConfig[severity]
 
   const ConfirmButton = severity === 'danger' ? CobraDeleteButton : CobraPrimaryButton
 
@@ -131,25 +131,23 @@ export const ConfirmDialog = ({
             width: 40,
             height: 40,
             borderRadius: '50%',
-            backgroundColor: `${color}`,
+            backgroundColor: color,
             opacity: 0.1,
           }}
         >
-          <Icon
+          <Box
+            component="span"
             sx={{
               color: color,
               fontSize: 24,
               position: 'absolute',
             }}
-          />
+          >
+            <FontAwesomeIcon icon={icon} />
+          </Box>
         </Box>
-        <Box sx={{ position: 'relative', ml: -4 }}>
-          <Icon
-            sx={{
-              color: color,
-              fontSize: 24,
-            }}
-          />
+        <Box component="span" sx={{ position: 'relative', ml: -4, color: color, fontSize: 24 }}>
+          <FontAwesomeIcon icon={icon} />
         </Box>
         {title}
       </DialogTitle>

@@ -209,9 +209,9 @@ describe('NotesPage', () => {
     it('opens edit dialog when edit icon is clicked', async () => {
       render(<NotesPage />)
 
-      // Click the first edit button
-      const editButtons = screen.getAllByTestId('EditIcon')
-      fireEvent.click(editButtons[0].closest('button')!)
+      // Click the first edit button (FontAwesome icons have data-icon attribute)
+      const editIcons = document.querySelectorAll('[data-icon="pen"]')
+      fireEvent.click(editIcons[0].closest('button')!)
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -224,8 +224,8 @@ describe('NotesPage', () => {
     it('populates form with existing note data', async () => {
       render(<NotesPage />)
 
-      const editButtons = screen.getAllByTestId('EditIcon')
-      fireEvent.click(editButtons[0].closest('button')!)
+      const editIcons = document.querySelectorAll('[data-icon="pen"]')
+      fireEvent.click(editIcons[0].closest('button')!)
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -249,8 +249,8 @@ describe('NotesPage', () => {
       render(<NotesPage />)
 
       // Open edit dialog
-      const editButtons = screen.getAllByTestId('EditIcon')
-      fireEvent.click(editButtons[0].closest('button')!)
+      const editIcons = document.querySelectorAll('[data-icon="pen"]')
+      fireEvent.click(editIcons[0].closest('button')!)
 
       await waitFor(() => {
         expect(screen.getByRole('dialog')).toBeInTheDocument()
@@ -278,8 +278,9 @@ describe('NotesPage', () => {
     it('shows confirmation when delete icon is clicked', () => {
       render(<NotesPage />)
 
-      const deleteButtons = screen.getAllByTestId('DeleteIcon')
-      fireEvent.click(deleteButtons[0].closest('button')!)
+      // FontAwesome icons have data-icon attribute
+      const deleteIcons = document.querySelectorAll('[data-icon="trash"]')
+      fireEvent.click(deleteIcons[0].closest('button')!)
 
       expect(window.confirm).toHaveBeenCalledWith(
         'Are you sure you want to delete this note?',
@@ -296,8 +297,8 @@ describe('NotesPage', () => {
 
       render(<NotesPage />)
 
-      const deleteButtons = screen.getAllByTestId('DeleteIcon')
-      fireEvent.click(deleteButtons[0].closest('button')!)
+      const deleteIcons = document.querySelectorAll('[data-icon="trash"]')
+      fireEvent.click(deleteIcons[0].closest('button')!)
 
       await waitFor(() => {
         expect(mockDeleteNote).toHaveBeenCalledWith('1')
@@ -315,8 +316,8 @@ describe('NotesPage', () => {
 
       render(<NotesPage />)
 
-      const deleteButtons = screen.getAllByTestId('DeleteIcon')
-      fireEvent.click(deleteButtons[0].closest('button')!)
+      const deleteIcons = document.querySelectorAll('[data-icon="trash"]')
+      fireEvent.click(deleteIcons[0].closest('button')!)
 
       expect(mockDeleteNote).not.toHaveBeenCalled()
     })
@@ -333,11 +334,12 @@ describe('NotesPage', () => {
     it('edit and delete buttons are accessible', () => {
       render(<NotesPage />)
 
+      // FontAwesome icons have data-icon attribute
       const editButtons = screen.getAllByRole('button').filter(btn =>
-        btn.querySelector('[data-testid="EditIcon"]'),
+        btn.querySelector('[data-icon="pen"]'),
       )
       const deleteButtons = screen.getAllByRole('button').filter(btn =>
-        btn.querySelector('[data-testid="DeleteIcon"]'),
+        btn.querySelector('[data-icon="trash"]'),
       )
 
       expect(editButtons.length).toBeGreaterThan(0)

@@ -12,9 +12,8 @@ import {
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import EditIcon from '@mui/icons-material/Edit'
-import DeleteIcon from '@mui/icons-material/Delete'
-import AddIcon from '@mui/icons-material/Add'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPen, faTrash, faPlus } from '@fortawesome/free-solid-svg-icons'
 import { useNotes } from '../hooks/useNotes'
 import { formatSmartDateTime } from '../../../shared/utils/dateUtils'
 import {
@@ -121,7 +120,7 @@ export const NotesPage = () => {
         marginBottom={2}
       >
         <Typography variant="h5">Notes</Typography>
-        <CobraPrimaryButton startIcon={<AddIcon />} onClick={handleOpenCreate}>
+        <CobraPrimaryButton startIcon={<FontAwesomeIcon icon={faPlus} />} onClick={handleOpenCreate}>
           New Note
         </CobraPrimaryButton>
       </Stack>
@@ -160,14 +159,14 @@ export const NotesPage = () => {
                       onClick={() => handleOpenEdit(note)}
                       size="small"
                     >
-                      <EditIcon />
+                      <FontAwesomeIcon icon={faPen} />
                     </IconButton>
                     <IconButton
                       onClick={() => handleDelete(note.id)}
                       size="small"
                       color="error"
                     >
-                      <DeleteIcon />
+                      <FontAwesomeIcon icon={faTrash} />
                     </IconButton>
                   </Stack>
                 </Stack>

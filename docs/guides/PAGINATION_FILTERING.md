@@ -674,12 +674,13 @@ import {
   Typography,
   Stack,
 } from "@mui/material";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
-  FirstPage,
-  LastPage,
-  ChevronLeft,
-  ChevronRight,
-} from "@mui/icons-material";
+  faAnglesLeft,
+  faAnglesRight,
+  faChevronLeft,
+  faChevronRight,
+} from "@fortawesome/free-solid-svg-icons";
 import type { PaginationMeta } from "../types/pagination";
 
 interface PaginationControlsProps {
@@ -734,7 +735,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           disabled={!hasPrevious}
           aria-label="First page"
         >
-          <FirstPage />
+          <FontAwesomeIcon icon={faAnglesLeft} />
         </IconButton>
         <IconButton
           size="small"
@@ -742,7 +743,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           disabled={!hasPrevious}
           aria-label="Previous page"
         >
-          <ChevronLeft />
+          <FontAwesomeIcon icon={faChevronLeft} />
         </IconButton>
         <Typography variant="body2" sx={{ mx: 1 }}>
           Page {page} of {totalPages}
@@ -753,7 +754,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           disabled={!hasNext}
           aria-label="Next page"
         >
-          <ChevronRight />
+          <FontAwesomeIcon icon={faChevronRight} />
         </IconButton>
         <IconButton
           size="small"
@@ -761,7 +762,7 @@ export const PaginationControls: React.FC<PaginationControlsProps> = ({
           disabled={!hasNext}
           aria-label="Last page"
         >
-          <LastPage />
+          <FontAwesomeIcon icon={faAnglesRight} />
         </IconButton>
       </Stack>
     </Stack>
@@ -776,7 +777,8 @@ Create `src/frontend/src/shared/components/SearchField.tsx`:
 ```typescript
 import { useState, useEffect, useCallback } from "react";
 import { InputAdornment, IconButton } from "@mui/material";
-import { Search, Clear } from "@mui/icons-material";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faMagnifyingGlass, faXmark } from "@fortawesome/free-solid-svg-icons";
 import { CobraTextField } from "@/theme/styledComponents";
 import { useDebounce } from "../hooks/useDebounce";
 
@@ -820,13 +822,13 @@ export const SearchField: React.FC<SearchFieldProps> = ({
       InputProps={{
         startAdornment: (
           <InputAdornment position="start">
-            <Search />
+            <FontAwesomeIcon icon={faMagnifyingGlass} />
           </InputAdornment>
         ),
         endAdornment: localValue && (
           <InputAdornment position="end">
             <IconButton size="small" onClick={handleClear} edge="end">
-              <Clear />
+              <FontAwesomeIcon icon={faXmark} />
             </IconButton>
           </InputAdornment>
         ),

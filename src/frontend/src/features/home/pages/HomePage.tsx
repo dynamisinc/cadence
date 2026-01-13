@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { Box, Typography, Stack, Paper, Divider } from '@mui/material'
-import AddIcon from '@mui/icons-material/Add'
-import ListAltIcon from '@mui/icons-material/ListAlt'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faList } from '@fortawesome/free-solid-svg-icons'
 
 import { useExercises } from '../../exercises'
 import { ExerciseList } from '../components'
@@ -105,14 +105,14 @@ export const HomePage = () => {
       <Stack direction="row" spacing={2} marginBottom={3}>
         {canManage && (
           <CobraPrimaryButton
-            startIcon={<AddIcon />}
+            startIcon={<FontAwesomeIcon icon={faPlus} />}
             onClick={handleCreateExercise}
           >
             Create Exercise
           </CobraPrimaryButton>
         )}
         <CobraSecondaryButton
-          startIcon={<ListAltIcon />}
+          startIcon={<FontAwesomeIcon icon={faList} />}
           onClick={handleViewAllExercises}
         >
           View All Exercises
