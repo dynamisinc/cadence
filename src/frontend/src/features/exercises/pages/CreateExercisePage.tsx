@@ -29,7 +29,7 @@ export const CreateExercisePage = () => {
   const [isDirty, setIsDirty] = useState(false)
 
   // Warn user before navigating away with unsaved changes
-  useUnsavedChangesWarning(isDirty && !isSubmitting)
+  const { UnsavedChangesDialog } = useUnsavedChangesWarning(isDirty && !isSubmitting)
 
   const handleDirtyChange = useCallback((dirty: boolean) => {
     setIsDirty(dirty)
@@ -78,6 +78,9 @@ export const CreateExercisePage = () => {
           onDirtyChange={handleDirtyChange}
         />
       </Paper>
+
+      {/* Unsaved changes dialog for navigation blocking */}
+      <UnsavedChangesDialog />
     </Box>
   )
 }
