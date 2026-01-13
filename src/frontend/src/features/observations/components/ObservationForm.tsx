@@ -29,7 +29,6 @@ import type { InjectDto } from '../../injects/types'
 import type { CreateObservationRequest, UpdateObservationRequest } from '../types'
 
 interface ObservationFormProps {
-  exerciseId: string
   /** Inject to link observation to (optional) */
   inject?: InjectDto | null
   /** Available injects for selection */
@@ -50,7 +49,6 @@ interface ObservationFormProps {
 }
 
 export const ObservationForm = ({
-  exerciseId,
   inject,
   injects = [],
   initialValues,
