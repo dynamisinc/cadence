@@ -116,7 +116,7 @@ describe('ActiveFiltersBar', () => {
     const multipleFilters: ActiveFilter[] = [
       { type: 'status', label: 'Status', value: 'Pending' },
       { type: 'phase', label: 'Phase', value: 'Phase 1' },
-      { type: 'deliveryMethod', label: 'Method', value: 'Email' },
+      { type: 'method', label: 'Method', value: 'Email' },
     ]
 
     renderWithTheme(<ActiveFiltersBar {...defaultProps} filters={multipleFilters} />)
