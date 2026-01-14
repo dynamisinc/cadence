@@ -15,6 +15,7 @@ import {
   escapeRegex,
 } from './searchUtils'
 import type { InjectDto } from '../types'
+import type { SearchMatch } from '../types/organization'
 import { InjectStatus, InjectType } from '../../../types'
 
 // Helper to create test inject data
@@ -229,9 +230,9 @@ describe('getSearchMatches', () => {
 
 describe('createSearchMatchMap', () => {
   it('creates map from matches', () => {
-    const matches = [
-      { injectId: '1', matchedFields: ['title'] as const },
-      { injectId: '2', matchedFields: ['description', 'target'] as const },
+    const matches: SearchMatch[] = [
+      { injectId: '1', matchedFields: ['title'] },
+      { injectId: '2', matchedFields: ['description', 'target'] },
     ]
 
     const result = createSearchMatchMap(matches)
