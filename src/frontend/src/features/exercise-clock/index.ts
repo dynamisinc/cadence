@@ -12,4 +12,4 @@ export { clockService } from './services/clockService'
 export { useExerciseClock, clockQueryKey } from './hooks/useExerciseClock'
 
 // Components
-export { ClockDisplay, ClockControls } from './components'
+export { ClockDisplay, ClockControls, ExerciseProgress } from './components'

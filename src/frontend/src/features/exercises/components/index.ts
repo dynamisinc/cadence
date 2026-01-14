@@ -1,3 +1,7 @@
 export { ExerciseStatusChip } from './ExerciseStatusChip'
 export { ExerciseTypeChip } from './ExerciseTypeChip'
 export { ExerciseForm } from './ExerciseForm'
+export { ExerciseHeader } from './ExerciseHeader'
+export { NarrativeView } from './NarrativeView'
+export { StickyClockHeader } from './StickyClockHeader'
+export { FloatingClockChip } from './FloatingClockChip'

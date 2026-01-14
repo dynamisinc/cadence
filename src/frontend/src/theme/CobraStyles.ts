@@ -48,6 +48,36 @@ const CobraStyles = {
   },
 
   /**
+   * Scrollbar Constants
+   * Use for consistent scrollbar styling across scrollable containers
+   */
+  Scrollbar: {
+    /** Spacing between content and scrollbar: 12px (MUI spacing 1.5) */
+    ContentSpacing: 12,
+
+    /** Scrollbar width: 8px */
+    Width: 8,
+
+    /** MUI sx object for consistent scrollbar styling */
+    Styling: {
+      '&::-webkit-scrollbar': {
+        width: 8,
+      },
+      '&::-webkit-scrollbar-track': {
+        bgcolor: 'grey.100',
+        borderRadius: 1,
+      },
+      '&::-webkit-scrollbar-thumb': {
+        bgcolor: 'grey.400',
+        borderRadius: 1,
+        '&:hover': {
+          bgcolor: 'grey.500',
+        },
+      },
+    },
+  },
+
+  /**
    * Styled Paper Components
    */
   Paper: {

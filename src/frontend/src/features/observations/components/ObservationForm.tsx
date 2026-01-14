@@ -5,7 +5,7 @@
  * Evaluators use this to record their observations with HSEEP P/S/M/U ratings.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Box,
   Stack,
@@ -24,7 +24,7 @@ import {
   CobraSecondaryButton,
   CobraTextField,
 } from '../../../theme/styledComponents'
-import { ObservationRating, getObservationRatingLabel } from '../../../types'
+import { ObservationRating, InjectStatus, getObservationRatingLabel } from '../../../types'
 import type { InjectDto } from '../../injects/types'
 import type { CreateObservationRequest, UpdateObservationRequest } from '../types'
 
@@ -64,6 +64,40 @@ export const ObservationForm = ({
   const [selectedInjectId, setSelectedInjectId] = useState<string>(
     inject?.id ?? initialValues?.injectId ?? '',
   )
+
+  // Sort injects: recently fired first, then by sequence
+  const sortedInjects = useMemo(() => {
+    return [...injects].sort((a, b) => {
+      // Fired injects first, sorted by firedAt descending (most recent first)
+      const aIsFired = a.status === InjectStatus.Fired
+      const bIsFired = b.status === InjectStatus.Fired
+      const aIsSkipped = a.status === InjectStatus.Skipped
+
+      if (aIsFired && !bIsFired) return -1
+      if (!aIsFired && bIsFired) return 1
+      if (aIsFired && bIsFired) {
+        // Both fired, sort by firedAt descending
+        const aTime = a.firedAt ? new Date(a.firedAt).getTime() : 0
+        const bTime = b.firedAt ? new Date(b.firedAt).getTime() : 0
+        return bTime - aTime
+      }
+
+      // Skipped injects after fired
+      const bIsSkipped = b.status === InjectStatus.Skipped
+      if (aIsSkipped && !bIsSkipped && !bIsFired) return -1
+      if (!aIsSkipped && !aIsFired && bIsSkipped) return 1
+
+      // Otherwise sort by sequence
+      return a.sequence - b.sequence
+    })
+  }, [injects])
+
+  // Get status label for inject
+  const getStatusLabel = (inject: InjectDto): string => {
+    if (inject.status === InjectStatus.Fired) return ' (Fired)'
+    if (inject.status === InjectStatus.Skipped) return ' (Skipped)'
+    return ''
+  }
 
   const handleRatingChange = (event: SelectChangeEvent<ObservationRating>) => {
     setRating(event.target.value as ObservationRating)
@@ -130,10 +164,11 @@ export const ObservationForm = ({
               <MenuItem value="">
                 <em>None</em>
               </MenuItem>
-              {injects.map(inj => (
+              {sortedInjects.map(inj => (
                 <MenuItem key={inj.id} value={inj.id}>
-                  #{inj.injectNumber} - {inj.description.slice(0, 50)}
-                  {inj.description.length > 50 ? '...' : ''}
+                  #{inj.injectNumber} - {inj.title || inj.description.slice(0, 50)}
+                  {!inj.title && inj.description.length > 50 ? '...' : ''}
+                  {getStatusLabel(inj)}
                 </MenuItem>
               ))}
             </Select>

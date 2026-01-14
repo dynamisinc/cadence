@@ -101,7 +101,8 @@ public record ObservationDto(
     DateTime UpdatedAt,
     Guid? CreatedBy,
     string? CreatedByName,
-    string? InjectTitle
+    string? InjectTitle,
+    int? InjectNumber
 );
 
 /// <summary>
@@ -123,7 +124,8 @@ public static class ObservationMapper
         entity.UpdatedAt,
         entity.CreatedBy,
         entity.CreatedByUser?.DisplayName,
-        entity.Inject?.Title
+        entity.Inject?.Title,
+        entity.Inject?.InjectNumber
     );
 
     public static Observation ToEntity(this CreateObservationRequest request, Guid exerciseId, Guid createdBy) => new()

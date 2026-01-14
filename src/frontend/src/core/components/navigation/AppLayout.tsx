@@ -139,9 +139,10 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         sx={{
           flexGrow: 1,
           mt: `calc(${theme.cssStyling.headerHeight}px + 40px)`, // 40px = breadcrumb height
-          minHeight: `calc(100vh - ${theme.cssStyling.headerHeight}px - 40px)`,
+          height: `calc(100vh - ${theme.cssStyling.headerHeight}px - 40px)`,
           display: 'flex',
           flexDirection: 'column',
+          overflow: 'hidden', // Prevent main from scrolling - children handle their own scroll
         }}
       >
         {/* Page Content */}
@@ -150,7 +151,8 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
           sx={{
             flex: 1,
             p: 2,
-            overflow: 'auto',
+            overflow: 'auto', // Default scroll behavior for most pages
+            minHeight: 0, // Critical for nested flex scrolling
           }}
         >
           {children}

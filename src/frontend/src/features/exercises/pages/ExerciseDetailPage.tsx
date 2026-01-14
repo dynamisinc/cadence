@@ -6,15 +6,14 @@ import {
   Paper,
   Stack,
   CircularProgress,
-  Tooltip,
   Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faList, faPen, faPlay, faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faList, faPen, faPlay } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useExercise } from '../hooks'
-import { ExerciseForm, ExerciseStatusChip, ExerciseTypeChip } from '../components'
+import { ExerciseForm, ExerciseHeader } from '../components'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -228,59 +227,39 @@ export const ExerciseDetailPage = () => {
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
       {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
+      <ExerciseHeader
+        exercise={exercise}
         marginBottom={3}
-      >
-        <Box>
-          <Stack direction="row" spacing={2} alignItems="center">
-            <Typography variant="h5" component="h1">
-              {exercise.name}
-            </Typography>
-            {exercise.isPracticeMode && (
-              <Tooltip title="Practice Mode - excluded from production reports">
-                <Box component="span" sx={{ color: 'action.active' }}>
-                  <FontAwesomeIcon icon={faScrewdriverWrench} />
-                </Box>
-              </Tooltip>
-            )}
-          </Stack>
-          <Stack direction="row" spacing={1} mt={1}>
-            <ExerciseTypeChip type={exercise.exerciseType} />
-            <ExerciseStatusChip status={exercise.status} />
-          </Stack>
-        </Box>
-
-        <Stack direction="row" spacing={1}>
-          <CobraLinkButton onClick={handleBackToList}>
-            Back to List
-          </CobraLinkButton>
-          <CobraPrimaryButton
-            startIcon={<FontAwesomeIcon icon={faList} />}
-            onClick={handleViewMsel}
-          >
-            View MSEL
-          </CobraPrimaryButton>
-          {exercise.status === ExerciseStatus.Active && !isEditing && (
+        actions={
+          <>
+            <CobraLinkButton onClick={handleBackToList}>
+              Back to List
+            </CobraLinkButton>
             <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faPlay} />}
-              onClick={() => navigate(`/exercises/${id}/conduct`)}
+              startIcon={<FontAwesomeIcon icon={faList} />}
+              onClick={handleViewMsel}
             >
-              Conduct
+              View MSEL
             </CobraPrimaryButton>
-          )}
-          {canEdit && !isEditing && (
-            <CobraSecondaryButton
-              startIcon={<FontAwesomeIcon icon={faPen} />}
-              onClick={handleEdit}
-            >
-              Edit
-            </CobraSecondaryButton>
-          )}
-        </Stack>
-      </Stack>
+            {exercise.status === ExerciseStatus.Active && !isEditing && (
+              <CobraPrimaryButton
+                startIcon={<FontAwesomeIcon icon={faPlay} />}
+                onClick={() => navigate(`/exercises/${id}/conduct`)}
+              >
+                Conduct
+              </CobraPrimaryButton>
+            )}
+            {canEdit && !isEditing && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faPen} />}
+                onClick={handleEdit}
+              >
+                Edit
+              </CobraSecondaryButton>
+            )}
+          </>
+        }
+      />
 
       {/* Read-only warning */}
       {readOnlyMessage && (
