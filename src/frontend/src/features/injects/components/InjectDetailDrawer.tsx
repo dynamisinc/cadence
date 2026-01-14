@@ -403,51 +403,60 @@ export const InjectDetailDrawer = ({
           </Stack>
         </Box>
 
-        {/* Action Footer */}
-        {canControl && (
-          <Box
-            sx={{
-              p: 2,
-              borderTop: 1,
-              borderColor: 'divider',
-              backgroundColor: 'background.default',
-            }}
-          >
-            <Stack direction="row" spacing={1} justifyContent="flex-end">
-              {isPending && (
-                <>
-                  <CobraSecondaryButton
+        {/* Action Footer - Always visible with Close button */}
+        <Box
+          sx={{
+            p: 2,
+            borderTop: 1,
+            borderColor: 'divider',
+            backgroundColor: 'background.default',
+          }}
+        >
+          <Stack direction="row" spacing={1} justifyContent="space-between">
+            <CobraSecondaryButton
+              size="small"
+              startIcon={<FontAwesomeIcon icon={faXmark} />}
+              onClick={onClose}
+            >
+              Close
+            </CobraSecondaryButton>
+            {canControl && (
+              <Stack direction="row" spacing={1}>
+                {isPending && (
+                  <>
+                    <CobraSecondaryButton
+                      size="small"
+                      startIcon={<FontAwesomeIcon icon={faForwardStep} />}
+                      onClick={handleSkip}
+                      disabled={isSubmitting}
+                    >
+                      Skip
+                    </CobraSecondaryButton>
+                    <CobraPrimaryButton
+                      size="small"
+                      startIcon={<FontAwesomeIcon icon={faPlay} />}
+                      onClick={handleFire}
+                      disabled={isSubmitting}
+                      color="success"
+                    >
+                      Fire Inject
+                    </CobraPrimaryButton>
+                  </>
+                )}
+                {(isFired || isSkipped) && (
+                  <CobraDeleteButton
                     size="small"
-                    startIcon={<FontAwesomeIcon icon={faForwardStep} />}
-                    onClick={handleSkip}
+                    startIcon={<FontAwesomeIcon icon={faRotateLeft} />}
+                    onClick={handleReset}
                     disabled={isSubmitting}
                   >
-                    Skip
-                  </CobraSecondaryButton>
-                  <CobraPrimaryButton
-                    size="small"
-                    startIcon={<FontAwesomeIcon icon={faPlay} />}
-                    onClick={handleFire}
-                    disabled={isSubmitting}
-                    color="success"
-                  >
-                    Fire Inject
-                  </CobraPrimaryButton>
-                </>
-              )}
-              {(isFired || isSkipped) && (
-                <CobraDeleteButton
-                  size="small"
-                  startIcon={<FontAwesomeIcon icon={faRotateLeft} />}
-                  onClick={handleReset}
-                  disabled={isSubmitting}
-                >
-                  Reset to Pending
-                </CobraDeleteButton>
-              )}
-            </Stack>
-          </Box>
-        )}
+                    Reset to Pending
+                  </CobraDeleteButton>
+                )}
+              </Stack>
+            )}
+          </Stack>
+        </Box>
       </Box>
     </Drawer>
   )
