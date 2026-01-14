@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, within } from '@testing-library/react'
+import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@mui/material/styles'
 import { cobraTheme } from '../../../theme/cobraTheme'
@@ -93,20 +93,19 @@ describe('StickyClockHeader', () => {
 
     it('applies success color when clock is running', () => {
       const clockState = createMockClockState({ state: ExerciseClockState.Running })
-      const { container } = renderWithTheme(
-        <StickyClockHeader {...defaultProps} clockState={clockState} displayTime="00:15:30" />
+      renderWithTheme(
+        <StickyClockHeader {...defaultProps} clockState={clockState} displayTime="00:15:30" />,
       )
 
       const timeDisplay = screen.getByText('00:15:30')
-      const styles = window.getComputedStyle(timeDisplay)
       expect(timeDisplay).toBeInTheDocument()
       // Component uses sx prop with color: 'success.main'
     })
 
     it('applies warning color when clock is paused', () => {
       const clockState = createMockClockState({ state: ExerciseClockState.Paused })
-      const { container } = renderWithTheme(
-        <StickyClockHeader {...defaultProps} clockState={clockState} displayTime="00:15:30" />
+      renderWithTheme(
+        <StickyClockHeader {...defaultProps} clockState={clockState} displayTime="00:15:30" />,
       )
 
       const timeDisplay = screen.getByText('00:15:30')
@@ -117,7 +116,7 @@ describe('StickyClockHeader', () => {
     it('applies default color when clock is stopped', () => {
       const clockState = createMockClockState({ state: ExerciseClockState.Stopped })
       renderWithTheme(
-        <StickyClockHeader {...defaultProps} clockState={clockState} displayTime="00:00:00" />
+        <StickyClockHeader {...defaultProps} clockState={clockState} displayTime="00:00:00" />,
       )
 
       const timeDisplay = screen.getByText('00:00:00')
@@ -141,7 +140,7 @@ describe('StickyClockHeader', () => {
           clockState={clockState}
           canControl={true}
           onStart={vi.fn()}
-        />
+        />,
       )
 
       // Play button should be visible (using FontAwesome play icon)
@@ -158,7 +157,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onPause={vi.fn()}
           onStop={vi.fn()}
-        />
+        />,
       )
 
       // Should have pause and stop buttons
@@ -175,7 +174,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onStart={vi.fn()}
           onStop={vi.fn()}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -191,7 +190,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onStart={vi.fn()}
           onReset={vi.fn()}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -207,7 +206,7 @@ describe('StickyClockHeader', () => {
           clockState={clockState}
           canControl={true}
           onStart={onStart}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -226,7 +225,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onPause={onPause}
           onStop={vi.fn()}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -245,7 +244,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onPause={vi.fn()}
           onStop={onStop}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -264,7 +263,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onStart={vi.fn()}
           onReset={onReset}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -282,7 +281,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onStart={vi.fn()}
           isStarting={true}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -299,7 +298,7 @@ describe('StickyClockHeader', () => {
           onPause={vi.fn()}
           onStop={vi.fn()}
           isPausing={true}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -316,7 +315,7 @@ describe('StickyClockHeader', () => {
           onPause={vi.fn()}
           onStop={vi.fn()}
           isStopping={true}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -333,7 +332,7 @@ describe('StickyClockHeader', () => {
           onStart={vi.fn()}
           onReset={vi.fn()}
           isResetting={true}
-        />
+        />,
       )
 
       const buttons = screen.getAllByRole('button')
@@ -544,7 +543,7 @@ describe('StickyClockHeader', () => {
           clockState={null}
           canControl={true}
           onStart={vi.fn()}
-        />
+        />,
       )
 
       // No buttons should be rendered when clock state is null
@@ -573,7 +572,7 @@ describe('StickyClockHeader', () => {
           canControl={true}
           onPause={vi.fn()}
           onStop={vi.fn()}
-        />
+        />,
       )
 
       // Clock display

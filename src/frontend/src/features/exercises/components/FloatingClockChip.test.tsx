@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { screen, within, waitFor } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import userEvent from '@testing-library/user-event'
 import { FloatingClockChip } from './FloatingClockChip'
@@ -277,7 +277,7 @@ describe('FloatingClockChip', () => {
     it('starts collapsed by default', () => {
       const injects = [createMockInject()]
 
-      const { container } = render(
+      render(
         <FloatingClockChip
           clockState={null}
           displayTime="00:00:00"
@@ -328,7 +328,7 @@ describe('FloatingClockChip', () => {
       // Click to expand
       await user.click(screen.getByText('00:00:00'))
       const progressText = screen.getByText(/Progress:/)
-      let collapseContainer = progressText.closest('.MuiCollapse-root')
+      const collapseContainer = progressText.closest('.MuiCollapse-root')
 
       // Wait for expansion animation to complete
       await waitFor(() => {
@@ -378,7 +378,7 @@ describe('FloatingClockChip', () => {
       const injects = [createMockInject()]
       const user = userEvent.setup()
 
-      const { container } = render(
+      render(
         <div>
           <div data-testid="outside">Outside element</div>
           <FloatingClockChip
@@ -393,7 +393,7 @@ describe('FloatingClockChip', () => {
       // Click to expand
       await user.click(screen.getByText('00:00:00'))
       const progressText = screen.getByText(/Progress:/)
-      let collapseContainer = progressText.closest('.MuiCollapse-root')
+      const collapseContainer = progressText.closest('.MuiCollapse-root')
 
       // Wait for expansion animation to complete
       await waitFor(() => {

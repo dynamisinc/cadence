@@ -24,11 +24,9 @@ import {
   faPhone,
   faTowerBroadcast,
   faComment,
-  faPersonWalking,
   faFileLines,
   faDesktop,
   faEllipsisH,
-  faUser,
   faArrowRight,
   faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons'

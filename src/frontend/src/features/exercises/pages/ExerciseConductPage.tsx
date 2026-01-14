@@ -637,11 +637,11 @@ export const ExerciseConductPage = () => {
                       initialValues={
                         editingObservation
                           ? {
-                              rating: editingObservation.rating!,
-                              content: editingObservation.content,
-                              recommendation: editingObservation.recommendation ?? undefined,
-                              injectId: editingObservation.injectId ?? undefined,
-                            }
+                            rating: editingObservation.rating!,
+                            content: editingObservation.content,
+                            recommendation: editingObservation.recommendation ?? undefined,
+                            injectId: editingObservation.injectId ?? undefined,
+                          }
                           : undefined
                       }
                       onSubmit={handleSubmitObservation}

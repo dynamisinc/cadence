@@ -5,7 +5,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { screen, fireEvent, within } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { InjectRow } from './InjectRow'
 import { InjectStatus, DeliveryMethod } from '../../../types'

@@ -4,7 +4,7 @@
  * Tests for the Observer-friendly narrative view during exercise conduct.
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { screen } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { NarrativeView } from './NarrativeView'
