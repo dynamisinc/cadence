@@ -5,6 +5,7 @@
  */
 
 export { useConfirmDialog, type ConfirmOptions } from './useConfirmDialog'
+export { useDebounce } from './useDebounce'
 export { useExerciseSignalR } from './useExerciseSignalR'
 export { usePermissions } from './usePermissions'
 export { useSignalR } from './useSignalR'
