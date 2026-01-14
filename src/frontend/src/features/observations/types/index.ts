@@ -25,6 +25,7 @@ export interface ObservationDto {
   createdBy: string
   createdByName: string | null
   injectTitle: string | null
+  injectNumber: number | null
 }
 
 /**

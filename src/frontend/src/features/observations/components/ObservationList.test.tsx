@@ -28,6 +28,7 @@ const createMockObservation = (
   createdBy: 'user-1',
   createdByName: 'Test User',
   injectTitle: null,
+  injectNumber: null,
   ...overrides,
 })
 
@@ -39,12 +40,13 @@ describe('ObservationList', () => {
           id: 'obs-1',
           injectId: 'inject-1',
           injectTitle: 'Media Inquiry',
+          injectNumber: 3,
         }),
       ]
 
       render(<ObservationList observations={observations} />)
 
-      expect(screen.getByText(/Re: #\d+ Media Inquiry/)).toBeInTheDocument()
+      expect(screen.getByText(/Re: #3 Media Inquiry/)).toBeInTheDocument()
     })
 
     it('shows "General observation" when no inject linked', () => {
@@ -68,6 +70,7 @@ describe('ObservationList', () => {
           id: 'obs-1',
           injectId: 'inject-1',
           injectTitle: 'Media Inquiry',
+          injectNumber: 5,
         }),
       ]
 
@@ -90,13 +93,14 @@ describe('ObservationList', () => {
           id: 'obs-1',
           injectId: 'inject-1',
           injectTitle: 'Media Inquiry',
+          injectNumber: 7,
         }),
       ]
 
       render(<ObservationList observations={observations} />)
 
       // Should show text but not as a button
-      expect(screen.getByText(/Re: #\d+ Media Inquiry/)).toBeInTheDocument()
+      expect(screen.getByText(/Re: #7 Media Inquiry/)).toBeInTheDocument()
       expect(screen.queryByRole('button', { name: /Media Inquiry/i })).not.toBeInTheDocument()
     })
   })

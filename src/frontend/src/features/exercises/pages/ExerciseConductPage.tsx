@@ -96,11 +96,13 @@ export const ExerciseConductPage = () => {
     loading: observationsLoading,
     error: observationsError,
     createObservation,
+    updateObservation,
     deleteObservation,
   } = useObservations(exerciseId!)
 
   // UI state
   const [showObservationForm, setShowObservationForm] = useState(false)
+  const [editingObservation, setEditingObservation] = useState<ObservationDto | null>(null)
   const [isSubmittingObservation, setIsSubmittingObservation] = useState(false)
   const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null)
   const [observationsExpanded, setObservationsExpanded] = useState(true)
@@ -233,14 +235,29 @@ export const ExerciseConductPage = () => {
   }, [injects, exerciseStartTime, elapsedTimeMs])
 
   // Handlers
-  const handleCreateObservation = async (data: Parameters<typeof createObservation>[0]) => {
+  const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0]) => {
     setIsSubmittingObservation(true)
     try {
-      await createObservation(data)
+      if (editingObservation) {
+        await updateObservation(editingObservation.id, data)
+        setEditingObservation(null)
+      } else {
+        await createObservation(data)
+      }
       setShowObservationForm(false)
     } finally {
       setIsSubmittingObservation(false)
     }
+  }
+
+  const handleEditObservation = (observation: ObservationDto) => {
+    setEditingObservation(observation)
+    setShowObservationForm(true)
+  }
+
+  const handleCancelObservationForm = () => {
+    setShowObservationForm(false)
+    setEditingObservation(null)
   }
 
   const handleDeleteObservation = async (observationId: string) => {
@@ -617,8 +634,18 @@ export const ExerciseConductPage = () => {
                   <Box sx={{ mb: 2, flexShrink: 0 }}>
                     <ObservationForm
                       injects={injects}
-                      onSubmit={handleCreateObservation}
-                      onCancel={() => setShowObservationForm(false)}
+                      initialValues={
+                        editingObservation
+                          ? {
+                              rating: editingObservation.rating!,
+                              content: editingObservation.content,
+                              recommendation: editingObservation.recommendation ?? undefined,
+                              injectId: editingObservation.injectId ?? undefined,
+                            }
+                          : undefined
+                      }
+                      onSubmit={handleSubmitObservation}
+                      onCancel={handleCancelObservationForm}
                       isSubmitting={isSubmittingObservation}
                     />
                     <Divider sx={{ my: 2 }} />
@@ -641,6 +668,7 @@ export const ExerciseConductPage = () => {
                       loading={observationsLoading}
                       error={observationsError}
                       canEdit={canAddObservations}
+                      onEdit={handleEditObservation}
                       onDelete={handleDeleteObservation}
                       deletingId={deletingObservationId}
                     />

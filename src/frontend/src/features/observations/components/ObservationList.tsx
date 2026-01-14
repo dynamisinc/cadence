@@ -157,11 +157,11 @@ export const ObservationList = ({
                           }}
                           aria-label={`View inject: ${observation.injectTitle}`}
                         >
-                          Re: #1 {observation.injectTitle}
+                          Re: #{observation.injectNumber} {observation.injectTitle}
                         </Typography>
                       ) : (
                         <Typography variant="caption" color="text.secondary">
-                          Re: #1 {observation.injectTitle}
+                          Re: #{observation.injectNumber} {observation.injectTitle}
                         </Typography>
                       )
                     ) : (
