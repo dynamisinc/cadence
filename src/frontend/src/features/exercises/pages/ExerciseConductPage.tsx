@@ -441,7 +441,7 @@ export const ExerciseConductPage = () => {
           {/* Floating Clock Chip (Option 2) */}
           {layoutMode === 'floating' && (
             <FloatingClockChip
-              clockState={clockState}
+              clockState={clockState ?? null}
               displayTime={displayTime}
               loading={clockLoading}
               injects={injects}
@@ -461,7 +461,7 @@ export const ExerciseConductPage = () => {
           {/* Sticky Clock Header (Option 1) */}
           {layoutMode === 'sticky' && (
             <StickyClockHeader
-              clockState={clockState}
+              clockState={clockState ?? null}
               displayTime={displayTime}
               loading={clockLoading}
               injects={injects}

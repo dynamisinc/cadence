@@ -9,7 +9,7 @@ import { screen, waitFor } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import userEvent from '@testing-library/user-event'
 import { FloatingClockChip } from './FloatingClockChip'
-import { InjectStatus } from '../../../types'
+import { InjectStatus, ExerciseClockState } from '../../../types'
 import type { ExerciseClockDto } from '../../exercise-clock/types'
 import type { InjectDto } from '../../injects/types'
 
@@ -76,14 +76,13 @@ const createMockClockState = (
   overrides: Partial<ExerciseClockDto> = {},
 ): ExerciseClockDto => ({
   exerciseId: 'exercise-1',
-  state: 'Stopped',
-  elapsedSeconds: 0,
-  scenarioStartTime: null,
-  lastStartedAt: null,
-  lastPausedAt: null,
-  totalPausedSeconds: 0,
-  createdAt: '2025-01-01T00:00:00Z',
-  updatedAt: '2025-01-01T00:00:00Z',
+  state: ExerciseClockState.Stopped,
+  elapsedTime: '00:00:00',
+  startedAt: null,
+  startedBy: null,
+  startedByName: null,
+  capturedAt: '2025-01-01T00:00:00Z',
+  exerciseStartTime: null,
   ...overrides,
 })
 
@@ -112,8 +111,7 @@ describe('FloatingClockChip', () => {
 
     it('shows "00:00:00" when clock is stopped', () => {
       const clockState = createMockClockState({
-        state: 'Stopped',
-        elapsedSeconds: 0,
+        state: ExerciseClockState.Stopped,
       })
 
       render(
@@ -130,8 +128,7 @@ describe('FloatingClockChip', () => {
 
     it('shows elapsed time when clock is running', () => {
       const clockState = createMockClockState({
-        state: 'Running',
-        elapsedSeconds: 3665, // 1:01:05
+        state: ExerciseClockState.Running,
       })
 
       render(
@@ -148,8 +145,7 @@ describe('FloatingClockChip', () => {
 
     it('shows elapsed time when clock is paused', () => {
       const clockState = createMockClockState({
-        state: 'Paused',
-        elapsedSeconds: 7200, // 2:00:00
+        state: ExerciseClockState.Paused,
       })
 
       render(
@@ -182,8 +178,7 @@ describe('FloatingClockChip', () => {
   describe('Clock Icon Color', () => {
     it('shows green clock icon when running', () => {
       const clockState = createMockClockState({
-        state: 'Running',
-        elapsedSeconds: 60,
+        state: ExerciseClockState.Running,
       })
 
       const { container } = render(
@@ -202,8 +197,7 @@ describe('FloatingClockChip', () => {
 
     it('shows orange clock icon when paused', () => {
       const clockState = createMockClockState({
-        state: 'Paused',
-        elapsedSeconds: 60,
+        state: ExerciseClockState.Paused,
       })
 
       const { container } = render(
@@ -222,8 +216,7 @@ describe('FloatingClockChip', () => {
 
     it('shows default clock icon color when stopped', () => {
       const clockState = createMockClockState({
-        state: 'Stopped',
-        elapsedSeconds: 0,
+        state: ExerciseClockState.Stopped,
       })
 
       const { container } = render(
@@ -596,7 +589,7 @@ describe('FloatingClockChip', () => {
   describe('Clock Controls', () => {
     describe('Start/Resume Button', () => {
       it('shows Start button when clock is stopped and canControl is true', async () => {
-        const clockState = createMockClockState({ state: 'Stopped' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Stopped })
         const user = userEvent.setup()
 
         render(
@@ -615,7 +608,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('shows Resume button when clock is paused and canControl is true', async () => {
-        const clockState = createMockClockState({ state: 'Paused' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Paused })
         const user = userEvent.setup()
 
         render(
@@ -634,7 +627,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('calls onStart when Start button is clicked', async () => {
-        const clockState = createMockClockState({ state: 'Stopped' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Stopped })
         const onStart = vi.fn()
         const user = userEvent.setup()
 
@@ -656,7 +649,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('shows spinner when isStarting is true', async () => {
-        const clockState = createMockClockState({ state: 'Stopped' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Stopped })
         const user = userEvent.setup()
 
         const { container } = render(
@@ -678,7 +671,7 @@ describe('FloatingClockChip', () => {
 
     describe('Pause Button', () => {
       it('shows Pause button when clock is running and canControl is true', async () => {
-        const clockState = createMockClockState({ state: 'Running' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Running })
         const user = userEvent.setup()
 
         render(
@@ -697,7 +690,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('calls onPause when Pause button is clicked', async () => {
-        const clockState = createMockClockState({ state: 'Running' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Running })
         const onPause = vi.fn()
         const user = userEvent.setup()
 
@@ -721,7 +714,7 @@ describe('FloatingClockChip', () => {
 
     describe('Stop Button', () => {
       it('shows Stop button when clock is running and canControl is true', async () => {
-        const clockState = createMockClockState({ state: 'Running' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Running })
         const user = userEvent.setup()
 
         render(
@@ -740,7 +733,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('shows Stop button when clock is paused and canControl is true', async () => {
-        const clockState = createMockClockState({ state: 'Paused' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Paused })
         const user = userEvent.setup()
 
         render(
@@ -759,7 +752,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('calls onStop when Stop button is clicked', async () => {
-        const clockState = createMockClockState({ state: 'Running' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Running })
         const onStop = vi.fn()
         const user = userEvent.setup()
 
@@ -783,7 +776,7 @@ describe('FloatingClockChip', () => {
 
     describe('Reset Button', () => {
       it('shows Reset button when clock is stopped and canControl is true', async () => {
-        const clockState = createMockClockState({ state: 'Stopped' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Stopped })
         const user = userEvent.setup()
 
         render(
@@ -802,7 +795,7 @@ describe('FloatingClockChip', () => {
       })
 
       it('calls onReset when Reset button is clicked', async () => {
-        const clockState = createMockClockState({ state: 'Stopped' })
+        const clockState = createMockClockState({ state: ExerciseClockState.Stopped })
         const onReset = vi.fn()
         const user = userEvent.setup()
 
@@ -825,7 +818,7 @@ describe('FloatingClockChip', () => {
     })
 
     it('hides all control buttons when canControl is false', async () => {
-      const clockState = createMockClockState({ state: 'Running' })
+      const clockState = createMockClockState({ state: ExerciseClockState.Running })
       const user = userEvent.setup()
 
       render(
