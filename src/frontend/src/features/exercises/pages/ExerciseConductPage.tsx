@@ -16,12 +16,13 @@ import {
   Typography,
   Paper,
   Stack,
-  Grid,
   CircularProgress,
   Alert,
   Divider,
-  Collapse,
   IconButton,
+  ToggleButton,
+  ToggleButtonGroup,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -31,11 +32,15 @@ import {
   faChevronUp,
   faWifi,
   faTriangleExclamation,
+  faGaugeHigh,
+  faBookOpen,
+  faGrip,
+  faWindowMaximize,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useExercise } from '../hooks'
-import { ExerciseStatusChip, ExerciseTypeChip } from '../components'
+import { ExerciseHeader, NarrativeView, StickyClockHeader, FloatingClockChip } from '../components'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
@@ -43,7 +48,7 @@ import { useExerciseSignalR } from '../../../shared/hooks'
 import { ExerciseStatus, InjectStatus } from '../../../types'
 
 // Feature imports
-import { ClockDisplay, ClockControls, useExerciseClock, clockQueryKey } from '../../exercise-clock'
+import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey } from '../../exercise-clock'
 import { InjectListByStatus, ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
 import {
   ObservationForm,
@@ -100,6 +105,40 @@ export const ExerciseConductPage = () => {
   const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null)
   const [observationsExpanded, setObservationsExpanded] = useState(true)
   const [showStopConfirm, setShowStopConfirm] = useState(false)
+
+  // View mode state with localStorage persistence
+  const [viewMode, setViewMode] = useState<'controller' | 'narrative'>(() => {
+    const saved = localStorage.getItem('cadence-conduct-view-mode')
+    return saved === 'narrative' ? 'narrative' : 'controller'
+  })
+
+  const handleViewModeChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newMode: 'controller' | 'narrative' | null,
+  ) => {
+    if (newMode) {
+      setViewMode(newMode)
+      localStorage.setItem('cadence-conduct-view-mode', newMode)
+    }
+  }
+
+  // Layout mode state with localStorage persistence (for A/B testing)
+  // 'classic' = original large clock panel, 'sticky' = sticky header, 'floating' = floating chip
+  const [layoutMode, setLayoutMode] = useState<'classic' | 'sticky' | 'floating'>(() => {
+    const saved = localStorage.getItem('cadence-conduct-layout-mode')
+    if (saved === 'sticky' || saved === 'floating') return saved
+    return 'classic'
+  })
+
+  const handleLayoutModeChange = (
+    _event: React.MouseEvent<HTMLElement>,
+    newLayout: 'classic' | 'sticky' | 'floating' | null,
+  ) => {
+    if (newLayout) {
+      setLayoutMode(newLayout)
+      localStorage.setItem('cadence-conduct-layout-mode', newLayout)
+    }
+  }
 
   // Set breadcrumbs
   useBreadcrumbs(
@@ -276,170 +315,342 @@ export const ExerciseConductPage = () => {
   }
 
   return (
-    <Box padding={CobraStyles.Padding.MainWindow}>
+    <Box
+      sx={{
+        padding: CobraStyles.Padding.MainWindow,
+        // Fill parent container (AppLayout handles the height constraints)
+        height: '100%',
+        overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        boxSizing: 'border-box',
+      }}
+    >
       {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="flex-start"
-        marginBottom={3}
-      >
-        <Box>
-          <Typography variant="h5" component="h1">
-            {exercise.name}
-          </Typography>
-          <Stack direction="row" spacing={1} mt={1}>
-            <ExerciseTypeChip type={exercise.exerciseType} />
-            <ExerciseStatusChip status={exercise.status} />
-          </Stack>
-        </Box>
-
-        <Stack direction="row" spacing={2} alignItems="center">
-          {/* Connection status indicator */}
-          <Stack direction="row" spacing={1} alignItems="center">
-            {connectionState === 'connected' && isJoined ? (
-              <Box sx={{ color: 'success.main' }}>
-                <FontAwesomeIcon icon={faWifi} />
-              </Box>
-            ) : connectionState === 'error' || signalRError ? (
-              <Box sx={{ color: 'error.main' }}>
-                <FontAwesomeIcon icon={faTriangleExclamation} />
-              </Box>
-            ) : (
-              <CircularProgress size={16} />
-            )}
-            <Typography variant="caption" color="text.secondary">
-              {connectionState === 'connected' && isJoined
-                ? 'Live'
-                : connectionState === 'connecting'
-                  ? 'Connecting...'
-                  : connectionState === 'reconnecting'
-                    ? 'Reconnecting...'
-                    : signalRError || 'Disconnected'}
-            </Typography>
-          </Stack>
-
-          <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
-            Exit Conduct
-          </CobraLinkButton>
-        </Stack>
-      </Stack>
-
-      {/* Main Content Grid */}
-      <Grid container spacing={3}>
-        {/* Left Column: Clock & Injects */}
-        <Grid size={{ xs: 12, md: 8 }}>
-          {/* Exercise Clock */}
-          <Paper sx={{ p: 3, mb: 3 }}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
-              <Typography variant="h6">
-                Exercise Clock
-              </Typography>
-              <ReadyToFireBadge count={readyToFireCount} />
-            </Stack>
-            <Stack spacing={2} alignItems="center">
-              <ClockDisplay
-                clockState={clockState}
-                displayTime={displayTime}
-                loading={clockLoading}
-                size="large"
-              />
-              {canControl && (
-                <ClockControls
-                  state={clockState?.state}
-                  onStart={startClock}
-                  onPause={pauseClock}
-                  onStop={handleStopClick}
-                  onReset={resetClock}
-                  isStarting={isStarting}
-                  isPausing={isPausing}
-                  isStopping={isStopping}
-                  isResetting={isResetting}
-                  showReset
-                />
-              )}
-            </Stack>
-          </Paper>
-
-          {/* Inject List - Time-Based Sections */}
-          <Paper sx={{ p: 3 }}>
-            <Typography variant="h6" gutterBottom>
-              Injects
-            </Typography>
-            {/* Visual notification when new injects become ready */}
-            <ReadyNotification readyCount={readyToFireCount} />
-            <InjectListByStatus
-              injects={injects}
-              exerciseStartTime={exerciseStartTime}
-              elapsedTimeMs={elapsedTimeMs}
-              canControl={canControl}
-              loading={injectsLoading}
-              error={injectsError}
-              onFire={fireInject}
-              onSkip={skipInject}
-              onReset={resetInject}
-            />
-          </Paper>
-        </Grid>
-
-        {/* Right Column: Observations */}
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Paper sx={{ p: 3 }}>
-            <Stack
-              direction="row"
-              justifyContent="space-between"
-              alignItems="center"
-              sx={{ mb: 2 }}
+      <ExerciseHeader
+        exercise={exercise}
+        actions={
+          <>
+            {/* View Mode Toggle */}
+            <ToggleButtonGroup
+              value={viewMode}
+              exclusive
+              onChange={handleViewModeChange}
+              size="small"
+              aria-label="view mode"
             >
-              <Stack direction="row" spacing={1} alignItems="center">
-                <Typography variant="h6">Observations</Typography>
-                <IconButton
-                  size="small"
-                  onClick={() => setObservationsExpanded(!observationsExpanded)}
-                >
-                  <FontAwesomeIcon
-                    icon={observationsExpanded ? faChevronUp : faChevronDown}
-                  />
-                </IconButton>
-              </Stack>
-              {canAddObservations && !showObservationForm && (
-                <CobraPrimaryButton
-                  size="small"
-                  startIcon={<FontAwesomeIcon icon={faPlus} />}
-                  onClick={() => setShowObservationForm(true)}
-                >
-                  Add
-                </CobraPrimaryButton>
+              <ToggleButton value="controller" aria-label="controller view">
+                <FontAwesomeIcon icon={faGaugeHigh} style={{ marginRight: 6 }} />
+                Controller
+              </ToggleButton>
+              <ToggleButton value="narrative" aria-label="narrative view">
+                <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: 6 }} />
+                Narrative
+              </ToggleButton>
+            </ToggleButtonGroup>
+
+            {/* Layout Mode Toggle (only in Controller view) */}
+            {viewMode === 'controller' && (
+              <ToggleButtonGroup
+                value={layoutMode}
+                exclusive
+                onChange={handleLayoutModeChange}
+                size="small"
+                aria-label="layout mode"
+              >
+                <Tooltip title="Classic layout with clock panel" arrow>
+                  <ToggleButton value="classic" aria-label="classic layout">
+                    <FontAwesomeIcon icon={faGrip} />
+                  </ToggleButton>
+                </Tooltip>
+                <Tooltip title="Sticky clock header" arrow>
+                  <ToggleButton value="sticky" aria-label="sticky header layout">
+                    <FontAwesomeIcon icon={faWindowMaximize} />
+                  </ToggleButton>
+                </Tooltip>
+                <Tooltip title="Floating clock chip" arrow>
+                  <ToggleButton value="floating" aria-label="floating clock layout">
+                    <FontAwesomeIcon icon={faGaugeHigh} />
+                  </ToggleButton>
+                </Tooltip>
+              </ToggleButtonGroup>
+            )}
+
+            {/* Connection status indicator */}
+            <Stack direction="row" spacing={1} alignItems="center">
+              {connectionState === 'connected' && isJoined ? (
+                <Box sx={{ color: 'success.main' }}>
+                  <FontAwesomeIcon icon={faWifi} />
+                </Box>
+              ) : connectionState === 'error' || signalRError ? (
+                <Box sx={{ color: 'error.main' }}>
+                  <FontAwesomeIcon icon={faTriangleExclamation} />
+                </Box>
+              ) : (
+                <CircularProgress size={16} />
               )}
+              <Typography variant="caption" color="text.secondary">
+                {connectionState === 'connected' && isJoined
+                  ? 'Live'
+                  : connectionState === 'connecting'
+                    ? 'Connecting...'
+                    : connectionState === 'reconnecting'
+                      ? 'Reconnecting...'
+                      : signalRError || 'Disconnected'}
+              </Typography>
             </Stack>
 
-            <Collapse in={observationsExpanded}>
-              {/* Observation Form */}
-              {showObservationForm && (
-                <Box sx={{ mb: 2 }}>
-                  <ObservationForm
-                    injects={injects}
-                    onSubmit={handleCreateObservation}
-                    onCancel={() => setShowObservationForm(false)}
-                    isSubmitting={isSubmittingObservation}
-                  />
-                  <Divider sx={{ my: 2 }} />
-                </Box>
+            <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
+              Exit Conduct
+            </CobraLinkButton>
+          </>
+        }
+      />
+
+      {/* Conditional View Rendering */}
+      {viewMode === 'narrative' ? (
+        <Box sx={{ flex: 1, overflow: 'auto' }}>
+          <NarrativeView
+            exercise={exercise}
+            injects={injects}
+            observations={observations}
+            displayTime={displayTime}
+            elapsedTimeMs={elapsedTimeMs}
+          />
+        </Box>
+      ) : (
+        /* Controller View with Layout Options */
+        <Box sx={{ flex: 1, minHeight: 0, display: 'flex', flexDirection: 'column' }}>
+          {/* Floating Clock Chip (Option 2) */}
+          {layoutMode === 'floating' && (
+            <FloatingClockChip
+              clockState={clockState}
+              displayTime={displayTime}
+              loading={clockLoading}
+              injects={injects}
+              readyToFireCount={readyToFireCount}
+              canControl={canControl}
+              onStart={startClock}
+              onPause={pauseClock}
+              onStop={handleStopClick}
+              onReset={resetClock}
+              isStarting={isStarting}
+              isPausing={isPausing}
+              isStopping={isStopping}
+              isResetting={isResetting}
+            />
+          )}
+
+          {/* Sticky Clock Header (Option 1) */}
+          {layoutMode === 'sticky' && (
+            <StickyClockHeader
+              clockState={clockState}
+              displayTime={displayTime}
+              loading={clockLoading}
+              injects={injects}
+              readyToFireCount={readyToFireCount}
+              canControl={canControl}
+              onStart={startClock}
+              onPause={pauseClock}
+              onStop={handleStopClick}
+              onReset={resetClock}
+              isStarting={isStarting}
+              isPausing={isPausing}
+              isStopping={isStopping}
+              isResetting={isResetting}
+            />
+          )}
+
+          {/* Two-Column Layout with Independent Scrolling */}
+          <Box
+            sx={{
+              display: 'flex',
+              gap: 3,
+              flex: 1,
+              minHeight: 0, // Critical for nested flex scrolling
+              flexDirection: { xs: 'column', md: 'row' },
+            }}
+          >
+            {/* Left Column: Injects (and Clock for classic layout) */}
+            <Box
+              sx={{
+                flex: { xs: 1, md: 2 },
+                display: 'flex',
+                flexDirection: 'column',
+                minWidth: 0, // Prevent flex item overflow
+                minHeight: 0, // Critical for nested flex scrolling
+              }}
+            >
+              {/* Exercise Clock - Compact layout (non-scrolling header) */}
+              {layoutMode === 'classic' && (
+                <Paper sx={{ p: 2, mb: 2, flexShrink: 0 }}>
+                  <Stack
+                    direction="row"
+                    alignItems="center"
+                    justifyContent="space-between"
+                    spacing={2}
+                    flexWrap="wrap"
+                  >
+                    {/* Clock + Controls */}
+                    <Stack direction="row" alignItems="center" spacing={2}>
+                      <ClockDisplay
+                        clockState={clockState}
+                        displayTime={displayTime}
+                        loading={clockLoading}
+                        size="medium"
+                      />
+                      {canControl && (
+                        <ClockControls
+                          state={clockState?.state}
+                          onStart={startClock}
+                          onPause={pauseClock}
+                          onStop={handleStopClick}
+                          onReset={resetClock}
+                          isStarting={isStarting}
+                          isPausing={isPausing}
+                          isStopping={isStopping}
+                          isResetting={isResetting}
+                          showReset
+                        />
+                      )}
+                    </Stack>
+
+                    {/* Progress + Badge */}
+                    <Stack direction="row" alignItems="center" spacing={2} sx={{ flex: 1, minWidth: 200 }}>
+                      <ExerciseProgress injects={injects} />
+                      <ReadyToFireBadge count={readyToFireCount} />
+                    </Stack>
+                  </Stack>
+                </Paper>
               )}
 
-              {/* Observation List */}
-              <ObservationList
-                observations={observations}
-                loading={observationsLoading}
-                error={observationsError}
-                canEdit={canAddObservations}
-                onDelete={handleDeleteObservation}
-                deletingId={deletingObservationId}
-              />
-            </Collapse>
-          </Paper>
-        </Grid>
-      </Grid>
+              {/* Inject List - Scrollable */}
+              <Paper
+                sx={{
+                  p: 3,
+                  flex: 1,
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minHeight: 0,
+                }}
+              >
+                <Typography variant="h6" gutterBottom sx={{ flexShrink: 0 }}>
+                  Injects
+                </Typography>
+                {/* Visual notification when new injects become ready */}
+                <Box sx={{ flexShrink: 0 }}>
+                  <ReadyNotification readyCount={readyToFireCount} />
+                </Box>
+                <Box
+                  sx={{
+                    flex: 1,
+                    overflowY: 'auto',
+                    overflowX: 'hidden',
+                    pr: `${CobraStyles.Scrollbar.ContentSpacing}px`,
+                    ...CobraStyles.Scrollbar.Styling,
+                  }}
+                >
+                  <InjectListByStatus
+                    injects={injects}
+                    exerciseStartTime={exerciseStartTime}
+                    elapsedTimeMs={elapsedTimeMs}
+                    canControl={canControl}
+                    loading={injectsLoading}
+                    error={injectsError}
+                    onFire={fireInject}
+                    onSkip={skipInject}
+                    onReset={resetInject}
+                  />
+                </Box>
+              </Paper>
+            </Box>
+
+            {/* Right Column: Observations - Scrollable */}
+            <Box
+              sx={{
+                flex: 1,
+                minWidth: 0,
+                minHeight: 0, // Critical for nested flex scrolling
+              }}
+            >
+              <Paper
+                sx={{
+                  p: 3,
+                  height: '100%',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  minHeight: 0,
+                }}
+              >
+                <Stack
+                  direction="row"
+                  justifyContent="space-between"
+                  alignItems="center"
+                  sx={{ mb: 2, flexShrink: 0 }}
+                >
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <Typography variant="h6">Observations</Typography>
+                    <IconButton
+                      size="small"
+                      onClick={() => setObservationsExpanded(!observationsExpanded)}
+                    >
+                      <FontAwesomeIcon
+                        icon={observationsExpanded ? faChevronUp : faChevronDown}
+                      />
+                    </IconButton>
+                  </Stack>
+                  {canAddObservations && !showObservationForm && (
+                    <CobraPrimaryButton
+                      size="small"
+                      startIcon={<FontAwesomeIcon icon={faPlus} />}
+                      onClick={() => setShowObservationForm(true)}
+                    >
+                      Add
+                    </CobraPrimaryButton>
+                  )}
+                </Stack>
+
+                {/* Observation Form - Fixed at top (when expanded) */}
+                {observationsExpanded && showObservationForm && (
+                  <Box sx={{ mb: 2, flexShrink: 0 }}>
+                    <ObservationForm
+                      injects={injects}
+                      onSubmit={handleCreateObservation}
+                      onCancel={() => setShowObservationForm(false)}
+                      isSubmitting={isSubmittingObservation}
+                    />
+                    <Divider sx={{ my: 2 }} />
+                  </Box>
+                )}
+
+                {/* Observation List - Scrollable (when expanded) */}
+                {observationsExpanded && (
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      overflowX: 'hidden',
+                      pr: `${CobraStyles.Scrollbar.ContentSpacing}px`,
+                      ...CobraStyles.Scrollbar.Styling,
+                    }}
+                  >
+                    <ObservationList
+                      observations={observations}
+                      loading={observationsLoading}
+                      error={observationsError}
+                      canEdit={canAddObservations}
+                      onDelete={handleDeleteObservation}
+                      deletingId={deletingObservationId}
+                    />
+                  </Box>
+                )}
+              </Paper>
+            </Box>
+          </Box>
+        </Box>
+      )}
 
       {/* Stop Exercise Confirmation Dialog */}
       <ConfirmDialog

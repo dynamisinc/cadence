@@ -256,7 +256,7 @@ export const InjectListByStatus = ({
   return (
     <>
       <Box>
-        {/* Ready to Fire Section */}
+        {/* Ready to Fire Section - Always show preview */}
         <InjectSection
           variant="ready"
           title="READY TO FIRE"
@@ -271,6 +271,7 @@ export const InjectListByStatus = ({
               elapsedTimeMs={elapsedTimeMs}
               canControl={canControl}
               showFireButton
+              showPreview
               isSubmitting={isSubmitting}
               onFire={handleFireClick}
               onSkip={handleSkipClick}
@@ -280,7 +281,7 @@ export const InjectListByStatus = ({
           ))}
         </InjectSection>
 
-        {/* Upcoming Section */}
+        {/* Upcoming Section - Show preview by default */}
         <InjectSection
           variant="upcoming"
           title="UPCOMING"
@@ -296,6 +297,7 @@ export const InjectListByStatus = ({
               elapsedTimeMs={elapsedTimeMs}
               canControl={canControl}
               showFireButton={false}
+              showPreview
               isSubmitting={isSubmitting}
               onFire={handleFireClick}
               onSkip={handleSkipClick}

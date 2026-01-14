@@ -4,3 +4,4 @@
 
 export { ClockDisplay } from './ClockDisplay'
 export { ClockControls } from './ClockControls'
+export { ExerciseProgress } from './ExerciseProgress'

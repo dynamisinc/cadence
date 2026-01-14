@@ -36,6 +36,8 @@ interface ObservationListProps {
   onDelete?: (observationId: string) => Promise<void>
   /** ID of observation currently being deleted */
   deletingId?: string | null
+  /** Called when user clicks on an inject reference */
+  onInjectClick?: (injectId: string) => void
 }
 
 export const ObservationList = ({
@@ -46,6 +48,7 @@ export const ObservationList = ({
   onEdit,
   onDelete,
   deletingId = null,
+  onInjectClick,
 }: ObservationListProps) => {
   const formatTime = (dateStr: string) => {
     try {
@@ -128,14 +131,42 @@ export const ObservationList = ({
               >
                 <Stack spacing={1} sx={{ flex: 1, pr: canEdit ? 8 : 0 }}>
                   {/* Header with rating and timestamp */}
-                  <Stack direction="row" spacing={2} alignItems="center">
+                  <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
                     <RatingBadge rating={observation.rating} />
                     <Typography variant="caption" color="text.secondary">
                       {formatTime(observation.createdAt)}
                     </Typography>
-                    {observation.injectTitle && (
-                      <Typography variant="caption" color="text.secondary">
-                        {observation.injectTitle}
+                    {/* Inject Reference or General observation label */}
+                    {observation.injectId && observation.injectTitle ? (
+                      onInjectClick ? (
+                        <Typography
+                          component="button"
+                          variant="caption"
+                          onClick={() => onInjectClick(observation.injectId!)}
+                          sx={{
+                            color: 'primary.main',
+                            cursor: 'pointer',
+                            textDecoration: 'underline',
+                            border: 'none',
+                            background: 'none',
+                            padding: 0,
+                            fontFamily: 'inherit',
+                            '&:hover': {
+                              color: 'primary.dark',
+                            },
+                          }}
+                          aria-label={`View inject: ${observation.injectTitle}`}
+                        >
+                          Re: #1 {observation.injectTitle}
+                        </Typography>
+                      ) : (
+                        <Typography variant="caption" color="text.secondary">
+                          Re: #1 {observation.injectTitle}
+                        </Typography>
+                      )
+                    ) : (
+                      <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                        General observation
                       </Typography>
                     )}
                   </Stack>

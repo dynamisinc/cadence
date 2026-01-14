@@ -20,11 +20,22 @@ import {
   faPlay,
   faForwardStep,
   faRotateLeft,
+  faEnvelope,
+  faPhone,
+  faTowerBroadcast,
+  faComment,
+  faPersonWalking,
+  faFileLines,
+  faDesktop,
+  faEllipsisH,
+  faUser,
+  faArrowRight,
+  faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import { keyframes } from '@mui/system'
 
 import { InjectStatusChip, InjectTypeChip } from './'
-import { InjectStatus } from '../../../types'
+import { InjectStatus, DeliveryMethod } from '../../../types'
 import type { InjectDto } from '../types'
 import { formatOffset, formatScheduledTime, formatScenarioTime, formatTimeRemaining, DUE_SOON_THRESHOLD_MS } from '../types'
 
@@ -33,6 +44,25 @@ const pulse = keyframes`
   0%, 100% { opacity: 1; }
   50% { opacity: 0.6; }
 `
+
+// Delivery method icon mapping
+const DELIVERY_METHOD_ICONS: Record<DeliveryMethod, { icon: typeof faEnvelope; label: string }> = {
+  [DeliveryMethod.Email]: { icon: faEnvelope, label: 'Email' },
+  [DeliveryMethod.Phone]: { icon: faPhone, label: 'Phone' },
+  [DeliveryMethod.Radio]: { icon: faTowerBroadcast, label: 'Radio' },
+  [DeliveryMethod.Verbal]: { icon: faComment, label: 'Verbal' },
+  [DeliveryMethod.Written]: { icon: faFileLines, label: 'Written' },
+  [DeliveryMethod.Simulation]: { icon: faDesktop, label: 'Simulation' },
+  [DeliveryMethod.Other]: { icon: faEllipsisH, label: 'Other' },
+}
+
+/**
+ * Truncate text to specified length with ellipsis
+ */
+const truncateText = (text: string, maxLength: number): string => {
+  if (text.length <= maxLength) return text
+  return text.substring(0, maxLength).trim() + '...'
+}
 
 interface InjectRowProps {
   /** The inject to display */
@@ -49,6 +79,8 @@ interface InjectRowProps {
   showFireButton?: boolean
   /** Is an action currently being submitted? */
   isSubmitting?: boolean
+  /** Show description preview with delivery context */
+  showPreview?: boolean
   /** Called when fire button is clicked */
   onFire?: (injectId: string) => void
   /** Called when skip button is clicked */
@@ -67,6 +99,7 @@ export const InjectRow = ({
   canControl = false,
   showFireButton = true,
   isSubmitting = false,
+  showPreview = false,
   onFire,
   onSkip,
   onReset,
@@ -156,19 +189,88 @@ export const InjectRow = ({
         </Stack>
       </TableCell>
 
-      {/* Title */}
+      {/* Title and Description Preview */}
       <TableCell>
-        <Typography
-          variant="body2"
-          sx={{
-            maxWidth: 300,
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-          }}
-        >
-          {inject.title}
-        </Typography>
+        <Stack spacing={0.5}>
+          <Typography
+            variant="body2"
+            sx={{
+              maxWidth: 300,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {inject.title}
+          </Typography>
+
+          {/* Description Preview */}
+          {showPreview && (
+            <Stack
+              spacing={0.5}
+              sx={{
+                p: 1,
+                bgcolor: 'grey.50',
+                borderRadius: 1,
+                borderLeft: '3px solid',
+                borderLeftColor: 'primary.light',
+              }}
+            >
+              {/* Description text */}
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                data-testid="inject-description-preview"
+                sx={{
+                  fontStyle: 'italic',
+                  fontSize: '0.85rem',
+                  lineHeight: 1.4,
+                }}
+              >
+                "{truncateText(inject.description, 150)}"
+              </Typography>
+
+              {/* Delivery context */}
+              <Stack direction="row" spacing={2} flexWrap="wrap" sx={{ fontSize: '0.75rem' }}>
+                {/* To (Target) */}
+                {inject.target && (
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <FontAwesomeIcon icon={faArrowRight} size="xs" style={{ opacity: 0.6 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      To:
+                    </Typography>
+                    <Typography variant="caption">{inject.target}</Typography>
+                  </Stack>
+                )}
+
+                {/* Delivery Method */}
+                {inject.deliveryMethod && DELIVERY_METHOD_ICONS[inject.deliveryMethod] && (
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <FontAwesomeIcon
+                      icon={DELIVERY_METHOD_ICONS[inject.deliveryMethod].icon}
+                      size="xs"
+                      style={{ opacity: 0.6 }}
+                    />
+                    <Typography variant="caption">
+                      {DELIVERY_METHOD_ICONS[inject.deliveryMethod].label}
+                    </Typography>
+                  </Stack>
+                )}
+
+                {/* From (Source) */}
+                {inject.source && (
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <FontAwesomeIcon icon={faArrowLeft} size="xs" style={{ opacity: 0.6 }} />
+                    <Typography variant="caption" color="text.secondary">
+                      From:
+                    </Typography>
+                    <Typography variant="caption">{inject.source}</Typography>
+                  </Stack>
+                )}
+              </Stack>
+            </Stack>
+          )}
+        </Stack>
       </TableCell>
 
       {/* Type */}
