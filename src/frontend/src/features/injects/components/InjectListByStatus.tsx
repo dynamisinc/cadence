@@ -7,7 +7,7 @@
  * Injects automatically move between sections as the exercise clock progresses.
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -50,6 +50,10 @@ interface InjectListByStatusProps {
   onSkip?: (injectId: string, request: SkipInjectRequest) => Promise<void> | Promise<InjectDto>
   /** Called when reset button is clicked */
   onReset?: (injectId: string) => Promise<void> | Promise<InjectDto>
+  /** ID of inject to open in drawer (controlled externally) */
+  openInjectId?: string | null
+  /** Called when drawer is closed (to clear openInjectId) */
+  onDrawerClose?: () => void
 }
 
 interface InjectWithOffset {
@@ -67,6 +71,8 @@ export const InjectListByStatus = ({
   onFire,
   onSkip,
   onReset,
+  openInjectId,
+  onDrawerClose,
 }: InjectListByStatusProps) => {
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
@@ -142,6 +148,19 @@ export const InjectListByStatus = ({
     return { readyToFire, upcoming, later, fired, skipped }
   }, [injects, exerciseStartTime, elapsedTimeMs])
 
+  // Open drawer when openInjectId is set externally
+  useEffect(() => {
+    if (openInjectId) {
+      const inject = injects.find(i => i.id === openInjectId)
+      if (inject) {
+        const offsetMs = calculateScheduledOffset(inject.scheduledTime, exerciseStartTime)
+        setSelectedInject(inject)
+        setSelectedInjectOffset(offsetMs)
+        setDrawerOpen(true)
+      }
+    }
+  }, [openInjectId, injects, exerciseStartTime])
+
   // Handlers
   const handleFireClick = async (injectId: string) => {
     if (onFire) {
@@ -201,6 +220,7 @@ export const InjectListByStatus = ({
 
   const handleDrawerClose = () => {
     setDrawerOpen(false)
+    onDrawerClose?.()
   }
 
   const handleDrawerFire = async (injectId: string) => {

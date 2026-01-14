@@ -107,6 +107,7 @@ export const ExerciseConductPage = () => {
   const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null)
   const [observationsExpanded, setObservationsExpanded] = useState(true)
   const [showStopConfirm, setShowStopConfirm] = useState(false)
+  const [openInjectId, setOpenInjectId] = useState<string | null>(null)
 
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'controller' | 'narrative'>(() => {
@@ -267,6 +268,11 @@ export const ExerciseConductPage = () => {
     } finally {
       setDeletingObservationId(null)
     }
+  }
+
+  // Handle clicking inject link in observation
+  const handleInjectClick = (injectId: string) => {
+    setOpenInjectId(injectId)
   }
 
   // Stop clock with confirmation
@@ -578,6 +584,8 @@ export const ExerciseConductPage = () => {
                     onFire={fireInject}
                     onSkip={skipInject}
                     onReset={resetInject}
+                    openInjectId={openInjectId}
+                    onDrawerClose={() => setOpenInjectId(null)}
                   />
                 </Box>
               </Paper>
@@ -671,6 +679,7 @@ export const ExerciseConductPage = () => {
                       onEdit={handleEditObservation}
                       onDelete={handleDeleteObservation}
                       deletingId={deletingObservationId}
+                      onInjectClick={handleInjectClick}
                     />
                   </Box>
                 )}
