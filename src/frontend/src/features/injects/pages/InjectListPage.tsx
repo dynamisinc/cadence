@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
@@ -18,6 +18,7 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  Collapse,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -30,40 +31,67 @@ import {
   faHome,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { useInjects } from '../hooks'
+import { useInjects, useInjectOrganization } from '../hooks'
+import { InjectOrganizationProvider } from '../contexts/InjectOrganizationContext'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
-import { PhaseHeader, PhaseFormDialog } from '../../phases/components'
-import { InjectStatusChip, InjectTypeChip } from '../components'
+import { PhaseFormDialog } from '../../phases/components'
+import {
+  InjectStatusChip,
+  InjectFilterBar,
+  ActiveFiltersBar,
+  SortableTableHeader,
+  GroupHeader,
+} from '../components'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
   CobraTextField,
 } from '../../../theme/styledComponents'
+import { HighlightedText } from '../../../shared/components/HighlightedText'
 import CobraStyles from '../../../theme/CobraStyles'
 import { usePermissions } from '../../../shared/hooks'
 import { InjectStatus } from '../../../types'
 import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
+import type { SortableColumn, InjectGroup } from '../types/organization'
 import { formatScenarioTime, formatScheduledTime } from '../types'
+import { isGroupExpanded } from '../utils/groupUtils'
 
 /**
  * MSEL (Inject List) Page
  *
  * Displays all injects for an exercise with:
- * - Grouping by phase
- * - Status chips (Pending, Fired, Skipped)
+ * - Filtering by status, phase, and delivery method
+ * - Sorting by multiple columns
+ * - Grouping by phase or status
+ * - Text search across multiple fields
  * - Fire/Skip actions for Controllers
- * - Search/filter capability
- * - Create button for Controllers/Directors
  */
 export const InjectListPage = () => {
-  const navigate = useNavigate()
   const { exerciseId } = useParams<{ exerciseId: string }>()
-  const { exercise, loading: exerciseLoading } = useExercise(exerciseId || '')
-  const { injects, groupedByPhase, loading, error, fireInject, skipInject, isFiring, isSkipping } =
-    useInjects(exerciseId || '')
+
+  if (!exerciseId) {
+    return null
+  }
+
+  return (
+    <InjectOrganizationProvider exerciseId={exerciseId}>
+      <InjectListPageContent exerciseId={exerciseId} />
+    </InjectOrganizationProvider>
+  )
+}
+
+interface InjectListPageContentProps {
+  exerciseId: string
+}
+
+const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
+  const navigate = useNavigate()
+  const { exercise, loading: exerciseLoading } = useExercise(exerciseId)
+  const { injects, loading, error, fireInject, skipInject, isFiring, isSkipping } =
+    useInjects(exerciseId)
   const {
     phases,
     createPhase,
@@ -75,22 +103,30 @@ export const InjectListPage = () => {
     isUpdating: isUpdatingPhase,
     isDeleting: isDeletingPhase,
     isReordering: isReorderingPhase,
-  } = usePhases(exerciseId || '')
+  } = usePhases(exerciseId)
   const { canFireInjects, canManage } = usePermissions()
+
+  // Convert phases to the format needed by useInjectOrganization
+  const phaseInfo = useMemo(
+    () => phases.map(p => ({ id: p.id, name: p.name, sequence: p.sequence })),
+    [phases],
+  )
+
+  // Organization hook
+  const organization = useInjectOrganization(injects, phaseInfo)
 
   // Set custom breadcrumbs with exercise name and MSEL
   useBreadcrumbs(
     exercise
       ? [
-        { label: 'Home', path: '/', icon: faHome },
-        { label: 'Exercises', path: '/exercises' },
-        { label: exercise.name, path: `/exercises/${exerciseId}` },
-        { label: 'MSEL' },
-      ]
+          { label: 'Home', path: '/', icon: faHome },
+          { label: 'Exercises', path: '/exercises' },
+          { label: exercise.name, path: `/exercises/${exerciseId}` },
+          { label: 'MSEL' },
+        ]
       : undefined,
   )
 
-  const [searchTerm, setSearchTerm] = useState('')
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
   const [skipReason, setSkipReason] = useState('')
@@ -100,24 +136,6 @@ export const InjectListPage = () => {
   const [editingPhase, setEditingPhase] = useState<PhaseDto | null>(null)
 
   const isPhaseLoading = isCreatingPhase || isUpdatingPhase || isDeletingPhase || isReorderingPhase
-
-  // Filter injects by search term
-  const filteredGroups = useMemo(() => {
-    if (!searchTerm) return groupedByPhase
-
-    const search = searchTerm.toLowerCase()
-    return groupedByPhase
-      .map(group => ({
-        ...group,
-        injects: group.injects.filter(
-          inject =>
-            inject.title.toLowerCase().includes(search) ||
-            inject.description.toLowerCase().includes(search) ||
-            inject.injectNumber.toString().includes(search),
-        ),
-      }))
-      .filter(group => group.injects.length > 0)
-  }, [groupedByPhase, searchTerm])
 
   const handleRowClick = (injectId: string) => {
     navigate(`/exercises/${exerciseId}/injects/${injectId}`)
@@ -131,10 +149,7 @@ export const InjectListPage = () => {
     navigate(`/exercises/${exerciseId}`)
   }
 
-  const handleFireClick = async (
-    e: React.MouseEvent,
-    injectId: string,
-  ) => {
+  const handleFireClick = async (e: React.MouseEvent, injectId: string) => {
     e.stopPropagation()
     await fireInject(injectId)
   }
@@ -196,8 +211,8 @@ export const InjectListPage = () => {
     handlePhaseFormClose()
   }
 
-  // Get phase data for rendering with inject counts
-  const getPhaseForGroup = (phaseId: string | null): PhaseDto | null => {
+  // Get phase data for rendering with phase headers in non-grouped view
+  const getPhaseForId = (phaseId: string | null): PhaseDto | null => {
     if (!phaseId) return null
     return phases.find(p => p.id === phaseId) || null
   }
@@ -217,6 +232,9 @@ export const InjectListPage = () => {
   }
 
   const isLoading = loading || exerciseLoading
+
+  // Phase options for filter dropdown
+  const phaseOptions = phases.map(p => ({ id: p.id, name: p.name }))
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
@@ -255,109 +273,256 @@ export const InjectListPage = () => {
       </Stack>
 
       {/* Exercise name subtitle */}
-      <Typography variant="body2" color="text.secondary" marginBottom={3}>
-        {exerciseLoading ? (
-          <Skeleton width={200} />
-        ) : (
-          exercise?.name || 'Exercise'
-        )}
+      <Typography variant="body2" color="text.secondary" marginBottom={2}>
+        {exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}
       </Typography>
 
-      {/* Search */}
-      <Stack direction="row" spacing={2} marginBottom={2} alignItems="center">
-        <CobraTextField
-          placeholder="Search injects..."
-          value={searchTerm}
-          onChange={e => setSearchTerm(e.target.value)}
-          sx={{ width: 300 }}
+      {/* Filter Bar */}
+      <Box marginBottom={2}>
+        <InjectFilterBar
+          searchTerm={organization.searchTerm}
+          onSearchChange={organization.setSearchTerm}
+          onSearchClear={organization.clearSearch}
+          filters={organization.filters}
+          onStatusChange={organization.setStatusFilter}
+          onPhaseChange={organization.setPhaseFilter}
+          onMethodChange={organization.setMethodFilter}
+          groupBy={organization.groupBy}
+          onGroupByChange={organization.setGroupBy}
+          phases={phaseOptions}
+          showGroupControls={organization.groupBy !== 'none'}
+          onExpandAll={organization.expandAllGroups}
+          onCollapseAll={organization.collapseAllGroups}
         />
-        <Typography variant="body2" color="text.secondary">
-          {injects.length} inject{injects.length !== 1 ? 's' : ''}
-        </Typography>
-      </Stack>
+      </Box>
+
+      {/* Active Filters Bar */}
+      {organization.hasActiveFilters && (
+        <Box marginBottom={2}>
+          <ActiveFiltersBar
+            filters={organization.activeFilterLabels}
+            totalCount={organization.totalCount}
+            filteredCount={organization.filteredCount}
+            onRemoveFilter={organization.clearFilter}
+            onClearAll={organization.clearAllFilters}
+          />
+        </Box>
+      )}
 
       {/* Loading skeleton state */}
       {isLoading && injects.length === 0 ? (
         <InjectTableSkeleton />
-      ) : filteredGroups.length === 0 ? (
+      ) : organization.filteredCount === 0 ? (
         <EmptyState
           hasInjects={injects.length > 0}
           canCreate={canFireInjects || canManage}
           onCreateClick={handleCreateClick}
+          hasFilters={organization.hasActiveFilters}
+          onClearFilters={organization.clearAllFilters}
         />
-      ) : (
-        <Stack spacing={3}>
-          {filteredGroups.map((group, index) => {
-            const phase = getPhaseForGroup(group.phaseId)
-            const isFirst = index === 0
-            const isLast = index === filteredGroups.length - 1
+      ) : organization.groups ? (
+        // Grouped view
+        <Stack spacing={2}>
+          {organization.groups.map((group, groupIndex) => {
+            const groupInjects = organization.getInjectsForGroup(group)
+            const expanded = isGroupExpanded(organization.expandedGroups, group.id)
+
+            // Extract phase ID from group ID (format: "phase-{uuid}" or "phase-unassigned")
+            const phaseId = group.id.startsWith('phase-') && group.id !== 'phase-unassigned'
+              ? group.id.replace('phase-', '')
+              : null
+
+            // Get phase object for edit dialog
+            const phase = phaseId ? phases.find(p => p.id === phaseId) : null
+
+            // Calculate first/last for real phases only (excluding unassigned)
+            const realPhaseGroups = organization.groups?.filter(
+              g => g.id.startsWith('phase-') && g.id !== 'phase-unassigned'
+            ) ?? []
+            const phaseGroupIndex = realPhaseGroups.findIndex(g => g.id === group.id)
+            const isFirstPhase = phaseGroupIndex === 0
+            const isLastPhase = phaseGroupIndex === realPhaseGroups.length - 1
 
             return (
-              <Box key={group.phaseId ?? 'unassigned'}>
-                {/* Phase header */}
-                {phase ? (
-                  <Box marginBottom={1}>
-                    <PhaseHeader
-                      phase={phase}
-                      isFirst={isFirst}
-                      isLast={isLast}
-                      canEdit={canFireInjects || canManage}
-                      onEdit={handleEditPhase}
-                      onDelete={handleDeletePhase}
-                      onMoveUp={movePhaseUp}
-                      onMoveDown={movePhaseDown}
-                      isLoading={isPhaseLoading}
-                    />
-                  </Box>
-                ) : (
-                  <Typography
-                    variant="subtitle1"
-                    fontWeight={600}
+              <Box key={group.id}>
+                <GroupHeader
+                  name={group.name}
+                  count={group.count}
+                  expanded={expanded}
+                  onToggle={() => organization.toggleGroupExpanded(group.id)}
+                  groupBy={organization.groupBy}
+                  statusValue={group.name}
+                  canManagePhases={canManage}
+                  phaseManagement={
+                    organization.groupBy === 'phase' && phaseId
+                      ? {
+                          phaseId,
+                          isFirst: isFirstPhase,
+                          isLast: isLastPhase,
+                          onEdit: () => phase && handleEditPhase(phase),
+                          onDelete: () => phase && handleDeletePhase(phase),
+                          onMoveUp: () => phaseId && movePhaseUp(phaseId),
+                          onMoveDown: () => phaseId && movePhaseDown(phaseId),
+                          isLoading: isPhaseLoading,
+                        }
+                      : undefined
+                  }
+                />
+                <Collapse in={expanded}>
+                  <TableContainer
+                    component={Paper}
+                    variant="outlined"
                     sx={{
-                      backgroundColor: 'grey.100',
-                      px: 2,
-                      py: 1,
-                      borderRadius: 1,
-                      mb: 1,
+                      borderTopLeftRadius: 0,
+                      borderTopRightRadius: 0,
+                      borderTop: 0,
                     }}
                   >
-                    Unassigned Phase
-                  </Typography>
-                )}
-
-                <TableContainer component={Paper}>
-                  <Table size="small">
-                    <TableHead>
-                      <TableRow>
-                        <TableCell width={60}>#</TableCell>
-                        <TableCell width={100}>Scheduled</TableCell>
-                        <TableCell width={100}>Scenario</TableCell>
-                        <TableCell>Title</TableCell>
-                        <TableCell width={80}>Type</TableCell>
-                        <TableCell width={90}>Status</TableCell>
-                        {canFireInjects && <TableCell width={100}>Actions</TableCell>}
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {group.injects.map(inject => (
-                        <InjectRow
-                          key={inject.id}
-                          inject={inject}
-                          onClick={() => handleRowClick(inject.id)}
-                          canFireInjects={canFireInjects}
-                          onFire={e => handleFireClick(e, inject.id)}
-                          onSkip={e => handleSkipClick(e, inject.id)}
-                          isFiring={isFiring}
-                          isSkipping={isSkipping}
-                        />
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
+                    <Table size="small">
+                      <TableHead>
+                        <TableRow>
+                          <SortableTableHeader
+                            column="injectNumber"
+                            label="#"
+                            activeColumn={organization.sort.column}
+                            direction={organization.sort.direction}
+                            onSort={organization.toggleSort}
+                            width={60}
+                          />
+                          <SortableTableHeader
+                            column="scheduledTime"
+                            label="Scheduled"
+                            activeColumn={organization.sort.column}
+                            direction={organization.sort.direction}
+                            onSort={organization.toggleSort}
+                            width={100}
+                          />
+                          <SortableTableHeader
+                            column="scenarioTime"
+                            label="Scenario"
+                            activeColumn={organization.sort.column}
+                            direction={organization.sort.direction}
+                            onSort={organization.toggleSort}
+                            width={100}
+                          />
+                          <SortableTableHeader
+                            column="title"
+                            label="Title"
+                            activeColumn={organization.sort.column}
+                            direction={organization.sort.direction}
+                            onSort={organization.toggleSort}
+                          />
+                          <TableCell width={140}>Target</TableCell>
+                          <TableCell width={90}>Method</TableCell>
+                          <SortableTableHeader
+                            column="status"
+                            label="Status"
+                            activeColumn={organization.sort.column}
+                            direction={organization.sort.direction}
+                            onSort={organization.toggleSort}
+                            width={90}
+                          />
+                          {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {groupInjects.map(inject => (
+                          <InjectRow
+                            key={inject.id}
+                            inject={inject}
+                            onClick={() => handleRowClick(inject.id)}
+                            canFireInjects={canFireInjects}
+                            onFire={e => handleFireClick(e, inject.id)}
+                            onSkip={e => handleSkipClick(e, inject.id)}
+                            isFiring={isFiring}
+                            isSkipping={isSkipping}
+                            searchTerm={organization.debouncedSearchTerm}
+                          />
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Collapse>
               </Box>
             )
           })}
         </Stack>
+      ) : (
+        // Flat list view (no grouping)
+        <TableContainer component={Paper}>
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                <SortableTableHeader
+                  column="injectNumber"
+                  label="#"
+                  activeColumn={organization.sort.column}
+                  direction={organization.sort.direction}
+                  onSort={organization.toggleSort}
+                  width={60}
+                />
+                <SortableTableHeader
+                  column="scheduledTime"
+                  label="Scheduled"
+                  activeColumn={organization.sort.column}
+                  direction={organization.sort.direction}
+                  onSort={organization.toggleSort}
+                  width={100}
+                />
+                <SortableTableHeader
+                  column="scenarioTime"
+                  label="Scenario"
+                  activeColumn={organization.sort.column}
+                  direction={organization.sort.direction}
+                  onSort={organization.toggleSort}
+                  width={100}
+                />
+                <SortableTableHeader
+                  column="title"
+                  label="Title"
+                  activeColumn={organization.sort.column}
+                  direction={organization.sort.direction}
+                  onSort={organization.toggleSort}
+                />
+                <TableCell width={140}>Target</TableCell>
+                <TableCell width={90}>Method</TableCell>
+                <SortableTableHeader
+                  column="status"
+                  label="Status"
+                  activeColumn={organization.sort.column}
+                  direction={organization.sort.direction}
+                  onSort={organization.toggleSort}
+                  width={90}
+                />
+                <SortableTableHeader
+                  column="phase"
+                  label="Phase"
+                  activeColumn={organization.sort.column}
+                  direction={organization.sort.direction}
+                  onSort={organization.toggleSort}
+                  width={120}
+                />
+                {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {organization.organizedInjects.map(inject => (
+                <InjectRow
+                  key={inject.id}
+                  inject={inject}
+                  onClick={() => handleRowClick(inject.id)}
+                  canFireInjects={canFireInjects}
+                  onFire={e => handleFireClick(e, inject.id)}
+                  onSkip={e => handleSkipClick(e, inject.id)}
+                  isFiring={isFiring}
+                  isSkipping={isSkipping}
+                  searchTerm={organization.debouncedSearchTerm}
+                  showPhase
+                />
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
       )}
 
       {/* Skip Reason Dialog */}
@@ -380,9 +545,7 @@ export const InjectListPage = () => {
           />
         </DialogContent>
         <DialogActions>
-          <CobraSecondaryButton onClick={handleSkipCancel}>
-            Cancel
-          </CobraSecondaryButton>
+          <CobraSecondaryButton onClick={handleSkipCancel}>Cancel</CobraSecondaryButton>
           <CobraPrimaryButton
             onClick={handleSkipConfirm}
             disabled={!skipReason.trim() || isSkipping}
@@ -419,9 +582,9 @@ const InjectTableSkeleton = () => {
             <TableCell>Scheduled</TableCell>
             <TableCell>Scenario</TableCell>
             <TableCell>Title</TableCell>
-            <TableCell>Type</TableCell>
+            <TableCell>Target</TableCell>
+            <TableCell>Method</TableCell>
             <TableCell>Status</TableCell>
-            <TableCell>Actions</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -440,13 +603,13 @@ const InjectTableSkeleton = () => {
                 <Skeleton variant="text" width={200} />
               </TableCell>
               <TableCell>
-                <Skeleton variant="rounded" width={60} height={24} />
+                <Skeleton variant="text" width={100} />
+              </TableCell>
+              <TableCell>
+                <Skeleton variant="text" width={60} />
               </TableCell>
               <TableCell>
                 <Skeleton variant="rounded" width={70} height={24} />
-              </TableCell>
-              <TableCell>
-                <Skeleton variant="circular" width={32} height={32} />
               </TableCell>
             </TableRow>
           ))}
@@ -464,6 +627,8 @@ interface InjectRowProps {
   onSkip: (e: React.MouseEvent) => void
   isFiring: boolean
   isSkipping: boolean
+  searchTerm?: string
+  showPhase?: boolean
 }
 
 const InjectRow = ({
@@ -474,11 +639,10 @@ const InjectRow = ({
   onSkip,
   isFiring,
   isSkipping,
+  searchTerm = '',
+  showPhase = false,
 }: InjectRowProps) => {
-  const scenarioTimeDisplay = formatScenarioTime(
-    inject.scenarioDay,
-    inject.scenarioTime,
-  )
+  const scenarioTimeDisplay = formatScenarioTime(inject.scenarioDay, inject.scenarioTime)
   const scheduledTimeDisplay = formatScheduledTime(inject.scheduledTime)
   const isPending = inject.status === InjectStatus.Pending
 
@@ -502,7 +666,10 @@ const InjectRow = ({
         <Typography variant="body2">{scheduledTimeDisplay}</Typography>
       </TableCell>
       <TableCell>
-        <Typography variant="body2" color={scenarioTimeDisplay ? 'text.primary' : 'text.secondary'}>
+        <Typography
+          variant="body2"
+          color={scenarioTimeDisplay ? 'text.primary' : 'text.secondary'}
+        >
           {scenarioTimeDisplay ?? '—'}
         </Typography>
       </TableCell>
@@ -516,15 +683,50 @@ const InjectRow = ({
             whiteSpace: 'nowrap',
           }}
         >
-          {inject.title}
+          <HighlightedText text={inject.title} searchTerm={searchTerm} />
         </Typography>
       </TableCell>
       <TableCell>
-        <InjectTypeChip type={inject.injectType} />
+        <Typography
+          variant="body2"
+          color={inject.target ? 'text.primary' : 'text.secondary'}
+          sx={{
+            maxWidth: 140,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {inject.target ?? '—'}
+        </Typography>
+      </TableCell>
+      <TableCell>
+        <Typography
+          variant="body2"
+          color={inject.deliveryMethod ? 'text.primary' : 'text.secondary'}
+        >
+          {inject.deliveryMethod ?? '—'}
+        </Typography>
       </TableCell>
       <TableCell>
         <InjectStatusChip status={inject.status} />
       </TableCell>
+      {showPhase && (
+        <TableCell>
+          <Typography
+            variant="body2"
+            color={inject.phaseName ? 'text.primary' : 'text.secondary'}
+            sx={{
+              maxWidth: 120,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {inject.phaseName ?? 'Unassigned'}
+          </Typography>
+        </TableCell>
+      )}
       {canFireInjects && (
         <TableCell>
           {isPending && (
@@ -561,11 +763,19 @@ interface EmptyStateProps {
   hasInjects: boolean
   canCreate: boolean
   onCreateClick: () => void
+  hasFilters?: boolean
+  onClearFilters?: () => void
 }
 
-const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) => {
+const EmptyState = ({
+  hasInjects,
+  canCreate,
+  onCreateClick,
+  hasFilters = false,
+  onClearFilters,
+}: EmptyStateProps) => {
   if (hasInjects) {
-    // Filtered to empty (search result)
+    // Filtered to empty (search/filter result)
     return (
       <Paper
         sx={{
@@ -589,7 +799,10 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
             margin: '0 auto 16px',
           }}
         >
-          <FontAwesomeIcon icon={faMagnifyingGlass} style={{ fontSize: 40, color: '#9e9e9e' }} />
+          <FontAwesomeIcon
+            icon={faMagnifyingGlass}
+            style={{ fontSize: 40, color: '#9e9e9e' }}
+          />
         </Box>
         <Typography variant="h6" gutterBottom>
           No matching injects
@@ -597,10 +810,16 @@ const EmptyState = ({ hasInjects, canCreate, onCreateClick }: EmptyStateProps) =
         <Typography
           variant="body2"
           color="text.secondary"
-          sx={{ maxWidth: 300, mx: 'auto' }}
+          sx={{ maxWidth: 300, mx: 'auto', mb: hasFilters ? 2 : 0 }}
         >
-          Try adjusting your search terms to find the inject you're looking for.
+          Try adjusting your search terms or filters to find the inject you're looking
+          for.
         </Typography>
+        {hasFilters && onClearFilters && (
+          <CobraSecondaryButton onClick={onClearFilters}>
+            Clear all filters
+          </CobraSecondaryButton>
+        )}
       </Paper>
     )
   }

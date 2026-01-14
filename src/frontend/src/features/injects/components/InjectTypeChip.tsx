@@ -51,8 +51,8 @@ const getInjectTypeChipColor = (
  * Only shown for non-Standard types to reduce visual noise
  */
 export const InjectTypeChip = ({ type }: InjectTypeChipProps) => {
-  // Don't show chip for standard injects (default)
-  if (type === 'Standard') {
+  // Don't show chip for standard injects (default) or if type is not set
+  if (!type || type === 'Standard') {
     return null
   }
 

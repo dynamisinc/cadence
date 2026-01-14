@@ -8,3 +8,12 @@ export { InjectListByStatus } from './InjectListByStatus'
 export { ReadyToFireBadge } from './ReadyToFireBadge'
 export { ReadyNotification } from './ReadyNotification'
 export { InjectDetailDrawer } from './InjectDetailDrawer'
+
+// Organization components
+export { SortableTableHeader } from './SortableTableHeader'
+export { FilterDropdown } from './FilterDropdown'
+export { FilterChip } from './FilterChip'
+export { ActiveFiltersBar } from './ActiveFiltersBar'
+export { GroupHeader } from './GroupHeader'
+export { GroupByDropdown } from './GroupByDropdown'
+export { InjectFilterBar } from './InjectFilterBar'
