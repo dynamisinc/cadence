@@ -118,6 +118,13 @@ export const InjectOrganizationProvider = ({
   // Track the previous groupBy to detect actual changes (not just initial mount)
   const prevGroupByRef = useRef<GroupBy>(groupBy)
 
+  // Create a stable string representation for dependency comparison
+  // This avoids triggering the persistence effect on every Set reference change
+  const expandedGroupsKey = useMemo(
+    () => Array.from(expandedGroups).sort().join(','),
+    [expandedGroups],
+  )
+
   // Persist state changes - only persist expanded groups if they're non-empty
   // This prevents overwriting good state with empty state on initial mount
   useEffect(() => {
@@ -128,7 +135,7 @@ export const InjectOrganizationProvider = ({
       groupBy,
       expandedGroupIds: Array.from(expandedGroups),
     })
-  }, [exerciseId, searchTerm, filters, sort, groupBy, expandedGroups])
+  }, [exerciseId, searchTerm, filters, sort, groupBy, expandedGroupsKey])
 
   // Reset expanded groups when groupBy ACTUALLY changes (not on initial mount)
   useEffect(() => {
