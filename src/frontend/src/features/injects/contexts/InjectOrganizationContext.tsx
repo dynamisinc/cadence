@@ -17,8 +17,6 @@ import {
 } from 'react'
 import { useDebounce } from '../../../shared/hooks'
 import type {
-  InjectOrganizationState,
-  InjectOrganizationActions,
   InjectOrganizationContextValue,
   SortConfig,
   FilterState,

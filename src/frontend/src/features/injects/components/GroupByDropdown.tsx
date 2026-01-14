@@ -4,7 +4,7 @@
  * A dropdown for selecting how to group injects.
  */
 
-import { Box, Typography, Select, MenuItem, FormControl, InputLabel } from '@mui/material'
+import { Box, Typography, Select, MenuItem } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLayerGroup } from '@fortawesome/free-solid-svg-icons'
 import type { GroupBy } from '../types/organization'
@@ -30,7 +30,7 @@ export const GroupByDropdown = ({ value, onChange }: GroupByDropdownProps) => {
       </Box>
       <Select
         value={value}
-        onChange={(e) => onChange(e.target.value as GroupBy)}
+        onChange={e => onChange(e.target.value as GroupBy)}
         size="small"
         variant="outlined"
         sx={{

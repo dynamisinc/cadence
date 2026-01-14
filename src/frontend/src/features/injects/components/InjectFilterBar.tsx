@@ -129,7 +129,7 @@ export const InjectFilterBar = ({
           inputRef={searchInputRef}
           placeholder="Search injects..."
           value={searchTerm}
-          onChange={(e) => onSearchChange(e.target.value)}
+          onChange={e => onSearchChange(e.target.value)}
           size="small"
           sx={{ width: 360 }}
           InputProps={{

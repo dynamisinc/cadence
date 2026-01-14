@@ -12,7 +12,7 @@ import type { InjectGroup, SearchableField } from '../types/organization'
 import { sortInjects, buildPhaseSequenceMap } from '../utils/sortUtils'
 import { applyFilters, hasActiveFilters, getActiveFilterLabels, buildPhaseNameMap } from '../utils/filterUtils'
 import { filterBySearch, getSearchMatches, createSearchMatchMap } from '../utils/searchUtils'
-import { groupInjects, getInjectsForGroup, initExpandedGroups, getGroupsContainingInjects } from '../utils/groupUtils'
+import { groupInjects, getInjectsForGroup, getGroupsContainingInjects } from '../utils/groupUtils'
 
 export interface PhaseInfo {
   id: string
@@ -129,8 +129,6 @@ export function useInjectOrganization(
   // IMPORTANT: We need to wait for phases to load before initializing when groupBy='phase',
   // otherwise we might expand wrong group IDs (e.g., 'phase-unassigned' instead of actual phase IDs)
   const hasInitializedRef = useRef(false)
-  const initializeExpandedGroupsRef = useRef(context.initializeExpandedGroups)
-  initializeExpandedGroupsRef.current = context.initializeExpandedGroups
 
   useEffect(() => {
     // Don't initialize until we have groups
@@ -150,8 +148,8 @@ export function useInjectOrganization(
 
     // Get all group IDs for initial expansion
     const allGroupIds = groups.map(g => g.id)
-    initializeExpandedGroupsRef.current(allGroupIds)
-  }, [groups, phases.length, context.groupBy])
+    context.initializeExpandedGroups(allGroupIds)
+  }, [groups, phases.length, context.groupBy, context.initializeExpandedGroups])
 
   // Track previous search/filter state to detect changes
   const prevSearchRef = useRef<string>('')

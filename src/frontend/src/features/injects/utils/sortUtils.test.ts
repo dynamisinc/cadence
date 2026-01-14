@@ -10,7 +10,7 @@ import {
   buildPhaseSequenceMap,
 } from './sortUtils'
 import type { InjectDto } from '../types'
-import type { SortConfig, SortDirection } from '../types/organization'
+import type { SortConfig } from '../types/organization'
 import { InjectStatus, InjectType } from '../../../types'
 
 // Helper to create test inject data

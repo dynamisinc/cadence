@@ -63,9 +63,6 @@ export function groupByPhase(
   injects: InjectDto[],
   phases: Array<{ id: string; name: string; sequence: number }>,
 ): InjectGroup[] {
-  // Build phase lookup
-  const phaseMap = new Map(phases.map(p => [p.id, p]))
-
   // Build groups map
   const groupMap = new Map<string | null, string[]>()
 
@@ -142,7 +139,6 @@ export function getInjectsForGroup(
   injects: InjectDto[],
   group: InjectGroup,
 ): InjectDto[] {
-  const idSet = new Set(group.injectIds)
   // Maintain the order from injectIds
   return group.injectIds
     .map(id => injects.find(i => i.id === id))

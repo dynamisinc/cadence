@@ -55,7 +55,6 @@ import { usePermissions } from '../../../shared/hooks'
 import { InjectStatus } from '../../../types'
 import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
-import type { SortableColumn, InjectGroup } from '../types/organization'
 import { formatScenarioTime, formatScheduledTime } from '../types'
 import { isGroupExpanded } from '../utils/groupUtils'
 
@@ -119,11 +118,11 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'MSEL' },
-        ]
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'MSEL' },
+      ]
       : undefined,
   )
 
@@ -209,12 +208,6 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
       })
     }
     handlePhaseFormClose()
-  }
-
-  // Get phase data for rendering with phase headers in non-grouped view
-  const getPhaseForId = (phaseId: string | null): PhaseDto | null => {
-    if (!phaseId) return null
-    return phases.find(p => p.id === phaseId) || null
   }
 
   // Error state
@@ -323,7 +316,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
       ) : organization.groups ? (
         // Grouped view
         <Stack spacing={2}>
-          {organization.groups.map((group, groupIndex) => {
+          {organization.groups.map(group => {
             const groupInjects = organization.getInjectsForGroup(group)
             const expanded = isGroupExpanded(organization.expandedGroups, group.id)
 
@@ -337,7 +330,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
             // Calculate first/last for real phases only (excluding unassigned)
             const realPhaseGroups = organization.groups?.filter(
-              g => g.id.startsWith('phase-') && g.id !== 'phase-unassigned'
+              g => g.id.startsWith('phase-') && g.id !== 'phase-unassigned',
             ) ?? []
             const phaseGroupIndex = realPhaseGroups.findIndex(g => g.id === group.id)
             const isFirstPhase = phaseGroupIndex === 0
@@ -356,15 +349,15 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
                   phaseManagement={
                     organization.groupBy === 'phase' && phaseId
                       ? {
-                          phaseId,
-                          isFirst: isFirstPhase,
-                          isLast: isLastPhase,
-                          onEdit: () => phase && handleEditPhase(phase),
-                          onDelete: () => phase && handleDeletePhase(phase),
-                          onMoveUp: () => phaseId && movePhaseUp(phaseId),
-                          onMoveDown: () => phaseId && movePhaseDown(phaseId),
-                          isLoading: isPhaseLoading,
-                        }
+                        phaseId,
+                        isFirst: isFirstPhase,
+                        isLast: isLastPhase,
+                        onEdit: () => phase && handleEditPhase(phase),
+                        onDelete: () => phase && handleDeletePhase(phase),
+                        onMoveUp: () => phaseId && movePhaseUp(phaseId),
+                        onMoveDown: () => phaseId && movePhaseDown(phaseId),
+                        isLoading: isPhaseLoading,
+                      }
                       : undefined
                   }
                 />

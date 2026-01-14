@@ -172,7 +172,7 @@ export const GroupHeader = ({
             <span>
               <IconButton
                 size="small"
-                onClick={(e) => handleManagementClick(e, phaseManagement.onMoveUp)}
+                onClick={e => handleManagementClick(e, phaseManagement.onMoveUp)}
                 disabled={phaseManagement.isFirst || phaseManagement.isLoading}
                 sx={{ p: 0.5 }}
               >
@@ -186,7 +186,7 @@ export const GroupHeader = ({
             <span>
               <IconButton
                 size="small"
-                onClick={(e) => handleManagementClick(e, phaseManagement.onMoveDown)}
+                onClick={e => handleManagementClick(e, phaseManagement.onMoveDown)}
                 disabled={phaseManagement.isLast || phaseManagement.isLoading}
                 sx={{ p: 0.5 }}
               >
@@ -199,7 +199,7 @@ export const GroupHeader = ({
           <Tooltip title="Edit phase">
             <IconButton
               size="small"
-              onClick={(e) => handleManagementClick(e, phaseManagement.onEdit)}
+              onClick={e => handleManagementClick(e, phaseManagement.onEdit)}
               disabled={phaseManagement.isLoading}
               sx={{ p: 0.5 }}
             >
@@ -218,7 +218,7 @@ export const GroupHeader = ({
             <span>
               <IconButton
                 size="small"
-                onClick={(e) => handleManagementClick(e, phaseManagement.onDelete)}
+                onClick={e => handleManagementClick(e, phaseManagement.onDelete)}
                 disabled={count > 0 || phaseManagement.isLoading}
                 color={count > 0 ? 'default' : 'error'}
                 sx={{ p: 0.5 }}
