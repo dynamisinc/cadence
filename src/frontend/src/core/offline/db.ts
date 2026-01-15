@@ -171,13 +171,17 @@ export const db = new CadenceDatabase()
  * Clear all cached data for a specific exercise
  */
 export async function clearExerciseCache(exerciseId: string): Promise<void> {
-  await db.transaction('rw', [db.exercises, db.phases, db.injects, db.observations], async () => {
-    await db.exercises.delete(exerciseId)
-    await db.phases.where('exerciseId').equals(exerciseId).delete()
-    await db.injects.where('exerciseId').equals(exerciseId).delete()
-    await db.observations.where('exerciseId').equals(exerciseId).delete()
-    await db.syncMetadata.delete(`exercise-${exerciseId}`)
-  })
+  await db.transaction(
+    'rw',
+    [db.exercises, db.phases, db.injects, db.observations, db.syncMetadata],
+    async () => {
+      await db.exercises.delete(exerciseId)
+      await db.phases.where('exerciseId').equals(exerciseId).delete()
+      await db.injects.where('exerciseId').equals(exerciseId).delete()
+      await db.observations.where('exerciseId').equals(exerciseId).delete()
+      await db.syncMetadata.delete(`exercise-${exerciseId}`)
+    },
+  )
 }
 
 /**
@@ -257,7 +261,7 @@ export async function incrementRetryCount(id: number): Promise<void> {
   await db.pendingActions
     .where('id')
     .equals(id)
-    .modify((action) => {
+    .modify(action => {
       action.retryCount++
     })
 }
@@ -283,14 +287,18 @@ export async function pruneOldCache(daysOld: number = 7): Promise<void> {
   const cutoff = new Date()
   cutoff.setDate(cutoff.getDate() - daysOld)
 
-  await db.transaction('rw', [db.exercises, db.phases, db.injects, db.observations], async () => {
-    // Get exercises older than cutoff
-    const oldExercises = await db.exercises.where('cachedAt').below(cutoff).toArray()
+  await db.transaction(
+    'rw',
+    [db.exercises, db.phases, db.injects, db.observations, db.syncMetadata],
+    async () => {
+      // Get exercises older than cutoff
+      const oldExercises = await db.exercises.where('cachedAt').below(cutoff).toArray()
 
-    for (const exercise of oldExercises) {
-      await clearExerciseCache(exercise.id)
-    }
-  })
+      for (const exercise of oldExercises) {
+        await clearExerciseCache(exercise.id)
+      }
+    },
+  )
 }
 
 /**

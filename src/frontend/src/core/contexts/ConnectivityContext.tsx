@@ -70,7 +70,7 @@ interface ConnectivityProviderProps {
 
 export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ children }) => {
   const [isOnline, setIsOnline] = useState<boolean>(
-    typeof navigator !== 'undefined' ? navigator.onLine : true
+    typeof navigator !== 'undefined' ? navigator.onLine : true,
   )
   const [signalRState, setSignalRStateInternal] = useState<SignalRState | null>(null)
   const [isInExercise, setIsInExercise] = useState(false)
@@ -136,7 +136,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
 
   // Show toast when SignalR state changes (only when in exercise)
   const setSignalRState = useCallback((state: SignalRState | null) => {
-    setSignalRStateInternal((prevState) => {
+    setSignalRStateInternal(prevState => {
       // Only show toasts if state actually changed and we're in an exercise
       if (isInExercise && prevState !== state && prevState !== null) {
         if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
@@ -158,11 +158,11 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
   }, [])
 
   const incrementPendingCount = useCallback(() => {
-    setPendingCountInternal((prev) => prev + 1)
+    setPendingCountInternal(prev => prev + 1)
   }, [])
 
   const decrementPendingCount = useCallback(() => {
-    setPendingCountInternal((prev) => Math.max(0, prev - 1))
+    setPendingCountInternal(prev => Math.max(0, prev - 1))
   }, [])
 
   const value = useMemo(
@@ -188,7 +188,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       setPendingCount,
       incrementPendingCount,
       decrementPendingCount,
-    ]
+    ],
   )
 
   return (

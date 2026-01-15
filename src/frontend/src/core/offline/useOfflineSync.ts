@@ -52,7 +52,7 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
   const { exerciseId, autoSync = true, autoSyncDelay = 2000 } = options
 
   const queryClient = useQueryClient()
-  const { isOnline, connectivityState, setPendingCount } = useConnectivity()
+  const { connectivityState, setPendingCount } = useConnectivity()
 
   const [syncStatus, setSyncStatus] = useState<SyncProgress['status']>('idle')
   const [progress, setProgress] = useState<SyncProgress | null>(null)
@@ -80,9 +80,11 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
     setSyncStatus('syncing')
     setProgress({ status: 'syncing', current: 0, total: 0, conflicts: [] })
 
+    let latestConflicts: ConflictInfo[] = []
     const handleProgress = (prog: SyncProgress) => {
       setProgress(prog)
       setSyncStatus(prog.status)
+      latestConflicts = prog.conflicts
     }
 
     try {
@@ -94,7 +96,7 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
 
       // Handle results
       if (result.failed > 0) {
-        setConflicts(progress?.conflicts ?? [])
+        setConflicts(latestConflicts)
 
         if (result.succeeded === 0) {
           toast.error(`Sync failed. ${result.failed} action(s) could not be synced.`, {
@@ -133,7 +135,7 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
         failedActions: [],
       }
     }
-  }, [exerciseId, queryClient, refreshPendingCount, progress?.conflicts])
+  }, [exerciseId, queryClient, refreshPendingCount])
 
   // Auto-sync on reconnect
   useEffect(() => {

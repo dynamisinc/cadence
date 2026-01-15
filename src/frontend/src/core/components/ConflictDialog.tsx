@@ -74,7 +74,7 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
           changes made by other users:
         </Typography>
         <List dense>
-          {conflicts.map((conflict) => {
+          {conflicts.map(conflict => {
             const actionInfo = actionLabels[conflict.type]
             return (
               <ListItem

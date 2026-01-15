@@ -70,7 +70,7 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
  */
 export async function cacheInjects(exerciseId: string, injects: InjectDto[]): Promise<void> {
   const now = new Date()
-  const cached: CachedInject[] = injects.map((inject) => ({
+  const cached: CachedInject[] = injects.map(inject => ({
     id: inject.id,
     exerciseId,
     mselId: inject.mselId,
@@ -95,15 +95,26 @@ export async function cacheInjects(exerciseId: string, injects: InjectDto[]): Pr
   }))
 
   await db.transaction('rw', db.injects, async () => {
+    // Get IDs of items with pendingSync to preserve them
+    const pendingSyncItems = await db.injects
+      .where('exerciseId')
+      .equals(exerciseId)
+      .and(i => !!i.pendingSync)
+      .toArray()
+    const pendingSyncIds = new Set(pendingSyncItems.map(i => i.id))
+
     // Remove old cached injects that aren't pending sync
     await db.injects
       .where('exerciseId')
       .equals(exerciseId)
-      .and((i) => !i.pendingSync)
+      .and(i => !i.pendingSync)
       .delete()
 
-    // Add new cached injects
-    await db.injects.bulkPut(cached)
+    // Filter out server items that would overwrite pendingSync items
+    const safeToCache = cached.filter(c => !pendingSyncIds.has(c.id))
+
+    // Add new cached injects (excluding those that would overwrite pendingSync)
+    await db.injects.bulkPut(safeToCache)
   })
 
   await updateSyncMetadata(`injects-${exerciseId}`)
@@ -170,7 +181,7 @@ export async function cacheObservations(
   observations: ObservationDto[],
 ): Promise<void> {
   const now = new Date()
-  const cached: CachedObservation[] = observations.map((obs) => ({
+  const cached: CachedObservation[] = observations.map(obs => ({
     id: obs.id,
     exerciseId,
     injectId: obs.injectId,
@@ -185,15 +196,26 @@ export async function cacheObservations(
   }))
 
   await db.transaction('rw', db.observations, async () => {
+    // Get IDs of items with pendingSync to preserve them
+    const pendingSyncItems = await db.observations
+      .where('exerciseId')
+      .equals(exerciseId)
+      .and(o => !!o.pendingSync)
+      .toArray()
+    const pendingSyncIds = new Set(pendingSyncItems.map(o => o.id))
+
     // Remove old cached observations that aren't pending sync
     await db.observations
       .where('exerciseId')
       .equals(exerciseId)
-      .and((o) => !o.pendingSync)
+      .and(o => !o.pendingSync)
       .delete()
 
-    // Add new cached observations
-    await db.observations.bulkPut(cached)
+    // Filter out server items that would overwrite pendingSync items
+    const safeToCache = cached.filter(c => !pendingSyncIds.has(c.id))
+
+    // Add new cached observations (excluding those that would overwrite pendingSync)
+    await db.observations.bulkPut(safeToCache)
   })
 
   await updateSyncMetadata(`observations-${exerciseId}`)

@@ -72,7 +72,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
   autoSyncDelay = 2000,
 }) => {
   const queryClient = useQueryClient()
-  const { isOnline, connectivityState, setPendingCount } = useConnectivity()
+  const { connectivityState, setPendingCount } = useConnectivity()
 
   const [syncStatus, setSyncStatus] = useState<SyncProgress['status']>('idle')
   const [progress, setProgress] = useState<SyncProgress | null>(null)
@@ -82,6 +82,15 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
   const wasOfflineRef = useRef(false)
   const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
   const hasInitializedRef = useRef(false)
+  const isMountedRef = useRef(true)
+
+  // Track mounted state to prevent state updates after unmount
+  useEffect(() => {
+    isMountedRef.current = true
+    return () => {
+      isMountedRef.current = false
+    }
+  }, [])
 
   // Refresh pending count from IndexedDB
   const refreshPendingCount = useCallback(async () => {
@@ -191,16 +200,21 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
 
       // Delay sync to ensure stable connection
       syncTimeoutRef.current = setTimeout(async () => {
+        // Check if still mounted before proceeding
+        if (!isMountedRef.current) return
+
         try {
           const count = await getPendingActionCount()
-          if (count > 0) {
+          if (count > 0 && isMountedRef.current) {
             toast.info(`Syncing ${count} pending change(s)...`, { autoClose: 2000 })
             await sync()
           }
         } catch (error) {
           console.error('Auto-sync failed:', error)
         }
-        wasOfflineRef.current = false
+        if (isMountedRef.current) {
+          wasOfflineRef.current = false
+        }
       }, autoSyncDelay)
     }
 

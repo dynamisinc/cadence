@@ -30,7 +30,7 @@ describe('ConflictDialog', () => {
   })
 
   it('renders nothing when closed', () => {
-    const { container } = render(
+    render(
       <ConflictDialog open={false} conflicts={mockConflicts} onClose={vi.fn()} />,
     )
     // MUI Dialog should not render content when closed
