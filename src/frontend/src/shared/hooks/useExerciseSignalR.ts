@@ -50,6 +50,8 @@ interface UseExerciseSignalROptions {
   onObservationUpdated?: (observation: ObservationDto) => void
   /** Called when an observation is deleted */
   onObservationDeleted?: (observationId: string) => void
+  /** Called when connection is restored after being disconnected */
+  onReconnected?: () => void
   /** Whether to automatically connect (default: true) */
   enabled?: boolean
 }
@@ -90,6 +92,7 @@ export const useExerciseSignalR = (
     onObservationAdded,
     onObservationUpdated,
     onObservationDeleted,
+    onReconnected,
     enabled = true,
   } = options
 
@@ -98,6 +101,12 @@ export const useExerciseSignalR = (
   const [error, setError] = useState<string | null>(null)
   const connectionRef = useRef<signalR.HubConnection | null>(null)
   const currentExerciseIdRef = useRef<string | null>(null)
+  const onReconnectedRef = useRef(onReconnected)
+
+  // Keep onReconnected ref up to date
+  useEffect(() => {
+    onReconnectedRef.current = onReconnected
+  }, [onReconnected])
 
   /**
    * Create and configure the SignalR connection
@@ -274,6 +283,8 @@ export const useExerciseSignalR = (
         if (exerciseId && connectionRef.current) {
           await joinExercise(connectionRef.current, exerciseId)
         }
+        // Notify caller that connection was restored so they can refresh state
+        onReconnectedRef.current?.()
       })
 
       // Set up event handlers
@@ -291,7 +302,14 @@ export const useExerciseSignalR = (
       setConnectionState('error')
       console.error('SignalR connection error:', err)
     }
-  }, [exerciseId, createConnection, joinExercise, leaveExercise, setupEventHandlers, removeEventHandlers])
+  }, [
+    exerciseId,
+    createConnection,
+    joinExercise,
+    leaveExercise,
+    setupEventHandlers,
+    removeEventHandlers,
+  ])
 
   /**
    * Disconnect from the SignalR hub

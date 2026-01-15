@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, GlobalSyncStatus } from './core/components'
+import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner } from './core/components'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Typography } from '@mui/material'
@@ -146,6 +146,8 @@ function App() {
               <FeatureFlagsProvider>
                 <RouterProvider router={router} />
                 <GlobalSyncStatus />
+                <UpdatePrompt />
+                <InstallBanner />
               </FeatureFlagsProvider>
             </MobileBlocker>
           </OfflineSyncProvider>
