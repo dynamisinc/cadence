@@ -60,7 +60,7 @@ const createInjectDto = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   target: 'Target Team',
   source: null,
   deliveryMethod: null,
-  injectType: 'Operational',
+  injectType: 'Standard',
   status: 'Pending',
   sequence: 1,
   parentInjectId: null,

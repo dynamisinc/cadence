@@ -68,6 +68,7 @@ export interface CachedInject {
   from?: string | null
   to?: string | null
   method?: string | null
+  injectType?: string | null
   updatedAt: string
   cachedAt: Date
   /** Whether this has local changes pending sync */
