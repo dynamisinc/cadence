@@ -28,6 +28,80 @@ import type { ExerciseDto } from '../../features/exercises/types'
 import type { InjectDto } from '../../features/injects/types'
 import type { ObservationDto } from '../../features/observations/types'
 
+// Helper to create complete ExerciseDto
+const createExerciseDto = (overrides: Partial<ExerciseDto> = {}): ExerciseDto => ({
+  id: 'ex-123',
+  name: 'Test Exercise',
+  description: null,
+  exerciseType: 'TTX',
+  status: 'Draft',
+  isPracticeMode: false,
+  scheduledDate: '2025-01-15',
+  startTime: null,
+  endTime: null,
+  timeZoneId: 'UTC',
+  location: null,
+  organizationId: 'org-1',
+  activeMselId: null,
+  updatedAt: '2025-01-14T12:00:00Z',
+  createdAt: '2025-01-01T12:00:00Z',
+  ...overrides,
+})
+
+// Helper to create complete InjectDto
+const createInjectDto = (overrides: Partial<InjectDto> = {}): InjectDto => ({
+  id: 'inj-1',
+  injectNumber: 1,
+  title: 'Test Inject',
+  description: 'Test description',
+  scheduledTime: '09:00:00',
+  scenarioDay: null,
+  scenarioTime: null,
+  target: 'Target Team',
+  source: null,
+  deliveryMethod: null,
+  injectType: 'Operational',
+  status: 'Pending',
+  sequence: 1,
+  parentInjectId: null,
+  triggerCondition: null,
+  expectedAction: null,
+  controllerNotes: null,
+  firedAt: null,
+  firedBy: null,
+  firedByName: null,
+  skippedAt: null,
+  skippedBy: null,
+  skippedByName: null,
+  skipReason: null,
+  mselId: 'msel-1',
+  phaseId: null,
+  phaseName: null,
+  updatedAt: '2025-01-14T12:00:00Z',
+  createdAt: '2025-01-01T12:00:00Z',
+  ...overrides,
+})
+
+// Helper to create complete ObservationDto
+const createObservationDto = (overrides: Partial<ObservationDto> = {}): ObservationDto => ({
+  id: 'obs-1',
+  exerciseId: 'ex-123',
+  injectId: null,
+  objectiveId: null,
+  content: 'Test observation',
+  rating: null,
+  recommendation: null,
+  observedAt: '2025-01-14T12:00:00Z',
+  location: null,
+  createdBy: 'user-1',
+  createdByName: 'John Doe',
+  injectTitle: null,
+  injectNumber: null,
+  updatedAt: '2025-01-14T12:00:00Z',
+  createdAt: '2025-01-01T12:00:00Z',
+  ...overrides,
+})
+
 describe('cacheService', () => {
   beforeEach(async () => {
     await clearAllCache()
@@ -43,17 +117,11 @@ describe('cacheService', () => {
 
   describe('cacheExercise', () => {
     it('caches an exercise with all fields', async () => {
-      const exercise: ExerciseDto = {
-        id: 'ex-123',
+      const exercise = createExerciseDto({
         name: 'Test Exercise',
         description: 'A test exercise',
-        exerciseType: 'TTX',
         status: 'Active',
-        startDate: '2025-01-15T09:00:00Z',
-        endDate: '2025-01-15T17:00:00Z',
-        updatedAt: '2025-01-14T12:00:00Z',
-        createdAt: '2025-01-01T12:00:00Z',
-      }
+      })
 
       await cacheExercise(exercise)
 
@@ -65,14 +133,7 @@ describe('cacheService', () => {
     })
 
     it('updates sync metadata when caching', async () => {
-      const exercise: ExerciseDto = {
-        id: 'ex-123',
-        name: 'Test',
-        exerciseType: 'TTX',
-        status: 'Draft',
-        updatedAt: '2025-01-14T12:00:00Z',
-        createdAt: '2025-01-01T12:00:00Z',
-      }
+      const exercise = createExerciseDto()
 
       await cacheExercise(exercise)
 
@@ -82,22 +143,12 @@ describe('cacheService', () => {
     })
 
     it('overwrites existing cached exercise', async () => {
-      const exercise1: ExerciseDto = {
-        id: 'ex-123',
-        name: 'Original',
-        exerciseType: 'TTX',
-        status: 'Draft',
-        updatedAt: '2025-01-14T12:00:00Z',
-        createdAt: '2025-01-01T12:00:00Z',
-      }
-      const exercise2: ExerciseDto = {
-        id: 'ex-123',
+      const exercise1 = createExerciseDto({ name: 'Original' })
+      const exercise2 = createExerciseDto({
         name: 'Updated',
         exerciseType: 'FSE',
         status: 'Active',
-        updatedAt: '2025-01-15T12:00:00Z',
-        createdAt: '2025-01-01T12:00:00Z',
-      }
+      })
 
       await cacheExercise(exercise1)
       await cacheExercise(exercise2)
@@ -138,8 +189,8 @@ describe('cacheService', () => {
         description: 'Description',
         exerciseType: 'TTX',
         status: 'Active',
-        startDate: '2025-01-15T09:00:00Z',
-        endDate: '2025-01-15T17:00:00Z',
+        startDate: '2025-01-15',
+        endDate: null,
         updatedAt: '2025-01-14T12:00:00Z',
         cachedAt: new Date(),
       }
@@ -161,24 +212,13 @@ describe('cacheService', () => {
   describe('cacheInjects', () => {
     it('caches multiple injects', async () => {
       const injects: InjectDto[] = [
-        {
-          id: 'inj-1',
-          exerciseId: 'ex-123',
-          injectNumber: 1,
-          title: 'Inject 1',
-          status: 'Pending',
-          updatedAt: '2025-01-14T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
-        {
+        createInjectDto({ id: 'inj-1', injectNumber: 1, title: 'Inject 1' }),
+        createInjectDto({
           id: 'inj-2',
-          exerciseId: 'ex-123',
           injectNumber: 2,
           title: 'Inject 2',
-          status: 'Delivered',
-          updatedAt: '2025-01-14T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
+          status: 'Fired',
+        }),
       ]
 
       await cacheInjects('ex-123', injects)
@@ -194,7 +234,7 @@ describe('cacheService', () => {
         exerciseId: 'ex-123',
         injectNumber: 1,
         title: 'Pending Inject',
-        status: 'Delivered',
+        status: 'Fired',
         updatedAt: '2025-01-14T12:00:00Z',
         cachedAt: new Date(),
         pendingSync: true,
@@ -202,15 +242,7 @@ describe('cacheService', () => {
 
       // Cache new injects from server
       const serverInjects: InjectDto[] = [
-        {
-          id: 'inj-server',
-          exerciseId: 'ex-123',
-          injectNumber: 2,
-          title: 'Server Inject',
-          status: 'Pending',
-          updatedAt: '2025-01-14T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
+        createInjectDto({ id: 'inj-server', injectNumber: 2, title: 'Server Inject' }),
       ]
 
       await cacheInjects('ex-123', serverInjects)
@@ -240,15 +272,7 @@ describe('cacheService', () => {
 
       // Cache new injects from server (which doesn't include the old one)
       const serverInjects: InjectDto[] = [
-        {
-          id: 'inj-new',
-          exerciseId: 'ex-123',
-          injectNumber: 2,
-          title: 'New Inject',
-          status: 'Pending',
-          updatedAt: '2025-01-15T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
+        createInjectDto({ id: 'inj-new', injectNumber: 2, title: 'New Inject' }),
       ]
 
       await cacheInjects('ex-123', serverInjects)
@@ -319,10 +343,10 @@ describe('cacheService', () => {
         cachedAt: new Date(),
       })
 
-      await updateCachedInject('inj-1', { status: 'Delivered', pendingSync: true })
+      await updateCachedInject('inj-1', { status: 'Fired', pendingSync: true })
 
       const inject = await db.injects.get('inj-1')
-      expect(inject?.status).toBe('Delivered')
+      expect(inject?.status).toBe('Fired')
       expect(inject?.pendingSync).toBe(true)
       expect(inject?.title).toBe('Original') // Unchanged
     })
@@ -339,7 +363,7 @@ describe('cacheService', () => {
         cachedAt: oldDate,
       })
 
-      await updateCachedInject('inj-1', { status: 'Delivered' })
+      await updateCachedInject('inj-1', { status: 'Fired' })
 
       const inject = await db.injects.get('inj-1')
       expect(inject?.cachedAt.getTime()).toBeGreaterThan(oldDate.getTime())
@@ -353,7 +377,7 @@ describe('cacheService', () => {
         exerciseId: 'ex-123',
         injectNumber: 1,
         title: 'Test Inject',
-        status: 'Delivered',
+        status: 'Fired',
         updatedAt: '2025-01-14T12:00:00Z',
         cachedAt: new Date(),
         pendingSync: true,
@@ -363,7 +387,7 @@ describe('cacheService', () => {
 
       expect(dto.id).toBe('inj-1')
       expect(dto.title).toBe('Test Inject')
-      expect(dto.status).toBe('Delivered')
+      expect(dto.status).toBe('Fired')
       expect(dto.pendingSync).toBe(true)
     })
   })
@@ -375,21 +399,8 @@ describe('cacheService', () => {
   describe('cacheObservations', () => {
     it('caches multiple observations', async () => {
       const observations: ObservationDto[] = [
-        {
-          id: 'obs-1',
-          exerciseId: 'ex-123',
-          content: 'Observation 1',
-          updatedAt: '2025-01-14T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
-        {
-          id: 'obs-2',
-          exerciseId: 'ex-123',
-          content: 'Observation 2',
-          injectId: 'inj-1',
-          updatedAt: '2025-01-14T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
+        createObservationDto({ id: 'obs-1', content: 'Observation 1' }),
+        createObservationDto({ id: 'obs-2', content: 'Observation 2', injectId: 'inj-1' }),
       ]
 
       await cacheObservations('ex-123', observations)
@@ -409,13 +420,7 @@ describe('cacheService', () => {
       })
 
       const serverObservations: ObservationDto[] = [
-        {
-          id: 'obs-server',
-          exerciseId: 'ex-123',
-          content: 'Server observation',
-          updatedAt: '2025-01-14T12:00:00Z',
-          createdAt: '2025-01-01T12:00:00Z',
-        },
+        createObservationDto({ id: 'obs-server', content: 'Server observation' }),
       ]
 
       await cacheObservations('ex-123', serverObservations)
@@ -489,11 +494,11 @@ describe('cacheService', () => {
         cachedAt: new Date(),
       })
 
-      await updateCachedObservation('obs-1', { content: 'Updated', rating: 'Excellent' })
+      await updateCachedObservation('obs-1', { content: 'Updated', rating: 'Exceeded' })
 
       const observation = await db.observations.get('obs-1')
       expect(observation?.content).toBe('Updated')
-      expect(observation?.rating).toBe('Excellent')
+      expect(observation?.rating).toBe('Exceeded')
     })
   })
 
@@ -520,7 +525,7 @@ describe('cacheService', () => {
         id: 'obs-1',
         exerciseId: 'ex-123',
         content: 'Test observation',
-        rating: 'Good',
+        rating: 'Met',
         recommendation: 'Keep it up',
         createdById: 'user-1',
         createdByName: 'John Doe',
@@ -534,7 +539,7 @@ describe('cacheService', () => {
 
       expect(dto.id).toBe('obs-1')
       expect(dto.content).toBe('Test observation')
-      expect(dto.rating).toBe('Good')
+      expect(dto.rating).toBe('Met')
       expect(dto.pendingSync).toBe(true)
       expect(dto.tempId).toBe('temp-123')
     })

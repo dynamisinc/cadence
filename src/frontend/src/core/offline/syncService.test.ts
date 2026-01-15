@@ -229,13 +229,13 @@ describe('syncService', () => {
       await addPendingAction({
         type: 'FIRE_INJECT',
         exerciseId: 'ex-123',
-        payload: { injectId: 'inj-456', firedAt: '2025-01-15T12:00:00Z' },
+        payload: { injectId: 'inj-456', notes: 'Fired offline' },
       })
 
       await syncPendingActions()
 
       expect(injectService.fireInject).toHaveBeenCalledWith('ex-123', 'inj-456', {
-        firedAt: '2025-01-15T12:00:00Z',
+        notes: 'Fired offline',
       })
     })
 
@@ -248,7 +248,7 @@ describe('syncService', () => {
         exerciseId: 'ex-1',
         injectNumber: 1,
         title: 'Test',
-        status: 'Delivered',
+        status: 'Fired',
         updatedAt: new Date().toISOString(),
         cachedAt: new Date(),
         pendingSync: true,
@@ -257,7 +257,7 @@ describe('syncService', () => {
       await addPendingAction({
         type: 'FIRE_INJECT',
         exerciseId: 'ex-1',
-        payload: { injectId: 'inj-1', firedAt: new Date().toISOString() },
+        payload: { injectId: 'inj-1' },
       })
 
       await syncPendingActions()

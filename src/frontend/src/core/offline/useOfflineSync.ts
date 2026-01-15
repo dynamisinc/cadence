@@ -61,7 +61,7 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
   const [pendingCount, setLocalPendingCount] = useState(0)
 
   const wasOfflineRef = useRef(false)
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // Update pending count
   const refreshPendingCount = useCallback(async () => {

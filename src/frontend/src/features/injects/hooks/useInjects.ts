@@ -335,7 +335,7 @@ export const useInjects = (exerciseId: string) => {
 
     if (isEffectivelyOnline) {
       // Online: send directly to API
-      return fireMutation.mutateAsync({ id, request: { ...request, firedAt } })
+      return fireMutation.mutateAsync({ id, request })
     }
 
     // Offline: queue action and apply optimistic update
@@ -360,7 +360,7 @@ export const useInjects = (exerciseId: string) => {
       exerciseId,
       payload: {
         injectId: id,
-        firedAt,
+        notes: request?.notes,
       },
     })
 

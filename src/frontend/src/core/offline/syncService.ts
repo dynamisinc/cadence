@@ -17,6 +17,7 @@ import {
 import { updateCachedInject, updateCachedObservation, deleteCachedObservation } from './cacheService'
 import { injectService } from '../../features/injects/services/injectService'
 import { observationService } from '../../features/observations/services/observationService'
+import type { ObservationRating } from '../../types'
 
 // ============================================================================
 // Types
@@ -70,13 +71,12 @@ export function cancelSync(): void {
 
 interface FireInjectPayload {
   injectId: string
-  firedAt: string
+  notes?: string | null
 }
 
 interface SkipInjectPayload {
   injectId: string
-  reason?: string
-  skippedAt: string
+  reason: string
 }
 
 interface ResetInjectPayload {
@@ -86,9 +86,9 @@ interface ResetInjectPayload {
 interface CreateObservationPayload {
   observation: {
     content: string
-    rating?: string
-    recommendation?: string
-    injectId?: string
+    rating?: ObservationRating | null
+    recommendation?: string | null
+    injectId?: string | null
   }
   tempId: string
 }
@@ -96,10 +96,10 @@ interface CreateObservationPayload {
 interface UpdateObservationPayload {
   observationId: string
   changes: {
-    content?: string
-    rating?: string
-    recommendation?: string
-    injectId?: string
+    content: string
+    rating?: ObservationRating | null
+    recommendation?: string | null
+    injectId?: string | null
   }
 }
 
@@ -116,9 +116,9 @@ async function processAction(action: PendingAction): Promise<void> {
 
   switch (type) {
     case 'FIRE_INJECT': {
-      const { injectId, firedAt } = payload as FireInjectPayload
+      const { injectId, notes } = payload as FireInjectPayload
       try {
-        await injectService.fireInject(exerciseId, injectId, { firedAt })
+        await injectService.fireInject(exerciseId, injectId, { notes })
         // Update local cache to remove pending flag
         await updateCachedInject(injectId, { pendingSync: false })
       } catch (error) {

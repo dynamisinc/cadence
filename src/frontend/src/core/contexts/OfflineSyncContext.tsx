@@ -80,7 +80,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
   const [lastResult, setLastResult] = useState<SyncResult | null>(null)
 
   const wasOfflineRef = useRef(false)
-  const syncTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasInitializedRef = useRef(false)
   const isMountedRef = useRef(true)
 
