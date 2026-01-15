@@ -20,7 +20,24 @@ builder.Services.AddControllers()
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
-builder.Services.AddSignalR();
+
+// Add SignalR - conditionally use Azure SignalR Service for production
+var useAzureSignalR = builder.Configuration.GetValue<bool>("Azure:SignalR:Enabled");
+var azureSignalRConnectionString = builder.Configuration.GetConnectionString("AzureSignalR");
+
+// Configure SignalR JSON options to match MVC controller serialization
+// (use camelCase properties and string enums)
+var signalRBuilder = builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
+
+if (useAzureSignalR && !string.IsNullOrEmpty(azureSignalRConnectionString))
+{
+    signalRBuilder.AddAzureSignalR(azureSignalRConnectionString);
+}
 
 // Add CORS
 builder.Services.AddCors(options =>

@@ -4,6 +4,7 @@
  * Top navigation bar with:
  * - Mobile menu toggle (hamburger)
  * - App title/logo
+ * - Connection status indicator
  * - Profile menu integration
  *
  * Fixed position, 54px height, stays above sidebar
@@ -15,6 +16,7 @@ import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { ProfileMenu } from '../ProfileMenu'
+import { ConnectionStatusIndicator } from '../ConnectionStatusIndicator'
 import { PermissionRole } from '../../../types'
 
 interface AppHeaderProps {
@@ -88,6 +90,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         >
           Cadence
         </Typography>
+
+        {/* Connection Status Indicator */}
+        <Box sx={{ mr: 2 }}>
+          <ConnectionStatusIndicator compact />
+        </Box>
 
         {/* Profile Menu */}
         <Box sx={{ ml: 'auto' }}>

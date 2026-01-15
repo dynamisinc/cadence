@@ -1,6 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { injectService } from '../services/injectService'
+import { useConnectivity } from '../../../core/contexts'
+import { addPendingAction } from '../../../core/offline'
 import { InjectStatus } from '../../../types'
 import type {
   InjectDto,
@@ -24,12 +26,17 @@ export const injectKeys = {
  * Features:
  * - Automatic caching and background refetching
  * - Optimistic updates for create/update/fire/skip
+ * - Offline-first support for fire/skip/reset with queue sync
  * - Error handling with toast notifications
  * - Group injects by phase for MSEL view
  */
 export const useInjects = (exerciseId: string) => {
   const queryClient = useQueryClient()
   const queryKey = injectKeys.all(exerciseId)
+  const { connectivityState, incrementPendingCount } = useConnectivity()
+
+  // Consider offline if not fully connected (includes SignalR disconnection)
+  const isEffectivelyOnline = connectivityState === 'online'
 
   // Query for fetching injects
   const {
@@ -318,16 +325,158 @@ export const useInjects = (exerciseId: string) => {
     return updateMutation.mutateAsync({ id, request })
   }
 
-  const fireInject = async (id: string, request?: FireInjectRequest) => {
-    return fireMutation.mutateAsync({ id, request })
+  /**
+   * Fire inject with offline support
+   * When offline: queues action, applies optimistic update
+   * When online: sends directly to API
+   */
+  const fireInject = async (id: string, request?: FireInjectRequest): Promise<InjectDto> => {
+    const firedAt = new Date().toISOString()
+
+    if (isEffectivelyOnline) {
+      // Online: send directly to API
+      return fireMutation.mutateAsync({ id, request })
+    }
+
+    // Offline: queue action and apply optimistic update
+    const currentInjects = queryClient.getQueryData<InjectDto[]>(queryKey) ?? []
+    const existingInject = currentInjects.find(i => i.id === id)
+
+    if (!existingInject) {
+      throw new Error('Inject not found')
+    }
+
+    const optimisticInject: InjectDto = {
+      ...existingInject,
+      status: InjectStatus.Fired,
+      firedAt,
+      firedByName: 'You (offline)',
+      updatedAt: firedAt,
+    }
+
+    // Queue the action for later sync
+    await addPendingAction({
+      type: 'FIRE_INJECT',
+      exerciseId,
+      payload: {
+        injectId: id,
+        notes: request?.notes,
+      },
+    })
+
+    // Apply optimistic update
+    queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
+      old.map(inject => (inject.id === id ? optimisticInject : inject)),
+    )
+
+    incrementPendingCount()
+    toast.info('Inject fired offline. Will sync when connection restores.')
+
+    return optimisticInject
   }
 
-  const skipInject = async (id: string, request: SkipInjectRequest) => {
-    return skipMutation.mutateAsync({ id, request })
+  /**
+   * Skip inject with offline support
+   * When offline: queues action, applies optimistic update
+   * When online: sends directly to API
+   */
+  const skipInject = async (id: string, request: SkipInjectRequest): Promise<InjectDto> => {
+    const skippedAt = new Date().toISOString()
+
+    if (isEffectivelyOnline) {
+      // Online: send directly to API
+      return skipMutation.mutateAsync({ id, request })
+    }
+
+    // Offline: queue action and apply optimistic update
+    const currentInjects = queryClient.getQueryData<InjectDto[]>(queryKey) ?? []
+    const existingInject = currentInjects.find(i => i.id === id)
+
+    if (!existingInject) {
+      throw new Error('Inject not found')
+    }
+
+    const optimisticInject: InjectDto = {
+      ...existingInject,
+      status: InjectStatus.Skipped,
+      skippedAt,
+      skipReason: request.reason ?? null,
+      skippedByName: 'You (offline)',
+      updatedAt: skippedAt,
+    }
+
+    // Queue the action for later sync
+    await addPendingAction({
+      type: 'SKIP_INJECT',
+      exerciseId,
+      payload: {
+        injectId: id,
+        reason: request.reason,
+        skippedAt,
+      },
+    })
+
+    // Apply optimistic update
+    queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
+      old.map(inject => (inject.id === id ? optimisticInject : inject)),
+    )
+
+    incrementPendingCount()
+    toast.info('Inject skipped offline. Will sync when connection restores.')
+
+    return optimisticInject
   }
 
-  const resetInject = async (id: string) => {
-    return resetMutation.mutateAsync(id)
+  /**
+   * Reset inject with offline support
+   * When offline: queues action, applies optimistic update
+   * When online: sends directly to API
+   */
+  const resetInject = async (id: string): Promise<InjectDto> => {
+    if (isEffectivelyOnline) {
+      // Online: send directly to API
+      return resetMutation.mutateAsync(id)
+    }
+
+    // Offline: queue action and apply optimistic update
+    const currentInjects = queryClient.getQueryData<InjectDto[]>(queryKey) ?? []
+    const existingInject = currentInjects.find(i => i.id === id)
+
+    if (!existingInject) {
+      throw new Error('Inject not found')
+    }
+
+    const optimisticInject: InjectDto = {
+      ...existingInject,
+      status: InjectStatus.Pending,
+      firedAt: null,
+      firedBy: null,
+      firedByName: null,
+      skippedAt: null,
+      skippedBy: null,
+      skippedByName: null,
+      skipReason: null,
+      updatedAt: new Date().toISOString(),
+    }
+
+    // Queue the action for later sync
+    await addPendingAction({
+      type: 'RESET_INJECT',
+      exerciseId,
+      payload: {
+        injectId: id,
+      },
+    })
+
+    // Apply optimistic update
+    queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
+      old.map(inject => (inject.id === id ? optimisticInject : inject)),
+    )
+
+    incrementPendingCount()
+    toast.info('Inject reset queued. Will sync when connection restores.')
+
+    return optimisticInject
   }
 
   const deleteInject = async (id: string) => {

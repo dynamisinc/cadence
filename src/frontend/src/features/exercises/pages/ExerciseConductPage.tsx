@@ -9,7 +9,7 @@
  * Uses SignalR for real-time updates across all connected clients.
  */
 
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -43,7 +43,7 @@ import { useExercise } from '../hooks'
 import { ExerciseHeader, NarrativeView, StickyClockHeader, FloatingClockChip } from '../components'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { useBreadcrumbs } from '../../../core/contexts'
+import { useBreadcrumbs, useConnectivity } from '../../../core/contexts'
 import { useExerciseSignalR } from '../../../shared/hooks'
 import { ExerciseStatus, InjectStatus } from '../../../types'
 
@@ -191,6 +191,15 @@ export const ExerciseConductPage = () => {
     [exerciseId, queryClient],
   )
 
+  const handleObservationUpdated = useCallback(
+    (observation: ObservationDto) => {
+      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old =>
+        old?.map(o => (o.id === observation.id ? observation : o)) ?? [],
+      )
+    },
+    [exerciseId, queryClient],
+  )
+
   const handleObservationDeleted = useCallback(
     (observationId: string) => {
       queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old =>
@@ -210,9 +219,27 @@ export const ExerciseConductPage = () => {
     onClockReset: handleClockChanged,
     onClockChanged: handleClockChanged,
     onObservationAdded: handleObservationAdded,
+    onObservationUpdated: handleObservationUpdated,
     onObservationDeleted: handleObservationDeleted,
     enabled: !!exerciseId,
   })
+
+  // Sync SignalR state with global connectivity context
+  const { setSignalRState, setIsInExercise } = useConnectivity()
+
+  useEffect(() => {
+    // Mark that we're in exercise conduct mode
+    setIsInExercise(true)
+    return () => {
+      setIsInExercise(false)
+      setSignalRState(null)
+    }
+  }, [setIsInExercise, setSignalRState])
+
+  useEffect(() => {
+    // Report SignalR connection state to global context
+    setSignalRState(connectionState)
+  }, [connectionState, setSignalRState])
 
   // Permission checks (simplified - should use actual RBAC)
   const canControl = useMemo(() => {

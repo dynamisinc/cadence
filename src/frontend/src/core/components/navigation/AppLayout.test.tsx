@@ -16,7 +16,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { AppLayout } from './AppLayout'
 import { cobraTheme } from '../../../theme/cobraTheme'
 import { FeatureFlagsProvider } from '../../../admin'
-import { BreadcrumbProvider } from '../../contexts'
+import { BreadcrumbProvider, ConnectivityProvider } from '../../contexts'
 
 // Mock useMediaQuery for desktop behavior
 vi.mock('@mui/material', async () => {
@@ -34,13 +34,15 @@ const renderAppLayout = (
 ) => {
   return render(
     <ThemeProvider theme={cobraTheme}>
-      <FeatureFlagsProvider>
-        <MemoryRouter>
-          <BreadcrumbProvider>
-            <AppLayout {...props}>{children}</AppLayout>
-          </BreadcrumbProvider>
-        </MemoryRouter>
-      </FeatureFlagsProvider>
+      <ConnectivityProvider>
+        <FeatureFlagsProvider>
+          <MemoryRouter>
+            <BreadcrumbProvider>
+              <AppLayout {...props}>{children}</AppLayout>
+            </BreadcrumbProvider>
+          </MemoryRouter>
+        </FeatureFlagsProvider>
+      </ConnectivityProvider>
     </ThemeProvider>,
   )
 }

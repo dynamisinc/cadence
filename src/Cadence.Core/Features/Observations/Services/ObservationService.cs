@@ -1,5 +1,6 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.Observations.Models.DTOs;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,16 @@ namespace Cadence.Core.Features.Observations.Services;
 public class ObservationService : IObservationService
 {
     private readonly AppDbContext _context;
+    private readonly IExerciseHubContext _hubContext;
     private readonly ILogger<ObservationService> _logger;
 
-    public ObservationService(AppDbContext context, ILogger<ObservationService> logger)
+    public ObservationService(
+        AppDbContext context,
+        IExerciseHubContext hubContext,
+        ILogger<ObservationService> logger)
     {
         _context = context;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -104,7 +110,12 @@ public class ObservationService : IObservationService
             .Reference(o => o.Inject)
             .LoadAsync();
 
-        return observation.ToDto();
+        var dto = observation.ToDto();
+
+        // Broadcast to all connected clients
+        await _hubContext.NotifyObservationAdded(exerciseId, dto);
+
+        return dto;
     }
 
     /// <inheritdoc />
@@ -163,7 +174,12 @@ public class ObservationService : IObservationService
             .Reference(o => o.Inject)
             .LoadAsync();
 
-        return observation.ToDto();
+        var dto = observation.ToDto();
+
+        // Broadcast to all connected clients
+        await _hubContext.NotifyObservationUpdated(observation.ExerciseId, dto);
+
+        return dto;
     }
 
     /// <inheritdoc />
@@ -176,6 +192,8 @@ public class ObservationService : IObservationService
             return false;
         }
 
+        var exerciseId = observation.ExerciseId;
+
         // Soft delete
         observation.IsDeleted = true;
         observation.DeletedAt = DateTime.UtcNow;
@@ -184,6 +202,9 @@ public class ObservationService : IObservationService
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Deleted observation {ObservationId}", id);
+
+        // Broadcast to all connected clients
+        await _hubContext.NotifyObservationDeleted(exerciseId, id);
 
         return true;
     }
