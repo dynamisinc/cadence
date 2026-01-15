@@ -32,7 +32,14 @@
       "Bash(gh api:*)",
       "Bash(gh repo view:*)",
       "Bash(gh pr create --title \"feat: add HomePage with role-aware dashboard\" --body \"$\\(cat <<''EOF''\n## Summary\n- Create HomePage feature with welcome section showing user role and exercise list\n- Display role-specific messaging for Exercise Director, Controller, and Observer\n- Add quick actions \\(Create Exercise for managers, View All Exercises for everyone\\)\n- Show up to 5 recent exercises with status, type, date, and practice mode indicator\n- Include empty states with different UX for managers vs viewers\n\n## Changes\n- New `features/home/` module with HomePage and ExerciseList components\n- Updated App.tsx to use new HomePage \\(removed placeholder\\)\n- Added feature documentation in `docs/features/homepage/` with user stories\n\n## Test plan\n- [ ] Verify welcome section displays correct role name based on profile\n- [ ] Verify \"Create Exercise\" button only appears for Manage role\n- [ ] Verify \"View All Exercises\" button appears for all roles\n- [ ] Verify exercise list shows up to 5 exercises \\(excluding archived\\)\n- [ ] Verify empty state shows call-to-action for managers, informational for viewers\n- [ ] Verify clicking exercise row navigates to detail page\n\n🤖 Generated with [Claude Code]\\(https://claude.com/claude-code\\)\nEOF\n\\)\")",
-      "Bash(gh pr create:*)"
+      "Bash(gh pr create:*)",
+      "Read(//c/Code/dynamis/cadence/**)",
+      "Read(//c/Users/TomBull/.claude/projects/c--Code-dynamis-cadence/523a58f5-a2e3-4d46-ba6d-c14432391342/tool-results/**)",
+      "Bash(while read -r file)",
+      "Bash(do if grep -q \"import.*{ Button }.*from ''@mui/material''\" \"c:/Code/dynamis/cadence/$file\")",
+      "Bash(then echo \"$file - uses raw Button\")",
+      "Bash(fi)",
+      "Bash(done)"
     ],
     "deny": [],
     "ask": [],
