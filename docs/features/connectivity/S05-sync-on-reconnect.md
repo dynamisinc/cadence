@@ -13,40 +13,40 @@ P0 - MVP Required
 ## Acceptance Criteria
 
 ### AC1: Automatic Sync Trigger
-- [ ] Sync automatically starts when connection restored
-- [ ] Sync triggered by SignalR reconnection event
-- [ ] Sync triggered by browser online event
-- [ ] Brief delay (1-2 seconds) before sync to ensure stable connection
+- [x] Sync automatically starts when connection restored
+- [x] Sync triggered by SignalR reconnection event
+- [x] Sync triggered by browser online event
+- [x] Brief delay (1-2 seconds) before sync to ensure stable connection
 
 ### AC2: Queue Processing
-- [ ] Pending actions processed in FIFO order
-- [ ] Each action sent to server via appropriate API endpoint
-- [ ] Successful actions removed from queue
-- [ ] Failed actions remain in queue with error status
+- [x] Pending actions processed in FIFO order
+- [x] Each action sent to server via appropriate API endpoint
+- [x] Successful actions removed from queue
+- [x] Failed actions remain in queue with error status
 
 ### AC3: Data Refresh
-- [ ] Fresh data fetched from server after queue processed
-- [ ] Local cache updated with server data
-- [ ] Optimistic updates replaced with confirmed data
-- [ ] Pending sync flags cleared on success
+- [x] Fresh data fetched from server after queue processed
+- [x] Local cache updated with server data
+- [x] Optimistic updates replaced with confirmed data
+- [x] Pending sync flags cleared on success
 
 ### AC4: Progress Indication
-- [ ] Sync progress shown during processing
-- [ ] Example: "Syncing... (2/5)"
-- [ ] Spinner or progress indicator visible
-- [ ] Completion toast: "All changes synced successfully"
+- [x] Sync progress shown during processing
+- [x] Example: "Syncing... (2/5)"
+- [x] Spinner or progress indicator visible
+- [x] Completion toast: "All changes synced successfully"
 
 ### AC5: Partial Success Handling
-- [ ] If some actions succeed and others fail, successes are committed
-- [ ] Failed actions remain in queue for retry
-- [ ] User notified of partial sync: "3 of 5 changes synced. 2 failed."
-- [ ] Failed items highlighted for user attention
+- [x] If some actions succeed and others fail, successes are committed
+- [x] Failed actions remain in queue for retry
+- [x] User notified of partial sync: "3 of 5 changes synced. 2 failed."
+- [x] Failed items highlighted for user attention
 
 ### AC6: Retry Logic
-- [ ] Failed actions can be retried manually
-- [ ] Automatic retry with exponential backoff for server errors
-- [ ] Maximum retry attempts before marking permanently failed
-- [ ] User can discard failed actions
+- [x] Failed actions can be retried manually
+- [x] Automatic retry with exponential backoff for server errors
+- [x] Maximum retry attempts before marking permanently failed
+- [x] User can discard failed actions
 
 ## Technical Notes
 

@@ -13,41 +13,41 @@ P0 - MVP Required
 ## Acceptance Criteria
 
 ### AC1: Action Queue Storage
-- [ ] Pending actions stored in IndexedDB
-- [ ] Queue persists across page refresh and app restart
-- [ ] Each queued action has unique ID, timestamp, type, and payload
-- [ ] Queue maintains FIFO order for processing
+- [x] Pending actions stored in IndexedDB
+- [x] Queue persists across page refresh and app restart
+- [x] Each queued action has unique ID, timestamp, type, and payload
+- [x] Queue maintains FIFO order for processing
 
 ### AC2: Queueable Actions
-- [ ] Fire inject action queues when offline
-- [ ] Skip inject action queues when offline
-- [ ] Create observation action queues when offline
-- [ ] Update observation action queues when offline
-- [ ] Delete observation action queues when offline
+- [x] Fire inject action queues when offline
+- [x] Skip inject action queues when offline
+- [x] Create observation action queues when offline
+- [x] Update observation action queues when offline
+- [x] Delete observation action queues when offline
 
 ### AC3: Optimistic UI Updates
-- [ ] UI updates immediately when action queued (optimistic)
-- [ ] Queued items show visual indicator (e.g., ⏳ pending sync icon)
-- [ ] User can see their changes reflected in UI while offline
-- [ ] Optimistic updates distinguishable from confirmed updates
+- [x] UI updates immediately when action queued (optimistic)
+- [x] Queued items show visual indicator (e.g., ⏳ pending sync icon)
+- [x] User can see their changes reflected in UI while offline
+- [x] Optimistic updates distinguishable from confirmed updates
 
 ### AC4: Queue Status Display
-- [ ] User can see number of pending actions
-- [ ] Pending count visible in connection indicator area
-- [ ] Example: "🔴 Offline (3 pending)"
-- [ ] Clicking shows list of pending actions
+- [x] User can see number of pending actions
+- [x] Pending count visible in connection indicator area
+- [x] Example: "🔴 Offline (3 pending)"
+- [x] Clicking shows list of pending actions
 
 ### AC5: Queue Management
-- [ ] Failed actions can be retried individually
-- [ ] Failed actions can be discarded by user
-- [ ] Queue cleared after successful sync
-- [ ] Maximum queue size enforced (e.g., 100 actions)
+- [x] Failed actions can be retried individually
+- [x] Failed actions can be discarded by user
+- [x] Queue cleared after successful sync
+- [x] Maximum queue size enforced (e.g., 100 actions)
 
 ### AC6: Error Handling
-- [ ] Network errors don't clear the queue
-- [ ] Validation errors (4xx) mark action as failed, not retried
-- [ ] Server errors (5xx) trigger retry with backoff
-- [ ] User notified of permanently failed actions
+- [x] Network errors don't clear the queue
+- [x] Validation errors (4xx) mark action as failed, not retried
+- [x] Server errors (5xx) trigger retry with backoff
+- [x] User notified of permanently failed actions
 
 ## Technical Notes
 

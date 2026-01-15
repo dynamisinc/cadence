@@ -13,36 +13,36 @@ P0 - MVP Required
 ## Acceptance Criteria
 
 ### AC1: Connection State Detection
-- [ ] System detects when SignalR connection is lost
-- [ ] System detects when browser goes offline (Navigator.onLine)
-- [ ] System detects when connection is restored
-- [ ] Connection state combines both SignalR and browser online status
+- [x] System detects when SignalR connection is lost
+- [x] System detects when browser goes offline (Navigator.onLine)
+- [x] System detects when connection is restored
+- [x] Connection state combines both SignalR and browser online status
 
 ### AC2: Visual Connection Indicator
-- [ ] Persistent indicator visible in application header
-- [ ] Connected state: Green dot or no indicator (normal operation)
-- [ ] Connecting/Reconnecting state: Yellow/orange indicator with "Connecting..." text
-- [ ] Disconnected state: Red indicator with "Offline" text
-- [ ] Indicator is non-intrusive but noticeable
+- [x] Persistent indicator visible in application header
+- [x] Connected state: Green dot or no indicator (normal operation)
+- [x] Connecting/Reconnecting state: Yellow/orange indicator with "Connecting..." text
+- [x] Disconnected state: Red indicator with "Offline" text
+- [x] Indicator is non-intrusive but noticeable
 
 ### AC3: Toast Notifications
-- [ ] Toast notification appears when connection is lost
-- [ ] Toast message: "You are offline. Changes will sync when connection restores."
-- [ ] Toast notification appears when connection is restored
-- [ ] Toast message: "Connection restored. Syncing changes..."
-- [ ] Toast for successful sync: "All changes synced successfully"
+- [x] Toast notification appears when connection is lost
+- [x] Toast message: "You are offline. Changes will sync when connection restores."
+- [x] Toast notification appears when connection is restored
+- [x] Toast message: "Connection restored. Syncing changes..."
+- [x] Toast for successful sync: "All changes synced successfully"
 
 ### AC4: Graceful UI Degradation
-- [ ] UI remains functional when offline (no error screens)
-- [ ] Read operations use cached data when offline
-- [ ] Write operations queue locally when offline
-- [ ] Loading spinners don't appear indefinitely when offline
+- [x] UI remains functional when offline (no error screens)
+- [x] Read operations use cached data when offline
+- [x] Write operations queue locally when offline
+- [x] Loading spinners don't appear indefinitely when offline
 
 ### AC5: Reconnection Handling
-- [ ] Automatic reconnection attempts with exponential backoff
-- [ ] Maximum reconnection delay capped at 30 seconds
-- [ ] Manual "Retry Connection" option available after multiple failures
-- [ ] Successful reconnection triggers data refresh
+- [x] Automatic reconnection attempts with exponential backoff
+- [x] Maximum reconnection delay capped at 30 seconds
+- [x] Manual "Retry Connection" option available after multiple failures
+- [x] Successful reconnection triggers data refresh
 
 ## Technical Notes
 

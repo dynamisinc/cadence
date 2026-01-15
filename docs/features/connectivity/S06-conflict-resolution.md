@@ -13,27 +13,27 @@ P1 - Important but not blocking MVP
 ## Acceptance Criteria
 
 ### AC1: Conflict Detection
-- [ ] System detects when offline action conflicts with server state
-- [ ] Conflict detected by comparing timestamps or checking preconditions
-- [ ] Conflict types identified: already-fired, already-deleted, concurrent-edit
+- [x] System detects when offline action conflicts with server state
+- [x] Conflict detected by comparing timestamps or checking preconditions
+- [x] Conflict types identified: already-fired, already-deleted, concurrent-edit
 
 ### AC2: Inject Conflict Handling
-- [ ] If inject already fired by someone else, user's fire action is discarded
-- [ ] User notified: "Inject #4 was already fired by [Name] at [Time]"
-- [ ] If inject already skipped, user's action is discarded with notification
-- [ ] First-write-wins policy for inject status changes
+- [x] If inject already fired by someone else, user's fire action is discarded
+- [x] User notified: "Inject #4 was already fired by [Name] at [Time]"
+- [x] If inject already skipped, user's action is discarded with notification
+- [x] First-write-wins policy for inject status changes
 
 ### AC3: Observation Conflict Handling
-- [ ] If observation deleted by someone else, user's edit is discarded
-- [ ] User notified: "This observation was deleted while you were offline"
-- [ ] If observation edited by someone else, last-write-wins applies
-- [ ] User notified: "Your changes were applied over [Name]'s edits"
+- [x] If observation deleted by someone else, user's edit is discarded
+- [x] User notified: "This observation was deleted while you were offline"
+- [x] If observation edited by someone else, last-write-wins applies
+- [x] User notified: "Your changes were applied over [Name]'s edits"
 
 ### AC4: Conflict Notification UI
-- [ ] Conflict dialog/modal shown when conflicts detected during sync
-- [ ] Dialog lists all conflicts with clear explanations
-- [ ] User must acknowledge conflicts before continuing
-- [ ] Option to view conflict details
+- [x] Conflict dialog/modal shown when conflicts detected during sync
+- [x] Dialog lists all conflicts with clear explanations
+- [x] User must acknowledge conflicts before continuing
+- [x] Option to view conflict details
 
 ### AC5: Conflict Log (Nice to Have)
 - [ ] Conflicts logged to IndexedDB for review
@@ -42,9 +42,9 @@ P1 - Important but not blocking MVP
 - [ ] Log auto-prunes after 30 days
 
 ### AC6: No Silent Data Loss
-- [ ] User ALWAYS notified when their action is discarded
-- [ ] Notification includes enough context to understand what happened
-- [ ] User can take follow-up action if needed (e.g., re-fire different inject)
+- [x] User ALWAYS notified when their action is discarded
+- [x] Notification includes enough context to understand what happened
+- [x] User can take follow-up action if needed (e.g., re-fire different inject)
 
 ## Technical Notes
 

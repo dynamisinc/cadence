@@ -13,32 +13,32 @@ P0 - MVP Required
 ## Acceptance Criteria
 
 ### AC1: SignalR Connection Management
-- [ ] Client automatically connects to SignalR hub when entering Conduct page
-- [ ] Client joins exercise-specific group on connection
-- [ ] Client leaves exercise group when navigating away
-- [ ] Connection automatically reconnects on temporary disconnection
+- [x] Client automatically connects to SignalR hub when entering Conduct page
+- [x] Client joins exercise-specific group on connection
+- [x] Client leaves exercise group when navigating away
+- [x] Connection automatically reconnects on temporary disconnection
 
 ### AC2: Clock State Synchronization
-- [ ] When Exercise Director starts clock, all users see clock running within 1 second
-- [ ] When Exercise Director pauses clock, all users see clock paused within 1 second
-- [ ] When Exercise Director stops/resets clock, all users see updated state within 1 second
-- [ ] Clock time display stays synchronized across all clients
+- [x] When Exercise Director starts clock, all users see clock running within 1 second
+- [x] When Exercise Director pauses clock, all users see clock paused within 1 second
+- [x] When Exercise Director stops/resets clock, all users see updated state within 1 second
+- [x] Clock time display stays synchronized across all clients
 
 ### AC3: Inject Status Synchronization
-- [ ] When Controller fires an inject, all users see status change to "Delivered" within 1 second
-- [ ] When Controller skips an inject, all users see status change to "Skipped" within 1 second
-- [ ] When inject is reset, all users see status change to "Pending" within 1 second
-- [ ] Inject list updates without full page refresh
+- [x] When Controller fires an inject, all users see status change to "Delivered" within 1 second
+- [x] When Controller skips an inject, all users see status change to "Skipped" within 1 second
+- [x] When inject is reset, all users see status change to "Pending" within 1 second
+- [x] Inject list updates without full page refresh
 
 ### AC4: Observation Synchronization
-- [ ] When Evaluator creates observation, all users see it appear within 1 second
-- [ ] When Evaluator updates observation, all users see changes within 1 second
-- [ ] When Evaluator deletes observation, all users see it removed within 1 second
+- [x] When Evaluator creates observation, all users see it appear within 1 second
+- [x] When Evaluator updates observation, all users see changes within 1 second
+- [x] When Evaluator deletes observation, all users see it removed within 1 second
 
 ### AC5: Connection State Indicator
-- [ ] Visual indicator shows connection state (connected/connecting/disconnected)
-- [ ] Indicator visible in header or status bar area
-- [ ] Green = connected, Yellow = connecting/reconnecting, Red = disconnected
+- [x] Visual indicator shows connection state (connected/connecting/disconnected)
+- [x] Indicator visible in header or status bar area
+- [x] Green = connected, Yellow = connecting/reconnecting, Red = disconnected
 
 ## Technical Notes
 

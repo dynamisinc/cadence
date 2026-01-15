@@ -17,12 +17,12 @@ Emergency management exercises often occur in locations with poor or unreliable 
 
 | Story | Title | Priority | Status |
 |-------|-------|----------|--------|
-| S01 | Real-Time Data Sync | P0 | Not Started |
-| S02 | Offline Detection & Indicators | P0 | Not Started |
-| S03 | Local Data Cache | P0 | Not Started |
-| S04 | Offline Action Queue | P0 | Not Started |
-| S05 | Sync on Reconnect | P0 | Not Started |
-| S06 | Conflict Resolution | P1 | Not Started |
+| S01 | Real-Time Data Sync | P0 | Complete |
+| S02 | Offline Detection & Indicators | P0 | Complete |
+| S03 | Local Data Cache | P0 | Complete |
+| S04 | Offline Action Queue | P0 | Complete |
+| S05 | Sync on Reconnect | P0 | Complete |
+| S06 | Conflict Resolution | P1 | Complete |
 
 ## Technical Architecture
 
