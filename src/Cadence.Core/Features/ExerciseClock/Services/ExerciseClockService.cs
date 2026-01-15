@@ -1,5 +1,6 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -12,11 +13,16 @@ namespace Cadence.Core.Features.ExerciseClock.Services;
 public class ExerciseClockService : IExerciseClockService
 {
     private readonly AppDbContext _context;
+    private readonly IExerciseHubContext _hubContext;
     private readonly ILogger<ExerciseClockService> _logger;
 
-    public ExerciseClockService(AppDbContext context, ILogger<ExerciseClockService> logger)
+    public ExerciseClockService(
+        AppDbContext context,
+        IExerciseHubContext hubContext,
+        ILogger<ExerciseClockService> logger)
     {
         _context = context;
+        _hubContext = hubContext;
         _logger = logger;
     }
 
@@ -76,7 +82,12 @@ public class ExerciseClockService : IExerciseClockService
         // Reload user navigation
         await _context.Entry(exercise).Reference(e => e.ClockStartedByUser).LoadAsync();
 
-        return exercise.ToClockStateDto();
+        var clockState = exercise.ToClockStateDto();
+
+        // Broadcast clock started event to all connected clients
+        await _hubContext.NotifyClockStarted(exerciseId, clockState);
+
+        return clockState;
     }
 
     /// <inheritdoc />
@@ -113,7 +124,12 @@ public class ExerciseClockService : IExerciseClockService
             "Paused clock for exercise {ExerciseId}. Total elapsed: {Elapsed}",
             exerciseId, exercise.ClockElapsedBeforePause);
 
-        return exercise.ToClockStateDto();
+        var clockState = exercise.ToClockStateDto();
+
+        // Broadcast clock paused event to all connected clients
+        await _hubContext.NotifyClockPaused(exerciseId, clockState);
+
+        return clockState;
     }
 
     /// <inheritdoc />
@@ -152,7 +168,12 @@ public class ExerciseClockService : IExerciseClockService
             "Stopped clock for exercise {ExerciseId}. Exercise marked as Completed. Final elapsed: {Elapsed}",
             exerciseId, exercise.ClockElapsedBeforePause);
 
-        return exercise.ToClockStateDto();
+        var clockState = exercise.ToClockStateDto();
+
+        // Broadcast clock stopped event to all connected clients
+        await _hubContext.NotifyClockStopped(exerciseId, clockState);
+
+        return clockState;
     }
 
     /// <inheritdoc />
@@ -184,6 +205,11 @@ public class ExerciseClockService : IExerciseClockService
 
         _logger.LogInformation("Reset clock for exercise {ExerciseId}", exerciseId);
 
-        return exercise.ToClockStateDto();
+        var clockState = exercise.ToClockStateDto();
+
+        // Broadcast clock stopped event (reset is a form of stop with zeroed state)
+        await _hubContext.NotifyClockStopped(exerciseId, clockState);
+
+        return clockState;
     }
 }

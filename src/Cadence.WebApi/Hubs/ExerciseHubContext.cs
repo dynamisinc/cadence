@@ -85,9 +85,13 @@ public class ExerciseHubContext : IExerciseHubContext
     /// <inheritdoc />
     public async Task NotifyClockStarted(Guid exerciseId, ClockStateDto clockState)
     {
-        await _hubContext.Clients
-            .Group(GetGroupName(exerciseId))
-            .SendAsync("ClockStarted", clockState);
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("ClockStarted", clockState),
+            group.SendAsync("ClockChanged", clockState)
+        );
 
         _logger.LogDebug("Broadcast ClockStarted to exercise {ExerciseId}", exerciseId);
     }
@@ -95,9 +99,13 @@ public class ExerciseHubContext : IExerciseHubContext
     /// <inheritdoc />
     public async Task NotifyClockPaused(Guid exerciseId, ClockStateDto clockState)
     {
-        await _hubContext.Clients
-            .Group(GetGroupName(exerciseId))
-            .SendAsync("ClockPaused", clockState);
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("ClockPaused", clockState),
+            group.SendAsync("ClockChanged", clockState)
+        );
 
         _logger.LogDebug("Broadcast ClockPaused to exercise {ExerciseId}", exerciseId);
     }
@@ -105,9 +113,14 @@ public class ExerciseHubContext : IExerciseHubContext
     /// <inheritdoc />
     public async Task NotifyClockStopped(Guid exerciseId, ClockStateDto clockState)
     {
-        await _hubContext.Clients
-            .Group(GetGroupName(exerciseId))
-            .SendAsync("ClockStopped", clockState);
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events (ClockReset for reset operations)
+        await Task.WhenAll(
+            group.SendAsync("ClockStopped", clockState),
+            group.SendAsync("ClockReset", clockState),
+            group.SendAsync("ClockChanged", clockState)
+        );
 
         _logger.LogDebug("Broadcast ClockStopped to exercise {ExerciseId}", exerciseId);
     }

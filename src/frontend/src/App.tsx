@@ -1,6 +1,6 @@
 import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute } from './core/components'
+import { MobileBlocker, ProtectedRoute, GlobalSyncStatus } from './core/components'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { Box, Typography } from '@mui/material'
@@ -9,7 +9,7 @@ import 'react-toastify/dist/ReactToastify.css'
 
 import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
-import { BreadcrumbProvider } from './core/contexts'
+import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider } from './core/contexts'
 import { PermissionRole } from './types'
 import { NotesPage } from './tools/notes/pages/NotesPage'
 import { AdminPage, FeatureFlagsProvider } from './admin'
@@ -140,11 +140,16 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
-        <MobileBlocker>
-          <FeatureFlagsProvider>
-            <RouterProvider router={router} />
-          </FeatureFlagsProvider>
-        </MobileBlocker>
+        <ConnectivityProvider>
+          <OfflineSyncProvider>
+            <MobileBlocker>
+              <FeatureFlagsProvider>
+                <RouterProvider router={router} />
+                <GlobalSyncStatus />
+              </FeatureFlagsProvider>
+            </MobileBlocker>
+          </OfflineSyncProvider>
+        </ConnectivityProvider>
 
         <ToastContainer
           position="top-right"
