@@ -11,6 +11,7 @@
     "lint:fix": "eslint . --fix",
     "format": "eslint . --fix",
     "preview": "vite preview",
+    "preview:local": "tsc -b && vite build --mode development && vite preview",
     "test": "vitest",
     "test:run": "vitest run",
     "test:coverage": "vitest run --coverage",
@@ -56,6 +57,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4",
+    "vite-plugin-pwa": "^1.2.0",
     "vitest": "^4.0.15"
   }
 }

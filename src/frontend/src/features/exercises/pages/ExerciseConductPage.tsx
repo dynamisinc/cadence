@@ -9,8 +9,9 @@
  * Uses SignalR for real-time updates across all connected clients.
  */
 
-import { useState, useCallback, useMemo, useEffect } from 'react'
+import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
+import { toast } from 'react-toastify'
 import {
   Box,
   Typography,
@@ -45,10 +46,10 @@ import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledCompon
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs, useConnectivity } from '../../../core/contexts'
 import { useExerciseSignalR } from '../../../shared/hooks'
-import { ExerciseStatus, InjectStatus } from '../../../types'
+import { ExerciseStatus, InjectStatus, ExerciseClockState } from '../../../types'
 
 // Feature imports
-import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey } from '../../exercise-clock'
+import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime } from '../../exercise-clock'
 import { InjectListByStatus, ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
 import {
   ObservationForm,
@@ -209,6 +210,103 @@ export const ExerciseConductPage = () => {
     [exerciseId, queryClient],
   )
 
+  // Track clock state and elapsed time before disconnection to detect changes during offline period
+  const previousClockStateRef = useRef<ExerciseClockState | null>(null)
+  const previousElapsedTimeMsRef = useRef<number>(0)
+  const disconnectedAtRef = useRef<number | null>(null)
+
+  // Update clock state ref whenever it changes
+  useEffect(() => {
+    if (clockState?.state) {
+      previousClockStateRef.current = clockState.state
+    }
+  }, [clockState?.state])
+
+  // Handle SignalR reconnection - refresh state and notify user of changes
+  const handleReconnected = useCallback(async () => {
+    const previousState = previousClockStateRef.current
+    const previousElapsedMs = previousElapsedTimeMsRef.current
+    const wasDisconnectedAt = disconnectedAtRef.current
+
+    // Clear the disconnected timestamp
+    disconnectedAtRef.current = null
+
+    // Refresh clock and inject data - use refetchQueries to wait for completion
+    await Promise.all([
+      queryClient.refetchQueries({ queryKey: clockQueryKey(exerciseId!) }),
+      queryClient.refetchQueries({ queryKey: injectKeys.all(exerciseId!) }),
+      queryClient.refetchQueries({ queryKey: observationsQueryKey(exerciseId!) }),
+    ])
+
+    // Now get the fresh data
+    const currentClockData = queryClient.getQueryData<ExerciseClockDto>(clockQueryKey(exerciseId!))
+    const currentState = currentClockData?.state
+    const currentElapsedMs = currentClockData?.elapsedTime
+      ? parseElapsedTime(currentClockData.elapsedTime)
+      : 0
+
+    // Calculate time delta for informative message
+    const timeDeltaMs = currentElapsedMs - previousElapsedMs
+    const timeDeltaFormatted = formatElapsedTime(Math.abs(timeDeltaMs))
+
+    // Calculate how long we were disconnected
+    const disconnectedDuration = wasDisconnectedAt ? Date.now() - wasDisconnectedAt : 0
+    // Only show notification if offline > 2 seconds
+    const wasDisconnectedLongEnough = disconnectedDuration > 2000
+
+    if (!wasDisconnectedLongEnough) {
+      // Brief disconnection, just update refs silently
+      if (currentState) {
+        previousClockStateRef.current = currentState
+      }
+      previousElapsedTimeMsRef.current = currentElapsedMs
+      return
+    }
+
+    if (previousState && currentState && previousState !== currentState) {
+      // Clock state changed while offline
+      if (currentState === ExerciseClockState.Running) {
+        const currentTimeStr = formatElapsedTime(currentElapsedMs)
+        const message = previousState === ExerciseClockState.Stopped
+          ? `Exercise clock was started while you were offline. Current time: ${currentTimeStr}`
+          : 'Exercise clock resumed while you were offline. ' +
+            `Clock jumped forward by ${timeDeltaFormatted}. Current time: ${currentTimeStr}`
+        toast.warning(message, { autoClose: false })
+      } else if (
+        currentState === ExerciseClockState.Paused &&
+        previousState === ExerciseClockState.Running
+      ) {
+        toast.warning(
+          `Exercise clock was paused while you were offline at ${formatElapsedTime(currentElapsedMs)}.`,
+          { autoClose: 8000 },
+        )
+      } else if (currentState === ExerciseClockState.Stopped) {
+        toast.warning(
+          'Exercise was stopped while you were offline. The exercise has ended.',
+          { autoClose: false },
+        )
+      }
+    } else if (currentState === ExerciseClockState.Running && timeDeltaMs > 5000) {
+      // Same state but significant time jump (>5 seconds) while offline
+      toast.warning(
+        `Clock synchronized. Time jumped forward by ${timeDeltaFormatted}. Current time: ${formatElapsedTime(currentElapsedMs)}`,
+        { autoClose: false },
+      )
+    } else if (!previousState && currentState === ExerciseClockState.Running) {
+      // First time connecting and clock is already running
+      toast.info(
+        `Exercise clock is running. Current time: ${formatElapsedTime(currentElapsedMs)}`,
+        { autoClose: 5000 },
+      )
+    }
+
+    // Update the refs with the current state
+    if (currentState) {
+      previousClockStateRef.current = currentState
+    }
+    previousElapsedTimeMsRef.current = currentElapsedMs
+  }, [exerciseId, queryClient])
+
   // Connect to SignalR
   const { connectionState, isJoined, error: signalRError } = useExerciseSignalR({
     exerciseId: exerciseId!,
@@ -221,11 +319,13 @@ export const ExerciseConductPage = () => {
     onObservationAdded: handleObservationAdded,
     onObservationUpdated: handleObservationUpdated,
     onObservationDeleted: handleObservationDeleted,
+    onReconnected: handleReconnected,
     enabled: !!exerciseId,
   })
 
   // Sync SignalR state with global connectivity context
   const { setSignalRState, setIsInExercise } = useConnectivity()
+  const previousConnectionStateRef = useRef<typeof connectionState | null>(null)
 
   useEffect(() => {
     // Mark that we're in exercise conduct mode
@@ -239,7 +339,31 @@ export const ExerciseConductPage = () => {
   useEffect(() => {
     // Report SignalR connection state to global context
     setSignalRState(connectionState)
-  }, [connectionState, setSignalRState])
+
+    const wasConnected = previousConnectionStateRef.current === 'connected'
+    const isNowDisconnected = connectionState === 'disconnected' ||
+                              connectionState === 'error' ||
+                              connectionState === 'reconnecting'
+    const wasDisconnected = previousConnectionStateRef.current === 'disconnected' ||
+                            previousConnectionStateRef.current === 'error' ||
+                            previousConnectionStateRef.current === 'reconnecting'
+    const isNowConnected = connectionState === 'connected'
+
+    // Capture elapsed time when we go offline
+    if (wasConnected && isNowDisconnected) {
+      previousElapsedTimeMsRef.current = elapsedTimeMs
+      disconnectedAtRef.current = Date.now()
+    }
+
+    // Trigger reconnection handler when transitioning from disconnected/error to connected
+    // This handles cases where the SignalR auto-reconnect doesn't fire the onreconnected callback
+    if (wasDisconnected && isNowConnected && previousConnectionStateRef.current !== null) {
+      // Connection was restored - trigger the reconnection handler
+      handleReconnected()
+    }
+
+    previousConnectionStateRef.current = connectionState
+  }, [connectionState, setSignalRState, handleReconnected, elapsedTimeMs])
 
   // Permission checks (simplified - should use actual RBAC)
   const canControl = useMemo(() => {
