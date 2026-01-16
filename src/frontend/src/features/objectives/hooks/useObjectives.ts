@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { objectiveService } from '../services/objectiveService'
+import { setupProgressQueryKey } from '../../exercises/hooks/useSetupProgress'
 import type {
   ObjectiveDto,
   CreateObjectiveRequest,
@@ -48,9 +49,12 @@ export const useObjectives = (exerciseId: string) => {
         ...old,
         newObjective,
       ])
-      // Also invalidate summaries
+      // Also invalidate summaries and setup progress
       queryClient.invalidateQueries({
         queryKey: objectiveKeys.summaries(exerciseId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: setupProgressQueryKey(exerciseId),
       })
       toast.success('Objective created')
     },
@@ -90,9 +94,12 @@ export const useObjectives = (exerciseId: string) => {
           objective.id === updatedObjective.id ? updatedObjective : objective,
         ),
       )
-      // Also invalidate summaries
+      // Also invalidate summaries and setup progress
       queryClient.invalidateQueries({
         queryKey: objectiveKeys.summaries(exerciseId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: setupProgressQueryKey(exerciseId),
       })
       toast.success('Objective updated')
     },
@@ -120,9 +127,12 @@ export const useObjectives = (exerciseId: string) => {
       return { previousObjectives }
     },
     onSuccess: () => {
-      // Also invalidate summaries
+      // Also invalidate summaries and setup progress
       queryClient.invalidateQueries({
         queryKey: objectiveKeys.summaries(exerciseId),
+      })
+      queryClient.invalidateQueries({
+        queryKey: setupProgressQueryKey(exerciseId),
       })
       toast.success('Objective deleted')
     },

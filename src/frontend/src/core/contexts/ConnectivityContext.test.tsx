@@ -15,6 +15,11 @@ vi.mock('react-toastify', () => ({
   },
 }))
 
+// Mock API health check to return true by default
+vi.mock('../services/api', () => ({
+  checkApiHealth: vi.fn(() => Promise.resolve(true)),
+}))
+
 // Test component to access context
 const TestComponent = () => {
   const {

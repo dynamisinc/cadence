@@ -3,6 +3,9 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
+using Cadence.Core.Features.Msel.Models.DTOs;
+using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -18,15 +21,24 @@ public class ExercisesController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly IExerciseClockService _clockService;
+    private readonly IExerciseStatusService _statusService;
+    private readonly IMselService _mselService;
+    private readonly ISetupProgressService _setupProgressService;
     private readonly ILogger<ExercisesController> _logger;
 
     public ExercisesController(
         AppDbContext context,
         IExerciseClockService clockService,
+        IExerciseStatusService statusService,
+        IMselService mselService,
+        ISetupProgressService setupProgressService,
         ILogger<ExercisesController> logger)
     {
         _context = context;
         _clockService = clockService;
+        _statusService = statusService;
+        _mselService = mselService;
+        _setupProgressService = setupProgressService;
         _logger = logger;
     }
 
@@ -378,13 +390,14 @@ public class ExercisesController : ControllerBase
 
         // Copy the active MSEL (or first MSEL if none active)
         var sourceMsel = source.Msels.FirstOrDefault(m => m.IsActive) ?? source.Msels.FirstOrDefault();
+        Guid? newMselId = null;
         if (sourceMsel != null)
         {
-            var newMselId = Guid.NewGuid();
+            newMselId = Guid.NewGuid();
 
             var newMsel = new Msel
             {
-                Id = newMselId,
+                Id = newMselId.Value,
                 Name = "v1.0",
                 Description = sourceMsel.Description,
                 Version = 1,
@@ -395,7 +408,8 @@ public class ExercisesController : ControllerBase
             };
             _context.Msels.Add(newMsel);
 
-            newExercise.ActiveMselId = newMselId;
+            // Note: ActiveMselId is set AFTER first SaveChanges to avoid circular dependency
+            // (Exercise -> Msel via ActiveMselId, Msel -> Exercise via ExerciseId)
 
             // Copy injects (reset status to Pending)
             foreach (var sourceInject in sourceMsel.Injects.OrderBy(i => i.Sequence))
@@ -428,7 +442,7 @@ public class ExercisesController : ControllerBase
                     SkippedAt = null,
                     SkippedBy = null,
                     SkipReason = null,
-                    MselId = newMselId,
+                    MselId = newMselId.Value,
                     // Map phase ID if inject was assigned to a phase
                     PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
                         ? phaseIdMap[sourceInject.PhaseId.Value]
@@ -453,7 +467,16 @@ public class ExercisesController : ControllerBase
             }
         }
 
+        // First save: Create all entities without the circular reference
         await _context.SaveChangesAsync();
+
+        // Second save: Now set the ActiveMselId to complete the relationship
+        // This avoids the circular dependency (Exercise -> Msel -> Exercise)
+        if (newMselId.HasValue)
+        {
+            newExercise.ActiveMselId = newMselId.Value;
+            await _context.SaveChangesAsync();
+        }
 
         _logger.LogInformation(
             "Duplicated exercise {SourceId} to {NewId}: {NewName}",
@@ -464,5 +487,258 @@ public class ExercisesController : ControllerBase
             new { id = newExercise.Id },
             newExercise.ToDto()
         );
+    }
+
+    // =========================================================================
+    // Exercise Status Workflow Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Activate an exercise (Draft → Active).
+    /// Requires at least one inject in the MSEL.
+    /// </summary>
+    [HttpPost("{id:guid}/activate")]
+    public async Task<ActionResult<ExerciseDto>> ActivateExercise(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.ActivateAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Activated exercise {ExerciseId}", id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Pause an exercise (Active → Paused).
+    /// Preserves clock elapsed time.
+    /// </summary>
+    [HttpPost("{id:guid}/pause")]
+    public async Task<ActionResult<ExerciseDto>> PauseExercise(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.PauseAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Paused exercise {ExerciseId}", id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Resume a paused exercise (Paused → Active).
+    /// </summary>
+    [HttpPost("{id:guid}/resume")]
+    public async Task<ActionResult<ExerciseDto>> ResumeExercise(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.ResumeAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Resumed exercise {ExerciseId}", id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Complete an exercise (Active/Paused → Completed).
+    /// Permanently stops the clock.
+    /// </summary>
+    [HttpPost("{id:guid}/complete")]
+    public async Task<ActionResult<ExerciseDto>> CompleteExercise(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.CompleteAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Completed exercise {ExerciseId}", id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Archive a completed exercise (Completed → Archived).
+    /// Makes the exercise fully read-only.
+    /// </summary>
+    [HttpPost("{id:guid}/archive")]
+    public async Task<ActionResult<ExerciseDto>> ArchiveExercise(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.ArchiveAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Archived exercise {ExerciseId}", id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Unarchive an exercise (Archived → Completed).
+    /// Restores the exercise to completed status.
+    /// </summary>
+    [HttpPost("{id:guid}/unarchive")]
+    public async Task<ActionResult<ExerciseDto>> UnarchiveExercise(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.UnarchiveAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogInformation("Unarchived exercise {ExerciseId}", id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Revert a paused exercise to draft (Paused → Draft).
+    /// WARNING: This clears all conduct data (fired times, observations).
+    /// </summary>
+    [HttpPost("{id:guid}/revert-to-draft")]
+    public async Task<ActionResult<ExerciseDto>> RevertToDraft(Guid id)
+    {
+        // System user until auth is implemented
+        var userId = SystemConstants.SystemUserId;
+
+        var result = await _statusService.RevertToDraftAsync(id, userId);
+
+        if (!result.Success)
+        {
+            return BadRequest(new { message = result.ErrorMessage });
+        }
+
+        _logger.LogWarning(
+            "Exercise {ExerciseId} reverted to Draft - conduct data cleared",
+            id);
+
+        return Ok(result.Exercise);
+    }
+
+    /// <summary>
+    /// Get available status transitions for an exercise.
+    /// </summary>
+    [HttpGet("{id:guid}/available-transitions")]
+    public async Task<ActionResult<IReadOnlyList<ExerciseStatus>>> GetAvailableTransitions(Guid id)
+    {
+        var exercise = await _context.Exercises.FindAsync(id);
+
+        if (exercise == null)
+        {
+            return NotFound();
+        }
+
+        var transitions = _statusService.GetAvailableTransitions(exercise.Status);
+
+        return Ok(transitions);
+    }
+
+    // =========================================================================
+    // MSEL Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Get the active MSEL summary for an exercise.
+    /// Returns progress metrics, counts, and last modified info.
+    /// </summary>
+    [HttpGet("{id:guid}/msel/summary")]
+    public async Task<ActionResult<MselSummaryDto>> GetActiveMselSummary(Guid id)
+    {
+        var summary = await _mselService.GetActiveMselSummaryAsync(id);
+
+        if (summary == null)
+        {
+            return NotFound(new { message = "Exercise or active MSEL not found" });
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Get all MSELs for an exercise.
+    /// </summary>
+    [HttpGet("{id:guid}/msels")]
+    public async Task<ActionResult<IReadOnlyList<MselDto>>> GetMsels(Guid id)
+    {
+        var exercise = await _context.Exercises.FindAsync(id);
+
+        if (exercise == null)
+        {
+            return NotFound();
+        }
+
+        var msels = await _mselService.GetMselsForExerciseAsync(id);
+
+        return Ok(msels);
+    }
+
+    /// <summary>
+    /// Get a specific MSEL summary by ID.
+    /// </summary>
+    [HttpGet("msels/{mselId:guid}/summary")]
+    public async Task<ActionResult<MselSummaryDto>> GetMselSummary(Guid mselId)
+    {
+        var summary = await _mselService.GetMselSummaryAsync(mselId);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    // =========================================================================
+    // Setup Progress Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Get the setup progress for an exercise.
+    /// Shows completion status for each configuration area (MSEL, Phases, Objectives, Scheduling).
+    /// </summary>
+    [HttpGet("{id:guid}/setup-progress")]
+    public async Task<ActionResult<SetupProgressDto>> GetSetupProgress(Guid id)
+    {
+        var progress = await _setupProgressService.GetSetupProgressAsync(id);
+
+        if (progress == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(progress);
     }
 }

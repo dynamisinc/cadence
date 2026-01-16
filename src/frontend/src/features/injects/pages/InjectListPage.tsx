@@ -113,8 +113,14 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     [phases],
   )
 
+  // Convert objectives to the format needed by useInjectOrganization
+  const objectiveInfo = useMemo(
+    () => objectives.map(o => ({ id: o.id, objectiveNumber: o.objectiveNumber, name: o.name })),
+    [objectives],
+  )
+
   // Organization hook
-  const organization = useInjectOrganization(injects, phaseInfo)
+  const organization = useInjectOrganization(injects, phaseInfo, objectiveInfo)
 
   // Set custom breadcrumbs with exercise name and MSEL
   useBreadcrumbs(

@@ -7,16 +7,35 @@ export {
 } from './pages'
 
 // Components
-export { ExerciseStatusChip, ExerciseTypeChip, ExerciseForm } from './components'
+export {
+  ExerciseStatusChip,
+  ExerciseTypeChip,
+  ExerciseForm,
+  DuplicateExerciseDialog,
+  SetupProgress,
+} from './components'
 
 // Hooks
-export { useExercises, useExercise } from './hooks'
+export {
+  useExercises,
+  useExercise,
+  useExerciseStatus,
+  useMselSummary,
+  useMsels,
+  useDuplicateExercise,
+  useSetupProgress,
+} from './hooks'
 
 // Types
 export type {
   ExerciseDto,
   CreateExerciseRequest,
   UpdateExerciseRequest,
+  DuplicateExerciseRequest,
   CreateExerciseFormValues,
   UpdateExerciseFormValues,
+  MselDto,
+  MselSummaryDto,
+  SetupProgressDto,
+  SetupAreaDto,
 } from './types'

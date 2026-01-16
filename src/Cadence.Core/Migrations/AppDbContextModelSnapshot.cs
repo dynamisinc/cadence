@@ -28,7 +28,19 @@ namespace Cadence.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ActivatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ActivatedBy")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<Guid?>("ActiveMselId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ArchivedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("ArchivedBy")
                         .HasColumnType("uniqueidentifier");
 
                     b.Property<TimeSpan?>("ClockElapsedBeforePause")
@@ -44,6 +56,12 @@ namespace Cadence.Core.Migrations
                         .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("CompletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("CompletedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -111,9 +129,15 @@ namespace Cadence.Core.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ActivatedBy");
+
                     b.HasIndex("ActiveMselId");
 
+                    b.HasIndex("ArchivedBy");
+
                     b.HasIndex("ClockStartedBy");
+
+                    b.HasIndex("CompletedBy");
 
                     b.HasIndex("ScheduledDate");
 
@@ -788,14 +812,29 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
                 {
+                    b.HasOne("Cadence.Core.Models.Entities.User", "ActivatedByUser")
+                        .WithMany()
+                        .HasForeignKey("ActivatedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.Msel", "ActiveMsel")
                         .WithMany()
                         .HasForeignKey("ActiveMselId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Cadence.Core.Models.Entities.User", "ArchivedByUser")
+                        .WithMany()
+                        .HasForeignKey("ArchivedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.User", "ClockStartedByUser")
                         .WithMany()
                         .HasForeignKey("ClockStartedBy")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.User", "CompletedByUser")
+                        .WithMany()
+                        .HasForeignKey("CompletedBy")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
@@ -804,9 +843,15 @@ namespace Cadence.Core.Migrations
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
 
+                    b.Navigation("ActivatedByUser");
+
                     b.Navigation("ActiveMsel");
 
+                    b.Navigation("ArchivedByUser");
+
                     b.Navigation("ClockStartedByUser");
+
+                    b.Navigation("CompletedByUser");
 
                     b.Navigation("Organization");
                 });

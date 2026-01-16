@@ -186,10 +186,17 @@ export const ExerciseConductPage = () => {
 
   const handleObservationAdded = useCallback(
     (observation: ObservationDto) => {
-      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old => [
-        observation,
-        ...(old ?? []),
-      ])
+      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old => {
+        // Check if observation already exists (from optimistic update or prior SignalR)
+        // to avoid duplicates when the creator receives their own broadcast
+        const existing = old?.find(o => o.id === observation.id)
+        if (existing) {
+          // Update existing observation with server data
+          return old!.map(o => (o.id === observation.id ? observation : o))
+        }
+        // New observation from another client
+        return [observation, ...(old ?? [])]
+      })
     },
     [exerciseId, queryClient],
   )

@@ -30,16 +30,19 @@ public enum ExerciseType
 /// </summary>
 public enum ExerciseStatus
 {
-    /// <summary>Initial creation state.</summary>
+    /// <summary>Initial creation state. Setup phase - can edit everything.</summary>
     Draft,
 
-    /// <summary>Currently in conduct.</summary>
+    /// <summary>Currently in conduct. Clock can run, injects can fire.</summary>
     Active,
 
-    /// <summary>Conduct finished.</summary>
+    /// <summary>Temporarily stopped. Clock paused, can resume or revert to draft.</summary>
+    Paused,
+
+    /// <summary>Conduct finished. Read-only except observations.</summary>
     Completed,
 
-    /// <summary>Read-only historical record.</summary>
+    /// <summary>Read-only historical record. Fully read-only.</summary>
     Archived
 }
 

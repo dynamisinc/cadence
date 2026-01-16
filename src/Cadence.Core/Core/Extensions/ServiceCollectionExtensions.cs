@@ -1,5 +1,7 @@
 using Cadence.Core.Features.ExerciseClock.Services;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Services;
+using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
 using FluentValidation;
@@ -24,6 +26,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IObservationService, ObservationService>();
         services.AddScoped<IInjectService, InjectService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
+        services.AddScoped<IExerciseStatusService, ExerciseStatusService>();
+        services.AddScoped<IMselService, MselService>();
+        services.AddScoped<ISetupProgressService, SetupProgressService>();
 
         return services;
     }

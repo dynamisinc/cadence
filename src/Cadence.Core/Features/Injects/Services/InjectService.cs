@@ -23,7 +23,13 @@ public class InjectService : IInjectService
     /// <inheritdoc />
     public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default)
     {
-        var inject = await GetInjectForExerciseAsync(exerciseId, injectId, cancellationToken);
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate exercise is active
+        if (exercise.Status != ExerciseStatus.Active)
+        {
+            throw new InvalidOperationException($"Cannot fire inject. Exercise is {exercise.Status}. Injects can only be fired during an active exercise.");
+        }
 
         if (inject.Status != InjectStatus.Pending)
         {
@@ -47,7 +53,13 @@ public class InjectService : IInjectService
     /// <inheritdoc />
     public async Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default)
     {
-        var inject = await GetInjectForExerciseAsync(exerciseId, injectId, cancellationToken);
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate exercise is active
+        if (exercise.Status != ExerciseStatus.Active)
+        {
+            throw new InvalidOperationException($"Cannot skip inject. Exercise is {exercise.Status}. Injects can only be skipped during an active exercise.");
+        }
 
         if (inject.Status != InjectStatus.Pending)
         {
@@ -71,7 +83,13 @@ public class InjectService : IInjectService
     /// <inheritdoc />
     public async Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken = default)
     {
-        var inject = await GetInjectForExerciseAsync(exerciseId, injectId, cancellationToken);
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate exercise is active
+        if (exercise.Status != ExerciseStatus.Active)
+        {
+            throw new InvalidOperationException($"Cannot reset inject. Exercise is {exercise.Status}. Injects can only be reset during an active exercise.");
+        }
 
         inject.Status = InjectStatus.Pending;
         inject.FiredAt = null;
@@ -87,7 +105,7 @@ public class InjectService : IInjectService
         return dto;
     }
 
-    private async Task<Inject> GetInjectForExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)
+    private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)
     {
         var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
             ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
@@ -105,6 +123,6 @@ public class InjectService : IInjectService
             .FirstOrDefaultAsync(i => i.Id == injectId && i.MselId == exercise.ActiveMselId, cancellationToken)
             ?? throw new KeyNotFoundException($"Inject {injectId} not found in exercise's active MSEL.");
 
-        return inject;
+        return (inject, exercise);
     }
 }

@@ -25,7 +25,8 @@ export const useExercises = () => {
   // Query for fetching exercises
   const {
     data: exercises = [],
-    isLoading: loading,
+    isLoading,
+    isFetching,
     error,
     refetch: fetchExercises,
   } = useQuery({
@@ -60,6 +61,13 @@ export const useExercises = () => {
         activeMselId: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        // Status audit fields
+        activatedAt: null,
+        activatedBy: null,
+        completedAt: null,
+        completedBy: null,
+        archivedAt: null,
+        archivedBy: null,
       }
 
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) => [
@@ -162,7 +170,10 @@ export const useExercises = () => {
 
   return {
     exercises,
-    loading,
+    // isLoading = true only on initial load (no cached data)
+    // isFetching = true during any fetch (initial or background refetch)
+    loading: isLoading,
+    isFetching,
     error: error ? (error instanceof Error ? error.message : 'Failed to load exercises') : null,
     fetchExercises,
     createExercise,

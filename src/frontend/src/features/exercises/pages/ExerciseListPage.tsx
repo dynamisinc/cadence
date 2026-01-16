@@ -46,7 +46,7 @@ type SortOrder = 'asc' | 'desc'
  */
 export const ExerciseListPage = () => {
   const navigate = useNavigate()
-  const { exercises, loading, error } = useExercises()
+  const { exercises, loading, isFetching, error } = useExercises()
   const { canManage } = usePermissions()
 
   const [searchTerm, setSearchTerm] = useState('')
@@ -187,8 +187,8 @@ export const ExerciseListPage = () => {
         </Box>
       </Stack>
 
-      {/* Loading skeleton state */}
-      {loading && exercises.length === 0 ? (
+      {/* Loading skeleton state - show during initial load OR background refetch with no data */}
+      {(loading || isFetching) && exercises.length === 0 ? (
         <ExerciseTableSkeleton />
       ) : filteredExercises.length === 0 ? (
         <EmptyState

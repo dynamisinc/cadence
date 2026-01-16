@@ -46,14 +46,71 @@ export const useObservations = (exerciseId: string) => {
     enabled: !!exerciseId,
   })
 
-  // Mutation for creating observations
+  // Mutation for creating observations with optimistic updates
   const createMutation = useMutation({
     mutationFn: (request: CreateObservationRequest) =>
       observationService.createObservation(exerciseId, request),
-    onSuccess: newObservation => {
+    onMutate: async request => {
+      // Cancel pending queries to avoid race conditions
+      await queryClient.cancelQueries({ queryKey: observationsQueryKey(exerciseId) })
+
+      // Snapshot for rollback
+      const previousObservations = queryClient.getQueryData<ObservationDto[]>(
+        observationsQueryKey(exerciseId),
+      )
+
+      // Optimistic observation with temp ID
+      const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
+      const optimisticObservation: ObservationDto = {
+        id: tempId,
+        exerciseId,
+        injectId: request.injectId ?? null,
+        objectiveId: request.objectiveId ?? null,
+        content: request.content,
+        rating: request.rating ?? null,
+        recommendation: request.recommendation ?? null,
+        observedAt: request.observedAt ?? new Date().toISOString(),
+        location: request.location ?? null,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+        createdBy: 'pending',
+        createdByName: 'You',
+        injectTitle: null,
+        injectNumber: null,
+      }
+
+      // Apply optimistic update
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
-        (old = []) => [newObservation, ...old],
+        (old = []) => [optimisticObservation, ...old],
+      )
+
+      return { previousObservations, tempId }
+    },
+    onSuccess: (newObservation, _request, context) => {
+      // Replace temp observation with real server data
+      // Handle race condition: SignalR might have already added the real observation
+      queryClient.setQueryData<ObservationDto[]>(
+        observationsQueryKey(exerciseId),
+        (old = []) => {
+          const hasRealObservation = old.some(obs => obs.id === newObservation.id)
+          const hasTempObservation = context?.tempId && old.some(obs => obs.id === context.tempId)
+
+          if (hasRealObservation && hasTempObservation) {
+            // SignalR already added real observation - remove temp and update real
+            return old
+              .filter(obs => obs.id !== context.tempId)
+              .map(obs => obs.id === newObservation.id ? newObservation : obs)
+          } else if (hasRealObservation) {
+            // SignalR added real observation - just update it
+            return old.map(obs => obs.id === newObservation.id ? newObservation : obs)
+          } else if (hasTempObservation) {
+            // Normal case: replace temp with real
+            return old.map(obs => obs.id === context?.tempId ? newObservation : obs)
+          }
+          // Shouldn't happen, but safety fallback
+          return old
+        },
       )
       // Also invalidate inject-specific queries if the observation is linked
       if (newObservation.injectId) {
@@ -63,18 +120,56 @@ export const useObservations = (exerciseId: string) => {
       }
       toast.success('Observation recorded')
     },
-    onError: err => {
+    onError: (err, _request, context) => {
+      // Rollback to previous state
+      if (context?.previousObservations) {
+        queryClient.setQueryData(
+          observationsQueryKey(exerciseId),
+          context.previousObservations,
+        )
+      }
       const message =
         err instanceof Error ? err.message : 'Failed to create observation'
       toast.error(message)
     },
   })
 
-  // Mutation for updating observations
+  // Mutation for updating observations with optimistic updates
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: string; request: UpdateObservationRequest }) =>
       observationService.updateObservation(id, request),
+    onMutate: async ({ id, request }) => {
+      // Cancel pending queries to avoid race conditions
+      await queryClient.cancelQueries({ queryKey: observationsQueryKey(exerciseId) })
+
+      // Snapshot for rollback
+      const previousObservations = queryClient.getQueryData<ObservationDto[]>(
+        observationsQueryKey(exerciseId),
+      )
+
+      // Apply optimistic update
+      queryClient.setQueryData<ObservationDto[]>(
+        observationsQueryKey(exerciseId),
+        (old = []) => old.map(obs =>
+          obs.id === id
+            ? {
+              ...obs,
+              content: request.content,
+              rating: request.rating ?? obs.rating,
+              recommendation: request.recommendation ?? obs.recommendation,
+              injectId: request.injectId ?? obs.injectId,
+              objectiveId: request.objectiveId ?? obs.objectiveId,
+              location: request.location ?? obs.location,
+              updatedAt: new Date().toISOString(),
+            }
+            : obs,
+        ),
+      )
+
+      return { previousObservations }
+    },
     onSuccess: updatedObservation => {
+      // Replace optimistic data with real server data
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
         (old = []) =>
@@ -84,24 +179,51 @@ export const useObservations = (exerciseId: string) => {
       )
       toast.success('Observation updated')
     },
-    onError: err => {
+    onError: (err, _variables, context) => {
+      // Rollback to previous state
+      if (context?.previousObservations) {
+        queryClient.setQueryData(
+          observationsQueryKey(exerciseId),
+          context.previousObservations,
+        )
+      }
       const message =
         err instanceof Error ? err.message : 'Failed to update observation'
       toast.error(message)
     },
   })
 
-  // Mutation for deleting observations
+  // Mutation for deleting observations with optimistic updates
   const deleteMutation = useMutation({
     mutationFn: observationService.deleteObservation,
-    onSuccess: (_, deletedId) => {
+    onMutate: async deletedId => {
+      // Cancel pending queries to avoid race conditions
+      await queryClient.cancelQueries({ queryKey: observationsQueryKey(exerciseId) })
+
+      // Snapshot for rollback
+      const previousObservations = queryClient.getQueryData<ObservationDto[]>(
+        observationsQueryKey(exerciseId),
+      )
+
+      // Apply optimistic update - immediately remove from list
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
         (old = []) => old.filter(obs => obs.id !== deletedId),
       )
+
+      return { previousObservations }
+    },
+    onSuccess: () => {
       toast.success('Observation deleted')
     },
-    onError: err => {
+    onError: (err, _deletedId, context) => {
+      // Rollback to previous state
+      if (context?.previousObservations) {
+        queryClient.setQueryData(
+          observationsQueryKey(exerciseId),
+          context.previousObservations,
+        )
+      }
       const message =
         err instanceof Error ? err.message : 'Failed to delete observation'
       toast.error(message)

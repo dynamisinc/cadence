@@ -172,6 +172,25 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.ClockStartedBy)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Status transition audit user references (optional)
+            entity.HasOne(e => e.ActivatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ActivatedBy)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.CompletedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CompletedBy)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.ArchivedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.ArchivedBy)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

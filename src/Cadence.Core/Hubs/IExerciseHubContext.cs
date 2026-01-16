@@ -1,4 +1,5 @@
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
+using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Observations.Models.DTOs;
 
@@ -64,4 +65,10 @@ public interface IExerciseHubContext
     /// Notify clients that an observation was deleted.
     /// </summary>
     Task NotifyObservationDeleted(Guid exerciseId, Guid observationId);
+
+    /// <summary>
+    /// Notify clients that the exercise status has changed.
+    /// Used for status workflow transitions (Draft → Active → Paused → Completed → Archived).
+    /// </summary>
+    Task NotifyExerciseStatusChanged(Guid exerciseId, ExerciseDto exercise);
 }

@@ -66,11 +66,16 @@ public class ObservationService : IObservationService
     /// <inheritdoc />
     public async Task<ObservationDto> CreateObservationAsync(Guid exerciseId, CreateObservationRequest request, Guid createdBy)
     {
-        // Validate exercise exists
-        var exerciseExists = await _context.Exercises.AnyAsync(e => e.Id == exerciseId);
-        if (!exerciseExists)
+        // Validate exercise exists and is active
+        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        if (exercise == null)
         {
             throw new InvalidOperationException($"Exercise {exerciseId} not found");
+        }
+
+        if (exercise.Status != ExerciseStatus.Active)
+        {
+            throw new InvalidOperationException($"Cannot add observations. Exercise is {exercise.Status}. Observations can only be added during an active exercise.");
         }
 
         // Validate inject exists if specified
@@ -124,11 +129,18 @@ public class ObservationService : IObservationService
         var observation = await _context.Observations
             .Include(o => o.CreatedByUser)
             .Include(o => o.Inject)
+            .Include(o => o.Exercise)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (observation == null)
         {
             return null;
+        }
+
+        // Validate exercise is active
+        if (observation.Exercise.Status != ExerciseStatus.Active)
+        {
+            throw new InvalidOperationException($"Cannot update observations. Exercise is {observation.Exercise.Status}. Observations can only be modified during an active exercise.");
         }
 
         // Validate inject exists if specified

@@ -7,13 +7,20 @@ import {
   Stack,
   CircularProgress,
   Divider,
+  Grid,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faList, faPen, faPlay } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faList, faPen, faPlay, faCopy } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
-import { useExercise } from '../hooks'
-import { ExerciseForm, ExerciseHeader } from '../components'
+import { useExercise, useSetupProgress, useDuplicateExercise } from '../hooks'
+import {
+  ExerciseForm,
+  ExerciseHeader,
+  ExerciseStatusActions,
+  SetupProgress,
+  DuplicateExerciseDialog,
+} from '../components'
 import { ObjectiveList } from '../../objectives'
 import {
   CobraPrimaryButton,
@@ -48,6 +55,17 @@ export const ExerciseDetailPage = () => {
   const [isEditing, setIsEditing] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
+  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
+
+  // Setup progress for Draft exercises
+  const {
+    data: setupProgress,
+    isLoading: setupProgressLoading,
+    error: setupProgressError,
+  } = useSetupProgress(id ?? '')
+
+  // Duplicate exercise mutation
+  const { duplicate, isDuplicating } = useDuplicateExercise()
 
   // Set custom breadcrumbs with exercise name
   useBreadcrumbs(
@@ -260,6 +278,20 @@ export const ExerciseDetailPage = () => {
                 Edit
               </CobraSecondaryButton>
             )}
+            {!isEditing && canManage && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faCopy} />}
+                onClick={() => setDuplicateDialogOpen(true)}
+              >
+                Duplicate
+              </CobraSecondaryButton>
+            )}
+            {!isEditing && (
+              <ExerciseStatusActions
+                exercise={exercise}
+                isReadyToActivate={setupProgress?.isReadyToActivate}
+              />
+            )}
           </>
         }
       />
@@ -277,104 +309,132 @@ export const ExerciseDetailPage = () => {
         </Paper>
       )}
 
-      {/* Content */}
-      <Paper sx={{ p: 3 }}>
-        {isEditing ? (
-          <ExerciseForm
-            exercise={exercise}
-            onSubmit={handleSubmit}
-            onCancel={handleCancel}
-            isSubmitting={isSubmitting}
-            disabledFields={disabledFields}
-            onDirtyChange={handleDirtyChange}
-          />
-        ) : (
-          <Stack spacing={3}>
-            {/* Description */}
-            {exercise.description && (
-              <Box>
-                <Typography variant="subtitle2" color="text.secondary">
-                  Description
-                </Typography>
-                <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
-                  {exercise.description}
-                </Typography>
-              </Box>
-            )}
-
-            <Divider />
-
-            {/* Schedule */}
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                gutterBottom
-              >
-                Schedule
-              </Typography>
-              <Stack spacing={1}>
-                <Typography variant="body1">
-                  <strong>Date:</strong> {formatDate(exercise.scheduledDate)}
-                </Typography>
-                {(exercise.startTime || exercise.endTime) && (
-                  <Typography variant="body1">
-                    <strong>Time:</strong>{' '}
-                    {exercise.startTime
-                      ? formatTime(exercise.startTime)
-                      : 'TBD'}
-                    {exercise.endTime &&
-                      ` - ${formatTime(exercise.endTime)}`}
-                  </Typography>
+      {/* Content - Grid layout for Draft (with sidebar) vs other statuses */}
+      <Grid container spacing={3}>
+        {/* Main content column */}
+        <Grid size={{ xs: 12, md: exercise.status === ExerciseStatus.Draft && !isEditing ? 8 : 12 }}>
+          <Paper sx={{ p: 3 }}>
+            {isEditing ? (
+              <ExerciseForm
+                exercise={exercise}
+                onSubmit={handleSubmit}
+                onCancel={handleCancel}
+                isSubmitting={isSubmitting}
+                disabledFields={disabledFields}
+                onDirtyChange={handleDirtyChange}
+              />
+            ) : (
+              <Stack spacing={3}>
+                {/* Description */}
+                {exercise.description && (
+                  <Box>
+                    <Typography variant="subtitle2" color="text.secondary">
+                      Description
+                    </Typography>
+                    <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {exercise.description}
+                    </Typography>
+                  </Box>
                 )}
-                <Typography variant="body1">
-                  <strong>Time Zone:</strong> {exercise.timeZoneId}
-                </Typography>
-              </Stack>
-            </Box>
 
-            {/* Location */}
-            {exercise.location && (
-              <>
                 <Divider />
+
+                {/* Schedule */}
                 <Box>
-                  <Typography variant="subtitle2" color="text.secondary">
-                    Location
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Schedule
                   </Typography>
-                  <Typography variant="body1">{exercise.location}</Typography>
+                  <Stack spacing={1}>
+                    <Typography variant="body1">
+                      <strong>Date:</strong> {formatDate(exercise.scheduledDate)}
+                    </Typography>
+                    {(exercise.startTime || exercise.endTime) && (
+                      <Typography variant="body1">
+                        <strong>Time:</strong>{' '}
+                        {exercise.startTime
+                          ? formatTime(exercise.startTime)
+                          : 'TBD'}
+                        {exercise.endTime &&
+                          ` - ${formatTime(exercise.endTime)}`}
+                      </Typography>
+                    )}
+                    <Typography variant="body1">
+                      <strong>Time Zone:</strong> {exercise.timeZoneId}
+                    </Typography>
+                  </Stack>
                 </Box>
-              </>
+
+                {/* Location */}
+                {exercise.location && (
+                  <>
+                    <Divider />
+                    <Box>
+                      <Typography variant="subtitle2" color="text.secondary">
+                        Location
+                      </Typography>
+                      <Typography variant="body1">{exercise.location}</Typography>
+                    </Box>
+                  </>
+                )}
+
+                <Divider />
+
+                {/* Type Info */}
+                <Box>
+                  <Typography
+                    variant="subtitle2"
+                    color="text.secondary"
+                    gutterBottom
+                  >
+                    Exercise Type
+                  </Typography>
+                  <Typography variant="body1">
+                    {exercise.exerciseType} -{' '}
+                    {getExerciseTypeFullName(exercise.exerciseType)}
+                  </Typography>
+                </Box>
+              </Stack>
             )}
+          </Paper>
 
-            <Divider />
+          {/* Objectives Section (only show in view mode) */}
+          {!isEditing && (
+            <Paper sx={{ p: 3, mt: 3 }}>
+              <ObjectiveList
+                exerciseId={exercise.id}
+                canEdit={canEdit}
+              />
+            </Paper>
+          )}
+        </Grid>
 
-            {/* Type Info */}
-            <Box>
-              <Typography
-                variant="subtitle2"
-                color="text.secondary"
-                gutterBottom
-              >
-                Exercise Type
-              </Typography>
-              <Typography variant="body1">
-                {exercise.exerciseType} -{' '}
-                {getExerciseTypeFullName(exercise.exerciseType)}
-              </Typography>
-            </Box>
-          </Stack>
+        {/* Setup Progress sidebar for Draft exercises */}
+        {exercise.status === ExerciseStatus.Draft && !isEditing && (
+          <Grid size={{ xs: 12, md: 4 }}>
+            <SetupProgress
+              progress={setupProgress}
+              isLoading={setupProgressLoading}
+              error={setupProgressError}
+            />
+          </Grid>
         )}
-      </Paper>
+      </Grid>
 
-      {/* Objectives Section (only show in view mode) */}
-      {!isEditing && (
-        <Paper sx={{ p: 3, mt: 3 }}>
-          <ObjectiveList
-            exerciseId={exercise.id}
-            canEdit={canEdit}
-          />
-        </Paper>
-      )}
+      {/* Duplicate Exercise Dialog */}
+      <DuplicateExerciseDialog
+        open={duplicateDialogOpen}
+        exercise={exercise}
+        onClose={() => setDuplicateDialogOpen(false)}
+        onSubmit={async request => {
+          await duplicate({ exerciseId: exercise.id, request })
+          setDuplicateDialogOpen(false)
+        }}
+        isSubmitting={isDuplicating}
+      />
 
       {/* Unsaved changes dialog for navigation blocking */}
       <UnsavedChangesDialog />
