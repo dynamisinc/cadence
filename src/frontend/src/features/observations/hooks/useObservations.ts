@@ -50,7 +50,7 @@ export const useObservations = (exerciseId: string) => {
   const createMutation = useMutation({
     mutationFn: (request: CreateObservationRequest) =>
       observationService.createObservation(exerciseId, request),
-    onMutate: async (request) => {
+    onMutate: async request => {
       // Cancel pending queries to avoid race conditions
       await queryClient.cancelQueries({ queryKey: observationsQueryKey(exerciseId) })
 
@@ -196,7 +196,7 @@ export const useObservations = (exerciseId: string) => {
   // Mutation for deleting observations with optimistic updates
   const deleteMutation = useMutation({
     mutationFn: observationService.deleteObservation,
-    onMutate: async (deletedId) => {
+    onMutate: async deletedId => {
       // Cancel pending queries to avoid race conditions
       await queryClient.cancelQueries({ queryKey: observationsQueryKey(exerciseId) })
 

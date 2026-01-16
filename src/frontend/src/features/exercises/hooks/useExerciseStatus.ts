@@ -51,7 +51,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       updateExerciseInCache(updatedExercise)
       toast.success('Exercise activated')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to activate exercise'
       toast.error(message)
     },
@@ -64,7 +64,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       updateExerciseInCache(updatedExercise)
       toast.success('Exercise paused')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to pause exercise'
       toast.error(message)
     },
@@ -77,7 +77,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       updateExerciseInCache(updatedExercise)
       toast.success('Exercise resumed')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to resume exercise'
       toast.error(message)
     },
@@ -90,7 +90,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       updateExerciseInCache(updatedExercise)
       toast.success('Exercise completed')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to complete exercise'
       toast.error(message)
     },
@@ -103,7 +103,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       updateExerciseInCache(updatedExercise)
       toast.success('Exercise archived')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to archive exercise'
       toast.error(message)
     },
@@ -116,7 +116,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       updateExerciseInCache(updatedExercise)
       toast.success('Exercise unarchived')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to unarchive exercise'
       toast.error(message)
     },
@@ -136,7 +136,7 @@ export const useExerciseStatus = (exerciseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['msel-summary', exerciseId] })
       toast.success('Exercise reverted to draft')
     },
-    onError: (err) => {
+    onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to revert exercise to draft'
       toast.error(message)
     },

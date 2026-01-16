@@ -36,7 +36,11 @@ export const useExerciseClock = (exerciseId: string) => {
   const [elapsedTimeMs, setElapsedTimeMs] = useState(0)
   // Ref to track current elapsed time for optimistic pause
   const elapsedTimeMsRef = useRef(0)
-  elapsedTimeMsRef.current = elapsedTimeMs
+
+  // Keep ref in sync with state (in effect, not during render)
+  useEffect(() => {
+    elapsedTimeMsRef.current = elapsedTimeMs
+  }, [elapsedTimeMs])
 
   // Query for fetching clock state
   const {

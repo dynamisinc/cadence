@@ -107,23 +107,6 @@ export const ExerciseStatusActions = ({
     return null
   }
 
-  const getStatusLabel = (status: ExerciseStatus): string => {
-    switch (status) {
-      case ExerciseStatus.Draft:
-        return 'Draft'
-      case ExerciseStatus.Active:
-        return exercise.status === ExerciseStatus.Paused ? 'Resume' : 'Activate'
-      case ExerciseStatus.Paused:
-        return 'Pause'
-      case ExerciseStatus.Completed:
-        return 'Complete'
-      case ExerciseStatus.Archived:
-        return 'Archive'
-      default:
-        return status
-    }
-  }
-
   return (
     <>
       <CobraSecondaryButton

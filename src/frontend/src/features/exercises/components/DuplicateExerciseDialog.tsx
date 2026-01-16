@@ -65,15 +65,15 @@ export const DuplicateExerciseDialog = ({
 
   const handleChange =
     (field: keyof FormValues) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      const value = e.target.value
-      setValues(prev => ({ ...prev, [field]: value }))
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+        const value = e.target.value
+        setValues(prev => ({ ...prev, [field]: value }))
 
-      // Clear error when field is modified
-      if (errors[field]) {
-        setErrors(prev => ({ ...prev, [field]: undefined }))
+        // Clear error when field is modified
+        if (errors[field]) {
+          setErrors(prev => ({ ...prev, [field]: undefined }))
+        }
       }
-    }
 
   const handleBlur = (field: keyof FormValues) => () => {
     setTouched(prev => ({ ...prev, [field]: true }))

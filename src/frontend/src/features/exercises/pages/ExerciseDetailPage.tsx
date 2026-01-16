@@ -424,7 +424,7 @@ export const ExerciseDetailPage = () => {
         open={duplicateDialogOpen}
         exercise={exercise}
         onClose={() => setDuplicateDialogOpen(false)}
-        onSubmit={async (request) => {
+        onSubmit={async request => {
           await duplicate({ exerciseId: exercise.id, request })
           setDuplicateDialogOpen(false)
         }}
