@@ -30,6 +30,7 @@ import {
 import { InjectStatus } from '../../../types'
 import type { InjectDto, SkipInjectRequest } from '../types'
 import { calculateScheduledOffset, UPCOMING_WINDOW_MS } from '../types'
+import type { ObjectiveSummaryDto } from '../../objectives/types'
 
 interface InjectListByStatusProps {
   /** List of injects to display */
@@ -54,6 +55,8 @@ interface InjectListByStatusProps {
   openInjectId?: string | null
   /** Called when drawer is closed (to clear openInjectId) */
   onDrawerClose?: () => void
+  /** Available objectives for displaying linked objectives in drawer */
+  objectives?: ObjectiveSummaryDto[]
 }
 
 interface InjectWithOffset {
@@ -73,6 +76,7 @@ export const InjectListByStatus = ({
   onReset,
   openInjectId,
   onDrawerClose,
+  objectives = [],
 }: InjectListByStatusProps) => {
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
@@ -445,6 +449,7 @@ export const InjectListByStatus = ({
         onFire={handleDrawerFire}
         onSkip={handleDrawerSkip}
         onReset={handleDrawerReset}
+        objectives={objectives}
       />
     </>
   )

@@ -101,6 +101,7 @@ public class InjectService : IInjectService
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .FirstOrDefaultAsync(i => i.Id == injectId && i.MselId == exercise.ActiveMselId, cancellationToken)
             ?? throw new KeyNotFoundException($"Inject {injectId} not found in exercise's active MSEL.");
 

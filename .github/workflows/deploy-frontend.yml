@@ -86,6 +86,8 @@ jobs:
         env:
           VITE_API_URL: ${{ vars.VITE_API_URL || '' }}
           VITE_SIGNALR_URL: ${{ vars.VITE_SIGNALR_URL || '' }}
+          # PWA: 'autoUpdate' for UAT (silent updates), 'prompt' for production (user approval)
+          VITE_PWA_REGISTER_TYPE: ${{ vars.VITE_PWA_REGISTER_TYPE || 'autoUpdate' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

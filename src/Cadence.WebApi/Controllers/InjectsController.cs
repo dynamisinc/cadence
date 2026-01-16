@@ -48,6 +48,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .Where(i => i.MselId == exercise.ActiveMselId)
             .OrderBy(i => i.Sequence)
             .ToListAsync();
@@ -71,6 +72,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -139,10 +141,31 @@ public class InjectsController : ControllerBase
         var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1, SystemConstants.SystemUserId);
 
         _context.Injects.Add(inject);
+
+        // Add objective links if provided
+        if (request.ObjectiveIds != null && request.ObjectiveIds.Count > 0)
+        {
+            foreach (var objectiveId in request.ObjectiveIds.Distinct())
+            {
+                // Validate objective exists and belongs to this exercise
+                var objectiveExists = await _context.Objectives
+                    .AnyAsync(o => o.Id == objectiveId && o.ExerciseId == exerciseId);
+                if (objectiveExists)
+                {
+                    inject.InjectObjectives.Add(new InjectObjective
+                    {
+                        InjectId = inject.Id,
+                        ObjectiveId = objectiveId
+                    });
+                }
+            }
+        }
+
         await _context.SaveChangesAsync();
 
         // Reload with navigation properties
         await _context.Entry(inject).Reference(i => i.Phase).LoadAsync();
+        await _context.Entry(inject).Collection(i => i.InjectObjectives).LoadAsync();
 
         _logger.LogInformation("Created inject {InjectId}: {InjectTitle} for exercise {ExerciseId}",
             inject.Id, inject.Title, exerciseId);
@@ -170,6 +193,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -203,6 +227,30 @@ public class InjectsController : ControllerBase
         {
             // Full edit allowed for Pending/Skipped injects
             inject.UpdateFromRequest(request, SystemConstants.SystemUserId);
+
+            // Update objective links if provided (only for non-fired injects)
+            if (request.ObjectiveIds != null)
+            {
+                // Remove existing links
+                _context.InjectObjectives.RemoveRange(inject.InjectObjectives);
+                inject.InjectObjectives.Clear();
+
+                // Add new links
+                foreach (var objectiveId in request.ObjectiveIds.Distinct())
+                {
+                    // Validate objective exists and belongs to this exercise
+                    var objectiveExists = await _context.Objectives
+                        .AnyAsync(o => o.Id == objectiveId && o.ExerciseId == exerciseId);
+                    if (objectiveExists)
+                    {
+                        inject.InjectObjectives.Add(new InjectObjective
+                        {
+                            InjectId = inject.Id,
+                            ObjectiveId = objectiveId
+                        });
+                    }
+                }
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -228,6 +276,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -287,6 +336,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -350,6 +400,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.Phase)
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)

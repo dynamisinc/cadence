@@ -179,6 +179,7 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     skipReason: cached.skipReason ?? null,
     phaseId: null,
     phaseName: null,
+    objectiveIds: [],
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
     pendingSync: cached.pendingSync,

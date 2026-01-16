@@ -14,6 +14,7 @@ import { format, parseISO } from 'date-fns'
 
 import { useExercise } from '../hooks'
 import { ExerciseForm, ExerciseHeader } from '../components'
+import { ObjectiveList } from '../../objectives'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -122,6 +123,8 @@ export const ExerciseDetailPage = () => {
         location: values.location?.trim() || undefined,
         startTime: values.startTime || undefined,
         endTime: values.endTime || undefined,
+        timeZoneId: values.timeZoneId,
+        isPracticeMode: values.isPracticeMode,
       }
 
       await updateExercise(request)
@@ -362,6 +365,16 @@ export const ExerciseDetailPage = () => {
           </Stack>
         )}
       </Paper>
+
+      {/* Objectives Section (only show in view mode) */}
+      {!isEditing && (
+        <Paper sx={{ p: 3, mt: 3 }}>
+          <ObjectiveList
+            exerciseId={exercise.id}
+            canEdit={canEdit}
+          />
+        </Paper>
+      )}
 
       {/* Unsaved changes dialog for navigation blocking */}
       <UnsavedChangesDialog />

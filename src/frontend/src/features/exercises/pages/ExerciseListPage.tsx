@@ -14,6 +14,7 @@ import {
   Paper,
   Tooltip,
   Skeleton,
+  Chip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faScrewdriverWrench, faBan, faClipboardList, faListCheck } from '@fortawesome/free-solid-svg-icons'
@@ -335,9 +336,20 @@ const ExerciseRow = ({ exercise, onClick, formatDate }: ExerciseRowProps) => {
       <TableCell>
         {exercise.isPracticeMode && (
           <Tooltip title="Practice Mode - excluded from production reports">
-            <Box component="span" sx={{ color: 'text.secondary' }}>
-              <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
-            </Box>
+            <Chip
+              icon={<FontAwesomeIcon icon={faScrewdriverWrench} size="xs" />}
+              label="Practice"
+              size="small"
+              sx={{
+                backgroundColor: 'warning.main',
+                color: 'white',
+                fontWeight: 500,
+                '& .MuiChip-icon': {
+                  color: 'white',
+                  fontSize: '0.75rem',
+                },
+              }}
+            />
           </Tooltip>
         )}
       </TableCell>

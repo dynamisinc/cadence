@@ -33,6 +33,7 @@ public record InjectDto(
     Guid MselId,
     Guid? PhaseId,
     string? PhaseName,
+    List<Guid> ObjectiveIds,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -111,6 +112,11 @@ public class CreateInjectRequest
     /// Exercise phase (optional).
     /// </summary>
     public Guid? PhaseId { get; init; }
+
+    /// <summary>
+    /// Linked objective IDs (many-to-many).
+    /// </summary>
+    public List<Guid>? ObjectiveIds { get; init; }
 }
 
 /// <summary>
@@ -187,6 +193,11 @@ public class UpdateInjectRequest
     /// Exercise phase (optional).
     /// </summary>
     public Guid? PhaseId { get; init; }
+
+    /// <summary>
+    /// Linked objective IDs (many-to-many).
+    /// </summary>
+    public List<Guid>? ObjectiveIds { get; init; }
 }
 
 /// <summary>
@@ -244,6 +255,7 @@ public static class InjectMapper
         entity.MselId,
         entity.PhaseId,
         entity.Phase?.Name,
+        entity.InjectObjectives?.Select(io => io.ObjectiveId).ToList() ?? new List<Guid>(),
         entity.CreatedAt,
         entity.UpdatedAt
     );

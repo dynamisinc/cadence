@@ -20,6 +20,7 @@ import {
   faEnvelope,
   faExpand,
   faCompress,
+  faCrosshairs,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraLinkButton } from '../../../theme/styledComponents'
 import { FilterDropdown, type FilterOption } from './FilterDropdown'
@@ -30,6 +31,12 @@ import { InjectStatus as InjectStatusEnum, DeliveryMethod as DeliveryMethodEnum 
 
 export interface PhaseOption {
   id: string | null
+  name: string
+}
+
+export interface ObjectiveOption {
+  id: string
+  objectiveNumber: string
   name: string
 }
 
@@ -44,6 +51,7 @@ export interface InjectFilterBarProps {
   onStatusChange: (statuses: InjectStatus[]) => void
   onPhaseChange: (phaseIds: (string | null)[]) => void
   onMethodChange: (methods: DeliveryMethod[]) => void
+  onObjectiveChange: (objectiveIds: (string | null)[]) => void
 
   // Grouping
   groupBy: GroupBy
@@ -51,6 +59,9 @@ export interface InjectFilterBarProps {
 
   // Phase options (from exercise)
   phases: PhaseOption[]
+
+  // Objective options (from exercise)
+  objectives?: ObjectiveOption[]
 
   // Group expand/collapse
   showGroupControls?: boolean
@@ -84,9 +95,11 @@ export const InjectFilterBar = ({
   onStatusChange,
   onPhaseChange,
   onMethodChange,
+  onObjectiveChange,
   groupBy,
   onGroupByChange,
   phases,
+  objectives = [],
   showGroupControls = false,
   onExpandAll,
   onCollapseAll,
@@ -97,6 +110,12 @@ export const InjectFilterBar = ({
   const phaseOptions: FilterOption<string | null>[] = [
     ...phases.map(p => ({ value: p.id, label: p.name })),
     { value: null, label: 'Unassigned' },
+  ]
+
+  // Build objective options including "No objectives"
+  const objectiveOptions: FilterOption<string | null>[] = [
+    ...objectives.map(o => ({ value: o.id, label: `${o.objectiveNumber}: ${o.name}` })),
+    { value: null, label: 'No objectives' },
   ]
 
   // Keyboard shortcut for search (Ctrl+F / Cmd+F)
@@ -191,6 +210,16 @@ export const InjectFilterBar = ({
           selected={filters.deliveryMethods}
           onChange={onMethodChange}
         />
+
+        {objectives.length > 0 && (
+          <FilterDropdown
+            label="Objective"
+            icon={faCrosshairs}
+            options={objectiveOptions}
+            selected={filters.objectiveIds}
+            onChange={onObjectiveChange}
+          />
+        )}
       </Stack>
 
       {/* Right side: Grouping and expand/collapse */}

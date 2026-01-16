@@ -9,7 +9,7 @@
  * - Custom action buttons (provided by parent)
  */
 
-import { Box, Stack, Typography, Tooltip } from '@mui/material'
+import { Chip, Stack, Typography, Tooltip } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
 
@@ -45,9 +45,20 @@ export const ExerciseHeader = ({
         </Typography>
         {exercise.isPracticeMode && (
           <Tooltip title="Practice Mode - excluded from production reports">
-            <Box component="span" sx={{ color: 'action.active' }}>
-              <FontAwesomeIcon icon={faScrewdriverWrench} />
-            </Box>
+            <Chip
+              icon={<FontAwesomeIcon icon={faScrewdriverWrench} size="xs" />}
+              label="Practice"
+              size="small"
+              sx={{
+                backgroundColor: 'warning.main',
+                color: 'white',
+                fontWeight: 500,
+                '& .MuiChip-icon': {
+                  color: 'white',
+                  fontSize: '0.75rem',
+                },
+              }}
+            />
           </Tooltip>
         )}
         <ExerciseTypeChip type={exercise.exerciseType} />

@@ -45,6 +45,8 @@ export const CreateExercisePage = () => {
         scheduledDate: values.scheduledDate,
         description: values.description?.trim() || undefined,
         location: values.location?.trim() || undefined,
+        timeZoneId: values.timeZoneId,
+        isPracticeMode: values.isPracticeMode,
       }
 
       const created = await exerciseService.createExercise(request)

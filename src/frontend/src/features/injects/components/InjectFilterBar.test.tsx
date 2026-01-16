@@ -22,6 +22,7 @@ describe('InjectFilterBar', () => {
     statuses: [],
     phaseIds: [],
     deliveryMethods: [],
+    objectiveIds: [],
   }
 
   const defaultProps = {
@@ -32,6 +33,7 @@ describe('InjectFilterBar', () => {
     onStatusChange: vi.fn(),
     onPhaseChange: vi.fn(),
     onMethodChange: vi.fn(),
+    onObjectiveChange: vi.fn(),
     groupBy: 'none' as const,
     onGroupByChange: vi.fn(),
     phases,

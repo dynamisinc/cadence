@@ -70,6 +70,31 @@ export function filterByMethod(
 }
 
 /**
+ * Filter injects by objective
+ * @param injects Array of injects to filter
+ * @param objectiveIds Selected objective IDs (null = "No objectives", empty = all)
+ * @returns Filtered injects
+ */
+export function filterByObjective(
+  injects: InjectDto[],
+  objectiveIds: (string | null)[],
+): InjectDto[] {
+  if (!isFilterActive(objectiveIds)) {
+    return injects
+  }
+  return injects.filter(inject => {
+    // If null is in the filter, include injects with no objectives
+    if (objectiveIds.includes(null) && inject.objectiveIds.length === 0) {
+      return true
+    }
+    // Check if inject has any of the selected objectives (OR logic)
+    return inject.objectiveIds.some(objId =>
+      objectiveIds.includes(objId),
+    )
+  })
+}
+
+/**
  * Apply all filters to injects (AND logic between filters)
  * @param injects Array of injects to filter
  * @param filters Filter state with all filter types
@@ -85,6 +110,7 @@ export function applyFilters(
   result = filterByStatus(result, filters.statuses)
   result = filterByPhase(result, filters.phaseIds)
   result = filterByMethod(result, filters.deliveryMethods)
+  result = filterByObjective(result, filters.objectiveIds)
 
   return result
 }
@@ -99,6 +125,7 @@ export function countActiveFilters(filters: FilterState): number {
   if (isFilterActive(filters.statuses)) count++
   if (isFilterActive(filters.phaseIds)) count++
   if (isFilterActive(filters.deliveryMethods)) count++
+  if (isFilterActive(filters.objectiveIds)) count++
   return count
 }
 
@@ -111,7 +138,8 @@ export function hasActiveFilters(filters: FilterState): boolean {
   return (
     isFilterActive(filters.statuses) ||
     isFilterActive(filters.phaseIds) ||
-    isFilterActive(filters.deliveryMethods)
+    isFilterActive(filters.deliveryMethods) ||
+    isFilterActive(filters.objectiveIds)
   )
 }
 
@@ -132,6 +160,8 @@ export function clearFilter(
       return { ...filters, phaseIds: [] }
     case 'method':
       return { ...filters, deliveryMethods: [] }
+    case 'objective':
+      return { ...filters, objectiveIds: [] }
     default:
       return filters
   }
@@ -149,11 +179,13 @@ export function clearAllFilters(): FilterState {
  * Get display labels for active filters
  * @param filters Filter state
  * @param phaseMap Map of phase IDs to names
+ * @param objectiveMap Map of objective IDs to names
  * @returns Array of filter labels with their type and value
  */
 export function getActiveFilterLabels(
   filters: FilterState,
   phaseMap: Map<string | null, string>,
+  objectiveMap?: Map<string | null, string>,
 ): Array<{ type: FilterType; label: string; value: string }> {
   const labels: Array<{ type: FilterType; label: string; value: string }> = []
 
@@ -209,6 +241,24 @@ export function getActiveFilterLabels(
     }
   }
 
+  // Objective filters
+  if (filters.objectiveIds.length > 0) {
+    if (filters.objectiveIds.length === 1) {
+      const objectiveName = objectiveMap?.get(filters.objectiveIds[0]) || 'No objectives'
+      labels.push({
+        type: 'objective',
+        label: 'Objective',
+        value: objectiveName,
+      })
+    } else {
+      labels.push({
+        type: 'objective',
+        label: 'Objective',
+        value: `${filters.objectiveIds.length} selected`,
+      })
+    }
+  }
+
   return labels
 }
 
@@ -223,5 +273,19 @@ export function buildPhaseNameMap(
   const map = new Map<string | null, string>()
   map.set(null, 'Unassigned')
   phases.forEach(p => map.set(p.id, p.name))
+  return map
+}
+
+/**
+ * Build an objective name map from objective data
+ * @param objectives Array of objective objects with id and name/objectiveNumber
+ * @returns Map of objective ID (or null for no objectives) to display name
+ */
+export function buildObjectiveNameMap(
+  objectives: Array<{ id: string; name: string; objectiveNumber: string }>,
+): Map<string | null, string> {
+  const map = new Map<string | null, string>()
+  map.set(null, 'No objectives')
+  objectives.forEach(o => map.set(o.id, `${o.objectiveNumber}: ${o.name}`))
   return map
 }

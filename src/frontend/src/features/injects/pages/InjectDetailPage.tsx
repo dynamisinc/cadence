@@ -13,6 +13,7 @@ import {
   DialogActions,
   Divider,
   Grid,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -26,12 +27,14 @@ import {
   faPaperPlane,
   faFileLines,
   faHome,
+  faCrosshairs,
 } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useInject } from '../hooks/useInject'
 import { useInjects } from '../hooks/useInjects'
 import { useExercise } from '../../exercises/hooks/useExercise'
+import { useObjectiveSummaries } from '../../objectives/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { InjectStatusChip, InjectTypeChip } from '../components'
 import {
@@ -69,6 +72,7 @@ export const InjectDetailPage = () => {
   const { inject, loading, error } = useInject(exerciseId || '', injectId || '')
   const { fireInject, skipInject, deleteInject, isFiring, isSkipping, isDeleting } =
     useInjects(exerciseId || '')
+  const { summaries: objectives } = useObjectiveSummaries(exerciseId || '')
   const { canFireInjects, canDelete } = usePermissions()
 
   // Set custom breadcrumbs with exercise name, MSEL, and inject number
@@ -484,6 +488,51 @@ export const InjectDetailPage = () => {
                   Type
                 </Typography>
                 <Typography variant="body1">{inject.injectType}</Typography>
+              </Box>
+
+              <Box>
+                <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+                  <FontAwesomeIcon icon={faCrosshairs} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '0.875rem' }} />
+                  <Typography variant="caption" color="text.secondary">
+                    Linked Objectives
+                  </Typography>
+                </Stack>
+                {inject.objectiveIds.length > 0 ? (
+                  <Stack spacing={0.5}>
+                    {inject.objectiveIds.map(objId => {
+                      const objective = objectives.find(o => o.id === objId)
+                      if (!objective) {
+                        return (
+                          <Typography key={objId} variant="body2" color="text.secondary">
+                            Unknown objective
+                          </Typography>
+                        )
+                      }
+                      return (
+                        <Tooltip
+                          key={objId}
+                          title={objective.description || 'No description'}
+                          placement="left"
+                          arrow
+                        >
+                          <Typography
+                            variant="body2"
+                            sx={{
+                              cursor: 'help',
+                              '&:hover': { textDecoration: 'underline' },
+                            }}
+                          >
+                            {objective.objectiveNumber}: {objective.name}
+                          </Typography>
+                        </Tooltip>
+                      )
+                    })}
+                  </Stack>
+                ) : (
+                  <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                    None linked
+                  </Typography>
+                )}
               </Box>
 
               {inject.triggerCondition && (
