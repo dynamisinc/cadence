@@ -10,7 +10,7 @@ import { useInjectOrganizationContext } from '../contexts/InjectOrganizationCont
 import type { InjectDto } from '../types'
 import type { InjectGroup, SearchableField } from '../types/organization'
 import { sortInjects, buildPhaseSequenceMap } from '../utils/sortUtils'
-import { applyFilters, hasActiveFilters, getActiveFilterLabels, buildPhaseNameMap } from '../utils/filterUtils'
+import { applyFilters, hasActiveFilters, getActiveFilterLabels, buildPhaseNameMap, buildObjectiveNameMap } from '../utils/filterUtils'
 import { filterBySearch, getSearchMatches, createSearchMatchMap } from '../utils/searchUtils'
 import { groupInjects, getInjectsForGroup, getGroupsContainingInjects } from '../utils/groupUtils'
 
@@ -18,6 +18,12 @@ export interface PhaseInfo {
   id: string
   name: string
   sequence: number
+}
+
+export interface ObjectiveInfo {
+  id: string
+  objectiveNumber: string
+  name: string
 }
 
 export interface UseInjectOrganizationResult {
@@ -61,6 +67,7 @@ export interface UseInjectOrganizationResult {
 export function useInjectOrganization(
   injects: InjectDto[],
   phases: PhaseInfo[] = [],
+  objectives: ObjectiveInfo[] = [],
 ): UseInjectOrganizationResult {
   const context = useInjectOrganizationContext()
 
@@ -73,6 +80,11 @@ export function useInjectOrganization(
   const phaseNameMap = useMemo(
     () => buildPhaseNameMap(phases),
     [phases],
+  )
+
+  const objectiveNameMap = useMemo(
+    () => buildObjectiveNameMap(objectives),
+    [objectives],
   )
 
   // Apply search filtering
@@ -105,8 +117,8 @@ export function useInjectOrganization(
 
   // Get active filter labels
   const activeFilterLabels = useMemo(() => {
-    return getActiveFilterLabels(context.filters, phaseNameMap)
-  }, [context.filters, phaseNameMap])
+    return getActiveFilterLabels(context.filters, phaseNameMap, objectiveNameMap)
+  }, [context.filters, phaseNameMap, objectiveNameMap])
 
   // Helper to get injects for a group
   const getGroupInjects = useCallback(
