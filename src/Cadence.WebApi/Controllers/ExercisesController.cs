@@ -390,13 +390,14 @@ public class ExercisesController : ControllerBase
 
         // Copy the active MSEL (or first MSEL if none active)
         var sourceMsel = source.Msels.FirstOrDefault(m => m.IsActive) ?? source.Msels.FirstOrDefault();
+        Guid? newMselId = null;
         if (sourceMsel != null)
         {
-            var newMselId = Guid.NewGuid();
+            newMselId = Guid.NewGuid();
 
             var newMsel = new Msel
             {
-                Id = newMselId,
+                Id = newMselId.Value,
                 Name = "v1.0",
                 Description = sourceMsel.Description,
                 Version = 1,
@@ -407,7 +408,8 @@ public class ExercisesController : ControllerBase
             };
             _context.Msels.Add(newMsel);
 
-            newExercise.ActiveMselId = newMselId;
+            // Note: ActiveMselId is set AFTER first SaveChanges to avoid circular dependency
+            // (Exercise -> Msel via ActiveMselId, Msel -> Exercise via ExerciseId)
 
             // Copy injects (reset status to Pending)
             foreach (var sourceInject in sourceMsel.Injects.OrderBy(i => i.Sequence))
@@ -440,7 +442,7 @@ public class ExercisesController : ControllerBase
                     SkippedAt = null,
                     SkippedBy = null,
                     SkipReason = null,
-                    MselId = newMselId,
+                    MselId = newMselId.Value,
                     // Map phase ID if inject was assigned to a phase
                     PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
                         ? phaseIdMap[sourceInject.PhaseId.Value]
@@ -465,7 +467,16 @@ public class ExercisesController : ControllerBase
             }
         }
 
+        // First save: Create all entities without the circular reference
         await _context.SaveChangesAsync();
+
+        // Second save: Now set the ActiveMselId to complete the relationship
+        // This avoids the circular dependency (Exercise -> Msel -> Exercise)
+        if (newMselId.HasValue)
+        {
+            newExercise.ActiveMselId = newMselId.Value;
+            await _context.SaveChangesAsync();
+        }
 
         _logger.LogInformation(
             "Duplicated exercise {SourceId} to {NewId}: {NewName}",

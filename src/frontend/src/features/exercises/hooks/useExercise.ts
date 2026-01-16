@@ -2,6 +2,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { exerciseService } from '../services/exerciseService'
 import { exercisesQueryKey } from './useExercises'
+import { setupProgressQueryKey } from './useSetupProgress'
 import type { ExerciseDto, UpdateExerciseRequest } from '../types'
 
 /** Query key factory for single exercise */
@@ -54,29 +55,37 @@ export const useExercise = (id: string | undefined) => {
         })
       }
 
-      // Optimistically update in exercises list cache
-      queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.map(exercise =>
-          exercise.id === id
-            ? {
-              ...exercise,
-              ...request,
-              updatedAt: new Date().toISOString(),
-            }
-            : exercise,
-        ),
-      )
+      // Optimistically update in exercises list cache ONLY if it exists
+      if (previousExercises) {
+        queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, old =>
+          old!.map(exercise =>
+            exercise.id === id
+              ? {
+                ...exercise,
+                ...request,
+                updatedAt: new Date().toISOString(),
+              }
+              : exercise,
+          ),
+        )
+      }
 
       return { previousExercise, previousExercises }
     },
     onSuccess: updatedExercise => {
       // Replace optimistic data with server response
       queryClient.setQueryData(exerciseQueryKey(id!), updatedExercise)
-      queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.map(exercise =>
-          exercise.id === updatedExercise.id ? updatedExercise : exercise,
-        ),
-      )
+      // Update exercises list cache ONLY if it exists
+      const existingList = queryClient.getQueryData<ExerciseDto[]>(exercisesQueryKey)
+      if (existingList) {
+        queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, old =>
+          old!.map(exercise =>
+            exercise.id === updatedExercise.id ? updatedExercise : exercise,
+          ),
+        )
+      }
+      // Invalidate setup progress to reflect scheduling changes
+      queryClient.invalidateQueries({ queryKey: setupProgressQueryKey(id!) })
       toast.success('Exercise updated')
     },
     onError: (err, _variables, context) => {

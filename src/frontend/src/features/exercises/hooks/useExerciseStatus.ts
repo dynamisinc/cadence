@@ -33,12 +33,15 @@ export const useExerciseStatus = (exerciseId: string) => {
     // Update single exercise cache
     queryClient.setQueryData<ExerciseDto>(exerciseQueryKey, updatedExercise)
 
-    // Update exercises list cache
-    queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-      old.map(exercise =>
-        exercise.id === updatedExercise.id ? updatedExercise : exercise,
-      ),
-    )
+    // Update exercises list cache ONLY if it exists (don't create empty cache)
+    const existingList = queryClient.getQueryData<ExerciseDto[]>(exercisesQueryKey)
+    if (existingList) {
+      queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, old =>
+        old!.map(exercise =>
+          exercise.id === updatedExercise.id ? updatedExercise : exercise,
+        ),
+      )
+    }
 
     // Invalidate transitions query
     queryClient.invalidateQueries({ queryKey: ['exercise-transitions', exerciseId] })

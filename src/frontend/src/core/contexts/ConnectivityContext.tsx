@@ -3,6 +3,7 @@
  *
  * Provides global connectivity state management including:
  * - Browser online/offline status
+ * - API server reachability (via health check)
  * - SignalR connection state (when in exercise conduct)
  * - Pending sync count
  * - Toast notifications for connection changes
@@ -20,9 +21,17 @@ import React, {
   useEffect,
   useCallback,
   useMemo,
+  useRef,
   type ReactNode,
 } from 'react'
 import { toast } from 'react-toastify'
+import { checkApiHealth } from '../services/api'
+
+/** How often to check API health when browser reports online (ms) */
+const HEALTH_CHECK_INTERVAL = 10000 // 10 seconds
+
+/** How often to check API health when offline (faster retry) */
+const HEALTH_CHECK_INTERVAL_OFFLINE = 5000 // 5 seconds
 
 /** Combined connectivity state */
 export type ConnectivityState =
@@ -42,6 +51,8 @@ export type SignalRState =
 interface ConnectivityContextValue {
   /** Whether the browser reports being online */
   isOnline: boolean
+  /** Whether the API server is reachable */
+  isApiReachable: boolean
   /** Combined connectivity state */
   connectivityState: ConnectivityState
   /** Current SignalR state (if in exercise) */
@@ -60,6 +71,8 @@ interface ConnectivityContextValue {
   incrementPendingCount: () => void
   /** Decrement pending count */
   decrementPendingCount: () => void
+  /** Manually trigger a health check */
+  checkHealth: () => Promise<boolean>
 }
 
 const ConnectivityContext = createContext<ConnectivityContextValue | null>(null)
@@ -72,10 +85,73 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
   const [isOnline, setIsOnline] = useState<boolean>(
     typeof navigator !== 'undefined' ? navigator.onLine : true,
   )
+  const [isApiReachable, setIsApiReachable] = useState<boolean>(true) // Assume online initially
   const [signalRState, setSignalRStateInternal] = useState<SignalRState | null>(null)
   const [isInExercise, setIsInExercise] = useState(false)
   const [pendingCount, setPendingCountInternal] = useState(0)
   const [hasShownOfflineToast, setHasShownOfflineToast] = useState(false)
+  const healthCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Perform health check
+  const performHealthCheck = useCallback(async (): Promise<boolean> => {
+    // Skip health check if browser reports offline
+    if (!navigator.onLine) {
+      setIsApiReachable(false)
+      return false
+    }
+
+    const isHealthy = await checkApiHealth()
+    const wasReachable = isApiReachable
+
+    setIsApiReachable(isHealthy)
+
+    // Show toast when API becomes unreachable (only if we thought we were online)
+    if (!isHealthy && wasReachable && !hasShownOfflineToast) {
+      toast.error('🔴 Cannot reach server. Changes will sync when connection restores.', {
+        autoClose: 5000,
+      })
+      setHasShownOfflineToast(true)
+    }
+
+    // Show toast when API becomes reachable again
+    if (isHealthy && !wasReachable) {
+      toast.success('🟢 Server connection restored', {
+        autoClose: 3000,
+      })
+      setHasShownOfflineToast(false)
+    }
+
+    return isHealthy
+  }, [isApiReachable, hasShownOfflineToast])
+
+  // Start/restart health check interval
+  const startHealthCheckInterval = useCallback((interval: number) => {
+    if (healthCheckIntervalRef.current) {
+      clearInterval(healthCheckIntervalRef.current)
+    }
+    healthCheckIntervalRef.current = setInterval(performHealthCheck, interval)
+  }, [performHealthCheck])
+
+  // Initial health check and setup interval
+  useEffect(() => {
+    // Perform initial health check
+    performHealthCheck()
+
+    // Start periodic health checks
+    startHealthCheckInterval(HEALTH_CHECK_INTERVAL)
+
+    return () => {
+      if (healthCheckIntervalRef.current) {
+        clearInterval(healthCheckIntervalRef.current)
+      }
+    }
+  }, []) // Only run on mount - performHealthCheck is stable via useCallback
+
+  // Adjust health check interval based on connectivity state
+  useEffect(() => {
+    const interval = isApiReachable ? HEALTH_CHECK_INTERVAL : HEALTH_CHECK_INTERVAL_OFFLINE
+    startHealthCheckInterval(interval)
+  }, [isApiReachable, startHealthCheckInterval])
 
   // Calculate combined connectivity state
   const connectivityState = useMemo((): ConnectivityState => {
@@ -84,7 +160,12 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       return 'offline'
     }
 
-    // If not in exercise, just check browser status
+    // API unreachable means offline
+    if (!isApiReachable) {
+      return 'offline'
+    }
+
+    // If not in exercise, just check browser + API status
     if (!isInExercise || signalRState === null) {
       return 'online'
     }
@@ -103,20 +184,19 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       default:
         return 'online'
     }
-  }, [isOnline, isInExercise, signalRState])
+  }, [isOnline, isApiReachable, isInExercise, signalRState])
 
   // Handle browser online/offline events
   useEffect(() => {
     const handleOnline = () => {
       setIsOnline(true)
-      setHasShownOfflineToast(false)
-      toast.success('🟢 Connection restored', {
-        autoClose: 3000,
-      })
+      // When browser comes back online, immediately check API health
+      performHealthCheck()
     }
 
     const handleOffline = () => {
       setIsOnline(false)
+      setIsApiReachable(false)
       if (!hasShownOfflineToast) {
         toast.error('🔴 You are offline. Changes will sync when connection restores.', {
           autoClose: 5000,
@@ -132,7 +212,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [hasShownOfflineToast])
+  }, [hasShownOfflineToast, performHealthCheck])
 
   // Show toast when SignalR state changes (only when in exercise)
   const setSignalRState = useCallback((state: SignalRState | null) => {
@@ -168,6 +248,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
   const value = useMemo(
     () => ({
       isOnline,
+      isApiReachable,
       connectivityState,
       signalRState,
       isInExercise,
@@ -177,9 +258,11 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       setPendingCount,
       incrementPendingCount,
       decrementPendingCount,
+      checkHealth: performHealthCheck,
     }),
     [
       isOnline,
+      isApiReachable,
       connectivityState,
       signalRState,
       isInExercise,
@@ -188,6 +271,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       setPendingCount,
       incrementPendingCount,
       decrementPendingCount,
+      performHealthCheck,
     ],
   )
 

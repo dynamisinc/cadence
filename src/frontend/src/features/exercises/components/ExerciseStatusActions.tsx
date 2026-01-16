@@ -10,6 +10,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogActions,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -33,6 +34,8 @@ import type { ExerciseDto } from '../types'
 
 interface ExerciseStatusActionsProps {
   exercise: ExerciseDto
+  /** Whether the exercise meets activation criteria (has at least one inject) */
+  isReadyToActivate?: boolean
 }
 
 /**
@@ -43,6 +46,7 @@ interface ExerciseStatusActionsProps {
  */
 export const ExerciseStatusActions = ({
   exercise,
+  isReadyToActivate = false,
 }: ExerciseStatusActionsProps) => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -126,12 +130,29 @@ export const ExerciseStatusActions = ({
       >
         {/* Activate (Draft → Active) */}
         {canTransition(ExerciseStatus.Active) && exercise.status === ExerciseStatus.Draft && (
-          <MenuItem onClick={() => handleAction(activate)}>
-            <ListItemIcon>
-              <FontAwesomeIcon icon={faPlay} style={{ color: 'var(--mui-palette-success-main)' }} />
-            </ListItemIcon>
-            <ListItemText>Activate Exercise</ListItemText>
-          </MenuItem>
+          <Tooltip
+            title={isReadyToActivate ? '' : 'Add at least one inject to the MSEL before activating'}
+            placement="left"
+          >
+            <span>
+              <MenuItem
+                onClick={() => handleAction(activate)}
+                disabled={!isReadyToActivate}
+              >
+                <ListItemIcon>
+                  <FontAwesomeIcon
+                    icon={faPlay}
+                    style={{
+                      color: isReadyToActivate
+                        ? 'var(--mui-palette-success-main)'
+                        : 'var(--mui-palette-action-disabled)',
+                    }}
+                  />
+                </ListItemIcon>
+                <ListItemText>Activate Exercise</ListItemText>
+              </MenuItem>
+            </span>
+          </Tooltip>
         )}
 
         {/* Resume (Paused → Active) */}

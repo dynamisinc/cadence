@@ -19,6 +19,21 @@ export const apiClient = axios.create({
   },
 })
 
+/**
+ * Check if the API server is reachable
+ * @returns true if API is reachable, false otherwise
+ */
+export async function checkApiHealth(): Promise<boolean> {
+  try {
+    const response = await apiClient.get('/api/health', {
+      timeout: 5000, // 5 second timeout for health check
+    })
+    return response.status === 200
+  } catch {
+    return false
+  }
+}
+
 // Request interceptor for adding auth headers, correlation IDs, etc.
 apiClient.interceptors.request.use(
   config => {

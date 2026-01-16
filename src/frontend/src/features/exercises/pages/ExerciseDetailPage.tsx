@@ -286,7 +286,12 @@ export const ExerciseDetailPage = () => {
                 Duplicate
               </CobraSecondaryButton>
             )}
-            {!isEditing && <ExerciseStatusActions exercise={exercise} />}
+            {!isEditing && (
+              <ExerciseStatusActions
+                exercise={exercise}
+                isReadyToActivate={setupProgress?.isReadyToActivate}
+              />
+            )}
           </>
         }
       />
