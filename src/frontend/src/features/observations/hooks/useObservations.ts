@@ -89,11 +89,28 @@ export const useObservations = (exerciseId: string) => {
     },
     onSuccess: (newObservation, _request, context) => {
       // Replace temp observation with real server data
+      // Handle race condition: SignalR might have already added the real observation
       queryClient.setQueryData<ObservationDto[]>(
         observationsQueryKey(exerciseId),
-        (old = []) => old.map(obs =>
-          obs.id === context?.tempId ? newObservation : obs,
-        ),
+        (old = []) => {
+          const hasRealObservation = old.some(obs => obs.id === newObservation.id)
+          const hasTempObservation = context?.tempId && old.some(obs => obs.id === context.tempId)
+
+          if (hasRealObservation && hasTempObservation) {
+            // SignalR already added real observation - remove temp and update real
+            return old
+              .filter(obs => obs.id !== context.tempId)
+              .map(obs => obs.id === newObservation.id ? newObservation : obs)
+          } else if (hasRealObservation) {
+            // SignalR added real observation - just update it
+            return old.map(obs => obs.id === newObservation.id ? newObservation : obs)
+          } else if (hasTempObservation) {
+            // Normal case: replace temp with real
+            return old.map(obs => obs.id === context?.tempId ? newObservation : obs)
+          }
+          // Shouldn't happen, but safety fallback
+          return old
+        },
       )
       // Also invalidate inject-specific queries if the observation is linked
       if (newObservation.injectId) {
