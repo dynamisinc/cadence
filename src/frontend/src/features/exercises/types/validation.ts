@@ -40,6 +40,8 @@ export const createExerciseSchema = z.object({
     .or(z.literal('')),
   startTime: z.string().optional().or(z.literal('')),
   endTime: z.string().optional().or(z.literal('')),
+  timeZoneId: z.string().min(1, 'Time zone is required'),
+  isPracticeMode: z.boolean(),
 }).refine(
   data => {
     // If both times are provided, end must be after start

@@ -26,6 +26,7 @@ public class AppDbContext : DbContext
     public DbSet<Objective> Objectives => Set<Objective>();
     public DbSet<HseepRole> HseepRoles => Set<HseepRole>();
     public DbSet<Observation> Observations => Set<Observation>();
+    public DbSet<InjectObjective> InjectObjectives => Set<InjectObjective>();
 
     // =========================================================================
     // Model Configuration
@@ -73,6 +74,7 @@ public class AppDbContext : DbContext
         ConfigureObjective(modelBuilder);
         ConfigureHseepRole(modelBuilder);
         ConfigureObservation(modelBuilder);
+        ConfigureInjectObjective(modelBuilder);
     }
 
     /// <summary>
@@ -417,6 +419,30 @@ public class AppDbContext : DbContext
                 .WithMany()
                 .HasForeignKey(e => e.CreatedBy)
                 .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureInjectObjective(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<InjectObjective>(entity =>
+        {
+            // Composite primary key
+            entity.HasKey(e => new { e.InjectId, e.ObjectiveId });
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.InjectId);
+            entity.HasIndex(e => e.ObjectiveId);
+
+            // Relationships
+            entity.HasOne(e => e.Inject)
+                .WithMany(i => i.InjectObjectives)
+                .HasForeignKey(e => e.InjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Objective)
+                .WithMany(o => o.InjectObjectives)
+                .HasForeignKey(e => e.ObjectiveId)
                 .OnDelete(DeleteBehavior.NoAction);
         });
     }

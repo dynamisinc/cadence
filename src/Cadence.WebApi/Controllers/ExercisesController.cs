@@ -145,6 +145,7 @@ public class ExercisesController : ControllerBase
         exercise.EndTime = request.EndTime;
         exercise.Location = request.Location;
         exercise.TimeZoneId = request.TimeZoneId;
+        exercise.IsPracticeMode = request.IsPracticeMode;
 
         // System user until auth is implemented
         exercise.ModifiedBy = SystemConstants.SystemUserId;
@@ -270,5 +271,198 @@ public class ExercisesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    // =========================================================================
+    // Exercise Duplication Endpoint
+    // =========================================================================
+
+    /// <summary>
+    /// Duplicate an exercise with all its configuration.
+    /// Creates a copy of the exercise, MSEL, injects, phases, and objectives.
+    /// The new exercise starts in Draft status with a new date.
+    /// </summary>
+    [HttpPost("{id:guid}/duplicate")]
+    public async Task<ActionResult<ExerciseDto>> DuplicateExercise(Guid id, [FromBody] DuplicateExerciseRequest? request = null)
+    {
+        // Load the source exercise with all related data
+        var source = await _context.Exercises
+            .Include(e => e.Phases)
+            .Include(e => e.Objectives)
+            .Include(e => e.Msels)
+                .ThenInclude(m => m.Injects)
+                    .ThenInclude(i => i.InjectObjectives)
+            .FirstOrDefaultAsync(e => e.Id == id);
+
+        if (source == null)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+
+        // Generate new name if not provided
+        var newName = request?.Name ?? $"Copy of {source.Name}";
+        if (newName.Length > 200)
+        {
+            newName = newName.Substring(0, 200);
+        }
+
+        // Create new exercise as copy
+        var newExercise = new Exercise
+        {
+            Id = Guid.NewGuid(),
+            Name = newName,
+            Description = source.Description,
+            ExerciseType = source.ExerciseType,
+            Status = ExerciseStatus.Draft, // Always start as Draft
+            IsPracticeMode = source.IsPracticeMode,
+            ScheduledDate = request?.ScheduledDate ?? source.ScheduledDate,
+            StartTime = source.StartTime,
+            EndTime = source.EndTime,
+            TimeZoneId = source.TimeZoneId,
+            Location = source.Location,
+            OrganizationId = source.OrganizationId,
+            // Clock state reset for new exercise
+            ClockState = ExerciseClockState.Stopped,
+            ClockStartedAt = null,
+            ClockElapsedBeforePause = null,
+            ClockStartedBy = null,
+            CreatedBy = SystemConstants.SystemUserId,
+            ModifiedBy = SystemConstants.SystemUserId,
+        };
+
+        _context.Exercises.Add(newExercise);
+
+        // Map old IDs to new IDs for reference updates
+        var phaseIdMap = new Dictionary<Guid, Guid>();
+        var objectiveIdMap = new Dictionary<Guid, Guid>();
+
+        // Copy phases
+        foreach (var sourcePhase in source.Phases.OrderBy(p => p.Sequence))
+        {
+            var newPhaseId = Guid.NewGuid();
+            phaseIdMap[sourcePhase.Id] = newPhaseId;
+
+            var newPhase = new Phase
+            {
+                Id = newPhaseId,
+                Name = sourcePhase.Name,
+                Description = sourcePhase.Description,
+                Sequence = sourcePhase.Sequence,
+                StartTime = sourcePhase.StartTime,
+                EndTime = sourcePhase.EndTime,
+                ExerciseId = newExercise.Id,
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+            };
+            _context.Phases.Add(newPhase);
+        }
+
+        // Copy objectives
+        foreach (var sourceObjective in source.Objectives.OrderBy(o => o.ObjectiveNumber))
+        {
+            var newObjectiveId = Guid.NewGuid();
+            objectiveIdMap[sourceObjective.Id] = newObjectiveId;
+
+            var newObjective = new Objective
+            {
+                Id = newObjectiveId,
+                ObjectiveNumber = sourceObjective.ObjectiveNumber,
+                Name = sourceObjective.Name,
+                Description = sourceObjective.Description,
+                ExerciseId = newExercise.Id,
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+            };
+            _context.Objectives.Add(newObjective);
+        }
+
+        // Copy the active MSEL (or first MSEL if none active)
+        var sourceMsel = source.Msels.FirstOrDefault(m => m.IsActive) ?? source.Msels.FirstOrDefault();
+        if (sourceMsel != null)
+        {
+            var newMselId = Guid.NewGuid();
+
+            var newMsel = new Msel
+            {
+                Id = newMselId,
+                Name = "v1.0",
+                Description = sourceMsel.Description,
+                Version = 1,
+                IsActive = true,
+                ExerciseId = newExercise.Id,
+                CreatedBy = SystemConstants.SystemUserId,
+                ModifiedBy = SystemConstants.SystemUserId,
+            };
+            _context.Msels.Add(newMsel);
+
+            newExercise.ActiveMselId = newMselId;
+
+            // Copy injects (reset status to Pending)
+            foreach (var sourceInject in sourceMsel.Injects.OrderBy(i => i.Sequence))
+            {
+                var newInjectId = Guid.NewGuid();
+
+                var newInject = new Inject
+                {
+                    Id = newInjectId,
+                    InjectNumber = sourceInject.InjectNumber,
+                    Title = sourceInject.Title,
+                    Description = sourceInject.Description,
+                    ScheduledTime = sourceInject.ScheduledTime,
+                    ScenarioDay = sourceInject.ScenarioDay,
+                    ScenarioTime = sourceInject.ScenarioTime,
+                    Target = sourceInject.Target,
+                    Source = sourceInject.Source,
+                    DeliveryMethod = sourceInject.DeliveryMethod,
+                    InjectType = sourceInject.InjectType,
+                    Status = InjectStatus.Pending, // Always reset to Pending
+                    Sequence = sourceInject.Sequence,
+                    // Skip ParentInjectId for simplicity (branching would need additional mapping)
+                    ParentInjectId = null,
+                    FireCondition = sourceInject.FireCondition,
+                    ExpectedAction = sourceInject.ExpectedAction,
+                    ControllerNotes = sourceInject.ControllerNotes,
+                    // Conduct data NOT copied
+                    FiredAt = null,
+                    FiredBy = null,
+                    SkippedAt = null,
+                    SkippedBy = null,
+                    SkipReason = null,
+                    MselId = newMselId,
+                    // Map phase ID if inject was assigned to a phase
+                    PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
+                        ? phaseIdMap[sourceInject.PhaseId.Value]
+                        : null,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                };
+                _context.Injects.Add(newInject);
+
+                // Copy inject-objective links
+                foreach (var sourceLink in sourceInject.InjectObjectives)
+                {
+                    if (objectiveIdMap.ContainsKey(sourceLink.ObjectiveId))
+                    {
+                        _context.InjectObjectives.Add(new InjectObjective
+                        {
+                            InjectId = newInjectId,
+                            ObjectiveId = objectiveIdMap[sourceLink.ObjectiveId],
+                        });
+                    }
+                }
+            }
+        }
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Duplicated exercise {SourceId} to {NewId}: {NewName}",
+            id, newExercise.Id, newExercise.Name);
+
+        return CreatedAtAction(
+            nameof(GetExercise),
+            new { id = newExercise.Id },
+            newExercise.ToDto()
+        );
     }
 }

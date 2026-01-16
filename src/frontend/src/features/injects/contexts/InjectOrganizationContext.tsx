@@ -95,10 +95,11 @@ export const InjectOrganizationProvider = ({
   const [searchTerm, setSearchTermState] = useState(persisted?.searchTerm ?? '')
   const debouncedSearchTerm = useDebounce(searchTerm, SEARCH_DEBOUNCE_MS)
 
-  // Filter state
-  const [filters, setFilters] = useState<FilterState>(
-    persisted?.filters ?? DEFAULT_FILTERS,
-  )
+  // Filter state - merge with defaults to handle new fields added after persisted state was saved
+  const [filters, setFilters] = useState<FilterState>(() => ({
+    ...DEFAULT_FILTERS,
+    ...persisted?.filters,
+  }))
 
   // Sort state
   const [sort, setSort] = useState<SortConfig>(
@@ -166,6 +167,10 @@ export const InjectOrganizationProvider = ({
 
   const setMethodFilter = useCallback((deliveryMethods: DeliveryMethod[]) => {
     setFilters(prev => ({ ...prev, deliveryMethods }))
+  }, [])
+
+  const setObjectiveFilter = useCallback((objectiveIds: (string | null)[]) => {
+    setFilters(prev => ({ ...prev, objectiveIds }))
   }, [])
 
   const clearFilter = useCallback((filterType: FilterType) => {
@@ -239,6 +244,7 @@ export const InjectOrganizationProvider = ({
       setStatusFilter,
       setPhaseFilter,
       setMethodFilter,
+      setObjectiveFilter,
       clearFilter,
       clearAllFilters,
 
@@ -266,6 +272,7 @@ export const InjectOrganizationProvider = ({
       setStatusFilter,
       setPhaseFilter,
       setMethodFilter,
+      setObjectiveFilter,
       clearFilter,
       clearAllFilters,
       toggleSort,

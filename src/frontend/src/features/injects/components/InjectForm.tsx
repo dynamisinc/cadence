@@ -10,6 +10,8 @@ import {
   FormHelperText,
   Divider,
   Grid,
+  Autocomplete,
+  Chip,
 } from '@mui/material'
 
 import {
@@ -26,8 +28,12 @@ import type {
 } from '../types'
 import { INJECT_FIELD_LIMITS } from '../types'
 import type { PhaseDto } from '../../phases/types'
+import { useObjectiveSummaries } from '../../objectives/hooks/useObjectives'
+import type { ObjectiveSummaryDto } from '../../objectives/types'
 
 interface InjectFormProps {
+  /** Exercise ID for loading objectives */
+  exerciseId: string
   /** Initial values for editing, or undefined for create */
   inject?: InjectDto | null
   /** Available phases for the dropdown */
@@ -54,6 +60,7 @@ const INITIAL_VALUES: InjectFormValues = {
   controllerNotes: '',
   triggerCondition: '',
   phaseId: '',
+  objectiveIds: [],
 }
 
 /**
@@ -65,6 +72,7 @@ const INITIAL_VALUES: InjectFormValues = {
  * - Edit mode with pre-populated values
  */
 export const InjectForm = ({
+  exerciseId,
   inject,
   phases = [],
   onSubmit,
@@ -72,6 +80,7 @@ export const InjectForm = ({
   isSubmitting = false,
 }: InjectFormProps) => {
   const isEditMode = !!inject
+  const { summaries: objectives } = useObjectiveSummaries(exerciseId)
 
   const [values, setValues] = useState<InjectFormValues>(INITIAL_VALUES)
   const [errors, setErrors] = useState<Partial<Record<keyof InjectFormValues, string>>>({})
@@ -94,6 +103,7 @@ export const InjectForm = ({
         controllerNotes: inject.controllerNotes ?? '',
         triggerCondition: inject.triggerCondition ?? '',
         phaseId: inject.phaseId ?? '',
+        objectiveIds: inject.objectiveIds ?? [],
       })
     }
   }, [inject])
@@ -245,6 +255,7 @@ export const InjectForm = ({
       controllerNotes: values.controllerNotes.trim() || null,
       triggerCondition: values.triggerCondition.trim() || null,
       phaseId: values.phaseId || null,
+      objectiveIds: values.objectiveIds.length > 0 ? values.objectiveIds : null,
     }
 
     await onSubmit(request)
@@ -466,6 +477,46 @@ export const InjectForm = ({
                   Exercise phase for grouping
                 </FormHelperText>
               </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12 }}>
+              <Autocomplete
+                multiple
+                size="small"
+                options={objectives}
+                getOptionLabel={(option: ObjectiveSummaryDto) =>
+                  `${option.objectiveNumber}. ${option.name}`
+                }
+                value={objectives.filter(obj => values.objectiveIds.includes(obj.id))}
+                onChange={(_, newValue) => {
+                  setValues(prev => ({
+                    ...prev,
+                    objectiveIds: newValue.map(obj => obj.id),
+                  }))
+                }}
+                isOptionEqualToValue={(option, value) => option.id === value.id}
+                renderInput={params => (
+                  <CobraTextField
+                    {...params}
+                    label="Linked Objectives"
+                    placeholder={values.objectiveIds.length === 0 ? 'Select objectives...' : ''}
+                    helperText="Objectives this inject tests"
+                  />
+                )}
+                renderTags={(value, getTagProps) =>
+                  value.map((option, index) => {
+                    const { key, ...tagProps } = getTagProps({ index })
+                    return (
+                      <Chip
+                        key={key}
+                        label={`${option.objectiveNumber}. ${option.name}`}
+                        size="small"
+                        {...tagProps}
+                      />
+                    )
+                  })
+                }
+                noOptionsText="No objectives defined for this exercise"
+              />
             </Grid>
           </Grid>
 

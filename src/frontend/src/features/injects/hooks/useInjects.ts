@@ -84,7 +84,12 @@ export const useInjects = (exerciseId: string) => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
         old.map(inject =>
           inject.id === id
-            ? { ...inject, ...request, updatedAt: new Date().toISOString() }
+            ? {
+              ...inject,
+              ...request,
+              objectiveIds: request.objectiveIds ?? inject.objectiveIds,
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )

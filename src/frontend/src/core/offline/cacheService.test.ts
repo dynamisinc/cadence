@@ -77,6 +77,7 @@ const createInjectDto = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   mselId: 'msel-1',
   phaseId: null,
   phaseName: null,
+  objectiveIds: [],
   updatedAt: '2025-01-14T12:00:00Z',
   createdAt: '2025-01-01T12:00:00Z',
   ...overrides,

@@ -13,6 +13,7 @@ public class CreateExerciseRequest
     public string? Description { get; init; }
     public string? Location { get; init; }
     public string TimeZoneId { get; init; } = "UTC";
+    public bool IsPracticeMode { get; init; }
 }
 
 /// <summary>
@@ -28,6 +29,24 @@ public class UpdateExerciseRequest
     public string TimeZoneId { get; init; } = "UTC";
     public TimeOnly? StartTime { get; init; }
     public TimeOnly? EndTime { get; init; }
+    public bool IsPracticeMode { get; init; }
+}
+
+/// <summary>
+/// DTO for duplicating an exercise.
+/// Optional fields can override the source exercise values.
+/// </summary>
+public class DuplicateExerciseRequest
+{
+    /// <summary>
+    /// Name for the new exercise. Defaults to "Copy of {original name}".
+    /// </summary>
+    public string? Name { get; init; }
+
+    /// <summary>
+    /// Scheduled date for the new exercise. Defaults to the original date.
+    /// </summary>
+    public DateOnly? ScheduledDate { get; init; }
 }
 
 /// <summary>
@@ -81,7 +100,7 @@ public static class ExerciseMapper
         Description = request.Description,
         ExerciseType = request.ExerciseType,
         Status = ExerciseStatus.Draft,
-        IsPracticeMode = false,
+        IsPracticeMode = request.IsPracticeMode,
         ScheduledDate = request.ScheduledDate,
         TimeZoneId = request.TimeZoneId,
         Location = request.Location,

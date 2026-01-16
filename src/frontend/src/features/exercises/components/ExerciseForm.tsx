@@ -9,13 +9,21 @@ import {
   InputLabel,
   Select,
   FormHelperText,
+  Autocomplete,
+  FormControlLabel,
+  Switch,
+  Typography,
+  Paper,
 } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraPrimaryButton, CobraLinkButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { ExerciseType } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import { createExerciseSchema, EXERCISE_FIELD_LIMITS, type CreateExerciseFormValues } from '../types/validation'
 import type { ExerciseDto } from '../types'
+import { TIME_ZONES, getBrowserTimeZone, getTimeZoneOption, type TimeZoneOption } from '../utils/timezones'
 
 interface ExerciseFormProps {
   exercise?: ExerciseDto | null
@@ -71,6 +79,8 @@ export const ExerciseForm = ({
       location: '',
       startTime: '',
       endTime: '',
+      timeZoneId: getBrowserTimeZone(), // Default to browser's timezone
+      isPracticeMode: false,
     },
     mode: 'onBlur',
   })
@@ -94,6 +104,8 @@ export const ExerciseForm = ({
         location: exercise.location ?? '',
         startTime: exercise.startTime ?? '',
         endTime: exercise.endTime ?? '',
+        timeZoneId: exercise.timeZoneId,
+        isPracticeMode: exercise.isPracticeMode,
       })
     }
   }, [exercise, reset])
@@ -230,6 +242,36 @@ export const ExerciseForm = ({
           />
         </Stack>
 
+        {/* Time Zone */}
+        <Controller
+          name="timeZoneId"
+          control={control}
+          render={({ field }) => (
+            <Autocomplete
+              size="small"
+              options={TIME_ZONES}
+              getOptionLabel={(option: TimeZoneOption) => option.label}
+              groupBy={(option: TimeZoneOption) => option.region}
+              value={getTimeZoneOption(field.value)}
+              onChange={(_, newValue) => {
+                field.onChange(newValue?.id ?? getBrowserTimeZone())
+              }}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              disabled={isFieldDisabled('timeZoneId')}
+              renderInput={params => (
+                <CobraTextField
+                  {...params}
+                  label="Time Zone"
+                  required
+                  error={!!errors.timeZoneId}
+                  helperText={errors.timeZoneId?.message || 'All times are in this zone'}
+                />
+              )}
+              disableClearable
+            />
+          )}
+        />
+
         {/* Description */}
         <Controller
           name="description"
@@ -263,6 +305,44 @@ export const ExerciseForm = ({
             />
           )}
         />
+
+        {/* Practice Mode */}
+        <Paper
+          variant="outlined"
+          sx={{
+            p: 2,
+            backgroundColor: 'grey.50',
+            borderColor: 'grey.300',
+          }}
+        >
+          <Controller
+            name="isPracticeMode"
+            control={control}
+            render={({ field }) => (
+              <FormControlLabel
+                control={
+                  <Switch
+                    checked={field.value}
+                    onChange={(_, checked) => field.onChange(checked)}
+                    disabled={isFieldDisabled('isPracticeMode')}
+                    color="warning"
+                  />
+                }
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <FontAwesomeIcon icon={faScrewdriverWrench} />
+                    <Typography variant="body2" fontWeight={500}>
+                      Practice Mode
+                    </Typography>
+                  </Box>
+                }
+              />
+            )}
+          />
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, ml: 6 }}>
+            Practice exercises are excluded from production reports and analytics
+          </Typography>
+        </Paper>
 
         {/* Form Actions */}
         <Stack direction="row" justifyContent="flex-end" spacing={2} pt={2}>

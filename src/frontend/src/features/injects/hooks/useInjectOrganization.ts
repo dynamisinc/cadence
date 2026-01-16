@@ -35,6 +35,7 @@ export interface UseInjectOrganizationResult {
   setStatusFilter: ReturnType<typeof useInjectOrganizationContext>['setStatusFilter']
   setPhaseFilter: ReturnType<typeof useInjectOrganizationContext>['setPhaseFilter']
   setMethodFilter: ReturnType<typeof useInjectOrganizationContext>['setMethodFilter']
+  setObjectiveFilter: ReturnType<typeof useInjectOrganizationContext>['setObjectiveFilter']
   clearFilter: ReturnType<typeof useInjectOrganizationContext>['clearFilter']
   clearAllFilters: () => void
   toggleSort: ReturnType<typeof useInjectOrganizationContext>['toggleSort']
@@ -50,7 +51,7 @@ export interface UseInjectOrganizationResult {
   totalCount: number
   filteredCount: number
   hasActiveFilters: boolean
-  activeFilterLabels: Array<{ type: 'status' | 'phase' | 'method'; label: string; value: string }>
+  activeFilterLabels: Array<{ type: 'status' | 'phase' | 'method' | 'objective'; label: string; value: string }>
   searchMatchMap: Map<string, SearchableField[]>
 }
 
@@ -163,7 +164,8 @@ export function useInjectOrganization(
     const currentFilterCount =
       context.filters.statuses.length +
       context.filters.phaseIds.length +
-      context.filters.deliveryMethods.length
+      context.filters.deliveryMethods.length +
+      context.filters.objectiveIds.length
 
     const prevSearch = prevSearchRef.current
     const prevFilterCount = prevFilterCountRef.current
@@ -207,6 +209,7 @@ export function useInjectOrganization(
     setStatusFilter: context.setStatusFilter,
     setPhaseFilter: context.setPhaseFilter,
     setMethodFilter: context.setMethodFilter,
+    setObjectiveFilter: context.setObjectiveFilter,
     clearFilter: context.clearFilter,
     clearAllFilters: context.clearAllFilters,
     toggleSort: context.toggleSort,

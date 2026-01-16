@@ -48,4 +48,9 @@ public class Objective : BaseEntity
     /// The exercise that this objective evaluates.
     /// </summary>
     public Exercise Exercise { get; set; } = null!;
+
+    /// <summary>
+    /// Junction entities linking this objective to injects.
+    /// </summary>
+    public ICollection<InjectObjective> InjectObjectives { get; set; } = new List<InjectObjective>();
 }

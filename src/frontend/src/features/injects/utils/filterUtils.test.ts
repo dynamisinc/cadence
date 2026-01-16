@@ -7,6 +7,7 @@ import {
   filterByStatus,
   filterByPhase,
   filterByMethod,
+  filterByObjective,
   applyFilters,
   countActiveFilters,
   hasActiveFilters,
@@ -14,6 +15,7 @@ import {
   clearAllFilters,
   getActiveFilterLabels,
   buildPhaseNameMap,
+  buildObjectiveNameMap,
 } from './filterUtils'
 import type { InjectDto } from '../types'
 import type { FilterState } from '../types/organization'
@@ -48,6 +50,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   mselId: 'msel-1',
   phaseId: null,
   phaseName: null,
+  objectiveIds: [],
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
   ...overrides,
@@ -180,6 +183,85 @@ describe('filterByMethod', () => {
   })
 })
 
+describe('filterByObjective', () => {
+  it('returns all injects when no objectives selected', () => {
+    const injects = [
+      createInject({ id: '1', objectiveIds: ['obj-1'] }),
+      createInject({ id: '2', objectiveIds: [] }),
+    ]
+
+    const result = filterByObjective(injects, [])
+
+    expect(result).toHaveLength(2)
+  })
+
+  it('filters to single objective', () => {
+    const injects = [
+      createInject({ id: '1', objectiveIds: ['obj-1'] }),
+      createInject({ id: '2', objectiveIds: ['obj-2'] }),
+      createInject({ id: '3', objectiveIds: [] }),
+    ]
+
+    const result = filterByObjective(injects, ['obj-1'])
+
+    expect(result).toHaveLength(1)
+    expect(result[0].objectiveIds).toContain('obj-1')
+  })
+
+  it('filters to multiple objectives (OR logic)', () => {
+    const injects = [
+      createInject({ id: '1', objectiveIds: ['obj-1'] }),
+      createInject({ id: '2', objectiveIds: ['obj-2'] }),
+      createInject({ id: '3', objectiveIds: ['obj-3'] }),
+    ]
+
+    const result = filterByObjective(injects, ['obj-1', 'obj-2'])
+
+    expect(result).toHaveLength(2)
+    expect(result.map(i => i.id)).toContain('1')
+    expect(result.map(i => i.id)).toContain('2')
+  })
+
+  it('includes injects with no objectives when null is selected', () => {
+    const injects = [
+      createInject({ id: '1', objectiveIds: ['obj-1'] }),
+      createInject({ id: '2', objectiveIds: [] }),
+      createInject({ id: '3', objectiveIds: [] }),
+    ]
+
+    const result = filterByObjective(injects, [null])
+
+    expect(result).toHaveLength(2)
+    expect(result.every(i => i.objectiveIds.length === 0)).toBe(true)
+  })
+
+  it('includes injects with objectives AND no objectives when both selected', () => {
+    const injects = [
+      createInject({ id: '1', objectiveIds: ['obj-1'] }),
+      createInject({ id: '2', objectiveIds: [] }),
+      createInject({ id: '3', objectiveIds: ['obj-2'] }),
+    ]
+
+    const result = filterByObjective(injects, ['obj-1', null])
+
+    expect(result).toHaveLength(2)
+    expect(result.map(i => i.id)).toContain('1')
+    expect(result.map(i => i.id)).toContain('2')
+  })
+
+  it('matches injects with multiple objectives if any match', () => {
+    const injects = [
+      createInject({ id: '1', objectiveIds: ['obj-1', 'obj-2', 'obj-3'] }),
+      createInject({ id: '2', objectiveIds: ['obj-4'] }),
+    ]
+
+    const result = filterByObjective(injects, ['obj-2'])
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe('1')
+  })
+})
+
 describe('applyFilters', () => {
   it('applies all filters with AND logic', () => {
     const injects = [
@@ -207,6 +289,7 @@ describe('applyFilters', () => {
       statuses: [InjectStatus.Pending],
       phaseIds: ['phase-1'],
       deliveryMethods: [DeliveryMethod.Email],
+      objectiveIds: [],
     }
 
     const result = applyFilters(injects, filters)
@@ -225,11 +308,44 @@ describe('applyFilters', () => {
       statuses: [],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const result = applyFilters(injects, filters)
 
     expect(result).toHaveLength(2)
+  })
+
+  it('applies objective filter with other filters', () => {
+    const injects = [
+      createInject({
+        id: '1',
+        status: InjectStatus.Pending,
+        objectiveIds: ['obj-1'],
+      }),
+      createInject({
+        id: '2',
+        status: InjectStatus.Pending,
+        objectiveIds: ['obj-2'],
+      }),
+      createInject({
+        id: '3',
+        status: InjectStatus.Fired,
+        objectiveIds: ['obj-1'],
+      }),
+    ]
+
+    const filters: FilterState = {
+      statuses: [InjectStatus.Pending],
+      phaseIds: [],
+      deliveryMethods: [],
+      objectiveIds: ['obj-1'],
+    }
+
+    const result = applyFilters(injects, filters)
+
+    expect(result).toHaveLength(1)
+    expect(result[0].id).toBe('1')
   })
 })
 
@@ -239,6 +355,7 @@ describe('countActiveFilters', () => {
       statuses: [],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     expect(countActiveFilters(filters)).toBe(0)
@@ -249,19 +366,21 @@ describe('countActiveFilters', () => {
       statuses: [InjectStatus.Pending, InjectStatus.Fired],
       phaseIds: ['phase-1'],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     expect(countActiveFilters(filters)).toBe(2)
   })
 
-  it('returns 3 when all filters active', () => {
+  it('returns 4 when all filters active', () => {
     const filters: FilterState = {
       statuses: [InjectStatus.Pending],
       phaseIds: ['phase-1'],
       deliveryMethods: [DeliveryMethod.Email],
+      objectiveIds: ['obj-1'],
     }
 
-    expect(countActiveFilters(filters)).toBe(3)
+    expect(countActiveFilters(filters)).toBe(4)
   })
 })
 
@@ -271,6 +390,7 @@ describe('hasActiveFilters', () => {
       statuses: [],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     expect(hasActiveFilters(filters)).toBe(false)
@@ -281,18 +401,28 @@ describe('hasActiveFilters', () => {
       statuses: [InjectStatus.Pending],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     })).toBe(true)
 
     expect(hasActiveFilters({
       statuses: [],
       phaseIds: ['phase-1'],
       deliveryMethods: [],
+      objectiveIds: [],
     })).toBe(true)
 
     expect(hasActiveFilters({
       statuses: [],
       phaseIds: [],
       deliveryMethods: [DeliveryMethod.Email],
+      objectiveIds: [],
+    })).toBe(true)
+
+    expect(hasActiveFilters({
+      statuses: [],
+      phaseIds: [],
+      deliveryMethods: [],
+      objectiveIds: ['obj-1'],
     })).toBe(true)
   })
 })
@@ -303,6 +433,7 @@ describe('clearFilter', () => {
       statuses: [InjectStatus.Pending],
       phaseIds: ['phase-1'],
       deliveryMethods: [DeliveryMethod.Email],
+      objectiveIds: ['obj-1'],
     }
 
     const result = clearFilter(filters, 'status')
@@ -310,6 +441,7 @@ describe('clearFilter', () => {
     expect(result.statuses).toEqual([])
     expect(result.phaseIds).toEqual(['phase-1'])
     expect(result.deliveryMethods).toEqual([DeliveryMethod.Email])
+    expect(result.objectiveIds).toEqual(['obj-1'])
   })
 
   it('clears phase filter', () => {
@@ -317,6 +449,7 @@ describe('clearFilter', () => {
       statuses: [InjectStatus.Pending],
       phaseIds: ['phase-1'],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const result = clearFilter(filters, 'phase')
@@ -330,11 +463,25 @@ describe('clearFilter', () => {
       statuses: [],
       phaseIds: [],
       deliveryMethods: [DeliveryMethod.Email],
+      objectiveIds: [],
     }
 
     const result = clearFilter(filters, 'method')
 
     expect(result.deliveryMethods).toEqual([])
+  })
+
+  it('clears objective filter', () => {
+    const filters: FilterState = {
+      statuses: [],
+      phaseIds: [],
+      deliveryMethods: [],
+      objectiveIds: ['obj-1', 'obj-2'],
+    }
+
+    const result = clearFilter(filters, 'objective')
+
+    expect(result.objectiveIds).toEqual([])
   })
 })
 
@@ -345,6 +492,7 @@ describe('clearAllFilters', () => {
     expect(result.statuses).toEqual([])
     expect(result.phaseIds).toEqual([])
     expect(result.deliveryMethods).toEqual([])
+    expect(result.objectiveIds).toEqual([])
   })
 })
 
@@ -354,6 +502,7 @@ describe('getActiveFilterLabels', () => {
       statuses: [],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const result = getActiveFilterLabels(filters, new Map())
@@ -366,6 +515,7 @@ describe('getActiveFilterLabels', () => {
       statuses: [InjectStatus.Pending],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const result = getActiveFilterLabels(filters, new Map())
@@ -383,6 +533,7 @@ describe('getActiveFilterLabels', () => {
       statuses: [InjectStatus.Pending, InjectStatus.Fired],
       phaseIds: [],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const result = getActiveFilterLabels(filters, new Map())
@@ -395,6 +546,7 @@ describe('getActiveFilterLabels', () => {
       statuses: [],
       phaseIds: ['phase-1'],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const phaseMap = new Map<string | null, string>([
@@ -411,6 +563,7 @@ describe('getActiveFilterLabels', () => {
       statuses: [],
       phaseIds: [null],
       deliveryMethods: [],
+      objectiveIds: [],
     }
 
     const phaseMap = new Map<string | null, string>([
@@ -420,6 +573,59 @@ describe('getActiveFilterLabels', () => {
     const result = getActiveFilterLabels(filters, phaseMap)
 
     expect(result[0].value).toBe('Unassigned')
+  })
+
+  it('uses objective map for objective names', () => {
+    const filters: FilterState = {
+      statuses: [],
+      phaseIds: [],
+      deliveryMethods: [],
+      objectiveIds: ['obj-1'],
+    }
+
+    const objectiveMap = new Map<string | null, string>([
+      ['obj-1', 'OBJ-1: Test Objective'],
+    ])
+
+    const result = getActiveFilterLabels(filters, new Map(), objectiveMap)
+
+    expect(result).toHaveLength(1)
+    expect(result[0]).toEqual({
+      type: 'objective',
+      label: 'Objective',
+      value: 'OBJ-1: Test Objective',
+    })
+  })
+
+  it('shows No objectives for null objective', () => {
+    const filters: FilterState = {
+      statuses: [],
+      phaseIds: [],
+      deliveryMethods: [],
+      objectiveIds: [null],
+    }
+
+    const objectiveMap = new Map<string | null, string>([
+      [null, 'No objectives'],
+    ])
+
+    const result = getActiveFilterLabels(filters, new Map(), objectiveMap)
+
+    expect(result[0].value).toBe('No objectives')
+  })
+
+  it('returns count for multiple objective selections', () => {
+    const filters: FilterState = {
+      statuses: [],
+      phaseIds: [],
+      deliveryMethods: [],
+      objectiveIds: ['obj-1', 'obj-2'],
+    }
+
+    const result = getActiveFilterLabels(filters, new Map())
+
+    expect(result).toHaveLength(1)
+    expect(result[0].value).toBe('2 selected')
   })
 })
 
@@ -439,6 +645,39 @@ describe('buildPhaseNameMap', () => {
     const result = buildPhaseNameMap([])
 
     expect(result.get(null)).toBe('Unassigned')
+    expect(result.size).toBe(1)
+  })
+})
+
+describe('buildObjectiveNameMap', () => {
+  it('creates map with No objectives for null', () => {
+    const objectives = [
+      { id: 'obj-1', name: 'Test Communications', objectiveNumber: 'OBJ-1' },
+    ]
+
+    const result = buildObjectiveNameMap(objectives)
+
+    expect(result.get(null)).toBe('No objectives')
+    expect(result.get('obj-1')).toBe('OBJ-1: Test Communications')
+  })
+
+  it('handles multiple objectives', () => {
+    const objectives = [
+      { id: 'obj-1', name: 'Test Communications', objectiveNumber: 'OBJ-1' },
+      { id: 'obj-2', name: 'Test Evacuation', objectiveNumber: 'OBJ-2' },
+    ]
+
+    const result = buildObjectiveNameMap(objectives)
+
+    expect(result.size).toBe(3) // 2 objectives + null
+    expect(result.get('obj-1')).toBe('OBJ-1: Test Communications')
+    expect(result.get('obj-2')).toBe('OBJ-2: Test Evacuation')
+  })
+
+  it('handles empty objectives array', () => {
+    const result = buildObjectiveNameMap([])
+
+    expect(result.get(null)).toBe('No objectives')
     expect(result.size).toBe(1)
   })
 })

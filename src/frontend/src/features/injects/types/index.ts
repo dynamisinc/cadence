@@ -38,6 +38,7 @@ export interface InjectDto {
   mselId: string
   phaseId: string | null
   phaseName: string | null
+  objectiveIds: string[]
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
 }
@@ -60,6 +61,7 @@ export interface CreateInjectRequest {
   parentInjectId?: string | null
   triggerCondition?: string | null
   phaseId?: string | null
+  objectiveIds?: string[] | null
 }
 
 /**
@@ -80,6 +82,7 @@ export interface UpdateInjectRequest {
   parentInjectId?: string | null
   triggerCondition?: string | null
   phaseId?: string | null
+  objectiveIds?: string[] | null
 }
 
 /**
@@ -113,6 +116,7 @@ export interface InjectFormValues {
   controllerNotes: string
   triggerCondition: string
   phaseId: string
+  objectiveIds: string[]
 }
 
 /**

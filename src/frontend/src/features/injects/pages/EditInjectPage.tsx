@@ -166,6 +166,7 @@ export const EditInjectPage = () => {
       {/* Form */}
       <Paper sx={{ p: 3 }}>
         <InjectForm
+          exerciseId={exerciseId || ''}
           inject={inject}
           phases={phases}
           onSubmit={handleSubmit}

@@ -58,6 +58,7 @@ import {
   observationsQueryKey,
 } from '../../observations'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
+import { useObjectiveSummaries } from '../../objectives/hooks'
 import type { ObservationDto } from '../../observations/types'
 import type { InjectDto } from '../../injects/types'
 import type { ExerciseClockDto } from '../../exercise-clock/types'
@@ -100,6 +101,7 @@ export const ExerciseConductPage = () => {
     updateObservation,
     deleteObservation,
   } = useObservations(exerciseId!)
+  const { summaries: objectives } = useObjectiveSummaries(exerciseId!)
 
   // UI state
   const [showObservationForm, setShowObservationForm] = useState(false)
@@ -737,6 +739,7 @@ export const ExerciseConductPage = () => {
                     onReset={resetInject}
                     openInjectId={openInjectId}
                     onDrawerClose={() => setOpenInjectId(null)}
+                    objectives={objectives}
                   />
                 </Box>
               </Paper>

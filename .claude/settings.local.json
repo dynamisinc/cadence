@@ -48,7 +48,9 @@
       "C:\\Code\\dynamis\\cadence\\src\\frontend\\src\\features\\injects",
       "c:\\Code\\dynamis\\cadence\\src\\frontend",
       "\\tmp",
-      "c:\\Code\\dynamis\\cadence\\src\\Cadence.WebApi\\Controllers"
+      "c:\\Code\\dynamis\\cadence\\src\\Cadence.WebApi\\Controllers",
+      "c:\\Code\\dynamis\\cadence",
+      "c:\\Code\\dynamis\\cadence\\src\\frontend\\public"
     ]
   }
 }

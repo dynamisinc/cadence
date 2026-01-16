@@ -418,6 +418,23 @@ namespace Cadence.Core.Migrations
                     b.ToTable("Injects");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.InjectObjective", b =>
+                {
+                    b.Property<Guid>("InjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("ObjectiveId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.HasKey("InjectId", "ObjectiveId");
+
+                    b.HasIndex("InjectId");
+
+                    b.HasIndex("ObjectiveId");
+
+                    b.ToTable("InjectObjectives");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>
                 {
                     b.Property<Guid>("Id")
@@ -851,6 +868,25 @@ namespace Cadence.Core.Migrations
                     b.Navigation("SkippedByUser");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.InjectObjective", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "Inject")
+                        .WithMany("InjectObjectives")
+                        .HasForeignKey("InjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Objective", "Objective")
+                        .WithMany("InjectObjectives")
+                        .HasForeignKey("ObjectiveId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("Inject");
+
+                    b.Navigation("Objective");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
@@ -944,12 +980,19 @@ namespace Cadence.Core.Migrations
                 {
                     b.Navigation("ChildInjects");
 
+                    b.Navigation("InjectObjectives");
+
                     b.Navigation("Observations");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>
                 {
                     b.Navigation("Injects");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Objective", b =>
+                {
+                    b.Navigation("InjectObjectives");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Organization", b =>

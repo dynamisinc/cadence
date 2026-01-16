@@ -306,6 +306,25 @@ export const InjectRow = ({
                 by {inject.skippedByName}
               </Typography>
             )}
+            {isSkipped && inject.skipReason && (
+              <Tooltip title={inject.skipReason} placement="top">
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{
+                    fontSize: '0.7rem',
+                    fontStyle: 'italic',
+                    maxWidth: 120,
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    cursor: 'help',
+                  }}
+                >
+                  "{inject.skipReason}"
+                </Typography>
+              </Tooltip>
+            )}
           </Stack>
         )}
       </TableCell>

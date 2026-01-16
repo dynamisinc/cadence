@@ -38,6 +38,7 @@ export interface CreateExerciseRequest {
   description?: string | null
   location?: string | null
   timeZoneId?: string
+  isPracticeMode?: boolean
 }
 
 /**
@@ -52,6 +53,7 @@ export interface UpdateExerciseRequest {
   timeZoneId?: string
   startTime?: string | null
   endTime?: string | null
+  isPracticeMode?: boolean
 }
 
 // Re-export validation types

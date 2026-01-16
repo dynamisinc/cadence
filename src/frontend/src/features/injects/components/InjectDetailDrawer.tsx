@@ -14,6 +14,7 @@ import {
   IconButton,
   Divider,
   Chip,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -29,6 +30,7 @@ import {
   faClipboardList,
   faNoteSticky,
   faCodeBranch,
+  faCrosshairs,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { InjectStatusChip, InjectTypeChip } from './'
@@ -36,6 +38,7 @@ import { CobraPrimaryButton, CobraSecondaryButton, CobraDeleteButton } from '../
 import { InjectStatus, DeliveryMethod } from '../../../types'
 import type { InjectDto } from '../types'
 import { formatScheduledTime, formatScenarioTime, formatOffset } from '../types'
+import type { ObjectiveSummaryDto } from '../../objectives/types'
 
 interface InjectDetailDrawerProps {
   /** The inject to display, or null to close drawer */
@@ -56,6 +59,8 @@ interface InjectDetailDrawerProps {
   onSkip?: (injectId: string) => void
   /** Called when reset button is clicked */
   onReset?: (injectId: string) => void
+  /** Available objectives for displaying linked objectives */
+  objectives?: ObjectiveSummaryDto[]
 }
 
 const deliveryMethodLabels: Record<DeliveryMethod, string> = {
@@ -78,6 +83,7 @@ export const InjectDetailDrawer = ({
   onFire,
   onSkip,
   onReset,
+  objectives = [],
 }: InjectDetailDrawerProps) => {
   if (!inject) return null
 
@@ -328,6 +334,50 @@ export const InjectDetailDrawer = ({
                   >
                     {inject.triggerCondition}
                   </Typography>
+                </Box>
+              </>
+            )}
+
+            {/* Linked Objectives */}
+            {inject.objectiveIds.length > 0 && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    <FontAwesomeIcon icon={faCrosshairs} style={{ marginRight: 8 }} />
+                    Linked Objectives
+                  </Typography>
+                  <Stack spacing={0.5} sx={{ pl: 3 }}>
+                    {inject.objectiveIds.map(objId => {
+                      const objective = objectives.find(o => o.id === objId)
+                      if (!objective) {
+                        return (
+                          <Typography key={objId} variant="body2" color="text.secondary">
+                            Unknown objective
+                          </Typography>
+                        )
+                      }
+                      return (
+                        <Tooltip
+                          key={objId}
+                          title={objective.description || 'No description'}
+                          placement="left"
+                          arrow
+                        >
+                          <Chip
+                            label={`${objective.objectiveNumber}: ${objective.name}`}
+                            size="small"
+                            variant="outlined"
+                            sx={{
+                              justifyContent: 'flex-start',
+                              width: 'fit-content',
+                              cursor: 'help',
+                            }}
+                          />
+                        </Tooltip>
+                      )
+                    })}
+                  </Stack>
                 </Box>
               </>
             )}

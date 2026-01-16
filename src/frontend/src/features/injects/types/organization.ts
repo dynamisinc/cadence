@@ -61,12 +61,14 @@ export interface FilterState {
   phaseIds: (string | null)[]
   /** Selected delivery methods (empty = all) */
   deliveryMethods: DeliveryMethod[]
+  /** Selected objective IDs (null = "No objectives", empty = all) */
+  objectiveIds: (string | null)[]
 }
 
 /**
  * Types of filters that can be cleared individually
  */
-export type FilterType = 'status' | 'phase' | 'method'
+export type FilterType = 'status' | 'phase' | 'method' | 'objective'
 
 /**
  * Default filter state (no filters applied)
@@ -75,6 +77,7 @@ export const DEFAULT_FILTERS: FilterState = {
   statuses: [],
   phaseIds: [],
   deliveryMethods: [],
+  objectiveIds: [],
 }
 
 // =============================================================================
@@ -187,6 +190,7 @@ export interface InjectOrganizationActions {
   setStatusFilter: (statuses: InjectStatus[]) => void
   setPhaseFilter: (phaseIds: (string | null)[]) => void
   setMethodFilter: (methods: DeliveryMethod[]) => void
+  setObjectiveFilter: (objectiveIds: (string | null)[]) => void
   clearFilter: (filterType: FilterType) => void
   clearAllFilters: () => void
 

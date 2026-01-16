@@ -196,4 +196,9 @@ public class Inject : BaseEntity
     /// Observations linked to this inject.
     /// </summary>
     public ICollection<Observation> Observations { get; set; } = new List<Observation>();
+
+    /// <summary>
+    /// Junction entities linking this inject to objectives.
+    /// </summary>
+    public ICollection<InjectObjective> InjectObjectives { get; set; } = new List<InjectObjective>();
 }

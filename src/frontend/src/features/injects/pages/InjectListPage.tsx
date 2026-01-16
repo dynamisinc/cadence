@@ -36,6 +36,7 @@ import { InjectOrganizationProvider } from '../contexts/InjectOrganizationContex
 import { useBreadcrumbs } from '../../../core/contexts'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
+import { useObjectiveSummaries } from '../../objectives/hooks'
 import { PhaseFormDialog } from '../../phases/components'
 import {
   InjectStatusChip,
@@ -103,6 +104,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     isDeleting: isDeletingPhase,
     isReordering: isReorderingPhase,
   } = usePhases(exerciseId)
+  const { summaries: objectives } = useObjectiveSummaries(exerciseId)
   const { canFireInjects, canManage } = usePermissions()
 
   // Convert phases to the format needed by useInjectOrganization
@@ -280,9 +282,11 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onStatusChange={organization.setStatusFilter}
           onPhaseChange={organization.setPhaseFilter}
           onMethodChange={organization.setMethodFilter}
+          onObjectiveChange={organization.setObjectiveFilter}
           groupBy={organization.groupBy}
           onGroupByChange={organization.setGroupBy}
           phases={phaseOptions}
+          objectives={objectives}
           showGroupControls={organization.groupBy !== 'none'}
           onExpandAll={organization.expandAllGroups}
           onCollapseAll={organization.collapseAllGroups}
