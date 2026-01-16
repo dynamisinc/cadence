@@ -91,16 +91,25 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
   const [pendingCount, setPendingCountInternal] = useState(0)
   const [hasShownOfflineToast, setHasShownOfflineToast] = useState(false)
   const healthCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
+  const isMountedRef = useRef(true)
 
   // Perform health check
   const performHealthCheck = useCallback(async (): Promise<boolean> => {
     // Skip health check if browser reports offline
     if (!navigator.onLine) {
-      setIsApiReachable(false)
+      if (isMountedRef.current) {
+        setIsApiReachable(false)
+      }
       return false
     }
 
     const isHealthy = await checkApiHealth()
+
+    // Don't update state if component is unmounted
+    if (!isMountedRef.current) {
+      return isHealthy
+    }
+
     const wasReachable = isApiReachable
 
     setIsApiReachable(isHealthy)
@@ -134,6 +143,8 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
 
   // Initial health check and setup interval
   useEffect(() => {
+    isMountedRef.current = true
+
     // Perform initial health check
     performHealthCheck()
 
@@ -141,6 +152,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     startHealthCheckInterval(HEALTH_CHECK_INTERVAL)
 
     return () => {
+      isMountedRef.current = false
       if (healthCheckIntervalRef.current) {
         clearInterval(healthCheckIntervalRef.current)
       }
