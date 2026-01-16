@@ -190,13 +190,15 @@ export type ExerciseType = (typeof ExerciseType)[keyof typeof ExerciseType]
  * Exercise lifecycle status
  */
 export const ExerciseStatus = {
-  /** Initial creation state */
+  /** Initial creation state. Setup phase - can edit everything. */
   Draft: 'Draft',
-  /** Currently in conduct */
+  /** Currently in conduct. Clock can run, injects can fire. */
   Active: 'Active',
-  /** Conduct finished */
+  /** Temporarily stopped. Clock paused, can resume or revert to draft. */
+  Paused: 'Paused',
+  /** Conduct finished. Read-only except observations. */
   Completed: 'Completed',
-  /** Read-only historical record */
+  /** Read-only historical record. Fully read-only. */
   Archived: 'Archived',
 } as const
 

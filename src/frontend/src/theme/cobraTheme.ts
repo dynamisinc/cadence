@@ -364,6 +364,11 @@ export const getExerciseStatusChipColor = (
         bg: cobraTheme.palette.notifications.success,
         text: cobraTheme.palette.notifications.successText,
       }
+    case 'paused':
+      return {
+        bg: cobraTheme.palette.notifications.warning,
+        text: cobraTheme.palette.notifications.warningText,
+      }
     case 'draft':
       return {
         bg: cobraTheme.palette.grid.main,

@@ -1,4 +1,5 @@
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
+using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Hubs;
@@ -159,5 +160,17 @@ public class ExerciseHubContext : IExerciseHubContext
         _logger.LogDebug(
             "Broadcast ObservationDeleted for observation {ObservationId} to exercise {ExerciseId}",
             observationId, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyExerciseStatusChanged(Guid exerciseId, ExerciseDto exercise)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("ExerciseStatusChanged", exercise);
+
+        _logger.LogDebug(
+            "Broadcast ExerciseStatusChanged (status: {Status}) to exercise {ExerciseId}",
+            exercise.Status, exerciseId);
     }
 }

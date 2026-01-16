@@ -67,7 +67,14 @@ public record ExerciseDto(
     Guid OrganizationId,
     Guid? ActiveMselId,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    // Status transition audit fields
+    DateTime? ActivatedAt,
+    Guid? ActivatedBy,
+    DateTime? CompletedAt,
+    Guid? CompletedBy,
+    DateTime? ArchivedAt,
+    Guid? ArchivedBy
 );
 
 /// <summary>
@@ -90,7 +97,13 @@ public static class ExerciseMapper
         entity.OrganizationId,
         entity.ActiveMselId,
         entity.CreatedAt,
-        entity.UpdatedAt
+        entity.UpdatedAt,
+        entity.ActivatedAt,
+        entity.ActivatedBy,
+        entity.CompletedAt,
+        entity.CompletedBy,
+        entity.ArchivedAt,
+        entity.ArchivedBy
     );
 
     public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, Guid createdBy) => new()

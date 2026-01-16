@@ -26,6 +26,13 @@ export interface ExerciseDto {
   activeMselId: string | null
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
+  // Status transition audit fields
+  activatedAt: string | null // DateTime as ISO string
+  activatedBy: string | null // Guid as string
+  completedAt: string | null // DateTime as ISO string
+  completedBy: string | null // Guid as string
+  archivedAt: string | null // DateTime as ISO string
+  archivedBy: string | null // Guid as string
 }
 
 /**
@@ -54,6 +61,88 @@ export interface UpdateExerciseRequest {
   startTime?: string | null
   endTime?: string | null
   isPracticeMode?: boolean
+}
+
+/**
+ * Request body for duplicating an exercise
+ */
+export interface DuplicateExerciseRequest {
+  /** Name for the new exercise. Defaults to "Copy of {original name}". */
+  name?: string
+  /** Scheduled date for the new exercise. Defaults to the original date. */
+  scheduledDate?: string // YYYY-MM-DD format
+}
+
+// =========================================================================
+// MSEL Types
+// =========================================================================
+
+/**
+ * MSEL list item DTO
+ */
+export interface MselDto {
+  id: string
+  name: string
+  description: string | null
+  version: number
+  isActive: boolean
+  exerciseId: string
+  injectCount: number
+  createdAt: string
+  updatedAt: string
+}
+
+/**
+ * MSEL Summary DTO - Detailed progress and metadata
+ */
+export interface MselSummaryDto {
+  id: string
+  name: string
+  description: string | null
+  version: number
+  isActive: boolean
+  exerciseId: string
+  // Inject counts
+  totalInjects: number
+  pendingCount: number
+  firedCount: number
+  skippedCount: number
+  completionPercentage: number
+  // Related counts
+  phaseCount: number
+  objectiveCount: number
+  // Last modification
+  lastModifiedAt: string | null
+  lastModifiedByName: string | null
+  createdAt: string
+  updatedAt: string
+}
+
+// =========================================================================
+// Setup Progress Types
+// =========================================================================
+
+/**
+ * Setup area DTO
+ */
+export interface SetupAreaDto {
+  id: string
+  name: string
+  description: string
+  isComplete: boolean
+  weight: number
+  currentCount: number
+  requiredCount: number
+  statusMessage: string
+}
+
+/**
+ * Setup progress DTO
+ */
+export interface SetupProgressDto {
+  overallPercentage: number
+  isReadyToActivate: boolean
+  areas: SetupAreaDto[]
 }
 
 // Re-export validation types
