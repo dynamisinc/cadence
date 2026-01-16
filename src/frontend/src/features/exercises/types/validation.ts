@@ -9,9 +9,9 @@ import { ExerciseType } from '../../../types'
 
 /** Maximum lengths for exercise fields */
 export const EXERCISE_FIELD_LIMITS = {
-  name: 200,
-  description: 4000,
-  location: 500,
+  name: { max: 200 },
+  description: { max: 4000 },
+  location: { max: 500 },
 } as const
 
 /**
@@ -21,7 +21,7 @@ export const createExerciseSchema = z.object({
   name: z
     .string()
     .min(1, 'Exercise name is required')
-    .max(EXERCISE_FIELD_LIMITS.name, `Name must be ${EXERCISE_FIELD_LIMITS.name} characters or less`),
+    .max(EXERCISE_FIELD_LIMITS.name.max, `Name must be ${EXERCISE_FIELD_LIMITS.name.max} characters or less`),
   exerciseType: z.nativeEnum(ExerciseType, {
     error: 'Exercise type is required',
   }),
@@ -30,12 +30,12 @@ export const createExerciseSchema = z.object({
     .min(1, 'Scheduled date is required'),
   description: z
     .string()
-    .max(EXERCISE_FIELD_LIMITS.description, `Description must be ${EXERCISE_FIELD_LIMITS.description} characters or less`)
+    .max(EXERCISE_FIELD_LIMITS.description.max, `Description must be ${EXERCISE_FIELD_LIMITS.description.max} characters or less`)
     .optional()
     .or(z.literal('')),
   location: z
     .string()
-    .max(EXERCISE_FIELD_LIMITS.location, `Location must be ${EXERCISE_FIELD_LIMITS.location} characters or less`)
+    .max(EXERCISE_FIELD_LIMITS.location.max, `Location must be ${EXERCISE_FIELD_LIMITS.location.max} characters or less`)
     .optional()
     .or(z.literal('')),
   startTime: z.string().optional().or(z.literal('')),

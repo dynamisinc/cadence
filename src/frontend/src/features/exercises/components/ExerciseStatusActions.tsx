@@ -54,7 +54,7 @@ export const ExerciseStatusActions = ({
     action: string
     title: string
     message: string
-    onConfirm: () => Promise<void>
+    onConfirm: () => Promise<unknown>
     isDestructive?: boolean
   } | null>(null)
 
@@ -79,7 +79,7 @@ export const ExerciseStatusActions = ({
     setAnchorEl(null)
   }
 
-  const handleAction = async (action: () => Promise<void>) => {
+  const handleAction = async (action: () => Promise<unknown>) => {
     handleClose()
     await action()
   }
@@ -88,7 +88,7 @@ export const ExerciseStatusActions = ({
     action: string,
     title: string,
     message: string,
-    onConfirm: () => Promise<void>,
+    onConfirm: () => Promise<unknown>,
     isDestructive = false,
   ) => {
     handleClose()

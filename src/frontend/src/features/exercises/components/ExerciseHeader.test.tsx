@@ -33,6 +33,12 @@ const createMockExercise = (overrides: Partial<ExerciseDto> = {}): ExerciseDto =
   activeMselId: null,
   createdAt: '2025-01-01T00:00:00Z',
   updatedAt: '2025-01-01T00:00:00Z',
+  activatedAt: null,
+  activatedBy: null,
+  completedAt: null,
+  completedBy: null,
+  archivedAt: null,
+  archivedBy: null,
   ...overrides,
 })
 

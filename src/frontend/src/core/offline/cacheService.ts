@@ -64,6 +64,12 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
     activeMselId: null,
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
+    activatedAt: null,
+    activatedBy: null,
+    completedAt: null,
+    completedBy: null,
+    archivedAt: null,
+    archivedBy: null,
   }
 }
 

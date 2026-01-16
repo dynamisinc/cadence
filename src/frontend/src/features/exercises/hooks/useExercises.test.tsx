@@ -40,6 +40,12 @@ const mockExercise: ExerciseDto = {
   activeMselId: null,
   createdAt: '2026-01-10T00:00:00Z',
   updatedAt: '2026-01-10T00:00:00Z',
+  activatedAt: null,
+  activatedBy: null,
+  completedAt: null,
+  completedBy: null,
+  archivedAt: null,
+  archivedBy: null,
 }
 
 // Create a fresh QueryClient for each test

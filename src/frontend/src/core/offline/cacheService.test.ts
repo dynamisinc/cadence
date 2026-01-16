@@ -45,6 +45,12 @@ const createExerciseDto = (overrides: Partial<ExerciseDto> = {}): ExerciseDto =>
   activeMselId: null,
   updatedAt: '2025-01-14T12:00:00Z',
   createdAt: '2025-01-01T12:00:00Z',
+  activatedAt: null,
+  activatedBy: null,
+  completedAt: null,
+  completedBy: null,
+  archivedAt: null,
+  archivedBy: null,
   ...overrides,
 })
 
