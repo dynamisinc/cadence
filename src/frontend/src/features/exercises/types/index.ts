@@ -26,6 +26,7 @@ export interface ExerciseDto {
   activeMselId: string | null
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
+  createdBy: string // Guid as string - User who created the exercise
   // Status transition audit fields
   activatedAt: string | null // DateTime as ISO string
   activatedBy: string | null // Guid as string
@@ -33,6 +34,9 @@ export interface ExerciseDto {
   completedBy: string | null // Guid as string
   archivedAt: string | null // DateTime as ISO string
   archivedBy: string | null // Guid as string
+  // Archive/delete tracking fields
+  hasBeenPublished: boolean // True if exercise ever left Draft status
+  previousStatus: ExerciseStatus | null // Status before archiving, used for restore
 }
 
 /**
@@ -143,6 +147,45 @@ export interface SetupProgressDto {
   overallPercentage: number
   isReadyToActivate: boolean
   areas: SetupAreaDto[]
+}
+
+// =========================================================================
+// Delete Types
+// =========================================================================
+
+/**
+ * Reasons why an exercise can be deleted.
+ */
+export type DeleteEligibilityReason = 'NeverPublished' | 'Archived'
+
+/**
+ * Reasons why an exercise cannot be deleted.
+ */
+export type CannotDeleteReason = 'MustArchiveFirst' | 'NotAuthorized' | 'NotFound'
+
+/**
+ * Summary of data that would be deleted with an exercise.
+ */
+export interface DeleteDataSummary {
+  injectCount: number
+  phaseCount: number
+  observationCount: number
+  participantCount: number
+  expectedOutcomeCount: number
+  objectiveCount: number
+  mselCount: number
+}
+
+/**
+ * Response from the delete summary endpoint.
+ */
+export interface DeleteSummaryResponse {
+  exerciseId: string
+  exerciseName: string
+  canDelete: boolean
+  deleteReason: DeleteEligibilityReason | null
+  cannotDeleteReason: CannotDeleteReason | null
+  summary: DeleteDataSummary
 }
 
 // Re-export validation types

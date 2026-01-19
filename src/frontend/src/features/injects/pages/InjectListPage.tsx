@@ -29,6 +29,7 @@ import {
   faPlay,
   faForwardStep,
   faHome,
+  faFileImport,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { useInjects, useInjectOrganization } from '../hooks'
@@ -58,6 +59,7 @@ import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
 import { formatScenarioTime, formatScheduledTime } from '../types'
 import { isGroupExpanded } from '../utils/groupUtils'
+import { ImportWizard } from '../../excel-import/components'
 
 /**
  * MSEL (Inject List) Page
@@ -90,10 +92,11 @@ interface InjectListPageContentProps {
 const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const navigate = useNavigate()
   const { exercise, loading: exerciseLoading } = useExercise(exerciseId)
-  const { injects, loading, error, fireInject, skipInject, isFiring, isSkipping } =
+  const { injects, loading, error, fireInject, skipInject, isFiring, isSkipping, fetchInjects } =
     useInjects(exerciseId)
   const {
     phases,
+    fetchPhases,
     createPhase,
     updatePhase,
     deletePhase,
@@ -141,6 +144,9 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   // Phase form dialog state
   const [phaseFormOpen, setPhaseFormOpen] = useState(false)
   const [editingPhase, setEditingPhase] = useState<PhaseDto | null>(null)
+
+  // Import wizard state
+  const [importWizardOpen, setImportWizardOpen] = useState(false)
 
   const isPhaseLoading = isCreatingPhase || isUpdatingPhase || isDeletingPhase || isReorderingPhase
 
@@ -257,6 +263,12 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
         {(canFireInjects || canManage) && (
           <Stack direction="row" spacing={1}>
+            <CobraSecondaryButton
+              startIcon={<FontAwesomeIcon icon={faFileImport} />}
+              onClick={() => setImportWizardOpen(true)}
+            >
+              Import
+            </CobraSecondaryButton>
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faPlus} />}
               onClick={handleAddPhaseClick}
@@ -565,6 +577,18 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
         onClose={handlePhaseFormClose}
         onSubmit={handlePhaseFormSave}
         isSubmitting={isCreatingPhase || isUpdatingPhase}
+      />
+
+      {/* Import Wizard */}
+      <ImportWizard
+        open={importWizardOpen}
+        onClose={() => {
+          // Refresh both phases and injects when wizard closes (import may create phases)
+          fetchPhases()
+          fetchInjects()
+          setImportWizardOpen(false)
+        }}
+        exerciseId={exerciseId}
       />
     </Box>
   )

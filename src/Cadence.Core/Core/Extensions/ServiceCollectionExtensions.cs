@@ -1,5 +1,10 @@
+using Cadence.Core.Features.Autocomplete.Services;
+using Cadence.Core.Features.DeliveryMethods.Services;
+using Cadence.Core.Features.ExcelExport.Services;
+using Cadence.Core.Features.ExcelImport.Services;
 using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Services;
+using Cadence.Core.Features.ExpectedOutcomes.Services;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Features.Objectives.Services;
@@ -27,8 +32,14 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IInjectService, InjectService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
         services.AddScoped<IExerciseStatusService, ExerciseStatusService>();
+        services.AddScoped<IExerciseDeleteService, ExerciseDeleteService>();
         services.AddScoped<IMselService, MselService>();
         services.AddScoped<ISetupProgressService, SetupProgressService>();
+        services.AddScoped<IExpectedOutcomeService, ExpectedOutcomeService>();
+        services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
+        services.AddScoped<IAutocompleteService, AutocompleteService>();
+        services.AddScoped<IExcelImportService, ExcelImportService>();
+        services.AddScoped<IExcelExportService, ExcelExportService>();
 
         return services;
     }

@@ -27,6 +27,8 @@ public class AppDbContext : DbContext
     public DbSet<HseepRole> HseepRoles => Set<HseepRole>();
     public DbSet<Observation> Observations => Set<Observation>();
     public DbSet<InjectObjective> InjectObjectives => Set<InjectObjective>();
+    public DbSet<DeliveryMethodLookup> DeliveryMethods => Set<DeliveryMethodLookup>();
+    public DbSet<ExpectedOutcome> ExpectedOutcomes => Set<ExpectedOutcome>();
 
     // =========================================================================
     // Model Configuration
@@ -75,6 +77,8 @@ public class AppDbContext : DbContext
         ConfigureHseepRole(modelBuilder);
         ConfigureObservation(modelBuilder);
         ConfigureInjectObjective(modelBuilder);
+        ConfigureDeliveryMethodLookup(modelBuilder);
+        ConfigureExpectedOutcome(modelBuilder);
     }
 
     /// <summary>
@@ -191,6 +195,9 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.ArchivedBy)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
+
+            // Archive/delete tracking fields
+            entity.Property(e => e.PreviousStatus).HasConversion<string>().HasMaxLength(20);
         });
     }
 
@@ -230,23 +237,42 @@ public class AppDbContext : DbContext
     {
         modelBuilder.Entity<Inject>(entity =>
         {
+            // Core properties
             entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(4000).IsRequired();
             entity.Property(e => e.Target).HasMaxLength(200).IsRequired();
             entity.Property(e => e.Source).HasMaxLength(200);
+
+            // Delivery method (legacy enum - will be migrated)
             entity.Property(e => e.DeliveryMethod).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.DeliveryMethodOther).HasMaxLength(100);
+
+            // Enums
             entity.Property(e => e.InjectType).HasConversion<string>().HasMaxLength(20);
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.TriggerType).HasConversion<string>().HasMaxLength(20);
+
+            // Text fields
             entity.Property(e => e.FireCondition).HasMaxLength(500);
             entity.Property(e => e.ExpectedAction).HasMaxLength(2000);
             entity.Property(e => e.ControllerNotes).HasMaxLength(2000);
             entity.Property(e => e.SkipReason).HasMaxLength(500);
 
+            // Import & Excel properties
+            entity.Property(e => e.SourceReference).HasMaxLength(50);
+            entity.Property(e => e.ResponsibleController).HasMaxLength(200);
+            entity.Property(e => e.LocationName).HasMaxLength(200);
+            entity.Property(e => e.LocationType).HasMaxLength(100);
+            entity.Property(e => e.Track).HasMaxLength(100);
+
+            // Indexes
             entity.HasIndex(e => new { e.MselId, e.InjectNumber }).IsUnique();
             entity.HasIndex(e => new { e.MselId, e.Sequence });
             entity.HasIndex(e => new { e.MselId, e.Status });
             entity.HasIndex(e => e.PhaseId);
             entity.HasIndex(e => e.ParentInjectId);
+            entity.HasIndex(e => e.Track);
+            entity.HasIndex(e => e.DeliveryMethodId);
 
             entity.HasOne(e => e.Msel)
                 .WithMany(m => m.Injects)
@@ -274,6 +300,12 @@ public class AppDbContext : DbContext
             entity.HasOne(e => e.SkippedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.SkippedBy)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.DeliveryMethodLookup)
+                .WithMany(dm => dm.Injects)
+                .HasForeignKey(e => e.DeliveryMethodId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
         });
@@ -463,6 +495,130 @@ public class AppDbContext : DbContext
                 .WithMany(o => o.InjectObjectives)
                 .HasForeignKey(e => e.ObjectiveId)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureDeliveryMethodLookup(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<DeliveryMethodLookup>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(100).IsRequired();
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            // Unique index on Name since these are system-level reference data
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.SortOrder);
+
+            // Seed system default delivery methods with deterministic GUIDs
+            entity.HasData(
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000001"),
+                    Name = "Verbal",
+                    Description = "Spoken directly to player",
+                    IsActive = true,
+                    SortOrder = 1,
+                    IsOther = false,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000002"),
+                    Name = "Phone",
+                    Description = "Simulated phone call",
+                    IsActive = true,
+                    SortOrder = 2,
+                    IsOther = false,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000003"),
+                    Name = "Email",
+                    Description = "Simulated email",
+                    IsActive = true,
+                    SortOrder = 3,
+                    IsOther = false,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000004"),
+                    Name = "Radio",
+                    Description = "Radio communication",
+                    IsActive = true,
+                    SortOrder = 4,
+                    IsOther = false,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000005"),
+                    Name = "Written",
+                    Description = "Paper document",
+                    IsActive = true,
+                    SortOrder = 5,
+                    IsOther = false,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000006"),
+                    Name = "Simulation",
+                    Description = "CAX/simulation input",
+                    IsActive = true,
+                    SortOrder = 6,
+                    IsOther = false,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                },
+                new DeliveryMethodLookup
+                {
+                    Id = Guid.Parse("10000000-0000-0000-0000-000000000007"),
+                    Name = "Other",
+                    Description = "Custom delivery method (specify in notes)",
+                    IsActive = true,
+                    SortOrder = 99,
+                    IsOther = true,
+                    CreatedBy = SystemConstants.SystemUserId,
+                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
+                    UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+                }
+            );
+        });
+    }
+
+    private static void ConfigureExpectedOutcome(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ExpectedOutcome>(entity =>
+        {
+            entity.Property(e => e.Description).HasMaxLength(1000).IsRequired();
+            entity.Property(e => e.EvaluatorNotes).HasMaxLength(2000);
+
+            entity.HasIndex(e => new { e.InjectId, e.SortOrder });
+
+            entity.HasOne(e => e.Inject)
+                .WithMany(i => i.ExpectedOutcomes)
+                .HasForeignKey(e => e.InjectId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

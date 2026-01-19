@@ -60,9 +60,21 @@ public class Inject : BaseEntity
     public string? Source { get; set; }
 
     /// <summary>
-    /// How the inject is delivered to players.
+    /// How the inject is delivered to players (LEGACY - will be migrated to DeliveryMethodId).
     /// </summary>
     public DeliveryMethod? DeliveryMethod { get; set; }
+
+    /// <summary>
+    /// Foreign key to the delivery method lookup table.
+    /// Replaces the DeliveryMethod enum.
+    /// </summary>
+    public Guid? DeliveryMethodId { get; set; }
+
+    /// <summary>
+    /// Free-text delivery method when "Other" is selected. Max 100 characters.
+    /// Only used when the selected delivery method has IsOther=true.
+    /// </summary>
+    public string? DeliveryMethodOther { get; set; }
 
     // =========================================================================
     // Organization Properties
@@ -96,6 +108,48 @@ public class Inject : BaseEntity
     /// Describes when to fire this branch inject. Max 500 characters.
     /// </summary>
     public string? FireCondition { get; set; }
+
+    // =========================================================================
+    // Import & Excel Properties
+    // =========================================================================
+
+    /// <summary>
+    /// Original inject ID from imported source (e.g., Excel row ID). Max 50 characters.
+    /// Used for traceability when importing MSELs from external systems.
+    /// </summary>
+    public string? SourceReference { get; set; }
+
+    /// <summary>
+    /// Priority level (1-5 scale): 1=Critical, 2=High, 3=Medium, 4=Low, 5=Info.
+    /// Nullable to allow injects without assigned priority.
+    /// </summary>
+    public int? Priority { get; set; }
+
+    /// <summary>
+    /// How this inject should be triggered during the exercise.
+    /// </summary>
+    public TriggerType TriggerType { get; set; } = TriggerType.Manual;
+
+    /// <summary>
+    /// Name of the specific controller responsible for this inject. Max 200 characters.
+    /// Different from FiredBy (which tracks who actually fired it).
+    /// </summary>
+    public string? ResponsibleController { get; set; }
+
+    /// <summary>
+    /// Name of the physical location for this inject. Max 200 characters.
+    /// </summary>
+    public string? LocationName { get; set; }
+
+    /// <summary>
+    /// Type or category of location (e.g., "EOC", "Field", "Hospital"). Max 100 characters.
+    /// </summary>
+    public string? LocationType { get; set; }
+
+    /// <summary>
+    /// Track or agency grouping for multi-agency exercises (e.g., "Fire", "EMS", "Police"). Max 100 characters.
+    /// </summary>
+    public string? Track { get; set; }
 
     // =========================================================================
     // Supplemental Properties
@@ -201,4 +255,14 @@ public class Inject : BaseEntity
     /// Junction entities linking this inject to objectives.
     /// </summary>
     public ICollection<InjectObjective> InjectObjectives { get; set; } = new List<InjectObjective>();
+
+    /// <summary>
+    /// Delivery method lookup (replaces DeliveryMethod enum).
+    /// </summary>
+    public DeliveryMethodLookup? DeliveryMethodLookup { get; set; }
+
+    /// <summary>
+    /// Expected outcomes for this inject.
+    /// </summary>
+    public ICollection<ExpectedOutcome> ExpectedOutcomes { get; set; } = new List<ExpectedOutcome>();
 }

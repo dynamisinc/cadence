@@ -112,6 +112,19 @@ public class Exercise : BaseEntity
     /// </summary>
     public Guid? ArchivedBy { get; set; }
 
+    /// <summary>
+    /// True if the exercise has ever been published (left Draft status).
+    /// Once true, never set back to false. Used to determine delete eligibility.
+    /// Exercises that have never been published can be deleted by their creator.
+    /// </summary>
+    public bool HasBeenPublished { get; set; }
+
+    /// <summary>
+    /// Status before archiving. Used to restore exercise to correct state.
+    /// Null if exercise has never been archived.
+    /// </summary>
+    public ExerciseStatus? PreviousStatus { get; set; }
+
     // =========================================================================
     // Exercise Clock Properties (Updated During Conduct)
     // =========================================================================

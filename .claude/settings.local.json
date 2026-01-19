@@ -39,7 +39,15 @@
       "Bash(do if grep -q \"import.*{ Button }.*from ''@mui/material''\" \"c:/Code/dynamis/cadence/$file\")",
       "Bash(then echo \"$file - uses raw Button\")",
       "Bash(fi)",
-      "Bash(done)"
+      "Bash(done)",
+      "Bash(for file in src/frontend/src/admin/pages/ArchivedExercisesPage.tsx src/frontend/src/features/excel-export/components/ExportDialog.tsx src/frontend/src/features/excel-import/components/ColumnMappingStep.tsx src/frontend/src/features/excel-import/components/FileUploadStep.tsx src/frontend/src/features/excel-import/components/ImportExecutionStep.tsx src/frontend/src/features/excel-import/components/ImportWizard.tsx src/frontend/src/features/excel-import/components/InjectPreviewCard.tsx src/frontend/src/features/excel-import/components/ValidationStep.tsx src/frontend/src/features/excel-import/components/WorksheetSelectionStep.tsx)",
+      "Bash(do)",
+      "Bash(testfile=\"$file%.tsx.test.tsx\")",
+      "Bash(if [ ! -f \"$testfile\" ])",
+      "Bash(then)",
+      "Bash(echo:*)",
+      "Bash(for file in src/frontend/src/features/exercises/components/ArchiveExerciseDialog.tsx src/frontend/src/features/exercises/components/DeleteExerciseDialog.tsx src/frontend/src/features/exercises/components/RestoreExerciseDialog.tsx src/frontend/src/features/expected-outcomes/components/ExpectedOutcomesEvaluator.tsx src/frontend/src/features/expected-outcomes/components/ExpectedOutcomesList.tsx)",
+      "Bash(for file in src/Cadence.Core/Features/Autocomplete/Services/AutocompleteService.cs src/Cadence.Core/Features/DeliveryMethods/Services/DeliveryMethodService.cs src/Cadence.Core/Features/ExcelExport/Services/ExcelExportService.cs src/Cadence.Core/Features/ExcelImport/Services/ExcelImportService.cs src/Cadence.Core/Features/Exercises/Services/ExerciseDeleteService.cs src/Cadence.Core/Features/ExpectedOutcomes/Services/ExpectedOutcomeService.cs)"
     ],
     "deny": [],
     "ask": [],

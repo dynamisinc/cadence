@@ -22,6 +22,161 @@ namespace Cadence.Core.Migrations
 
             SqlServerModelBuilderExtensions.UseIdentityColumns(modelBuilder);
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.DeliveryMethodLookup", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsOther")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Name")
+                        .IsUnique();
+
+                    b.HasIndex("SortOrder");
+
+                    b.ToTable("DeliveryMethods");
+
+                    b.HasData(
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000001"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Spoken directly to player",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Verbal",
+                            SortOrder = 1,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000002"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Simulated phone call",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Phone",
+                            SortOrder = 2,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000003"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Simulated email",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Email",
+                            SortOrder = 3,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000004"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Radio communication",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Radio",
+                            SortOrder = 4,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000005"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Paper document",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Written",
+                            SortOrder = 5,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000006"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "CAX/simulation input",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = false,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Simulation",
+                            SortOrder = 6,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        },
+                        new
+                        {
+                            Id = new Guid("10000000-0000-0000-0000-000000000007"),
+                            CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
+                            CreatedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Description = "Custom delivery method (specify in notes)",
+                            IsActive = true,
+                            IsDeleted = false,
+                            IsOther = true,
+                            ModifiedBy = new Guid("00000000-0000-0000-0000-000000000001"),
+                            Name = "Other",
+                            SortOrder = 99,
+                            UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
+                        });
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
                 {
                     b.Property<Guid>("Id")
@@ -87,6 +242,9 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<bool>("HasBeenPublished")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -107,6 +265,10 @@ namespace Cadence.Core.Migrations
 
                     b.Property<Guid>("OrganizationId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("PreviousStatus")
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<DateOnly>("ScheduledDate")
                         .HasColumnType("date");
@@ -192,6 +354,58 @@ namespace Cadence.Core.Migrations
                         .IsUnique();
 
                     b.ToTable("ExerciseParticipants");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.ExpectedOutcome", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("EvaluatorNotes")
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("InjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool?>("WasAchieved")
+                        .HasColumnType("bit");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("InjectId", "SortOrder");
+
+                    b.ToTable("ExpectedOutcomes");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.HseepRole", b =>
@@ -336,6 +550,13 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<Guid?>("DeliveryMethodId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("DeliveryMethodOther")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasMaxLength(4000)
@@ -366,6 +587,14 @@ namespace Cadence.Core.Migrations
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("LocationName")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("LocationType")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
                     b.Property<Guid>("ModifiedBy")
                         .HasColumnType("uniqueidentifier");
 
@@ -377,6 +606,13 @@ namespace Cadence.Core.Migrations
 
                     b.Property<Guid?>("PhaseId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<int?>("Priority")
+                        .HasColumnType("int");
+
+                    b.Property<string>("ResponsibleController")
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
 
                     b.Property<int?>("ScenarioDay")
                         .HasColumnType("int");
@@ -404,6 +640,10 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("SourceReference")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
                     b.Property<string>("Status")
                         .IsRequired()
                         .HasMaxLength(20)
@@ -419,10 +659,21 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
 
+                    b.Property<string>("Track")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("TriggerType")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("DeliveryMethodId");
 
                     b.HasIndex("FiredBy");
 
@@ -431,6 +682,8 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("PhaseId");
 
                     b.HasIndex("SkippedBy");
+
+                    b.HasIndex("Track");
 
                     b.HasIndex("MselId", "InjectNumber")
                         .IsUnique();
@@ -874,8 +1127,24 @@ namespace Cadence.Core.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.ExpectedOutcome", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "Inject")
+                        .WithMany("ExpectedOutcomes")
+                        .HasForeignKey("InjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Inject");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Inject", b =>
                 {
+                    b.HasOne("Cadence.Core.Models.Entities.DeliveryMethodLookup", "DeliveryMethodLookup")
+                        .WithMany("Injects")
+                        .HasForeignKey("DeliveryMethodId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.User", "FiredByUser")
                         .WithMany()
                         .HasForeignKey("FiredBy")
@@ -901,6 +1170,8 @@ namespace Cadence.Core.Migrations
                         .WithMany()
                         .HasForeignKey("SkippedBy")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("DeliveryMethodLookup");
 
                     b.Navigation("FiredByUser");
 
@@ -1008,6 +1279,11 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.DeliveryMethodLookup", b =>
+                {
+                    b.Navigation("Injects");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
                 {
                     b.Navigation("Msels");
@@ -1024,6 +1300,8 @@ namespace Cadence.Core.Migrations
             modelBuilder.Entity("Cadence.Core.Models.Entities.Inject", b =>
                 {
                     b.Navigation("ChildInjects");
+
+                    b.Navigation("ExpectedOutcomes");
 
                     b.Navigation("InjectObjectives");
 

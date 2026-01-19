@@ -10,22 +10,25 @@ import {
   Grid,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faList, faPen, faPlay, faCopy } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faList, faPen, faPlay, faCopy, faBoxArchive, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
-import { useExercise, useSetupProgress, useDuplicateExercise } from '../hooks'
+import { useExercise, useSetupProgress, useDuplicateExercise, useExerciseStatus } from '../hooks'
 import {
   ExerciseForm,
   ExerciseHeader,
   ExerciseStatusActions,
   SetupProgress,
   DuplicateExerciseDialog,
+  ArchiveExerciseDialog,
+  DeleteExerciseDialog,
 } from '../components'
 import { ObjectiveList } from '../../objectives'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
   CobraLinkButton,
+  CobraDeleteButton,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { usePermissions, useUnsavedChangesWarning } from '../../../shared/hooks'
@@ -56,6 +59,8 @@ export const ExerciseDetailPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
+  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
   // Setup progress for Draft exercises
   const {
@@ -66,6 +71,9 @@ export const ExerciseDetailPage = () => {
 
   // Duplicate exercise mutation
   const { duplicate, isDuplicating } = useDuplicateExercise()
+
+  // Archive/delete actions
+  const { archive, isTransitioning: isArchiving } = useExerciseStatus(id ?? '')
 
   // Set custom breadcrumbs with exercise name
   useBreadcrumbs(
@@ -168,6 +176,28 @@ export const ExerciseDetailPage = () => {
     // useBlocker handles the unsaved changes warning automatically
     navigate('/exercises')
   }
+
+  const handleArchived = () => {
+    // Navigate back to exercises list after archive
+    navigate('/exercises')
+  }
+
+  const handleDeleted = () => {
+    // Navigate back to exercises list after delete
+    navigate('/exercises')
+  }
+
+  // Determine if exercise can be deleted (never published OR already archived)
+  const canDelete = useMemo(() => {
+    if (!exercise || !canManage) return false
+    return !exercise.hasBeenPublished || exercise.status === ExerciseStatus.Archived
+  }, [exercise, canManage])
+
+  // Can archive if not already archived and user can manage
+  const canArchive = useMemo(() => {
+    if (!exercise || !canManage) return false
+    return exercise.status !== ExerciseStatus.Archived
+  }, [exercise, canManage])
 
   const handleViewMsel = () => {
     navigate(`/exercises/${id}/msel`)
@@ -285,6 +315,22 @@ export const ExerciseDetailPage = () => {
               >
                 Duplicate
               </CobraSecondaryButton>
+            )}
+            {!isEditing && canArchive && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faBoxArchive} />}
+                onClick={() => setArchiveDialogOpen(true)}
+              >
+                Archive
+              </CobraSecondaryButton>
+            )}
+            {!isEditing && canDelete && (
+              <CobraDeleteButton
+                startIcon={<FontAwesomeIcon icon={faTrash} />}
+                onClick={() => setDeleteDialogOpen(true)}
+              >
+                Delete
+              </CobraDeleteButton>
             )}
             {!isEditing && (
               <ExerciseStatusActions
@@ -434,6 +480,26 @@ export const ExerciseDetailPage = () => {
           setDuplicateDialogOpen(false)
         }}
         isSubmitting={isDuplicating}
+      />
+
+      {/* Archive Exercise Dialog */}
+      <ArchiveExerciseDialog
+        open={archiveDialogOpen}
+        exercise={exercise}
+        onClose={() => setArchiveDialogOpen(false)}
+        onConfirm={async () => {
+          await archive()
+          handleArchived()
+        }}
+        isArchiving={isArchiving}
+      />
+
+      {/* Delete Exercise Dialog */}
+      <DeleteExerciseDialog
+        open={deleteDialogOpen}
+        exercise={exercise}
+        onClose={() => setDeleteDialogOpen(false)}
+        onDeleted={handleDeleted}
       />
 
       {/* Unsaved changes dialog for navigation blocking */}

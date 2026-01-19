@@ -132,13 +132,13 @@ export const ExerciseForm = ({
                 error={!!errors.name}
                 helperText={
                   errors.name?.message ||
-                  `${nameValue?.length ?? 0}/${EXERCISE_FIELD_LIMITS.name}`
+                  `${nameValue?.length ?? 0}/${EXERCISE_FIELD_LIMITS.name.max}`
                 }
                 fullWidth
                 required
                 autoFocus={!isEdit}
                 disabled={isFieldDisabled('name')}
-                inputProps={{ maxLength: EXERCISE_FIELD_LIMITS.name }}
+                inputProps={{ maxLength: EXERCISE_FIELD_LIMITS.name.max }}
               />
             )}
           />

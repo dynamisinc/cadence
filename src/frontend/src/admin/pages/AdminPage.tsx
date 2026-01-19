@@ -3,6 +3,7 @@
  *
  * Central administration hub for the application:
  * - Feature Flags management
+ * - Archived Exercises management
  * - (Future) System settings
  * - (Future) User management
  *
@@ -10,12 +11,15 @@
  */
 
 import React from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Container, Stack, Box, Paper, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGear } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faBoxArchive, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
 
 export const AdminPage: React.FC = () => {
+  const navigate = useNavigate()
+
   return (
     <Container maxWidth={false} disableGutters data-testid="admin-page">
       <Stack spacing={4} sx={{ p: 2 }}>
@@ -31,6 +35,46 @@ export const AdminPage: React.FC = () => {
             Manage application settings and feature availability
           </Typography>
         </Box>
+
+        {/* Archived Exercises Section */}
+        <Paper
+          sx={{
+            p: 3,
+            cursor: 'pointer',
+            transition: 'box-shadow 0.2s',
+            '&:hover': {
+              boxShadow: 3,
+            },
+          }}
+          onClick={() => navigate('/admin/archived-exercises')}
+          data-testid="archived-exercises-section"
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 1,
+                backgroundColor: 'warning.light',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'warning.dark',
+              }}
+            >
+              <FontAwesomeIcon icon={faBoxArchive} size="lg" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 0.5 }}>
+                Archived Exercises
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Manage archived exercises. Restore them or permanently delete.
+              </Typography>
+            </Box>
+            <FontAwesomeIcon icon={faChevronRight} />
+          </Stack>
+        </Paper>
 
         {/* Feature Flags Section */}
         <Paper sx={{ p: 3 }} data-testid="feature-flags-section">
