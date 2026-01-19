@@ -18,7 +18,10 @@ public class ExcelImportService : IExcelImportService
     private readonly IInjectService _injectService;
     private readonly ILogger<ExcelImportService> _logger;
 
-    // In-memory session storage (in production, consider Redis or database storage)
+    // In-memory session storage - sessions are stored in static memory for simplicity.
+    // LIMITATION: This does not work in multi-instance deployments (Azure Scale Out, K8s replicas).
+    // For production with multiple instances, replace with Redis or database-backed session storage.
+    // Current use case: Single-instance App Service deployment where this is acceptable.
     private static readonly ConcurrentDictionary<Guid, ImportSession> _sessions = new();
 
     // Session timeout in minutes
@@ -1316,12 +1319,22 @@ public class ExcelImportService : IExcelImportService
 
     private class ImportSession
     {
+        // Lock object for thread-safe access to mutable session state
+        private readonly object _lock = new();
+        private DateTime _expiresAt;
+
         public Guid SessionId { get; init; }
         public required string FileName { get; init; }
         public required string FileFormat { get; init; }
         public required string TempFilePath { get; init; }
         public DateTime CreatedAt { get; init; }
-        public DateTime ExpiresAt { get; set; }
+
+        public DateTime ExpiresAt
+        {
+            get { lock (_lock) { return _expiresAt; } }
+            set { lock (_lock) { _expiresAt = value; } }
+        }
+
         public required string CurrentStep { get; set; }
         public required IReadOnlyList<WorksheetInfoDto> Worksheets { get; init; }
         public int? SelectedWorksheetIndex { get; set; }
