@@ -49,6 +49,9 @@ const createMockInject = (
   target: 'EOC Director',
   source: null,
   deliveryMethod: null,
+  deliveryMethodId: null,
+  deliveryMethodName: null,
+  deliveryMethodOther: null,
   injectType: 'Standard',
   status: InjectStatus.Pending,
   sequence: 1,
@@ -69,6 +72,13 @@ const createMockInject = (
   objectiveIds: [],
   createdAt: '2025-01-01T00:00:00Z',
   updatedAt: '2025-01-01T00:00:00Z',
+  sourceReference: null,
+  priority: null,
+  triggerType: 'Manual',
+  responsibleController: null,
+  locationName: null,
+  locationType: null,
+  track: null,
   ...overrides,
 })
 

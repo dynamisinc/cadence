@@ -64,12 +64,15 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
     activeMselId: null,
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
+    createdBy: '', // Not available in cache
     activatedAt: null,
     activatedBy: null,
     completedAt: null,
     completedBy: null,
     archivedAt: null,
     archivedBy: null,
+    hasBeenPublished: false, // Not tracked in cache
+    previousStatus: null, // Not tracked in cache
   }
 }
 
@@ -171,6 +174,9 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     target: cached.to ?? '',
     source: cached.from ?? null,
     deliveryMethod: cached.method as InjectDto['deliveryMethod'],
+    deliveryMethodId: null,
+    deliveryMethodName: null,
+    deliveryMethodOther: null,
     injectType: (cached.injectType as InjectDto['injectType']) ?? 'Standard',
     sequence: cached.injectNumber,
     parentInjectId: null,
@@ -188,6 +194,14 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     objectiveIds: [],
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
+    // Phase G fields - not tracked in cache
+    sourceReference: null,
+    priority: null,
+    triggerType: 'Manual',
+    responsibleController: null,
+    locationName: null,
+    locationType: null,
+    track: null,
     pendingSync: cached.pendingSync,
   }
 }

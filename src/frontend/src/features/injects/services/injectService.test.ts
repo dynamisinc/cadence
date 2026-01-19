@@ -25,6 +25,9 @@ const mockInject: InjectDto = {
   target: 'EOC Director',
   source: 'County Manager',
   deliveryMethod: DeliveryMethod.Phone,
+  deliveryMethodId: null,
+  deliveryMethodName: null,
+  deliveryMethodOther: null,
   injectType: InjectType.Standard,
   status: InjectStatus.Pending,
   sequence: 1,
@@ -45,6 +48,13 @@ const mockInject: InjectDto = {
   objectiveIds: [],
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
+  sourceReference: null,
+  priority: null,
+  triggerType: 'Manual',
+  responsibleController: null,
+  locationName: null,
+  locationType: null,
+  track: null,
 }
 
 describe('injectService', () => {

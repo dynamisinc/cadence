@@ -33,6 +33,9 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   target: 'Target',
   source: null,
   deliveryMethod: null,
+  deliveryMethodId: null,
+  deliveryMethodName: null,
+  deliveryMethodOther: null,
   injectType: InjectType.Standard,
   status: InjectStatus.Pending,
   sequence: 1,
@@ -53,6 +56,13 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   objectiveIds: [],
   createdAt: '2024-01-01T00:00:00Z',
   updatedAt: '2024-01-01T00:00:00Z',
+  sourceReference: null,
+  priority: null,
+  triggerType: 'Manual',
+  responsibleController: null,
+  locationName: null,
+  locationType: null,
+  track: null,
   ...overrides,
 })
 

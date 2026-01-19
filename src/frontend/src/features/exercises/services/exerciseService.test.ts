@@ -29,12 +29,15 @@ const mockExercise: ExerciseDto = {
   activeMselId: null,
   createdAt: '2026-01-10T00:00:00Z',
   updatedAt: '2026-01-10T00:00:00Z',
+  createdBy: 'user-123',
   activatedAt: null,
   activatedBy: null,
   completedAt: null,
   completedBy: null,
   archivedAt: null,
   archivedBy: null,
+  hasBeenPublished: false,
+  previousStatus: null,
 }
 
 describe('exerciseService', () => {

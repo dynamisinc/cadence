@@ -31,7 +31,7 @@ export const useExercises = () => {
     refetch: fetchExercises,
   } = useQuery({
     queryKey: exercisesQueryKey,
-    queryFn: exerciseService.getExercises,
+    queryFn: () => exerciseService.getExercises(),
   })
 
   // Mutation for creating exercises with optimistic update
@@ -61,6 +61,7 @@ export const useExercises = () => {
         activeMselId: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
+        createdBy: 'temp', // Will be replaced by server response
         // Status audit fields
         activatedAt: null,
         activatedBy: null,
@@ -68,6 +69,9 @@ export const useExercises = () => {
         completedBy: null,
         archivedAt: null,
         archivedBy: null,
+        // Archive/delete tracking
+        hasBeenPublished: false,
+        previousStatus: null,
       }
 
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) => [

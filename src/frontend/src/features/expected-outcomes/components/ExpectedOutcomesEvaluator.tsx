@@ -207,21 +207,25 @@ export const ExpectedOutcomesEvaluator = ({
                   <Typography variant="body2">{outcome.description}</Typography>
 
                   <ToggleButtonGroup
-                    value={editAchieved}
+                    value={editAchieved === null ? 'unevaluated' : editAchieved ? 'achieved' : 'not-achieved'}
                     exclusive
-                    onChange={(_, value) => setEditAchieved(value)}
+                    onChange={(_, value: string | null) => {
+                      if (value === 'achieved') setEditAchieved(true)
+                      else if (value === 'not-achieved') setEditAchieved(false)
+                      else if (value === 'unevaluated') setEditAchieved(null)
+                    }}
                     size="small"
                     fullWidth
                   >
-                    <ToggleButton value={true} color="success">
+                    <ToggleButton value="achieved" color="success">
                       <FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />
                       Achieved
                     </ToggleButton>
-                    <ToggleButton value={null}>
+                    <ToggleButton value="unevaluated">
                       <FontAwesomeIcon icon={faQuestion} style={{ marginRight: 4 }} />
                       Not Evaluated
                     </ToggleButton>
-                    <ToggleButton value={false} color="error">
+                    <ToggleButton value="not-achieved" color="error">
                       <FontAwesomeIcon icon={faXmark} style={{ marginRight: 4 }} />
                       Not Achieved
                     </ToggleButton>

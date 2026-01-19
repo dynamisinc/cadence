@@ -9,7 +9,7 @@ import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { render } from '../../../test/test-utils'
 import { DeleteExerciseDialog } from './DeleteExerciseDialog'
-import type { ExerciseDto } from '../types'
+import type { ExerciseDto, DeleteSummaryResponse } from '../types'
 import { ExerciseType, ExerciseStatus } from '../../../types'
 import { exerciseService } from '../services/exerciseService'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
@@ -47,16 +47,19 @@ const createMockExercise = (overrides: Partial<ExerciseDto> = {}): ExerciseDto =
   activeMselId: null,
   createdAt: '2025-01-01T00:00:00Z',
   updatedAt: '2025-01-01T00:00:00Z',
+  createdBy: 'user-1',
   activatedAt: null,
   activatedBy: null,
   completedAt: null,
   completedBy: null,
   archivedAt: null,
   archivedBy: null,
+  hasBeenPublished: false,
+  previousStatus: null,
   ...overrides,
 })
 
-const createMockDeleteSummary = () => ({
+const createMockDeleteSummary = (): DeleteSummaryResponse => ({
   exerciseId: 'exercise-1',
   exerciseName: 'Test Exercise',
   canDelete: true,
