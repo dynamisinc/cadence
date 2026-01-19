@@ -811,7 +811,7 @@ public class ExcelImportService : IExcelImportService
         var columns = new List<ColumnInfoDto>();
         var previewRows = new List<Dictionary<string, object?>>();
 
-        if (lines.Length == 0)
+        if (lines.Length == 0 || request.HeaderRow < 1 || request.HeaderRow > lines.Length)
         {
             return new WorksheetSelectionResultDto
             {
@@ -838,9 +838,10 @@ public class ExcelImportService : IExcelImportService
             });
         }
 
-        // Get preview rows
-        var endRow = Math.Min(request.DataStartRow + request.PreviewRowCount - 1, lines.Length);
-        for (int row = request.DataStartRow; row <= endRow; row++)
+        // Get preview rows (ensure DataStartRow is valid)
+        var startRow = Math.Max(1, request.DataStartRow);
+        var endRow = Math.Min(startRow + request.PreviewRowCount - 1, lines.Length);
+        for (int row = startRow; row <= endRow; row++)
         {
             var values = ParseCsvLine(lines[row - 1]);
             var rowData = new Dictionary<string, object?>();
@@ -853,7 +854,7 @@ public class ExcelImportService : IExcelImportService
 
         session.SelectedWorksheetIndex = 0;
         session.HeaderRow = request.HeaderRow;
-        session.DataStartRow = request.DataStartRow;
+        session.DataStartRow = startRow;
         session.Columns = columns;
         session.CurrentStep = "SheetSelection";
 
@@ -918,9 +919,14 @@ public class ExcelImportService : IExcelImportService
         }
         else
         {
+            if (!session.SelectedWorksheetIndex.HasValue)
+            {
+                throw new InvalidOperationException("Worksheet index not set for Excel file import");
+            }
+
             await using var fileStream = File.OpenRead(session.TempFilePath);
             using var workbook = new XLWorkbook(fileStream);
-            var worksheet = workbook.Worksheet(session.SelectedWorksheetIndex!.Value + 1);
+            var worksheet = workbook.Worksheet(session.SelectedWorksheetIndex.Value + 1);
 
             var lastRow = Math.Min(worksheet.LastRowUsed()?.RowNumber() ?? 0, session.DataStartRow + MaxRows - 1);
 
