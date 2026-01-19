@@ -110,6 +110,21 @@ public enum DeliveryMethod
     Other
 }
 
+/// <summary>
+/// Trigger type for inject delivery - determines how the inject is activated.
+/// </summary>
+public enum TriggerType
+{
+    /// <summary>Controller manually fires the inject (default).</summary>
+    Manual,
+
+    /// <summary>Auto-fire at scheduled time (future feature).</summary>
+    Scheduled,
+
+    /// <summary>Fire on meeting conditions (future feature).</summary>
+    Conditional
+}
+
 // =============================================================================
 // Role Enums
 // =============================================================================

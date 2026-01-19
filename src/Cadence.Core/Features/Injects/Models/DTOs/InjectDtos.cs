@@ -15,7 +15,12 @@ public record InjectDto(
     TimeOnly? ScenarioTime,
     string Target,
     string? Source,
+    // Legacy enum - kept for backward compatibility during migration
     DeliveryMethod? DeliveryMethod,
+    // New lookup-based delivery method
+    Guid? DeliveryMethodId,
+    string? DeliveryMethodName,
+    string? DeliveryMethodOther,
     InjectType InjectType,
     InjectStatus Status,
     int Sequence,
@@ -35,7 +40,15 @@ public record InjectDto(
     string? PhaseName,
     List<Guid> ObjectiveIds,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    // New Phase G fields
+    string? SourceReference,
+    int? Priority,
+    TriggerType TriggerType,
+    string? ResponsibleController,
+    string? LocationName,
+    string? LocationType,
+    string? Track
 );
 
 /// <summary>
@@ -79,9 +92,19 @@ public class CreateInjectRequest
     public string? Source { get; init; }
 
     /// <summary>
-    /// How the inject is delivered to players.
+    /// How the inject is delivered to players (legacy enum).
     /// </summary>
     public DeliveryMethod? DeliveryMethod { get; init; }
+
+    /// <summary>
+    /// Delivery method lookup ID (preferred over enum).
+    /// </summary>
+    public Guid? DeliveryMethodId { get; init; }
+
+    /// <summary>
+    /// Custom delivery method text (when "Other" is selected).
+    /// </summary>
+    public string? DeliveryMethodOther { get; init; }
 
     /// <summary>
     /// Type of inject (Standard, Contingency, Adaptive, Complexity).
@@ -117,6 +140,45 @@ public class CreateInjectRequest
     /// Linked objective IDs (many-to-many).
     /// </summary>
     public List<Guid>? ObjectiveIds { get; init; }
+
+    // =========================================================================
+    // New Phase G Fields
+    // =========================================================================
+
+    /// <summary>
+    /// Original inject ID from imported file for traceability. Max 50 characters.
+    /// </summary>
+    public string? SourceReference { get; init; }
+
+    /// <summary>
+    /// Priority level (1=Critical, 2=High, 3=Medium, 4=Low, 5=Informational).
+    /// </summary>
+    public int? Priority { get; init; }
+
+    /// <summary>
+    /// How the inject is triggered (Manual, Scheduled, Conditional).
+    /// </summary>
+    public TriggerType TriggerType { get; init; } = TriggerType.Manual;
+
+    /// <summary>
+    /// Name/role of the controller responsible for firing this inject. Max 200 characters.
+    /// </summary>
+    public string? ResponsibleController { get; init; }
+
+    /// <summary>
+    /// Venue/site name where inject takes place. Max 200 characters.
+    /// </summary>
+    public string? LocationName { get; init; }
+
+    /// <summary>
+    /// Type of location (EOC, Hospital, Stadium, Field, etc.). Max 100 characters.
+    /// </summary>
+    public string? LocationType { get; init; }
+
+    /// <summary>
+    /// Agency grouping for multi-agency exercises (LAFD, LAPD, Venue, EOC). Max 100 characters.
+    /// </summary>
+    public string? Track { get; init; }
 }
 
 /// <summary>
@@ -160,9 +222,19 @@ public class UpdateInjectRequest
     public string? Source { get; init; }
 
     /// <summary>
-    /// How the inject is delivered to players.
+    /// How the inject is delivered to players (legacy enum).
     /// </summary>
     public DeliveryMethod? DeliveryMethod { get; init; }
+
+    /// <summary>
+    /// Delivery method lookup ID (preferred over enum).
+    /// </summary>
+    public Guid? DeliveryMethodId { get; init; }
+
+    /// <summary>
+    /// Custom delivery method text (when "Other" is selected).
+    /// </summary>
+    public string? DeliveryMethodOther { get; init; }
 
     /// <summary>
     /// Type of inject (Standard, Contingency, Adaptive, Complexity).
@@ -198,6 +270,45 @@ public class UpdateInjectRequest
     /// Linked objective IDs (many-to-many).
     /// </summary>
     public List<Guid>? ObjectiveIds { get; init; }
+
+    // =========================================================================
+    // New Phase G Fields
+    // =========================================================================
+
+    /// <summary>
+    /// Original inject ID from imported file for traceability. Max 50 characters.
+    /// </summary>
+    public string? SourceReference { get; init; }
+
+    /// <summary>
+    /// Priority level (1=Critical, 2=High, 3=Medium, 4=Low, 5=Informational).
+    /// </summary>
+    public int? Priority { get; init; }
+
+    /// <summary>
+    /// How the inject is triggered (Manual, Scheduled, Conditional).
+    /// </summary>
+    public TriggerType TriggerType { get; init; } = TriggerType.Manual;
+
+    /// <summary>
+    /// Name/role of the controller responsible for firing this inject. Max 200 characters.
+    /// </summary>
+    public string? ResponsibleController { get; init; }
+
+    /// <summary>
+    /// Venue/site name where inject takes place. Max 200 characters.
+    /// </summary>
+    public string? LocationName { get; init; }
+
+    /// <summary>
+    /// Type of location (EOC, Hospital, Stadium, Field, etc.). Max 100 characters.
+    /// </summary>
+    public string? LocationType { get; init; }
+
+    /// <summary>
+    /// Agency grouping for multi-agency exercises (LAFD, LAPD, Venue, EOC). Max 100 characters.
+    /// </summary>
+    public string? Track { get; init; }
 }
 
 /// <summary>
@@ -238,6 +349,9 @@ public static class InjectMapper
         entity.Target,
         entity.Source,
         entity.DeliveryMethod,
+        entity.DeliveryMethodId,
+        entity.DeliveryMethodLookup?.Name,
+        entity.DeliveryMethodOther,
         entity.InjectType,
         entity.Status,
         entity.Sequence,
@@ -257,7 +371,15 @@ public static class InjectMapper
         entity.Phase?.Name,
         entity.InjectObjectives?.Select(io => io.ObjectiveId).ToList() ?? new List<Guid>(),
         entity.CreatedAt,
-        entity.UpdatedAt
+        entity.UpdatedAt,
+        // New Phase G fields
+        entity.SourceReference,
+        entity.Priority,
+        entity.TriggerType,
+        entity.ResponsibleController,
+        entity.LocationName,
+        entity.LocationType,
+        entity.Track
     );
 
     public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, Guid createdBy) => new()
@@ -272,6 +394,8 @@ public static class InjectMapper
         Target = request.Target,
         Source = request.Source,
         DeliveryMethod = request.DeliveryMethod,
+        DeliveryMethodId = request.DeliveryMethodId,
+        DeliveryMethodOther = request.DeliveryMethodOther,
         InjectType = request.InjectType,
         Status = InjectStatus.Pending,
         Sequence = sequence,
@@ -281,6 +405,14 @@ public static class InjectMapper
         ControllerNotes = request.ControllerNotes,
         MselId = mselId,
         PhaseId = request.PhaseId,
+        // New Phase G fields
+        SourceReference = request.SourceReference,
+        Priority = request.Priority,
+        TriggerType = request.TriggerType,
+        ResponsibleController = request.ResponsibleController,
+        LocationName = request.LocationName,
+        LocationType = request.LocationType,
+        Track = request.Track,
         CreatedBy = createdBy,
         ModifiedBy = createdBy
     };
@@ -295,12 +427,22 @@ public static class InjectMapper
         entity.Target = request.Target;
         entity.Source = request.Source;
         entity.DeliveryMethod = request.DeliveryMethod;
+        entity.DeliveryMethodId = request.DeliveryMethodId;
+        entity.DeliveryMethodOther = request.DeliveryMethodOther;
         entity.InjectType = request.InjectType;
         entity.ParentInjectId = request.ParentInjectId;
         entity.FireCondition = request.TriggerCondition;
         entity.ExpectedAction = request.ExpectedAction;
         entity.ControllerNotes = request.ControllerNotes;
         entity.PhaseId = request.PhaseId;
+        // New Phase G fields
+        entity.SourceReference = request.SourceReference;
+        entity.Priority = request.Priority;
+        entity.TriggerType = request.TriggerType;
+        entity.ResponsibleController = request.ResponsibleController;
+        entity.LocationName = request.LocationName;
+        entity.LocationType = request.LocationType;
+        entity.Track = request.Track;
         entity.ModifiedBy = modifiedBy;
     }
 }

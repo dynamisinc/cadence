@@ -18,7 +18,6 @@ import {
   faPause,
   faStop,
   faRotateLeft,
-  faArchive,
   faBoxOpen,
   faChevronDown,
 } from '@fortawesome/free-solid-svg-icons'
@@ -65,7 +64,6 @@ export const ExerciseStatusActions = ({
     pause,
     resume,
     complete,
-    archive,
     unarchive,
     revertToDraft,
     isTransitioning,
@@ -222,17 +220,7 @@ export const ExerciseStatusActions = ({
           </>
         )}
 
-        {/* Archive (Completed → Archived) */}
-        {canTransition(ExerciseStatus.Archived) && (
-          <MenuItem onClick={() => handleAction(archive)}>
-            <ListItemIcon>
-              <FontAwesomeIcon icon={faArchive} />
-            </ListItemIcon>
-            <ListItemText>Archive Exercise</ListItemText>
-          </MenuItem>
-        )}
-
-        {/* Unarchive (Archived → Completed) */}
+        {/* Unarchive (Archived → Completed/Previous) */}
         {exercise.status === ExerciseStatus.Archived && canTransition(ExerciseStatus.Completed) && (
           <MenuItem onClick={() => handleAction(unarchive)}>
             <ListItemIcon>

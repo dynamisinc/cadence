@@ -68,13 +68,17 @@ public record ExerciseDto(
     Guid? ActiveMselId,
     DateTime CreatedAt,
     DateTime UpdatedAt,
+    Guid CreatedBy,
     // Status transition audit fields
     DateTime? ActivatedAt,
     Guid? ActivatedBy,
     DateTime? CompletedAt,
     Guid? CompletedBy,
     DateTime? ArchivedAt,
-    Guid? ArchivedBy
+    Guid? ArchivedBy,
+    // Archive/delete tracking fields
+    bool HasBeenPublished,
+    ExerciseStatus? PreviousStatus
 );
 
 /// <summary>
@@ -98,12 +102,15 @@ public static class ExerciseMapper
         entity.ActiveMselId,
         entity.CreatedAt,
         entity.UpdatedAt,
+        entity.CreatedBy,
         entity.ActivatedAt,
         entity.ActivatedBy,
         entity.CompletedAt,
         entity.CompletedBy,
         entity.ArchivedAt,
-        entity.ArchivedBy
+        entity.ArchivedBy,
+        entity.HasBeenPublished,
+        entity.PreviousStatus
     );
 
     public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, Guid createdBy) => new()
@@ -121,4 +128,76 @@ public static class ExerciseMapper
         CreatedBy = createdBy,
         ModifiedBy = createdBy
     };
+}
+
+// =========================================================================
+// Delete-related DTOs
+// =========================================================================
+
+/// <summary>
+/// Reasons why an exercise can be deleted.
+/// </summary>
+public enum DeleteEligibilityReason
+{
+    /// <summary>Exercise has never been published (always in Draft) and user is creator or admin.</summary>
+    NeverPublished,
+
+    /// <summary>Exercise is archived and user is admin.</summary>
+    Archived
+}
+
+/// <summary>
+/// Reasons why an exercise cannot be deleted.
+/// </summary>
+public enum CannotDeleteReason
+{
+    /// <summary>Exercise has been published and is not archived. Must archive first.</summary>
+    MustArchiveFirst,
+
+    /// <summary>User is not authorized to delete this exercise.</summary>
+    NotAuthorized,
+
+    /// <summary>Exercise not found.</summary>
+    NotFound
+}
+
+/// <summary>
+/// Summary of data that would be deleted with an exercise.
+/// </summary>
+public record DeleteDataSummary(
+    int InjectCount,
+    int PhaseCount,
+    int ObservationCount,
+    int ParticipantCount,
+    int ExpectedOutcomeCount,
+    int ObjectiveCount,
+    int MselCount
+);
+
+/// <summary>
+/// Response from the delete summary endpoint.
+/// Shows whether deletion is allowed and what data would be affected.
+/// </summary>
+public record DeleteSummaryResponse(
+    Guid ExerciseId,
+    string ExerciseName,
+    bool CanDelete,
+    DeleteEligibilityReason? DeleteReason,
+    CannotDeleteReason? CannotDeleteReason,
+    DeleteDataSummary Summary
+);
+
+/// <summary>
+/// Result of a delete operation.
+/// </summary>
+public class DeleteExerciseResult
+{
+    public bool Success { get; init; }
+    public string? ErrorMessage { get; init; }
+    public CannotDeleteReason? CannotDeleteReason { get; init; }
+
+    public static DeleteExerciseResult Succeeded() => new() { Success = true };
+
+    public static DeleteExerciseResult Failed(string message, CannotDeleteReason reason) =>
+        new() { Success = false, ErrorMessage = message, CannotDeleteReason = reason };
 }

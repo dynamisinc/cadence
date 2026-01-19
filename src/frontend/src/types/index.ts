@@ -240,6 +240,7 @@ export type InjectStatus = (typeof InjectStatus)[keyof typeof InjectStatus]
 
 /**
  * Methods for delivering injects to players
+ * @deprecated Use DeliveryMethodLookup instead. Kept for backward compatibility.
  */
 export const DeliveryMethod = {
   /** Spoken directly to player */
@@ -259,6 +260,20 @@ export const DeliveryMethod = {
 } as const
 
 export type DeliveryMethod = (typeof DeliveryMethod)[keyof typeof DeliveryMethod]
+
+/**
+ * How an inject is triggered during the exercise
+ */
+export const TriggerType = {
+  /** Controller manually fires */
+  Manual: 'Manual',
+  /** Auto-fire at scheduled time (future feature) */
+  Scheduled: 'Scheduled',
+  /** Fire when conditions are met (future feature) */
+  Conditional: 'Conditional',
+} as const
+
+export type TriggerType = (typeof TriggerType)[keyof typeof TriggerType]
 
 // =============================================================================
 // Exercise Clock Types (matches backend enums)

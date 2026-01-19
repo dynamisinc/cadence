@@ -15,9 +15,10 @@ import {
   Tooltip,
   Skeleton,
   Chip,
+  IconButton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faScrewdriverWrench, faBan, faClipboardList, faListCheck } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faScrewdriverWrench, faBan, faClipboardList, faListCheck, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { useExercises } from '../hooks'
@@ -30,6 +31,7 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { usePermissions } from '../../../shared/hooks'
 import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../types'
+import { ImportWizard } from '../../excel-import/components'
 
 type SortField = 'name' | 'exerciseType' | 'status' | 'scheduledDate'
 type SortOrder = 'asc' | 'desc'
@@ -53,6 +55,7 @@ export const ExerciseListPage = () => {
   const [sortField, setSortField] = useState<SortField>('scheduledDate')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [showArchived, setShowArchived] = useState(false)
+  const [importExerciseId, setImportExerciseId] = useState<string | null>(null)
 
   // Filter and sort exercises
   const filteredExercises = useMemo(() => {
@@ -109,6 +112,15 @@ export const ExerciseListPage = () => {
 
   const handleCreateClick = () => {
     navigate('/exercises/new')
+  }
+
+  const handleImportClick = (exerciseId: string, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent row click navigation
+    setImportExerciseId(exerciseId)
+  }
+
+  const handleImportWizardClose = () => {
+    setImportExerciseId(null)
   }
 
   const formatDate = (dateStr: string) => {
@@ -240,6 +252,7 @@ export const ExerciseListPage = () => {
                   </TableSortLabel>
                 </TableCell>
                 <TableCell>Practice</TableCell>
+                {canManage && <TableCell align="right">Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -249,11 +262,22 @@ export const ExerciseListPage = () => {
                   exercise={exercise}
                   onClick={() => handleRowClick(exercise.id)}
                   formatDate={formatDate}
+                  canManage={canManage}
+                  onImportClick={(e) => handleImportClick(exercise.id, e)}
                 />
               ))}
             </TableBody>
           </Table>
         </TableContainer>
+      )}
+
+      {/* Import Wizard */}
+      {importExerciseId && (
+        <ImportWizard
+          open={!!importExerciseId}
+          onClose={handleImportWizardClose}
+          exerciseId={importExerciseId}
+        />
       )}
     </Box>
   )
@@ -307,9 +331,14 @@ interface ExerciseRowProps {
   exercise: ExerciseDto
   onClick: () => void
   formatDate: (date: string) => string
+  canManage: boolean
+  onImportClick: (e: React.MouseEvent) => void
 }
 
-const ExerciseRow = ({ exercise, onClick, formatDate }: ExerciseRowProps) => {
+const ExerciseRow = ({ exercise, onClick, formatDate, canManage, onImportClick }: ExerciseRowProps) => {
+  // Only show import button for Draft exercises
+  const canImport = canManage && exercise.status === ExerciseStatus.Draft
+
   return (
     <TableRow
       hover
@@ -353,6 +382,27 @@ const ExerciseRow = ({ exercise, onClick, formatDate }: ExerciseRowProps) => {
           </Tooltip>
         )}
       </TableCell>
+      {canManage && (
+        <TableCell align="right">
+          {canImport && (
+            <Tooltip title="Import MSEL from Excel">
+              <IconButton
+                size="small"
+                onClick={onImportClick}
+                sx={{
+                  color: 'primary.main',
+                  '&:hover': {
+                    backgroundColor: 'primary.light',
+                    color: 'primary.dark',
+                  },
+                }}
+              >
+                <FontAwesomeIcon icon={faFileImport} />
+              </IconButton>
+            </Tooltip>
+          )}
+        </TableCell>
+      )}
     </TableRow>
   )
 }

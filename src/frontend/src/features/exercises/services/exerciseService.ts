@@ -14,14 +14,29 @@ import type {
   MselDto,
   MselSummaryDto,
   SetupProgressDto,
+  DeleteSummaryResponse,
 } from '../types'
 
 export const exerciseService = {
   /**
-   * Get all exercises for the current user
+   * Get all exercises with optional archive filtering
+   * @param includeArchived Include archived exercises (default: false)
+   * @param archivedOnly Return only archived exercises (default: false)
    */
-  getExercises: async (): Promise<ExerciseDto[]> => {
-    const response = await apiClient.get<ExerciseDto[]>('/api/exercises')
+  getExercises: async (options?: {
+    includeArchived?: boolean
+    archivedOnly?: boolean
+  }): Promise<ExerciseDto[]> => {
+    const params = new URLSearchParams()
+    if (options?.includeArchived) {
+      params.append('includeArchived', 'true')
+    }
+    if (options?.archivedOnly) {
+      params.append('archivedOnly', 'true')
+    }
+    const queryString = params.toString()
+    const url = queryString ? `/api/exercises?${queryString}` : '/api/exercises'
+    const response = await apiClient.get<ExerciseDto[]>(url)
     return response.data
   },
 
@@ -210,6 +225,29 @@ export const exerciseService = {
       `/api/exercises/${exerciseId}/setup-progress`,
     )
     return response.data
+  },
+
+  // =========================================================================
+  // Delete Methods
+  // =========================================================================
+
+  /**
+   * Get a summary of what would be deleted if the exercise is permanently deleted.
+   * Also indicates whether the exercise can be deleted based on its status.
+   */
+  getDeleteSummary: async (id: string): Promise<DeleteSummaryResponse> => {
+    const response = await apiClient.get<DeleteSummaryResponse>(
+      `/api/exercises/${id}/delete-summary`,
+    )
+    return response.data
+  },
+
+  /**
+   * Permanently delete an exercise and all related data.
+   * This action is irreversible.
+   */
+  deleteExercise: async (id: string): Promise<void> => {
+    await apiClient.delete(`/api/exercises/${id}`)
   },
 }
 

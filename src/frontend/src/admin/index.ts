@@ -16,6 +16,7 @@ export { FeatureFlagsAdmin } from './components/FeatureFlagsAdmin'
 
 // Pages
 export { AdminPage } from './pages/AdminPage'
+export { ArchivedExercisesPage } from './pages/ArchivedExercisesPage'
 
 // Types
 export type { FeatureFlags, FeatureFlagState, FeatureFlagInfo } from './types/featureFlags'

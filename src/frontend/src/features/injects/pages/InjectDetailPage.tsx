@@ -28,6 +28,10 @@ import {
   faFileLines,
   faHome,
   faCrosshairs,
+  faLocationDot,
+  faRoad,
+  faUserTie,
+  faFlag,
 } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
@@ -159,6 +163,42 @@ export const InjectDetailPage = () => {
       Other: 'Other',
     }
     return labels[method] || method
+  }
+
+  const getDeliveryMethodDisplay = (): string => {
+    // Prefer the lookup-based delivery method name
+    if (inject?.deliveryMethodName) {
+      if (inject.deliveryMethodOther) {
+        return `${inject.deliveryMethodName}: ${inject.deliveryMethodOther}`
+      }
+      return inject.deliveryMethodName
+    }
+    // Fall back to legacy enum
+    return getDeliveryMethodLabel(inject?.deliveryMethod ?? null)
+  }
+
+  const getPriorityLabel = (priority: number | null): string => {
+    if (priority === null) return '—'
+    const labels: Record<number, string> = {
+      1: '1 - Critical',
+      2: '2 - High',
+      3: '3 - Medium',
+      4: '4 - Low',
+      5: '5 - Info',
+    }
+    return labels[priority] || `${priority}`
+  }
+
+  const getPriorityColor = (priority: number | null): string => {
+    if (priority === null) return 'text.secondary'
+    const colors: Record<number, string> = {
+      1: 'error.main',
+      2: 'warning.main',
+      3: 'info.main',
+      4: 'text.secondary',
+      5: 'text.disabled',
+    }
+    return colors[priority] || 'text.secondary'
   }
 
   // Error state
@@ -401,12 +441,80 @@ export const InjectDetailPage = () => {
                     Method
                   </Typography>
                   <Typography variant="body1">
-                    {getDeliveryMethodLabel(inject.deliveryMethod)}
+                    {getDeliveryMethodDisplay()}
                   </Typography>
                 </Box>
               </Grid>
+              {inject.track && (
+                <Grid size={{ xs: 12, sm: 4 }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <FontAwesomeIcon icon={faRoad} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Track
+                      </Typography>
+                      <Typography variant="body1">{inject.track}</Typography>
+                    </Box>
+                  </Stack>
+                </Grid>
+              )}
             </Grid>
           </Paper>
+
+          {/* Organization Section - only show if any org fields are set */}
+          {(inject.responsibleController || inject.locationName || inject.priority !== null) && (
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                ORGANIZATION
+              </Typography>
+              <Grid container spacing={2}>
+                {inject.responsibleController && (
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <FontAwesomeIcon icon={faUserTie} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Responsible Controller
+                        </Typography>
+                        <Typography variant="body1">{inject.responsibleController}</Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                )}
+                {inject.locationName && (
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <FontAwesomeIcon icon={faLocationDot} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Location
+                        </Typography>
+                        <Typography variant="body1">
+                          {inject.locationName}
+                          {inject.locationType && ` (${inject.locationType})`}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                )}
+                {inject.priority !== null && (
+                  <Grid size={{ xs: 12, sm: 4 }}>
+                    <Stack direction="row" spacing={1} alignItems="center">
+                      <FontAwesomeIcon icon={faFlag} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
+                      <Box>
+                        <Typography variant="caption" color="text.secondary">
+                          Priority
+                        </Typography>
+                        <Typography variant="body1" sx={{ color: getPriorityColor(inject.priority) }}>
+                          {getPriorityLabel(inject.priority)}
+                        </Typography>
+                      </Box>
+                    </Stack>
+                  </Grid>
+                )}
+              </Grid>
+            </Paper>
+          )}
 
           {/* Content Section */}
           <Paper sx={{ p: 3, mb: 3 }}>

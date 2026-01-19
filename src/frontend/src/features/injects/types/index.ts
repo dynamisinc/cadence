@@ -5,7 +5,7 @@
  * Matches backend DTOs in Cadence.Core.Features.Injects.Models.DTOs
  */
 
-import { InjectType, InjectStatus, DeliveryMethod } from '../../../types'
+import { InjectType, InjectStatus, DeliveryMethod, TriggerType } from '../../../types'
 
 /**
  * Inject DTO - Response from API
@@ -20,7 +20,12 @@ export interface InjectDto {
   scenarioTime: string | null // TimeOnly as HH:MM:SS
   target: string
   source: string | null
+  // Legacy enum - kept for backward compatibility
   deliveryMethod: DeliveryMethod | null
+  // New lookup-based delivery method
+  deliveryMethodId: string | null
+  deliveryMethodName: string | null
+  deliveryMethodOther: string | null
   injectType: InjectType
   status: InjectStatus
   sequence: number
@@ -41,6 +46,14 @@ export interface InjectDto {
   objectiveIds: string[]
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
+  // New Phase G fields
+  sourceReference: string | null
+  priority: number | null
+  triggerType: TriggerType
+  responsibleController: string | null
+  locationName: string | null
+  locationType: string | null
+  track: string | null
 }
 
 /**
@@ -55,6 +68,8 @@ export interface CreateInjectRequest {
   target: string
   source?: string | null
   deliveryMethod?: DeliveryMethod | null
+  deliveryMethodId?: string | null
+  deliveryMethodOther?: string | null
   injectType?: InjectType
   expectedAction?: string | null
   controllerNotes?: string | null
@@ -62,6 +77,14 @@ export interface CreateInjectRequest {
   triggerCondition?: string | null
   phaseId?: string | null
   objectiveIds?: string[] | null
+  // Phase G fields
+  sourceReference?: string | null
+  priority?: number | null
+  triggerType?: TriggerType
+  responsibleController?: string | null
+  locationName?: string | null
+  locationType?: string | null
+  track?: string | null
 }
 
 /**
@@ -76,6 +99,8 @@ export interface UpdateInjectRequest {
   target: string
   source?: string | null
   deliveryMethod?: DeliveryMethod | null
+  deliveryMethodId?: string | null
+  deliveryMethodOther?: string | null
   injectType?: InjectType
   expectedAction?: string | null
   controllerNotes?: string | null
@@ -83,6 +108,14 @@ export interface UpdateInjectRequest {
   triggerCondition?: string | null
   phaseId?: string | null
   objectiveIds?: string[] | null
+  // Phase G fields
+  sourceReference?: string | null
+  priority?: number | null
+  triggerType?: TriggerType
+  responsibleController?: string | null
+  locationName?: string | null
+  locationType?: string | null
+  track?: string | null
 }
 
 /**
@@ -110,13 +143,25 @@ export interface InjectFormValues {
   scenarioTime: string // HH:MM format for time input
   target: string
   source: string
+  // Legacy enum field (deprecated)
   deliveryMethod: DeliveryMethod | ''
+  // New lookup-based delivery method
+  deliveryMethodId: string
+  deliveryMethodOther: string
   injectType: InjectType
   expectedAction: string
   controllerNotes: string
   triggerCondition: string
   phaseId: string
   objectiveIds: string[]
+  // Phase G fields
+  sourceReference: string
+  priority: string // String for form input, parsed to number
+  triggerType: TriggerType
+  responsibleController: string
+  locationName: string
+  locationType: string
+  track: string
 }
 
 /**
@@ -132,6 +177,14 @@ export const INJECT_FIELD_LIMITS = {
   triggerCondition: { max: 500 },
   skipReason: { max: 500 },
   scenarioDay: { min: 1, max: 99 },
+  // Phase G fields
+  sourceReference: { max: 50 },
+  priority: { min: 1, max: 5 },
+  responsibleController: { max: 200 },
+  locationName: { max: 200 },
+  locationType: { max: 100 },
+  track: { max: 100 },
+  deliveryMethodOther: { max: 100 },
 }
 
 /**

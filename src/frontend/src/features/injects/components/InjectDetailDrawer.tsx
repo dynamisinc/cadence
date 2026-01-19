@@ -31,6 +31,11 @@ import {
   faNoteSticky,
   faCodeBranch,
   faCrosshairs,
+  faLocationDot,
+  faRoad,
+  faUserTie,
+  faFlag,
+  faSitemap,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { InjectStatusChip, InjectTypeChip } from './'
@@ -71,6 +76,37 @@ const deliveryMethodLabels: Record<DeliveryMethod, string> = {
   [DeliveryMethod.Written]: 'Written',
   [DeliveryMethod.Simulation]: 'Simulation',
   [DeliveryMethod.Other]: 'Other',
+}
+
+const priorityLabels: Record<number, string> = {
+  1: 'Critical',
+  2: 'High',
+  3: 'Medium',
+  4: 'Low',
+  5: 'Info',
+}
+
+const priorityColors: Record<number, string> = {
+  1: 'error.main',
+  2: 'warning.main',
+  3: 'info.main',
+  4: 'text.secondary',
+  5: 'text.disabled',
+}
+
+const getDeliveryMethodDisplay = (inject: InjectDto): string => {
+  // Prefer the lookup-based delivery method name
+  if (inject.deliveryMethodName) {
+    if (inject.deliveryMethodOther) {
+      return `${inject.deliveryMethodName}: ${inject.deliveryMethodOther}`
+    }
+    return inject.deliveryMethodName
+  }
+  // Fall back to legacy enum
+  if (inject.deliveryMethod) {
+    return deliveryMethodLabels[inject.deliveryMethod]
+  }
+  return ''
 }
 
 export const InjectDetailDrawer = ({
@@ -232,14 +268,27 @@ export const InjectDetailDrawer = ({
                     </Typography>
                   </Stack>
                 )}
-                {inject.deliveryMethod && (
+                {(inject.deliveryMethodName || inject.deliveryMethod) && (
                   <Stack direction="row" spacing={2}>
                     <Typography variant="body2" color="text.secondary" sx={{ width: 100 }}>
                       Method:
                     </Typography>
                     <Chip
                       icon={<FontAwesomeIcon icon={faEnvelope} />}
-                      label={deliveryMethodLabels[inject.deliveryMethod]}
+                      label={getDeliveryMethodDisplay(inject)}
+                      size="small"
+                      variant="outlined"
+                    />
+                  </Stack>
+                )}
+                {inject.track && (
+                  <Stack direction="row" spacing={2}>
+                    <Typography variant="body2" color="text.secondary" sx={{ width: 100 }}>
+                      Track:
+                    </Typography>
+                    <Chip
+                      icon={<FontAwesomeIcon icon={faRoad} />}
+                      label={inject.track}
                       size="small"
                       variant="outlined"
                     />
@@ -247,6 +296,61 @@ export const InjectDetailDrawer = ({
                 )}
               </Stack>
             </Box>
+
+            {/* Organization - only show if any org fields are set */}
+            {(inject.responsibleController || inject.locationName || inject.priority !== null) && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    <FontAwesomeIcon icon={faSitemap} style={{ marginRight: 8 }} />
+                    Organization
+                  </Typography>
+                  <Stack spacing={1} sx={{ pl: 3 }}>
+                    {inject.responsibleController && (
+                      <Stack direction="row" spacing={2}>
+                        <Typography variant="body2" color="text.secondary" sx={{ width: 100 }}>
+                          Controller:
+                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <FontAwesomeIcon icon={faUserTie} style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.54)' }} />
+                          <Typography variant="body2">
+                            {inject.responsibleController}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    )}
+                    {inject.locationName && (
+                      <Stack direction="row" spacing={2}>
+                        <Typography variant="body2" color="text.secondary" sx={{ width: 100 }}>
+                          Location:
+                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <FontAwesomeIcon icon={faLocationDot} style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.54)' }} />
+                          <Typography variant="body2">
+                            {inject.locationName}
+                            {inject.locationType && ` (${inject.locationType})`}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    )}
+                    {inject.priority !== null && (
+                      <Stack direction="row" spacing={2}>
+                        <Typography variant="body2" color="text.secondary" sx={{ width: 100 }}>
+                          Priority:
+                        </Typography>
+                        <Stack direction="row" spacing={1} alignItems="center">
+                          <FontAwesomeIcon icon={faFlag} style={{ fontSize: '0.75rem', color: 'rgba(0,0,0,0.54)' }} />
+                          <Typography variant="body2" sx={{ color: priorityColors[inject.priority] || 'text.secondary' }}>
+                            {inject.priority} - {priorityLabels[inject.priority] || 'Unknown'}
+                          </Typography>
+                        </Stack>
+                      </Stack>
+                    )}
+                  </Stack>
+                </Box>
+              </>
+            )}
 
             <Divider />
 

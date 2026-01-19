@@ -22,6 +22,7 @@ public class ExercisesController : ControllerBase
     private readonly AppDbContext _context;
     private readonly IExerciseClockService _clockService;
     private readonly IExerciseStatusService _statusService;
+    private readonly IExerciseDeleteService _deleteService;
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
     private readonly ILogger<ExercisesController> _logger;
@@ -30,6 +31,7 @@ public class ExercisesController : ControllerBase
         AppDbContext context,
         IExerciseClockService clockService,
         IExerciseStatusService statusService,
+        IExerciseDeleteService deleteService,
         IMselService mselService,
         ISetupProgressService setupProgressService,
         ILogger<ExercisesController> logger)
@@ -37,18 +39,35 @@ public class ExercisesController : ControllerBase
         _context = context;
         _clockService = clockService;
         _statusService = statusService;
+        _deleteService = deleteService;
         _mselService = mselService;
         _setupProgressService = setupProgressService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Get all exercises.
+    /// Get all exercises with optional archive filtering.
     /// </summary>
+    /// <param name="includeArchived">Include archived exercises (default: false)</param>
+    /// <param name="archivedOnly">Return only archived exercises (default: false)</param>
     [HttpGet]
-    public async Task<ActionResult<IEnumerable<ExerciseDto>>> GetExercises()
+    public async Task<ActionResult<IEnumerable<ExerciseDto>>> GetExercises(
+        [FromQuery] bool includeArchived = false,
+        [FromQuery] bool archivedOnly = false)
     {
-        var exercises = await _context.Exercises
+        var query = _context.Exercises.AsQueryable();
+
+        // Apply archive filter
+        if (archivedOnly)
+        {
+            query = query.Where(e => e.Status == ExerciseStatus.Archived);
+        }
+        else if (!includeArchived)
+        {
+            query = query.Where(e => e.Status != ExerciseStatus.Archived);
+        }
+
+        var exercises = await query
             .OrderByDescending(e => e.ScheduledDate)
             .ToListAsync();
 
@@ -740,5 +759,71 @@ public class ExercisesController : ControllerBase
         }
 
         return Ok(progress);
+    }
+
+    // =========================================================================
+    // Delete Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Get a summary of what would be deleted if the exercise is permanently deleted.
+    /// Also indicates whether the exercise can be deleted based on its status.
+    ///
+    /// Delete eligibility rules:
+    /// - Draft exercises that have never been published: Creator OR Administrator
+    /// - Archived exercises: Administrator only
+    /// - Published/Active/Completed exercises (not archived): Cannot delete - must archive first
+    /// </summary>
+    [HttpGet("{id:guid}/delete-summary")]
+    public async Task<ActionResult<DeleteSummaryResponse>> GetDeleteSummary(Guid id)
+    {
+        // TODO: Get actual user ID and admin status from auth context
+        var userId = SystemConstants.SystemUserId;
+        var isAdmin = true; // For now, treat all users as admin until auth is implemented
+
+        var summary = await _deleteService.GetDeleteSummaryAsync(id, userId, isAdmin);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Permanently delete an exercise and all related data.
+    /// This action is irreversible.
+    ///
+    /// Delete eligibility rules:
+    /// - Draft exercises that have never been published: Creator OR Administrator
+    /// - Archived exercises: Administrator only
+    /// - Published/Active/Completed exercises (not archived): Cannot delete - must archive first
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    public async Task<ActionResult> DeleteExercise(Guid id)
+    {
+        // TODO: Get actual user ID and admin status from auth context
+        var userId = SystemConstants.SystemUserId;
+        var isAdmin = true; // For now, treat all users as admin until auth is implemented
+
+        var result = await _deleteService.DeleteExerciseAsync(id, userId, isAdmin);
+
+        if (!result.Success)
+        {
+            if (result.CannotDeleteReason == CannotDeleteReason.NotFound)
+            {
+                return NotFound(new { message = result.ErrorMessage });
+            }
+            if (result.CannotDeleteReason == CannotDeleteReason.NotAuthorized)
+            {
+                return Forbid();
+            }
+            return BadRequest(new { message = result.ErrorMessage, reason = result.CannotDeleteReason?.ToString() });
+        }
+
+        _logger.LogWarning("Exercise {ExerciseId} permanently deleted", id);
+
+        return NoContent();
     }
 }

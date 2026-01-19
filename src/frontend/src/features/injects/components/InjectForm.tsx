@@ -19,7 +19,7 @@ import {
   CobraSecondaryButton,
   CobraTextField,
 } from '../../../theme/styledComponents'
-import { InjectType, DeliveryMethod } from '../../../types'
+import { InjectType, DeliveryMethod, TriggerType } from '../../../types'
 import type {
   InjectDto,
   CreateInjectRequest,
@@ -30,6 +30,9 @@ import { INJECT_FIELD_LIMITS } from '../types'
 import type { PhaseDto } from '../../phases/types'
 import { useObjectiveSummaries } from '../../objectives/hooks/useObjectives'
 import type { ObjectiveSummaryDto } from '../../objectives/types'
+import { useDeliveryMethods } from '../../delivery-methods'
+import type { DeliveryMethodDto } from '../../delivery-methods'
+import { ExpectedOutcomesList } from '../../expected-outcomes'
 
 interface InjectFormProps {
   /** Exercise ID for loading objectives */
@@ -55,12 +58,22 @@ const INITIAL_VALUES: InjectFormValues = {
   target: '',
   source: '',
   deliveryMethod: '',
+  deliveryMethodId: '',
+  deliveryMethodOther: '',
   injectType: InjectType.Standard,
   expectedAction: '',
   controllerNotes: '',
   triggerCondition: '',
   phaseId: '',
   objectiveIds: [],
+  // Phase G fields
+  sourceReference: '',
+  priority: '',
+  triggerType: TriggerType.Manual,
+  responsibleController: '',
+  locationName: '',
+  locationType: '',
+  track: '',
 }
 
 /**
@@ -81,10 +94,15 @@ export const InjectForm = ({
 }: InjectFormProps) => {
   const isEditMode = !!inject
   const { summaries: objectives } = useObjectiveSummaries(exerciseId)
+  const { data: deliveryMethods = [] } = useDeliveryMethods()
 
   const [values, setValues] = useState<InjectFormValues>(INITIAL_VALUES)
   const [errors, setErrors] = useState<Partial<Record<keyof InjectFormValues, string>>>({})
   const [touched, setTouched] = useState<Partial<Record<keyof InjectFormValues, boolean>>>({})
+
+  // Find if selected delivery method is "Other"
+  const selectedDeliveryMethod = deliveryMethods.find(dm => dm.id === values.deliveryMethodId)
+  const showOtherInput = selectedDeliveryMethod?.isOther ?? false
 
   // Initialize form values from inject when editing
   useEffect(() => {
@@ -98,12 +116,22 @@ export const InjectForm = ({
         target: inject.target,
         source: inject.source ?? '',
         deliveryMethod: inject.deliveryMethod ?? '',
+        deliveryMethodId: inject.deliveryMethodId ?? '',
+        deliveryMethodOther: inject.deliveryMethodOther ?? '',
         injectType: inject.injectType,
         expectedAction: inject.expectedAction ?? '',
         controllerNotes: inject.controllerNotes ?? '',
         triggerCondition: inject.triggerCondition ?? '',
         phaseId: inject.phaseId ?? '',
         objectiveIds: inject.objectiveIds ?? [],
+        // Phase G fields
+        sourceReference: inject.sourceReference ?? '',
+        priority: inject.priority?.toString() ?? '',
+        triggerType: inject.triggerType ?? TriggerType.Manual,
+        responsibleController: inject.responsibleController ?? '',
+        locationName: inject.locationName ?? '',
+        locationType: inject.locationType ?? '',
+        track: inject.track ?? '',
       })
     }
   }, [inject])
@@ -250,12 +278,22 @@ export const InjectForm = ({
       target: values.target.trim(),
       source: values.source.trim() || null,
       deliveryMethod: (values.deliveryMethod as DeliveryMethod) || null,
+      deliveryMethodId: values.deliveryMethodId || null,
+      deliveryMethodOther: values.deliveryMethodOther.trim() || null,
       injectType: values.injectType,
       expectedAction: values.expectedAction.trim() || null,
       controllerNotes: values.controllerNotes.trim() || null,
       triggerCondition: values.triggerCondition.trim() || null,
       phaseId: values.phaseId || null,
       objectiveIds: values.objectiveIds.length > 0 ? values.objectiveIds : null,
+      // Phase G fields
+      sourceReference: values.sourceReference.trim() || null,
+      priority: values.priority ? parseInt(values.priority, 10) : null,
+      triggerType: values.triggerType,
+      responsibleController: values.responsibleController.trim() || null,
+      locationName: values.locationName.trim() || null,
+      locationType: values.locationType.trim() || null,
+      track: values.track.trim() || null,
     }
 
     await onSubmit(request)
@@ -373,22 +411,73 @@ export const InjectForm = ({
               <FormControl fullWidth size="small">
                 <InputLabel>Delivery Method</InputLabel>
                 <Select
-                  value={values.deliveryMethod}
-                  onChange={handleChange('deliveryMethod')}
+                  value={values.deliveryMethodId}
+                  onChange={handleChange('deliveryMethodId')}
                   label="Delivery Method"
                 >
                   <MenuItem value="">
                     <em>Not specified</em>
                   </MenuItem>
-                  <MenuItem value={DeliveryMethod.Verbal}>Verbal</MenuItem>
-                  <MenuItem value={DeliveryMethod.Phone}>Phone Call</MenuItem>
-                  <MenuItem value={DeliveryMethod.Email}>Email</MenuItem>
-                  <MenuItem value={DeliveryMethod.Radio}>Radio</MenuItem>
-                  <MenuItem value={DeliveryMethod.Written}>Written Document</MenuItem>
-                  <MenuItem value={DeliveryMethod.Simulation}>Simulation</MenuItem>
-                  <MenuItem value={DeliveryMethod.Other}>Other</MenuItem>
+                  {deliveryMethods.map(dm => (
+                    <MenuItem key={dm.id} value={dm.id}>
+                      {dm.name}
+                    </MenuItem>
+                  ))}
                 </Select>
               </FormControl>
+            </Grid>
+            {showOtherInput && (
+              <Grid size={{ xs: 12 }}>
+                <CobraTextField
+                  label="Specify Delivery Method"
+                  value={values.deliveryMethodOther}
+                  onChange={handleChange('deliveryMethodOther')}
+                  fullWidth
+                  placeholder="e.g., Messenger, Fax, etc."
+                  helperText={`Custom delivery method (${values.deliveryMethodOther.length}/${INJECT_FIELD_LIMITS.deliveryMethodOther.max})`}
+                />
+              </Grid>
+            )}
+          </Grid>
+        </Box>
+
+        {/* Location & Track Section (Phase G) */}
+        <Box>
+          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+            LOCATION & TRACK
+          </Typography>
+          <Divider sx={{ mb: 2 }} />
+
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <CobraTextField
+                label="Location Name"
+                value={values.locationName}
+                onChange={handleChange('locationName')}
+                fullWidth
+                placeholder="e.g., Main EOC, Stadium A"
+                helperText="Where this inject takes place"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <CobraTextField
+                label="Location Type"
+                value={values.locationType}
+                onChange={handleChange('locationType')}
+                fullWidth
+                placeholder="e.g., EOC, Hospital, Field"
+                helperText="Category of location"
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <CobraTextField
+                label="Track"
+                value={values.track}
+                onChange={handleChange('track')}
+                fullWidth
+                placeholder="e.g., LAFD, LAPD, EOC"
+                helperText="Agency grouping"
+              />
             </Grid>
           </Grid>
         </Box>
@@ -438,7 +527,7 @@ export const InjectForm = ({
           <Divider sx={{ mb: 2 }} />
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Inject Type</InputLabel>
                 <Select
@@ -453,6 +542,45 @@ export const InjectForm = ({
                 </Select>
                 <FormHelperText>
                   Standard for normal delivery, others for conditional use
+                </FormHelperText>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Trigger Type</InputLabel>
+                <Select
+                  value={values.triggerType}
+                  onChange={handleChange('triggerType')}
+                  label="Trigger Type"
+                >
+                  <MenuItem value={TriggerType.Manual}>Manual</MenuItem>
+                  <MenuItem value={TriggerType.Scheduled}>Scheduled</MenuItem>
+                  <MenuItem value={TriggerType.Conditional}>Conditional</MenuItem>
+                </Select>
+                <FormHelperText>
+                  How this inject is triggered
+                </FormHelperText>
+              </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={values.priority}
+                  onChange={handleChange('priority')}
+                  label="Priority"
+                >
+                  <MenuItem value="">
+                    <em>Not set</em>
+                  </MenuItem>
+                  <MenuItem value="1">1 - Critical</MenuItem>
+                  <MenuItem value="2">2 - High</MenuItem>
+                  <MenuItem value="3">3 - Medium</MenuItem>
+                  <MenuItem value="4">4 - Low</MenuItem>
+                  <MenuItem value="5">5 - Informational</MenuItem>
+                </Select>
+                <FormHelperText>
+                  Importance level
                 </FormHelperText>
               </FormControl>
             </Grid>
@@ -477,6 +605,16 @@ export const InjectForm = ({
                   Exercise phase for grouping
                 </FormHelperText>
               </FormControl>
+            </Grid>
+            <Grid size={{ xs: 12, sm: 6 }}>
+              <CobraTextField
+                label="Responsible Controller"
+                value={values.responsibleController}
+                onChange={handleChange('responsibleController')}
+                fullWidth
+                placeholder="e.g., John Smith, Fire Lead"
+                helperText="Who is responsible for firing this inject"
+              />
             </Grid>
             <Grid size={{ xs: 12 }}>
               <Autocomplete
@@ -560,6 +698,30 @@ export const InjectForm = ({
             placeholder="e.g., Deliver with urgency. Have evacuation zone map ready."
           />
         </Box>
+
+        {/* Expected Outcomes (only in edit mode) */}
+        {isEditMode && inject && (
+          <ExpectedOutcomesList injectId={inject.id} isEditable={true} />
+        )}
+
+        {/* Import Reference (Phase G) */}
+        {isEditMode && values.sourceReference && (
+          <Box>
+            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+              IMPORT REFERENCE
+            </Typography>
+            <Divider sx={{ mb: 2 }} />
+
+            <CobraTextField
+              label="Source Reference"
+              value={values.sourceReference}
+              onChange={handleChange('sourceReference')}
+              fullWidth
+              disabled
+              helperText="Original ID from imported file (read-only)"
+            />
+          </Box>
+        )}
 
         {/* Form Actions */}
         <Stack direction="row" spacing={2} justifyContent="flex-end">

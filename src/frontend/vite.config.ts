@@ -2,6 +2,7 @@ import { defineConfig } from 'vitest/config'
 import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
+import path from 'path'
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -12,10 +13,15 @@ export default defineConfig(({ mode }) => {
   const pwaRegisterType = (env.VITE_PWA_REGISTER_TYPE ||
     (mode === 'production' ? 'prompt' : 'autoUpdate')) as 'prompt' | 'autoUpdate'
 
+  // Disable PWA in development to avoid service worker caching issues
+  // Set VITE_PWA_ENABLED=true to enable PWA in development for testing
+  const pwaEnabled = mode === 'production' || env.VITE_PWA_ENABLED === 'true'
+
   return {
     plugins: [
       react(),
       VitePWA({
+        disabled: !pwaEnabled,
         registerType: pwaRegisterType,
         includeAssets: ['dynamis-favicon.svg', 'dynamis-logo.jpg', 'icons/*.svg'],
         manifest: {
@@ -96,6 +102,11 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, './src'),
+      },
+    },
     server: {
       port: 5197,
     },

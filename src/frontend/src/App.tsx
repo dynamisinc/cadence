@@ -12,7 +12,7 @@ import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider } from './core/contexts'
 import { PermissionRole } from './types'
 import { NotesPage } from './tools/notes/pages/NotesPage'
-import { AdminPage, FeatureFlagsProvider } from './admin'
+import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
 import {
   ExerciseListPage,
@@ -110,12 +110,20 @@ const router = createBrowserRouter([
       // Notes tool
       { path: 'notes', element: <NotesPage /> },
 
-      // Admin page - protected
+      // Admin pages - protected
       {
         path: 'admin',
         element: (
           <ProtectedRoute requiredRole={PermissionRole.MANAGE}>
             <AdminPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/archived-exercises',
+        element: (
+          <ProtectedRoute requiredRole={PermissionRole.MANAGE}>
+            <ArchivedExercisesPage />
           </ProtectedRoute>
         ),
       },

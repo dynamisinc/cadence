@@ -142,10 +142,11 @@ export function useInjectOrganization(
   // IMPORTANT: We need to wait for phases to load before initializing when groupBy='phase',
   // otherwise we might expand wrong group IDs (e.g., 'phase-unassigned' instead of actual phase IDs)
   const hasInitializedRef = useRef(false)
+  const previousGroupIdsRef = useRef<Set<string>>(new Set())
 
   useEffect(() => {
     // Don't initialize until we have groups
-    if (!groups || groups.length === 0 || hasInitializedRef.current) return
+    if (!groups || groups.length === 0) return
 
     // If grouping by phase and phases exist in the exercise, wait until they're loaded into groups
     // This prevents initializing with wrong group IDs before phases load
@@ -157,12 +158,39 @@ export function useInjectOrganization(
       }
     }
 
-    hasInitializedRef.current = true
+    const currentGroupIds = new Set(groups.map(g => g.id))
 
-    // Get all group IDs for initial expansion
-    const allGroupIds = groups.map(g => g.id)
-    context.initializeExpandedGroups(allGroupIds)
-  }, [groups, phases.length, context.groupBy, context.initializeExpandedGroups])
+    // First time initialization
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true
+      previousGroupIdsRef.current = currentGroupIds
+
+      // Get all group IDs for initial expansion
+      const allGroupIds = groups.map(g => g.id)
+      context.initializeExpandedGroups(allGroupIds)
+      return
+    }
+
+    // Check for NEW groups that weren't there before (e.g., after import)
+    const newGroupIds: string[] = []
+    currentGroupIds.forEach(id => {
+      if (!previousGroupIdsRef.current.has(id)) {
+        newGroupIds.push(id)
+      }
+    })
+
+    // If we have new groups, expand them
+    if (newGroupIds.length > 0) {
+      newGroupIds.forEach(groupId => {
+        if (!context.expandedGroups.has(groupId)) {
+          context.toggleGroupExpanded(groupId)
+        }
+      })
+    }
+
+    // Update previous group IDs for next comparison
+    previousGroupIdsRef.current = currentGroupIds
+  }, [groups, phases.length, context.groupBy, context.initializeExpandedGroups, context.expandedGroups, context.toggleGroupExpanded])
 
   // Track previous search/filter state to detect changes
   const prevSearchRef = useRef<string>('')

@@ -13,6 +13,7 @@ Many organizations develop their MSELs in Excel before exercise conduct. This fe
 | [S01](./S01-upload-excel.md) | Upload Excel File | P0 | 📋 Ready |
 | [S02](./S02-map-columns.md) | Map Excel Columns | P0 | 📋 Ready |
 | [S03](./S03-validate-import.md) | Validate Import Data | P0 | 📋 Ready |
+| [S04](./S04-delivery-method-synonyms.md) | Delivery Method Synonym Matching | P2 | 📋 Ready |
 
 ## User Personas
 

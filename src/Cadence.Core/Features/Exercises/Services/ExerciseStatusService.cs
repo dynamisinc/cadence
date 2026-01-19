@@ -20,14 +20,15 @@ public class ExerciseStatusService : IExerciseStatusService
     /// <summary>
     /// Valid status transitions map.
     /// Key: current status, Value: allowed target statuses.
+    /// Note: Archiving can be done from any non-archived status via the dedicated ArchiveAsync method.
     /// </summary>
     private static readonly Dictionary<ExerciseStatus, ExerciseStatus[]> ValidTransitions = new()
     {
-        [ExerciseStatus.Draft] = [ExerciseStatus.Active],
-        [ExerciseStatus.Active] = [ExerciseStatus.Paused, ExerciseStatus.Completed],
-        [ExerciseStatus.Paused] = [ExerciseStatus.Active, ExerciseStatus.Completed, ExerciseStatus.Draft],
+        [ExerciseStatus.Draft] = [ExerciseStatus.Active, ExerciseStatus.Archived],
+        [ExerciseStatus.Active] = [ExerciseStatus.Paused, ExerciseStatus.Completed, ExerciseStatus.Archived],
+        [ExerciseStatus.Paused] = [ExerciseStatus.Active, ExerciseStatus.Completed, ExerciseStatus.Draft, ExerciseStatus.Archived],
         [ExerciseStatus.Completed] = [ExerciseStatus.Archived],
-        [ExerciseStatus.Archived] = [ExerciseStatus.Completed], // Unarchive
+        [ExerciseStatus.Archived] = [], // Restore via UnarchiveAsync - target status depends on PreviousStatus
     };
 
     public ExerciseStatusService(
@@ -81,6 +82,9 @@ public class ExerciseStatusService : IExerciseStatusService
         exercise.ActivatedAt = DateTime.UtcNow;
         exercise.ActivatedBy = userId;
         exercise.ModifiedBy = userId;
+
+        // Mark as published - once true, never set back to false
+        exercise.HasBeenPublished = true;
 
         await _context.SaveChangesAsync();
 
@@ -210,14 +214,27 @@ public class ExerciseStatusService : IExerciseStatusService
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
-            return StatusTransitionResult.Failed("Exercise not found", ExerciseStatus.Completed);
+            return StatusTransitionResult.Failed("Exercise not found", ExerciseStatus.Draft);
 
-        if (exercise.Status != ExerciseStatus.Completed)
+        if (exercise.Status == ExerciseStatus.Archived)
             return StatusTransitionResult.Failed(
-                $"Cannot archive exercise. Current status is {exercise.Status}, expected Completed.",
+                "Exercise is already archived.",
                 exercise.Status);
 
+        // Store the current status before archiving so we can restore to it later
+        var previousStatus = exercise.Status;
+
+        // Stop the clock if running (for Active or Paused exercises)
+        if (exercise.ClockState == ExerciseClockState.Running && exercise.ClockStartedAt.HasValue)
+        {
+            var elapsedSinceStart = DateTime.UtcNow - exercise.ClockStartedAt.Value;
+            exercise.ClockElapsedBeforePause = (exercise.ClockElapsedBeforePause ?? TimeSpan.Zero) + elapsedSinceStart;
+        }
+        exercise.ClockState = ExerciseClockState.Stopped;
+        exercise.ClockStartedAt = null;
+
         // Perform transition
+        exercise.PreviousStatus = previousStatus;
         exercise.Status = ExerciseStatus.Archived;
         exercise.ArchivedAt = DateTime.UtcNow;
         exercise.ArchivedBy = userId;
@@ -226,8 +243,8 @@ public class ExerciseStatusService : IExerciseStatusService
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Exercise {ExerciseId} archived by user {UserId}",
-            exerciseId, userId);
+            "Exercise {ExerciseId} archived by user {UserId}. Previous status was {PreviousStatus}",
+            exerciseId, userId, previousStatus);
 
         var dto = exercise.ToDto();
         await _hubContext.NotifyExerciseStatusChanged(exerciseId, dto);
@@ -244,11 +261,15 @@ public class ExerciseStatusService : IExerciseStatusService
 
         if (exercise.Status != ExerciseStatus.Archived)
             return StatusTransitionResult.Failed(
-                $"Cannot unarchive exercise. Current status is {exercise.Status}, expected Archived.",
+                $"Cannot restore exercise. Current status is {exercise.Status}, expected Archived.",
                 exercise.Status);
 
-        // Perform transition - back to Completed
-        exercise.Status = ExerciseStatus.Completed;
+        // Restore to previous status if available, otherwise default to Draft
+        var restoredStatus = exercise.PreviousStatus ?? ExerciseStatus.Draft;
+
+        // Clear archive tracking fields
+        exercise.Status = restoredStatus;
+        exercise.PreviousStatus = null;
         exercise.ArchivedAt = null;
         exercise.ArchivedBy = null;
         exercise.ModifiedBy = userId;
@@ -256,8 +277,8 @@ public class ExerciseStatusService : IExerciseStatusService
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Exercise {ExerciseId} unarchived by user {UserId}",
-            exerciseId, userId);
+            "Exercise {ExerciseId} restored by user {UserId} to status {RestoredStatus}",
+            exerciseId, userId, restoredStatus);
 
         var dto = exercise.ToDto();
         await _hubContext.NotifyExerciseStatusChanged(exerciseId, dto);
