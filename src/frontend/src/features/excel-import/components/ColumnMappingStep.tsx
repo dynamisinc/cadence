@@ -84,12 +84,12 @@ export const ColumnMappingStep = ({
   }, [initialMappings])
 
   const handleMappingChange = (fieldName: string, columnIndex: number | null) => {
-    setMappings((prev) =>
-      prev.map((m) =>
+    setMappings(prev =>
+      prev.map(m =>
         m.cadenceField === fieldName
           ? { ...m, sourceColumnIndex: columnIndex }
-          : m
-      )
+          : m,
+      ),
     )
   }
 
@@ -104,11 +104,11 @@ export const ColumnMappingStep = ({
   }
 
   const handlePrevPreview = () => {
-    setPreviewIndex((prev) => Math.max(0, prev - 1))
+    setPreviewIndex(prev => Math.max(0, prev - 1))
   }
 
   const handleNextPreview = () => {
-    setPreviewIndex((prev) => Math.min(previewRows.length - 1, prev + 1))
+    setPreviewIndex(prev => Math.min(previewRows.length - 1, prev + 1))
   }
 
   // Apply current mappings to preview rows to create preview data
@@ -119,10 +119,10 @@ export const ColumnMappingStep = ({
       const values: Record<string, unknown> = {}
 
       // Apply each mapping to extract values
-      mappings.forEach((mapping) => {
+      mappings.forEach(mapping => {
         if (mapping.sourceColumnIndex !== null && mapping.sourceColumnIndex !== undefined) {
           // Find the column header for this index
-          const column = columns.find((c) => c.index === mapping.sourceColumnIndex)
+          const column = columns.find(c => c.index === mapping.sourceColumnIndex)
           if (column) {
             // The preview row data uses column headers as keys
             values[mapping.cadenceField] = row[column.header] ?? null
@@ -139,22 +139,22 @@ export const ColumnMappingStep = ({
     })
   }, [previewRows, mappings, columns])
 
-  const requiredMappings = mappings.filter((m) => m.isRequired)
-  const optionalMappings = mappings.filter((m) => !m.isRequired)
+  const requiredMappings = mappings.filter(m => m.isRequired)
+  const optionalMappings = mappings.filter(m => !m.isRequired)
 
   const missingRequired = requiredMappings.filter(
-    (m) => m.sourceColumnIndex === null || m.sourceColumnIndex === undefined
+    m => m.sourceColumnIndex === null || m.sourceColumnIndex === undefined,
   )
 
   const autoMappedCount = mappings.filter(
-    (m) => m.suggestedColumnIndex !== null && m.suggestedColumnIndex !== undefined
+    m => m.suggestedColumnIndex !== null && m.suggestedColumnIndex !== undefined,
   ).length
 
   const getSampleValue = (columnIndex: number | null | undefined): string => {
     if (columnIndex === null || columnIndex === undefined) return '-'
-    const col = columns.find((c) => c.index === columnIndex)
+    const col = columns.find(c => c.index === columnIndex)
     if (!col || !col.sampleValues || col.sampleValues.length === 0) return '-'
-    const sample = col.sampleValues.find((s) => s !== null && s !== '')
+    const sample = col.sampleValues.find(s => s !== null && s !== '')
     return sample ? (sample.length > 30 ? sample.substring(0, 30) + '...' : sample) : '-'
   }
 
@@ -223,7 +223,7 @@ export const ColumnMappingStep = ({
                 </TableRow>
               </TableHead>
               <TableBody>
-                {requiredMappings.map((mapping) => (
+                {requiredMappings.map(mapping => (
                   <MappingRow
                     key={mapping.cadenceField}
                     mapping={mapping}
@@ -269,7 +269,7 @@ export const ColumnMappingStep = ({
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {optionalMappings.map((mapping) => (
+                    {optionalMappings.map(mapping => (
                       <MappingRow
                         key={mapping.cadenceField}
                         mapping={mapping}
@@ -328,7 +328,7 @@ export const ColumnMappingStep = ({
       {/* Validation Error */}
       {missingRequired.length > 0 && (
         <Alert severity="warning" sx={{ mb: 3, mt: viewMode === 'preview' ? 2 : 0 }}>
-          Please map the following required fields: {missingRequired.map((m) => m.displayName).join(', ')}
+          Please map the following required fields: {missingRequired.map(m => m.displayName).join(', ')}
         </Alert>
       )}
 
@@ -371,7 +371,7 @@ const MappingRow = ({ mapping, columns, allMappings, onMappingChange, getSampleV
   // Build a map of which columns are already mapped (excluding current mapping)
   const usedColumns = useMemo(() => {
     const used = new Map<number, string>()
-    allMappings.forEach((m) => {
+    allMappings.forEach(m => {
       if (
         m.cadenceField !== mapping.cadenceField &&
         m.sourceColumnIndex !== null &&
@@ -407,10 +407,10 @@ const MappingRow = ({ mapping, columns, allMappings, onMappingChange, getSampleV
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <Select
               value={mapping.sourceColumnIndex ?? ''}
-              onChange={(e) =>
+              onChange={e =>
                 onMappingChange(
                   mapping.cadenceField,
-                  e.target.value === '' ? null : Number(e.target.value)
+                  e.target.value === '' ? null : Number(e.target.value),
                 )
               }
               displayEmpty
@@ -418,7 +418,7 @@ const MappingRow = ({ mapping, columns, allMappings, onMappingChange, getSampleV
               <MenuItem value="">
                 <em>Don&apos;t import</em>
               </MenuItem>
-              {columns.map((col) => {
+              {columns.map(col => {
                 const mappedTo = usedColumns.get(col.index)
                 return (
                   <MenuItem key={col.index} value={col.index}>

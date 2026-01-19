@@ -39,18 +39,12 @@ import {
   faRotateLeft,
   faTrash,
   faEllipsisVertical,
-  faExclamationTriangle,
-  faBolt,
-  faEye,
-  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 import { toast } from 'react-toastify'
 
 import {
   CobraPrimaryButton,
-  CobraSecondaryButton,
-  CobraDeleteButton,
   CobraTextField,
 } from '../../theme/styledComponents'
 import CobraStyles from '../../theme/CobraStyles'
@@ -264,12 +258,6 @@ export const ArchivedExercisesPage = () => {
       return dateStr
     }
   }
-
-  // Summary stats
-  const totalInjects = exercises.reduce((sum, e) => {
-    // We don't have inject count in the DTO, so we'll skip this for now
-    return sum
-  }, 0)
 
   // Get the currently selected menu exercise
   const menuExercise = menuAnchor

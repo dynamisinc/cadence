@@ -36,7 +36,7 @@ export const getOutcome = async (injectId: string, id: string): Promise<Expected
  */
 export const createOutcome = async (
   injectId: string,
-  request: CreateExpectedOutcomeRequest
+  request: CreateExpectedOutcomeRequest,
 ): Promise<ExpectedOutcomeDto> => {
   const response = await api.post<ExpectedOutcomeDto>(`${BASE_URL}/${injectId}/outcomes`, request)
   return response.data
@@ -48,7 +48,7 @@ export const createOutcome = async (
 export const updateOutcome = async (
   injectId: string,
   id: string,
-  request: UpdateExpectedOutcomeRequest
+  request: UpdateExpectedOutcomeRequest,
 ): Promise<ExpectedOutcomeDto> => {
   const response = await api.put<ExpectedOutcomeDto>(`${BASE_URL}/${injectId}/outcomes/${id}`, request)
   return response.data
@@ -60,11 +60,11 @@ export const updateOutcome = async (
 export const evaluateOutcome = async (
   injectId: string,
   id: string,
-  request: EvaluateExpectedOutcomeRequest
+  request: EvaluateExpectedOutcomeRequest,
 ): Promise<ExpectedOutcomeDto> => {
   const response = await api.post<ExpectedOutcomeDto>(
     `${BASE_URL}/${injectId}/outcomes/${id}/evaluate`,
-    request
+    request,
   )
   return response.data
 }
@@ -74,7 +74,7 @@ export const evaluateOutcome = async (
  */
 export const reorderOutcomes = async (
   injectId: string,
-  request: ReorderExpectedOutcomesRequest
+  request: ReorderExpectedOutcomesRequest,
 ): Promise<void> => {
   await api.post(`${BASE_URL}/${injectId}/outcomes/reorder`, request)
 }

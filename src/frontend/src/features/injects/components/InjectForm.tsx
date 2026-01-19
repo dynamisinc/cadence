@@ -31,7 +31,6 @@ import type { PhaseDto } from '../../phases/types'
 import { useObjectiveSummaries } from '../../objectives/hooks/useObjectives'
 import type { ObjectiveSummaryDto } from '../../objectives/types'
 import { useDeliveryMethods } from '../../delivery-methods'
-import type { DeliveryMethodDto } from '../../delivery-methods'
 import { ExpectedOutcomesList } from '../../expected-outcomes'
 
 interface InjectFormProps {

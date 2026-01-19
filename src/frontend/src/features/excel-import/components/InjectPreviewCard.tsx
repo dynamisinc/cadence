@@ -67,7 +67,7 @@ const priorityColors: Record<number, string> = {
 
 export const InjectPreviewCard = ({
   rowData,
-  mappings,
+  mappings: _mappings,
   rowIndex,
 }: InjectPreviewCardProps) => {
   const { values, status, issues } = rowData

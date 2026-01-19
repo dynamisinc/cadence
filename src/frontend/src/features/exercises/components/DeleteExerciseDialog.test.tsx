@@ -85,7 +85,7 @@ const renderWithQueryClient = (ui: React.ReactElement) => {
   return render(
     <QueryClientProvider client={queryClient}>
       {ui}
-    </QueryClientProvider>
+    </QueryClientProvider>,
   )
 }
 
@@ -139,7 +139,7 @@ describe('DeleteExerciseDialog', () => {
   describe('Loading State', () => {
     it('shows loading indicator while fetching summary', async () => {
       vi.mocked(exerciseService.getDeleteSummary).mockImplementation(() =>
-        new Promise((resolve) => setTimeout(() => resolve(createMockDeleteSummary()), 100))
+        new Promise(resolve => setTimeout(() => resolve(createMockDeleteSummary()), 100)),
       )
 
       renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)

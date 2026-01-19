@@ -7,7 +7,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { expectedOutcomeService } from '../services/expectedOutcomeService'
 import type {
-  ExpectedOutcomeDto,
   CreateExpectedOutcomeRequest,
   UpdateExpectedOutcomeRequest,
   EvaluateExpectedOutcomeRequest,

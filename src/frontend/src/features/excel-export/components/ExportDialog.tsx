@@ -54,7 +54,7 @@ export function ExportDialog({
     }
 
     exportMutation.mutate(request, {
-      onSuccess: (info) => {
+      onSuccess: info => {
         // Could show a success toast here
         console.log('Export complete:', info)
         onClose()
@@ -93,7 +93,7 @@ export function ExportDialog({
           <RadioGroup
             row
             value={format}
-            onChange={(e) => setFormat(e.target.value as 'xlsx' | 'csv')}
+            onChange={e => setFormat(e.target.value as 'xlsx' | 'csv')}
           >
             <FormControlLabel
               value="xlsx"
@@ -125,7 +125,7 @@ export function ExportDialog({
                 control={
                   <Checkbox
                     checked={includeFormatting}
-                    onChange={(e) => setIncludeFormatting(e.target.checked)}
+                    onChange={e => setIncludeFormatting(e.target.checked)}
                   />
                 }
                 label="Include formatting (colors, column widths)"
@@ -134,7 +134,7 @@ export function ExportDialog({
                 control={
                   <Checkbox
                     checked={includePhases}
-                    onChange={(e) => setIncludePhases(e.target.checked)}
+                    onChange={e => setIncludePhases(e.target.checked)}
                   />
                 }
                 label="Include Phases worksheet"
@@ -143,7 +143,7 @@ export function ExportDialog({
                 control={
                   <Checkbox
                     checked={includeObjectives}
-                    onChange={(e) => setIncludeObjectives(e.target.checked)}
+                    onChange={e => setIncludeObjectives(e.target.checked)}
                   />
                 }
                 label="Include Objectives worksheet"
@@ -154,7 +154,7 @@ export function ExportDialog({
             control={
               <Checkbox
                 checked={includeConductData}
-                onChange={(e) => setIncludeConductData(e.target.checked)}
+                onChange={e => setIncludeConductData(e.target.checked)}
               />
             }
             label="Include conduct data (status, fired time, fired by)"

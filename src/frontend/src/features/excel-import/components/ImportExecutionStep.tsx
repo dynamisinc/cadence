@@ -208,7 +208,7 @@ export const ImportExecutionStep = ({
           </FormLabel>
           <RadioGroup
             value={strategy}
-            onChange={(e) => setStrategy(e.target.value as ImportStrategyType)}
+            onChange={e => setStrategy(e.target.value as ImportStrategyType)}
           >
             <FormControlLabel
               value={ImportStrategy.Append}
@@ -276,7 +276,7 @@ export const ImportExecutionStep = ({
                   <Checkbox
                     size="small"
                     checked={skipErrorRows}
-                    onChange={(e) => setSkipErrorRows(e.target.checked)}
+                    onChange={e => setSkipErrorRows(e.target.checked)}
                   />
                 }
                 label={<Typography variant="body2">Skip rows with errors</Typography>}
@@ -292,7 +292,7 @@ export const ImportExecutionStep = ({
                 <Checkbox
                   size="small"
                   checked={createMissingPhases}
-                  onChange={(e) => setCreateMissingPhases(e.target.checked)}
+                  onChange={e => setCreateMissingPhases(e.target.checked)}
                 />
               }
               label={<Typography variant="body2">Create missing phases automatically</Typography>}
@@ -307,7 +307,7 @@ export const ImportExecutionStep = ({
                 <Checkbox
                   size="small"
                   checked={createMissingObjectives}
-                  onChange={(e) => setCreateMissingObjectives(e.target.checked)}
+                  onChange={e => setCreateMissingObjectives(e.target.checked)}
                   disabled
                 />
               }

@@ -263,7 +263,7 @@ export const ExerciseListPage = () => {
                   onClick={() => handleRowClick(exercise.id)}
                   formatDate={formatDate}
                   canManage={canManage}
-                  onImportClick={(e) => handleImportClick(exercise.id, e)}
+                  onImportClick={e => handleImportClick(exercise.id, e)}
                 />
               ))}
             </TableBody>

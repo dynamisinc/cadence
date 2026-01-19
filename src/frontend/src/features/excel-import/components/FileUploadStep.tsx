@@ -210,7 +210,7 @@ export const FileUploadStep = ({
               Size: {formatFileSize(selectedFile.size)}
             </Typography>
             <CobraSecondaryButton
-              onClick={(e) => {
+              onClick={e => {
                 e.stopPropagation()
                 handleRemoveFile()
               }}
@@ -233,10 +233,12 @@ export const FileUploadStep = ({
             <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
               or
             </Typography>
-            <CobraPrimaryButton onClick={(e) => {
-              e.stopPropagation()
-              handleBrowseClick()
-            }}>
+            <CobraPrimaryButton
+              onClick={e => {
+                e.stopPropagation()
+                handleBrowseClick()
+              }}
+            >
               Browse Files
             </CobraPrimaryButton>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>

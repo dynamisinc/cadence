@@ -23,7 +23,7 @@ export interface DeliveryMethodDto {
  */
 export const getDeliveryMethodDisplay = (
   method: DeliveryMethodDto | null,
-  customText: string | null
+  customText: string | null,
 ): string => {
   if (!method) return 'Not specified'
   if (method.isOther && customText) return customText

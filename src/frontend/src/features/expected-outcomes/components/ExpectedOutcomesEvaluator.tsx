@@ -14,7 +14,6 @@ import {
   IconButton,
   List,
   ListItem,
-  ListItemText,
   Collapse,
   Paper,
   Divider,
@@ -42,7 +41,6 @@ import {
   useEvaluateExpectedOutcome,
 } from '../hooks/useExpectedOutcomes'
 import type { ExpectedOutcomeDto } from '../types'
-import { getAchievementStatusLabel, getAchievementStatusColor } from '../types'
 
 interface ExpectedOutcomesEvaluatorProps {
   /** Inject ID to manage outcomes for */

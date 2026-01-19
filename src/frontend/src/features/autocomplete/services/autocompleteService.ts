@@ -14,7 +14,7 @@ const BASE_URL = '/api/autocomplete/exercises'
 export const getTrackSuggestions = async (
   exerciseId: string,
   filter?: string,
-  limit = 20
+  limit = 20,
 ): Promise<string[]> => {
   const params = new URLSearchParams()
   if (filter) params.append('filter', filter)
@@ -30,7 +30,7 @@ export const getTrackSuggestions = async (
 export const getTargetSuggestions = async (
   exerciseId: string,
   filter?: string,
-  limit = 20
+  limit = 20,
 ): Promise<string[]> => {
   const params = new URLSearchParams()
   if (filter) params.append('filter', filter)
@@ -46,7 +46,7 @@ export const getTargetSuggestions = async (
 export const getSourceSuggestions = async (
   exerciseId: string,
   filter?: string,
-  limit = 20
+  limit = 20,
 ): Promise<string[]> => {
   const params = new URLSearchParams()
   if (filter) params.append('filter', filter)
@@ -62,7 +62,7 @@ export const getSourceSuggestions = async (
 export const getLocationNameSuggestions = async (
   exerciseId: string,
   filter?: string,
-  limit = 20
+  limit = 20,
 ): Promise<string[]> => {
   const params = new URLSearchParams()
   if (filter) params.append('filter', filter)
@@ -78,7 +78,7 @@ export const getLocationNameSuggestions = async (
 export const getLocationTypeSuggestions = async (
   exerciseId: string,
   filter?: string,
-  limit = 20
+  limit = 20,
 ): Promise<string[]> => {
   const params = new URLSearchParams()
   if (filter) params.append('filter', filter)
@@ -94,7 +94,7 @@ export const getLocationTypeSuggestions = async (
 export const getResponsibleControllerSuggestions = async (
   exerciseId: string,
   filter?: string,
-  limit = 20
+  limit = 20,
 ): Promise<string[]> => {
   const params = new URLSearchParams()
   if (filter) params.append('filter', filter)

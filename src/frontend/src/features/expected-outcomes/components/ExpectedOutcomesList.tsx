@@ -35,7 +35,6 @@ import {
   CobraPrimaryButton,
   CobraSecondaryButton,
   CobraTextField,
-  CobraDeleteButton,
 } from '@/theme/styledComponents'
 import {
   useExpectedOutcomes,

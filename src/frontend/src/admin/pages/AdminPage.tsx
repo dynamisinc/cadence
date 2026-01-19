@@ -16,7 +16,6 @@ import { Container, Stack, Box, Paper, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faGear, faBoxArchive, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
-import { CobraLinkButton } from '../../theme/styledComponents'
 
 export const AdminPage: React.FC = () => {
   const navigate = useNavigate()

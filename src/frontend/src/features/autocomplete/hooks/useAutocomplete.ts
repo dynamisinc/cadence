@@ -16,7 +16,7 @@ const STALE_TIME = 60 * 1000 // 1 minute
 export const useTrackSuggestions = (
   exerciseId: string | undefined,
   filter?: string,
-  limit = 20
+  limit = 20,
 ) => {
   return useQuery({
     queryKey: [QUERY_KEY, 'tracks', exerciseId, filter, limit],
@@ -32,7 +32,7 @@ export const useTrackSuggestions = (
 export const useTargetSuggestions = (
   exerciseId: string | undefined,
   filter?: string,
-  limit = 20
+  limit = 20,
 ) => {
   return useQuery({
     queryKey: [QUERY_KEY, 'targets', exerciseId, filter, limit],
@@ -48,7 +48,7 @@ export const useTargetSuggestions = (
 export const useSourceSuggestions = (
   exerciseId: string | undefined,
   filter?: string,
-  limit = 20
+  limit = 20,
 ) => {
   return useQuery({
     queryKey: [QUERY_KEY, 'sources', exerciseId, filter, limit],
@@ -64,7 +64,7 @@ export const useSourceSuggestions = (
 export const useLocationNameSuggestions = (
   exerciseId: string | undefined,
   filter?: string,
-  limit = 20
+  limit = 20,
 ) => {
   return useQuery({
     queryKey: [QUERY_KEY, 'locationNames', exerciseId, filter, limit],
@@ -80,7 +80,7 @@ export const useLocationNameSuggestions = (
 export const useLocationTypeSuggestions = (
   exerciseId: string | undefined,
   filter?: string,
-  limit = 20
+  limit = 20,
 ) => {
   return useQuery({
     queryKey: [QUERY_KEY, 'locationTypes', exerciseId, filter, limit],
@@ -96,11 +96,12 @@ export const useLocationTypeSuggestions = (
 export const useResponsibleControllerSuggestions = (
   exerciseId: string | undefined,
   filter?: string,
-  limit = 20
+  limit = 20,
 ) => {
   return useQuery({
     queryKey: [QUERY_KEY, 'responsibleControllers', exerciseId, filter, limit],
-    queryFn: () => autocompleteService.getResponsibleControllerSuggestions(exerciseId!, filter, limit),
+    queryFn: () =>
+      autocompleteService.getResponsibleControllerSuggestions(exerciseId!, filter, limit),
     enabled: !!exerciseId,
     staleTime: STALE_TIME,
   })

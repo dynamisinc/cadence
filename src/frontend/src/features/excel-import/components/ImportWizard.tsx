@@ -83,14 +83,14 @@ export const ImportWizard = ({
   const uploadMutation = useUploadFile()
   const selectWorksheetMutation = useSelectWorksheet()
   const { data: suggestedMappings, isLoading: isLoadingMappings } = useSuggestedMappings(
-    currentStep === ImportWizardStep.Mapping ? sessionId ?? undefined : undefined
+    currentStep === ImportWizardStep.Mapping ? sessionId ?? undefined : undefined,
   )
   const validateMutation = useValidateImport()
   const executeMutation = useExecuteImport()
   const cancelMutation = useCancelImport()
 
   // Get current step index
-  const currentStepIndex = STEPS.findIndex((s) => s.key === currentStep)
+  const currentStepIndex = STEPS.findIndex(s => s.key === currentStep)
 
   // Reset wizard state
   const resetWizard = useCallback(() => {
@@ -204,7 +204,7 @@ export const ImportWizard = ({
         return (
           <FileUploadStep
             onFileAnalyzed={handleFileAnalyzed}
-            uploadFile={(file) => uploadMutation.mutateAsync(file)}
+            uploadFile={file => uploadMutation.mutateAsync(file)}
             isUploading={uploadMutation.isPending}
             uploadError={uploadMutation.error?.message ?? null}
           />
@@ -311,7 +311,7 @@ export const ImportWizard = ({
       <DialogContent dividers>
         {/* Stepper */}
         <Stepper activeStep={currentStepIndex} sx={{ mb: 4 }}>
-          {STEPS.map((step) => (
+          {STEPS.map(step => (
             <Step key={step.key}>
               <StepLabel>{step.label}</StepLabel>
             </Step>

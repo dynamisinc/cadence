@@ -22,7 +22,7 @@ export const useUploadFile = () => {
 
   return useMutation({
     mutationFn: (file: File) => excelImportService.uploadFile(file),
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Cache the session state
       queryClient.setQueryData([QUERY_KEY, 'session', data.sessionId], data)
     },
@@ -49,11 +49,11 @@ export const useSelectWorksheet = () => {
 
   return useMutation({
     mutationFn: (request: SelectWorksheetRequest) => excelImportService.selectWorksheet(request),
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Cache the worksheet selection result
       queryClient.setQueryData(
         [QUERY_KEY, 'worksheet', data.sessionId],
-        data
+        data,
       )
     },
   })
@@ -78,11 +78,11 @@ export const useValidateImport = () => {
 
   return useMutation({
     mutationFn: (request: ConfigureMappingsRequest) => excelImportService.validateImport(request),
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Cache the validation result
       queryClient.setQueryData(
         [QUERY_KEY, 'validation', data.sessionId],
-        data
+        data,
       )
     },
   })

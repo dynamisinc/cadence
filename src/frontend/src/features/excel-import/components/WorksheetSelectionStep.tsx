@@ -31,7 +31,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
-import type { FileAnalysisResult, WorksheetInfo, WorksheetSelectionResult } from '../types'
+import type { FileAnalysisResult, WorksheetSelectionResult } from '../types'
 
 interface WorksheetSelectionStepProps {
   /** File analysis result from previous step */
@@ -59,8 +59,8 @@ export const WorksheetSelectionStep = ({
   onBack,
   onConfirm,
 }: WorksheetSelectionStepProps) => {
-  const initialIndex = analysisResult.worksheets.findIndex((w) => w.looksLikeMsel) >= 0
-    ? analysisResult.worksheets.findIndex((w) => w.looksLikeMsel)
+  const initialIndex = analysisResult.worksheets.findIndex(w => w.looksLikeMsel) >= 0
+    ? analysisResult.worksheets.findIndex(w => w.looksLikeMsel)
     : 0
 
   const [selectedIndex, setSelectedIndex] = useState<number>(initialIndex)
@@ -111,7 +111,7 @@ export const WorksheetSelectionStep = ({
 
       <RadioGroup
         value={selectedIndex}
-        onChange={(e) => handleWorksheetChange(Number(e.target.value))}
+        onChange={e => handleWorksheetChange(Number(e.target.value))}
       >
         <Paper variant="outlined" sx={{ mb: 3 }}>
           {analysisResult.worksheets.map((worksheet, index) => (
@@ -173,7 +173,7 @@ export const WorksheetSelectionStep = ({
             <Table size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  {selectionResult.columns.map((col) => (
+                  {selectionResult.columns.map(col => (
                     <TableCell key={col.index} sx={{ fontWeight: 'bold', whiteSpace: 'nowrap' }}>
                       {col.header}
                     </TableCell>
@@ -183,7 +183,7 @@ export const WorksheetSelectionStep = ({
               <TableBody>
                 {selectionResult.previewRows.map((row, rowIndex) => (
                   <TableRow key={rowIndex}>
-                    {selectionResult.columns.map((col) => (
+                    {selectionResult.columns.map(col => (
                       <TableCell key={col.index} sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {formatCellValue(row[col.header])}
                       </TableCell>

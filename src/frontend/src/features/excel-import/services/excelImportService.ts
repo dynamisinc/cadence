@@ -46,7 +46,7 @@ export const getSessionState = async (sessionId: string): Promise<ImportSessionS
  * Select a worksheet for import
  */
 export const selectWorksheet = async (
-  request: SelectWorksheetRequest
+  request: SelectWorksheetRequest,
 ): Promise<WorksheetSelectionResult> => {
   const response = await api.post<WorksheetSelectionResult>(`${BASE_URL}/select-worksheet`, request)
   return response.data

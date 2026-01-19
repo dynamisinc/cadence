@@ -77,7 +77,7 @@ export const ValidationStep = ({
     setExpandedRow(expandedRow === rowNumber ? null : rowNumber)
   }
 
-  const filteredRows = validationResult.rows.filter((row) => {
+  const filteredRows = validationResult.rows.filter(row => {
     switch (filter) {
       case 'valid':
         return row.status === 'Valid'
@@ -90,7 +90,7 @@ export const ValidationStep = ({
     }
   })
 
-  const mappedFields = mappings.filter((m) => m.sourceColumnIndex !== null)
+  const mappedFields = mappings.filter(m => m.sourceColumnIndex !== null)
 
   if (isLoading) {
     return (
@@ -184,7 +184,7 @@ export const ValidationStep = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredRows.map((row) => (
+            {filteredRows.map(row => (
               <ValidationRow
                 key={row.rowNumber}
                 row={row}
@@ -267,7 +267,7 @@ interface ValidationRowProps {
   mappedFields: ColumnMapping[]
 }
 
-const ValidationRow = ({ row, isExpanded, onToggle, mappedFields }: ValidationRowProps) => {
+const ValidationRow = ({ row, isExpanded, onToggle, mappedFields: _mappedFields }: ValidationRowProps) => {
   const getStatusChip = () => {
     switch (row.status) {
       case 'Valid':

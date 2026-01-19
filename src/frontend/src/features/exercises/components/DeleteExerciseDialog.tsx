@@ -118,7 +118,7 @@ export const DeleteExerciseDialog = ({
 
       // Remove the deleted exercise from the cache
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) =>
-        old.filter(e => e.id !== exercise.id)
+        old.filter(e => e.id !== exercise.id),
       )
 
       // Also remove from single exercise cache
@@ -299,7 +299,7 @@ export const DeleteExerciseDialog = ({
               <CobraTextField
                 label="Type exercise name to confirm"
                 value={confirmName}
-                onChange={(e) => setConfirmName(e.target.value)}
+                onChange={e => setConfirmName(e.target.value)}
                 fullWidth
                 autoFocus
                 error={confirmName.length > 0 && !nameMatches}
@@ -312,7 +312,7 @@ export const DeleteExerciseDialog = ({
                 control={
                   <Checkbox
                     checked={confirmCheckbox}
-                    onChange={(e) => setConfirmCheckbox(e.target.checked)}
+                    onChange={e => setConfirmCheckbox(e.target.checked)}
                     color="error"
                   />
                 }
