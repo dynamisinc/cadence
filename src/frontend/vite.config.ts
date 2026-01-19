@@ -21,7 +21,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       VitePWA({
-        disabled: !pwaEnabled,
+        disable: !pwaEnabled,
         registerType: pwaRegisterType,
         includeAssets: ['dynamis-favicon.svg', 'dynamis-logo.jpg', 'icons/*.svg'],
         manifest: {
