@@ -152,6 +152,27 @@ public class Exercise : BaseEntity
     public Guid? ClockStartedBy { get; set; }
 
     // =========================================================================
+    // Timing Configuration Properties
+    // =========================================================================
+
+    /// <summary>
+    /// How injects transition to Ready status during conduct.
+    /// </summary>
+    public DeliveryMode DeliveryMode { get; set; } = DeliveryMode.ClockDriven;
+
+    /// <summary>
+    /// How exercise time relates to story/scenario time.
+    /// </summary>
+    public TimelineMode TimelineMode { get; set; } = TimelineMode.RealTime;
+
+    /// <summary>
+    /// Time compression ratio. Only used when TimelineMode = Compressed.
+    /// Example: 4.0 means 1 real minute = 4 story minutes.
+    /// Valid range: 0.1 to 60.0
+    /// </summary>
+    public decimal? TimeScale { get; set; }
+
+    // =========================================================================
     // Navigation Properties
     // =========================================================================
 

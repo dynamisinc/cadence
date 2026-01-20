@@ -191,8 +191,10 @@ export const InjectForm = ({
       case 'scenarioDay':
         if (values.scenarioDay) {
           const day = parseInt(values.scenarioDay, 10)
-          if (isNaN(day) || day < INJECT_FIELD_LIMITS.scenarioDay.min || day > INJECT_FIELD_LIMITS.scenarioDay.max) {
-            error = `Day must be between ${INJECT_FIELD_LIMITS.scenarioDay.min} and ${INJECT_FIELD_LIMITS.scenarioDay.max}`
+          const minDay = INJECT_FIELD_LIMITS.scenarioDay.min
+          const maxDay = INJECT_FIELD_LIMITS.scenarioDay.max
+          if (isNaN(day) || day < minDay || day > maxDay) {
+            error = `Day must be between ${minDay} and ${maxDay}`
           }
         }
         // Also check if scenario time is provided without day
@@ -203,25 +205,34 @@ export const InjectForm = ({
 
       case 'source':
         if (values.source && values.source.length > INJECT_FIELD_LIMITS.source.max) {
-          error = `Source must be ${INJECT_FIELD_LIMITS.source.max} characters or less`
+          error = `Source must be ${INJECT_FIELD_LIMITS.source.max} chars or less`
         }
         break
 
       case 'expectedAction':
-        if (values.expectedAction && values.expectedAction.length > INJECT_FIELD_LIMITS.expectedAction.max) {
-          error = `Expected action must be ${INJECT_FIELD_LIMITS.expectedAction.max} characters or less`
+        if (values.expectedAction) {
+          const maxLen = INJECT_FIELD_LIMITS.expectedAction.max
+          if (values.expectedAction.length > maxLen) {
+            error = `Expected action must be ${maxLen} characters or less`
+          }
         }
         break
 
       case 'controllerNotes':
-        if (values.controllerNotes && values.controllerNotes.length > INJECT_FIELD_LIMITS.controllerNotes.max) {
-          error = `Controller notes must be ${INJECT_FIELD_LIMITS.controllerNotes.max} characters or less`
+        if (values.controllerNotes) {
+          const maxLen = INJECT_FIELD_LIMITS.controllerNotes.max
+          if (values.controllerNotes.length > maxLen) {
+            error = `Controller notes must be ${maxLen} characters or less`
+          }
         }
         break
 
       case 'triggerCondition':
-        if (values.triggerCondition && values.triggerCondition.length > INJECT_FIELD_LIMITS.triggerCondition.max) {
-          error = `Trigger condition must be ${INJECT_FIELD_LIMITS.triggerCondition.max} characters or less`
+        if (values.triggerCondition) {
+          const maxLen = INJECT_FIELD_LIMITS.triggerCondition.max
+          if (values.triggerCondition.length > maxLen) {
+            error = `Trigger condition must be ${maxLen} characters or less`
+          }
         }
         break
     }

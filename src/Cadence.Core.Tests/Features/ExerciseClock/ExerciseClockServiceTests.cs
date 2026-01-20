@@ -1,6 +1,7 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Services;
+using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.Core.Tests.Helpers;
@@ -13,11 +14,13 @@ namespace Cadence.Core.Tests.Features.ExerciseClock;
 public class ExerciseClockServiceTests
 {
     private readonly Mock<IExerciseHubContext> _hubContextMock;
+    private readonly Mock<IInjectReadinessService> _injectReadinessServiceMock;
     private readonly Mock<ILogger<ExerciseClockService>> _loggerMock;
 
     public ExerciseClockServiceTests()
     {
         _hubContextMock = new Mock<IExerciseHubContext>();
+        _injectReadinessServiceMock = new Mock<IInjectReadinessService>();
         _loggerMock = new Mock<ILogger<ExerciseClockService>>();
     }
 
@@ -57,7 +60,7 @@ public class ExerciseClockServiceTests
 
     private ExerciseClockService CreateService(AppDbContext context)
     {
-        return new ExerciseClockService(context, _hubContextMock.Object, _loggerMock.Object);
+        return new ExerciseClockService(context, _hubContextMock.Object, _injectReadinessServiceMock.Object, _loggerMock.Object);
     }
 
     #region GetClockStateAsync Tests

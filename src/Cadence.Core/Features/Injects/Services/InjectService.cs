@@ -31,9 +31,22 @@ public class InjectService : IInjectService
             throw new InvalidOperationException($"Cannot fire inject. Exercise is {exercise.Status}. Injects can only be fired during an active exercise.");
         }
 
-        if (inject.Status != InjectStatus.Pending)
+        // Validate inject can be fired based on delivery mode
+        // In clock-driven mode, inject must be Ready
+        // In facilitator-paced mode, inject can be Pending or Ready
+        if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
         {
-            throw new InvalidOperationException($"Inject is already {inject.Status}. Only pending injects can be fired.");
+            if (inject.Status != InjectStatus.Ready)
+            {
+                throw new InvalidOperationException($"Inject must be Ready to fire in clock-driven mode. Current status: {inject.Status}");
+            }
+        }
+        else // FacilitatorPaced
+        {
+            if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+            {
+                throw new InvalidOperationException($"Inject is already {inject.Status}. Only Pending or Ready injects can be fired.");
+            }
         }
 
         inject.Status = InjectStatus.Fired;
@@ -61,9 +74,10 @@ public class InjectService : IInjectService
             throw new InvalidOperationException($"Cannot skip inject. Exercise is {exercise.Status}. Injects can only be skipped during an active exercise.");
         }
 
-        if (inject.Status != InjectStatus.Pending)
+        // Injects can be skipped from Pending or Ready status
+        if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
         {
-            throw new InvalidOperationException($"Inject is already {inject.Status}. Only pending injects can be skipped.");
+            throw new InvalidOperationException($"Inject is already {inject.Status}. Only Pending or Ready injects can be skipped.");
         }
 
         inject.Status = InjectStatus.Skipped;
@@ -92,6 +106,7 @@ public class InjectService : IInjectService
         }
 
         inject.Status = InjectStatus.Pending;
+        inject.ReadyAt = null;
         inject.FiredAt = null;
         inject.FiredBy = null;
         inject.SkippedAt = null;

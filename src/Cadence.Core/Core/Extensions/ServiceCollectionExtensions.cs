@@ -30,6 +30,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IObjectiveService, ObjectiveService>();
         services.AddScoped<IObservationService, ObservationService>();
         services.AddScoped<IInjectService, InjectService>();
+        services.AddScoped<IInjectReadinessService, InjectReadinessService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
         services.AddScoped<IExerciseStatusService, ExerciseStatusService>();
         services.AddScoped<IExerciseDeleteService, ExerciseDeleteService>();

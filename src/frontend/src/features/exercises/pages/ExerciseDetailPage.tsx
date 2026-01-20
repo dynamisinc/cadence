@@ -151,6 +151,9 @@ export const ExerciseDetailPage = () => {
         endTime: values.endTime || undefined,
         timeZoneId: values.timeZoneId,
         isPracticeMode: values.isPracticeMode,
+        deliveryMode: values.deliveryMode,
+        timelineMode: values.timelineMode,
+        timeScale: values.timeScale ?? undefined,
       }
 
       await updateExercise(request)
@@ -358,7 +361,12 @@ export const ExerciseDetailPage = () => {
       {/* Content - Grid layout for Draft (with sidebar) vs other statuses */}
       <Grid container spacing={3}>
         {/* Main content column */}
-        <Grid size={{ xs: 12, md: exercise.status === ExerciseStatus.Draft && !isEditing ? 8 : 12 }}>
+        <Grid
+          size={{
+            xs: 12,
+            md: exercise.status === ExerciseStatus.Draft && !isEditing ? 8 : 12,
+          }}
+        >
           <Paper sx={{ p: 3 }}>
             {isEditing ? (
               <ExerciseForm

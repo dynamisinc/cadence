@@ -5,7 +5,7 @@
  */
 
 import { z } from 'zod'
-import { ExerciseType } from '../../../types'
+import { ExerciseType, DeliveryMode, TimelineMode } from '../../../types'
 
 /** Maximum lengths for exercise fields */
 export const EXERCISE_FIELD_LIMITS = {
@@ -42,6 +42,18 @@ export const createExerciseSchema = z.object({
   endTime: z.string().optional().or(z.literal('')),
   timeZoneId: z.string().min(1, 'Time zone is required'),
   isPracticeMode: z.boolean(),
+  deliveryMode: z.nativeEnum(DeliveryMode, {
+    error: 'Delivery mode is required',
+  }),
+  timelineMode: z.nativeEnum(TimelineMode, {
+    error: 'Timeline mode is required',
+  }),
+  timeScale: z
+    .number()
+    .min(0.1, 'Time scale must be at least 0.1x')
+    .max(60, 'Time scale cannot exceed 60x')
+    .nullable()
+    .optional(),
 }).refine(
   data => {
     // If both times are provided, end must be after start
@@ -53,6 +65,18 @@ export const createExerciseSchema = z.object({
   {
     message: 'End time must be after start time',
     path: ['endTime'],
+  },
+).refine(
+  data => {
+    // TimeScale is required when TimelineMode is Compressed
+    if (data.timelineMode === TimelineMode.Compressed && !data.timeScale) {
+      return false
+    }
+    return true
+  },
+  {
+    message: 'Time scale is required for compressed timeline mode',
+    path: ['timeScale'],
   },
 )
 

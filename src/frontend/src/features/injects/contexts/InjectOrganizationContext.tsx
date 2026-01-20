@@ -86,10 +86,10 @@ export const InjectOrganizationProvider = ({
 
   // Track whether we restored expanded groups from persisted state
   // Only true if the array was explicitly present AND non-empty
-  const hasPersistedExpandedGroups = useMemo(
-    () => persisted !== null && Array.isArray(persisted.expandedGroupIds) && persisted.expandedGroupIds.length > 0,
-    [persisted],
-  )
+  const hasPersistedExpandedGroups = useMemo(() => {
+    const ids = persisted?.expandedGroupIds
+    return persisted !== null && Array.isArray(ids) && ids.length > 0
+  }, [persisted])
 
   // Search state
   const [searchTerm, setSearchTermState] = useState(persisted?.searchTerm ?? '')

@@ -10,14 +10,56 @@ import userEvent from '@testing-library/user-event'
 import { ThemeProvider } from '@mui/material/styles'
 import { cobraTheme } from '../../../theme/cobraTheme'
 import { StickyClockHeader } from './StickyClockHeader'
-import { ExerciseClockState, InjectStatus } from '../../../types'
+import {
+  ExerciseClockState,
+  InjectStatus,
+  InjectType,
+  TriggerType,
+  ExerciseStatus,
+  ExerciseType,
+  DeliveryMode,
+  TimelineMode,
+} from '../../../types'
 import type { ExerciseClockDto } from '../../exercise-clock/types'
 import type { InjectDto } from '../../injects/types'
+import type { ExerciseDto } from '../types'
 
 // Helper to render with theme
 const renderWithTheme = (ui: React.ReactElement) => {
   return render(<ThemeProvider theme={cobraTheme}>{ui}</ThemeProvider>)
 }
+
+// Helper to create mock exercise
+const createMockExercise = (overrides: Partial<ExerciseDto> = {}): ExerciseDto => ({
+  id: 'exercise-1',
+  name: 'Test Exercise',
+  description: null,
+  exerciseType: ExerciseType.TTX,
+  status: ExerciseStatus.Active,
+  isPracticeMode: false,
+  scheduledDate: '2025-01-15',
+  startTime: null,
+  endTime: null,
+  timeZoneId: 'America/New_York',
+  location: null,
+  organizationId: 'org-1',
+  activeMselId: 'msel-1',
+  deliveryMode: DeliveryMode.ClockDriven,
+  timelineMode: TimelineMode.RealTime,
+  timeScale: null,
+  createdAt: '2025-01-01T00:00:00Z',
+  updatedAt: '2025-01-01T00:00:00Z',
+  createdBy: 'user-1',
+  activatedAt: null,
+  activatedBy: null,
+  completedAt: null,
+  completedBy: null,
+  archivedAt: null,
+  archivedBy: null,
+  hasBeenPublished: false,
+  previousStatus: null,
+  ...overrides,
+})
 
 // Helper to create mock clock state
 const createMockClockState = (
@@ -43,6 +85,7 @@ const createMockInject = (
   title: 'Test Inject',
   description: 'Test description',
   scheduledTime: '09:00:00',
+  deliveryTime: null,
   scenarioDay: null,
   scenarioTime: null,
   target: 'EOC Director',
@@ -51,13 +94,14 @@ const createMockInject = (
   deliveryMethodId: null,
   deliveryMethodName: null,
   deliveryMethodOther: null,
-  injectType: 'Standard',
+  injectType: InjectType.Standard,
   status: InjectStatus.Pending,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
   expectedAction: null,
   controllerNotes: null,
+  readyAt: null,
   firedAt: null,
   firedBy: null,
   firedByName: null,
@@ -73,7 +117,7 @@ const createMockInject = (
   updatedAt: '2025-01-01T00:00:00Z',
   sourceReference: null,
   priority: null,
-  triggerType: 'Manual',
+  triggerType: TriggerType.Manual,
   responsibleController: null,
   locationName: null,
   locationType: null,
@@ -83,8 +127,10 @@ const createMockInject = (
 
 describe('StickyClockHeader', () => {
   const defaultProps = {
+    exercise: createMockExercise(),
     clockState: createMockClockState(),
     displayTime: '00:00:00',
+    elapsedTimeMs: 0,
     injects: [],
     readyToFireCount: 0,
   }

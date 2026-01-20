@@ -14,6 +14,9 @@ public class CreateExerciseRequest
     public string? Location { get; init; }
     public string TimeZoneId { get; init; } = "UTC";
     public bool IsPracticeMode { get; init; }
+    public DeliveryMode DeliveryMode { get; init; } = DeliveryMode.ClockDriven;
+    public TimelineMode TimelineMode { get; init; } = TimelineMode.RealTime;
+    public decimal? TimeScale { get; init; }
 }
 
 /// <summary>
@@ -30,6 +33,9 @@ public class UpdateExerciseRequest
     public TimeOnly? StartTime { get; init; }
     public TimeOnly? EndTime { get; init; }
     public bool IsPracticeMode { get; init; }
+    public DeliveryMode DeliveryMode { get; init; } = DeliveryMode.ClockDriven;
+    public TimelineMode TimelineMode { get; init; } = TimelineMode.RealTime;
+    public decimal? TimeScale { get; init; }
 }
 
 /// <summary>
@@ -78,7 +84,11 @@ public record ExerciseDto(
     Guid? ArchivedBy,
     // Archive/delete tracking fields
     bool HasBeenPublished,
-    ExerciseStatus? PreviousStatus
+    ExerciseStatus? PreviousStatus,
+    // Timing configuration fields
+    DeliveryMode DeliveryMode,
+    TimelineMode TimelineMode,
+    decimal? TimeScale
 );
 
 /// <summary>
@@ -110,7 +120,10 @@ public static class ExerciseMapper
         entity.ArchivedAt,
         entity.ArchivedBy,
         entity.HasBeenPublished,
-        entity.PreviousStatus
+        entity.PreviousStatus,
+        entity.DeliveryMode,
+        entity.TimelineMode,
+        entity.TimeScale
     );
 
     public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, Guid createdBy) => new()
@@ -126,7 +139,10 @@ public static class ExerciseMapper
         Location = request.Location,
         OrganizationId = organizationId,
         CreatedBy = createdBy,
-        ModifiedBy = createdBy
+        ModifiedBy = createdBy,
+        DeliveryMode = request.DeliveryMode,
+        TimelineMode = request.TimelineMode,
+        TimeScale = request.TimeScale
     };
 }
 

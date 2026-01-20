@@ -173,9 +173,10 @@ export const ExerciseStatusActions = ({
           </MenuItem>
         )}
 
-        {/* Complete (Active/Paused → Completed) - only show for Active or Paused */}
+        {/* Complete (Active/Paused → Completed) */}
         {canTransition(ExerciseStatus.Completed) &&
-          (exercise.status === ExerciseStatus.Active || exercise.status === ExerciseStatus.Paused) && (
+          (exercise.status === ExerciseStatus.Active ||
+            exercise.status === ExerciseStatus.Paused) && (
           <MenuItem
             onClick={() =>
               handleConfirmAction(

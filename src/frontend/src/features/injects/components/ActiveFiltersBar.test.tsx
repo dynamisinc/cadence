@@ -100,7 +100,9 @@ describe('ActiveFiltersBar', () => {
     const user = userEvent.setup()
     const onRemoveFilter = vi.fn()
 
-    const { container } = renderWithTheme(<ActiveFiltersBar {...defaultProps} onRemoveFilter={onRemoveFilter} />)
+    const { container } = renderWithTheme(
+      <ActiveFiltersBar {...defaultProps} onRemoveFilter={onRemoveFilter} />,
+    )
 
     // FilterChip uses Chip with onDelete, which renders a delete icon
     const deleteIcons = container.querySelectorAll('.MuiChip-deleteIcon')

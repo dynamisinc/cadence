@@ -46,7 +46,8 @@ export const CreateExercisePage = () => {
 
   // Warn user before navigating away with unsaved changes
   // Don't warn if exercise was already created (createdExercise is set)
-  const { UnsavedChangesDialog } = useUnsavedChangesWarning(isDirty && !isSubmitting && !createdExercise)
+  const shouldWarn = isDirty && !isSubmitting && !createdExercise
+  const { UnsavedChangesDialog } = useUnsavedChangesWarning(shouldWarn)
 
   const handleDirtyChange = useCallback((dirty: boolean) => {
     setIsDirty(dirty)
@@ -64,6 +65,9 @@ export const CreateExercisePage = () => {
         location: values.location?.trim() || undefined,
         timeZoneId: values.timeZoneId,
         isPracticeMode: values.isPracticeMode,
+        deliveryMode: values.deliveryMode,
+        timelineMode: values.timelineMode,
+        timeScale: values.timeScale ?? undefined,
       }
 
       const created = await exerciseService.createExercise(request)

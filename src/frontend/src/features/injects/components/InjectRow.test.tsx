@@ -113,7 +113,8 @@ describe('InjectRow', () => {
 
       renderInjectRow({ inject, offsetMs: 0 })
 
-      expect(screen.queryByText(/This description should not appear by default/)).not.toBeInTheDocument()
+      const descText = /This description should not appear by default/
+      expect(screen.queryByText(descText)).not.toBeInTheDocument()
     })
   })
 

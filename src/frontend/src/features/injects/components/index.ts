@@ -8,6 +8,7 @@ export { InjectListByStatus } from './InjectListByStatus'
 export { ReadyToFireBadge } from './ReadyToFireBadge'
 export { ReadyNotification } from './ReadyNotification'
 export { InjectDetailDrawer } from './InjectDetailDrawer'
+export { FireConfirmationDialog } from './FireConfirmationDialog'
 
 // Organization components
 export { SortableTableHeader } from './SortableTableHeader'
@@ -17,3 +18,6 @@ export { ActiveFiltersBar } from './ActiveFiltersBar'
 export { GroupHeader } from './GroupHeader'
 export { GroupByDropdown } from './GroupByDropdown'
 export { InjectFilterBar } from './InjectFilterBar'
+
+// Drag-drop components
+export { DragHandle, SortableInjectRow, SortableInjectList } from './drag-drop'
