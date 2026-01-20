@@ -61,7 +61,7 @@ export const FileUploadStep = ({
 }: FileUploadStepProps) => {
   // Warn if both templateUrl and onDownloadTemplate are provided
   useEffect(() => {
-    if (process.env.NODE_ENV === 'development' && templateUrl && onDownloadTemplate) {
+    if (import.meta.env.DEV && templateUrl && onDownloadTemplate) {
       console.warn(
         'FileUploadStep: Both templateUrl and onDownloadTemplate are provided. ' +
           'onDownloadTemplate will take precedence. templateUrl is deprecated.',
