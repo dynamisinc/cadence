@@ -539,7 +539,7 @@ public class ExcelExportService : IExcelExportService
     {
         var ws = workbook.Worksheets.Add("Lookups");
 
-        // Delivery Methods
+        // Delivery Methods - populate the actual values for display and named range
         var deliveryMethods = new[] { "Verbal", "Phone", "Email", "Radio", "Written", "Simulation", "Other" };
         ws.Cell(1, 1).Value = "Delivery Methods";
         if (includeFormatting)
@@ -600,6 +600,9 @@ public class ExcelExportService : IExcelExportService
         }
 
         // Define named ranges for data validation
+        // Use the actual data rows only - Excel data validation with list references
+        // correctly validates user input against these values regardless of which row
+        // the user is editing in the MSEL worksheet
         var deliveryRange = ws.Range(2, 1, deliveryMethods.Length + 1, 1);
         deliveryRange.AddToNamed("DeliveryMethods", XLScope.Workbook);
 

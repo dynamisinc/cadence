@@ -4,7 +4,7 @@
  * First step of the import wizard - file upload with drag and drop support.
  */
 
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -59,6 +59,16 @@ export const FileUploadStep = ({
   onDownloadTemplate,
   isDownloadingTemplate = false,
 }: FileUploadStepProps) => {
+  // Warn if both templateUrl and onDownloadTemplate are provided
+  useEffect(() => {
+    if (process.env.NODE_ENV === 'development' && templateUrl && onDownloadTemplate) {
+      console.warn(
+        'FileUploadStep: Both templateUrl and onDownloadTemplate are provided. ' +
+          'onDownloadTemplate will take precedence. templateUrl is deprecated.'
+      )
+    }
+  }, [templateUrl, onDownloadTemplate])
+
   const [isDragOver, setIsDragOver] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
   const [validationError, setValidationError] = useState<string | null>(null)

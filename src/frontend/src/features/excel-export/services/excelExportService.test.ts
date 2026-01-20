@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { excelExportService, downloadBlob } from './excelExportService'
+import { excelExportService, downloadBlob, extractFilename } from './excelExportService'
 import api from '@/core/services/api'
 
 // Mock the API client
@@ -180,5 +180,56 @@ describe('downloadBlob', () => {
     downloadBlob(mockBlob, 'test-file.xlsx')
 
     expect(URL.revokeObjectURL).toHaveBeenCalledWith('blob:test-url')
+  })
+})
+
+describe('extractFilename', () => {
+  it('extracts quoted filename', () => {
+    expect(extractFilename('attachment; filename="test.xlsx"')).toBe('test.xlsx')
+  })
+
+  it('extracts quoted filename with spaces', () => {
+    expect(extractFilename('attachment; filename="My Report 2025.xlsx"')).toBe('My Report 2025.xlsx')
+  })
+
+  it('extracts unquoted filename', () => {
+    expect(extractFilename('attachment; filename=test.xlsx')).toBe('test.xlsx')
+  })
+
+  it('extracts unquoted filename stopping at semicolon', () => {
+    expect(extractFilename('attachment; filename=test.xlsx; size=1234')).toBe('test.xlsx')
+  })
+
+  it('extracts RFC 5987 encoded filename', () => {
+    expect(extractFilename("attachment; filename*=UTF-8''test%20file.xlsx")).toBe('test file.xlsx')
+  })
+
+  it('extracts RFC 5987 encoded filename with lowercase utf-8', () => {
+    expect(extractFilename("attachment; filename*=utf-8''test%20file.xlsx")).toBe('test file.xlsx')
+  })
+
+  it('returns null for undefined input', () => {
+    expect(extractFilename(undefined)).toBeNull()
+  })
+
+  it('returns null for empty string', () => {
+    expect(extractFilename('')).toBeNull()
+  })
+
+  it('returns null for header without filename', () => {
+    expect(extractFilename('attachment')).toBeNull()
+  })
+
+  it('returns null for malformed header with empty quotes', () => {
+    expect(extractFilename('attachment; filename=""')).toBeNull()
+  })
+
+  it('handles filename with special characters in quotes', () => {
+    expect(extractFilename('attachment; filename="report (2025).xlsx"')).toBe('report (2025).xlsx')
+  })
+
+  it('prefers quoted filename over unquoted', () => {
+    // If both patterns exist, quoted should win
+    expect(extractFilename('attachment; filename="quoted.xlsx"; extra=unquoted.xlsx')).toBe('quoted.xlsx')
   })
 })
