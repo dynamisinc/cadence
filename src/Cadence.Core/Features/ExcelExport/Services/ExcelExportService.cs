@@ -150,6 +150,11 @@ public class ExcelExportService : IExcelExportService
     public Task<ExportResult> GenerateTemplateAsync(bool includeFormatting = true)
     {
         using var workbook = new XLWorkbook();
+
+        // Add Instructions worksheet first (will appear as first tab)
+        AddInstructionsWorksheet(workbook, includeFormatting);
+
+        // Add MSEL worksheet
         var ws = workbook.Worksheets.Add("MSEL");
 
         // Add header row
@@ -175,36 +180,37 @@ public class ExcelExportService : IExcelExportService
             ws.Row(1).Style.Alignment.WrapText = true;
         }
 
-        // Add example row
-        var exampleData = new[]
-        {
-            "1",
-            "Hurricane Warning Issued",
-            "National Weather Service issues hurricane warning for the region.",
-            "09:00",
-            "1",
-            "08:00",
-            "National Weather Service",
-            "Emergency Operations Center",
-            "Phone",
-            "EOC",
-            "Initial Response",
-            "EOC acknowledges receipt and initiates activation procedures.",
-            "Verify EOC receives and acknowledges warning.",
-            "2",
-            "County EOC",
-            "John Smith"
-        };
-
-        for (int i = 0; i < exampleData.Length && i < allColumns.Length; i++)
-        {
-            ws.Cell(2, i + 1).Value = exampleData[i];
-        }
+        // Add example row with proper data types
+        // Columns: InjectNumber, Title, Description, ScheduledTime, ScenarioDay, ScenarioTime,
+        //          Source, Target, DeliveryMethod, Track, Phase, ExpectedAction, ControllerNotes,
+        //          Priority, LocationName, ResponsibleController
+        ws.Cell(2, 1).Value = 1; // InjectNumber (number)
+        ws.Cell(2, 2).Value = "Hurricane Warning Issued";
+        ws.Cell(2, 3).Value = "National Weather Service issues hurricane warning for the region.";
+        ws.Cell(2, 4).Value = "09:00";
+        ws.Cell(2, 5).Value = 1; // ScenarioDay (number)
+        ws.Cell(2, 6).Value = "08:00";
+        ws.Cell(2, 7).Value = "National Weather Service";
+        ws.Cell(2, 8).Value = "Emergency Operations Center";
+        ws.Cell(2, 9).Value = "Phone";
+        ws.Cell(2, 10).Value = "EOC";
+        ws.Cell(2, 11).Value = "Initial Response";
+        ws.Cell(2, 12).Value = "EOC acknowledges receipt and initiates activation procedures.";
+        ws.Cell(2, 13).Value = "Verify EOC receives and acknowledges warning.";
+        ws.Cell(2, 14).Value = 2; // Priority (number)
+        ws.Cell(2, 15).Value = "County EOC";
+        ws.Cell(2, 16).Value = "John Smith";
 
         if (includeFormatting)
         {
             ws.Row(2).Style.Fill.BackgroundColor = XLColor.LightYellow;
         }
+
+        // Add Lookups worksheet with valid values
+        AddLookupsWorksheet(workbook, includeFormatting);
+
+        // Add data validation for Delivery Method column
+        AddDataValidation(ws, allColumns);
 
         // Convert to bytes
         using var stream = new MemoryStream();
@@ -457,6 +463,191 @@ public class ExcelExportService : IExcelExportService
         }
 
         return field;
+    }
+
+    private void AddInstructionsWorksheet(XLWorkbook workbook, bool includeFormatting)
+    {
+        var ws = workbook.Worksheets.Add("Instructions");
+
+        var instructions = new[]
+        {
+            ("Overview", "This template helps you create a Master Scenario Events List (MSEL) for import into Cadence."),
+            ("", ""),
+            ("How to Use", ""),
+            ("", "1. Fill in the MSEL worksheet with your inject data"),
+            ("", "2. Use the Lookups worksheet to see valid values for dropdown fields"),
+            ("", "3. The example row (highlighted yellow) can be deleted or replaced"),
+            ("", "4. Save as .xlsx and import into Cadence"),
+            ("", ""),
+            ("Required Fields", "The following fields are required for each inject:"),
+            ("", "• Inject # - Unique number for the inject"),
+            ("", "• Title - Short descriptive title"),
+            ("", "• Description - Full inject content"),
+            ("", "• Scheduled Time - When to deliver (HH:mm format)"),
+            ("", "• To / Target - Who receives the inject"),
+            ("", ""),
+            ("Optional Fields", "The following fields are optional:"),
+            ("", "• Scenario Day - Day number in multi-day exercises"),
+            ("", "• Scenario Time - Time in the exercise scenario"),
+            ("", "• From / Source - Who sends the inject"),
+            ("", "• Delivery Method - How the inject is delivered (see Lookups)"),
+            ("", "• Track - Functional area or team"),
+            ("", "• Phase - Exercise phase name"),
+            ("", "• Expected Action - What players should do"),
+            ("", "• Notes - Controller notes"),
+            ("", "• Priority - 1 (highest) to 5 (lowest)"),
+            ("", "• Location - Where the inject occurs"),
+            ("", "• Responsible Controller - Who fires this inject"),
+            ("", ""),
+            ("Tips", ""),
+            ("", "• Use consistent time formats (HH:mm)"),
+            ("", "• Delivery Method values must match the Lookups exactly"),
+            ("", "• Leave cells blank for optional fields you don't need"),
+            ("", "• Import will validate and report any errors"),
+        };
+
+        var row = 1;
+        foreach (var (header, content) in instructions)
+        {
+            if (!string.IsNullOrEmpty(header))
+            {
+                var headerCell = ws.Cell(row, 1);
+                headerCell.Value = header;
+                if (includeFormatting)
+                {
+                    headerCell.Style.Font.Bold = true;
+                    headerCell.Style.Font.FontSize = 12;
+                }
+            }
+
+            if (!string.IsNullOrEmpty(content))
+            {
+                ws.Cell(row, string.IsNullOrEmpty(header) ? 1 : 2).Value = content;
+            }
+
+            row++;
+        }
+
+        if (includeFormatting)
+        {
+            ws.Column(1).Width = 20;
+            ws.Column(2).Width = 80;
+        }
+    }
+
+    private void AddLookupsWorksheet(XLWorkbook workbook, bool includeFormatting)
+    {
+        var ws = workbook.Worksheets.Add("Lookups");
+
+        // Delivery Methods
+        var deliveryMethods = new[] { "Verbal", "Phone", "Email", "Radio", "Written", "Simulation", "Other" };
+        ws.Cell(1, 1).Value = "Delivery Methods";
+        if (includeFormatting)
+        {
+            ws.Cell(1, 1).Style.Font.Bold = true;
+            ws.Cell(1, 1).Style.Fill.BackgroundColor = XLColor.LightBlue;
+        }
+        for (int i = 0; i < deliveryMethods.Length; i++)
+        {
+            ws.Cell(i + 2, 1).Value = deliveryMethods[i];
+        }
+
+        // Priority values (as numbers to avoid "Number stored as text" warning)
+        var priorities = new[] { 1, 2, 3, 4, 5 };
+        ws.Cell(1, 2).Value = "Priority";
+        if (includeFormatting)
+        {
+            ws.Cell(1, 2).Style.Font.Bold = true;
+            ws.Cell(1, 2).Style.Fill.BackgroundColor = XLColor.LightBlue;
+        }
+        for (int i = 0; i < priorities.Length; i++)
+        {
+            ws.Cell(i + 2, 2).Value = priorities[i];
+        }
+
+        // Inject Types (for reference)
+        var injectTypes = new[] { "Standard", "Contingency", "Adaptive", "Complexity" };
+        ws.Cell(1, 3).Value = "Inject Types";
+        if (includeFormatting)
+        {
+            ws.Cell(1, 3).Style.Font.Bold = true;
+            ws.Cell(1, 3).Style.Fill.BackgroundColor = XLColor.LightBlue;
+        }
+        for (int i = 0; i < injectTypes.Length; i++)
+        {
+            ws.Cell(i + 2, 3).Value = injectTypes[i];
+        }
+
+        // Inject Statuses (for reference, used in conduct exports)
+        var injectStatuses = new[] { "Pending", "Fired", "Skipped" };
+        ws.Cell(1, 4).Value = "Inject Status";
+        if (includeFormatting)
+        {
+            ws.Cell(1, 4).Style.Font.Bold = true;
+            ws.Cell(1, 4).Style.Fill.BackgroundColor = XLColor.LightBlue;
+        }
+        for (int i = 0; i < injectStatuses.Length; i++)
+        {
+            ws.Cell(i + 2, 4).Value = injectStatuses[i];
+        }
+
+        if (includeFormatting)
+        {
+            ws.Column(1).Width = 18;
+            ws.Column(2).Width = 10;
+            ws.Column(3).Width = 15;
+            ws.Column(4).Width = 13;
+        }
+
+        // Define named ranges for data validation
+        var deliveryRange = ws.Range(2, 1, deliveryMethods.Length + 1, 1);
+        deliveryRange.AddToNamed("DeliveryMethods", XLScope.Workbook);
+
+        var priorityRange = ws.Range(2, 2, priorities.Length + 1, 2);
+        priorityRange.AddToNamed("Priorities", XLScope.Workbook);
+    }
+
+    private void AddDataValidation(IXLWorksheet ws, (string Field, string Header, int Width)[] columns)
+    {
+        // Find the Delivery Method column index
+        var deliveryMethodIndex = -1;
+        var priorityIndex = -1;
+
+        for (int i = 0; i < columns.Length; i++)
+        {
+            if (columns[i].Field == "DeliveryMethod")
+            {
+                deliveryMethodIndex = i + 1; // 1-based
+            }
+            else if (columns[i].Field == "Priority")
+            {
+                priorityIndex = i + 1; // 1-based
+            }
+        }
+
+        // Apply validation to Delivery Method column (rows 2-1000)
+        if (deliveryMethodIndex > 0)
+        {
+            var deliveryValidation = ws.Range(2, deliveryMethodIndex, 1000, deliveryMethodIndex)
+                .CreateDataValidation();
+            deliveryValidation.List("=DeliveryMethods", true);
+            deliveryValidation.IgnoreBlanks = true;
+            deliveryValidation.ShowErrorMessage = true;
+            deliveryValidation.ErrorTitle = "Invalid Delivery Method";
+            deliveryValidation.ErrorMessage = "Please select a delivery method from the dropdown list.";
+        }
+
+        // Apply validation to Priority column (rows 2-1000)
+        if (priorityIndex > 0)
+        {
+            var priorityValidation = ws.Range(2, priorityIndex, 1000, priorityIndex)
+                .CreateDataValidation();
+            priorityValidation.List("=Priorities", true);
+            priorityValidation.IgnoreBlanks = true;
+            priorityValidation.ShowErrorMessage = true;
+            priorityValidation.ErrorTitle = "Invalid Priority";
+            priorityValidation.ErrorMessage = "Please select a priority value (1-5) from the dropdown list.";
+        }
     }
 
     #endregion

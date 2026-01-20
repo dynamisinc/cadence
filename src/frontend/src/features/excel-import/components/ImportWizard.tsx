@@ -34,6 +34,7 @@ import {
   useExecuteImport,
   useCancelImport,
 } from '../hooks/useExcelImport'
+import { useDownloadTemplate } from '../../excel-export/hooks/useExcelExport'
 import type {
   FileAnalysisResult,
   WorksheetSelectionResult,
@@ -88,6 +89,7 @@ export const ImportWizard = ({
   const validateMutation = useValidateImport()
   const executeMutation = useExecuteImport()
   const cancelMutation = useCancelImport()
+  const downloadTemplateMutation = useDownloadTemplate()
 
   // Get current step index
   const currentStepIndex = STEPS.findIndex(s => s.key === currentStep)
@@ -207,6 +209,8 @@ export const ImportWizard = ({
             uploadFile={file => uploadMutation.mutateAsync(file)}
             isUploading={uploadMutation.isPending}
             uploadError={uploadMutation.error?.message ?? null}
+            onDownloadTemplate={() => downloadTemplateMutation.mutate()}
+            isDownloadingTemplate={downloadTemplateMutation.isPending}
           />
         )
 

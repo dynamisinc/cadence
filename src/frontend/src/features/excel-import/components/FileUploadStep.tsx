@@ -25,6 +25,7 @@ import {
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
+  CobraLinkButton,
 } from '../../../theme/styledComponents'
 import type { FileAnalysisResult } from '../types'
 
@@ -41,8 +42,12 @@ interface FileUploadStepProps {
   isUploading?: boolean
   /** Error message from upload */
   uploadError?: string | null
-  /** URL for template download (optional) */
+  /** URL for template download (optional, deprecated - use onDownloadTemplate instead) */
   templateUrl?: string
+  /** Handler for template download button click */
+  onDownloadTemplate?: () => void
+  /** Is template download in progress? */
+  isDownloadingTemplate?: boolean
 }
 
 export const FileUploadStep = ({
@@ -51,6 +56,8 @@ export const FileUploadStep = ({
   isUploading = false,
   uploadError = null,
   templateUrl,
+  onDownloadTemplate,
+  isDownloadingTemplate = false,
 }: FileUploadStepProps) => {
   const [isDragOver, setIsDragOver] = useState(false)
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
@@ -266,14 +273,24 @@ export const FileUploadStep = ({
       )}
 
       {/* Template Download Link */}
-      {templateUrl && (
+      {(onDownloadTemplate || templateUrl) && (
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 3 }}>
           <FontAwesomeIcon icon={faFileExcel} style={{ color: '#1976d2' }} />
           <Typography variant="body2">
             Don&apos;t have a file ready?{' '}
-            <Link href={templateUrl} target="_blank" rel="noopener">
-              Download MSEL Template
-            </Link>
+            {onDownloadTemplate ? (
+              <CobraLinkButton
+                onClick={onDownloadTemplate}
+                disabled={isDownloadingTemplate}
+                sx={{ p: 0, minWidth: 'auto', verticalAlign: 'baseline' }}
+              >
+                {isDownloadingTemplate ? 'Downloading...' : 'Download MSEL Template'}
+              </CobraLinkButton>
+            ) : (
+              <Link href={templateUrl} target="_blank" rel="noopener">
+                Download MSEL Template
+              </Link>
+            )}
           </Typography>
         </Stack>
       )}
