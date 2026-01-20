@@ -293,7 +293,10 @@ export const useObservations = (exerciseId: string) => {
    * When offline: queues action, applies optimistic update
    * When online: sends directly to API
    */
-  const updateObservation = async (id: string, request: UpdateObservationRequest): Promise<ObservationDto> => {
+  const updateObservation = async (
+    id: string,
+    request: UpdateObservationRequest,
+  ): Promise<ObservationDto> => {
     if (isEffectivelyOnline) {
       // Online: send directly to API
       return updateMutation.mutateAsync({ id, request })

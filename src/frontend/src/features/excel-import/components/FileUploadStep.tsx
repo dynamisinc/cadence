@@ -64,7 +64,7 @@ export const FileUploadStep = ({
     if (process.env.NODE_ENV === 'development' && templateUrl && onDownloadTemplate) {
       console.warn(
         'FileUploadStep: Both templateUrl and onDownloadTemplate are provided. ' +
-          'onDownloadTemplate will take precedence. templateUrl is deprecated.'
+          'onDownloadTemplate will take precedence. templateUrl is deprecated.',
       )
     }
   }, [templateUrl, onDownloadTemplate])

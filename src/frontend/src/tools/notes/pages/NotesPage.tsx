@@ -120,7 +120,10 @@ export const NotesPage = () => {
         marginBottom={2}
       >
         <Typography variant="h5">Notes</Typography>
-        <CobraPrimaryButton startIcon={<FontAwesomeIcon icon={faPlus} />} onClick={handleOpenCreate}>
+        <CobraPrimaryButton
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
+          onClick={handleOpenCreate}
+        >
           New Note
         </CobraPrimaryButton>
       </Stack>
