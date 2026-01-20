@@ -5,12 +5,12 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor, fireEvent } from '@testing-library/react'
+import { screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { render } from '../../../test/test-utils'
 import { ExportDialog } from './ExportDialog'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { excelExportService, downloadBlob } from '../services/excelExportService'
+import { excelExportService } from '../services/excelExportService'
 
 // Mock the service
 vi.mock('../services/excelExportService', () => ({
