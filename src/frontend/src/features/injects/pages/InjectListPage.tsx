@@ -30,6 +30,7 @@ import {
   faForwardStep,
   faHome,
   faFileImport,
+  faFileExport,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { useInjects, useInjectOrganization } from '../hooks'
@@ -60,6 +61,7 @@ import type { PhaseDto } from '../../phases/types'
 import { formatScenarioTime, formatScheduledTime } from '../types'
 import { isGroupExpanded } from '../utils/groupUtils'
 import { ImportWizard } from '../../excel-import/components'
+import { ExportDialog } from '../../excel-export/components'
 
 /**
  * MSEL (Inject List) Page
@@ -147,6 +149,9 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
   // Import wizard state
   const [importWizardOpen, setImportWizardOpen] = useState(false)
+
+  // Export dialog state
+  const [exportDialogOpen, setExportDialogOpen] = useState(false)
 
   const isPhaseLoading = isCreatingPhase || isUpdatingPhase || isDeletingPhase || isReorderingPhase
 
@@ -268,6 +273,12 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
               onClick={() => setImportWizardOpen(true)}
             >
               Import
+            </CobraSecondaryButton>
+            <CobraSecondaryButton
+              startIcon={<FontAwesomeIcon icon={faFileExport} />}
+              onClick={() => setExportDialogOpen(true)}
+            >
+              Export
             </CobraSecondaryButton>
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faPlus} />}
@@ -589,6 +600,14 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           setImportWizardOpen(false)
         }}
         exerciseId={exerciseId}
+      />
+
+      {/* Export Dialog */}
+      <ExportDialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        exerciseId={exerciseId}
+        exerciseName={exercise?.name || 'Exercise'}
       />
     </Box>
   )

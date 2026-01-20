@@ -163,7 +163,9 @@ describe('ExerciseHeader', () => {
       render(<ExerciseHeader exercise={exercise} />)
 
       // Should not have practice mode tooltip
-      expect(screen.queryByLabelText(/Practice Mode - excluded from production reports/)).not.toBeInTheDocument()
+      expect(
+        screen.queryByLabelText(/Practice Mode - excluded from production reports/),
+      ).not.toBeInTheDocument()
     })
   })
 
@@ -268,10 +270,14 @@ describe('ExerciseHeader', () => {
 
       render(<ExerciseHeader exercise={exercise} actions={actions} />)
 
-      expect(screen.getByRole('heading', { level: 1, name: 'Full-Scale Flood Response' })).toBeInTheDocument()
+      expect(
+        screen.getByRole('heading', { level: 1, name: 'Full-Scale Flood Response' }),
+      ).toBeInTheDocument()
       expect(screen.getByText('FSE')).toBeInTheDocument()
       expect(screen.getByText('Active')).toBeInTheDocument()
-      expect(screen.getByLabelText(/Practice Mode - excluded from production reports/)).toBeInTheDocument()
+      expect(
+        screen.getByLabelText(/Practice Mode - excluded from production reports/),
+      ).toBeInTheDocument()
       expect(screen.getByRole('button', { name: 'Stop Exercise' })).toBeInTheDocument()
     })
 

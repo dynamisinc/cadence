@@ -311,7 +311,8 @@ export const ColumnMappingStep = ({
 
           {/* Hint */}
           <Alert severity="info" sx={{ mb: 2, py: 0.5 }}>
-            This preview shows how your data will appear in Cadence. Switch to Mapping view to adjust column assignments.
+            This preview shows how your data will appear in Cadence. Switch to Mapping view to
+            adjust column assignments.
           </Alert>
 
           {/* Preview Card */}
@@ -364,8 +365,15 @@ interface MappingRowProps {
   getSampleValue: (columnIndex: number | null | undefined) => string
 }
 
-const MappingRow = ({ mapping, columns, allMappings, onMappingChange, getSampleValue }: MappingRowProps) => {
-  const hasSuggestion = mapping.suggestedColumnIndex !== null && mapping.suggestedColumnIndex !== undefined
+const MappingRow = ({
+  mapping,
+  columns,
+  allMappings,
+  onMappingChange,
+  getSampleValue,
+}: MappingRowProps) => {
+  const hasSuggestion =
+    mapping.suggestedColumnIndex !== null && mapping.suggestedColumnIndex !== undefined
   const isAutoMapped = hasSuggestion && mapping.sourceColumnIndex === mapping.suggestedColumnIndex
 
   // Build a map of which columns are already mapped (excluding current mapping)

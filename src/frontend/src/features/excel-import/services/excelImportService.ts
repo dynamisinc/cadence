@@ -63,7 +63,9 @@ export const getSuggestedMappings = async (sessionId: string): Promise<ColumnMap
 /**
  * Validate import data with configured mappings
  */
-export const validateImport = async (request: ConfigureMappingsRequest): Promise<ValidationResult> => {
+export const validateImport = async (
+  request: ConfigureMappingsRequest,
+): Promise<ValidationResult> => {
   const response = await api.post<ValidationResult>(`${BASE_URL}/validate`, request)
   return response.data
 }

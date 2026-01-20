@@ -267,7 +267,12 @@ interface ValidationRowProps {
   mappedFields: ColumnMapping[]
 }
 
-const ValidationRow = ({ row, isExpanded, onToggle, mappedFields: _mappedFields }: ValidationRowProps) => {
+const ValidationRow = ({
+  row,
+  isExpanded,
+  onToggle,
+  mappedFields: _mappedFields,
+}: ValidationRowProps) => {
   const getStatusChip = () => {
     switch (row.status) {
       case 'Valid':

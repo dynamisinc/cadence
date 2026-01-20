@@ -2,6 +2,51 @@ import api from '@/core/services/api'
 import type { ExportMselRequest, ExportResultInfo } from '../types'
 
 /**
+ * Extract filename from Content-Disposition header.
+ * Handles various formats:
+ * - attachment; filename="file.xlsx"
+ * - attachment; filename=file.xlsx
+ * - attachment; filename*=UTF-8''file.xlsx
+ * Returns null if filename cannot be extracted.
+ */
+function extractFilename(contentDisposition: string | undefined): string | null {
+  if (!contentDisposition) {
+    return null
+  }
+
+  // Try quoted filename first: filename="something.xlsx"
+  // The regex [^"]+ requires at least one character, so empty quotes won't match
+  const quotedMatch = contentDisposition.match(/filename="([^"]+)"/)
+  if (quotedMatch?.[1]) {
+    return quotedMatch[1]
+  }
+
+  // Check for empty quotes case - return null
+  if (/filename=""/.test(contentDisposition)) {
+    return null
+  }
+
+  // Try unquoted filename: filename=something.xlsx
+  // Be careful to stop at semicolon or end of string
+  const unquotedMatch = contentDisposition.match(/filename=([^;\s]+)/)
+  if (unquotedMatch?.[1]) {
+    return unquotedMatch[1]
+  }
+
+  // Try RFC 5987 encoded filename: filename*=UTF-8''something.xlsx
+  const encodedMatch = contentDisposition.match(/filename\*=(?:UTF-8''|utf-8'')([^;\s]+)/i)
+  if (encodedMatch?.[1]) {
+    try {
+      return decodeURIComponent(encodedMatch[1])
+    } catch {
+      return encodedMatch[1]
+    }
+  }
+
+  return null
+}
+
+/**
  * Service for Excel export operations
  */
 export const excelExportService = {
@@ -16,7 +61,7 @@ export const excelExportService = {
 
     // Extract metadata from response headers
     const filename =
-      response.headers['content-disposition']?.match(/filename="?(.+?)"?$/)?.[1] ??
+      extractFilename(response.headers['content-disposition']) ??
       `MSEL_Export.${request.format ?? 'xlsx'}`
     const injectCount = parseInt(response.headers['x-inject-count'] ?? '0', 10)
     const phaseCount = parseInt(response.headers['x-phase-count'] ?? '0', 10)
@@ -42,8 +87,7 @@ export const excelExportService = {
     })
 
     const filename =
-      response.headers['content-disposition']?.match(/filename="?(.+?)"?$/)?.[1] ??
-      'Cadence_MSEL_Template.xlsx'
+      extractFilename(response.headers['content-disposition']) ?? 'Cadence_MSEL_Template.xlsx'
 
     return {
       blob: response.data,
@@ -51,6 +95,9 @@ export const excelExportService = {
     }
   },
 }
+
+// Export for testing
+export { extractFilename }
 
 /**
  * Utility to trigger a file download from a blob

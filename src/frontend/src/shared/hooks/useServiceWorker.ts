@@ -29,7 +29,8 @@ export interface UseServiceWorkerReturn {
  *
  * @example
  * ```tsx
- * const { needRefresh, offlineReady, updateServiceWorker, dismissNotification } = useServiceWorker();
+ * const { needRefresh, offlineReady, updateServiceWorker, dismissNotification } =
+ *   useServiceWorker();
  *
  * if (needRefresh) {
  *   return <button onClick={updateServiceWorker}>Update Available</button>;
