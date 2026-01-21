@@ -109,6 +109,15 @@ export const injectService = {
   deleteInject: async (exerciseId: string, id: string): Promise<void> => {
     await apiClient.delete(`/api/exercises/${exerciseId}/injects/${id}`)
   },
+
+  /**
+   * Reorder injects by providing new sequence order
+   */
+  reorderInjects: async (exerciseId: string, injectIds: string[]): Promise<void> => {
+    await apiClient.post(`/api/exercises/${exerciseId}/injects/reorder`, {
+      injectIds,
+    })
+  },
 }
 
 export default injectService

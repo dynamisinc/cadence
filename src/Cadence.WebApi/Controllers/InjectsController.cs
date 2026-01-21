@@ -539,6 +539,69 @@ public class InjectsController : ControllerBase
     }
 
     /// <summary>
+    /// Reorder injects by updating their sequence values.
+    /// </summary>
+    [HttpPost("reorder")]
+    public async Task<ActionResult> ReorderInjects(Guid exerciseId, ReorderInjectsRequest request)
+    {
+        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        if (exercise == null)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+
+        if (exercise.ActiveMselId == null)
+        {
+            return BadRequest(new { message = "Exercise has no active MSEL" });
+        }
+
+        // Block reordering for archived exercises
+        if (exercise.Status == ExerciseStatus.Archived)
+        {
+            return BadRequest(new { message = "Cannot reorder injects in an archived exercise" });
+        }
+
+        // Validate request
+        if (request.InjectIds == null || request.InjectIds.Count == 0)
+        {
+            return BadRequest(new { message = "InjectIds is required" });
+        }
+
+        // Get all injects for this MSEL
+        var injects = await _context.Injects
+            .Where(i => i.MselId == exercise.ActiveMselId)
+            .ToListAsync();
+
+        // Verify all provided IDs exist in this MSEL
+        var injectDict = injects.ToDictionary(i => i.Id);
+        foreach (var id in request.InjectIds)
+        {
+            if (!injectDict.ContainsKey(id))
+            {
+                return BadRequest(new { message = $"Inject {id} not found in this exercise" });
+            }
+        }
+
+        // Update sequence values based on the new order
+        for (int i = 0; i < request.InjectIds.Count; i++)
+        {
+            var inject = injectDict[request.InjectIds[i]];
+            inject.Sequence = i + 1;
+            inject.ModifiedBy = SystemConstants.SystemUserId;
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Broadcast SignalR notification for inject reorder
+        await _hubContext.NotifyInjectsReordered(exerciseId, request.InjectIds);
+
+        _logger.LogInformation("Reordered {Count} injects in exercise {ExerciseId}",
+            request.InjectIds.Count, exerciseId);
+
+        return Ok(new { message = "Injects reordered successfully" });
+    }
+
+    /// <summary>
     /// Delete an inject.
     /// </summary>
     [HttpDelete("{id:guid}")]

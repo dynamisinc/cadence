@@ -30,7 +30,7 @@ import { toast } from 'react-toastify'
 import type { InjectDto } from '../../types'
 
 /** Minimum time to show the saving indicator (ms) */
-const MIN_INDICATOR_TIME = 500
+const MIN_INDICATOR_TIME = 1000
 
 interface SortableInjectListProps {
   /** List of injects to display (should be ordered by sequence) */

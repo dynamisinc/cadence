@@ -189,4 +189,16 @@ public class ExerciseHubContext : IExerciseHubContext
             "Broadcast ExerciseStatusChanged (status: {Status}) to exercise {ExerciseId}",
             exercise.Status, exerciseId);
     }
+
+    /// <inheritdoc />
+    public async Task NotifyInjectsReordered(Guid exerciseId, List<Guid> injectIds)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("InjectsReordered", injectIds);
+
+        _logger.LogDebug(
+            "Broadcast InjectsReordered ({Count} injects) to exercise {ExerciseId}",
+            injectIds.Count, exerciseId);
+    }
 }

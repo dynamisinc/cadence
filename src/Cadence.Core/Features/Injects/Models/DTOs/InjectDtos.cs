@@ -346,6 +346,17 @@ public class SkipInjectRequest
 }
 
 /// <summary>
+/// DTO for reordering injects.
+/// </summary>
+public class ReorderInjectsRequest
+{
+    /// <summary>
+    /// Ordered list of inject IDs representing the new sequence.
+    /// </summary>
+    public List<Guid> InjectIds { get; init; } = new();
+}
+
+/// <summary>
 /// Extension methods for mapping between Inject entity and DTOs.
 /// </summary>
 public static class InjectMapper

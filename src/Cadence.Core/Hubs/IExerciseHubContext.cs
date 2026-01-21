@@ -77,4 +77,9 @@ public interface IExerciseHubContext
     /// Used for status workflow transitions (Draft → Active → Paused → Completed → Archived).
     /// </summary>
     Task NotifyExerciseStatusChanged(Guid exerciseId, ExerciseDto exercise);
+
+    /// <summary>
+    /// Notify clients that injects have been reordered.
+    /// </summary>
+    Task NotifyInjectsReordered(Guid exerciseId, List<Guid> injectIds);
 }
