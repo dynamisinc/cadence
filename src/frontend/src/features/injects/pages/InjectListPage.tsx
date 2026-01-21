@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useCallback } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
@@ -19,6 +19,7 @@ import {
   DialogContent,
   DialogActions,
   Collapse,
+  Portal,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -33,6 +34,9 @@ import {
   faFileExport,
 } from '@fortawesome/free-solid-svg-icons'
 
+/** Minimum time to show the saving indicator (ms) */
+const MIN_INDICATOR_TIME = 1000
+
 import { useInjects, useInjectOrganization } from '../hooks'
 import { InjectOrganizationProvider } from '../contexts/InjectOrganizationContext'
 import { useBreadcrumbs } from '../../../core/contexts'
@@ -46,6 +50,8 @@ import {
   ActiveFiltersBar,
   SortableTableHeader,
   GroupHeader,
+  SortableInjectList,
+  SortableInjectRow,
 } from '../components'
 import {
   CobraPrimaryButton,
@@ -58,10 +64,30 @@ import { usePermissions } from '../../../shared/hooks'
 import { InjectStatus } from '../../../types'
 import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
+import type { SortConfig, SortableColumn, InjectGroup } from '../types/organization'
 import { formatScenarioTime, formatScheduledTime } from '../types'
+
 import { isGroupExpanded } from '../utils/groupUtils'
 import { ImportWizard } from '../../excel-import/components'
 import { ExportDialog } from '../../excel-export/components'
+
+/**
+ * Check if the current sort order allows drag-and-drop reordering.
+ * Reordering is allowed when:
+ * - No sort is applied (column is null), OR
+ * - Sorted by scheduledTime ascending (which matches sequence order)
+ */
+const isSequenceOrder = (sort: SortConfig): boolean => {
+  // No explicit sort - use default sequence order
+  if (sort.column === null || sort.direction === null) {
+    return true
+  }
+  // Sorted by scheduled time ascending (matches sequence order)
+  if (sort.column === 'scheduledTime' && sort.direction === 'asc') {
+    return true
+  }
+  return false
+}
 
 /**
  * MSEL (Inject List) Page
@@ -94,8 +120,18 @@ interface InjectListPageContentProps {
 const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const navigate = useNavigate()
   const { exercise, loading: exerciseLoading } = useExercise(exerciseId)
-  const { injects, loading, error, fireInject, skipInject, isFiring, isSkipping, fetchInjects } =
-    useInjects(exerciseId)
+  const {
+    injects,
+    loading,
+    error,
+    fireInject,
+    skipInject,
+    isFiring,
+    isSkipping,
+    fetchInjects,
+    reorderInjects,
+    isReordering: isReorderingInjects,
+  } = useInjects(exerciseId)
   const {
     phases,
     fetchPhases,
@@ -152,6 +188,28 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
   // Export dialog state
   const [exportDialogOpen, setExportDialogOpen] = useState(false)
+
+  // Centralized saving indicator state for drag-and-drop reordering
+  const [showSavingIndicator, setShowSavingIndicator] = useState(false)
+  const savingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Cleanup timeout on unmount
+  const handleSavingChange = useCallback((isSaving: boolean) => {
+    if (isSaving) {
+      // Clear any existing timeout
+      if (savingTimeoutRef.current) {
+        clearTimeout(savingTimeoutRef.current)
+        savingTimeoutRef.current = null
+      }
+      setShowSavingIndicator(true)
+    } else {
+      // Calculate remaining time for minimum display
+      savingTimeoutRef.current = setTimeout(() => {
+        setShowSavingIndicator(false)
+        savingTimeoutRef.current = null
+      }, MIN_INDICATOR_TIME)
+    }
+  }, [])
 
   const isPhaseLoading = isCreatingPhase || isUpdatingPhase || isDeletingPhase || isReorderingPhase
 
@@ -347,208 +405,101 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onClearFilters={organization.clearAllFilters}
         />
       ) : organization.groups ? (
-        // Grouped view
-        <Stack spacing={2}>
-          {organization.groups.map(group => {
-            const groupInjects = organization.getInjectsForGroup(group)
-            const expanded = isGroupExpanded(organization.expandedGroups, group.id)
-
-            // Extract phase ID from group ID (format: "phase-{uuid}" or "phase-unassigned")
-            const phaseId = group.id.startsWith('phase-') && group.id !== 'phase-unassigned'
-              ? group.id.replace('phase-', '')
-              : null
-
-            // Get phase object for edit dialog
-            const phase = phaseId ? phases.find(p => p.id === phaseId) : null
-
-            // Calculate first/last for real phases only (excluding unassigned)
-            const realPhaseGroups = organization.groups?.filter(
-              g => g.id.startsWith('phase-') && g.id !== 'phase-unassigned',
-            ) ?? []
-            const phaseGroupIndex = realPhaseGroups.findIndex(g => g.id === group.id)
-            const isFirstPhase = phaseGroupIndex === 0
-            const isLastPhase = phaseGroupIndex === realPhaseGroups.length - 1
-
-            return (
-              <Box key={group.id}>
-                <GroupHeader
-                  name={group.name}
-                  count={group.count}
-                  expanded={expanded}
-                  onToggle={() => organization.toggleGroupExpanded(group.id)}
-                  groupBy={organization.groupBy}
-                  statusValue={group.name}
-                  canManagePhases={canManage}
-                  phaseManagement={
-                    organization.groupBy === 'phase' && phaseId
-                      ? {
-                        phaseId,
-                        isFirst: isFirstPhase,
-                        isLast: isLastPhase,
-                        onEdit: () => phase && handleEditPhase(phase),
-                        onDelete: () => phase && handleDeletePhase(phase),
-                        onMoveUp: () => phaseId && movePhaseUp(phaseId),
-                        onMoveDown: () => phaseId && movePhaseDown(phaseId),
-                        isLoading: isPhaseLoading,
-                      }
-                      : undefined
-                  }
-                />
-                <Collapse in={expanded}>
-                  <TableContainer
-                    component={Paper}
-                    variant="outlined"
-                    sx={{
-                      borderTopLeftRadius: 0,
-                      borderTopRightRadius: 0,
-                      borderTop: 0,
-                    }}
-                  >
-                    <Table size="small">
-                      <TableHead>
-                        <TableRow>
-                          <SortableTableHeader
-                            column="injectNumber"
-                            label="#"
-                            activeColumn={organization.sort.column}
-                            direction={organization.sort.direction}
-                            onSort={organization.toggleSort}
-                            width={60}
-                          />
-                          <SortableTableHeader
-                            column="scheduledTime"
-                            label="Scheduled"
-                            activeColumn={organization.sort.column}
-                            direction={organization.sort.direction}
-                            onSort={organization.toggleSort}
-                            width={100}
-                          />
-                          <SortableTableHeader
-                            column="scenarioTime"
-                            label="Scenario"
-                            activeColumn={organization.sort.column}
-                            direction={organization.sort.direction}
-                            onSort={organization.toggleSort}
-                            width={100}
-                          />
-                          <SortableTableHeader
-                            column="title"
-                            label="Title"
-                            activeColumn={organization.sort.column}
-                            direction={organization.sort.direction}
-                            onSort={organization.toggleSort}
-                          />
-                          <TableCell width={140}>Target</TableCell>
-                          <TableCell width={90}>Method</TableCell>
-                          <SortableTableHeader
-                            column="status"
-                            label="Status"
-                            activeColumn={organization.sort.column}
-                            direction={organization.sort.direction}
-                            onSort={organization.toggleSort}
-                            width={90}
-                          />
-                          {canFireInjects && <TableCell width={100}>Actions</TableCell>}
-                        </TableRow>
-                      </TableHead>
-                      <TableBody>
-                        {groupInjects.map(inject => (
-                          <InjectRow
-                            key={inject.id}
-                            inject={inject}
-                            onClick={() => handleRowClick(inject.id)}
-                            canFireInjects={canFireInjects}
-                            onFire={e => handleFireClick(e, inject.id)}
-                            onSkip={e => handleSkipClick(e, inject.id)}
-                            isFiring={isFiring}
-                            isSkipping={isSkipping}
-                            searchTerm={organization.debouncedSearchTerm}
-                          />
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </TableContainer>
-                </Collapse>
-              </Box>
-            )
-          })}
-        </Stack>
+        // Grouped view with drag-and-drop within groups
+        <GroupedInjectView
+          groups={organization.groups}
+          getInjectsForGroup={organization.getInjectsForGroup}
+          expandedGroups={organization.expandedGroups}
+          toggleGroupExpanded={organization.toggleGroupExpanded}
+          groupBy={organization.groupBy}
+          phases={phases}
+          canManage={canManage}
+          canFireInjects={canFireInjects}
+          canReorder={
+            canManage &&
+            !organization.hasActiveFilters &&
+            !organization.debouncedSearchTerm &&
+            isSequenceOrder(organization.sort)
+          }
+          onRowClick={handleRowClick}
+          onFire={handleFireClick}
+          onSkip={handleSkipClick}
+          onReorder={reorderInjects}
+          onEditPhase={handleEditPhase}
+          onDeletePhase={handleDeletePhase}
+          onMovePhaseUp={movePhaseUp}
+          onMovePhaseDown={movePhaseDown}
+          isFiring={isFiring}
+          isSkipping={isSkipping}
+          isReordering={isReorderingInjects}
+          isPhaseLoading={isPhaseLoading}
+          searchTerm={organization.debouncedSearchTerm}
+          sort={organization.sort}
+          onSort={organization.toggleSort}
+          showSavingIndicator={showSavingIndicator}
+          onSavingChange={handleSavingChange}
+        />
       ) : (
-        // Flat list view (no grouping)
-        <TableContainer component={Paper}>
-          <Table size="small">
-            <TableHead>
-              <TableRow>
-                <SortableTableHeader
-                  column="injectNumber"
-                  label="#"
-                  activeColumn={organization.sort.column}
-                  direction={organization.sort.direction}
-                  onSort={organization.toggleSort}
-                  width={60}
-                />
-                <SortableTableHeader
-                  column="scheduledTime"
-                  label="Scheduled"
-                  activeColumn={organization.sort.column}
-                  direction={organization.sort.direction}
-                  onSort={organization.toggleSort}
-                  width={100}
-                />
-                <SortableTableHeader
-                  column="scenarioTime"
-                  label="Scenario"
-                  activeColumn={organization.sort.column}
-                  direction={organization.sort.direction}
-                  onSort={organization.toggleSort}
-                  width={100}
-                />
-                <SortableTableHeader
-                  column="title"
-                  label="Title"
-                  activeColumn={organization.sort.column}
-                  direction={organization.sort.direction}
-                  onSort={organization.toggleSort}
-                />
-                <TableCell width={140}>Target</TableCell>
-                <TableCell width={90}>Method</TableCell>
-                <SortableTableHeader
-                  column="status"
-                  label="Status"
-                  activeColumn={organization.sort.column}
-                  direction={organization.sort.direction}
-                  onSort={organization.toggleSort}
-                  width={90}
-                />
-                <SortableTableHeader
-                  column="phase"
-                  label="Phase"
-                  activeColumn={organization.sort.column}
-                  direction={organization.sort.direction}
-                  onSort={organization.toggleSort}
-                  width={120}
-                />
-                {canFireInjects && <TableCell width={100}>Actions</TableCell>}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {organization.organizedInjects.map(inject => (
-                <InjectRow
-                  key={inject.id}
-                  inject={inject}
-                  onClick={() => handleRowClick(inject.id)}
-                  canFireInjects={canFireInjects}
-                  onFire={e => handleFireClick(e, inject.id)}
-                  onSkip={e => handleSkipClick(e, inject.id)}
-                  isFiring={isFiring}
-                  isSkipping={isSkipping}
-                  searchTerm={organization.debouncedSearchTerm}
-                  showPhase
-                />
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
+        // Flat list view (no grouping) with drag-and-drop reordering
+        <FlatInjectList
+          injects={organization.organizedInjects}
+          onRowClick={handleRowClick}
+          canFireInjects={canFireInjects}
+          canReorder={
+            canManage &&
+            !organization.hasActiveFilters &&
+            !organization.debouncedSearchTerm &&
+            isSequenceOrder(organization.sort)
+          }
+          onFire={handleFireClick}
+          onSkip={handleSkipClick}
+          onReorder={reorderInjects}
+          isFiring={isFiring}
+          isSkipping={isSkipping}
+          isReordering={isReorderingInjects}
+          searchTerm={organization.debouncedSearchTerm}
+          sort={organization.sort}
+          onSort={organization.toggleSort}
+          showSavingIndicator={showSavingIndicator}
+          onSavingChange={handleSavingChange}
+        />
+      )}
+
+      {/* Centralized Saving Indicator for drag-and-drop reordering */}
+      {showSavingIndicator && (
+        <Portal>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 1300,
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                px: 3,
+                py: 2,
+                borderRadius: 2,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              }}
+            >
+              <Typography variant="body1">
+                Saving changes...
+              </Typography>
+            </Box>
+          </Box>
+        </Portal>
       )}
 
       {/* Skip Reason Dialog */}
@@ -662,6 +613,519 @@ const InjectTableSkeleton = () => {
         </TableBody>
       </Table>
     </TableContainer>
+  )
+}
+
+/**
+ * Grouped inject view with drag-and-drop reordering within each group
+ */
+interface GroupedInjectViewProps {
+  groups: InjectGroup[]
+  getInjectsForGroup: (group: InjectGroup) => InjectDto[]
+  expandedGroups: Set<string>
+  toggleGroupExpanded: (groupId: string) => void
+  groupBy: 'phase' | 'status' | 'none'
+  phases: PhaseDto[]
+  canManage: boolean
+  canFireInjects: boolean
+  canReorder: boolean
+  onRowClick: (id: string) => void
+  onFire: (e: React.MouseEvent, id: string) => void
+  onSkip: (e: React.MouseEvent, id: string) => void
+  onReorder: (injectIds: string[]) => Promise<void>
+  onEditPhase: (phase: PhaseDto) => void
+  onDeletePhase: (phase: PhaseDto) => Promise<void>
+  onMovePhaseUp: (phaseId: string) => void
+  onMovePhaseDown: (phaseId: string) => void
+  isFiring: boolean
+  isSkipping: boolean
+  isReordering: boolean
+  isPhaseLoading: boolean
+  searchTerm: string
+  sort: SortConfig
+  onSort: (column: SortableColumn) => void
+  showSavingIndicator: boolean
+  onSavingChange: (isSaving: boolean) => void
+}
+
+const GroupedInjectView = ({
+  groups,
+  getInjectsForGroup,
+  expandedGroups,
+  toggleGroupExpanded,
+  groupBy,
+  phases,
+  canManage,
+  canFireInjects,
+  canReorder,
+  onRowClick,
+  onFire,
+  onSkip,
+  onReorder,
+  onEditPhase,
+  onDeletePhase,
+  onMovePhaseUp,
+  onMovePhaseDown,
+  isFiring,
+  isSkipping,
+  isReordering,
+  isPhaseLoading,
+  searchTerm,
+  sort,
+  onSort,
+  showSavingIndicator,
+  onSavingChange,
+}: GroupedInjectViewProps) => {
+  return (
+    <Stack spacing={2}>
+      {groups.map(group => {
+        const groupInjects = getInjectsForGroup(group)
+        const expanded = isGroupExpanded(expandedGroups, group.id)
+
+        // Extract phase ID from group ID (format: "phase-{uuid}" or "phase-unassigned")
+        const phaseId = group.id.startsWith('phase-') && group.id !== 'phase-unassigned'
+          ? group.id.replace('phase-', '')
+          : null
+
+        // Get phase object for edit dialog
+        const phase = phaseId ? phases.find(p => p.id === phaseId) : null
+
+        // Calculate first/last for real phases only (excluding unassigned)
+        const realPhaseGroups = groups.filter(
+          g => g.id.startsWith('phase-') && g.id !== 'phase-unassigned',
+        )
+        const phaseGroupIndex = realPhaseGroups.findIndex(g => g.id === group.id)
+        const isFirstPhase = phaseGroupIndex === 0
+        const isLastPhase = phaseGroupIndex === realPhaseGroups.length - 1
+
+        const tableContent = (orderedInjects: InjectDto[]) => (
+          <Table size="small">
+            <TableHead>
+              <TableRow>
+                {canReorder && <TableCell width={40} />}
+                <SortableTableHeader
+                  column="injectNumber"
+                  label="#"
+                  activeColumn={sort.column}
+                  direction={sort.direction}
+                  onSort={onSort}
+                  width={60}
+                />
+                <SortableTableHeader
+                  column="scheduledTime"
+                  label="Scheduled"
+                  activeColumn={sort.column}
+                  direction={sort.direction}
+                  onSort={onSort}
+                  width={100}
+                />
+                <SortableTableHeader
+                  column="scenarioTime"
+                  label="Scenario"
+                  activeColumn={sort.column}
+                  direction={sort.direction}
+                  onSort={onSort}
+                  width={100}
+                />
+                <SortableTableHeader
+                  column="title"
+                  label="Title"
+                  activeColumn={sort.column}
+                  direction={sort.direction}
+                  onSort={onSort}
+                />
+                <TableCell width={140}>Target</TableCell>
+                <TableCell width={90}>Method</TableCell>
+                <SortableTableHeader
+                  column="status"
+                  label="Status"
+                  activeColumn={sort.column}
+                  direction={sort.direction}
+                  onSort={onSort}
+                  width={90}
+                />
+                {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {orderedInjects.map(inject => (
+                canReorder ? (
+                  <SortableInjectRow
+                    key={inject.id}
+                    inject={inject}
+                    disabled={isReordering}
+                  >
+                    <InjectRowCells
+                      inject={inject}
+                      onClick={() => onRowClick(inject.id)}
+                      canFireInjects={canFireInjects}
+                      onFire={e => onFire(e, inject.id)}
+                      onSkip={e => onSkip(e, inject.id)}
+                      isFiring={isFiring}
+                      isSkipping={isSkipping}
+                      searchTerm={searchTerm}
+                    />
+                  </SortableInjectRow>
+                ) : (
+                  <InjectRow
+                    key={inject.id}
+                    inject={inject}
+                    onClick={() => onRowClick(inject.id)}
+                    canFireInjects={canFireInjects}
+                    onFire={e => onFire(e, inject.id)}
+                    onSkip={e => onSkip(e, inject.id)}
+                    isFiring={isFiring}
+                    isSkipping={isSkipping}
+                    searchTerm={searchTerm}
+                  />
+                )
+              ))}
+            </TableBody>
+          </Table>
+        )
+
+        return (
+          <Box key={group.id}>
+            <GroupHeader
+              name={group.name}
+              count={group.count}
+              expanded={expanded}
+              onToggle={() => toggleGroupExpanded(group.id)}
+              groupBy={groupBy}
+              statusValue={group.name}
+              canManagePhases={canManage}
+              phaseManagement={
+                groupBy === 'phase' && phaseId
+                  ? {
+                    phaseId,
+                    isFirst: isFirstPhase,
+                    isLast: isLastPhase,
+                    onEdit: () => phase && onEditPhase(phase),
+                    onDelete: () => phase && onDeletePhase(phase),
+                    onMoveUp: () => phaseId && onMovePhaseUp(phaseId),
+                    onMoveDown: () => phaseId && onMovePhaseDown(phaseId),
+                    isLoading: isPhaseLoading,
+                  }
+                  : undefined
+              }
+            />
+            <Collapse in={expanded}>
+              <TableContainer
+                component={Paper}
+                variant="outlined"
+                sx={{
+                  borderTopLeftRadius: 0,
+                  borderTopRightRadius: 0,
+                  borderTop: 0,
+                }}
+              >
+                {canReorder ? (
+                  <SortableInjectList
+                    injects={groupInjects}
+                    onReorder={onReorder}
+                    disabled={isReordering}
+                    showSavingIndicator={showSavingIndicator}
+                    onSavingChange={onSavingChange}
+                  >
+                    {tableContent}
+                  </SortableInjectList>
+                ) : (
+                  tableContent(groupInjects)
+                )}
+              </TableContainer>
+            </Collapse>
+          </Box>
+        )
+      })}
+    </Stack>
+  )
+}
+
+/**
+ * Flat inject list with drag-and-drop reordering support
+ */
+interface FlatInjectListProps {
+  injects: InjectDto[]
+  onRowClick: (id: string) => void
+  canFireInjects: boolean
+  canReorder: boolean
+  onFire: (e: React.MouseEvent, id: string) => void
+  onSkip: (e: React.MouseEvent, id: string) => void
+  onReorder: (injectIds: string[]) => Promise<void>
+  isFiring: boolean
+  isSkipping: boolean
+  isReordering: boolean
+  searchTerm: string
+  sort: SortConfig
+  onSort: (column: SortableColumn) => void
+  showSavingIndicator: boolean
+  onSavingChange: (isSaving: boolean) => void
+}
+
+const FlatInjectList = ({
+  injects,
+  onRowClick,
+  canFireInjects,
+  canReorder,
+  onFire,
+  onSkip,
+  onReorder,
+  isFiring,
+  isSkipping,
+  isReordering,
+  searchTerm,
+  sort,
+  onSort,
+  showSavingIndicator,
+  onSavingChange,
+}: FlatInjectListProps) => {
+  const tableContent = (orderedInjects: InjectDto[]) => (
+    <TableContainer component={Paper}>
+      <Table size="small">
+        <TableHead>
+          <TableRow>
+            {canReorder && <TableCell width={40} />}
+            <SortableTableHeader
+              column="injectNumber"
+              label="#"
+              activeColumn={sort.column}
+              direction={sort.direction}
+              onSort={onSort}
+              width={60}
+            />
+            <SortableTableHeader
+              column="scheduledTime"
+              label="Scheduled"
+              activeColumn={sort.column}
+              direction={sort.direction}
+              onSort={onSort}
+              width={100}
+            />
+            <SortableTableHeader
+              column="scenarioTime"
+              label="Scenario"
+              activeColumn={sort.column}
+              direction={sort.direction}
+              onSort={onSort}
+              width={100}
+            />
+            <SortableTableHeader
+              column="title"
+              label="Title"
+              activeColumn={sort.column}
+              direction={sort.direction}
+              onSort={onSort}
+            />
+            <TableCell width={140}>Target</TableCell>
+            <TableCell width={90}>Method</TableCell>
+            <SortableTableHeader
+              column="status"
+              label="Status"
+              activeColumn={sort.column}
+              direction={sort.direction}
+              onSort={onSort}
+              width={90}
+            />
+            <SortableTableHeader
+              column="phase"
+              label="Phase"
+              activeColumn={sort.column}
+              direction={sort.direction}
+              onSort={onSort}
+              width={120}
+            />
+            {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {orderedInjects.map(inject => (
+            canReorder ? (
+              <SortableInjectRow
+                key={inject.id}
+                inject={inject}
+                disabled={isReordering}
+              >
+                <InjectRowCells
+                  inject={inject}
+                  onClick={() => onRowClick(inject.id)}
+                  canFireInjects={canFireInjects}
+                  onFire={e => onFire(e, inject.id)}
+                  onSkip={e => onSkip(e, inject.id)}
+                  isFiring={isFiring}
+                  isSkipping={isSkipping}
+                  searchTerm={searchTerm}
+                  showPhase
+                />
+              </SortableInjectRow>
+            ) : (
+              <InjectRow
+                key={inject.id}
+                inject={inject}
+                onClick={() => onRowClick(inject.id)}
+                canFireInjects={canFireInjects}
+                onFire={e => onFire(e, inject.id)}
+                onSkip={e => onSkip(e, inject.id)}
+                isFiring={isFiring}
+                isSkipping={isSkipping}
+                searchTerm={searchTerm}
+                showPhase
+              />
+            )
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  )
+
+  if (canReorder) {
+    return (
+      <SortableInjectList
+        injects={injects}
+        onReorder={onReorder}
+        disabled={isReordering}
+        showSavingIndicator={showSavingIndicator}
+        onSavingChange={onSavingChange}
+      >
+        {tableContent}
+      </SortableInjectList>
+    )
+  }
+
+  return tableContent(injects)
+}
+
+interface InjectRowCellsProps {
+  inject: InjectDto
+  onClick: () => void
+  canFireInjects: boolean
+  onFire: (e: React.MouseEvent) => void
+  onSkip: (e: React.MouseEvent) => void
+  isFiring: boolean
+  isSkipping: boolean
+  searchTerm?: string
+  showPhase?: boolean
+}
+
+/**
+ * Table cells for an inject row (without the TableRow wrapper)
+ * Used by SortableInjectRow which provides its own TableRow
+ */
+const InjectRowCells = ({
+  inject,
+  onClick,
+  canFireInjects,
+  onFire,
+  onSkip,
+  isFiring,
+  isSkipping,
+  searchTerm = '',
+  showPhase = false,
+}: InjectRowCellsProps) => {
+  const scenarioTimeDisplay = formatScenarioTime(inject.scenarioDay, inject.scenarioTime)
+  const scheduledTimeDisplay = formatScheduledTime(inject.scheduledTime)
+  const isPending = inject.status === InjectStatus.Pending
+
+  return (
+    <>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <Typography variant="body2" fontWeight={500}>
+          {inject.injectNumber}
+        </Typography>
+      </TableCell>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <Typography variant="body2">{scheduledTimeDisplay}</Typography>
+      </TableCell>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <Typography
+          variant="body2"
+          color={scenarioTimeDisplay ? 'text.primary' : 'text.secondary'}
+        >
+          {scenarioTimeDisplay ?? '—'}
+        </Typography>
+      </TableCell>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <Typography
+          variant="body2"
+          sx={{
+            maxWidth: 300,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          <HighlightedText text={inject.title} searchTerm={searchTerm} />
+        </Typography>
+      </TableCell>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <Typography
+          variant="body2"
+          color={inject.target ? 'text.primary' : 'text.secondary'}
+          sx={{
+            maxWidth: 140,
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+          }}
+        >
+          {inject.target ?? '—'}
+        </Typography>
+      </TableCell>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <Typography
+          variant="body2"
+          color={inject.deliveryMethod ? 'text.primary' : 'text.secondary'}
+        >
+          {inject.deliveryMethod ?? '—'}
+        </Typography>
+      </TableCell>
+      <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+        <InjectStatusChip status={inject.status} />
+      </TableCell>
+      {showPhase && (
+        <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
+          <Typography
+            variant="body2"
+            color={inject.phaseName ? 'text.primary' : 'text.secondary'}
+            sx={{
+              maxWidth: 120,
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {inject.phaseName ?? 'Unassigned'}
+          </Typography>
+        </TableCell>
+      )}
+      {canFireInjects && (
+        <TableCell>
+          {isPending && (
+            <Stack direction="row" spacing={0.5}>
+              <Tooltip title="Fire inject">
+                <IconButton
+                  size="small"
+                  color="success"
+                  onClick={onFire}
+                  disabled={isFiring || isSkipping}
+                >
+                  <FontAwesomeIcon icon={faPlay} size="sm" />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Skip inject">
+                <IconButton
+                  size="small"
+                  color="warning"
+                  onClick={onSkip}
+                  disabled={isFiring || isSkipping}
+                >
+                  <FontAwesomeIcon icon={faForwardStep} size="sm" />
+                </IconButton>
+              </Tooltip>
+            </Stack>
+          )}
+        </TableCell>
+      )}
+    </>
   )
 }
 

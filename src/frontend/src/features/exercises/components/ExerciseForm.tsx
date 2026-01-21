@@ -19,11 +19,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraPrimaryButton, CobraLinkButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { ExerciseType } from '../../../types'
+import { ExerciseType, DeliveryMode, TimelineMode, ExerciseStatus } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import { createExerciseSchema, EXERCISE_FIELD_LIMITS, type CreateExerciseFormValues } from '../types/validation'
 import type { ExerciseDto } from '../types'
 import { TIME_ZONES, getBrowserTimeZone, getTimeZoneOption, type TimeZoneOption } from '../utils/timezones'
+import { getDefaultDeliveryMode, getDefaultTimelineMode } from '../utils/timingDefaults'
+import TimingConfigurationSection from './TimingConfigurationSection'
 
 interface ExerciseFormProps {
   exercise?: ExerciseDto | null
@@ -68,6 +70,7 @@ export const ExerciseForm = ({
     handleSubmit,
     reset,
     watch,
+    setValue,
     formState: { errors, isDirty },
   } = useForm<CreateExerciseFormValues>({
     resolver: zodResolver(createExerciseSchema),
@@ -81,12 +84,35 @@ export const ExerciseForm = ({
       endTime: '',
       timeZoneId: getBrowserTimeZone(), // Default to browser's timezone
       isPracticeMode: false,
+      deliveryMode: DeliveryMode.ClockDriven,
+      timelineMode: TimelineMode.RealTime,
+      timeScale: null,
     },
     mode: 'onBlur',
   })
 
-  // Watch name for character count
+  // Watch fields for reactivity
   const nameValue = watch('name')
+  const exerciseTypeValue = watch('exerciseType')
+  const deliveryModeValue = watch('deliveryMode')
+  const timelineModeValue = watch('timelineMode')
+  const timeScaleValue = watch('timeScale')
+
+  // Apply smart defaults when exercise type changes
+  useEffect(() => {
+    if (exerciseTypeValue && !isEdit) {
+      const defaultDeliveryMode = getDefaultDeliveryMode(exerciseTypeValue)
+      const defaultTimelineMode = getDefaultTimelineMode(exerciseTypeValue)
+
+      setValue('deliveryMode', defaultDeliveryMode)
+      setValue('timelineMode', defaultTimelineMode)
+
+      // Clear time scale if switching away from Compressed mode
+      if (defaultTimelineMode !== TimelineMode.Compressed) {
+        setValue('timeScale', null)
+      }
+    }
+  }, [exerciseTypeValue, isEdit, setValue])
 
   // Notify parent of dirty state changes
   useEffect(() => {
@@ -106,6 +132,9 @@ export const ExerciseForm = ({
         endTime: exercise.endTime ?? '',
         timeZoneId: exercise.timeZoneId,
         isPracticeMode: exercise.isPracticeMode,
+        deliveryMode: exercise.deliveryMode,
+        timelineMode: exercise.timelineMode,
+        timeScale: exercise.timeScale,
       })
     }
   }, [exercise, reset])
@@ -177,6 +206,29 @@ export const ExerciseForm = ({
             </FormControl>
           )}
         />
+
+        {/* Timing Configuration (CLK-03) */}
+        {exerciseTypeValue && (
+          <TimingConfigurationSection
+            deliveryMode={deliveryModeValue}
+            timelineMode={timelineModeValue}
+            timeScale={timeScaleValue ?? null}
+            exerciseType={exerciseTypeValue}
+            isLocked={exercise?.status === ExerciseStatus.Active}
+            onChange={(field, value) => {
+              setValue(
+                field as keyof CreateExerciseFormValues,
+                value as CreateExerciseFormValues[keyof CreateExerciseFormValues],
+                { shouldDirty: true },
+              )
+            }}
+            errors={{
+              deliveryMode: errors.deliveryMode?.message,
+              timelineMode: errors.timelineMode?.message,
+              timeScale: errors.timeScale?.message,
+            }}
+          />
+        )}
 
         {/* Scheduled Date */}
         <Controller

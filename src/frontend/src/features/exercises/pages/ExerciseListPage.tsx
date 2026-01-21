@@ -335,7 +335,9 @@ interface ExerciseRowProps {
   onImportClick: (e: React.MouseEvent) => void
 }
 
-const ExerciseRow = ({ exercise, onClick, formatDate, canManage, onImportClick }: ExerciseRowProps) => {
+const ExerciseRow = ({
+  exercise, onClick, formatDate, canManage, onImportClick,
+}: ExerciseRowProps) => {
   // Only show import button for Draft exercises
   const canImport = canManage && exercise.status === ExerciseStatus.Draft
 

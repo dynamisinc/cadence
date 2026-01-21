@@ -170,6 +170,10 @@ public class ExercisesController : ControllerBase
             exercise.ExerciseType = request.ExerciseType;
             exercise.ScheduledDate = request.ScheduledDate;
             exercise.StartTime = request.StartTime;
+            // Timing configuration fields (CLK-01)
+            exercise.DeliveryMode = request.DeliveryMode;
+            exercise.TimelineMode = request.TimelineMode;
+            exercise.TimeScale = request.TimeScale;
         }
 
         // End time can always be updated (as long as not Completed/Archived)

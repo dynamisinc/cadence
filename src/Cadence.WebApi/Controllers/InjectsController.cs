@@ -1,6 +1,7 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Injects.Models.DTOs;
+using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -19,16 +20,23 @@ public class InjectsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<InjectsController> _logger;
     private readonly IExerciseHubContext _hubContext;
+    private readonly IInjectService _injectService;
 
-    public InjectsController(AppDbContext context, ILogger<InjectsController> logger, IExerciseHubContext hubContext)
+    public InjectsController(
+        AppDbContext context,
+        ILogger<InjectsController> logger,
+        IExerciseHubContext hubContext,
+        IInjectService injectService)
     {
         _context = context;
         _logger = logger;
         _hubContext = hubContext;
+        _injectService = injectService;
     }
 
     /// <summary>
     /// Get all injects for an exercise (via its active MSEL).
+    /// Uses split query approach to avoid cartesian explosion with objectives.
     /// </summary>
     [HttpGet]
     public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(Guid exerciseId)
@@ -44,16 +52,117 @@ public class InjectsController : ControllerBase
             return Ok(Array.Empty<InjectDto>());
         }
 
-        var injects = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.FiredByUser)
-            .Include(i => i.SkippedByUser)
-            .Include(i => i.InjectObjectives)
+        // Use split query to avoid cartesian explosion with InjectObjectives
+        // First get the injects without objectives
+        var injectsQuery = _context.Injects
             .Where(i => i.MselId == exercise.ActiveMselId)
             .OrderBy(i => i.Sequence)
+            .Select(i => new
+            {
+                i.Id,
+                i.InjectNumber,
+                i.Title,
+                i.Description,
+                i.ScheduledTime,
+                i.DeliveryTime,
+                i.ScenarioDay,
+                i.ScenarioTime,
+                i.Target,
+                i.Source,
+                i.DeliveryMethod,
+                i.DeliveryMethodId,
+                DeliveryMethodName = i.DeliveryMethodLookup != null ? i.DeliveryMethodLookup.Name : null,
+                i.DeliveryMethodOther,
+                i.InjectType,
+                i.Status,
+                i.Sequence,
+                i.ParentInjectId,
+                i.FireCondition,
+                i.ExpectedAction,
+                i.ControllerNotes,
+                i.ReadyAt,
+                i.FiredAt,
+                i.FiredBy,
+                FiredByName = i.FiredByUser != null ? i.FiredByUser.DisplayName : null,
+                i.SkippedAt,
+                i.SkippedBy,
+                SkippedByName = i.SkippedByUser != null ? i.SkippedByUser.DisplayName : null,
+                i.SkipReason,
+                i.MselId,
+                i.PhaseId,
+                PhaseName = i.Phase != null ? i.Phase.Name : null,
+                i.CreatedAt,
+                i.UpdatedAt,
+                i.SourceReference,
+                i.Priority,
+                i.TriggerType,
+                i.ResponsibleController,
+                i.LocationName,
+                i.LocationType,
+                i.Track
+            });
+
+        var injectsData = await injectsQuery.ToListAsync();
+
+        // Get all objective mappings in a single query
+        var injectIds = injectsData.Select(i => i.Id).ToList();
+        var objectiveMappings = await _context.InjectObjectives
+            .Where(io => injectIds.Contains(io.InjectId))
+            .Select(io => new { io.InjectId, io.ObjectiveId })
             .ToListAsync();
 
-        return Ok(injects.Select(i => i.ToDto()));
+        // Group objectives by inject ID
+        var objectivesByInject = objectiveMappings
+            .GroupBy(io => io.InjectId)
+            .ToDictionary(g => g.Key, g => g.Select(io => io.ObjectiveId).ToList());
+
+        // Map to DTOs
+        var injects = injectsData.Select(i => new InjectDto(
+            i.Id,
+            i.InjectNumber,
+            i.Title,
+            i.Description,
+            i.ScheduledTime,
+            i.DeliveryTime,
+            i.ScenarioDay,
+            i.ScenarioTime,
+            i.Target,
+            i.Source,
+            i.DeliveryMethod,
+            i.DeliveryMethodId,
+            i.DeliveryMethodName,
+            i.DeliveryMethodOther,
+            i.InjectType,
+            i.Status,
+            i.Sequence,
+            i.ParentInjectId,
+            i.FireCondition,
+            i.ExpectedAction,
+            i.ControllerNotes,
+            i.ReadyAt,
+            i.FiredAt,
+            i.FiredBy,
+            i.FiredByName,
+            i.SkippedAt,
+            i.SkippedBy,
+            i.SkippedByName,
+            i.SkipReason,
+            i.MselId,
+            i.PhaseId,
+            i.PhaseName,
+            objectivesByInject.GetValueOrDefault(i.Id) ?? new List<Guid>(),
+            i.CreatedAt,
+            i.UpdatedAt,
+            i.SourceReference,
+            i.Priority,
+            i.TriggerType,
+            i.ResponsibleController,
+            i.LocationName,
+            i.LocationType,
+            i.Track
+        )).ToList();
+
+        return Ok(injects);
     }
 
     /// <summary>
@@ -434,6 +543,42 @@ public class InjectsController : ControllerBase
             inject.Id, inject.Title);
 
         return Ok(dto);
+    }
+
+    /// <summary>
+    /// Reorder injects by updating their sequence values.
+    /// </summary>
+    [HttpPost("reorder")]
+    public async Task<ActionResult> ReorderInjects(Guid exerciseId, ReorderInjectsRequest request)
+    {
+        // Validate request
+        if (request.InjectIds == null || request.InjectIds.Count == 0)
+        {
+            return BadRequest(new { message = "InjectIds is required" });
+        }
+
+        try
+        {
+            // Delegate to service layer
+            await _injectService.ReorderInjectsAsync(exerciseId, request.InjectIds);
+
+            _logger.LogInformation("Reordered {Count} injects in exercise {ExerciseId}",
+                request.InjectIds.Count, exerciseId);
+
+            return Ok(new { message = "Injects reordered successfully" });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>

@@ -72,6 +72,22 @@ public class ExerciseHubContext : IExerciseHubContext
     }
 
     /// <inheritdoc />
+    public async Task NotifyInjectReadyToFire(Guid exerciseId, InjectDto inject)
+    {
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("InjectReadyToFire", inject),
+            group.SendAsync("InjectStatusChanged", inject)
+        );
+
+        _logger.LogDebug(
+            "Broadcast InjectReadyToFire for inject {InjectId} to exercise {ExerciseId}",
+            inject.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
     public async Task NotifyInjectStatusChanged(Guid exerciseId, InjectDto inject)
     {
         await _hubContext.Clients
@@ -172,5 +188,17 @@ public class ExerciseHubContext : IExerciseHubContext
         _logger.LogDebug(
             "Broadcast ExerciseStatusChanged (status: {Status}) to exercise {ExerciseId}",
             exercise.Status, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyInjectsReordered(Guid exerciseId, List<Guid> injectIds)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("InjectsReordered", injectIds);
+
+        _logger.LogDebug(
+            "Broadcast InjectsReordered ({Count} injects) to exercise {ExerciseId}",
+            injectIds.Count, exerciseId);
     }
 }

@@ -16,7 +16,7 @@ import {
 } from './searchUtils'
 import type { InjectDto } from '../types'
 import type { SearchMatch } from '../types/organization'
-import { InjectStatus, InjectType } from '../../../types'
+import { InjectStatus, InjectType, TriggerType } from '../../../types'
 
 // Helper to create test inject data
 const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
@@ -25,6 +25,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   title: 'Test Inject',
   description: 'Test description',
   scheduledTime: '09:00:00',
+  deliveryTime: null,
   scenarioDay: 1,
   scenarioTime: '08:00:00',
   target: 'EOC',
@@ -40,6 +41,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   triggerCondition: null,
   expectedAction: 'Notify emergency manager',
   controllerNotes: 'Important note for controller',
+  readyAt: null,
   firedAt: null,
   firedBy: null,
   firedByName: null,
@@ -55,7 +57,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   updatedAt: '2024-01-01T00:00:00Z',
   sourceReference: null,
   priority: null,
-  triggerType: 'Manual',
+  triggerType: TriggerType.Manual,
   responsibleController: null,
   locationName: null,
   locationType: null,

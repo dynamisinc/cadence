@@ -41,16 +41,23 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useExercise } from '../hooks'
-import { ExerciseHeader, NarrativeView, StickyClockHeader, FloatingClockChip } from '../components'
+import {
+  ExerciseHeader,
+  NarrativeView,
+  StickyClockHeader,
+  FloatingClockChip,
+  ClockDrivenConductView,
+  FacilitatorPacedConductView,
+} from '../components'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs, useConnectivity } from '../../../core/contexts'
 import { useExerciseSignalR } from '../../../shared/hooks'
-import { ExerciseStatus, InjectStatus, ExerciseClockState } from '../../../types'
+import { ExerciseStatus, InjectStatus, ExerciseClockState, DeliveryMode } from '../../../types'
 
 // Feature imports
 import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime } from '../../exercise-clock'
-import { InjectListByStatus, ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
+import { ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
 import {
   ObservationForm,
   ObservationList,
@@ -88,10 +95,8 @@ export const ExerciseConductPage = () => {
   const {
     injects,
     loading: injectsLoading,
-    error: injectsError,
     fireInject,
     skipInject,
-    resetInject,
   } = useInjects(exerciseId!)
   const {
     observations,
@@ -101,7 +106,7 @@ export const ExerciseConductPage = () => {
     updateObservation,
     deleteObservation,
   } = useObservations(exerciseId!)
-  const { summaries: objectives } = useObjectiveSummaries(exerciseId!)
+  const { summaries: _objectives } = useObjectiveSummaries(exerciseId!)
 
   // UI state
   const [showObservationForm, setShowObservationForm] = useState(false)
@@ -445,6 +450,17 @@ export const ExerciseConductPage = () => {
     setShowStopConfirm(false)
   }
 
+  // Handle jump to inject (facilitator-paced mode)
+  // Skips all injects between current and target, then the target becomes current
+  const handleJumpTo = async (_targetInjectId: string, skipInjectIds: string[]) => {
+    // Skip all injects in the skipInjectIds list
+    for (const injectId of skipInjectIds) {
+      await skipInject(injectId, { reason: 'Jumped to later inject' })
+    }
+    // The target inject will naturally become the current inject
+    // since all prior pending injects have been skipped
+  }
+
   // Loading state
   if (exerciseLoading && !exercise) {
     return (
@@ -625,10 +641,12 @@ export const ExerciseConductPage = () => {
           )}
 
           {/* Sticky Clock Header (Option 1) */}
-          {layoutMode === 'sticky' && (
+          {layoutMode === 'sticky' && exercise && (
             <StickyClockHeader
+              exercise={exercise}
               clockState={clockState ?? null}
               displayTime={displayTime}
+              elapsedTimeMs={elapsedTimeMs}
               loading={clockLoading}
               injects={injects}
               readyToFireCount={readyToFireCount}
@@ -722,9 +740,11 @@ export const ExerciseConductPage = () => {
                   Injects
                 </Typography>
                 {/* Visual notification when new injects become ready */}
-                <Box sx={{ flexShrink: 0 }}>
-                  <ReadyNotification readyCount={readyToFireCount} />
-                </Box>
+                {exercise.deliveryMode !== DeliveryMode.ClockDriven && (
+                  <Box sx={{ flexShrink: 0 }}>
+                    <ReadyNotification readyCount={readyToFireCount} />
+                  </Box>
+                )}
                 <Box
                   sx={{
                     flex: 1,
@@ -734,20 +754,32 @@ export const ExerciseConductPage = () => {
                     ...CobraStyles.Scrollbar.Styling,
                   }}
                 >
-                  <InjectListByStatus
-                    injects={injects}
-                    exerciseStartTime={exerciseStartTime}
-                    elapsedTimeMs={elapsedTimeMs}
-                    canControl={canControl}
-                    loading={injectsLoading}
-                    error={injectsError}
-                    onFire={fireInject}
-                    onSkip={skipInject}
-                    onReset={resetInject}
-                    openInjectId={openInjectId}
-                    onDrawerClose={() => setOpenInjectId(null)}
-                    objectives={objectives}
-                  />
+                  {/* Clock-Driven View */}
+                  {exercise.deliveryMode === DeliveryMode.ClockDriven ? (
+                    <ClockDrivenConductView
+                      exercise={exercise}
+                      injects={injects}
+                      elapsedTimeMs={elapsedTimeMs}
+                      canControl={canControl}
+                      isSubmitting={false}
+                      onFire={async id => { await fireInject(id) }}
+                      onSkip={async (id, req) => { await skipInject(id, req) }}
+                      openInjectId={openInjectId}
+                      onDrawerClose={() => setOpenInjectId(null)}
+                    />
+                  ) : (
+                    /* Facilitator-Paced View - Current Inject focused, no clock */
+                    <FacilitatorPacedConductView
+                      exercise={exercise}
+                      injects={injects}
+                      canControl={canControl}
+                      isSubmitting={false}
+                      isLoading={injectsLoading}
+                      onFire={async id => { await fireInject(id) }}
+                      onSkip={async (id, req) => { await skipInject(id, req) }}
+                      onJumpTo={handleJumpTo}
+                    />
+                  )}
                 </Box>
               </Paper>
             </Box>

@@ -142,9 +142,9 @@ describe('FilterDropdown', () => {
 
       await user.click(screen.getByRole('button'))
 
-      await waitFor(async () => {
-        await user.click(screen.getByText('Pending'))
-      })
+      // Wait for the menu to appear, then click
+      const pendingOption = await screen.findByText('Pending')
+      await user.click(pendingOption)
 
       expect(onChange).toHaveBeenCalledWith(['Pending'])
     })
@@ -164,9 +164,9 @@ describe('FilterDropdown', () => {
 
       await user.click(screen.getByRole('button'))
 
-      await waitFor(async () => {
-        await user.click(screen.getByText('Pending'))
-      })
+      // Wait for the menu to appear, then click
+      const pendingOption = await screen.findByText('Pending')
+      await user.click(pendingOption)
 
       expect(onChange).toHaveBeenCalledWith(['Fired'])
     })
@@ -229,9 +229,9 @@ describe('FilterDropdown', () => {
 
       await user.click(screen.getByRole('button'))
 
-      await waitFor(async () => {
-        await user.click(screen.getByText('Select all'))
-      })
+      // Wait for the menu to appear, then click
+      const selectAllButton = await screen.findByText('Select all')
+      await user.click(selectAllButton)
 
       expect(onChange).toHaveBeenCalledWith(['Pending', 'Fired', 'Skipped'])
     })
@@ -251,9 +251,9 @@ describe('FilterDropdown', () => {
 
       await user.click(screen.getByRole('button'))
 
-      await waitFor(async () => {
-        await user.click(screen.getByText('Clear'))
-      })
+      // Wait for the menu to appear, then click
+      const clearButton = await screen.findByText('Clear')
+      await user.click(clearButton)
 
       expect(onChange).toHaveBeenCalledWith([])
     })

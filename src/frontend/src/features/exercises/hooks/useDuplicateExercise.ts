@@ -12,7 +12,7 @@ import type { ExerciseDto, DuplicateExerciseRequest } from '../types'
  * On success, invalidates the exercises list and optionally navigates to the new exercise.
  *
  * @param options - Hook options
- * @param options.navigateOnSuccess - Whether to navigate to the new exercise on success (default: true)
+ * @param options.navigateOnSuccess - Navigate to new exercise on success (default: true)
  * @returns Mutation result with duplicate function
  */
 export const useDuplicateExercise = (options?: {

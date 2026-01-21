@@ -1,5 +1,6 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
+using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -14,15 +15,18 @@ public class ExerciseClockService : IExerciseClockService
 {
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
+    private readonly IInjectReadinessService _injectReadinessService;
     private readonly ILogger<ExerciseClockService> _logger;
 
     public ExerciseClockService(
         AppDbContext context,
         IExerciseHubContext hubContext,
+        IInjectReadinessService injectReadinessService,
         ILogger<ExerciseClockService> logger)
     {
         _context = context;
         _hubContext = hubContext;
+        _injectReadinessService = injectReadinessService;
         _logger = logger;
     }
 
@@ -86,6 +90,9 @@ public class ExerciseClockService : IExerciseClockService
 
         // Broadcast clock started event to all connected clients
         await _hubContext.NotifyClockStarted(exerciseId, clockState);
+
+        // Immediately evaluate for any past-due injects
+        await _injectReadinessService.EvaluateExerciseAsync(exerciseId);
 
         return clockState;
     }

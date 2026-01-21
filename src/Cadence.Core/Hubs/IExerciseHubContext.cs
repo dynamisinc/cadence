@@ -31,6 +31,12 @@ public interface IExerciseHubContext
     Task NotifyInjectReset(Guid exerciseId, InjectDto inject);
 
     /// <summary>
+    /// Notify clients that an inject has transitioned to Ready status.
+    /// Used in clock-driven mode when an inject's delivery time has been reached.
+    /// </summary>
+    Task NotifyInjectReadyToFire(Guid exerciseId, InjectDto inject);
+
+    /// <summary>
     /// Notify clients of a generic inject status change.
     /// Used when the specific event type (Fired/Skipped/Reset) is not relevant.
     /// </summary>
@@ -71,4 +77,9 @@ public interface IExerciseHubContext
     /// Used for status workflow transitions (Draft → Active → Paused → Completed → Archived).
     /// </summary>
     Task NotifyExerciseStatusChanged(Guid exerciseId, ExerciseDto exercise);
+
+    /// <summary>
+    /// Notify clients that injects have been reordered.
+    /// </summary>
+    Task NotifyInjectsReordered(Guid exerciseId, List<Guid> injectIds);
 }

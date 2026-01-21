@@ -139,8 +139,7 @@ export function useInjectOrganization(
 
   // Initialize expanded groups when groups first become available
   // Only if there's no persisted state - the context handles this check internally
-  // IMPORTANT: We need to wait for phases to load before initializing when groupBy='phase',
-  // otherwise we might expand wrong group IDs (e.g., 'phase-unassigned' instead of actual phase IDs)
+  // IMPORTANT: Wait for phases to load when groupBy='phase', otherwise we expand wrong IDs
   const hasInitializedRef = useRef(false)
   const previousGroupIdsRef = useRef<Set<string>>(new Set())
 
@@ -190,7 +189,8 @@ export function useInjectOrganization(
 
     // Update previous group IDs for next comparison
     previousGroupIdsRef.current = currentGroupIds
-  }, [groups, phases.length, context.groupBy, context.initializeExpandedGroups, context.expandedGroups, context.toggleGroupExpanded])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [groups, phases.length, context.groupBy, context.initializeExpandedGroups])
 
   // Track previous search/filter state to detect changes
   const prevSearchRef = useRef<string>('')
@@ -212,7 +212,8 @@ export function useInjectOrganization(
 
     // Detect if search/filter became MORE restrictive (added, not cleared)
     const searchAdded = context.debouncedSearchTerm && !prevSearch
-    const searchModified = context.debouncedSearchTerm && prevSearch && context.debouncedSearchTerm !== prevSearch
+    const currentSearch = context.debouncedSearchTerm
+    const searchModified = currentSearch && prevSearch && currentSearch !== prevSearch
     const filtersAdded = currentFilterCount > prevFilterCount
 
     // Update refs
@@ -232,6 +233,7 @@ export function useInjectOrganization(
       })
     }
     // When search is cleared or filters removed, do nothing - keep current expansion state
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [groups, sorted, context.debouncedSearchTerm, context.filters])
 
   return {

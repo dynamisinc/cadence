@@ -36,6 +36,13 @@ public class Inject : BaseEntity
     public TimeOnly ScheduledTime { get; set; }
 
     /// <summary>
+    /// Elapsed time from exercise start when inject should be delivered.
+    /// Used in ClockDriven mode for auto-Ready functionality.
+    /// Format: TimeSpan from 00:00:00 (e.g., 00:30:00 = 30 minutes into exercise).
+    /// </summary>
+    public TimeSpan? DeliveryTime { get; set; }
+
+    /// <summary>
     /// In-story day number (1-99). Null if scenario time not used.
     /// </summary>
     public int? ScenarioDay { get; set; }
@@ -168,6 +175,12 @@ public class Inject : BaseEntity
     // =========================================================================
     // Conduct Properties (Updated During Exercise)
     // =========================================================================
+
+    /// <summary>
+    /// UTC timestamp when the inject transitioned to Ready status.
+    /// Null if not yet ready. Set automatically when clock reaches DeliveryTime.
+    /// </summary>
+    public DateTime? ReadyAt { get; set; }
 
     /// <summary>
     /// Actual UTC delivery timestamp. Set when fired.

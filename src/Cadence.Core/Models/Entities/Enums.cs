@@ -73,14 +73,17 @@ public enum InjectType
 /// </summary>
 public enum InjectStatus
 {
-    /// <summary>Not yet delivered.</summary>
-    Pending,
+    /// <summary>Inject is waiting; delivery time not yet reached.</summary>
+    Pending = 0,
 
-    /// <summary>Delivered to players.</summary>
-    Fired,
+    /// <summary>Inject is ready to fire; delivery time reached (clock-driven mode).</summary>
+    Ready = 1,
 
-    /// <summary>Intentionally not delivered.</summary>
-    Skipped
+    /// <summary>Inject has been delivered to players.</summary>
+    Fired = 2,
+
+    /// <summary>Inject was intentionally not delivered.</summary>
+    Skipped = 3
 }
 
 /// <summary>
@@ -168,6 +171,43 @@ public enum ExerciseClockState
 
     /// <summary>Clock temporarily paused - exercise on hold.</summary>
     Paused
+}
+
+/// <summary>
+/// Delivery mode determines how injects transition to Ready status.
+/// </summary>
+public enum DeliveryMode
+{
+    /// <summary>
+    /// Injects become Ready when exercise clock reaches DeliveryTime.
+    /// </summary>
+    ClockDriven = 0,
+
+    /// <summary>
+    /// Injects are fired manually by Controller in Sequence order.
+    /// </summary>
+    FacilitatorPaced = 1
+}
+
+/// <summary>
+/// Timeline mode determines how exercise time relates to story time.
+/// </summary>
+public enum TimelineMode
+{
+    /// <summary>
+    /// 1:1 ratio - exercise time matches wall clock.
+    /// </summary>
+    RealTime = 0,
+
+    /// <summary>
+    /// Story time advances faster than real time per TimeScale.
+    /// </summary>
+    Compressed = 1,
+
+    /// <summary>
+    /// No real-time clock; only Story Time is used.
+    /// </summary>
+    StoryOnly = 2
 }
 
 // =============================================================================

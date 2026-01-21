@@ -53,3 +53,11 @@ export {
   isGroupExpanded,
   getGroupByOptions,
 } from './groupUtils'
+
+// Clock-driven grouping utilities
+export {
+  groupInjectsForClockDriven,
+  formatCountdown,
+  UPCOMING_WINDOW_MS,
+  type GroupedInjects,
+} from './clockDrivenGrouping'

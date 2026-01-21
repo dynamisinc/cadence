@@ -157,6 +157,11 @@ public class AppDbContext : DbContext
             // Clock state configuration
             entity.Property(e => e.ClockState).HasConversion<string>().HasMaxLength(20);
 
+            // Timing configuration
+            entity.Property(e => e.DeliveryMode).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.TimelineMode).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.TimeScale).HasColumnType("decimal(5,2)");
+
             entity.HasIndex(e => new { e.OrganizationId, e.Status });
             entity.HasIndex(e => e.ScheduledDate);
 

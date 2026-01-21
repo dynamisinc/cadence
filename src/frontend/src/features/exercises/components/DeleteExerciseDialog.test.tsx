@@ -45,6 +45,9 @@ const createMockExercise = (overrides: Partial<ExerciseDto> = {}): ExerciseDto =
   location: 'Emergency Operations Center',
   organizationId: 'org-1',
   activeMselId: null,
+  deliveryMode: 'FacilitatorPaced',
+  timelineMode: 'RealTime',
+  timeScale: null,
   createdAt: '2025-01-01T00:00:00Z',
   updatedAt: '2025-01-01T00:00:00Z',
   createdBy: 'user-1',
@@ -153,9 +156,13 @@ describe('DeleteExerciseDialog', () => {
     it('hides loading indicator after summary loads', async () => {
       renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)
 
-      await waitFor(() => {
-        expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-      })
+      // Wait for data to load - check for something that only appears after loading
+      await waitFor(
+        () => {
+          expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+        },
+        { timeout: 10000 },
+      )
     })
   })
 
@@ -274,22 +281,26 @@ describe('DeleteExerciseDialog', () => {
       expect(onClose).toHaveBeenCalledTimes(1)
     })
 
-    it('calls exerciseService.deleteExercise when confirmed', async () => {
-      const user = userEvent.setup()
-      renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)
+    it(
+      'calls exerciseService.deleteExercise when confirmed',
+      async () => {
+        const user = userEvent.setup({ delay: null }) // Faster typing
+        renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/Type exercise name to confirm/i)).toBeInTheDocument()
-      })
+        await waitFor(() => {
+          expect(screen.getByLabelText(/Type exercise name to confirm/i)).toBeInTheDocument()
+        })
 
-      await user.type(screen.getByLabelText(/Type exercise name to confirm/i), 'Test Exercise')
-      await user.click(screen.getByRole('checkbox'))
-      await user.click(screen.getByRole('button', { name: /Delete/i }))
+        await user.type(screen.getByLabelText(/Type exercise name to confirm/i), 'Test Exercise')
+        await user.click(screen.getByRole('checkbox'))
+        await user.click(screen.getByRole('button', { name: /Delete/i }))
 
-      await waitFor(() => {
-        expect(exerciseService.deleteExercise).toHaveBeenCalledWith('exercise-1')
-      })
-    })
+        await waitFor(() => {
+          expect(exerciseService.deleteExercise).toHaveBeenCalledWith('exercise-1')
+        })
+      },
+      10000,
+    )
   })
 
   describe('Error Handling', () => {

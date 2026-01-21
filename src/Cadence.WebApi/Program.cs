@@ -4,6 +4,7 @@ using Cadence.Core.Extensions;
 using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
 using Cadence.WebApi.Hubs;
+using Cadence.WebApi.Services;
 using Microsoft.AspNetCore.Mvc;
 using Scalar.AspNetCore;
 
@@ -64,6 +65,9 @@ builder.Services.AddApplicationServices();
 
 // Add SignalR Hub Context
 builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();
+
+// Add Background Services
+builder.Services.AddHostedService<InjectReadinessBackgroundService>();
 
 // Add Logging
 builder.Services.AddLogging(logging =>

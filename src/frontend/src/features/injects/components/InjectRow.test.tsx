@@ -34,6 +34,7 @@ const createMockInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   title: 'Test Inject Title',
   description: 'This is a test description for the inject.',
   scheduledTime: '09:00:00',
+  deliveryTime: null,
   scenarioDay: null,
   scenarioTime: null,
   target: 'EOC Director',
@@ -49,6 +50,7 @@ const createMockInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   triggerCondition: null,
   expectedAction: null,
   controllerNotes: null,
+  readyAt: null,
   firedAt: null,
   firedBy: null,
   firedByName: null,
@@ -113,7 +115,8 @@ describe('InjectRow', () => {
 
       renderInjectRow({ inject, offsetMs: 0 })
 
-      expect(screen.queryByText(/This description should not appear by default/)).not.toBeInTheDocument()
+      const descText = /This description should not appear by default/
+      expect(screen.queryByText(descText)).not.toBeInTheDocument()
     })
   })
 

@@ -8,7 +8,7 @@ import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent, within } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { ObservationForm } from './ObservationForm'
-import { InjectStatus } from '../../../types'
+import { InjectStatus, InjectType, TriggerType } from '../../../types'
 import type { InjectDto } from '../../injects/types'
 
 // Helper to create mock inject
@@ -20,6 +20,7 @@ const createMockInject = (
   title: 'Test Inject',
   description: 'Test description',
   scheduledTime: '09:00:00',
+  deliveryTime: null,
   scenarioDay: null,
   scenarioTime: null,
   target: 'EOC Director',
@@ -28,13 +29,14 @@ const createMockInject = (
   deliveryMethodId: null,
   deliveryMethodName: null,
   deliveryMethodOther: null,
-  injectType: 'Standard',
+  injectType: InjectType.Standard,
   status: InjectStatus.Pending,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
   expectedAction: null,
   controllerNotes: null,
+  readyAt: null,
   firedAt: null,
   firedBy: null,
   firedByName: null,
@@ -50,7 +52,7 @@ const createMockInject = (
   updatedAt: '2025-01-01T00:00:00Z',
   sourceReference: null,
   priority: null,
-  triggerType: 'Manual',
+  triggerType: TriggerType.Manual,
   responsibleController: null,
   locationName: null,
   locationType: null,

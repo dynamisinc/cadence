@@ -122,7 +122,7 @@ const UTC_TIMEZONE: TimeZoneOption[] = [
 
 /**
  * All available time zones grouped for display
- * Order: US/Canada first (primary market), then Americas, Europe, Middle East, Asia-Pacific, Australia, UTC last
+ * Order: US/Canada first, then Americas, Europe, Middle East, Asia-Pacific, Australia, UTC
  */
 export const TIME_ZONES: TimeZoneOption[] = [
   ...NORTH_AMERICA_TIMEZONES,

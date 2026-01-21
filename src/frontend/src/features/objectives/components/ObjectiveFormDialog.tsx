@@ -90,8 +90,11 @@ export const ObjectiveFormDialog = ({
 
     switch (field) {
       case 'objectiveNumber':
-        if (values.objectiveNumber && values.objectiveNumber.length > OBJECTIVE_FIELD_LIMITS.objectiveNumber.max) {
-          error = `Objective number must be ${OBJECTIVE_FIELD_LIMITS.objectiveNumber.max} characters or less`
+        if (values.objectiveNumber) {
+          const max = OBJECTIVE_FIELD_LIMITS.objectiveNumber.max
+          if (values.objectiveNumber.length > max) {
+            error = `Objective number must be ${max} characters or less`
+          }
         }
         break
 
@@ -106,8 +109,11 @@ export const ObjectiveFormDialog = ({
         break
 
       case 'description':
-        if (values.description && values.description.length > OBJECTIVE_FIELD_LIMITS.description.max) {
-          error = `Description must be ${OBJECTIVE_FIELD_LIMITS.description.max} characters or less`
+        if (values.description) {
+          const max = OBJECTIVE_FIELD_LIMITS.description.max
+          if (values.description.length > max) {
+            error = `Description must be ${max} characters or less`
+          }
         }
         break
     }
@@ -199,7 +205,7 @@ export const ObjectiveFormDialog = ({
               error={!!getFieldError('description')}
               helperText={
                 getFieldError('description') ||
-                `Optional. ${values.description.length}/${OBJECTIVE_FIELD_LIMITS.description.max} characters`
+                `Optional. ${values.description.length}/${OBJECTIVE_FIELD_LIMITS.description.max}`
               }
               fullWidth
               multiline
@@ -208,7 +214,8 @@ export const ObjectiveFormDialog = ({
             />
 
             <Typography variant="caption" color="text.secondary">
-              Per HSEEP guidance, objectives should be specific, measurable, achievable, relevant, and time-bound (SMART).
+              Per HSEEP, objectives should be SMART (Specific, Measurable,
+              Achievable, Relevant, Time-bound).
             </Typography>
           </Stack>
         </DialogContent>

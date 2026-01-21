@@ -1,19 +1,25 @@
-import { useState, useMemo, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useMemo, useCallback, useState } from 'react'
+import { useParams, useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
   Typography,
   Paper,
-  Stack,
   CircularProgress,
-  Divider,
   Grid,
+  LinearProgress,
+  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHome, faList, faPen, faPlay, faCopy, faBoxArchive, faTrash } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
-import { useExercise, useSetupProgress, useDuplicateExercise, useExerciseStatus } from '../hooks'
+import {
+  useExercise,
+  useSetupProgress,
+  useDuplicateExercise,
+  useExerciseStatus,
+  useMselSummary,
+} from '../hooks'
 import {
   ExerciseForm,
   ExerciseHeader,
@@ -33,7 +39,7 @@ import {
 import CobraStyles from '../../../theme/CobraStyles'
 import { usePermissions, useUnsavedChangesWarning } from '../../../shared/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
-import { ExerciseStatus } from '../../../types'
+import { ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
 
@@ -52,10 +58,12 @@ import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
 export const ExerciseDetailPage = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
+  const location = useLocation()
   const { exercise, loading, error, updateExercise } = useExercise(id)
   const { canManage } = usePermissions()
 
-  const [isEditing, setIsEditing] = useState(false)
+  // Derive edit state from URL path (ends with /edit)
+  const isEditing = location.pathname.endsWith('/edit')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
@@ -68,6 +76,9 @@ export const ExerciseDetailPage = () => {
     isLoading: setupProgressLoading,
     error: setupProgressError,
   } = useSetupProgress(id ?? '')
+
+  // MSEL summary for progress display
+  const { data: mselSummary } = useMselSummary(id ?? '')
 
   // Duplicate exercise mutation
   const { duplicate, isDuplicating } = useDuplicateExercise()
@@ -134,7 +145,7 @@ export const ExerciseDetailPage = () => {
     ) {
       return // Should not reach here, but safety check
     }
-    setIsEditing(true)
+    navigate(`/exercises/${id}/edit`)
   }
 
   const handleSubmit = async (values: CreateExerciseFormValues) => {
@@ -151,11 +162,15 @@ export const ExerciseDetailPage = () => {
         endTime: values.endTime || undefined,
         timeZoneId: values.timeZoneId,
         isPracticeMode: values.isPracticeMode,
+        deliveryMode: values.deliveryMode,
+        timelineMode: values.timelineMode,
+        timeScale: values.timeScale ?? undefined,
       }
 
       await updateExercise(request)
-      setIsEditing(false)
       setIsDirty(false)
+      // Navigate back to detail view after successful save
+      navigate(`/exercises/${id}`, { replace: true })
     } catch {
       // Error handled by hook
     } finally {
@@ -168,8 +183,9 @@ export const ExerciseDetailPage = () => {
     // Navigation away from the page (Back to List, browser back, etc.) will still
     // show the unsaved changes warning via useUnsavedChangesWarning.
     // NOTE: If confirmation on Cancel is desired later, use the confirm() function here.
-    setIsEditing(false)
     setIsDirty(false)
+    // Navigate back to detail view
+    navigate(`/exercises/${id}`, { replace: true })
   }
 
   const handleBackToList = () => {
@@ -355,26 +371,65 @@ export const ExerciseDetailPage = () => {
         </Paper>
       )}
 
-      {/* Content - Grid layout for Draft (with sidebar) vs other statuses */}
-      <Grid container spacing={3}>
-        {/* Main content column */}
-        <Grid size={{ xs: 12, md: exercise.status === ExerciseStatus.Draft && !isEditing ? 8 : 12 }}>
-          <Paper sx={{ p: 3 }}>
-            {isEditing ? (
-              <ExerciseForm
-                exercise={exercise}
-                onSubmit={handleSubmit}
-                onCancel={handleCancel}
-                isSubmitting={isSubmitting}
-                disabledFields={disabledFields}
-                onDirtyChange={handleDirtyChange}
-              />
-            ) : (
-              <Stack spacing={3}>
+      {/* Content */}
+      {isEditing ? (
+        <Paper sx={{ p: 3 }}>
+          <ExerciseForm
+            exercise={exercise}
+            onSubmit={handleSubmit}
+            onCancel={handleCancel}
+            isSubmitting={isSubmitting}
+            disabledFields={disabledFields}
+            onDirtyChange={handleDirtyChange}
+          />
+        </Paper>
+      ) : (
+        <Stack spacing={2}>
+          {/* Top row: Three equal-height cards */}
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              // Equal height cards using CSS Grid
+              display: 'grid',
+              gridTemplateColumns: {
+                xs: '1fr',
+                sm: 'repeat(2, 1fr)',
+                md: exercise.status === ExerciseStatus.Draft
+                  ? 'repeat(3, 1fr)'
+                  : 'repeat(2, 1fr)',
+              },
+              gap: 2,
+              // Fixed height for cards on desktop (575px fits ~4 objectives)
+              '& > .MuiGrid-root': {
+                height: { md: 575 },
+              },
+            }}
+          >
+            {/* Left column: Exercise Details */}
+            <Grid>
+              <Paper
+                sx={{
+                  p: 3,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'auto',
+                }}
+              >
+                <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>
+                  Exercise Details
+                </Typography>
+
                 {/* Description */}
                 {exercise.description && (
-                  <Box>
-                    <Typography variant="subtitle2" color="text.secondary">
+                  <Box sx={{ mb: 3 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
                       Description
                     </Typography>
                     <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
@@ -383,92 +438,296 @@ export const ExerciseDetailPage = () => {
                   </Box>
                 )}
 
-                <Divider />
-
-                {/* Schedule */}
-                <Box>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Schedule
-                  </Typography>
-                  <Stack spacing={1}>
-                    <Typography variant="body1">
-                      <strong>Date:</strong> {formatDate(exercise.scheduledDate)}
+                {/* Two-column grid for metadata */}
+                <Grid container spacing={2.5}>
+                  {/* Schedule */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Date
                     </Typography>
-                    {(exercise.startTime || exercise.endTime) && (
+                    <Typography variant="body1">
+                      {formatDate(exercise.scheduledDate)}
+                    </Typography>
+                  </Grid>
+
+                  {/* Time */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Time
+                    </Typography>
+                    <Typography variant="body1">
+                      {exercise.startTime ? formatTime(exercise.startTime) : 'TBD'}
+                      {exercise.endTime && ` - ${formatTime(exercise.endTime)}`}
+                    </Typography>
+                  </Grid>
+
+                  {/* Time Zone */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Time Zone
+                    </Typography>
+                    <Typography variant="body1">{exercise.timeZoneId}</Typography>
+                  </Grid>
+
+                  {/* Location */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Location
+                    </Typography>
+                    <Typography variant="body1">
+                      {exercise.location || 'Not specified'}
+                    </Typography>
+                  </Grid>
+
+                  {/* Exercise Type */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Exercise Type
+                    </Typography>
+                    <Typography variant="body1">
+                      {getExerciseTypeFullName(exercise.exerciseType)}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      ({exercise.exerciseType})
+                    </Typography>
+                  </Grid>
+
+                  {/* Practice Mode */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Mode
+                    </Typography>
+                    <Typography variant="body1">
+                      {exercise.isPracticeMode ? 'Practice Mode' : 'Live Exercise'}
+                    </Typography>
+                  </Grid>
+
+                  {/* Delivery Mode */}
+                  <Grid size={{ xs: 12, sm: 6 }}>
+                    <Typography
+                      variant="body2"
+                      color="text.secondary"
+                      fontWeight={500}
+                      sx={{ mb: 0.5 }}
+                    >
+                      Inject Delivery
+                    </Typography>
+                    <Typography variant="body1">
+                      {exercise.deliveryMode === DeliveryMode.ClockDriven
+                        ? 'Clock-driven'
+                        : 'Facilitator-paced'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {exercise.deliveryMode === DeliveryMode.ClockDriven
+                        ? 'Injects fire at scheduled times'
+                        : 'Manual inject delivery'}
+                    </Typography>
+                  </Grid>
+
+                  {/* Timeline Mode (only for Clock-driven) */}
+                  {exercise.deliveryMode === DeliveryMode.ClockDriven && (
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        fontWeight={500}
+                        sx={{ mb: 0.5 }}
+                      >
+                        Timeline
+                      </Typography>
                       <Typography variant="body1">
-                        <strong>Time:</strong>{' '}
-                        {exercise.startTime
-                          ? formatTime(exercise.startTime)
-                          : 'TBD'}
-                        {exercise.endTime &&
-                          ` - ${formatTime(exercise.endTime)}`}
+                        {exercise.timelineMode === TimelineMode.RealTime &&
+                          'Real-time (1:1)'}
+                        {exercise.timelineMode === TimelineMode.Compressed &&
+                          `Compressed (${exercise.timeScale}x)`}
+                        {exercise.timelineMode === TimelineMode.StoryOnly &&
+                          'Story-only'}
                       </Typography>
-                    )}
-                    <Typography variant="body1">
-                      <strong>Time Zone:</strong> {exercise.timeZoneId}
-                    </Typography>
-                  </Stack>
-                </Box>
+                      <Typography variant="caption" color="text.secondary">
+                        {exercise.timelineMode === TimelineMode.RealTime &&
+                          'Exercise clock matches wall clock'}
+                        {exercise.timelineMode === TimelineMode.Compressed &&
+                          `1 real minute = ${exercise.timeScale} story minutes`}
+                        {exercise.timelineMode === TimelineMode.StoryOnly &&
+                          'No real-time clock'}
+                      </Typography>
+                    </Grid>
+                  )}
 
-                {/* Location */}
-                {exercise.location && (
-                  <>
-                    <Divider />
-                    <Box>
-                      <Typography variant="subtitle2" color="text.secondary">
-                        Location
+                  {/* Created / Updated info */}
+                  <Grid size={12}>
+                    <Box
+                      sx={{
+                        mt: 2,
+                        pt: 2,
+                        borderTop: 1,
+                        borderColor: 'divider',
+                      }}
+                    >
+                      <Typography variant="caption" color="text.secondary">
+                        Created {format(parseISO(exercise.createdAt), 'MMM d, yyyy')}
+                        {exercise.updatedAt !== exercise.createdAt && (
+                          <>
+                            {' · '}
+                            Last updated{' '}
+                            {format(parseISO(exercise.updatedAt), 'MMM d, yyyy')}
+                          </>
+                        )}
                       </Typography>
-                      <Typography variant="body1">{exercise.location}</Typography>
                     </Box>
-                  </>
-                )}
+                  </Grid>
+                </Grid>
+              </Paper>
+            </Grid>
 
-                <Divider />
+            {/* Middle column: Objectives */}
+            <Grid>
+              <Paper
+                sx={{
+                  p: 3,
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  overflow: 'hidden',
+                }}
+              >
+                <Box
+                  sx={{
+                    flex: 1,
+                    overflow: 'auto',
+                    minHeight: 0,
+                  }}
+                >
+                  <ObjectiveList exerciseId={exercise.id} canEdit={canEdit} />
+                </Box>
+              </Paper>
+            </Grid>
 
-                {/* Type Info */}
-                <Box>
-                  <Typography
-                    variant="subtitle2"
-                    color="text.secondary"
-                    gutterBottom
-                  >
-                    Exercise Type
+            {/* Right column: Setup Progress (Draft only) */}
+            {exercise.status === ExerciseStatus.Draft && (
+              <Grid>
+                <SetupProgress
+                  progress={setupProgress}
+                  isLoading={setupProgressLoading}
+                  error={setupProgressError}
+                />
+              </Grid>
+            )}
+          </Grid>
+
+          {/* Bottom row: MSEL Progress */}
+          {mselSummary && mselSummary.totalInjects > 0 && (
+            <Paper sx={{ p: 2.5 }}>
+              <Stack
+                direction={{ xs: 'column', sm: 'row' }}
+                spacing={2}
+                alignItems={{ sm: 'center' }}
+                justifyContent="space-between"
+              >
+                <Box sx={{ flex: 1 }}>
+                  <Typography variant="subtitle1" fontWeight={600}>
+                    MSEL Progress
                   </Typography>
-                  <Typography variant="body1">
-                    {exercise.exerciseType} -{' '}
-                    {getExerciseTypeFullName(exercise.exerciseType)}
+                  <Typography variant="body2" color="text.secondary">
+                    {mselSummary.firedCount + mselSummary.skippedCount} of{' '}
+                    {mselSummary.totalInjects} injects completed
                   </Typography>
                 </Box>
-              </Stack>
-            )}
-          </Paper>
 
-          {/* Objectives Section (only show in view mode) */}
-          {!isEditing && (
-            <Paper sx={{ p: 3, mt: 3 }}>
-              <ObjectiveList
-                exerciseId={exercise.id}
-                canEdit={canEdit}
-              />
+                <Stack
+                  direction="row"
+                  spacing={3}
+                  sx={{ minWidth: { sm: 300 } }}
+                  alignItems="center"
+                >
+                  <Box sx={{ flex: 1 }}>
+                    <LinearProgress
+                      variant="determinate"
+                      value={mselSummary.completionPercentage}
+                      sx={{
+                        height: 8,
+                        borderRadius: 4,
+                        backgroundColor: 'grey.200',
+                        '& .MuiLinearProgress-bar': {
+                          borderRadius: 4,
+                          backgroundColor:
+                            mselSummary.completionPercentage === 100
+                              ? 'success.main'
+                              : 'primary.main',
+                        },
+                      }}
+                    />
+                  </Box>
+                  <Typography
+                    variant="body2"
+                    fontWeight={600}
+                    sx={{ minWidth: 45, textAlign: 'right' }}
+                  >
+                    {mselSummary.completionPercentage}%
+                  </Typography>
+                </Stack>
+
+                <Stack direction="row" spacing={2}>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" fontWeight={600}>
+                      {mselSummary.pendingCount}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Pending
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" fontWeight={600} color="success.main">
+                      {mselSummary.firedCount}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Fired
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="h6" fontWeight={600} color="warning.main">
+                      {mselSummary.skippedCount}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      Skipped
+                    </Typography>
+                  </Box>
+                </Stack>
+              </Stack>
             </Paper>
           )}
-        </Grid>
-
-        {/* Setup Progress sidebar for Draft exercises */}
-        {exercise.status === ExerciseStatus.Draft && !isEditing && (
-          <Grid size={{ xs: 12, md: 4 }}>
-            <SetupProgress
-              progress={setupProgress}
-              isLoading={setupProgressLoading}
-              error={setupProgressError}
-            />
-          </Grid>
-        )}
-      </Grid>
+        </Stack>
+      )}
 
       {/* Duplicate Exercise Dialog */}
       <DuplicateExerciseDialog

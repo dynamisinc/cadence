@@ -25,7 +25,9 @@ const STATUS_ORDER: Record<string, number> = {
  * @param nullsLast If true, null values sort to the end
  * @returns -1, 0, or 1 for sorting
  */
-function compareValues<T>(a: T | null | undefined, b: T | null | undefined, nullsLast = true): number {
+function compareValues<T>(
+  a: T | null | undefined, b: T | null | undefined, nullsLast = true,
+): number {
   const aNull = a === null || a === undefined
   const bNull = b === null || b === undefined
 
@@ -41,7 +43,9 @@ function compareValues<T>(a: T | null | undefined, b: T | null | undefined, null
 /**
  * Compare two strings case-insensitively
  */
-function compareStrings(a: string | null | undefined, b: string | null | undefined, nullsLast = true): number {
+function compareStrings(
+  a: string | null | undefined, b: string | null | undefined, nullsLast = true,
+): number {
   const aNull = a === null || a === undefined || a === ''
   const bNull = b === null || b === undefined || b === ''
 

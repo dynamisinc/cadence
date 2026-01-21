@@ -75,3 +75,49 @@ Exercise Configuration encompasses the settings and assignments that prepare an 
 - Role definitions: `_core/user-roles.md`
 - Session management: `_cross-cutting/S01-session-management.md`
 - Auto-save: `_cross-cutting/S03-auto-save.md`
+
+---
+
+## Clock Modes & Timing Configuration
+
+> **Epic:** Exercise Conduct (MVP-J, MVP-M)
+> **Phase:** D
+> **Status:** Ready for Implementation
+
+### Overview
+
+Support for dual-mode timing system enabling both clock-driven (real-time) and facilitator-paced (TTX) exercise formats.
+
+### Clock Mode Stories
+
+| Story | Title | Priority | Status | Estimate |
+|-------|-------|----------|--------|----------|
+| [CLK-01](./S01-timing-configuration-fields.md) | Add Timing Configuration Fields to Exercise Entity | P1 | 📋 Ready | Medium |
+| [CLK-02](./S02-inject-delivery-time-field.md) | Add DeliveryTime Field to Inject Entity | P1 | 📋 Ready | Small |
+| [CLK-03](./S03-timing-configuration-ui.md) | Exercise Timing Configuration in Create/Edit Form | P1 | 📋 Ready | Medium |
+| [CLK-04](./S04-inject-ready-status.md) | Add "Ready" Status to Inject Workflow | P1 | 📋 Ready | Small |
+| [CLK-05](./S05-auto-ready-injects.md) | Auto-Ready Injects When Clock Reaches DeliveryTime | P1 | 📋 Ready | Large |
+| [CLK-06](./S06-clock-driven-conduct-view.md) | Clock-Driven Conduct View Sections | P1 | 📋 Ready | Medium |
+| [CLK-07](./S07-facilitator-paced-conduct-view.md) | Facilitator-Paced Conduct View | P1 | 📋 Ready | Large |
+| [CLK-08](./S08-story-time-display.md) | Display Story Time in Clock Area | P2 | 📋 Ready | Medium |
+| [CLK-09](./S09-fire-confirmation-dialog.md) | Fire Confirmation Dialog for Critical Injects | P2 | 📋 Ready | Small |
+| [CLK-10](./S10-sequence-drag-drop-reorder.md) | Sequence Number Reordering via Drag-Drop | P2 | 📋 Ready | Medium |
+
+### Clock Mode Documents
+
+- [Gap Analysis](./gap-analysis-exercise-clock-modes.md) - Current implementation vs requirements
+- [Requirements](./exercise-clock-modes-requirements.md) - Full requirements specification
+
+### Implementation Phases
+
+```
+Phase 1: Foundation       → CLK-01, CLK-02, CLK-04 (database)
+Phase 2: Configuration UI → CLK-03 (form)
+Phase 3: Clock-Driven     → CLK-05, CLK-06, CLK-08 (conduct)
+Phase 4: Facilitator Mode → CLK-07 (conduct)
+Phase 5: Polish           → CLK-09, CLK-10 (UX enhancements)
+```
+
+### Estimated Effort
+
+~15-20 developer days total (3 Small, 5 Medium, 2 Large stories)

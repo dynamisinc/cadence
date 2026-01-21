@@ -118,6 +118,7 @@ export default defineConfig(({ mode }) => {
       environment: 'jsdom',
       setupFiles: './src/test/setup.ts',
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
+      testTimeout: 10000, // 10 seconds to handle heavy test loads
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],

@@ -16,6 +16,9 @@ export * from './pages'
 // Services
 export { injectService } from './services/injectService'
 
+// Utils
+export * from './utils'
+
 // Types
 export type {
   InjectDto,

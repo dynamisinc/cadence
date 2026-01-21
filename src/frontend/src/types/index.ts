@@ -228,11 +228,13 @@ export type InjectType = (typeof InjectType)[keyof typeof InjectType]
  * Inject delivery status during exercise conduct
  */
 export const InjectStatus = {
-  /** Not yet delivered */
+  /** Inject is waiting; delivery time not yet reached */
   Pending: 'Pending',
-  /** Delivered to players */
+  /** Inject is ready to fire; delivery time reached (clock-driven mode) */
+  Ready: 'Ready',
+  /** Inject has been delivered to players */
   Fired: 'Fired',
-  /** Intentionally not delivered */
+  /** Inject was intentionally not delivered */
   Skipped: 'Skipped',
 } as const
 
@@ -292,6 +294,32 @@ export const ExerciseClockState = {
 } as const
 
 export type ExerciseClockState = (typeof ExerciseClockState)[keyof typeof ExerciseClockState]
+
+/**
+ * Delivery mode determines how injects transition to Ready status
+ */
+export const DeliveryMode = {
+  /** Injects become Ready when exercise clock reaches DeliveryTime */
+  ClockDriven: 'ClockDriven',
+  /** Injects are fired manually by Controller in Sequence order */
+  FacilitatorPaced: 'FacilitatorPaced',
+} as const
+
+export type DeliveryMode = (typeof DeliveryMode)[keyof typeof DeliveryMode]
+
+/**
+ * Timeline mode determines how exercise time relates to story time
+ */
+export const TimelineMode = {
+  /** 1:1 ratio - exercise time matches wall clock */
+  RealTime: 'RealTime',
+  /** Story time advances faster than real time per TimeScale */
+  Compressed: 'Compressed',
+  /** No real-time clock; only Story Time is used */
+  StoryOnly: 'StoryOnly',
+} as const
+
+export type TimelineMode = (typeof TimelineMode)[keyof typeof TimelineMode]
 
 // =============================================================================
 // Observation Types (matches backend enums)

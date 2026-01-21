@@ -5,7 +5,7 @@
  * Matches backend DTOs in Cadence.Core.Features.Exercises.Models.DTOs
  */
 
-import { ExerciseType, ExerciseStatus } from '../../../types'
+import { ExerciseType, ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 
 /**
  * Exercise DTO - Response from API
@@ -24,6 +24,10 @@ export interface ExerciseDto {
   location: string | null
   organizationId: string
   activeMselId: string | null
+  // Timing configuration (CLK-01)
+  deliveryMode: DeliveryMode
+  timelineMode: TimelineMode
+  timeScale: number | null
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
   createdBy: string // Guid as string - User who created the exercise
@@ -50,6 +54,9 @@ export interface CreateExerciseRequest {
   location?: string | null
   timeZoneId?: string
   isPracticeMode?: boolean
+  deliveryMode: DeliveryMode
+  timelineMode: TimelineMode
+  timeScale?: number | null
 }
 
 /**
@@ -65,6 +72,9 @@ export interface UpdateExerciseRequest {
   startTime?: string | null
   endTime?: string | null
   isPracticeMode?: boolean
+  deliveryMode: DeliveryMode
+  timelineMode: TimelineMode
+  timeScale?: number | null
 }
 
 /**

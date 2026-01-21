@@ -11,6 +11,7 @@ public record InjectDto(
     string Title,
     string Description,
     TimeOnly ScheduledTime,
+    TimeSpan? DeliveryTime,
     int? ScenarioDay,
     TimeOnly? ScenarioTime,
     string Target,
@@ -28,6 +29,7 @@ public record InjectDto(
     string? TriggerCondition,
     string? ExpectedAction,
     string? ControllerNotes,
+    DateTime? ReadyAt,
     DateTime? FiredAt,
     Guid? FiredBy,
     string? FiredByName,
@@ -70,6 +72,11 @@ public class CreateInjectRequest
     /// Planned delivery time (wall clock). Required.
     /// </summary>
     public TimeOnly ScheduledTime { get; init; }
+
+    /// <summary>
+    /// Elapsed time from exercise start. Format: "HH:MM:SS"
+    /// </summary>
+    public TimeSpan? DeliveryTime { get; init; }
 
     /// <summary>
     /// In-story day number (1-99). Optional.
@@ -200,6 +207,11 @@ public class UpdateInjectRequest
     /// Planned delivery time (wall clock). Required.
     /// </summary>
     public TimeOnly ScheduledTime { get; init; }
+
+    /// <summary>
+    /// Elapsed time from exercise start. Format: "HH:MM:SS"
+    /// </summary>
+    public TimeSpan? DeliveryTime { get; init; }
 
     /// <summary>
     /// In-story day number (1-99). Optional.
@@ -334,6 +346,17 @@ public class SkipInjectRequest
 }
 
 /// <summary>
+/// DTO for reordering injects.
+/// </summary>
+public class ReorderInjectsRequest
+{
+    /// <summary>
+    /// Ordered list of inject IDs representing the new sequence.
+    /// </summary>
+    public List<Guid> InjectIds { get; init; } = new();
+}
+
+/// <summary>
 /// Extension methods for mapping between Inject entity and DTOs.
 /// </summary>
 public static class InjectMapper
@@ -344,6 +367,7 @@ public static class InjectMapper
         entity.Title,
         entity.Description,
         entity.ScheduledTime,
+        entity.DeliveryTime,
         entity.ScenarioDay,
         entity.ScenarioTime,
         entity.Target,
@@ -359,6 +383,7 @@ public static class InjectMapper
         entity.FireCondition,
         entity.ExpectedAction,
         entity.ControllerNotes,
+        entity.ReadyAt,
         entity.FiredAt,
         entity.FiredBy,
         entity.FiredByUser?.DisplayName,
@@ -389,6 +414,7 @@ public static class InjectMapper
         Title = request.Title,
         Description = request.Description,
         ScheduledTime = request.ScheduledTime,
+        DeliveryTime = request.DeliveryTime,
         ScenarioDay = request.ScenarioDay,
         ScenarioTime = request.ScenarioTime,
         Target = request.Target,
@@ -422,6 +448,7 @@ public static class InjectMapper
         entity.Title = request.Title;
         entity.Description = request.Description;
         entity.ScheduledTime = request.ScheduledTime;
+        entity.DeliveryTime = request.DeliveryTime;
         entity.ScenarioDay = request.ScenarioDay;
         entity.ScenarioTime = request.ScenarioTime;
         entity.Target = request.Target;

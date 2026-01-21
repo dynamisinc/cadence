@@ -16,6 +16,7 @@ export interface InjectDto {
   title: string
   description: string
   scheduledTime: string // TimeOnly as HH:MM:SS
+  deliveryTime: string | null // TimeSpan as HH:MM:SS
   scenarioDay: number | null
   scenarioTime: string | null // TimeOnly as HH:MM:SS
   target: string
@@ -33,6 +34,7 @@ export interface InjectDto {
   triggerCondition: string | null
   expectedAction: string | null
   controllerNotes: string | null
+  readyAt: string | null // DateTime as ISO string - when inject became Ready
   firedAt: string | null // DateTime as ISO string
   firedBy: string | null
   firedByName: string | null
@@ -63,6 +65,7 @@ export interface CreateInjectRequest {
   title: string
   description: string
   scheduledTime: string // HH:MM:SS format
+  deliveryTime?: string | null // HH:MM:SS format
   scenarioDay?: number | null
   scenarioTime?: string | null // HH:MM:SS format
   target: string
@@ -94,6 +97,7 @@ export interface UpdateInjectRequest {
   title: string
   description: string
   scheduledTime: string // HH:MM:SS format
+  deliveryTime?: string | null // HH:MM:SS format
   scenarioDay?: number | null
   scenarioTime?: string | null // HH:MM:SS format
   target: string
@@ -139,6 +143,7 @@ export interface InjectFormValues {
   title: string
   description: string
   scheduledTime: string // HH:MM format for time input
+  deliveryTime: string // HH:MM:SS format for time input
   scenarioDay: string // String for form input, parsed to number
   scenarioTime: string // HH:MM format for time input
   target: string
@@ -311,4 +316,52 @@ export const formatTimeRemaining = (timeRemainingMs: number): string => {
   const minutes = Math.floor(totalSeconds / 60)
   const seconds = totalSeconds % 60
   return `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`
+}
+
+/**
+ * Parse a DeliveryTime string (TimeSpan) to milliseconds
+ * Handles both "HH:MM:SS" and "d.HH:MM:SS" formats
+ * @param deliveryTime TimeSpan string from API
+ * @returns Milliseconds from exercise start, or null if input is null
+ */
+export const parseDeliveryTime = (deliveryTime: string | null): number | null => {
+  if (!deliveryTime) return null
+
+  // Handle day component if present (format: "d.HH:MM:SS")
+  const dayMatch = deliveryTime.match(/^(\d+)\.(.+)$/)
+  let days = 0
+  let timeStr = deliveryTime
+
+  if (dayMatch) {
+    days = parseInt(dayMatch[1], 10)
+    timeStr = dayMatch[2]
+  }
+
+  const parts = timeStr.split(':').map(Number)
+  const hours = parts[0] || 0
+  const minutes = parts[1] || 0
+  const seconds = parts[2] || 0
+
+  return ((days * 24 + hours) * 60 + minutes) * 60 * 1000 + seconds * 1000
+}
+
+/**
+ * Format milliseconds as DeliveryTime string (TimeSpan)
+ * @param ms Milliseconds from exercise start
+ * @returns Formatted string like "00:30:00" or "1.02:15:30" for longer durations
+ */
+export const formatDeliveryTime = (ms: number): string => {
+  const totalSeconds = Math.floor(ms / 1000)
+  const days = Math.floor(totalSeconds / (24 * 3600))
+  const hours = Math.floor((totalSeconds % (24 * 3600)) / 3600)
+  const minutes = Math.floor((totalSeconds % 3600) / 60)
+  const seconds = totalSeconds % 60
+
+  const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`
+
+  if (days > 0) {
+    return `${days}.${timeStr}`
+  }
+
+  return timeStr
 }
