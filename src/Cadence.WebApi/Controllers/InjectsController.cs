@@ -1,6 +1,7 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Injects.Models.DTOs;
+using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Mvc;
@@ -19,12 +20,18 @@ public class InjectsController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<InjectsController> _logger;
     private readonly IExerciseHubContext _hubContext;
+    private readonly IInjectService _injectService;
 
-    public InjectsController(AppDbContext context, ILogger<InjectsController> logger, IExerciseHubContext hubContext)
+    public InjectsController(
+        AppDbContext context,
+        ILogger<InjectsController> logger,
+        IExerciseHubContext hubContext,
+        IInjectService injectService)
     {
         _context = context;
         _logger = logger;
         _hubContext = hubContext;
+        _injectService = injectService;
     }
 
     /// <summary>
@@ -544,61 +551,34 @@ public class InjectsController : ControllerBase
     [HttpPost("reorder")]
     public async Task<ActionResult> ReorderInjects(Guid exerciseId, ReorderInjectsRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
-        {
-            return NotFound(new { message = "Exercise not found" });
-        }
-
-        if (exercise.ActiveMselId == null)
-        {
-            return BadRequest(new { message = "Exercise has no active MSEL" });
-        }
-
-        // Block reordering for archived exercises
-        if (exercise.Status == ExerciseStatus.Archived)
-        {
-            return BadRequest(new { message = "Cannot reorder injects in an archived exercise" });
-        }
-
         // Validate request
         if (request.InjectIds == null || request.InjectIds.Count == 0)
         {
             return BadRequest(new { message = "InjectIds is required" });
         }
 
-        // Get all injects for this MSEL
-        var injects = await _context.Injects
-            .Where(i => i.MselId == exercise.ActiveMselId)
-            .ToListAsync();
-
-        // Verify all provided IDs exist in this MSEL
-        var injectDict = injects.ToDictionary(i => i.Id);
-        foreach (var id in request.InjectIds)
+        try
         {
-            if (!injectDict.ContainsKey(id))
-            {
-                return BadRequest(new { message = $"Inject {id} not found in this exercise" });
-            }
-        }
+            // Delegate to service layer
+            await _injectService.ReorderInjectsAsync(exerciseId, request.InjectIds);
 
-        // Update sequence values based on the new order
-        for (int i = 0; i < request.InjectIds.Count; i++)
+            _logger.LogInformation("Reordered {Count} injects in exercise {ExerciseId}",
+                request.InjectIds.Count, exerciseId);
+
+            return Ok(new { message = "Injects reordered successfully" });
+        }
+        catch (KeyNotFoundException ex)
         {
-            var inject = injectDict[request.InjectIds[i]];
-            inject.Sequence = i + 1;
-            inject.ModifiedBy = SystemConstants.SystemUserId;
+            return NotFound(new { message = ex.Message });
         }
-
-        await _context.SaveChangesAsync();
-
-        // Broadcast SignalR notification for inject reorder
-        await _hubContext.NotifyInjectsReordered(exerciseId, request.InjectIds);
-
-        _logger.LogInformation("Reordered {Count} injects in exercise {ExerciseId}",
-            request.InjectIds.Count, exerciseId);
-
-        return Ok(new { message = "Injects reordered successfully" });
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>

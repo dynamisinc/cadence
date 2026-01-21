@@ -100,14 +100,20 @@ describe('UpcomingSection', () => {
 
     render(<UpcomingSection injects={injects} elapsedTimeMs={0} />)
 
+    // Content should be visible initially
+    expect(screen.getByText('Future Inject')).toBeInTheDocument()
+
     const header = screen.getByText('UPCOMING').closest('div')
     if (header) {
       await user.click(header)
     }
 
-    // Content should be hidden after collapse
+    // Content should be hidden after collapse animation
+    // Note: MUI Collapse uses CSS transitions, content is technically still in DOM but not visible
+    // We check that the Collapse wrapper has the correct aria-hidden or height: 0
     await waitFor(() => {
-      expect(screen.queryByText('Future Inject')).not.toBeInTheDocument()
+      const collapseEl = screen.getByText('Future Inject').closest('.MuiCollapse-root')
+      expect(collapseEl).toHaveStyle({ height: '0px' })
     })
   })
 
@@ -122,13 +128,16 @@ describe('UpcomingSection', () => {
       // Collapse
       await user.click(header)
       await waitFor(() => {
-        expect(screen.queryByText('Future Inject')).not.toBeInTheDocument()
+        const collapseEl = screen.getByText('Future Inject').closest('.MuiCollapse-root')
+        expect(collapseEl).toHaveStyle({ height: '0px' })
       })
 
       // Expand again
       await user.click(header)
       await waitFor(() => {
-        expect(screen.getByText('Future Inject')).toBeInTheDocument()
+        const collapseEl = screen.getByText('Future Inject').closest('.MuiCollapse-root')
+        // When expanded, height will be 'auto' or a non-zero value
+        expect(collapseEl).not.toHaveStyle({ height: '0px' })
       })
     }
   })
@@ -181,7 +190,7 @@ describe('UpcomingSection', () => {
     )
 
     // Should show countdown with warning styling
-    expect(screen.getByText('in 03:00')).toBeInTheDocument()
+    expect(screen.getByText('in 3:00')).toBeInTheDocument()
     // Title should be bold when imminent
     const titleCell = screen.getByText('Imminent Inject').closest('td')
     expect(titleCell).toBeInTheDocument()
@@ -228,7 +237,7 @@ describe('UpcomingSection', () => {
 
     render(<UpcomingSection injects={injects} elapsedTimeMs={0} />)
 
-    expect(screen.getByText('D2 14:30:00')).toBeInTheDocument()
+    expect(screen.getByText('D2 14:30')).toBeInTheDocument()
   })
 
   it('skips rendering inject with null delivery time', () => {
@@ -314,7 +323,7 @@ describe('UpcomingSection', () => {
     expect(screen.getByText('First Upcoming')).toBeInTheDocument()
     expect(screen.getByText('Second Upcoming')).toBeInTheDocument()
     expect(screen.getByText('Third Upcoming')).toBeInTheDocument()
-    expect(screen.getByText('in 05:00')).toBeInTheDocument() // First inject (15-10 = 5 min)
+    expect(screen.getByText('in 5:00')).toBeInTheDocument() // First inject (15-10 = 5 min)
     expect(screen.getByText('in 10:00')).toBeInTheDocument() // Second inject (20-10 = 10 min)
     expect(screen.getByText('in 15:00')).toBeInTheDocument() // Third inject (25-10 = 15 min)
   })
@@ -376,7 +385,7 @@ describe('UpcomingSection', () => {
       />,
     )
 
-    expect(screen.getByText('in 01:00')).toBeInTheDocument() // 11-10 = 1 min
+    expect(screen.getByText('in 1:00')).toBeInTheDocument() // 11-10 = 1 min
     expect(screen.getByText('in 20:00')).toBeInTheDocument() // 30-10 = 20 min
   })
 })

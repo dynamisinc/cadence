@@ -20,5 +20,10 @@ public interface IInjectService
     /// <summary>
     /// Reset an inject back to pending status.
     /// </summary>
-    Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken = default);
+    Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reorder injects by updating their sequence values.
+    /// </summary>
+    Task<IEnumerable<InjectDto>> ReorderInjectsAsync(Guid exerciseId, IEnumerable<Guid> injectIds, CancellationToken cancellationToken = default);
 }

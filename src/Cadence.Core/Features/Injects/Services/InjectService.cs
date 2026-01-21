@@ -52,6 +52,7 @@ public class InjectService : IInjectService
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
         inject.FiredBy = userId;
+        inject.ModifiedBy = userId;
         inject.SkippedAt = null;
         inject.SkippedBy = null;
 
@@ -83,6 +84,7 @@ public class InjectService : IInjectService
         inject.Status = InjectStatus.Skipped;
         inject.SkippedAt = DateTime.UtcNow;
         inject.SkippedBy = userId;
+        inject.ModifiedBy = userId;
         inject.FiredAt = null;
         inject.FiredBy = null;
 
@@ -95,7 +97,7 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
@@ -111,6 +113,7 @@ public class InjectService : IInjectService
         inject.FiredBy = null;
         inject.SkippedAt = null;
         inject.SkippedBy = null;
+        inject.ModifiedBy = userId;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -118,6 +121,64 @@ public class InjectService : IInjectService
         await _hubContext.NotifyInjectReset(exerciseId, dto);
 
         return dto;
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<InjectDto>> ReorderInjectsAsync(Guid exerciseId, IEnumerable<Guid> injectIds, CancellationToken cancellationToken = default)
+    {
+        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
+            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
+
+        if (exercise.ActiveMselId == null)
+        {
+            throw new InvalidOperationException("Exercise has no active MSEL.");
+        }
+
+        // Block reordering for archived exercises
+        if (exercise.Status == ExerciseStatus.Archived)
+        {
+            throw new InvalidOperationException("Cannot reorder injects in an archived exercise.");
+        }
+
+        var injectIdsList = injectIds.ToList();
+        if (injectIdsList.Count == 0)
+        {
+            throw new ArgumentException("InjectIds cannot be empty.", nameof(injectIds));
+        }
+
+        // Get all injects for this MSEL
+        var injects = await _context.Injects
+            .Include(i => i.Phase)
+            .Include(i => i.FiredByUser)
+            .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
+            .Where(i => i.MselId == exercise.ActiveMselId)
+            .ToListAsync(cancellationToken);
+
+        // Verify all provided IDs exist in this MSEL
+        var injectDict = injects.ToDictionary(i => i.Id);
+        foreach (var id in injectIdsList)
+        {
+            if (!injectDict.ContainsKey(id))
+            {
+                throw new KeyNotFoundException($"Inject {id} not found in this exercise.");
+            }
+        }
+
+        // Update sequence values based on the new order
+        for (int i = 0; i < injectIdsList.Count; i++)
+        {
+            var inject = injectDict[injectIdsList[i]];
+            inject.Sequence = i + 1;
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Broadcast SignalR notification for inject reorder
+        await _hubContext.NotifyInjectsReordered(exerciseId, injectIdsList);
+
+        // Return the updated injects in the new order
+        return injectIdsList.Select(id => injectDict[id].ToDto());
     }
 
     private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)

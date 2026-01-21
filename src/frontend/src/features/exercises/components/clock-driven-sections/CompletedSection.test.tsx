@@ -325,7 +325,7 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('D2 14:30:00')).toBeInTheDocument()
+    expect(screen.getByText('D2 14:30')).toBeInTheDocument()
   })
 
   it('renders multiple completed injects', () => {

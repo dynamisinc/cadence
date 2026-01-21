@@ -104,7 +104,7 @@ export const formatStoryTime = (storyTime: StoryTime): string => {
  * Parse inject scenario time to StoryTime object
  *
  * @param scenarioDay - Scenario day number
- * @param scenarioTime - Scenario time as HH:MM:SS
+ * @param scenarioTime - Scenario time as HH:MM or HH:MM:SS
  * @returns StoryTime object or null if invalid
  */
 export const parseInjectScenarioTime = (
@@ -115,7 +115,30 @@ export const parseInjectScenarioTime = (
     return null
   }
 
-  const [hours, minutes] = scenarioTime.split(':').map(Number)
+  // Validate format: must have at least one colon (HH:MM or HH:MM:SS)
+  if (!scenarioTime.includes(':')) {
+    return null
+  }
+
+  const stringParts = scenarioTime.split(':')
+
+  // Must have at least 2 non-empty parts (hours and minutes)
+  if (stringParts.length < 2 || stringParts[0] === '' || stringParts[1] === '') {
+    return null
+  }
+
+  const parts = stringParts.map(Number)
+  const [hours, minutes] = parts
+
+  // Validate that parsing succeeded and values are valid
+  if (Number.isNaN(hours) || Number.isNaN(minutes)) {
+    return null
+  }
+
+  // Validate ranges
+  if (hours < 0 || hours > 23 || minutes < 0 || minutes > 59) {
+    return null
+  }
 
   return {
     day: scenarioDay,

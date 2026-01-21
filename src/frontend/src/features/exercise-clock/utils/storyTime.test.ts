@@ -5,7 +5,13 @@
  */
 
 import { describe, it, expect } from 'vitest'
-import { calculateStoryTime, formatStoryTime, type StoryTime, type StoryTimeConfig } from './storyTime'
+import {
+  calculateStoryTime,
+  formatStoryTime,
+  parseInjectScenarioTime,
+  type StoryTime,
+  type StoryTimeConfig,
+} from './storyTime'
 import { TimelineMode } from '../../../types'
 
 describe('calculateStoryTime', () => {
@@ -241,5 +247,149 @@ describe('formatStoryTime', () => {
     }
 
     expect(formatStoryTime(storyTime)).toBe('Day 15 • 14:30')
+  })
+})
+
+describe('parseInjectScenarioTime', () => {
+  describe('Valid formats', () => {
+    it('parses HH:MM format correctly', () => {
+      const result = parseInjectScenarioTime(1, '08:30')
+
+      expect(result).toEqual({
+        day: 1,
+        hours: 8,
+        minutes: 30,
+      })
+    })
+
+    it('parses HH:MM:SS format correctly (ignores seconds)', () => {
+      const result = parseInjectScenarioTime(2, '14:45:30')
+
+      expect(result).toEqual({
+        day: 2,
+        hours: 14,
+        minutes: 45,
+      })
+    })
+
+    it('handles midnight (00:00)', () => {
+      const result = parseInjectScenarioTime(1, '00:00')
+
+      expect(result).toEqual({
+        day: 1,
+        hours: 0,
+        minutes: 0,
+      })
+    })
+
+    it('handles end of day (23:59)', () => {
+      const result = parseInjectScenarioTime(1, '23:59')
+
+      expect(result).toEqual({
+        day: 1,
+        hours: 23,
+        minutes: 59,
+      })
+    })
+
+    it('handles single-digit hours and minutes with leading zeros', () => {
+      const result = parseInjectScenarioTime(3, '05:07')
+
+      expect(result).toEqual({
+        day: 3,
+        hours: 5,
+        minutes: 7,
+      })
+    })
+  })
+
+  describe('Invalid input handling', () => {
+    it('returns null when scenarioDay is null', () => {
+      const result = parseInjectScenarioTime(null, '08:30')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when scenarioTime is null', () => {
+      const result = parseInjectScenarioTime(1, null)
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when scenarioTime has no colon (e.g., "12")', () => {
+      const result = parseInjectScenarioTime(1, '12')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when scenarioTime has only one part before colon (e.g., "12:")', () => {
+      const result = parseInjectScenarioTime(1, '12:')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when scenarioTime has empty hours part (e.g., ":30")', () => {
+      const result = parseInjectScenarioTime(1, ':30')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when hours is not a valid number', () => {
+      const result = parseInjectScenarioTime(1, 'abc:30')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when minutes is not a valid number', () => {
+      const result = parseInjectScenarioTime(1, '08:xyz')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when hours is out of range (> 23)', () => {
+      const result = parseInjectScenarioTime(1, '25:30')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when hours is negative', () => {
+      const result = parseInjectScenarioTime(1, '-5:30')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when minutes is out of range (> 59)', () => {
+      const result = parseInjectScenarioTime(1, '08:75')
+
+      expect(result).toBeNull()
+    })
+
+    it('returns null when minutes is negative', () => {
+      const result = parseInjectScenarioTime(1, '08:-15')
+
+      expect(result).toBeNull()
+    })
+  })
+
+  describe('Edge cases', () => {
+    it('handles multiple colons (HH:MM:SS:MS format) by using first two parts', () => {
+      const result = parseInjectScenarioTime(1, '12:30:45:123')
+
+      expect(result).toEqual({
+        day: 1,
+        hours: 12,
+        minutes: 30,
+      })
+    })
+
+    it('handles whitespace-free input', () => {
+      const result = parseInjectScenarioTime(5, '09:15')
+
+      expect(result).toEqual({
+        day: 5,
+        hours: 9,
+        minutes: 15,
+      })
+    })
   })
 })

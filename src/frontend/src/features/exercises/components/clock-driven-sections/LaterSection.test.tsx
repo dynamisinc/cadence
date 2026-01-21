@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '../../../../test/test-utils'
+import { render, screen, waitFor } from '../../../../test/test-utils'
 import userEvent from '@testing-library/user-event'
 import { LaterSection } from './LaterSection'
 import { InjectStatus } from '../../../../types'
@@ -92,7 +92,12 @@ describe('LaterSection', () => {
     // Section header should be visible
     expect(screen.getByText('LATER')).toBeInTheDocument()
     // Inject details should not be visible when collapsed
-    expect(screen.queryByText('Future Inject')).not.toBeInTheDocument()
+    // MUI Collapse keeps content in DOM but with height: 0px
+    const injectTitle = screen.queryByText('Future Inject')
+    if (injectTitle) {
+      const collapseEl = injectTitle.closest('.MuiCollapse-root')
+      expect(collapseEl).toHaveStyle({ height: '0px' })
+    }
   })
 
   it('expands when header is clicked', async () => {
@@ -124,7 +129,10 @@ describe('LaterSection', () => {
 
       // Collapse
       await user.click(header)
-      expect(screen.queryByText('Future Inject')).not.toBeInTheDocument()
+      await waitFor(() => {
+        const collapseEl = screen.getByText('Future Inject').closest('.MuiCollapse-root')
+        expect(collapseEl).toHaveStyle({ height: '0px' })
+      })
     }
   })
 
@@ -201,7 +209,7 @@ describe('LaterSection', () => {
       await user.click(header)
     }
 
-    expect(screen.getByText('D2 16:45:00')).toBeInTheDocument()
+    expect(screen.getByText('D2 16:45')).toBeInTheDocument()
   })
 
   it('displays sequence number', async () => {
