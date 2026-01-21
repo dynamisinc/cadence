@@ -99,6 +99,7 @@ const router = createBrowserRouter([
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
       { path: 'exercises/:id', element: <ExerciseDetailPage /> },
+      { path: 'exercises/:id/edit', element: <ExerciseDetailPage /> },
       { path: 'exercises/:id/conduct', element: <ExerciseConductPage /> },
 
       // Inject (MSEL) routes

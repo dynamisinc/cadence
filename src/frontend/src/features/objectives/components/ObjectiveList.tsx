@@ -105,7 +105,7 @@ export const ObjectiveList = ({ exerciseId, canEdit = true }: ObjectiveListProps
   return (
     <Box>
       {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={2}>
+      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={1.5}>
         <Typography variant="h6">
           Exercise Objectives ({objectives.length})
         </Typography>
@@ -124,7 +124,7 @@ export const ObjectiveList = ({ exerciseId, canEdit = true }: ObjectiveListProps
       {objectives.length === 0 ? (
         <Paper
           sx={{
-            p: 3,
+            p: 2,
             textAlign: 'center',
             bgcolor: 'background.default',
           }}
@@ -137,22 +137,23 @@ export const ObjectiveList = ({ exerciseId, canEdit = true }: ObjectiveListProps
           </Typography>
         </Paper>
       ) : (
-        <Stack spacing={1}>
+        <Stack spacing={0.75}>
           {objectives.map(objective => (
             <Paper
               key={objective.id}
               sx={{
-                p: 2,
+                px: 1.5,
+                py: 1,
                 display: 'flex',
                 alignItems: 'flex-start',
-                gap: 2,
+                gap: 1.5,
               }}
             >
               {/* Objective Number */}
               <Box
                 sx={{
-                  minWidth: 40,
-                  height: 40,
+                  minWidth: 32,
+                  height: 32,
                   borderRadius: 1,
                   bgcolor: 'primary.main',
                   color: 'primary.contrastText',
@@ -160,15 +161,16 @@ export const ObjectiveList = ({ exerciseId, canEdit = true }: ObjectiveListProps
                   alignItems: 'center',
                   justifyContent: 'center',
                   fontWeight: 'bold',
-                  fontSize: '0.875rem',
+                  fontSize: '0.8rem',
+                  flexShrink: 0,
                 }}
               >
                 {objective.objectiveNumber}
               </Box>
 
               {/* Content */}
-              <Box flex={1}>
-                <Typography variant="subtitle1" fontWeight={500}>
+              <Box flex={1} sx={{ minWidth: 0 }}>
+                <Typography variant="body1" fontWeight={500} sx={{ lineHeight: 1.3 }}>
                   {objective.name}
                 </Typography>
                 {objective.description && (
@@ -176,24 +178,30 @@ export const ObjectiveList = ({ exerciseId, canEdit = true }: ObjectiveListProps
                     variant="body2"
                     color="text.secondary"
                     sx={{
-                      mt: 0.5,
+                      mt: 0.25,
                       display: '-webkit-box',
                       WebkitLineClamp: 2,
                       WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
+                      lineHeight: 1.3,
                     }}
                   >
                     {objective.description}
                   </Typography>
                 )}
-                <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-                  {objective.linkedInjectCount} inject{objective.linkedInjectCount !== 1 ? 's' : ''} linked
+                <Typography
+                  variant="caption"
+                  color="text.secondary"
+                  sx={{ mt: 0.5, display: 'block', lineHeight: 1.2 }}
+                >
+                  {objective.linkedInjectCount} inject
+                  {objective.linkedInjectCount !== 1 ? 's' : ''} linked
                 </Typography>
               </Box>
 
               {/* Actions */}
               {canEdit && (
-                <Stack direction="row" spacing={0.5}>
+                <Stack direction="row" spacing={0} sx={{ flexShrink: 0 }}>
                   <Tooltip title="Edit objective">
                     <IconButton
                       size="small"
@@ -202,7 +210,13 @@ export const ObjectiveList = ({ exerciseId, canEdit = true }: ObjectiveListProps
                       <FontAwesomeIcon icon={faPen} size="sm" />
                     </IconButton>
                   </Tooltip>
-                  <Tooltip title={objective.linkedInjectCount > 0 ? 'Remove linked injects first' : 'Delete objective'}>
+                  <Tooltip
+                    title={
+                      objective.linkedInjectCount > 0
+                        ? 'Remove linked injects first'
+                        : 'Delete objective'
+                    }
+                  >
                     <span>
                       <IconButton
                         size="small"
