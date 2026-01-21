@@ -762,7 +762,7 @@ export const ExerciseConductPage = () => {
                       elapsedTimeMs={elapsedTimeMs}
                       canControl={canControl}
                       isSubmitting={false}
-                      onFire={async (id) => { await fireInject(id) }}
+                      onFire={async id => { await fireInject(id) }}
                       onSkip={async (id, req) => { await skipInject(id, req) }}
                       openInjectId={openInjectId}
                       onDrawerClose={() => setOpenInjectId(null)}
@@ -775,7 +775,7 @@ export const ExerciseConductPage = () => {
                       canControl={canControl}
                       isSubmitting={false}
                       isLoading={injectsLoading}
-                      onFire={async (id) => { await fireInject(id) }}
+                      onFire={async id => { await fireInject(id) }}
                       onSkip={async (id, req) => { await skipInject(id, req) }}
                       onJumpTo={handleJumpTo}
                     />
