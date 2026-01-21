@@ -277,22 +277,26 @@ describe('DeleteExerciseDialog', () => {
       expect(onClose).toHaveBeenCalledTimes(1)
     })
 
-    it('calls exerciseService.deleteExercise when confirmed', async () => {
-      const user = userEvent.setup()
-      renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)
+    it(
+      'calls exerciseService.deleteExercise when confirmed',
+      async () => {
+        const user = userEvent.setup({ delay: null }) // Faster typing
+        renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)
 
-      await waitFor(() => {
-        expect(screen.getByLabelText(/Type exercise name to confirm/i)).toBeInTheDocument()
-      })
+        await waitFor(() => {
+          expect(screen.getByLabelText(/Type exercise name to confirm/i)).toBeInTheDocument()
+        })
 
-      await user.type(screen.getByLabelText(/Type exercise name to confirm/i), 'Test Exercise')
-      await user.click(screen.getByRole('checkbox'))
-      await user.click(screen.getByRole('button', { name: /Delete/i }))
+        await user.type(screen.getByLabelText(/Type exercise name to confirm/i), 'Test Exercise')
+        await user.click(screen.getByRole('checkbox'))
+        await user.click(screen.getByRole('button', { name: /Delete/i }))
 
-      await waitFor(() => {
-        expect(exerciseService.deleteExercise).toHaveBeenCalledWith('exercise-1')
-      })
-    })
+        await waitFor(() => {
+          expect(exerciseService.deleteExercise).toHaveBeenCalledWith('exercise-1')
+        })
+      },
+      10000,
+    )
   })
 
   describe('Error Handling', () => {

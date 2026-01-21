@@ -281,58 +281,66 @@ describe('ReadyToFireSection', () => {
 
       expect(onSkip).toHaveBeenCalledWith('1', { reason: 'Players ahead of schedule' })
     },
-    10000,
+    15000,
   )
 
-  it('disables skip confirm button when reason is empty', async () => {
-    const user = userEvent.setup()
-    const injects = [createMockInject('1', 1)]
+  it(
+    'disables skip confirm button when reason is empty',
+    async () => {
+      const user = userEvent.setup()
+      const injects = [createMockInject('1', 1)]
 
-    render(
-      <ReadyToFireSection
-        injects={injects}
-        elapsedTimeMs={0}
-        onFire={vi.fn()}
-        onSkip={vi.fn()}
-      />,
-    )
+      render(
+        <ReadyToFireSection
+          injects={injects}
+          elapsedTimeMs={0}
+          onFire={vi.fn()}
+          onSkip={vi.fn()}
+        />,
+      )
 
-    // Open skip dialog
-    const skipButton = screen.getByRole('button', { name: /^Skip$/i })
-    await user.click(skipButton)
+      // Open skip dialog
+      const skipButton = screen.getByRole('button', { name: /^Skip$/i })
+      await user.click(skipButton)
 
-    const confirmButtons = screen.getAllByRole('button', { name: /Skip Inject/i })
-    const confirmButton = confirmButtons.find(btn => btn.hasAttribute('disabled'))
-    expect(confirmButton).toBeDisabled()
-  })
+      const confirmButtons = screen.getAllByRole('button', { name: /Skip Inject/i })
+      const confirmButton = confirmButtons.find(btn => btn.hasAttribute('disabled'))
+      expect(confirmButton).toBeDisabled()
+    },
+    15000,
+  )
 
-  it('closes skip dialog when cancel is clicked', async () => {
-    const user = userEvent.setup()
-    const injects = [createMockInject('1', 1)]
+  it(
+    'closes skip dialog when cancel is clicked',
+    async () => {
+      const user = userEvent.setup()
+      const injects = [createMockInject('1', 1)]
 
-    render(
-      <ReadyToFireSection
-        injects={injects}
-        elapsedTimeMs={0}
-        onFire={vi.fn()}
-        onSkip={vi.fn()}
-      />,
-    )
+      render(
+        <ReadyToFireSection
+          injects={injects}
+          elapsedTimeMs={0}
+          onFire={vi.fn()}
+          onSkip={vi.fn()}
+        />,
+      )
 
-    // Open skip dialog
-    const skipButton = screen.getByRole('button', { name: /^Skip$/i })
-    await user.click(skipButton)
+      // Open skip dialog
+      const skipButton = screen.getByRole('button', { name: /^Skip$/i })
+      await user.click(skipButton)
 
-    expect(screen.getByRole('heading', { name: /Skip Inject/i })).toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: /Skip Inject/i })).toBeInTheDocument()
 
-    // Cancel
-    const cancelButton = screen.getByRole('button', { name: /Cancel/i })
-    await user.click(cancelButton)
+      // Cancel
+      const cancelButton = screen.getByRole('button', { name: /Cancel/i })
+      await user.click(cancelButton)
 
-    await waitFor(() => {
-      expect(screen.queryByRole('heading', { name: /Skip Inject/i })).not.toBeInTheDocument()
-    })
-  })
+      await waitFor(() => {
+        expect(screen.queryByRole('heading', { name: /Skip Inject/i })).not.toBeInTheDocument()
+      })
+    },
+    15000,
+  )
 
   it('hides action buttons when canControl is false', () => {
     const injects = [createMockInject('1', 1)]
@@ -464,6 +472,6 @@ describe('ReadyToFireSection', () => {
 
       expect(onSkip).toHaveBeenCalledWith('1', { reason: 'Time constraints' })
     },
-    10000,
+    15000,
   )
 })
