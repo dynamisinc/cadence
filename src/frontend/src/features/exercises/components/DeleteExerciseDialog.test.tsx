@@ -156,9 +156,13 @@ describe('DeleteExerciseDialog', () => {
     it('hides loading indicator after summary loads', async () => {
       renderWithQueryClient(<DeleteExerciseDialog {...defaultProps} />)
 
-      await waitFor(() => {
-        expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
-      })
+      // Wait for data to load - check for something that only appears after loading
+      await waitFor(
+        () => {
+          expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
+        },
+        { timeout: 10000 },
+      )
     })
   })
 

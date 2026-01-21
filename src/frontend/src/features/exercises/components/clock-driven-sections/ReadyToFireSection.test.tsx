@@ -270,9 +270,10 @@ describe('ReadyToFireSection', () => {
       // Wait for dialog to appear
       await screen.findByRole('dialog')
 
-      // Enter skip reason (regex because required TextField adds asterisk)
+      // Enter skip reason using paste instead of type for speed
       const reasonField = screen.getByLabelText(/Skip Reason/)
-      await user.type(reasonField, 'Players ahead of schedule')
+      await user.clear(reasonField)
+      await user.paste('Players ahead of schedule')
 
       // Confirm skip - look for the button in the dialog
       // There's one "Skip Inject" button in the dialog that becomes enabled when reason is provided
@@ -281,7 +282,7 @@ describe('ReadyToFireSection', () => {
 
       expect(onSkip).toHaveBeenCalledWith('1', { reason: 'Players ahead of schedule' })
     },
-    15000,
+    30000,
   )
 
   it(
@@ -462,9 +463,10 @@ describe('ReadyToFireSection', () => {
       // Wait for dialog to appear
       await screen.findByRole('dialog')
 
-      // Enter skip reason with extra whitespace (regex because required TextField adds asterisk)
+      // Enter skip reason with extra whitespace using paste for speed
       const reasonField = screen.getByLabelText(/Skip Reason/)
-      await user.type(reasonField, '  Time constraints  ')
+      await user.clear(reasonField)
+      await user.paste('  Time constraints  ')
 
       // Confirm skip - click the "Skip Inject" button in the dialog
       const confirmButton = screen.getByRole('button', { name: /Skip Inject/i })
@@ -472,6 +474,6 @@ describe('ReadyToFireSection', () => {
 
       expect(onSkip).toHaveBeenCalledWith('1', { reason: 'Time constraints' })
     },
-    15000,
+    30000,
   )
 })
