@@ -77,10 +77,13 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
   onChange,
   errors = {},
 }) => {
+  // Timeline options only shown for Clock-driven mode
+  const showTimelineOptions = deliveryMode === DeliveryMode.ClockDriven
+
   // Calculate if time scale input should be shown
   const showTimeScale = useMemo(
-    () => timelineMode === TimelineMode.Compressed,
-    [timelineMode],
+    () => showTimelineOptions && timelineMode === TimelineMode.Compressed,
+    [showTimelineOptions, timelineMode],
   )
 
   // Calculate helper text for time scale
@@ -107,7 +110,7 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
           </Typography>
         </Box>
 
-        <Stack spacing={1}>
+        <Stack direction="row" spacing={4}>
           <Box>
             <Typography variant="body2" color="text.secondary">
               Delivery Mode:
@@ -117,30 +120,32 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
             </Typography>
           </Box>
 
-          <Box>
-            <Typography variant="body2" color="text.secondary">
-              Timeline Mode:
-            </Typography>
-            <Typography variant="body1">
-              {timelineMode === TimelineMode.RealTime && 'Real-time (1:1)'}
-              {timelineMode === TimelineMode.Compressed && `Compressed (${timeScale}x)`}
-              {timelineMode === TimelineMode.StoryOnly && 'Story-only'}
-            </Typography>
-          </Box>
-
-          <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-            To change these settings, stop the exercise first.
-          </Typography>
+          {showTimelineOptions && (
+            <Box>
+              <Typography variant="body2" color="text.secondary">
+                Timeline Mode:
+              </Typography>
+              <Typography variant="body1">
+                {timelineMode === TimelineMode.RealTime && 'Real-time (1:1)'}
+                {timelineMode === TimelineMode.Compressed && `Compressed (${timeScale}x)`}
+                {timelineMode === TimelineMode.StoryOnly && 'Story-only'}
+              </Typography>
+            </Box>
+          )}
         </Stack>
+
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1.5, display: 'block' }}>
+          To change these settings, stop the exercise first.
+        </Typography>
       </Paper>
     )
   }
 
   // Editable state UI
   return (
-    <Stack spacing={CobraStyles.Spacing.FormFields}>
+    <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap' }}>
       {/* Delivery Mode Section */}
-      <FormControl component="fieldset" error={!!errors.deliveryMode}>
+      <FormControl component="fieldset" error={!!errors.deliveryMode} sx={{ minWidth: 280 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <FormLabel component="legend" sx={{ mb: 0 }}>
             How will injects be delivered?
@@ -166,7 +171,7 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
                   Clock-driven
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  Injects automatically become Ready at their Delivery Time
+                  Injects become Ready at their Delivery Time
                 </Typography>
               </Box>
             }
@@ -191,98 +196,100 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
         )}
       </FormControl>
 
-      {/* Timeline Mode Section */}
-      <FormControl component="fieldset" error={!!errors.timelineMode}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-          <FormLabel component="legend" sx={{ mb: 0 }}>
-            What timeline will the exercise use?
-          </FormLabel>
-          <Tooltip title="Determines how exercise time relates to real-world time">
-            <IconButton size="small" aria-label="Timeline mode help">
-              <FontAwesomeIcon icon={faCircleQuestion} size="sm" />
-            </IconButton>
-          </Tooltip>
-        </Box>
-
-        <RadioGroup
-          value={timelineMode}
-          onChange={e => onChange('timelineMode', e.target.value as TimelineMode)}
-          aria-labelledby="timeline-mode-label"
-        >
-          <FormControlLabel
-            value={TimelineMode.RealTime}
-            control={<Radio />}
-            label={
-              <Box>
-                <Typography variant="body1" fontWeight={500}>
-                  Real-time
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Exercise clock matches wall clock (1:1)
-                </Typography>
-              </Box>
-            }
-          />
-          <FormControlLabel
-            value={TimelineMode.Compressed}
-            control={<Radio />}
-            label={
-              <Box>
-                <Typography variant="body1" fontWeight={500}>
-                  Compressed
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  Simulate longer scenarios in less time
-                </Typography>
-              </Box>
-            }
-          />
-          <FormControlLabel
-            value={TimelineMode.StoryOnly}
-            control={<Radio />}
-            label={
-              <Box>
-                <Typography variant="body1" fontWeight={500}>
-                  Story-only
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  No real-time clock, just narrative timestamps
-                </Typography>
-              </Box>
-            }
-          />
-        </RadioGroup>
-
-        {/* Time Scale Input (shown only for Compressed mode) */}
-        {showTimeScale && (
-          <Box sx={{ mt: 2, ml: 4 }}>
-            <CobraTextField
-              label="Time Scale"
-              type="number"
-              value={timeScale ?? ''}
-              onChange={e => {
-                const value = e.target.value ? parseFloat(e.target.value) : null
-                onChange('timeScale', value)
-              }}
-              error={!!errors.timeScale}
-              helperText={timeScaleHelperText}
-              placeholder="e.g., 4"
-              slotProps={{
-                htmlInput: {
-                  min: 0.1,
-                  max: 60,
-                  step: 0.1,
-                },
-              }}
-              sx={{ maxWidth: 300 }}
-            />
+      {/* Timeline Mode Section - Only shown for Clock-driven */}
+      {showTimelineOptions && (
+        <FormControl component="fieldset" error={!!errors.timelineMode} sx={{ minWidth: 280 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <FormLabel component="legend" sx={{ mb: 0 }}>
+              What timeline will the exercise use?
+            </FormLabel>
+            <Tooltip title="Determines how exercise time relates to real-world time">
+              <IconButton size="small" aria-label="Timeline mode help">
+                <FontAwesomeIcon icon={faCircleQuestion} size="sm" />
+              </IconButton>
+            </Tooltip>
           </Box>
-        )}
 
-        {errors.timelineMode && (
-          <FormHelperText>{errors.timelineMode}</FormHelperText>
-        )}
-      </FormControl>
+          <RadioGroup
+            value={timelineMode}
+            onChange={e => onChange('timelineMode', e.target.value as TimelineMode)}
+            aria-labelledby="timeline-mode-label"
+          >
+            <FormControlLabel
+              value={TimelineMode.RealTime}
+              control={<Radio />}
+              label={
+                <Box>
+                  <Typography variant="body1" fontWeight={500}>
+                    Real-time
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Exercise clock matches wall clock (1:1)
+                  </Typography>
+                </Box>
+              }
+            />
+            <FormControlLabel
+              value={TimelineMode.Compressed}
+              control={<Radio />}
+              label={
+                <Box>
+                  <Typography variant="body1" fontWeight={500}>
+                    Compressed
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    Simulate longer scenarios in less time
+                  </Typography>
+                </Box>
+              }
+            />
+            <FormControlLabel
+              value={TimelineMode.StoryOnly}
+              control={<Radio />}
+              label={
+                <Box>
+                  <Typography variant="body1" fontWeight={500}>
+                    Story-only
+                  </Typography>
+                  <Typography variant="body2" color="text.secondary">
+                    No real-time clock, just narrative timestamps
+                  </Typography>
+                </Box>
+              }
+            />
+          </RadioGroup>
+
+          {/* Time Scale Input (shown only for Compressed mode) */}
+          {showTimeScale && (
+            <Box sx={{ mt: 2, ml: 4 }}>
+              <CobraTextField
+                label="Time Scale"
+                type="number"
+                value={timeScale ?? ''}
+                onChange={e => {
+                  const value = e.target.value ? parseFloat(e.target.value) : null
+                  onChange('timeScale', value)
+                }}
+                error={!!errors.timeScale}
+                helperText={timeScaleHelperText}
+                placeholder="e.g., 4"
+                slotProps={{
+                  htmlInput: {
+                    min: 0.1,
+                    max: 60,
+                    step: 0.1,
+                  },
+                }}
+                sx={{ maxWidth: 200 }}
+              />
+            </Box>
+          )}
+
+          {errors.timelineMode && (
+            <FormHelperText>{errors.timelineMode}</FormHelperText>
+          )}
+        </FormControl>
+      )}
     </Stack>
   )
 }

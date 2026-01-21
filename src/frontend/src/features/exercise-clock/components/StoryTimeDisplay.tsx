@@ -74,7 +74,7 @@ export const StoryTimeDisplay = ({
           gap: 1,
         }}
       >
-        <span>{isStoryOnly ? 'Current Story Time:' : 'Story Time:'}</span>
+        <span>{isStoryOnly ? 'Current Scenario Time:' : 'Scenario Time:'}</span>
         <Typography
           component="span"
           sx={{

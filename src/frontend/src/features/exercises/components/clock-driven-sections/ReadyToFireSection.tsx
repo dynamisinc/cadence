@@ -35,7 +35,7 @@ import {
 import { keyframes } from '@mui/system'
 
 import type { InjectDto, SkipInjectRequest } from '../../../injects/types'
-import { parseDeliveryTime, formatDeliveryTime } from '../../../injects/types'
+import { parseDeliveryTime, formatDeliveryTime, formatScenarioTime } from '../../../injects/types'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -61,6 +61,8 @@ interface ReadyToFireSectionProps {
   onFire: (injectId: string) => Promise<void> | void
   /** Called when skip button clicked */
   onSkip: (injectId: string, request: SkipInjectRequest) => Promise<void> | void
+  /** Called when inject row is clicked to open details drawer */
+  onInjectClick?: (inject: InjectDto) => void
 }
 
 export const ReadyToFireSection = ({
@@ -70,6 +72,7 @@ export const ReadyToFireSection = ({
   isSubmitting = false,
   onFire,
   onSkip,
+  onInjectClick,
 }: ReadyToFireSectionProps) => {
   const [expanded, setExpanded] = useState(true)
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
@@ -194,10 +197,28 @@ export const ReadyToFireSection = ({
                               {formatDeliveryTime(parseDeliveryTime(inject.deliveryTime) ?? 0)}
                             </Typography>
                           )}
+                          {/* Scenario Time - show if defined */}
+                          {formatScenarioTime(inject.scenarioDay, inject.scenarioTime) && (
+                            <Chip
+                              label={formatScenarioTime(inject.scenarioDay, inject.scenarioTime)}
+                              size="small"
+                              variant="outlined"
+                              color="info"
+                              sx={{ fontFamily: 'monospace' }}
+                            />
+                          )}
                         </Stack>
 
-                        {/* Inject Title */}
-                        <Typography variant="h6" sx={{ mb: 1 }}>
+                        {/* Inject Title - clickable to open drawer */}
+                        <Typography
+                          variant="h6"
+                          sx={{
+                            mb: 1,
+                            cursor: onInjectClick ? 'pointer' : 'default',
+                            '&:hover': onInjectClick ? { textDecoration: 'underline' } : {},
+                          }}
+                          onClick={() => onInjectClick?.(inject)}
+                        >
                           {inject.title}
                         </Typography>
 

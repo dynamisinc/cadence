@@ -32,7 +32,7 @@ describe('StoryTimeDisplay', () => {
       expect(screen.getByText('Day 1 • 08:32')).toBeInTheDocument()
     })
 
-    it('shows "Story Time:" label for non-StoryOnly modes', () => {
+    it('shows "Scenario Time:" label for non-StoryOnly modes', () => {
       render(
         <StoryTimeDisplay
           storyTime={mockStoryTime}
@@ -43,10 +43,10 @@ describe('StoryTimeDisplay', () => {
         />,
       )
 
-      expect(screen.getByText(/Story Time:/i)).toBeInTheDocument()
+      expect(screen.getByText(/Scenario Time:/i)).toBeInTheDocument()
     })
 
-    it('shows "Current Story Time:" label for StoryOnly mode', () => {
+    it('shows "Current Scenario Time:" label for StoryOnly mode', () => {
       render(
         <StoryTimeDisplay
           storyTime={mockStoryTime}
@@ -57,7 +57,7 @@ describe('StoryTimeDisplay', () => {
         />,
       )
 
-      expect(screen.getByText(/Current Story Time:/i)).toBeInTheDocument()
+      expect(screen.getByText(/Current Scenario Time:/i)).toBeInTheDocument()
     })
 
     it('displays book icon', () => {

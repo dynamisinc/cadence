@@ -23,6 +23,8 @@ export interface GroupedInjects {
   ready: InjectDto[]
   /** Pending injects with DeliveryTime within next 30 minutes */
   upcoming: InjectDto[]
+  /** Pending injects outside the 30-minute window or without DeliveryTime */
+  later: InjectDto[]
   /** Fired and Skipped injects */
   completed: InjectDto[]
 }
@@ -30,9 +32,10 @@ export interface GroupedInjects {
 /**
  * Group injects for clock-driven delivery mode
  *
- * Groups injects into three sections based on their status and delivery time:
- * - Ready: status === Ready
+ * Groups injects into four sections based on their status and delivery time:
+ * - Ready: status === Ready (delivery time reached, awaiting fire)
  * - Upcoming: status === Pending AND deliveryTime within next 30 minutes
+ * - Later: status === Pending AND (deliveryTime > 30 min away OR no deliveryTime)
  * - Completed: status === Fired OR status === Skipped
  *
  * @param injects Array of injects to group
@@ -45,6 +48,7 @@ export const groupInjectsForClockDriven = (
 ): GroupedInjects => {
   const ready: InjectDto[] = []
   const upcoming: InjectDto[] = []
+  const later: InjectDto[] = []
   const completed: InjectDto[] = []
 
   const upcomingWindowEndMs = elapsedTimeMs + UPCOMING_WINDOW_MS
@@ -62,19 +66,24 @@ export const groupInjectsForClockDriven = (
       continue
     }
 
-    // Upcoming section - Pending with DeliveryTime in the next 30 minutes
+    // Pending injects - sort into Upcoming or Later
     if (inject.status === InjectStatus.Pending) {
       const deliveryTimeMs = parseDeliveryTime(inject.deliveryTime)
 
       if (deliveryTimeMs !== null) {
         const timeUntilDelivery = deliveryTimeMs - elapsedTimeMs
 
-        // Only include if delivery time is in the future and within the window
+        // Upcoming: delivery time is in the future and within the 30-min window
         if (timeUntilDelivery > 0 && deliveryTimeMs <= upcomingWindowEndMs) {
           upcoming.push(inject)
+        } else {
+          // Later: delivery time is past (should transition to Ready) or > 30 min away
+          later.push(inject)
         }
+      } else {
+        // No deliveryTime set - put in Later section
+        later.push(inject)
       }
-      // Injects without deliveryTime or outside the window are not shown
     }
   }
 
@@ -85,7 +94,10 @@ export const groupInjectsForClockDriven = (
     return aTime - bTime
   })
 
-  return { ready, upcoming, completed }
+  // Sort later by sequence (MSEL order)
+  later.sort((a, b) => a.sequence - b.sequence)
+
+  return { ready, upcoming, later, completed }
 }
 
 /**

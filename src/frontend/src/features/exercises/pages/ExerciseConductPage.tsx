@@ -41,7 +41,14 @@ import {
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useExercise } from '../hooks'
-import { ExerciseHeader, NarrativeView, StickyClockHeader, FloatingClockChip, ClockDrivenConductView } from '../components'
+import {
+  ExerciseHeader,
+  NarrativeView,
+  StickyClockHeader,
+  FloatingClockChip,
+  ClockDrivenConductView,
+  FacilitatorPacedConductView,
+} from '../components'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs, useConnectivity } from '../../../core/contexts'
@@ -445,6 +452,17 @@ export const ExerciseConductPage = () => {
     setShowStopConfirm(false)
   }
 
+  // Handle jump to inject (facilitator-paced mode)
+  // Skips all injects between current and target, then the target becomes current
+  const handleJumpTo = async (targetInjectId: string, skipInjectIds: string[]) => {
+    // Skip all injects in the skipInjectIds list
+    for (const injectId of skipInjectIds) {
+      await skipInject(injectId, { reason: 'Jumped to later inject' })
+    }
+    // The target inject will naturally become the current inject
+    // since all prior pending injects have been skipped
+  }
+
   // Loading state
   if (exerciseLoading && !exercise) {
     return (
@@ -625,10 +643,12 @@ export const ExerciseConductPage = () => {
           )}
 
           {/* Sticky Clock Header (Option 1) */}
-          {layoutMode === 'sticky' && (
+          {layoutMode === 'sticky' && exercise && (
             <StickyClockHeader
+              exercise={exercise}
               clockState={clockState ?? null}
               displayTime={displayTime}
+              elapsedTimeMs={elapsedTimeMs}
               loading={clockLoading}
               injects={injects}
               readyToFireCount={readyToFireCount}
@@ -746,22 +766,20 @@ export const ExerciseConductPage = () => {
                       isSubmitting={false}
                       onFire={fireInject}
                       onSkip={skipInject}
-                    />
-                  ) : (
-                    /* Facilitator-Paced View (existing) */
-                    <InjectListByStatus
-                      injects={injects}
-                      exerciseStartTime={exerciseStartTime}
-                      elapsedTimeMs={elapsedTimeMs}
-                      canControl={canControl}
-                      loading={injectsLoading}
-                      error={injectsError}
-                      onFire={fireInject}
-                      onSkip={skipInject}
-                      onReset={resetInject}
                       openInjectId={openInjectId}
                       onDrawerClose={() => setOpenInjectId(null)}
-                      objectives={objectives}
+                    />
+                  ) : (
+                    /* Facilitator-Paced View - Current Inject focused, no clock */
+                    <FacilitatorPacedConductView
+                      exercise={exercise}
+                      injects={injects}
+                      canControl={canControl}
+                      isSubmitting={false}
+                      isLoading={injectsLoading}
+                      onFire={fireInject}
+                      onSkip={skipInject}
+                      onJumpTo={handleJumpTo}
                     />
                   )}
                 </Box>

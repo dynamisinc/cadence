@@ -2,21 +2,24 @@
  * ClockDrivenConductView
  *
  * Conduct view for clock-driven delivery mode exercises.
- * Displays injects grouped into Ready to Fire, Upcoming, and Completed sections.
+ * Displays injects grouped into Ready to Fire, Upcoming, Later, and Completed sections.
  *
  * @module features/exercises
  * @see exercise-config/S06-clock-driven-conduct-view
  */
 
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { Box, Typography } from '@mui/material'
 
 import type { ExerciseDto } from '../types'
 import type { InjectDto, SkipInjectRequest } from '../../injects/types'
+import { parseDeliveryTime } from '../../injects/types'
 import { groupInjectsForClockDriven } from '../../injects/utils/clockDrivenGrouping'
+import { InjectDetailDrawer } from '../../injects/components/InjectDetailDrawer'
 import {
   ReadyToFireSection,
   UpcomingSection,
+  LaterSection,
   CompletedSection,
 } from './clock-driven-sections'
 
@@ -35,6 +38,10 @@ interface ClockDrivenConductViewProps {
   canControl?: boolean
   /** Whether actions are currently being submitted */
   isSubmitting?: boolean
+  /** ID of inject to show in drawer (controlled externally) */
+  openInjectId?: string | null
+  /** Called when drawer is closed */
+  onDrawerClose?: () => void
 }
 
 export const ClockDrivenConductView = ({
@@ -45,6 +52,8 @@ export const ClockDrivenConductView = ({
   onSkip,
   canControl = true,
   isSubmitting = false,
+  openInjectId,
+  onDrawerClose,
 }: ClockDrivenConductViewProps) => {
   // Group injects by section
   const grouped = useMemo(
@@ -54,6 +63,47 @@ export const ClockDrivenConductView = ({
 
   // Completed section collapse state
   const [completedExpanded, setCompletedExpanded] = useState(false)
+
+  // Drawer state
+  const [selectedInject, setSelectedInject] = useState<InjectDto | null>(null)
+  const [selectedInjectOffset, setSelectedInjectOffset] = useState<number | null>(null)
+  const [drawerOpen, setDrawerOpen] = useState(false)
+
+  // Open drawer when openInjectId is set externally
+  useEffect(() => {
+    if (openInjectId) {
+      const inject = injects.find(i => i.id === openInjectId)
+      if (inject) {
+        const offsetMs = parseDeliveryTime(inject.deliveryTime)
+        setSelectedInject(inject)
+        setSelectedInjectOffset(offsetMs)
+        setDrawerOpen(true)
+      }
+    }
+  }, [openInjectId, injects])
+
+  // Drawer handlers
+  const handleInjectClick = (inject: InjectDto) => {
+    const offsetMs = parseDeliveryTime(inject.deliveryTime)
+    setSelectedInject(inject)
+    setSelectedInjectOffset(offsetMs)
+    setDrawerOpen(true)
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerOpen(false)
+    onDrawerClose?.()
+  }
+
+  const handleDrawerFire = async (injectId: string) => {
+    await onFire(injectId)
+  }
+
+  const handleDrawerSkip = (injectId: string) => {
+    // Close drawer first, then the section's skip dialog will handle the reason
+    setDrawerOpen(false)
+    onDrawerClose?.()
+  }
 
   // Show alert if no injects at all
   if (injects.length === 0) {
@@ -67,30 +117,50 @@ export const ClockDrivenConductView = ({
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      {/* Ready to Fire Section */}
-      <ReadyToFireSection
-        injects={grouped.ready}
-        elapsedTimeMs={elapsedTimeMs}
+    <>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+        {/* Ready to Fire Section */}
+        <ReadyToFireSection
+          injects={grouped.ready}
+          elapsedTimeMs={elapsedTimeMs}
+          canControl={canControl}
+          isSubmitting={isSubmitting}
+          onFire={onFire}
+          onSkip={onSkip}
+          onInjectClick={handleInjectClick}
+        />
+
+        {/* Upcoming Section */}
+        <UpcomingSection
+          injects={grouped.upcoming}
+          elapsedTimeMs={elapsedTimeMs}
+          onInjectClick={handleInjectClick}
+        />
+
+        {/* Later Section */}
+        <LaterSection injects={grouped.later} onInjectClick={handleInjectClick} />
+
+        {/* Completed Section */}
+        <CompletedSection
+          injects={grouped.completed}
+          expanded={completedExpanded}
+          onToggle={() => setCompletedExpanded(!completedExpanded)}
+          onInjectClick={handleInjectClick}
+        />
+      </Box>
+
+      {/* Inject Detail Drawer */}
+      <InjectDetailDrawer
+        inject={selectedInject}
+        offsetMs={selectedInjectOffset}
+        open={drawerOpen}
+        onClose={handleDrawerClose}
         canControl={canControl}
         isSubmitting={isSubmitting}
-        onFire={onFire}
-        onSkip={onSkip}
+        onFire={handleDrawerFire}
+        onSkip={handleDrawerSkip}
       />
-
-      {/* Upcoming Section */}
-      <UpcomingSection
-        injects={grouped.upcoming}
-        elapsedTimeMs={elapsedTimeMs}
-      />
-
-      {/* Completed Section */}
-      <CompletedSection
-        injects={grouped.completed}
-        expanded={completedExpanded}
-        onToggle={() => setCompletedExpanded(!completedExpanded)}
-      />
-    </Box>
+    </>
   )
 }
 

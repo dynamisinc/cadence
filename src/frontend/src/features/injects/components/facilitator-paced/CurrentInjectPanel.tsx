@@ -25,10 +25,32 @@ import {
   faTowerBroadcast,
   faLightbulb,
   faClipboardList,
+  faUserTie,
+  faLocationDot,
+  faFlag,
+  faRoad,
+  faReply,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
+import { InjectTypeChip } from '../InjectTypeChip'
 import type { InjectDto } from '../../types'
 import { formatScenarioTime } from '../../types'
+
+const priorityLabels: Record<number, string> = {
+  1: 'Critical',
+  2: 'High',
+  3: 'Medium',
+  4: 'Low',
+  5: 'Info',
+}
+
+const priorityColors: Record<number, 'error' | 'warning' | 'info' | 'default'> = {
+  1: 'error',
+  2: 'warning',
+  3: 'info',
+  4: 'default',
+  5: 'default',
+}
 
 interface CurrentInjectPanelProps {
   /** The current inject to display */
@@ -73,14 +95,17 @@ export const CurrentInjectPanel = ({
               CURRENT INJECT
             </Typography>
           </Stack>
-          {scenarioTimeDisplay && (
-            <Chip
-              icon={<FontAwesomeIcon icon={faBook} size="xs" />}
-              label={scenarioTimeDisplay}
-              color="primary"
-              variant="outlined"
-            />
-          )}
+          <Stack direction="row" spacing={1} alignItems="center">
+            <InjectTypeChip type={inject.injectType} />
+            {scenarioTimeDisplay && (
+              <Chip
+                icon={<FontAwesomeIcon icon={faBook} size="xs" />}
+                label={scenarioTimeDisplay}
+                color="primary"
+                variant="outlined"
+              />
+            )}
+          </Stack>
         </Box>
 
         {/* Inject Number and Title */}
@@ -106,30 +131,95 @@ export const CurrentInjectPanel = ({
 
         <Divider />
 
-        {/* Delivery Context */}
-        <Stack direction="row" spacing={3} flexWrap="wrap">
-          {inject.target && (
-            <Stack direction="row" spacing={1} alignItems="center">
-              <FontAwesomeIcon icon={faBullseye} style={{ opacity: 0.7 }} />
-              <Typography variant="body2" color="text.secondary">
-                To:
-              </Typography>
-              <Typography variant="body2" fontWeight={500}>
-                {inject.target}
-              </Typography>
-            </Stack>
-          )}
-          {inject.deliveryMethodName && (
-            <Stack direction="row" spacing={1} alignItems="center">
-              <FontAwesomeIcon icon={faTowerBroadcast} style={{ opacity: 0.7 }} />
-              <Typography variant="body2" color="text.secondary">
-                Via:
-              </Typography>
-              <Typography variant="body2" fontWeight={500}>
-                {inject.deliveryMethodName}
-              </Typography>
-            </Stack>
-          )}
+        {/* Delivery Context - Two columns */}
+        <Stack direction="row" spacing={4} flexWrap="wrap" useFlexGap>
+          {/* Left column: Target & Source */}
+          <Stack spacing={1} sx={{ minWidth: 200 }}>
+            {inject.target && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faBullseye} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  To:
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {inject.target}
+                </Typography>
+              </Stack>
+            )}
+            {inject.source && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faReply} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  From:
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {inject.source}
+                </Typography>
+              </Stack>
+            )}
+            {inject.deliveryMethodName && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faTowerBroadcast} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Via:
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {inject.deliveryMethodName}
+                </Typography>
+              </Stack>
+            )}
+          </Stack>
+
+          {/* Right column: Organization metadata */}
+          <Stack spacing={1} sx={{ minWidth: 200 }}>
+            {inject.responsibleController && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faUserTie} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Controller:
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {inject.responsibleController}
+                </Typography>
+              </Stack>
+            )}
+            {inject.locationName && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faLocationDot} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Location:
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {inject.locationName}
+                </Typography>
+              </Stack>
+            )}
+            {inject.track && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faRoad} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Track:
+                </Typography>
+                <Typography variant="body2" fontWeight={500}>
+                  {inject.track}
+                </Typography>
+              </Stack>
+            )}
+            {inject.priority !== null && inject.priority !== undefined && (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <FontAwesomeIcon icon={faFlag} style={{ opacity: 0.7, width: 14 }} />
+                <Typography variant="body2" color="text.secondary">
+                  Priority:
+                </Typography>
+                <Chip
+                  label={priorityLabels[inject.priority] || `P${inject.priority}`}
+                  size="small"
+                  color={priorityColors[inject.priority] || 'default'}
+                  variant="outlined"
+                />
+              </Stack>
+            )}
+          </Stack>
         </Stack>
 
         <Divider />

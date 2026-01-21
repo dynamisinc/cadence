@@ -1,8 +1,8 @@
 /**
- * UpcomingSection
+ * LaterSection
  *
- * Displays pending injects that will become ready within the next 30 minutes.
- * Shows countdown timers for each inject.
+ * Displays pending injects that are outside the 30-minute upcoming window
+ * or don't have a delivery time set. Collapsed by default.
  *
  * @module features/exercises
  * @see exercise-config/S06-clock-driven-conduct-view
@@ -24,41 +24,25 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faClock,
+  faCalendarDays,
   faChevronDown,
   faChevronUp,
 } from '@fortawesome/free-solid-svg-icons'
-import { keyframes } from '@mui/system'
 
 import type { InjectDto } from '../../../injects/types'
 import { parseDeliveryTime, formatDeliveryTime, formatScenarioTime } from '../../../injects/types'
-import { formatCountdown } from '../../../injects/utils/clockDrivenGrouping'
 
-// Pulse animation for imminent injects (< 5 min)
-const pulse = keyframes`
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.6; }
-`
-
-const IMMINENT_THRESHOLD_MS = 5 * 60 * 1000 // 5 minutes
-
-interface UpcomingSectionProps {
-  /** Pending injects with DeliveryTime in the next 30 minutes */
+interface LaterSectionProps {
+  /** Pending injects outside the 30-min window or without DeliveryTime */
   injects: InjectDto[]
-  /** Current elapsed time in milliseconds */
-  elapsedTimeMs: number
   /** Called when inject row is clicked to open details drawer */
   onInjectClick?: (inject: InjectDto) => void
 }
 
-export const UpcomingSection = ({
-  injects,
-  elapsedTimeMs,
-  onInjectClick,
-}: UpcomingSectionProps) => {
-  const [expanded, setExpanded] = useState(true)
+export const LaterSection = ({ injects, onInjectClick }: LaterSectionProps) => {
+  const [expanded, setExpanded] = useState(false) // Collapsed by default
 
-  // Don't render if no upcoming injects
+  // Don't render if no later injects
   if (injects.length === 0) {
     return null
   }
@@ -80,19 +64,19 @@ export const UpcomingSection = ({
         }}
         onClick={() => setExpanded(!expanded)}
       >
-        <Box sx={{ color: 'info.main' }}>
-          <FontAwesomeIcon icon={faClock} />
+        <Box sx={{ color: 'text.secondary' }}>
+          <FontAwesomeIcon icon={faCalendarDays} />
         </Box>
 
         <Typography variant="h6" sx={{ flexGrow: 1, fontWeight: 600 }}>
-          UPCOMING
+          LATER
         </Typography>
 
         <Typography variant="caption" color="text.secondary" sx={{ mr: 1 }}>
-          next 30 min
+          remaining injects
         </Typography>
 
-        <Chip label={injects.length} color="info" size="small" />
+        <Chip label={injects.length} size="small" variant="outlined" />
 
         <IconButton size="small">
           <FontAwesomeIcon icon={expanded ? faChevronUp : faChevronDown} />
@@ -106,20 +90,14 @@ export const UpcomingSection = ({
             <TableBody>
               {injects.map(inject => {
                 const deliveryTimeMs = parseDeliveryTime(inject.deliveryTime)
-                if (deliveryTimeMs === null) return null
-
-                const timeUntilMs = deliveryTimeMs - elapsedTimeMs
-                const isImminent = timeUntilMs > 0 && timeUntilMs <= IMMINENT_THRESHOLD_MS
-                const countdown = formatCountdown(deliveryTimeMs, elapsedTimeMs)
 
                 return (
                   <TableRow
                     key={inject.id}
                     sx={{
-                      backgroundColor: isImminent ? 'warning.50' : 'inherit',
                       cursor: onInjectClick ? 'pointer' : 'default',
                       '&:hover': {
-                        backgroundColor: isImminent ? 'warning.100' : 'action.hover',
+                        backgroundColor: 'action.hover',
                       },
                     }}
                     onClick={() => onInjectClick?.(inject)}
@@ -135,7 +113,7 @@ export const UpcomingSection = ({
 
                     {/* Title */}
                     <TableCell>
-                      <Typography variant="body2" fontWeight={isImminent ? 600 : 400}>
+                      <Typography variant="body2">
                         {inject.title}
                       </Typography>
                       {inject.target && (
@@ -147,13 +125,23 @@ export const UpcomingSection = ({
 
                     {/* Delivery Time */}
                     <TableCell sx={{ width: 120 }}>
-                      <Typography
-                        variant="body2"
-                        fontFamily="monospace"
-                        color="text.secondary"
-                      >
-                        {formatDeliveryTime(deliveryTimeMs)}
-                      </Typography>
+                      {deliveryTimeMs !== null ? (
+                        <Typography
+                          variant="body2"
+                          fontFamily="monospace"
+                          color="text.secondary"
+                        >
+                          {formatDeliveryTime(deliveryTimeMs)}
+                        </Typography>
+                      ) : (
+                        <Typography
+                          variant="body2"
+                          color="text.disabled"
+                          fontStyle="italic"
+                        >
+                          No time set
+                        </Typography>
+                      )}
                     </TableCell>
 
                     {/* Scenario Time */}
@@ -169,18 +157,11 @@ export const UpcomingSection = ({
                       )}
                     </TableCell>
 
-                    {/* Countdown */}
-                    <TableCell sx={{ width: 120 }}>
-                      <Chip
-                        label={countdown}
-                        size="small"
-                        color={isImminent ? 'warning' : 'default'}
-                        sx={{
-                          fontFamily: 'monospace',
-                          fontWeight: 600,
-                          animation: isImminent ? `${pulse} 1.5s ease-in-out infinite` : 'none',
-                        }}
-                      />
+                    {/* Sequence (for ordering reference) */}
+                    <TableCell sx={{ width: 80 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Seq {inject.sequence}
+                      </Typography>
                     </TableCell>
                   </TableRow>
                 )
@@ -193,4 +174,4 @@ export const UpcomingSection = ({
   )
 }
 
-export default UpcomingSection
+export default LaterSection

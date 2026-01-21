@@ -33,7 +33,7 @@ import {
 
 import type { InjectDto } from '../../../injects/types'
 import { InjectStatus } from '../../../../types'
-import { formatDeliveryTime, parseDeliveryTime } from '../../../injects/types'
+import { formatDeliveryTime, parseDeliveryTime, formatScenarioTime } from '../../../injects/types'
 
 interface CompletedSectionProps {
   /** Fired and skipped injects */
@@ -42,12 +42,15 @@ interface CompletedSectionProps {
   expanded: boolean
   /** Called when expand/collapse button clicked */
   onToggle: () => void
+  /** Called when inject row is clicked to open details drawer */
+  onInjectClick?: (inject: InjectDto) => void
 }
 
 export const CompletedSection = ({
   injects,
   expanded,
   onToggle,
+  onInjectClick,
 }: CompletedSectionProps) => {
   // Don't render if no completed injects
   if (injects.length === 0) {
@@ -119,7 +122,16 @@ export const CompletedSection = ({
                 const deliveryTimeMs = parseDeliveryTime(inject.deliveryTime)
 
                 return (
-                  <TableRow key={inject.id}>
+                  <TableRow
+                    key={inject.id}
+                    sx={{
+                      cursor: onInjectClick ? 'pointer' : 'default',
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      },
+                    }}
+                    onClick={() => onInjectClick?.(inject)}
+                  >
                     {/* Inject Number */}
                     <TableCell sx={{ width: 80 }}>
                       <Chip
@@ -150,6 +162,19 @@ export const CompletedSection = ({
                           color="text.secondary"
                         >
                           {formatDeliveryTime(deliveryTimeMs)}
+                        </Typography>
+                      )}
+                    </TableCell>
+
+                    {/* Scenario Time */}
+                    <TableCell sx={{ width: 120 }}>
+                      {formatScenarioTime(inject.scenarioDay, inject.scenarioTime) && (
+                        <Typography
+                          variant="body2"
+                          fontFamily="monospace"
+                          color="info.main"
+                        >
+                          {formatScenarioTime(inject.scenarioDay, inject.scenarioTime)}
                         </Typography>
                       )}
                     </TableCell>

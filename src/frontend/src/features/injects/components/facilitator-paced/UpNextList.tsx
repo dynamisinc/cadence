@@ -37,6 +37,8 @@ interface UpNextListProps {
   injects: InjectDto[]
   /** Called when Jump button clicked */
   onJumpTo: (inject: InjectDto) => void
+  /** Called when inject card is clicked to view details */
+  onInjectClick?: (inject: InjectDto) => void
   /** Whether the current user can control injects */
   canControl?: boolean
   /** Whether actions are currently being submitted */
@@ -46,6 +48,7 @@ interface UpNextListProps {
 export const UpNextList = ({
   injects,
   onJumpTo,
+  onInjectClick,
   canControl = true,
   isSubmitting = false,
 }: UpNextListProps) => {
@@ -84,7 +87,17 @@ export const UpNextList = ({
               )
 
               return (
-                <Card key={inject.id} variant="outlined">
+                <Card
+                  key={inject.id}
+                  variant="outlined"
+                  sx={{
+                    cursor: onInjectClick ? 'pointer' : 'default',
+                    '&:hover': onInjectClick
+                      ? { backgroundColor: 'action.hover' }
+                      : {},
+                  }}
+                  onClick={() => onInjectClick?.(inject)}
+                >
                   <CardContent sx={{ pb: 1 }}>
                     <Stack spacing={1}>
                       {/* Inject Number and Title */}
@@ -122,7 +135,10 @@ export const UpNextList = ({
                     <CardActions sx={{ justifyContent: 'flex-end', pt: 0 }}>
                       <CobraSecondaryButton
                         size="small"
-                        onClick={() => onJumpTo(inject)}
+                        onClick={e => {
+                          e.stopPropagation()
+                          onJumpTo(inject)
+                        }}
                         disabled={isSubmitting}
                         endIcon={<FontAwesomeIcon icon={faArrowRight} />}
                       >
