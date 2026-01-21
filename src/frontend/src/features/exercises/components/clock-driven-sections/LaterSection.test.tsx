@@ -323,7 +323,7 @@ describe('LaterSection', () => {
     const injects = [
       createMockInject('1', 1, {
         title: 'Generic Inject',
-        target: null,
+        target: '',
       }),
     ]
 
