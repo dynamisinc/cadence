@@ -57,7 +57,7 @@ import { ExerciseStatus, InjectStatus, ExerciseClockState, DeliveryMode } from '
 
 // Feature imports
 import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime } from '../../exercise-clock'
-import { InjectListByStatus, ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
+import { ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
 import {
   ObservationForm,
   ObservationList,
@@ -95,10 +95,8 @@ export const ExerciseConductPage = () => {
   const {
     injects,
     loading: injectsLoading,
-    error: injectsError,
     fireInject,
     skipInject,
-    resetInject,
   } = useInjects(exerciseId!)
   const {
     observations,
@@ -108,7 +106,7 @@ export const ExerciseConductPage = () => {
     updateObservation,
     deleteObservation,
   } = useObservations(exerciseId!)
-  const { summaries: objectives } = useObjectiveSummaries(exerciseId!)
+  const { summaries: _objectives } = useObjectiveSummaries(exerciseId!)
 
   // UI state
   const [showObservationForm, setShowObservationForm] = useState(false)

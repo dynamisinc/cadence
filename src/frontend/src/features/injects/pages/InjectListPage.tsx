@@ -35,7 +35,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 /** Minimum time to show the saving indicator (ms) */
-const MIN_INDICATOR_TIME = 500
+const MIN_INDICATOR_TIME = 1000
 
 import { useInjects, useInjectOrganization } from '../hooks'
 import { InjectOrganizationProvider } from '../contexts/InjectOrganizationContext'
@@ -52,7 +52,6 @@ import {
   GroupHeader,
   SortableInjectList,
   SortableInjectRow,
-  DragHandle,
 } from '../components'
 import {
   CobraPrimaryButton,
@@ -416,7 +415,12 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           phases={phases}
           canManage={canManage}
           canFireInjects={canFireInjects}
-          canReorder={canManage && !organization.hasActiveFilters && !organization.debouncedSearchTerm && isSequenceOrder(organization.sort)}
+          canReorder={
+            canManage &&
+            !organization.hasActiveFilters &&
+            !organization.debouncedSearchTerm &&
+            isSequenceOrder(organization.sort)
+          }
           onRowClick={handleRowClick}
           onFire={handleFireClick}
           onSkip={handleSkipClick}
@@ -441,7 +445,12 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           injects={organization.organizedInjects}
           onRowClick={handleRowClick}
           canFireInjects={canFireInjects}
-          canReorder={canManage && !organization.hasActiveFilters && !organization.debouncedSearchTerm && isSequenceOrder(organization.sort)}
+          canReorder={
+            canManage &&
+            !organization.hasActiveFilters &&
+            !organization.debouncedSearchTerm &&
+            isSequenceOrder(organization.sort)
+          }
           onFire={handleFireClick}
           onSkip={handleSkipClick}
           onReorder={reorderInjects}

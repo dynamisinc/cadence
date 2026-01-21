@@ -99,7 +99,7 @@ export const ClockDrivenConductView = ({
     await onFire(injectId)
   }
 
-  const handleDrawerSkip = (injectId: string) => {
+  const handleDrawerSkip = (_injectId: string) => {
     // Close drawer first, then the section's skip dialog will handle the reason
     setDrawerOpen(false)
     onDrawerClose?.()

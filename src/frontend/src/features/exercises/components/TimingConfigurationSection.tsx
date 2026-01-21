@@ -30,7 +30,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLock, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField } from '../../../theme/styledComponents'
-import CobraStyles from '../../../theme/CobraStyles'
 import { DeliveryMode, TimelineMode, ExerciseType } from '../../../types'
 
 interface TimingConfigurationSectionProps {
