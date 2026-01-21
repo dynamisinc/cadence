@@ -288,6 +288,41 @@ export const useInjects = (exerciseId: string) => {
     },
   })
 
+  // Mutation for reordering injects
+  const reorderMutation = useMutation({
+    mutationFn: (injectIds: string[]) => injectService.reorderInjects(exerciseId, injectIds),
+    onMutate: async injectIds => {
+      // Cancel any outgoing refetches to prevent overwriting optimistic update
+      await queryClient.cancelQueries({ queryKey })
+      const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
+
+      // Optimistically update the cache with new order
+      queryClient.setQueryData<InjectDto[]>(queryKey, old => {
+        if (!old) return old
+        // Create a map of id -> new sequence
+        const orderMap = new Map(injectIds.map((id, index) => [id, index + 1]))
+        // Update sequence values and sort
+        return old
+          .map(inject => ({
+            ...inject,
+            sequence: orderMap.get(inject.id) ?? inject.sequence,
+          }))
+          .sort((a, b) => a.sequence - b.sequence)
+      })
+
+      return { previousInjects }
+    },
+    onError: (err, _variables, context) => {
+      // Rollback on failure
+      if (context?.previousInjects) {
+        queryClient.setQueryData(queryKey, context.previousInjects)
+      }
+      const message =
+        err instanceof Error ? err.message : 'Failed to reorder injects'
+      toast.error(message)
+    },
+  })
+
   // Group injects by phase for MSEL view
   const groupedByPhase: PhaseGroup[] = (() => {
     const groups = new Map<string | null, PhaseGroup>()
@@ -488,6 +523,10 @@ export const useInjects = (exerciseId: string) => {
     return deleteMutation.mutateAsync(id)
   }
 
+  const reorderInjects = async (injectIds: string[]) => {
+    return reorderMutation.mutateAsync(injectIds)
+  }
+
   return {
     injects,
     groupedByPhase,
@@ -504,6 +543,7 @@ export const useInjects = (exerciseId: string) => {
     skipInject,
     resetInject,
     deleteInject,
+    reorderInjects,
     // Expose mutation states for loading indicators
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
@@ -511,6 +551,7 @@ export const useInjects = (exerciseId: string) => {
     isSkipping: skipMutation.isPending,
     isResetting: resetMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isReordering: reorderMutation.isPending,
   }
 }
 

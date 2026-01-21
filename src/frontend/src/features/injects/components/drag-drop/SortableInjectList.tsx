@@ -9,7 +9,7 @@
  * @see S10-sequence-drag-drop-reorder
  */
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   DndContext,
   closestCenter,
@@ -25,8 +25,12 @@ import {
   sortableKeyboardCoordinates,
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
+import { Box, Typography, Portal } from '@mui/material'
 import { toast } from 'react-toastify'
 import type { InjectDto } from '../../types'
+
+/** Minimum time to show the saving indicator (ms) */
+const MIN_INDICATOR_TIME = 500
 
 interface SortableInjectListProps {
   /** List of injects to display (should be ordered by sequence) */
@@ -37,6 +41,10 @@ interface SortableInjectListProps {
   disabled?: boolean
   /** Child render function - receives ordered inject list */
   children: (injects: InjectDto[]) => React.ReactNode
+  /** External control: whether saving indicator is shown (optional) */
+  showSavingIndicator?: boolean
+  /** External control: callback when saving state changes (optional) */
+  onSavingChange?: (isSaving: boolean) => void
 }
 
 export const SortableInjectList = ({
@@ -44,16 +52,33 @@ export const SortableInjectList = ({
   onReorder,
   disabled = false,
   children,
+  showSavingIndicator,
+  onSavingChange,
 }: SortableInjectListProps) => {
   const [items, setItems] = useState(injects)
-  const [isReordering, setIsReordering] = useState(false)
+  // Only use internal state if no external control is provided
+  const [internalShowSaving, setInternalShowSaving] = useState(false)
+  const savingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Use external state if provided, otherwise use internal state
+  const showSaving = showSavingIndicator !== undefined ? showSavingIndicator : internalShowSaving
+  const setShowSaving = onSavingChange !== undefined ? onSavingChange : setInternalShowSaving
 
   // Update local state when props change (e.g., from SignalR updates)
   useEffect(() => {
-    if (!isReordering) {
+    if (!showSaving) {
       setItems(injects)
     }
-  }, [injects, isReordering])
+  }, [injects, showSaving])
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (savingTimeoutRef.current) {
+        clearTimeout(savingTimeoutRef.current)
+      }
+    }
+  }, [])
 
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -77,17 +102,32 @@ export const SortableInjectList = ({
       const newItems = arrayMove(items, oldIndex, newIndex)
       setItems(newItems)
 
+      // Clear any existing timeout
+      if (savingTimeoutRef.current) {
+        clearTimeout(savingTimeoutRef.current)
+        savingTimeoutRef.current = null
+      }
+
+      // Show saving indicator with minimum display time
+      const startTime = Date.now()
+      setShowSaving(true)
+
       try {
-        setIsReordering(true)
         await onReorder(newItems.map(i => i.id))
       } catch (error) {
         // Rollback on failure
         setItems(injects)
         const message = error instanceof Error ? error.message : 'Failed to reorder injects'
         toast.error(message)
-      } finally {
-        setIsReordering(false)
       }
+
+      // Hide indicator after minimum time (don't use finally to avoid race conditions)
+      const elapsed = Date.now() - startTime
+      const remaining = Math.max(0, MIN_INDICATOR_TIME - elapsed)
+      savingTimeoutRef.current = setTimeout(() => {
+        setShowSaving(false)
+        savingTimeoutRef.current = null
+      }, remaining)
     }
   }
 
@@ -96,11 +136,50 @@ export const SortableInjectList = ({
   }
 
   return (
-    <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-      <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
-        {children(items)}
-      </SortableContext>
-    </DndContext>
+    <>
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <SortableContext items={items.map(i => i.id)} strategy={verticalListSortingStrategy}>
+          {children(items)}
+        </SortableContext>
+      </DndContext>
+
+      {/* Saving indicator - only render if using internal state (not externally controlled) */}
+      {showSaving && showSavingIndicator === undefined && (
+        <Portal>
+          <Box
+            sx={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              bgcolor: 'rgba(255, 255, 255, 0.6)',
+              backdropFilter: 'blur(2px)',
+              zIndex: 1300,
+            }}
+          >
+            <Box
+              sx={{
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                px: 3,
+                py: 2,
+                borderRadius: 2,
+                boxShadow: '0 4px 20px rgba(0, 0, 0, 0.15)',
+              }}
+            >
+              <Typography variant="body1">
+                Saving changes...
+              </Typography>
+            </Box>
+          </Box>
+        </Portal>
+      )}
+    </>
   )
 }
 
