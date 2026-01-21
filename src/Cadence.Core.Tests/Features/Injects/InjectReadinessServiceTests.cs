@@ -594,4 +594,168 @@ public class InjectReadinessServiceTests
     }
 
     #endregion
+
+    #region Concurrency Tests
+
+    [Fact]
+    public async Task EvaluateExercise_InjectFiredConcurrently_DoesNotOverwriteFiredStatus()
+    {
+        // Arrange - Use a named database so we can create a second context
+        var dbName = Guid.NewGuid().ToString();
+        var context = TestDbContextFactory.Create(dbName);
+
+        var org = new Organization
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Organization",
+            CreatedBy = Guid.NewGuid(),
+            ModifiedBy = Guid.NewGuid()
+        };
+        context.Organizations.Add(org);
+
+        var exercise = new Exercise
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Exercise",
+            ExerciseType = ExerciseType.TTX,
+            Status = ExerciseStatus.Active,
+            ClockState = ExerciseClockState.Running,
+            DeliveryMode = DeliveryMode.ClockDriven,
+            ClockStartedAt = DateTime.UtcNow.AddMinutes(-30),
+            ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
+            TimeZoneId = "UTC",
+            OrganizationId = org.Id,
+            CreatedBy = Guid.NewGuid(),
+            ModifiedBy = Guid.NewGuid()
+        };
+
+        var msel = new Msel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test MSEL",
+            Description = "Test MSEL Description",
+            ExerciseId = exercise.Id,
+            Version = 1,
+            IsActive = true,
+            CreatedBy = Guid.NewGuid(),
+            ModifiedBy = Guid.NewGuid()
+        };
+
+        exercise.ActiveMselId = msel.Id;
+        context.Exercises.Add(exercise);
+        context.Msels.Add(msel);
+
+        // Inject due at 15 minutes (past due, should become Ready)
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Simulate race condition: Fire the inject before background service saves
+        // Create a second context sharing the same in-memory database
+        using var concurrentContext = TestDbContextFactory.Create(dbName);
+        var injectToFire = await concurrentContext.Injects.FindAsync(inject.Id);
+        injectToFire!.Status = InjectStatus.Fired;
+        injectToFire.FiredAt = DateTime.UtcNow;
+        injectToFire.FiredBy = Guid.NewGuid();
+        await concurrentContext.SaveChangesAsync();
+
+        // Act - Background service attempts to mark as Ready
+        await service.EvaluateExerciseAsync(exercise.Id);
+
+        // Assert - Should NOT overwrite Fired status
+        var updated = await context.Injects.AsNoTracking().FirstOrDefaultAsync(i => i.Id == inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Fired, "fired status should not be overwritten by background service");
+        updated.FiredAt.Should().NotBeNull("FiredAt should not be cleared");
+        updated.FiredBy.Should().NotBeNull("FiredBy should not be cleared");
+        updated.ReadyAt.Should().BeNull("ReadyAt should not be set if inject was already fired");
+
+        // Should not broadcast Ready notification if inject was already fired
+        _hubContextMock.Verify(
+            h => h.NotifyInjectReadyToFire(exercise.Id, It.IsAny<Cadence.Core.Features.Injects.Models.DTOs.InjectDto>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task EvaluateExercise_InjectSkippedConcurrently_DoesNotOverwriteSkippedStatus()
+    {
+        // Arrange - Use a named database so we can create a second context
+        var dbName = Guid.NewGuid().ToString();
+        var context = TestDbContextFactory.Create(dbName);
+
+        var org = new Organization
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Organization",
+            CreatedBy = Guid.NewGuid(),
+            ModifiedBy = Guid.NewGuid()
+        };
+        context.Organizations.Add(org);
+
+        var exercise = new Exercise
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test Exercise",
+            ExerciseType = ExerciseType.TTX,
+            Status = ExerciseStatus.Active,
+            ClockState = ExerciseClockState.Running,
+            DeliveryMode = DeliveryMode.ClockDriven,
+            ClockStartedAt = DateTime.UtcNow.AddMinutes(-30),
+            ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
+            TimeZoneId = "UTC",
+            OrganizationId = org.Id,
+            CreatedBy = Guid.NewGuid(),
+            ModifiedBy = Guid.NewGuid()
+        };
+
+        var msel = new Msel
+        {
+            Id = Guid.NewGuid(),
+            Name = "Test MSEL",
+            Description = "Test MSEL Description",
+            ExerciseId = exercise.Id,
+            Version = 1,
+            IsActive = true,
+            CreatedBy = Guid.NewGuid(),
+            ModifiedBy = Guid.NewGuid()
+        };
+
+        exercise.ActiveMselId = msel.Id;
+        context.Exercises.Add(exercise);
+        context.Msels.Add(msel);
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Simulate concurrent skip - Create a second context sharing the same in-memory database
+        using var concurrentContext = TestDbContextFactory.Create(dbName);
+        var injectToSkip = await concurrentContext.Injects.FindAsync(inject.Id);
+        injectToSkip!.Status = InjectStatus.Skipped;
+        injectToSkip.SkippedAt = DateTime.UtcNow;
+        injectToSkip.SkippedBy = Guid.NewGuid();
+        injectToSkip.SkipReason = "No longer relevant";
+        await concurrentContext.SaveChangesAsync();
+
+        // Act
+        await service.EvaluateExerciseAsync(exercise.Id);
+
+        // Assert - Should NOT overwrite Skipped status
+        var updated = await context.Injects.AsNoTracking().FirstOrDefaultAsync(i => i.Id == inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Skipped);
+        updated.SkippedAt.Should().NotBeNull();
+        updated.SkippedBy.Should().NotBeNull();
+        updated.ReadyAt.Should().BeNull();
+
+        _hubContextMock.Verify(
+            h => h.NotifyInjectReadyToFire(It.IsAny<Guid>(), It.IsAny<Cadence.Core.Features.Injects.Models.DTOs.InjectDto>()),
+            Times.Never);
+    }
+
+    #endregion
 }

@@ -27,6 +27,9 @@ const mockExercise: ExerciseDto = {
   location: null,
   organizationId: 'org-123',
   activeMselId: null,
+  deliveryMode: 'FacilitatorPaced',
+  timelineMode: 'RealTime',
+  timeScale: null,
   createdAt: '2026-01-10T00:00:00Z',
   updatedAt: '2026-01-10T00:00:00Z',
   createdBy: 'user-123',
@@ -76,6 +79,8 @@ describe('exerciseService', () => {
         name: 'Test Exercise',
         exerciseType: ExerciseType.TTX,
         scheduledDate: '2026-01-15',
+        deliveryMode: 'FacilitatorPaced' as const,
+        timelineMode: 'RealTime' as const,
       }
 
       const result = await exerciseService.createExercise(request)
@@ -95,6 +100,8 @@ describe('exerciseService', () => {
         name: 'Updated Exercise',
         exerciseType: ExerciseType.TTX,
         scheduledDate: '2026-01-15',
+        deliveryMode: 'FacilitatorPaced' as const,
+        timelineMode: 'RealTime' as const,
       }
 
       const result = await exerciseService.updateExercise('123', request)

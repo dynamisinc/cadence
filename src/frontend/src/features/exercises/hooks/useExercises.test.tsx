@@ -38,6 +38,9 @@ const mockExercise: ExerciseDto = {
   location: 'Test Location',
   organizationId: 'org-123',
   activeMselId: null,
+  deliveryMode: 'FacilitatorPaced',
+  timelineMode: 'RealTime',
+  timeScale: null,
   createdAt: '2026-01-10T00:00:00Z',
   updatedAt: '2026-01-10T00:00:00Z',
   createdBy: 'user-123',
@@ -125,6 +128,8 @@ describe('useExercises', () => {
       name: 'Test Exercise',
       exerciseType: ExerciseType.TTX,
       scheduledDate: '2026-01-15',
+      deliveryMode: 'FacilitatorPaced',
+      timelineMode: 'RealTime',
     })
 
     await waitFor(() => {
@@ -152,6 +157,8 @@ describe('useExercises', () => {
       name: 'Updated Exercise',
       exerciseType: ExerciseType.TTX,
       scheduledDate: '2026-01-15',
+      deliveryMode: 'FacilitatorPaced',
+      timelineMode: 'RealTime',
     })
 
     await waitFor(() => {

@@ -214,6 +214,11 @@ export const FacilitatorPacedConductView = ({
     )
   }
 
+  // At this point, currentInject is guaranteed non-null (all null cases handled above)
+  if (!currentInject) {
+    return null
+  }
+
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
       {/* Header - No Clock, Just Progress */}

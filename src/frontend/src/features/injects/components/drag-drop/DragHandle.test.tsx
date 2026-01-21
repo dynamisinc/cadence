@@ -23,8 +23,11 @@ describe('DragHandle', () => {
   it('applies attributes and listeners from dnd-kit', () => {
     const mockAttributes = {
       role: 'button',
-      'aria-describedby': 'dnd-description',
       tabIndex: 0,
+      'aria-disabled': false,
+      'aria-pressed': undefined,
+      'aria-roledescription': 'draggable',
+      'aria-describedby': 'dnd-description',
     }
     const mockListeners = {
       onPointerDown: vi.fn(),

@@ -12,6 +12,7 @@ import { db, type CachedExercise, type CachedInject, type CachedObservation } fr
 import type { ExerciseDto } from '../../features/exercises/types'
 import type { InjectDto } from '../../features/injects/types'
 import type { ObservationDto } from '../../features/observations/types'
+import { DeliveryMode, TimelineMode } from '../../types'
 
 // ============================================================================
 // Exercise Caching
@@ -62,6 +63,10 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
     location: null,
     organizationId: '',
     activeMselId: null,
+    // Clock mode properties (CLK-01)
+    deliveryMode: DeliveryMode.FacilitatorPaced,
+    timelineMode: TimelineMode.RealTime,
+    timeScale: null,
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
     createdBy: '', // Not available in cache
@@ -169,6 +174,7 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     expectedAction: cached.expectedAction ?? null,
     status: cached.status as InjectDto['status'],
     scheduledTime: cached.scheduledTime ?? '00:00:00',
+    deliveryTime: null, // Not tracked in cache
     scenarioDay: null,
     scenarioTime: null,
     target: cached.to ?? '',
@@ -182,6 +188,7 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     parentInjectId: null,
     triggerCondition: null,
     controllerNotes: null,
+    readyAt: null, // Not tracked in cache
     firedAt: cached.actualTime ?? null,
     firedBy: cached.firedById ?? null,
     firedByName: cached.firedByName ?? null,

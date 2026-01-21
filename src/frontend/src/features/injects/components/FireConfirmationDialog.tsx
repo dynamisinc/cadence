@@ -19,12 +19,12 @@ import {
   Paper,
   FormControlLabel,
   Checkbox,
-  Button,
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faFire, faCrosshairs, faBook } from '@fortawesome/free-solid-svg-icons'
 import { useTheme } from '@mui/material/styles'
+import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import type { InjectDto } from '../types'
 import { formatScenarioTime } from '../types'
 
@@ -186,28 +186,19 @@ export const FireConfirmationDialog = ({
       </DialogContent>
 
       <DialogActions sx={{ px: 3, pb: 2 }}>
-        <Button
+        <CobraSecondaryButton
           onClick={onCancel}
-          color="inherit"
           size="small"
         >
           Cancel
-        </Button>
-        <Button
+        </CobraSecondaryButton>
+        <CobraPrimaryButton
           onClick={handleConfirm}
-          variant="contained"
           size="small"
           startIcon={<FontAwesomeIcon icon={faFire} />}
-          sx={{
-            backgroundColor: theme.palette.buttonPrimary.main,
-            color: theme.palette.buttonPrimary.contrastText,
-            '&:hover': {
-              backgroundColor: theme.palette.buttonPrimary.dark,
-            },
-          }}
         >
           Confirm Fire
-        </Button>
+        </CobraPrimaryButton>
       </DialogActions>
     </Dialog>
   )

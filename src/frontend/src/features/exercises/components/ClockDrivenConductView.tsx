@@ -152,7 +152,7 @@ export const ClockDrivenConductView = ({
       {/* Inject Detail Drawer */}
       <InjectDetailDrawer
         inject={selectedInject}
-        offsetMs={selectedInjectOffset}
+        offsetMs={selectedInjectOffset ?? undefined}
         open={drawerOpen}
         onClose={handleDrawerClose}
         canControl={canControl}

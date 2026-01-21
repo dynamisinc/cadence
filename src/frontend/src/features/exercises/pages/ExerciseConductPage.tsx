@@ -452,7 +452,7 @@ export const ExerciseConductPage = () => {
 
   // Handle jump to inject (facilitator-paced mode)
   // Skips all injects between current and target, then the target becomes current
-  const handleJumpTo = async (targetInjectId: string, skipInjectIds: string[]) => {
+  const handleJumpTo = async (_targetInjectId: string, skipInjectIds: string[]) => {
     // Skip all injects in the skipInjectIds list
     for (const injectId of skipInjectIds) {
       await skipInject(injectId, { reason: 'Jumped to later inject' })
@@ -762,8 +762,8 @@ export const ExerciseConductPage = () => {
                       elapsedTimeMs={elapsedTimeMs}
                       canControl={canControl}
                       isSubmitting={false}
-                      onFire={fireInject}
-                      onSkip={skipInject}
+                      onFire={async (id) => { await fireInject(id) }}
+                      onSkip={async (id, req) => { await skipInject(id, req) }}
                       openInjectId={openInjectId}
                       onDrawerClose={() => setOpenInjectId(null)}
                     />
@@ -775,8 +775,8 @@ export const ExerciseConductPage = () => {
                       canControl={canControl}
                       isSubmitting={false}
                       isLoading={injectsLoading}
-                      onFire={fireInject}
-                      onSkip={skipInject}
+                      onFire={async (id) => { await fireInject(id) }}
+                      onSkip={async (id, req) => { await skipInject(id, req) }}
                       onJumpTo={handleJumpTo}
                     />
                   )}

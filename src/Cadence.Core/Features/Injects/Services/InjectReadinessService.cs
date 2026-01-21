@@ -105,31 +105,42 @@ public class InjectReadinessService : IInjectReadinessService
 
         // Calculate elapsed time
         var elapsedTime = CalculateElapsedTime(exercise);
-        var readyInjects = new List<Inject>();
 
-        foreach (var inject in exercise.ActiveMsel.Injects)
+        // Find injects that should be ready
+        var candidateInjects = exercise.ActiveMsel.Injects
+            .Where(i => i.Status == InjectStatus.Pending)
+            .Where(i => i.DeliveryTime.HasValue)
+            .Where(i => i.DeliveryTime!.Value <= elapsedTime)
+            .ToList();
+
+        if (candidateInjects.Count == 0)
         {
-            // Only process Pending injects with DeliveryTime set
-            if (inject.Status != InjectStatus.Pending)
-            {
-                continue;
-            }
+            return;
+        }
 
-            if (!inject.DeliveryTime.HasValue)
-            {
-                continue;
-            }
+        var injectIds = candidateInjects.Select(i => i.Id).ToList();
+        var readyAt = DateTime.UtcNow;
 
-            // Check if delivery time has been reached
-            if (inject.DeliveryTime.Value > elapsedTime)
-            {
-                continue;
-            }
+        // Re-query with tracking to get fresh state and update
+        // This ensures we work with the most current data
+        var injectsToUpdate = await _context.Injects
+            .Where(i => injectIds.Contains(i.Id))
+            .Where(i => i.Status == InjectStatus.Pending) // Only get injects still Pending
+            .ToListAsync(ct);
 
-            // Transition to Ready
+        if (injectsToUpdate.Count == 0)
+        {
+            _logger.LogDebug(
+                "No injects transitioned to Ready for exercise {ExerciseId} (all candidates were modified concurrently)",
+                exerciseId);
+            return;
+        }
+
+        // Update the injects that are still Pending
+        foreach (var inject in injectsToUpdate)
+        {
             inject.Status = InjectStatus.Ready;
-            inject.ReadyAt = DateTime.UtcNow;
-            readyInjects.Add(inject);
+            inject.ReadyAt = readyAt;
 
             _logger.LogInformation(
                 "Inject {InjectId} (#{InjectNumber}) transitioned to Ready in exercise {ExerciseId} " +
@@ -141,21 +152,16 @@ public class InjectReadinessService : IInjectReadinessService
                 elapsedTime);
         }
 
-        if (readyInjects.Count == 0)
-        {
-            return;
-        }
-
-        // Save all transitions in a single batch
+        // Save changes - this will only update injects that were still Pending when we queried
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation(
             "Transitioned {Count} injects to Ready for exercise {ExerciseId}",
-            readyInjects.Count,
+            injectsToUpdate.Count,
             exerciseId);
 
         // Broadcast each Ready transition
-        foreach (var inject in readyInjects)
+        foreach (var inject in injectsToUpdate)
         {
             try
             {

@@ -47,7 +47,10 @@
       "Bash(then)",
       "Bash(echo:*)",
       "Bash(for file in src/frontend/src/features/exercises/components/ArchiveExerciseDialog.tsx src/frontend/src/features/exercises/components/DeleteExerciseDialog.tsx src/frontend/src/features/exercises/components/RestoreExerciseDialog.tsx src/frontend/src/features/expected-outcomes/components/ExpectedOutcomesEvaluator.tsx src/frontend/src/features/expected-outcomes/components/ExpectedOutcomesList.tsx)",
-      "Bash(for file in src/Cadence.Core/Features/Autocomplete/Services/AutocompleteService.cs src/Cadence.Core/Features/DeliveryMethods/Services/DeliveryMethodService.cs src/Cadence.Core/Features/ExcelExport/Services/ExcelExportService.cs src/Cadence.Core/Features/ExcelImport/Services/ExcelImportService.cs src/Cadence.Core/Features/Exercises/Services/ExerciseDeleteService.cs src/Cadence.Core/Features/ExpectedOutcomes/Services/ExpectedOutcomeService.cs)"
+      "Bash(for file in src/Cadence.Core/Features/Autocomplete/Services/AutocompleteService.cs src/Cadence.Core/Features/DeliveryMethods/Services/DeliveryMethodService.cs src/Cadence.Core/Features/ExcelExport/Services/ExcelExportService.cs src/Cadence.Core/Features/ExcelImport/Services/ExcelImportService.cs src/Cadence.Core/Features/Exercises/Services/ExerciseDeleteService.cs src/Cadence.Core/Features/ExpectedOutcomes/Services/ExpectedOutcomeService.cs)",
+      "mcp__plugin_playwright_playwright__browser_snapshot",
+      "mcp__plugin_playwright_playwright__browser_navigate",
+      "mcp__plugin_playwright_playwright__browser_click"
     ],
     "deny": [],
     "ask": [],

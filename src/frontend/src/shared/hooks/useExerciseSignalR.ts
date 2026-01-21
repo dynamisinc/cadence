@@ -36,6 +36,8 @@ interface UseExerciseSignalROptions {
   onInjectFired?: (inject: InjectDto) => void
   /** Called when an inject status changes */
   onInjectStatusChanged?: (inject: InjectDto) => void
+  /** Called when injects are reordered */
+  onInjectsReordered?: (injectIds: string[]) => void
   /** Called when the exercise clock starts */
   onClockStarted?: (clock: ExerciseClockDto) => void
   /** Called when the exercise clock is paused */
@@ -85,6 +87,7 @@ export const useExerciseSignalR = (
     exerciseId,
     onInjectFired,
     onInjectStatusChanged,
+    onInjectsReordered,
     onClockStarted,
     onClockPaused,
     onClockReset,
@@ -175,6 +178,9 @@ export const useExerciseSignalR = (
       if (onInjectStatusChanged) {
         connection.on('InjectStatusChanged', onInjectStatusChanged)
       }
+      if (onInjectsReordered) {
+        connection.on('InjectsReordered', onInjectsReordered)
+      }
 
       // Clock events
       if (onClockStarted) {
@@ -204,6 +210,7 @@ export const useExerciseSignalR = (
     [
       onInjectFired,
       onInjectStatusChanged,
+      onInjectsReordered,
       onClockStarted,
       onClockPaused,
       onClockReset,
@@ -220,6 +227,7 @@ export const useExerciseSignalR = (
   const removeEventHandlers = useCallback((connection: signalR.HubConnection) => {
     connection.off('InjectFired')
     connection.off('InjectStatusChanged')
+    connection.off('InjectsReordered')
     connection.off('ClockStarted')
     connection.off('ClockPaused')
     connection.off('ClockReset')

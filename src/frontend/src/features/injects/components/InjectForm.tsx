@@ -52,6 +52,7 @@ const INITIAL_VALUES: InjectFormValues = {
   title: '',
   description: '',
   scheduledTime: '09:00',
+  deliveryTime: '',
   scenarioDay: '',
   scenarioTime: '',
   target: '',
@@ -110,6 +111,7 @@ export const InjectForm = ({
         title: inject.title,
         description: inject.description,
         scheduledTime: inject.scheduledTime.substring(0, 5), // HH:MM
+        deliveryTime: inject.deliveryTime ?? '',
         scenarioDay: inject.scenarioDay?.toString() ?? '',
         scenarioTime: inject.scenarioTime?.substring(0, 5) ?? '',
         target: inject.target,

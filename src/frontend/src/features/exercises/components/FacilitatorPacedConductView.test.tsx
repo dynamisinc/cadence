@@ -93,7 +93,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   updatedAt: new Date().toISOString(),
   sourceReference: null,
   priority: null,
-  triggerType: TriggerType.Automatic,
+  triggerType: TriggerType.Manual,
   responsibleController: null,
   locationName: null,
   locationType: null,

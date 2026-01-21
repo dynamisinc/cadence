@@ -64,7 +64,7 @@ import { usePermissions } from '../../../shared/hooks'
 import { InjectStatus } from '../../../types'
 import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
-import type { SortConfig } from '../types/organization'
+import type { SortConfig, SortableColumn, InjectGroup } from '../types/organization'
 import { formatScenarioTime, formatScheduledTime } from '../types'
 
 import { isGroupExpanded } from '../utils/groupUtils'
@@ -620,8 +620,8 @@ const InjectTableSkeleton = () => {
  * Grouped inject view with drag-and-drop reordering within each group
  */
 interface GroupedInjectViewProps {
-  groups: Array<{ id: string; name: string; count: number }>
-  getInjectsForGroup: (group: { id: string; name: string; count: number }) => InjectDto[]
+  groups: InjectGroup[]
+  getInjectsForGroup: (group: InjectGroup) => InjectDto[]
   expandedGroups: Set<string>
   toggleGroupExpanded: (groupId: string) => void
   groupBy: 'phase' | 'status' | 'none'
@@ -642,8 +642,8 @@ interface GroupedInjectViewProps {
   isReordering: boolean
   isPhaseLoading: boolean
   searchTerm: string
-  sort: { column: string | null; direction: 'asc' | 'desc' | null }
-  onSort: (column: string) => void
+  sort: SortConfig
+  onSort: (column: SortableColumn) => void
   showSavingIndicator: boolean
   onSavingChange: (isSaving: boolean) => void
 }
@@ -856,8 +856,8 @@ interface FlatInjectListProps {
   isSkipping: boolean
   isReordering: boolean
   searchTerm: string
-  sort: { column: string; direction: 'asc' | 'desc' | null }
-  onSort: (column: string) => void
+  sort: SortConfig
+  onSort: (column: SortableColumn) => void
   showSavingIndicator: boolean
   onSavingChange: (isSaving: boolean) => void
 }

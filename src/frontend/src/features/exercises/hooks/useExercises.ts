@@ -59,6 +59,10 @@ export const useExercises = () => {
         location: newRequest.location ?? null,
         organizationId: 'temp',
         activeMselId: null,
+        // Clock mode fields (CLK-01)
+        deliveryMode: newRequest.deliveryMode,
+        timelineMode: newRequest.timelineMode,
+        timeScale: newRequest.timeScale ?? null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
         createdBy: 'temp', // Will be replaced by server response
