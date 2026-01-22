@@ -18,7 +18,7 @@ export const phaseService = {
    */
   getPhases: async (exerciseId: string): Promise<PhaseDto[]> => {
     const response = await apiClient.get<PhaseDto[]>(
-      `/api/exercises/${exerciseId}/phases`,
+      `/exercises/${exerciseId}/phases`,
     )
     return response.data
   },
@@ -28,7 +28,7 @@ export const phaseService = {
    */
   getPhase: async (exerciseId: string, id: string): Promise<PhaseDto> => {
     const response = await apiClient.get<PhaseDto>(
-      `/api/exercises/${exerciseId}/phases/${id}`,
+      `/exercises/${exerciseId}/phases/${id}`,
     )
     return response.data
   },
@@ -41,7 +41,7 @@ export const phaseService = {
     request: CreatePhaseRequest,
   ): Promise<PhaseDto> => {
     const response = await apiClient.post<PhaseDto>(
-      `/api/exercises/${exerciseId}/phases`,
+      `/exercises/${exerciseId}/phases`,
       request,
     )
     return response.data
@@ -56,7 +56,7 @@ export const phaseService = {
     request: UpdatePhaseRequest,
   ): Promise<PhaseDto> => {
     const response = await apiClient.put<PhaseDto>(
-      `/api/exercises/${exerciseId}/phases/${id}`,
+      `/exercises/${exerciseId}/phases/${id}`,
       request,
     )
     return response.data
@@ -66,7 +66,7 @@ export const phaseService = {
    * Delete a phase (only if no injects are assigned)
    */
   deletePhase: async (exerciseId: string, id: string): Promise<void> => {
-    await apiClient.delete(`/api/exercises/${exerciseId}/phases/${id}`)
+    await apiClient.delete(`/exercises/${exerciseId}/phases/${id}`)
   },
 
   /**
@@ -77,7 +77,7 @@ export const phaseService = {
     request: ReorderPhasesRequest,
   ): Promise<PhaseDto[]> => {
     const response = await apiClient.put<PhaseDto[]>(
-      `/api/exercises/${exerciseId}/phases/reorder`,
+      `/exercises/${exerciseId}/phases/reorder`,
       request,
     )
     return response.data

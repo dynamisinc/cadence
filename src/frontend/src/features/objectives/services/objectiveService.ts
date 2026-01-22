@@ -18,7 +18,7 @@ export const objectiveService = {
    */
   getObjectives: async (exerciseId: string): Promise<ObjectiveDto[]> => {
     const response = await apiClient.get<ObjectiveDto[]>(
-      `/api/exercises/${exerciseId}/objectives`,
+      `/exercises/${exerciseId}/objectives`,
     )
     return response.data
   },
@@ -28,7 +28,7 @@ export const objectiveService = {
    */
   getObjectiveSummaries: async (exerciseId: string): Promise<ObjectiveSummaryDto[]> => {
     const response = await apiClient.get<ObjectiveSummaryDto[]>(
-      `/api/exercises/${exerciseId}/objectives/summaries`,
+      `/exercises/${exerciseId}/objectives/summaries`,
     )
     return response.data
   },
@@ -38,7 +38,7 @@ export const objectiveService = {
    */
   getObjective: async (exerciseId: string, id: string): Promise<ObjectiveDto> => {
     const response = await apiClient.get<ObjectiveDto>(
-      `/api/exercises/${exerciseId}/objectives/${id}`,
+      `/exercises/${exerciseId}/objectives/${id}`,
     )
     return response.data
   },
@@ -51,7 +51,7 @@ export const objectiveService = {
     request: CreateObjectiveRequest,
   ): Promise<ObjectiveDto> => {
     const response = await apiClient.post<ObjectiveDto>(
-      `/api/exercises/${exerciseId}/objectives`,
+      `/exercises/${exerciseId}/objectives`,
       request,
     )
     return response.data
@@ -66,7 +66,7 @@ export const objectiveService = {
     request: UpdateObjectiveRequest,
   ): Promise<ObjectiveDto> => {
     const response = await apiClient.put<ObjectiveDto>(
-      `/api/exercises/${exerciseId}/objectives/${id}`,
+      `/exercises/${exerciseId}/objectives/${id}`,
       request,
     )
     return response.data
@@ -76,7 +76,7 @@ export const objectiveService = {
    * Delete an objective (only if no injects are linked)
    */
   deleteObjective: async (exerciseId: string, id: string): Promise<void> => {
-    await apiClient.delete(`/api/exercises/${exerciseId}/objectives/${id}`)
+    await apiClient.delete(`/exercises/${exerciseId}/objectives/${id}`)
   },
 
   /**
@@ -92,7 +92,7 @@ export const objectiveService = {
       params.append('excludeId', excludeId)
     }
     const response = await apiClient.get<{ isAvailable: boolean }>(
-      `/api/exercises/${exerciseId}/objectives/check-number?${params}`,
+      `/exercises/${exerciseId}/objectives/check-number?${params}`,
     )
     return response.data
   },

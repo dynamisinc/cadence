@@ -1,6 +1,7 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cadence.WebApi.Controllers;
@@ -8,9 +9,11 @@ namespace Cadence.WebApi.Controllers;
 /// <summary>
 /// API endpoints for observation management.
 /// Observations are evaluator assessments of player performance during exercise conduct.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api")]
+[Authorize]
 public class ObservationsController : ControllerBase
 {
     private readonly IObservationService _observationService;

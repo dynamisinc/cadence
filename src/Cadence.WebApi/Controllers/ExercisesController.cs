@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
@@ -7,6 +8,7 @@ using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Msel.Models.DTOs;
 using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,9 +16,11 @@ namespace Cadence.WebApi.Controllers;
 
 /// <summary>
 /// API endpoints for exercise management.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
+[Authorize]
 public class ExercisesController : ControllerBase
 {
     private readonly AppDbContext _context;
@@ -25,6 +29,7 @@ public class ExercisesController : ControllerBase
     private readonly IExerciseDeleteService _deleteService;
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
+    private readonly IExerciseParticipantService _participantService;
     private readonly ILogger<ExercisesController> _logger;
 
     public ExercisesController(
@@ -34,6 +39,7 @@ public class ExercisesController : ControllerBase
         IExerciseDeleteService deleteService,
         IMselService mselService,
         ISetupProgressService setupProgressService,
+        IExerciseParticipantService participantService,
         ILogger<ExercisesController> logger)
     {
         _context = context;
@@ -42,6 +48,7 @@ public class ExercisesController : ControllerBase
         _deleteService = deleteService;
         _mselService = mselService;
         _setupProgressService = setupProgressService;
+        _participantService = participantService;
         _logger = logger;
     }
 
@@ -114,14 +121,50 @@ public class ExercisesController : ControllerBase
             return StatusCode(500, new { message = "Default organization not found. Please run database migrations." });
         }
 
-        // System user until auth is implemented
+        // Get current user ID from claims (ApplicationUser.Id is string)
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserId))
+        {
+            return Unauthorized(new { message = "User not authenticated" });
+        }
+
+        // For audit trail, use Guid.Empty until we update BaseEntity to use string
         var createdBy = SystemConstants.SystemUserId;
         var exercise = request.ToEntity(organization.Id, createdBy);
 
         _context.Exercises.Add(exercise);
         await _context.SaveChangesAsync();
 
-        _logger.LogInformation("Created exercise {ExerciseId}: {ExerciseName}", exercise.Id, exercise.Name);
+        _logger.LogInformation("Created exercise {ExerciseId}: {ExerciseName} by user {UserId}",
+            exercise.Id, exercise.Name, currentUserId);
+
+        // Auto-assign creator as Exercise Director if they are Admin or Manager
+        var currentUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+        if (currentUser != null &&
+            (currentUser.SystemRole == SystemRole.Admin || currentUser.SystemRole == SystemRole.Manager))
+        {
+            try
+            {
+                await _participantService.AddParticipantAsync(
+                    exercise.Id,
+                    new AddParticipantRequest
+                    {
+                        UserId = currentUserId,
+                        Role = ExerciseRole.ExerciseDirector.ToString()
+                    });
+
+                _logger.LogInformation(
+                    "Auto-assigned user {UserId} as Exercise Director for exercise {ExerciseId}",
+                    currentUserId, exercise.Id);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to auto-assign user {UserId} as Director for exercise {ExerciseId}. Exercise created successfully.",
+                    currentUserId, exercise.Id);
+                // Don't fail the exercise creation if auto-assignment fails
+            }
+        }
 
         return CreatedAtAction(
             nameof(GetExercise),
@@ -829,5 +872,159 @@ public class ExercisesController : ControllerBase
         _logger.LogWarning("Exercise {ExerciseId} permanently deleted", id);
 
         return NoContent();
+    }
+
+    // =========================================================================
+    // Participant Management Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Get all participants for an exercise.
+    /// Shows exercise-specific roles and effective roles.
+    /// </summary>
+    [HttpGet("{id:guid}/participants")]
+    public async Task<ActionResult<List<ExerciseParticipantDto>>> GetParticipants(Guid id)
+    {
+        var participants = await _participantService.GetParticipantsAsync(id);
+        return Ok(participants);
+    }
+
+    /// <summary>
+    /// Get a specific participant for an exercise.
+    /// </summary>
+    [HttpGet("{id:guid}/participants/{userId}")]
+    public async Task<ActionResult<ExerciseParticipantDto>> GetParticipant(Guid id, string userId)
+    {
+        var participant = await _participantService.GetParticipantAsync(id, userId);
+
+        if (participant == null)
+        {
+            return NotFound(new { message = "Participant not found" });
+        }
+
+        return Ok(participant);
+    }
+
+    /// <summary>
+    /// Add a participant to an exercise with an optional exercise-specific role.
+    /// If no role is specified, the user's global role is used.
+    /// Only Administrators and Exercise Directors can add participants.
+    /// </summary>
+    [HttpPost("{id:guid}/participants")]
+    public async Task<ActionResult<ExerciseParticipantDto>> AddParticipant(
+        Guid id,
+        [FromBody] AddParticipantRequest request)
+    {
+        try
+        {
+            var result = await _participantService.AddParticipantAsync(id, request);
+
+            _logger.LogInformation(
+                "Added participant {UserId} to exercise {ExerciseId}",
+                request.UserId, id);
+
+            return CreatedAtAction(
+                nameof(GetParticipant),
+                new { id, userId = request.UserId },
+                result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update a participant's exercise-specific role.
+    /// Setting role to null removes the override and uses the user's global role.
+    /// Only Administrators and Exercise Directors can update participant roles.
+    /// </summary>
+    [HttpPut("{id:guid}/participants/{userId}/role")]
+    public async Task<ActionResult<ExerciseParticipantDto>> UpdateParticipantRole(
+        Guid id,
+        string userId,
+        [FromBody] UpdateParticipantRoleRequest request)
+    {
+        try
+        {
+            var result = await _participantService.UpdateParticipantRoleAsync(id, userId, request);
+
+            _logger.LogInformation(
+                "Updated participant {UserId} role in exercise {ExerciseId}",
+                userId, id);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Remove a participant from an exercise.
+    /// Only Administrators and Exercise Directors can remove participants.
+    /// </summary>
+    [HttpDelete("{id:guid}/participants/{userId}")]
+    public async Task<IActionResult> RemoveParticipant(Guid id, string userId)
+    {
+        try
+        {
+            await _participantService.RemoveParticipantAsync(id, userId);
+
+            _logger.LogInformation(
+                "Removed participant {UserId} from exercise {ExerciseId}",
+                userId, id);
+
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Bulk update participants for an exercise.
+    /// Adds or updates multiple participants in a single request.
+    /// Only Administrators and Exercise Directors can bulk update participants.
+    /// </summary>
+    [HttpPut("{id:guid}/participants")]
+    public async Task<ActionResult<List<ExerciseParticipantDto>>> BulkUpdateParticipants(
+        Guid id,
+        [FromBody] BulkUpdateParticipantsRequest request)
+    {
+        try
+        {
+            await _participantService.BulkUpdateParticipantsAsync(id, request);
+
+            var participants = await _participantService.GetParticipantsAsync(id);
+
+            _logger.LogInformation(
+                "Bulk updated {Count} participants for exercise {ExerciseId}",
+                request.Participants.Count, id);
+
+            return Ok(participants);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

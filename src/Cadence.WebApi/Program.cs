@@ -1,11 +1,23 @@
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 using System.Text.Json.Serialization;
+using System.Threading.RateLimiting;
 using Cadence.Core.Data;
 using Cadence.Core.Extensions;
+using Cadence.WebApi.Authorization;
+using Cadence.Core.Features.Authentication.Models;
+using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
+using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Hubs;
 using Cadence.WebApi.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +51,58 @@ if (useAzureSignalR && !string.IsNullOrEmpty(azureSignalRConnectionString))
 {
     signalRBuilder.AddAzureSignalR(azureSignalRConnectionString);
 }
+
+// Add ASP.NET Core Identity
+builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+{
+    var authConfig = builder.Configuration.GetSection("Authentication:Identity");
+    options.Password.RequiredLength = authConfig.GetValue<int>("PasswordMinLength", 8);
+    options.Password.RequireDigit = authConfig.GetValue<bool>("PasswordRequireDigit", true);
+    options.Password.RequireUppercase = authConfig.GetValue<bool>("PasswordRequireUppercase", true);
+    options.Password.RequireLowercase = authConfig.GetValue<bool>("PasswordRequireLowercase", true);
+    options.Password.RequireNonAlphanumeric = authConfig.GetValue<bool>("PasswordRequireNonAlphanumeric", false);
+    options.Lockout.MaxFailedAccessAttempts = authConfig.GetValue<int>("LockoutMaxAttempts", 5);
+    options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromMinutes(authConfig.GetValue<int>("LockoutMinutes", 15));
+    options.Lockout.AllowedForNewUsers = true;
+})
+.AddEntityFrameworkStores<AppDbContext>()
+.AddDefaultTokenProviders();
+
+// Add JWT Authentication
+var jwtOptions = builder.Configuration.GetSection("Authentication:Jwt").Get<JwtOptions>() ?? new JwtOptions();
+builder.Services.Configure<JwtOptions>(builder.Configuration.GetSection("Authentication:Jwt"));
+builder.Services.Configure<AuthenticationOptions>(builder.Configuration.GetSection("Authentication"));
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtOptions.Issuer,
+        ValidAudience = jwtOptions.Audience,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtOptions.SecretKey)),
+        ClockSkew = TimeSpan.FromSeconds(5),
+        NameClaimType = JwtRegisteredClaimNames.Name,
+        RoleClaimType = ClaimTypes.Role
+    };
+});
+
+// Register Authentication Services
+builder.Services.AddScoped<ITokenService, JwtTokenService>();
+builder.Services.AddScoped<IRefreshTokenStore, RefreshTokenStore>();
+builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+
+// Add Authorization (Cadence policies and handlers)
+builder.Services.AddHttpContextAccessor(); // Required for authorization handlers
+builder.Services.AddCadenceAuthorization();
 
 // Add CORS
 builder.Services.AddCors(options =>
@@ -77,6 +141,57 @@ builder.Services.AddLogging(logging =>
     logging.AddDebug();
 });
 
+// Add Rate Limiting for authentication endpoints
+builder.Services.AddRateLimiter(options =>
+{
+    // Rate limit for auth endpoints (login, register)
+    // 10 requests per minute per IP address
+    options.AddPolicy("auth", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(1),
+                PermitLimit = 10,
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            }));
+
+    // Stricter rate limit for password reset (3 requests per 15 minutes)
+    options.AddPolicy("password-reset", context =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: context.Connection.RemoteIpAddress?.ToString() ?? "anonymous",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                Window = TimeSpan.FromMinutes(15),
+                PermitLimit = 3,
+                QueueLimit = 0,
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst
+            }));
+
+    // Custom rejection response
+    options.OnRejected = async (context, token) =>
+    {
+        context.HttpContext.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.HttpContext.Response.ContentType = "application/json";
+
+        var retryAfterSeconds = 60; // Default retry after 1 minute
+        if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var retryAfter))
+        {
+            retryAfterSeconds = (int)retryAfter.TotalSeconds;
+        }
+
+        context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString();
+
+        await context.HttpContext.Response.WriteAsJsonAsync(new
+        {
+            error = "rate_limit_exceeded",
+            message = "Too many requests. Please try again later.",
+            retryAfter = retryAfterSeconds
+        }, cancellationToken: token);
+    };
+});
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -95,6 +210,9 @@ app.UseHttpsRedirection();
 
 app.UseCors();
 
+app.UseRateLimiter();
+
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Global Exception Handler (Simple version for now)

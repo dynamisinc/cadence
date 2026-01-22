@@ -4,6 +4,7 @@ using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ namespace Cadence.WebApi.Controllers;
 /// <summary>
 /// API endpoints for inject (MSEL item) management.
 /// Injects belong to MSELs which belong to Exercises.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/exercises/{exerciseId:guid}/injects")]
+[Authorize]
 public class InjectsController : ControllerBase
 {
     private readonly AppDbContext _context;

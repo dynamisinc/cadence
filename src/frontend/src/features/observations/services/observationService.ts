@@ -17,7 +17,7 @@ export const observationService = {
    */
   getObservationsByExercise: async (exerciseId: string): Promise<ObservationDto[]> => {
     const response = await apiClient.get<ObservationDto[]>(
-      `/api/exercises/${exerciseId}/observations`,
+      `/exercises/${exerciseId}/observations`,
     )
     return response.data
   },
@@ -27,7 +27,7 @@ export const observationService = {
    */
   getObservationsByInject: async (injectId: string): Promise<ObservationDto[]> => {
     const response = await apiClient.get<ObservationDto[]>(
-      `/api/injects/${injectId}/observations`,
+      `/injects/${injectId}/observations`,
     )
     return response.data
   },
@@ -36,7 +36,7 @@ export const observationService = {
    * Get a single observation by ID
    */
   getObservation: async (id: string): Promise<ObservationDto> => {
-    const response = await apiClient.get<ObservationDto>(`/api/observations/${id}`)
+    const response = await apiClient.get<ObservationDto>(`/observations/${id}`)
     return response.data
   },
 
@@ -48,7 +48,7 @@ export const observationService = {
     request: CreateObservationRequest,
   ): Promise<ObservationDto> => {
     const response = await apiClient.post<ObservationDto>(
-      `/api/exercises/${exerciseId}/observations`,
+      `/exercises/${exerciseId}/observations`,
       request,
     )
     return response.data
@@ -62,7 +62,7 @@ export const observationService = {
     request: UpdateObservationRequest,
   ): Promise<ObservationDto> => {
     const response = await apiClient.put<ObservationDto>(
-      `/api/observations/${id}`,
+      `/observations/${id}`,
       request,
     )
     return response.data
@@ -72,7 +72,7 @@ export const observationService = {
    * Delete an observation (soft delete)
    */
   deleteObservation: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/observations/${id}`)
+    await apiClient.delete(`/observations/${id}`)
   },
 }
 

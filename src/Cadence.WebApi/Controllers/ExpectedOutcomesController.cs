@@ -2,6 +2,7 @@ using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExpectedOutcomes.Models.DTOs;
 using Cadence.Core.Features.ExpectedOutcomes.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -11,9 +12,11 @@ namespace Cadence.WebApi.Controllers;
 /// API endpoints for managing expected outcomes on injects.
 /// Expected outcomes define what should happen when an inject is delivered
 /// and can be evaluated during AAR.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/injects/{injectId:guid}/outcomes")]
+[Authorize]
 public class ExpectedOutcomesController : ControllerBase
 {
     private readonly IExpectedOutcomeService _service;

@@ -55,7 +55,7 @@ describe('phaseService', () => {
 
       const result = await phaseService.getPhases('exercise-1')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/exercise-1/phases')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises/exercise-1/phases')
       expect(result).toEqual([mockPhase, mockPhase2])
     })
 
@@ -64,7 +64,7 @@ describe('phaseService', () => {
 
       const result = await phaseService.getPhases('exercise-1')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/exercise-1/phases')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises/exercise-1/phases')
       expect(result).toEqual([])
     })
 
@@ -81,7 +81,7 @@ describe('phaseService', () => {
 
       const result = await phaseService.getPhase('exercise-1', 'phase-1')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/exercise-1/phases/phase-1')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises/exercise-1/phases/phase-1')
       expect(result).toEqual(mockPhase)
     })
 
@@ -115,7 +115,7 @@ describe('phaseService', () => {
 
       const result = await phaseService.createPhase('exercise-1', request)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/exercises/exercise-1/phases', request)
+      expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/phases', request)
       expect(result).toEqual(createdPhase)
     })
 
@@ -135,7 +135,7 @@ describe('phaseService', () => {
 
       const result = await phaseService.createPhase('exercise-1', request)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/exercises/exercise-1/phases', request)
+      expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/phases', request)
       expect(result.name).toBe('Minimal Phase')
       expect(result.description).toBeNull()
     })
@@ -171,7 +171,7 @@ describe('phaseService', () => {
       const result = await phaseService.updatePhase('exercise-1', 'phase-1', request)
 
       expect(apiClient.put).toHaveBeenCalledWith(
-        '/api/exercises/exercise-1/phases/phase-1',
+        '/exercises/exercise-1/phases/phase-1',
         request,
       )
       expect(result).toEqual(updatedPhase)
@@ -216,7 +216,7 @@ describe('phaseService', () => {
 
       await phaseService.deletePhase('exercise-1', 'phase-1')
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/api/exercises/exercise-1/phases/phase-1')
+      expect(apiClient.delete).toHaveBeenCalledWith('/exercises/exercise-1/phases/phase-1')
     })
 
     it('propagates errors when phase has injects', async () => {
@@ -252,7 +252,7 @@ describe('phaseService', () => {
       const result = await phaseService.reorderPhases('exercise-1', request)
 
       expect(apiClient.put).toHaveBeenCalledWith(
-        '/api/exercises/exercise-1/phases/reorder',
+        '/exercises/exercise-1/phases/reorder',
         request,
       )
       expect(result).toEqual(reorderedPhases)

@@ -1,0 +1,72 @@
+using Microsoft.AspNetCore.Identity;
+
+namespace Cadence.Core.Models.Entities;
+
+/// <summary>
+/// Application user entity extending ASP.NET Core Identity.
+/// Represents an authenticated user with global role and organization membership.
+/// </summary>
+public class ApplicationUser : IdentityUser
+{
+    /// <summary>
+    /// Display name shown in the UI.
+    /// </summary>
+    public string DisplayName { get; set; } = string.Empty;
+
+    /// <summary>
+    /// System-level access role determining application permissions.
+    /// This is distinct from HSEEP exercise roles which are assigned per-exercise via ExerciseParticipant.
+    /// Default: User (standard access).
+    /// </summary>
+    public SystemRole SystemRole { get; set; } = SystemRole.User;
+
+    /// <summary>
+    /// Account status (Active or Deactivated).
+    /// </summary>
+    public UserStatus Status { get; set; } = UserStatus.Active;
+
+    /// <summary>
+    /// UTC timestamp of the user's most recent login.
+    /// Null if user has never logged in.
+    /// </summary>
+    public DateTime? LastLoginAt { get; set; }
+
+    /// <summary>
+    /// Primary organization this user belongs to.
+    /// </summary>
+    public Guid OrganizationId { get; set; }
+
+    // =========================================================================
+    // Navigation Properties
+    // =========================================================================
+
+    /// <summary>
+    /// The organization this user belongs to.
+    /// </summary>
+    public Organization Organization { get; set; } = null!;
+
+    /// <summary>
+    /// Refresh tokens issued to this user.
+    /// </summary>
+    public ICollection<RefreshToken> RefreshTokens { get; set; } = new List<RefreshToken>();
+
+    /// <summary>
+    /// Password reset tokens for this user.
+    /// </summary>
+    public ICollection<PasswordResetToken> PasswordResetTokens { get; set; } = new List<PasswordResetToken>();
+
+    /// <summary>
+    /// External login providers linked to this user (e.g., Entra, Google).
+    /// </summary>
+    public ICollection<ExternalLogin> ExternalLogins { get; set; } = new List<ExternalLogin>();
+
+    /// <summary>
+    /// Exercise participations for this user (includes HSEEP role per exercise).
+    /// </summary>
+    public ICollection<ExerciseParticipant> ExerciseParticipations { get; set; } = new List<ExerciseParticipant>();
+
+    /// <summary>
+    /// Exercises created by this user (for ownership tracking).
+    /// </summary>
+    public ICollection<Exercise> CreatedExercises { get; set; } = new List<Exercise>();
+}

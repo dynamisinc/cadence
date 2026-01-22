@@ -9,6 +9,7 @@ using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.Core.Features.Users.Services;
 using FluentValidation;
 
 namespace Cadence.Core.Extensions;
@@ -34,6 +35,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
         services.AddScoped<IExerciseStatusService, ExerciseStatusService>();
         services.AddScoped<IExerciseDeleteService, ExerciseDeleteService>();
+        services.AddScoped<IExerciseParticipantService, ExerciseParticipantService>();
         services.AddScoped<IMselService, MselService>();
         services.AddScoped<ISetupProgressService, SetupProgressService>();
         services.AddScoped<IExpectedOutcomeService, ExpectedOutcomeService>();
@@ -41,6 +43,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAutocompleteService, AutocompleteService>();
         services.AddScoped<IExcelImportService, ExcelImportService>();
         services.AddScoped<IExcelExportService, ExcelExportService>();
+        services.AddScoped<IUserService, UserService>();
 
         return services;
     }

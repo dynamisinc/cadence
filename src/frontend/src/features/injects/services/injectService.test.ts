@@ -70,7 +70,7 @@ describe('injectService', () => {
 
       const result = await injectService.getInjects('exercise-1')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/exercise-1/injects')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises/exercise-1/injects')
       expect(result).toEqual([mockInject])
     })
   })
@@ -81,7 +81,7 @@ describe('injectService', () => {
 
       const result = await injectService.getInject('exercise-1', '123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/exercise-1/injects/123')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises/exercise-1/injects/123')
       expect(result).toEqual(mockInject)
     })
   })
@@ -98,7 +98,7 @@ describe('injectService', () => {
 
       const result = await injectService.createInject('exercise-1', request)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/exercises/exercise-1/injects', request)
+      expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/injects', request)
       expect(result).toEqual(mockInject)
     })
   })
@@ -110,7 +110,7 @@ describe('injectService', () => {
 
       const result = await injectService.fireInject('exercise-1', '123')
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/exercises/exercise-1/injects/123/fire', {})
+      expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/injects/123/fire', {})
       expect(result.status).toBe(InjectStatus.Fired)
     })
 
@@ -121,7 +121,7 @@ describe('injectService', () => {
       await injectService.fireInject('exercise-1', '123', { notes: 'Early delivery' })
 
       expect(apiClient.post).toHaveBeenCalledWith(
-        '/api/exercises/exercise-1/injects/123/fire',
+        '/exercises/exercise-1/injects/123/fire',
         { notes: 'Early delivery' },
       )
     })
@@ -135,7 +135,7 @@ describe('injectService', () => {
       const request: SkipInjectRequest = { reason: 'Time constraints' }
       const result = await injectService.skipInject('exercise-1', '123', request)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/exercises/exercise-1/injects/123/skip', request)
+      expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/injects/123/skip', request)
       expect(result.status).toBe(InjectStatus.Skipped)
       expect(result.skipReason).toBe('Time constraints')
     })
@@ -147,7 +147,7 @@ describe('injectService', () => {
 
       await injectService.deleteInject('exercise-1', '123')
 
-      expect(apiClient.delete).toHaveBeenCalledWith('/api/exercises/exercise-1/injects/123')
+      expect(apiClient.delete).toHaveBeenCalledWith('/exercises/exercise-1/injects/123')
     })
   })
 })

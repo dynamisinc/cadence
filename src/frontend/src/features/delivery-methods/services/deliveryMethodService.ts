@@ -7,7 +7,7 @@
 import api from '@/core/services/api'
 import type { DeliveryMethodDto } from '../types'
 
-const BASE_URL = '/api/delivery-methods'
+const BASE_URL = '/delivery-methods'
 
 /**
  * Get all active delivery methods
