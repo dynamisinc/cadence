@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor } from '../../../test/testUtils'
 import userEvent from '@testing-library/user-event'
 import { AddParticipantDialog } from './AddParticipantDialog'
 import { userService } from '../../users/services/userService'
@@ -54,7 +54,7 @@ describe('AddParticipantDialog', () => {
   it('renders dialog title', () => {
     render(<AddParticipantDialog open={true} {...mockHandlers} />)
 
-    expect(screen.getByText('Add Participant')).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: 'Add Participant' })).toBeInTheDocument()
   })
 
   it('does not render when closed', () => {
@@ -82,8 +82,9 @@ describe('AddParticipantDialog', () => {
     await userEvent.click(autocomplete)
 
     await waitFor(() => {
-      expect(screen.getByText(/User/)).toBeInTheDocument()
-      expect(screen.getByText(/Manager/)).toBeInTheDocument()
+      // Look for the specific text that includes "System:" prefix
+      expect(screen.getByText(/System: User/)).toBeInTheDocument()
+      expect(screen.getByText(/System: Manager/)).toBeInTheDocument()
     })
   })
 
@@ -96,18 +97,23 @@ describe('AddParticipantDialog', () => {
   it('defaults to Observer role', () => {
     render(<AddParticipantDialog open={true} {...mockHandlers} />)
 
-    const roleSelect = screen.getByLabelText(/exercise role/i)
-    expect(roleSelect).toHaveValue('Observer')
+    // MUI Select displays the selected value as text content
+    expect(screen.getByText('Observer')).toBeInTheDocument()
   })
 
   it('allows selecting different exercise roles', async () => {
     const user = userEvent.setup()
     render(<AddParticipantDialog open={true} {...mockHandlers} />)
 
-    const roleSelect = screen.getByLabelText(/exercise role/i)
-    await user.selectOptions(roleSelect, 'Controller')
+    // Click on the select to open dropdown
+    const roleSelect = screen.getByRole('combobox', { name: /exercise role/i })
+    await user.click(roleSelect)
 
-    expect(roleSelect).toHaveValue('Controller')
+    // Click on the option
+    await user.click(screen.getByRole('option', { name: 'Controller' }))
+
+    // Verify the selected value is displayed
+    expect(screen.getByText('Controller')).toBeInTheDocument()
   })
 
   it('disables add button when no user selected', () => {
@@ -146,9 +152,10 @@ describe('AddParticipantDialog', () => {
     })
     await user.click(screen.getByText('John Doe'))
 
-    // Select role
-    const roleSelect = screen.getByLabelText(/exercise role/i)
-    await user.selectOptions(roleSelect, 'Evaluator')
+    // Select role - click to open dropdown, then click option
+    const roleSelect = screen.getByRole('combobox', { name: /exercise role/i })
+    await user.click(roleSelect)
+    await user.click(screen.getByRole('option', { name: 'Evaluator' }))
 
     // Click add
     const addButton = screen.getByRole('button', { name: /add participant/i })
