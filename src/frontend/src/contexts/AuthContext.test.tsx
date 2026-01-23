@@ -201,6 +201,8 @@ describe('AuthContext', () => {
 
       expect(response).toEqual({
         isSuccess: false,
+        expiresIn: 0,
+        tokenType: 'Bearer',
         error: {
           code: 'invalid_credentials',
           message: 'Invalid email or password',
