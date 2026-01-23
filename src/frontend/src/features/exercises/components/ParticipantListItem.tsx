@@ -17,8 +17,8 @@ import {
   IconButton,
   Box,
   FormControl,
-  SelectChangeEvent,
 } from '@mui/material'
+import type { SelectChangeEvent } from '@mui/material/Select'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTrash } from '@fortawesome/free-solid-svg-icons'
 import type { ExerciseParticipantDto } from '../types'

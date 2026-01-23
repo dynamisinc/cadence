@@ -14,7 +14,7 @@
  * @see docs/features/authentication/S07-token-refresh.md
  * @see docs/features/authentication/S08-expiration-handling.md
  */
-import { createContext, useContext, FC, ReactNode, useState, useEffect, useCallback, useRef } from 'react'
+import { createContext, useContext, FC, ReactNode, useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
 import type {
   UserInfo,
   LoginRequest,
@@ -115,8 +115,10 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    * Called proactively before expiry and reactively on 401 errors
    */
   const refreshAccessToken = useCallback(async () => {
+    console.log('[AuthContext] refreshAccessToken called, calling authService.refreshToken()...')
     try {
       const response = await authService.refreshToken()
+      console.log('[AuthContext] authService.refreshToken() response:', response)
 
       if (response.isSuccess && response.accessToken) {
         const parsed = parseToken(response.accessToken)
@@ -145,11 +147,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    */
   useEffect(() => {
     const initAuth = async () => {
+      console.log('[AuthContext] initAuth starting...')
       try {
         await refreshAccessToken()
-      } catch {
+        console.log('[AuthContext] refreshAccessToken succeeded')
+      } catch (error) {
         // No valid session - user needs to log in
         // This is normal for first visit or expired session
+        console.log('[AuthContext] refreshAccessToken failed:', error)
       } finally {
         setIsLoading(false)
       }
@@ -166,8 +171,13 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   /**
    * Configure API interceptors with token getter and refresher
    * This allows axios to access current token and trigger refresh on 401
+   *
+   * IMPORTANT: Using useLayoutEffect (not useEffect) ensures interceptors are
+   * configured synchronously before child components can make API calls.
+   * Regular useEffect runs after render, which creates a race condition where
+   * API calls can happen before interceptors are set up.
    */
-  useEffect(() => {
+  useLayoutEffect(() => {
     setAuthInterceptors(
       () => accessToken,
       refreshAccessToken,

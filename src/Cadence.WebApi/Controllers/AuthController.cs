@@ -17,13 +17,19 @@ public class AuthController : ControllerBase
 {
     private readonly IAuthenticationService _authService;
     private readonly ILogger<AuthController> _logger;
+    private readonly IHostEnvironment _environment;
+    private readonly IConfiguration _configuration;
 
     public AuthController(
         IAuthenticationService authService,
-        ILogger<AuthController> logger)
+        ILogger<AuthController> logger,
+        IHostEnvironment environment,
+        IConfiguration configuration)
     {
         _authService = authService;
         _logger = logger;
+        _environment = environment;
+        _configuration = configuration;
     }
 
     /// <summary>
@@ -293,16 +299,32 @@ public class AuthController : ControllerBase
 
     /// <summary>
     /// Set refresh token in HttpOnly cookie.
-    /// Cookie is Secure (HTTPS only), HttpOnly (no JS access), and SameSite=Strict.
+    /// Cookie settings are environment-aware:
+    /// - Development: Secure=false, SameSite=Lax (works with HTTP localhost)
+    /// - Production: Secure=true, SameSite configured via appsettings (Strict, Lax, or None for cross-origin)
     /// </summary>
     /// <param name="refreshToken">The refresh token to store.</param>
     private void SetRefreshTokenCookie(string refreshToken)
     {
+        var isDevelopment = _environment.IsDevelopment();
+
+        // For cross-origin production deployments (SWA + App Service on different domains),
+        // set Authentication:Cookie:SameSite to "None" in appsettings.Production.json
+        // SameSite=None requires Secure=true and works for cross-origin requests
+        var sameSiteSetting = _configuration.GetValue<string>("Authentication:Cookie:SameSite");
+        var sameSiteMode = sameSiteSetting?.ToLowerInvariant() switch
+        {
+            "none" => SameSiteMode.None,
+            "lax" => SameSiteMode.Lax,
+            "strict" => SameSiteMode.Strict,
+            _ => isDevelopment ? SameSiteMode.Lax : SameSiteMode.Strict
+        };
+
         var cookieOptions = new CookieOptions
         {
             HttpOnly = true,
-            Secure = true, // Requires HTTPS
-            SameSite = SameSiteMode.Strict,
+            Secure = !isDevelopment || sameSiteMode == SameSiteMode.None, // SameSite=None requires Secure
+            SameSite = sameSiteMode,
             Expires = DateTimeOffset.UtcNow.AddDays(30) // Max possible expiration
         };
 

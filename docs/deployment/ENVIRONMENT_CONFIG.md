@@ -14,8 +14,9 @@ This guide covers configuration for local development versus Azure deployment en
 3. [Azure Configuration](#azure-configuration)
 4. [Connection String Formats](#connection-string-formats)
 5. [appsettings Patterns](#appsettings-patterns)
-6. [Frontend Environment Variables](#frontend-environment-variables)
-7. [Secrets Management](#secrets-management)
+6. [Authentication Cookie Configuration](#authentication-cookie-configuration)
+7. [Frontend Environment Variables](#frontend-environment-variables)
+8. [Secrets Management](#secrets-management)
 
 ---
 
@@ -284,6 +285,122 @@ ASP.NET Core loads configuration in this order (later sources override earlier):
   }
 }
 ```
+
+---
+
+## Authentication Cookie Configuration
+
+The refresh token is stored in an HttpOnly cookie. Cookie settings are **environment-aware** to handle both local development and production cross-origin deployments.
+
+### How It Works
+
+| Environment                | Secure  | SameSite | Why                               |
+|----------------------------|---------|----------|-----------------------------------|
+| Development                | `false` | `Lax`    | Works with HTTP localhost         |
+| Production (same-origin)   | `true`  | `Strict` | Maximum security                  |
+| Production (cross-origin)  | `true`  | `None`   | Required for cross-origin cookies |
+
+### SWA + App Service Deployment (Cross-Origin)
+
+When deploying with **Azure Static Web App** (frontend) and **Azure App Service** (API) on **different domains**, you have three options:
+
+#### Option 1: SWA Backend Proxy (Recommended)
+
+Azure SWA can proxy `/api/*` requests to your App Service, making them appear same-origin. This is the most secure option.
+
+Add to `staticwebapp.config.json` in your frontend:
+
+```json
+{
+  "routes": [
+    {
+      "route": "/api/*",
+      "allowedRoles": ["anonymous", "authenticated"]
+    }
+  ],
+  "navigationFallback": {
+    "rewrite": "/index.html"
+  },
+  "backend": {
+    "baseUrl": "https://your-app-service.azurewebsites.net"
+  }
+}
+```
+
+With this configuration:
+- Browser sees all requests as same-origin
+- Cookies work with `SameSite=Strict` (default)
+- No additional configuration needed
+- Frontend `VITE_API_URL` should be empty (relative `/api` path)
+
+#### Option 2: SameSite=None (Cross-Origin Cookies)
+
+If you cannot use the SWA proxy, configure the API to allow cross-origin cookies.
+
+Add to `appsettings.Production.json`:
+
+```json
+{
+  "Authentication": {
+    "Cookie": {
+      "SameSite": "None"
+    }
+  }
+}
+```
+
+Or set via Azure App Service Configuration:
+```
+Authentication__Cookie__SameSite = None
+```
+
+**Important considerations:**
+- `SameSite=None` requires `Secure=true` (HTTPS) - this is enforced automatically
+- Slightly reduced security: cookies sent on all cross-origin requests
+- Ensure your CORS policy is properly configured
+
+#### Option 3: Custom Domain (Same Root Domain)
+
+Put both SWA and App Service under the same root domain:
+- `app.cadence.io` → Azure SWA
+- `api.cadence.io` → Azure App Service
+
+With this setup, use `SameSite=Lax`:
+
+```json
+{
+  "Authentication": {
+    "Cookie": {
+      "SameSite": "Lax"
+    }
+  }
+}
+```
+
+### Configuration Reference
+
+| Setting                          | Values                  | Default                      |
+|----------------------------------|-------------------------|------------------------------|
+| `Authentication:Cookie:SameSite` | `Strict`, `Lax`, `None` | `Lax` (dev), `Strict` (prod) |
+
+### Troubleshooting
+
+**Symptom:** Token refresh fails silently, user gets logged out unexpectedly.
+
+**Check:**
+1. Open browser DevTools → Application → Cookies
+2. Look for `refreshToken` cookie
+3. If missing or has warnings, check:
+   - `Secure` flag matches HTTPS status
+   - `SameSite` setting matches your deployment topology
+
+**Development on HTTP:** If running locally without HTTPS, cookies work automatically (development mode uses `Secure=false`).
+
+**Production cross-origin:** If SWA and App Service are on different domains, you MUST either:
+- Use SWA backend proxy (recommended), OR
+- Set `Authentication:Cookie:SameSite` to `None`
+
+---
 
 ### Program.cs Configuration Loading
 
