@@ -236,6 +236,7 @@ export const ExerciseForm = ({
               }
               error={!!errors.directorId}
               disabled={isFieldDisabled('directorId' as keyof CreateExerciseFormValues)}
+              filterToDirectorEligible={true}
             />
           )}
         />

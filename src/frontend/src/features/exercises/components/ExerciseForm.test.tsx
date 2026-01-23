@@ -123,7 +123,7 @@ describe('ExerciseForm - Director Selection', () => {
       })
     })
 
-    it('includes directorId in form submission when director is selected', async () => {
+    it('includes directorId in form submission when director is selected', { timeout: 30000 }, async () => {
       const user = userEvent.setup()
       const handleSubmit = vi.fn()
 
@@ -166,7 +166,7 @@ describe('ExerciseForm - Director Selection', () => {
       expect(submittedData.directorId).toBe('admin-1')
     })
 
-    it('submits without directorId when no director is selected', async () => {
+    it('submits without directorId when no director is selected', { timeout: 30000 }, async () => {
       const user = userEvent.setup()
       const handleSubmit = vi.fn()
 

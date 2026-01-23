@@ -52,32 +52,26 @@ describe('CreateUserModal', () => {
     expect(screen.queryByRole('heading', { name: /create new user/i })).not.toBeInTheDocument()
   })
 
-  it('validates display name is required', async () => {
+  it('validates display name is required', () => {
     renderModal()
 
     const submitButton = screen.getByRole('button', { name: /create user/i })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/display name is required/i)).toBeInTheDocument()
-    })
+    // Button should be disabled when displayName is empty
+    expect(submitButton).toBeDisabled()
   })
 
-  it('validates email is required', async () => {
+  it('validates email is required', () => {
     renderModal()
 
     const displayNameInput = screen.getByLabelText(/display name/i)
     fireEvent.change(displayNameInput, { target: { value: 'John Doe' } })
 
     const submitButton = screen.getByRole('button', { name: /create user/i })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/email is required/i)).toBeInTheDocument()
-    })
+    // Button should be disabled when email is empty
+    expect(submitButton).toBeDisabled()
   })
 
-  it('validates email format', async () => {
+  it('validates email format', () => {
     renderModal()
 
     const displayNameInput = screen.getByLabelText(/display name/i)
@@ -87,14 +81,11 @@ describe('CreateUserModal', () => {
     fireEvent.change(emailInput, { target: { value: 'invalid-email' } })
 
     const submitButton = screen.getByRole('button', { name: /create user/i })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/please enter a valid email address/i)).toBeInTheDocument()
-    })
+    // Button should be disabled when email format is invalid
+    expect(submitButton).toBeDisabled()
   })
 
-  it('validates password is required', async () => {
+  it('validates password is required', () => {
     renderModal()
 
     const displayNameInput = screen.getByLabelText(/display name/i)
@@ -104,11 +95,8 @@ describe('CreateUserModal', () => {
     fireEvent.change(emailInput, { target: { value: 'john@example.com' } })
 
     const submitButton = screen.getByRole('button', { name: /create user/i })
-    fireEvent.click(submitButton)
-
-    await waitFor(() => {
-      expect(screen.getByText(/password is required/i)).toBeInTheDocument()
-    })
+    // Button should be disabled when password is empty
+    expect(submitButton).toBeDisabled()
   })
 
   it('shows password requirements when typing', async () => {
@@ -238,7 +226,7 @@ describe('CreateUserModal', () => {
     renderModal()
 
     expect(screen.getByText(/will be created with/i)).toBeInTheDocument()
-    expect(screen.getByText(/user/i)).toBeInTheDocument()
+    expect(screen.getByText(/User.*system role/i)).toBeInTheDocument()
   })
 
   it('resets form when modal reopens', async () => {

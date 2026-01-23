@@ -4,10 +4,21 @@
  * @module features/auth
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '../../../test/testUtils'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { render } from '../../../test/testUtils'
 import { ResetPasswordPage } from './ResetPasswordPage'
 import { authService } from '../services/authService'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { useSearchParams, useNavigate } from 'react-router-dom'
+
+// Mock the router hooks since we can't use nested routers
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useSearchParams: vi.fn(),
+    useNavigate: vi.fn(),
+  }
+})
 
 vi.mock('../services/authService', () => ({
   authService: {
@@ -15,16 +26,13 @@ vi.mock('../services/authService', () => ({
   },
 }))
 
-const renderWithRouter = (initialEntries: string[] = ['/reset-password?token=valid-token']) => {
-  return render(
-    <MemoryRouter initialEntries={initialEntries}>
-      <Routes>
-        <Route path="/reset-password" element={<ResetPasswordPage />} />
-        <Route path="/login" element={<div>Login Page</div>} />
-        <Route path="/forgot-password" element={<div>Forgot Password Page</div>} />
-      </Routes>
-    </MemoryRouter>,
-  )
+const renderPage = (token = 'valid-token') => {
+  vi.mocked(useSearchParams).mockReturnValue([
+    new URLSearchParams(token ? `token=${token}` : ''),
+    vi.fn() as any,
+  ])
+  vi.mocked(useNavigate).mockReturnValue(vi.fn())
+  return render(<ResetPasswordPage />)
 }
 
 describe('ResetPasswordPage', () => {
@@ -33,7 +41,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('renders the new password form with valid token', () => {
-    renderWithRouter()
+    renderPage()
 
     expect(screen.getByRole('heading', { name: /set new password/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/new password/i)).toBeInTheDocument()
@@ -42,7 +50,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('shows error when no token provided', () => {
-    renderWithRouter(['/reset-password'])
+    renderPage('')
 
     expect(screen.getByRole('heading', { name: /reset link invalid/i })).toBeInTheDocument()
     expect(screen.getByText(/no reset token provided/i)).toBeInTheDocument()
@@ -50,7 +58,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('toggles password visibility', async () => {
-    renderWithRouter()
+    renderPage()
 
     const newPasswordInput = screen.getByLabelText(/new password/i) as HTMLInputElement
     const toggleButton = screen.getAllByLabelText(/show password/i)[0]
@@ -65,7 +73,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('shows password requirements when typing', async () => {
-    renderWithRouter()
+    renderPage()
 
     const newPasswordInput = screen.getByLabelText(/new password/i)
 
@@ -77,7 +85,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('validates passwords match', async () => {
-    renderWithRouter()
+    renderPage()
 
     const newPasswordInput = screen.getByLabelText(/new password/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
@@ -92,7 +100,7 @@ describe('ResetPasswordPage', () => {
   })
 
   it('disables submit when password is invalid', () => {
-    renderWithRouter()
+    renderPage()
 
     const submitButton = screen.getByRole('button', { name: /set new password/i })
     expect(submitButton).toBeDisabled()
@@ -106,7 +114,7 @@ describe('ResetPasswordPage', () => {
   it('shows success state after password reset', async () => {
     vi.mocked(authService.completePasswordReset).mockResolvedValueOnce(undefined)
 
-    renderWithRouter()
+    renderPage()
 
     const newPasswordInput = screen.getByLabelText(/new password/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
@@ -128,7 +136,7 @@ describe('ResetPasswordPage', () => {
       response: { data: { code: 'invalid_token' } },
     })
 
-    renderWithRouter()
+    renderPage()
 
     const newPasswordInput = screen.getByLabelText(/new password/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)
@@ -150,7 +158,7 @@ describe('ResetPasswordPage', () => {
       response: { data: { message: 'Server error occurred' } },
     })
 
-    renderWithRouter()
+    renderPage()
 
     const newPasswordInput = screen.getByLabelText(/new password/i)
     const confirmPasswordInput = screen.getByLabelText(/confirm password/i)

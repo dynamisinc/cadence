@@ -85,7 +85,7 @@ export const useExerciseParticipants = (exerciseId: string) => {
       }
       const message = err instanceof Error ? err.message : 'Failed to add participant'
       toast.error(message)
-      throw err
+      // Note: Don't re-throw here - mutateAsync already propagates the error
     },
   })
 

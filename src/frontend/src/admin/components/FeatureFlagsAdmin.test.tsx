@@ -98,9 +98,9 @@ describe('FeatureFlagsAdmin', () => {
     it('changes flag state when toggle button is clicked', async () => {
       renderWithProvider(<FeatureFlagsAdmin />)
 
-      // Notes starts as "Active", click "Hidden"
-      const notesToggle = screen.getByTestId('feature-flag-toggle-notes')
-      const hiddenButton = notesToggle.querySelector(
+      // exampleTool1 starts as "ComingSoon", click "Hidden"
+      const exampleToggle = screen.getByTestId('feature-flag-toggle-exampleTool1')
+      const hiddenButton = exampleToggle.querySelector(
         'button[value="Hidden"]',
       ) as HTMLButtonElement
 
@@ -115,16 +115,16 @@ describe('FeatureFlagsAdmin', () => {
     it('persists state changes to localStorage', async () => {
       renderWithProvider(<FeatureFlagsAdmin />)
 
-      const notesToggle = screen.getByTestId('feature-flag-toggle-notes')
-      const comingSoonButton = notesToggle.querySelector(
-        'button[value="ComingSoon"]',
+      const exampleToggle = screen.getByTestId('feature-flag-toggle-exampleTool1')
+      const activeButton = exampleToggle.querySelector(
+        'button[value="Active"]',
       ) as HTMLButtonElement
 
-      fireEvent.click(comingSoonButton)
+      fireEvent.click(activeButton)
 
       await waitFor(() => {
         const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
-        expect(stored.notes).toBe('ComingSoon')
+        expect(stored.exampleTool1).toBe('Active')
       })
     })
   })
@@ -133,7 +133,6 @@ describe('FeatureFlagsAdmin', () => {
     it('resets all flags to defaults when reset button is clicked', async () => {
       // Pre-set some non-default values
       mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
-        notes: 'Hidden',
         exampleTool1: 'Active',
         exampleTool2: 'Active',
       })

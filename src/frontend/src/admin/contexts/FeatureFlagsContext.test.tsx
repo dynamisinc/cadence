@@ -23,9 +23,9 @@ const TestComponent = () => {
 
   return (
     <div>
-      <span data-testid="notes-state">{flags.notes}</span>
       <span data-testid="example1-state">{flags.exampleTool1}</span>
-      <span data-testid="notes-active">{isActive('notes').toString()}</span>
+      <span data-testid="example2-state">{flags.exampleTool2}</span>
+      <span data-testid="example1-active">{isActive('exampleTool1').toString()}</span>
       <span data-testid="example2-visible">
         {isVisible('exampleTool2').toString()}
       </span>
@@ -33,8 +33,8 @@ const TestComponent = () => {
         {isComingSoon('exampleTool1').toString()}
       </span>
       <button
-        data-testid="set-notes-hidden"
-        onClick={() => updateFlag('notes', 'Hidden')}
+        data-testid="set-example1-hidden"
+        onClick={() => updateFlag('exampleTool1', 'Hidden')}
       >
         Set Hidden
       </button>
@@ -48,7 +48,7 @@ const TestComponent = () => {
 // Test component for useFeatureFlagState
 const SingleFlagTestComponent = () => {
   const { state, isActive, isVisible, isComingSoon } =
-    useFeatureFlagState('notes')
+    useFeatureFlagState('exampleTool1')
 
   return (
     <div>
@@ -89,15 +89,14 @@ describe('FeatureFlagsContext', () => {
         </FeatureFlagsProvider>,
       )
 
-      expect(screen.getByTestId('notes-state')).toHaveTextContent('Active')
       expect(screen.getByTestId('example1-state')).toHaveTextContent(
         'ComingSoon',
       )
+      expect(screen.getByTestId('example2-state')).toHaveTextContent('Hidden')
     })
 
     it('loads saved flags from localStorage', () => {
       mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
-        notes: 'Hidden',
         exampleTool1: 'Active',
         exampleTool2: 'ComingSoon',
       })
@@ -108,8 +107,10 @@ describe('FeatureFlagsContext', () => {
         </FeatureFlagsProvider>,
       )
 
-      expect(screen.getByTestId('notes-state')).toHaveTextContent('Hidden')
       expect(screen.getByTestId('example1-state')).toHaveTextContent('Active')
+      expect(screen.getByTestId('example2-state')).toHaveTextContent(
+        'ComingSoon',
+      )
     })
 
     it('updates flags when updateFlag is called', async () => {
@@ -119,10 +120,10 @@ describe('FeatureFlagsContext', () => {
         </FeatureFlagsProvider>,
       )
 
-      fireEvent.click(screen.getByTestId('set-notes-hidden'))
+      fireEvent.click(screen.getByTestId('set-example1-hidden'))
 
       await waitFor(() => {
-        expect(screen.getByTestId('notes-state')).toHaveTextContent('Hidden')
+        expect(screen.getByTestId('example1-state')).toHaveTextContent('Hidden')
       })
     })
 
@@ -133,17 +134,16 @@ describe('FeatureFlagsContext', () => {
         </FeatureFlagsProvider>,
       )
 
-      fireEvent.click(screen.getByTestId('set-notes-hidden'))
+      fireEvent.click(screen.getByTestId('set-example1-hidden'))
 
       await waitFor(() => {
         const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
-        expect(stored.notes).toBe('Hidden')
+        expect(stored.exampleTool1).toBe('Hidden')
       })
     })
 
     it('resets flags to defaults when resetFlags is called', async () => {
       mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
-        notes: 'Hidden',
         exampleTool1: 'Active',
         exampleTool2: 'ComingSoon',
       })
@@ -157,10 +157,10 @@ describe('FeatureFlagsContext', () => {
       fireEvent.click(screen.getByTestId('reset'))
 
       await waitFor(() => {
-        expect(screen.getByTestId('notes-state')).toHaveTextContent('Active')
         expect(screen.getByTestId('example1-state')).toHaveTextContent(
           'ComingSoon',
         )
+        expect(screen.getByTestId('example2-state')).toHaveTextContent('Hidden')
       })
     })
 
@@ -171,7 +171,8 @@ describe('FeatureFlagsContext', () => {
         </FeatureFlagsProvider>,
       )
 
-      expect(screen.getByTestId('notes-active')).toHaveTextContent('true')
+      // exampleTool1 is "ComingSoon" by default, not Active
+      expect(screen.getByTestId('example1-active')).toHaveTextContent('false')
     })
 
     it('returns correct value for isVisible', () => {
@@ -205,10 +206,11 @@ describe('FeatureFlagsContext', () => {
         </FeatureFlagsProvider>,
       )
 
-      expect(screen.getByTestId('state')).toHaveTextContent('Active')
-      expect(screen.getByTestId('is-active')).toHaveTextContent('true')
+      // exampleTool1 defaults to 'ComingSoon'
+      expect(screen.getByTestId('state')).toHaveTextContent('ComingSoon')
+      expect(screen.getByTestId('is-active')).toHaveTextContent('false')
       expect(screen.getByTestId('is-visible')).toHaveTextContent('true')
-      expect(screen.getByTestId('is-coming')).toHaveTextContent('false')
+      expect(screen.getByTestId('is-coming')).toHaveTextContent('true')
     })
   })
 
