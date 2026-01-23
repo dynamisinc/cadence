@@ -1,6 +1,7 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Features.Objectives.Models.DTOs;
 using Cadence.Core.Features.Objectives.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cadence.WebApi.Controllers;
@@ -8,9 +9,11 @@ namespace Cadence.WebApi.Controllers;
 /// <summary>
 /// API endpoints for exercise objective management.
 /// Objectives define the capabilities being tested during an exercise per HSEEP guidance.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/exercises/{exerciseId:guid}/objectives")]
+[Authorize]
 public class ObjectivesController : ControllerBase
 {
     private readonly IObjectiveService _objectiveService;

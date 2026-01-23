@@ -19,7 +19,6 @@ export type FeatureFlagState = 'Hidden' | 'ComingSoon' | 'Active'
  * Add new features here as the app grows
  */
 export interface FeatureFlags {
-  notes: FeatureFlagState;
   exampleTool1: FeatureFlagState;
   exampleTool2: FeatureFlagState;
 }
@@ -39,12 +38,6 @@ export interface FeatureFlagInfo {
  */
 export const featureFlagInfo: FeatureFlagInfo[] = [
   {
-    key: 'notes',
-    label: 'Notes Tool',
-    description: 'Simple notes tool for demonstrating COBRA patterns',
-    category: 'tools',
-  },
-  {
     key: 'exampleTool1',
     label: 'Example Tool 1',
     description: 'Placeholder for additional tool implementation',
@@ -62,7 +55,6 @@ export const featureFlagInfo: FeatureFlagInfo[] = [
  * Default feature flag values
  */
 export const defaultFeatureFlags: FeatureFlags = {
-  notes: 'Active',
   exampleTool1: 'ComingSoon',
   exampleTool2: 'Hidden',
 }

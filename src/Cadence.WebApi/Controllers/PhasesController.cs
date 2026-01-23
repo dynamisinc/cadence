@@ -2,6 +2,7 @@ using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Phases.Models.DTOs;
 using Cadence.Core.Models.Entities;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,9 +11,11 @@ namespace Cadence.WebApi.Controllers;
 /// <summary>
 /// API endpoints for exercise phase management.
 /// Phases organize injects into logical time segments.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/exercises/{exerciseId:guid}/phases")]
+[Authorize]
 public class PhasesController : ControllerBase
 {
     private readonly AppDbContext _context;

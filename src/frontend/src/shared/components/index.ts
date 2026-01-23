@@ -6,3 +6,4 @@
 
 export { ConfirmDialog, type ConfirmDialogProps, type ConfirmDialogSeverity } from './ConfirmDialog'
 export { Loading, type LoadingProps } from './Loading'
+export { UserAutocomplete, type UserAutocompleteProps } from './UserAutocomplete'

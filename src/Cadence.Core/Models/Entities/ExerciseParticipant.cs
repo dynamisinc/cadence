@@ -13,14 +13,25 @@ public class ExerciseParticipant : BaseEntity
     public Guid ExerciseId { get; set; }
 
     /// <summary>
-    /// The user participating.
+    /// The user participating (references ApplicationUser, not the deprecated User table).
     /// </summary>
-    public Guid UserId { get; set; }
+    public string UserId { get; set; } = string.Empty;
 
     /// <summary>
-    /// The user's role in this exercise.
+    /// The user's HSEEP role in this specific exercise.
+    /// This is distinct from the user's SystemRole which grants application-level permissions.
     /// </summary>
     public ExerciseRole Role { get; set; }
+
+    /// <summary>
+    /// When this participant was assigned to the exercise.
+    /// </summary>
+    public DateTime AssignedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// Who assigned this participant (for audit trail).
+    /// </summary>
+    public string? AssignedById { get; set; }
 
     // =========================================================================
     // Navigation Properties
@@ -32,9 +43,14 @@ public class ExerciseParticipant : BaseEntity
     public Exercise Exercise { get; set; } = null!;
 
     /// <summary>
-    /// The participating user.
-    /// May be null if the user has been soft-deleted.
-    /// For historical reports, use IgnoreQueryFilters() to include deleted users.
+    /// The participating user from ApplicationUser (ASP.NET Core Identity).
+    /// May be null if the user has been deactivated.
+    /// For historical reports, use IgnoreQueryFilters() if needed.
     /// </summary>
-    public User? User { get; set; }
+    public ApplicationUser? User { get; set; }
+
+    /// <summary>
+    /// The user who assigned this participant (for audit).
+    /// </summary>
+    public ApplicationUser? AssignedBy { get; set; }
 }

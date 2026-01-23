@@ -4,36 +4,68 @@
  * Tests for user profile menu functionality including:
  * - Avatar rendering and initials
  * - Menu open/close behavior
- * - Role selection
- * - Account switching dialog
+ * - HSEEP role display
+ * - Logout functionality
  */
 
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '../../test/testUtils'
 import { ProfileMenu } from './ProfileMenu'
-import { PermissionRole } from '../../types'
+import type { UserInfo } from '../../features/auth/types'
+
+// Mock AuthContext
+const mockLogout = vi.fn()
+const mockUseAuth = vi.fn()
+
+vi.mock('../../contexts/AuthContext', async importOriginal => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return {
+    ...actual,
+    useAuth: () => mockUseAuth(),
+  }
+})
+
+// Mock roleResolutionService
+vi.mock('@/features/auth', async importOriginal => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return {
+    ...actual,
+    roleResolutionService: {
+      getUserExerciseAssignments: vi.fn().mockResolvedValue([]),
+    },
+    getRoleColor: vi.fn().mockReturnValue('primary.main'),
+    getRoleDisplayName: vi.fn().mockReturnValue('Controller'),
+  }
+})
 
 describe('ProfileMenu', () => {
-  const mockLocalStorage: Record<string, string> = {}
-
   beforeEach(() => {
-    // Clear and mock localStorage
-    Object.keys(mockLocalStorage).forEach(key => delete mockLocalStorage[key])
-
-    vi.spyOn(Storage.prototype, 'getItem').mockImplementation(key => {
-      return mockLocalStorage[key] || null
-    })
-
-    vi.spyOn(Storage.prototype, 'setItem').mockImplementation((key, value) => {
-      mockLocalStorage[key] = value
-    })
+    vi.clearAllMocks()
+    mockLogout.mockResolvedValue(undefined)
   })
 
-  afterEach(() => {
-    vi.restoreAllMocks()
-  })
+  describe('with authenticated user', () => {
+    const mockUser: UserInfo = {
+      id: '123',
+      email: 'john.doe@cadence.app',
+      displayName: 'John Doe',
+      role: 'Administrator',
+      status: 'Active',
+    }
 
-  describe('initial rendering', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({
+        user: mockUser,
+        logout: mockLogout,
+        isAuthenticated: true,
+        isLoading: false,
+        accessToken: 'mock-token',
+        login: vi.fn(),
+        register: vi.fn(),
+        refreshAccessToken: vi.fn(),
+      })
+    })
+
     it('renders profile menu button with avatar', () => {
       render(<ProfileMenu />)
 
@@ -44,21 +76,44 @@ describe('ProfileMenu', () => {
       expect(avatar).toBeInTheDocument()
     })
 
-    it('shows default user initials when no profile saved', () => {
+    it('displays user initials in avatar', () => {
       render(<ProfileMenu />)
 
-      // Default user is "Demo User" -> "DU"
-      expect(screen.getByText('DU')).toBeInTheDocument()
+      // "John Doe" -> "JD"
+      expect(screen.getByText('JD')).toBeInTheDocument()
     })
 
-    it('displays default user name', () => {
+    it('displays user name in button', () => {
       render(<ProfileMenu />)
 
-      expect(screen.getByText('Demo User')).toBeInTheDocument()
+      expect(screen.getByText('John Doe')).toBeInTheDocument()
     })
-  })
 
-  describe('menu interactions', () => {
+    it('displays formatted HSEEP role in button', () => {
+      render(<ProfileMenu />)
+
+      // "Administrator" stays as "Administrator" (no spaces needed)
+      expect(screen.getByText('Administrator')).toBeInTheDocument()
+    })
+
+    it('formats ExerciseDirector role with space', () => {
+      mockUseAuth.mockReturnValue({
+        user: { ...mockUser, role: 'ExerciseDirector' },
+        logout: mockLogout,
+        isAuthenticated: true,
+        isLoading: false,
+        accessToken: 'mock-token',
+        login: vi.fn(),
+        register: vi.fn(),
+        refreshAccessToken: vi.fn(),
+      })
+
+      render(<ProfileMenu />)
+
+      // "ExerciseDirector" -> "Exercise Director"
+      expect(screen.getByText('Exercise Director')).toBeInTheDocument()
+    })
+
     it('opens dropdown menu when clicking the button', async () => {
       render(<ProfileMenu />)
 
@@ -66,119 +121,137 @@ describe('ProfileMenu', () => {
       fireEvent.click(button)
 
       await waitFor(() => {
-        expect(screen.getByText('Profile Settings (Demo) - For testing purposes')).toBeInTheDocument()
+        expect(screen.getByText('john.doe@cadence.app')).toBeInTheDocument()
       })
     })
 
-    it('shows current user info in dropdown', async () => {
+    it('displays user info and role in dropdown', async () => {
       render(<ProfileMenu />)
 
       const button = screen.getByTestId('profile-menu-button')
       fireEvent.click(button)
 
       await waitFor(() => {
-        expect(screen.getByText('user@cadence.app')).toBeInTheDocument()
+        expect(screen.getByText('john.doe@cadence.app')).toBeInTheDocument()
+        // Check for the label "Role:" which is always present
+        expect(screen.getByText(/Role:/)).toBeInTheDocument()
+      })
+    })
+
+    it('shows logout button when user is authenticated', async () => {
+      render(<ProfileMenu />)
+
+      const button = screen.getByTestId('profile-menu-button')
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        const logoutButton = screen.getByTestId('logout-button')
+        expect(logoutButton).toBeInTheDocument()
+      })
+    })
+
+    it('calls logout when clicking logout button', async () => {
+      render(<ProfileMenu />)
+
+      const button = screen.getByTestId('profile-menu-button')
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        const logoutButton = screen.getByTestId('logout-button')
+        fireEvent.click(logoutButton)
+      })
+
+      expect(mockLogout).toHaveBeenCalledTimes(1)
+    })
+  })
+
+  describe('without authenticated user', () => {
+    beforeEach(() => {
+      mockUseAuth.mockReturnValue({
+        user: null,
+        logout: mockLogout,
+        isAuthenticated: false,
+        isLoading: false,
+        accessToken: null,
+        login: vi.fn(),
+        register: vi.fn(),
+        refreshAccessToken: vi.fn(),
+      })
+    })
+
+    it('displays guest user info', () => {
+      render(<ProfileMenu />)
+
+      expect(screen.getByText('Guest User')).toBeInTheDocument()
+      expect(screen.getByText('No Role Assigned')).toBeInTheDocument()
+    })
+
+    it('shows guest initials', () => {
+      render(<ProfileMenu />)
+
+      // "Guest User" -> "GU"
+      expect(screen.getByText('GU')).toBeInTheDocument()
+    })
+
+    it('does not show logout button when not authenticated', async () => {
+      render(<ProfileMenu />)
+
+      const button = screen.getByTestId('profile-menu-button')
+      fireEvent.click(button)
+
+      await waitFor(() => {
+        expect(screen.queryByTestId('logout-button')).not.toBeInTheDocument()
       })
     })
   })
 
-  describe('role selection', () => {
-    it('shows permission role section', async () => {
-      render(<ProfileMenu />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        expect(screen.getByText('Permission Role')).toBeInTheDocument()
-      })
-    })
-
-    it('displays role options', async () => {
-      render(<ProfileMenu />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        const radios = screen.getAllByRole('radio')
-        expect(radios.length).toBe(3)
-      })
-    })
-
-    it('calls onProfileChange when role is changed', async () => {
-      const onProfileChange = vi.fn()
-      render(<ProfileMenu onProfileChange={onProfileChange} />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        const manageRadio = screen.getByRole('radio', { name: /Manage/i })
-        fireEvent.click(manageRadio)
-      })
-
-      expect(onProfileChange).toHaveBeenCalledWith(PermissionRole.MANAGE)
-    })
-  })
-
-  describe('switch account dialog', () => {
-    it('shows switch account button when menu is open', async () => {
-      render(<ProfileMenu />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        const switchButton = screen.getByTestId('switch-account-button')
-        expect(switchButton).toBeInTheDocument()
-      })
-    })
-
-    it('opens account switch dialog when clicking switch button', async () => {
-      render(<ProfileMenu />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        const switchButton = screen.getByTestId('switch-account-button')
-        fireEvent.click(switchButton)
-      })
-
-      await waitFor(() => {
-        expect(screen.getByTestId('account-switch-dialog')).toBeInTheDocument()
-      })
-    })
-  })
-
-  describe('localStorage persistence', () => {
-    it('loads saved profile from localStorage', () => {
-      mockLocalStorage['cadenceUserProfile'] = JSON.stringify({
-        role: PermissionRole.MANAGE,
-        email: 'custom@example.com',
-        fullName: 'Custom User',
+  describe('initials generation', () => {
+    it('generates initials for single name', () => {
+      mockUseAuth.mockReturnValue({
+        user: {
+          id: '123',
+          email: 'madonna@cadence.app',
+          displayName: 'Madonna',
+          role: 'Controller',
+          status: 'Active',
+        },
+        logout: mockLogout,
+        isAuthenticated: true,
+        isLoading: false,
+        accessToken: 'mock-token',
+        login: vi.fn(),
+        register: vi.fn(),
+        refreshAccessToken: vi.fn(),
       })
 
       render(<ProfileMenu />)
 
-      // Should show initials from stored profile "Custom User" -> "CU"
-      expect(screen.getByText('CU')).toBeInTheDocument()
-      expect(screen.getByText('Custom User')).toBeInTheDocument()
+      // Single name "Madonna" -> "M"
+      expect(screen.getByText('M')).toBeInTheDocument()
     })
 
-    it('saves role change to localStorage', async () => {
-      render(<ProfileMenu />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        const manageRadio = screen.getByRole('radio', { name: /Manage/i })
-        fireEvent.click(manageRadio)
+    it('generates initials for three names using first and last', () => {
+      mockUseAuth.mockReturnValue({
+        user: {
+          id: '123',
+          email: 'john.smith@cadence.app',
+          displayName: 'John Robert Smith',
+          role: 'Evaluator',
+          status: 'Active',
+        },
+        logout: mockLogout,
+        isAuthenticated: true,
+        isLoading: false,
+        accessToken: 'mock-token',
+        login: vi.fn(),
+        register: vi.fn(),
+        refreshAccessToken: vi.fn(),
       })
 
-      expect(mockLocalStorage['cadenceUserProfile']).toContain('Manage')
+      render(<ProfileMenu />)
+
+      // "John Robert Smith" -> "JS" (first and last)
+      expect(screen.getByText('JS')).toBeInTheDocument()
     })
   })
 })

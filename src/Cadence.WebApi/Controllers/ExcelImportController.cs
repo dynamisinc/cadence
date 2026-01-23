@@ -1,14 +1,17 @@
 using Cadence.Core.Features.ExcelImport.Models.DTOs;
 using Cadence.Core.Features.ExcelImport.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cadence.WebApi.Controllers;
 
 /// <summary>
 /// API endpoints for Excel import operations.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/import")]
+[Authorize]
 public class ExcelImportController : ControllerBase
 {
     private readonly IExcelImportService _service;

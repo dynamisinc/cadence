@@ -35,7 +35,7 @@ export const exerciseService = {
       params.append('archivedOnly', 'true')
     }
     const queryString = params.toString()
-    const url = queryString ? `/api/exercises?${queryString}` : '/api/exercises'
+    const url = queryString ? `/exercises?${queryString}` : '/exercises'
     const response = await apiClient.get<ExerciseDto[]>(url)
     return response.data
   },
@@ -44,7 +44,7 @@ export const exerciseService = {
    * Get a single exercise by ID
    */
   getExercise: async (id: string): Promise<ExerciseDto> => {
-    const response = await apiClient.get<ExerciseDto>(`/api/exercises/${id}`)
+    const response = await apiClient.get<ExerciseDto>(`/exercises/${id}`)
     return response.data
   },
 
@@ -55,7 +55,7 @@ export const exerciseService = {
     request: CreateExerciseRequest,
   ): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      '/api/exercises',
+      '/exercises',
       request,
     )
     return response.data
@@ -69,7 +69,7 @@ export const exerciseService = {
     request: UpdateExerciseRequest,
   ): Promise<ExerciseDto> => {
     const response = await apiClient.put<ExerciseDto>(
-      `/api/exercises/${id}`,
+      `/exercises/${id}`,
       request,
     )
     return response.data
@@ -83,7 +83,7 @@ export const exerciseService = {
     request?: DuplicateExerciseRequest,
   ): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/duplicate`,
+      `/exercises/${id}/duplicate`,
       request ?? {},
     )
     return response.data
@@ -99,7 +99,7 @@ export const exerciseService = {
    */
   activateExercise: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/activate`,
+      `/exercises/${id}/activate`,
     )
     return response.data
   },
@@ -110,7 +110,7 @@ export const exerciseService = {
    */
   pauseExercise: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/pause`,
+      `/exercises/${id}/pause`,
     )
     return response.data
   },
@@ -120,7 +120,7 @@ export const exerciseService = {
    */
   resumeExercise: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/resume`,
+      `/exercises/${id}/resume`,
     )
     return response.data
   },
@@ -131,7 +131,7 @@ export const exerciseService = {
    */
   completeExercise: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/complete`,
+      `/exercises/${id}/complete`,
     )
     return response.data
   },
@@ -142,7 +142,7 @@ export const exerciseService = {
    */
   archiveExercise: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/archive`,
+      `/exercises/${id}/archive`,
     )
     return response.data
   },
@@ -153,7 +153,7 @@ export const exerciseService = {
    */
   unarchiveExercise: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/unarchive`,
+      `/exercises/${id}/unarchive`,
     )
     return response.data
   },
@@ -164,7 +164,7 @@ export const exerciseService = {
    */
   revertToDraft: async (id: string): Promise<ExerciseDto> => {
     const response = await apiClient.post<ExerciseDto>(
-      `/api/exercises/${id}/revert-to-draft`,
+      `/exercises/${id}/revert-to-draft`,
     )
     return response.data
   },
@@ -174,7 +174,7 @@ export const exerciseService = {
    */
   getAvailableTransitions: async (id: string): Promise<ExerciseStatus[]> => {
     const response = await apiClient.get<ExerciseStatus[]>(
-      `/api/exercises/${id}/available-transitions`,
+      `/exercises/${id}/available-transitions`,
     )
     return response.data
   },
@@ -188,7 +188,7 @@ export const exerciseService = {
    */
   getActiveMselSummary: async (exerciseId: string): Promise<MselSummaryDto> => {
     const response = await apiClient.get<MselSummaryDto>(
-      `/api/exercises/${exerciseId}/msel/summary`,
+      `/exercises/${exerciseId}/msel/summary`,
     )
     return response.data
   },
@@ -198,7 +198,7 @@ export const exerciseService = {
    */
   getMsels: async (exerciseId: string): Promise<MselDto[]> => {
     const response = await apiClient.get<MselDto[]>(
-      `/api/exercises/${exerciseId}/msels`,
+      `/exercises/${exerciseId}/msels`,
     )
     return response.data
   },
@@ -208,7 +208,7 @@ export const exerciseService = {
    */
   getMselSummary: async (mselId: string): Promise<MselSummaryDto> => {
     const response = await apiClient.get<MselSummaryDto>(
-      `/api/exercises/msels/${mselId}/summary`,
+      `/exercises/msels/${mselId}/summary`,
     )
     return response.data
   },
@@ -222,7 +222,7 @@ export const exerciseService = {
    */
   getSetupProgress: async (exerciseId: string): Promise<SetupProgressDto> => {
     const response = await apiClient.get<SetupProgressDto>(
-      `/api/exercises/${exerciseId}/setup-progress`,
+      `/exercises/${exerciseId}/setup-progress`,
     )
     return response.data
   },
@@ -237,7 +237,7 @@ export const exerciseService = {
    */
   getDeleteSummary: async (id: string): Promise<DeleteSummaryResponse> => {
     const response = await apiClient.get<DeleteSummaryResponse>(
-      `/api/exercises/${id}/delete-summary`,
+      `/exercises/${id}/delete-summary`,
     )
     return response.data
   },
@@ -247,7 +247,7 @@ export const exerciseService = {
    * This action is irreversible.
    */
   deleteExercise: async (id: string): Promise<void> => {
-    await apiClient.delete(`/api/exercises/${id}`)
+    await apiClient.delete(`/exercises/${id}`)
   },
 }
 

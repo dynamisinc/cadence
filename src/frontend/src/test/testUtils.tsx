@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cobraTheme } from '../theme/cobraTheme'
 import { FeatureFlagsProvider } from '../admin'
 import { ConnectivityProvider, OfflineSyncProvider } from '../core/contexts'
+import { AuthProvider } from '../contexts/AuthContext'
 
 /**
  * Custom render function that wraps components with necessary providers
@@ -32,7 +33,9 @@ const AllProviders = ({ children }: WrapperProps) => {
         <ConnectivityProvider>
           <OfflineSyncProvider>
             <FeatureFlagsProvider>
-              <BrowserRouter>{children}</BrowserRouter>
+              <AuthProvider>
+                <BrowserRouter>{children}</BrowserRouter>
+              </AuthProvider>
             </FeatureFlagsProvider>
           </OfflineSyncProvider>
         </ConnectivityProvider>
@@ -72,3 +75,15 @@ export const mockNotes = (count = 3) =>
       content: `Content ${i + 1}`,
     }),
   )
+
+/**
+ * Mock auth user for tests
+ */
+export const mockUser = (overrides = {}) => ({
+  id: 'test-user-1',
+  email: 'test@example.com',
+  displayName: 'Test User',
+  role: 'Administrator',
+  status: 'Active' as const,
+  ...overrides,
+})

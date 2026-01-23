@@ -1,5 +1,6 @@
 using Cadence.Core.Features.DeliveryMethods.Models.DTOs;
 using Cadence.Core.Features.DeliveryMethods.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cadence.WebApi.Controllers;
@@ -7,9 +8,11 @@ namespace Cadence.WebApi.Controllers;
 /// <summary>
 /// API endpoints for delivery method lookup data.
 /// Delivery methods are system-level reference data (read-only).
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/delivery-methods")]
+[Authorize]
 public class DeliveryMethodsController : ControllerBase
 {
     private readonly IDeliveryMethodService _service;

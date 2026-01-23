@@ -2,7 +2,7 @@
  * Breadcrumb Component - Navigation Trail
  *
  * Shows the current location in the app hierarchy:
- * Home / Notes
+ * Home / Exercises
  *
  * Features:
  * - Auto-generates breadcrumbs based on current route
@@ -47,7 +47,6 @@ const useAutoBreadcrumbs = (): BreadcrumbItem[] => {
 
   // Route mapping
   const routeMap: Record<string, string> = {
-    notes: 'Notes',
     exercises: 'Exercises',
     admin: 'Admin',
   }

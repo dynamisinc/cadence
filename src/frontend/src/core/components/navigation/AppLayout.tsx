@@ -17,14 +17,12 @@ import { AppHeader } from './AppHeader'
 import { Sidebar } from './Sidebar'
 import { Breadcrumb } from './Breadcrumb'
 import { useBreadcrumbContext } from '../../contexts'
-import { PermissionRole } from '../../../types'
 
 const SIDEBAR_STATE_KEY = 'cadence-sidebar-open'
 
 interface AppLayoutProps {
   children: React.ReactNode;
   hideBreadcrumb?: boolean;
-  onProfileChange?: (role: PermissionRole) => void;
 }
 
 /**
@@ -56,7 +54,6 @@ const saveSidebarState = (isOpen: boolean) => {
 export const AppLayout: React.FC<AppLayoutProps> = ({
   children,
   hideBreadcrumb = false,
-  onProfileChange,
 }) => {
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
@@ -102,7 +99,6 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
       {/* Header */}
       <AppHeader
         onMobileMenuToggle={handleMobileMenuToggle}
-        onProfileChange={onProfileChange}
       />
 
       {/* Breadcrumb (pinned under header, spans from sidebar edge to right edge) */}

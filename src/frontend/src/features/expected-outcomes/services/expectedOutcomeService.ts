@@ -13,7 +13,7 @@ import type {
   ReorderExpectedOutcomesRequest,
 } from '../types'
 
-const BASE_URL = '/api/injects'
+const BASE_URL = '/injects'
 
 /**
  * Get all expected outcomes for an inject

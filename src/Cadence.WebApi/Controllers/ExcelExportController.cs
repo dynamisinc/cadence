@@ -1,14 +1,17 @@
 using Cadence.Core.Features.ExcelExport.Models.DTOs;
 using Cadence.Core.Features.ExcelExport.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cadence.WebApi.Controllers;
 
 /// <summary>
 /// API endpoints for Excel export operations.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/export")]
+[Authorize]
 public class ExcelExportController : ControllerBase
 {
     private readonly IExcelExportService _service;

@@ -10,8 +10,8 @@ import 'react-toastify/dist/ReactToastify.css'
 import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider } from './core/contexts'
-import { PermissionRole } from './types'
-import { NotesPage } from './tools/notes/pages/NotesPage'
+import { AuthProvider } from './contexts/AuthContext'
+import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
 import {
@@ -26,6 +26,13 @@ import {
   CreateInjectPage,
   EditInjectPage,
 } from './features/injects'
+import {
+  LoginPage,
+  RegisterPage,
+  ForgotPasswordPage,
+  ResetPasswordPage,
+} from './features/auth'
+import { UserListPage } from './features/users'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
 
@@ -67,16 +74,29 @@ const NotFoundPage = () => {
 /**
  * Root Layout Component
  *
- * Wraps all routes with the AppLayout shell and BreadcrumbProvider
+ * Wraps all routes with the AppLayout shell and BreadcrumbProvider.
+ * All routes under this layout require authentication.
  */
 const RootLayout = () => {
   return (
-    <BreadcrumbProvider>
-      <AppLayout>
-        <Outlet />
-      </AppLayout>
-    </BreadcrumbProvider>
+    <ProtectedRoute>
+      <BreadcrumbProvider>
+        <AppLayout>
+          <Outlet />
+        </AppLayout>
+      </BreadcrumbProvider>
+    </ProtectedRoute>
   )
+}
+
+/**
+ * Auth Layout Component
+ *
+ * Simple layout for authentication pages (login, register, etc.)
+ * These pages do not require authentication.
+ */
+const AuthLayout = () => {
+  return <Outlet />
 }
 
 /**
@@ -86,8 +106,24 @@ const RootLayout = () => {
  * - useBlocker for navigation blocking
  * - Data loading with loaders
  * - Error boundaries per route
+ *
+ * Route structure:
+ * - /login, /register, etc. - Public auth pages
+ * - / and all other routes - Protected, require authentication
  */
 const router = createBrowserRouter([
+  // Authentication routes (public - no auth required)
+  {
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: <LoginPage /> },
+      { path: 'register', element: <RegisterPage /> },
+      { path: 'forgot-password', element: <ForgotPasswordPage /> },
+      { path: 'reset-password', element: <ResetPasswordPage /> },
+    ],
+  },
+
+  // Protected routes (require authentication)
   {
     path: '/',
     element: <RootLayout />,
@@ -108,14 +144,11 @@ const router = createBrowserRouter([
       { path: 'exercises/:exerciseId/injects/:injectId', element: <InjectDetailPage /> },
       { path: 'exercises/:exerciseId/injects/:injectId/edit', element: <EditInjectPage /> },
 
-      // Notes tool
-      { path: 'notes', element: <NotesPage /> },
-
-      // Admin pages - protected
+      // Admin pages - Admin system role required
       {
         path: 'admin',
         element: (
-          <ProtectedRoute requiredRole={PermissionRole.MANAGE}>
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
             <AdminPage />
           </ProtectedRoute>
         ),
@@ -123,8 +156,16 @@ const router = createBrowserRouter([
       {
         path: 'admin/archived-exercises',
         element: (
-          <ProtectedRoute requiredRole={PermissionRole.MANAGE}>
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
             <ArchivedExercisesPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/users',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <UserListPage />
           </ProtectedRoute>
         ),
       },
@@ -149,18 +190,20 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
-        <ConnectivityProvider>
-          <OfflineSyncProvider>
-            <MobileBlocker>
-              <FeatureFlagsProvider>
-                <RouterProvider router={router} />
-                <GlobalSyncStatus />
-                <UpdatePrompt />
-                <InstallBanner />
-              </FeatureFlagsProvider>
-            </MobileBlocker>
-          </OfflineSyncProvider>
-        </ConnectivityProvider>
+        <AuthProvider>
+          <ConnectivityProvider>
+            <OfflineSyncProvider>
+              <MobileBlocker>
+                <FeatureFlagsProvider>
+                  <RouterProvider router={router} />
+                  <GlobalSyncStatus />
+                  <UpdatePrompt />
+                  <InstallBanner />
+                </FeatureFlagsProvider>
+              </MobileBlocker>
+            </OfflineSyncProvider>
+          </ConnectivityProvider>
+        </AuthProvider>
 
         <ToastContainer
           position="top-right"

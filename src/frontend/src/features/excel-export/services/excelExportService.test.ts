@@ -39,7 +39,7 @@ describe('excelExportService', () => {
 
       await excelExportService.exportMsel(request)
 
-      expect(api.post).toHaveBeenCalledWith('/api/export/msel', request, {
+      expect(api.post).toHaveBeenCalledWith('/export/msel', request, {
         responseType: 'blob',
       })
     })
@@ -114,7 +114,7 @@ describe('excelExportService', () => {
 
       await excelExportService.downloadTemplate()
 
-      expect(api.get).toHaveBeenCalledWith('/api/export/template', {
+      expect(api.get).toHaveBeenCalledWith('/export/template', {
         responseType: 'blob',
       })
     })

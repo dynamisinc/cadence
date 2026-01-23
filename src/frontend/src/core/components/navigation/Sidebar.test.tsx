@@ -115,11 +115,11 @@ describe('Sidebar', () => {
       expect(homeNav).toBeInTheDocument()
     })
 
-    it('renders Notes navigation item', () => {
+    it('renders Admin navigation item', () => {
       renderSidebar()
 
-      const notesNav = screen.getByTestId('nav-item-notes')
-      expect(notesNav).toBeInTheDocument()
+      const adminNav = screen.getByTestId('nav-item-admin')
+      expect(adminNav).toBeInTheDocument()
     })
 
     it('shows Tools section label when open', () => {
@@ -159,13 +159,13 @@ describe('Sidebar', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/')
     })
 
-    it('navigates to notes when Notes is clicked', () => {
+    it('navigates to admin when Admin is clicked', () => {
       renderSidebar()
 
-      const notesNav = screen.getByTestId('nav-item-notes')
-      fireEvent.click(notesNav)
+      const adminNav = screen.getByTestId('nav-item-admin')
+      fireEvent.click(adminNav)
 
-      expect(mockNavigate).toHaveBeenCalledWith('/notes')
+      expect(mockNavigate).toHaveBeenCalledWith('/admin')
     })
   })
 
@@ -180,21 +180,21 @@ describe('Sidebar', () => {
       expect(styles.backgroundColor).not.toBe('transparent')
     })
 
-    it('highlights Notes when on /notes path', () => {
-      renderSidebar({}, '/notes')
+    it('highlights Admin when on /admin path', () => {
+      renderSidebar({}, '/admin')
 
-      const notesNav = screen.getByTestId('nav-item-notes')
-      const styles = window.getComputedStyle(notesNav)
+      const adminNav = screen.getByTestId('nav-item-admin')
+      const styles = window.getComputedStyle(adminNav)
 
       // Should have active background color
       expect(styles.backgroundColor).not.toBe('transparent')
     })
 
-    it('highlights Notes when on nested /notes/* path', () => {
-      renderSidebar({}, '/notes/123')
+    it('highlights Admin when on nested /admin/* path', () => {
+      renderSidebar({}, '/admin/users')
 
-      const notesNav = screen.getByTestId('nav-item-notes')
-      const styles = window.getComputedStyle(notesNav)
+      const adminNav = screen.getByTestId('nav-item-admin')
+      const styles = window.getComputedStyle(adminNav)
 
       // Should still have active state
       expect(styles.backgroundColor).not.toBe('transparent')
@@ -217,8 +217,8 @@ describe('Sidebar', () => {
       const onMobileClose = vi.fn()
       renderSidebar({ mobileOpen: true, onMobileClose })
 
-      const notesNav = screen.getByTestId('nav-item-notes')
-      fireEvent.click(notesNav)
+      const adminNav = screen.getByTestId('nav-item-admin')
+      fireEvent.click(adminNav)
 
       expect(onMobileClose).toHaveBeenCalledTimes(1)
     })
@@ -263,34 +263,26 @@ describe('Sidebar', () => {
     })
   })
 
-  describe('feature flags integration', () => {
-    it('renders Notes when feature flag is Active (default)', () => {
-      renderSidebar()
-
-      const notesNav = screen.getByTestId('nav-item-notes')
-      expect(notesNav).toBeInTheDocument()
-    })
-
-    it('Notes is clickable when feature flag is Active', () => {
-      renderSidebar()
-
-      const notesNav = screen.getByTestId('nav-item-notes')
-      expect(notesNav).not.toHaveAttribute('disabled')
-      expect(notesNav).not.toHaveAttribute('data-coming-soon', 'true')
-    })
-
-    it('Admin nav item is always visible (no feature flag)', () => {
+  describe('core navigation items', () => {
+    it('Admin nav item is always visible', () => {
       renderSidebar()
 
       const adminNav = screen.getByTestId('nav-item-admin')
       expect(adminNav).toBeInTheDocument()
     })
 
-    it('Home nav item is always visible (no feature flag)', () => {
+    it('Home nav item is always visible', () => {
       renderSidebar()
 
       const homeNav = screen.getByTestId('nav-item-home')
       expect(homeNav).toBeInTheDocument()
+    })
+
+    it('Exercises nav item is always visible', () => {
+      renderSidebar()
+
+      const exercisesNav = screen.getByTestId('nav-item-exercises')
+      expect(exercisesNav).toBeInTheDocument()
     })
   })
 })

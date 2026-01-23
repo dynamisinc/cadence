@@ -231,3 +231,44 @@ public enum ObservationRating
     /// <summary>U - Unable to be performed. The targets/objectives were not achieved.</summary>
     Unsatisfactory
 }
+
+// =============================================================================
+// User/Authentication Enums
+// =============================================================================
+
+/// <summary>
+/// System-level access roles determining application permissions.
+/// These are distinct from HSEEP exercise roles (ExerciseRole enum).
+/// </summary>
+public enum SystemRole
+{
+    /// <summary>
+    /// Standard user - can only access exercises they are assigned to.
+    /// Cannot create exercises or manage users.
+    /// </summary>
+    User = 0,
+
+    /// <summary>
+    /// Can create exercises and manage exercises they create/own.
+    /// Automatically becomes Director when creating an exercise.
+    /// </summary>
+    Manager = 1,
+
+    /// <summary>
+    /// Full system access - user management, all exercises, system settings.
+    /// Can see and access ALL exercises for support/oversight purposes.
+    /// </summary>
+    Admin = 2
+}
+
+/// <summary>
+/// User account status.
+/// </summary>
+public enum UserStatus
+{
+    /// <summary>Account is active and can authenticate.</summary>
+    Active = 1,
+
+    /// <summary>Account has been deactivated and cannot authenticate.</summary>
+    Deactivated = 2
+}

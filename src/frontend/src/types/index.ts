@@ -3,6 +3,26 @@
  */
 
 // =============================================================================
+// System Role Types (matches backend SystemRole enum)
+// =============================================================================
+
+/**
+ * System-level access roles determining application permissions.
+ * These are distinct from HSEEP exercise roles (HseepRole).
+ * Values match the SystemRole enum in the backend.
+ */
+export const SystemRole = {
+  /** Standard user - can only access exercises they are assigned to */
+  User: 'User',
+  /** Can create exercises and manage exercises they create/own */
+  Manager: 'Manager',
+  /** Full system access - user management, all exercises, system settings */
+  Admin: 'Admin',
+} as const
+
+export type SystemRole = (typeof SystemRole)[keyof typeof SystemRole]
+
+// =============================================================================
 // HSEEP Role Types (matches backend ExerciseRole enum)
 // =============================================================================
 
@@ -11,7 +31,7 @@
  * Values match the ExerciseRole enum in the backend.
  */
 export const HseepRole = {
-  /** System-wide configuration and user management */
+  /** System-wide configuration and user management (DEPRECATED - use SystemRole.Admin instead) */
   Administrator: 'Administrator',
   /** Full exercise management authority, Go/No-Go decisions */
   ExerciseDirector: 'ExerciseDirector',

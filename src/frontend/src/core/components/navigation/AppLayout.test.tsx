@@ -10,13 +10,10 @@
  */
 
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
-import { ThemeProvider } from '@mui/material/styles'
+import { screen, fireEvent, waitFor } from '@testing-library/react'
+import { render } from '../../../test/testUtils'
 import { AppLayout } from './AppLayout'
-import { cobraTheme } from '../../../theme/cobraTheme'
-import { FeatureFlagsProvider } from '../../../admin'
-import { BreadcrumbProvider, ConnectivityProvider } from '../../contexts'
+import { BreadcrumbProvider } from '../../contexts'
 
 // Mock useMediaQuery for desktop behavior
 vi.mock('@mui/material', async () => {
@@ -27,23 +24,15 @@ vi.mock('@mui/material', async () => {
   }
 })
 
-// Helper to render with providers
+// Helper to render with providers (testUtils already provides most providers)
 const renderAppLayout = (
   children: React.ReactNode = <div>Test Content</div>,
   props = {},
 ) => {
   return render(
-    <ThemeProvider theme={cobraTheme}>
-      <ConnectivityProvider>
-        <FeatureFlagsProvider>
-          <MemoryRouter>
-            <BreadcrumbProvider>
-              <AppLayout {...props}>{children}</AppLayout>
-            </BreadcrumbProvider>
-          </MemoryRouter>
-        </FeatureFlagsProvider>
-      </ConnectivityProvider>
-    </ThemeProvider>,
+    <BreadcrumbProvider>
+      <AppLayout {...props}>{children}</AppLayout>
+    </BreadcrumbProvider>,
   )
 }
 

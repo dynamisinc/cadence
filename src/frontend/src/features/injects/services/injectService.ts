@@ -19,7 +19,7 @@ export const injectService = {
    */
   getInjects: async (exerciseId: string): Promise<InjectDto[]> => {
     const response = await apiClient.get<InjectDto[]>(
-      `/api/exercises/${exerciseId}/injects`,
+      `/exercises/${exerciseId}/injects`,
     )
     return response.data
   },
@@ -29,7 +29,7 @@ export const injectService = {
    */
   getInject: async (exerciseId: string, id: string): Promise<InjectDto> => {
     const response = await apiClient.get<InjectDto>(
-      `/api/exercises/${exerciseId}/injects/${id}`,
+      `/exercises/${exerciseId}/injects/${id}`,
     )
     return response.data
   },
@@ -42,7 +42,7 @@ export const injectService = {
     request: CreateInjectRequest,
   ): Promise<InjectDto> => {
     const response = await apiClient.post<InjectDto>(
-      `/api/exercises/${exerciseId}/injects`,
+      `/exercises/${exerciseId}/injects`,
       request,
     )
     return response.data
@@ -57,7 +57,7 @@ export const injectService = {
     request: UpdateInjectRequest,
   ): Promise<InjectDto> => {
     const response = await apiClient.put<InjectDto>(
-      `/api/exercises/${exerciseId}/injects/${id}`,
+      `/exercises/${exerciseId}/injects/${id}`,
       request,
     )
     return response.data
@@ -72,7 +72,7 @@ export const injectService = {
     request?: FireInjectRequest,
   ): Promise<InjectDto> => {
     const response = await apiClient.post<InjectDto>(
-      `/api/exercises/${exerciseId}/injects/${id}/fire`,
+      `/exercises/${exerciseId}/injects/${id}/fire`,
       request ?? {},
     )
     return response.data
@@ -87,7 +87,7 @@ export const injectService = {
     request: SkipInjectRequest,
   ): Promise<InjectDto> => {
     const response = await apiClient.post<InjectDto>(
-      `/api/exercises/${exerciseId}/injects/${id}/skip`,
+      `/exercises/${exerciseId}/injects/${id}/skip`,
       request,
     )
     return response.data
@@ -98,7 +98,7 @@ export const injectService = {
    */
   resetInject: async (exerciseId: string, id: string): Promise<InjectDto> => {
     const response = await apiClient.post<InjectDto>(
-      `/api/exercises/${exerciseId}/injects/${id}/reset`,
+      `/exercises/${exerciseId}/injects/${id}/reset`,
     )
     return response.data
   },
@@ -107,14 +107,14 @@ export const injectService = {
    * Delete an inject
    */
   deleteInject: async (exerciseId: string, id: string): Promise<void> => {
-    await apiClient.delete(`/api/exercises/${exerciseId}/injects/${id}`)
+    await apiClient.delete(`/exercises/${exerciseId}/injects/${id}`)
   },
 
   /**
    * Reorder injects by providing new sequence order
    */
   reorderInjects: async (exerciseId: string, injectIds: string[]): Promise<void> => {
-    await apiClient.post(`/api/exercises/${exerciseId}/injects/reorder`, {
+    await apiClient.post(`/exercises/${exerciseId}/injects/reorder`, {
       injectIds,
     })
   },

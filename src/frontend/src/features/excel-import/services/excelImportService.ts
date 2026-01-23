@@ -17,7 +17,7 @@ import type {
   ImportSessionState,
 } from '../types'
 
-const BASE_URL = '/api/import'
+const BASE_URL = '/import'
 
 /**
  * Upload and analyze an Excel file

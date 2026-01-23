@@ -6,7 +6,7 @@
 
 import api from '@/core/services/api'
 
-const BASE_URL = '/api/autocomplete/exercises'
+const BASE_URL = '/autocomplete/exercises'
 
 /**
  * Get track suggestions for an exercise

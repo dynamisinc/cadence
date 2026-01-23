@@ -57,6 +57,7 @@ export interface CreateExerciseRequest {
   deliveryMode: DeliveryMode
   timelineMode: TimelineMode
   timeScale?: number | null
+  directorId?: string // Optional - user with Admin or Manager role to assign as Exercise Director
 }
 
 /**
@@ -75,6 +76,7 @@ export interface UpdateExerciseRequest {
   deliveryMode: DeliveryMode
   timelineMode: TimelineMode
   timeScale?: number | null
+  directorId?: string // Optional - user with Admin or Manager role to assign as Exercise Director
 }
 
 /**
@@ -196,6 +198,47 @@ export interface DeleteSummaryResponse {
   deleteReason: DeleteEligibilityReason | null
   cannotDeleteReason: CannotDeleteReason | null
   summary: DeleteDataSummary
+}
+
+// =========================================================================
+// Exercise Participant Types (S14)
+// =========================================================================
+
+/**
+ * Exercise participant DTO
+ */
+export interface ExerciseParticipantDto {
+  participantId: string
+  userId: string
+  displayName: string
+  email: string
+  exerciseRole: string
+  systemRole: string
+  effectiveRole: string
+  addedAt: string
+  addedBy: string | null
+}
+
+/**
+ * Request to add a participant to an exercise
+ */
+export interface AddParticipantRequest {
+  userId: string
+  role: string
+}
+
+/**
+ * Request to update a participant's role
+ */
+export interface UpdateParticipantRoleRequest {
+  role: string
+}
+
+/**
+ * Response from GET /api/exercises/{exerciseId}/participants
+ */
+export interface ParticipantsListResponse {
+  participants: ExerciseParticipantDto[]
 }
 
 // Re-export validation types

@@ -1,12 +1,11 @@
 /**
  * ProfileMenu Component
  *
- * User profile dropdown with:
+ * User profile dropdown showing:
  * - Avatar with user initials
- * - Account switching (for testing/demo)
- * - Role selection (Readonly, Contributor, Manage)
- *
- * For POC/demo purposes - in production, roles come from authentication.
+ * - User's system role
+ * - Exercise role assignments (if any)
+ * - Logout option
  */
 
 import React, { useState, useEffect } from 'react'
@@ -16,26 +15,19 @@ import {
   Menu,
   Typography,
   Divider,
-  Radio,
-  RadioGroup,
-  FormControlLabel,
-  FormControl,
-  FormLabel,
   Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Chip,
+  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faUserPen } from '@fortawesome/free-solid-svg-icons'
-import { PermissionRole } from '../../types'
+import { faChevronDown, faRightFromBracket, faDumbbell } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
-
-interface ProfileMenuProps {
-  onProfileChange?: (role: PermissionRole) => void;
-}
+import { useAuth } from '../../contexts/AuthContext'
+import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
+import type { ExerciseAssignmentDto } from '@/features/auth'
 
 /**
  * Get user initials from full name
@@ -48,72 +40,50 @@ const getInitials = (fullName: string): string => {
 }
 
 /**
- * Get stored profile from localStorage
+ * Format HSEEP role for display (convert from API format to readable)
  */
-const getStoredProfile = () => {
-  try {
-    const stored = localStorage.getItem('cadenceUserProfile')
-    if (stored) {
-      return JSON.parse(stored)
-    }
-  } catch (error) {
-    console.error('Failed to load stored profile:', error)
-  }
-  return {
-    role: PermissionRole.CONTRIBUTOR,
-    email: 'user@cadence.app',
-    fullName: 'Demo User',
-  }
+const formatRole = (role: string): string => {
+  // Convert "ExerciseDirector" to "Exercise Director"
+  const formatted = role
+    .replace(/([A-Z])/g, ' $1')
+    .trim()
+  return formatted
 }
 
-/**
- * Save profile to localStorage
- */
-const saveProfile = (role: PermissionRole, email: string, fullName: string) => {
-  try {
-    localStorage.setItem(
-      'cadenceUserProfile',
-      JSON.stringify({ role, email, fullName }),
-    )
-    window.dispatchEvent(new Event('profile-changed'))
-  } catch (error) {
-    console.error('Failed to save profile:', error)
-  }
-}
-
-export const ProfileMenu: React.FC<ProfileMenuProps> = ({
-  onProfileChange,
-}) => {
-  const storedProfile = getStoredProfile()
-
+export const ProfileMenu: React.FC = () => {
+  const { user, logout } = useAuth()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [selectedRole, setSelectedRole] = useState<PermissionRole>(
-    storedProfile.role,
-  )
-  const [accountEmail, setAccountEmail] = useState<string>(storedProfile.email)
-  const [accountFullName, setAccountFullName] = useState<string>(
-    storedProfile.fullName,
-  )
-
-  // Account switch dialog state
-  const [accountDialogOpen, setAccountDialogOpen] = useState(false)
-  const [tempEmail, setTempEmail] = useState('')
-  const [tempFullName, setTempFullName] = useState('')
+  const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
+  const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
 
   const open = Boolean(anchorEl)
 
-  // Sync with storage on mount
+  // Default to Guest if no user
+  const accountEmail = user?.email || 'guest@cadence.app'
+  const accountFullName = user?.displayName || 'Guest User'
+  const accountRole = user?.role ? formatRole(user.role) : 'No Role Assigned'
+
+  // Fetch exercise assignments when menu opens
   useEffect(() => {
-    const handleProfileChange = () => {
-      const profile = getStoredProfile()
-      setSelectedRole(profile.role)
-      setAccountEmail(profile.email)
-      setAccountFullName(profile.fullName)
+    if (!open || !user) {
+      return
     }
-    window.addEventListener('profileChanged', handleProfileChange)
-    return () =>
-      window.removeEventListener('profileChanged', handleProfileChange)
-  }, [])
+
+    const fetchAssignments = async () => {
+      try {
+        setIsLoadingAssignments(true)
+        const assignments = await roleResolutionService.getUserExerciseAssignments(user.id)
+        setExerciseAssignments(assignments)
+      } catch (error) {
+        console.error('Failed to fetch exercise assignments:', error)
+        setExerciseAssignments([])
+      } finally {
+        setIsLoadingAssignments(false)
+      }
+    }
+
+    fetchAssignments()
+  }, [open, user])
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -123,34 +93,9 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
     setAnchorEl(null)
   }
 
-  const handleRoleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const newRole = event.target.value as PermissionRole
-    setSelectedRole(newRole)
-    saveProfile(newRole, accountEmail, accountFullName)
-    onProfileChange?.(newRole)
-  }
-
-  const handleOpenAccountDialog = () => {
-    setTempEmail(accountEmail)
-    setTempFullName(accountFullName)
-    setAccountDialogOpen(true)
-  }
-
-  const handleCloseAccountDialog = () => {
-    setAccountDialogOpen(false)
-    setTempEmail('')
-    setTempFullName('')
-  }
-
-  const handleSaveAccount = () => {
-    const newEmail = tempEmail.trim() || 'user@cadence.app'
-    const newFullName = tempFullName.trim() || newEmail.split('@')[0]
-
-    setAccountEmail(newEmail)
-    setAccountFullName(newFullName)
-    saveProfile(selectedRole, newEmail, newFullName)
-
-    handleCloseAccountDialog()
+  const handleLogout = async () => {
+    handleClose()
+    await logout()
   }
 
   const userInitials = getInitials(accountFullName)
@@ -198,7 +143,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
             {accountFullName}
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.8, lineHeight: 1.2 }}>
-            {selectedRole}
+            {accountRole}
           </Typography>
         </Box>
         <FontAwesomeIcon icon={faChevronDown} size="sm" />
@@ -218,7 +163,7 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
       >
         {/* Header with Avatar and Account Info */}
         <Box sx={{ px: 2, py: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
             <Avatar
               sx={{
                 width: 48,
@@ -241,157 +186,78 @@ export const ProfileMenu: React.FC<ProfileMenuProps> = ({
               <Typography variant="caption" color="text.secondary">
                 {accountEmail}
               </Typography>
+              <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                <strong>Role:</strong> {accountRole}
+              </Typography>
             </Box>
-            <Button
-              size="small"
-              onClick={handleOpenAccountDialog}
-              sx={{ minWidth: 'auto', p: 1 }}
-              title="Switch Account"
-              data-testid="switch-account-button"
-            >
-              <FontAwesomeIcon icon={faUserPen} />
-            </Button>
           </Box>
-          <Typography variant="caption" color="text.secondary">
-            Profile Settings (Demo) - For testing purposes
-          </Typography>
         </Box>
 
         <Divider />
 
-        {/* Permission Role Selection */}
-        <Box sx={{ px: 2, py: 1.5 }}>
-          <FormControl component="fieldset">
-            <FormLabel
-              component="legend"
-              sx={{ fontWeight: 'bold', fontSize: '0.875rem', mb: 0.5 }}
-            >
-              Permission Role
-            </FormLabel>
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              sx={{ mb: 1, display: 'block' }}
-            >
-              Controls access to features
-            </Typography>
-            <RadioGroup value={selectedRole} onChange={handleRoleChange}>
-              <FormControlLabel
-                value={PermissionRole.READONLY}
-                control={<Radio size="small" />}
-                label={
-                  <Box component="span" sx={{ display: 'block' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      Readonly
+        {/* Exercise Assignments Section */}
+        {user && (
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+              <FontAwesomeIcon icon={faDumbbell} size="sm" />
+              <Typography variant="caption" fontWeight={600} color="text.secondary">
+                Exercise Assignments
+              </Typography>
+            </Stack>
+            {isLoadingAssignments ? (
+              <Typography variant="caption" color="text.secondary">
+                Loading...
+              </Typography>
+            ) : exerciseAssignments.length === 0 ? (
+              <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                No active exercise assignments
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {exerciseAssignments.map(assignment => (
+                  <Box
+                    key={assignment.exerciseId}
+                    sx={{
+                      p: 1,
+                      bgcolor: 'grey.50',
+                      borderRadius: 1,
+                      borderLeft: '3px solid',
+                      borderLeftColor: getRoleColor(assignment.role),
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                      {assignment.exerciseName}
                     </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      View only access
-                    </Typography>
+                    <Chip
+                      label={getRoleDisplayName(assignment.role)}
+                      size="small"
+                      sx={{
+                        height: 20,
+                        fontSize: '0.7rem',
+                        bgcolor: getRoleColor(assignment.role),
+                        color: 'white',
+                        fontWeight: 600,
+                      }}
+                    />
                   </Box>
-                }
-              />
-              <FormControlLabel
-                value={PermissionRole.CONTRIBUTOR}
-                control={<Radio size="small" />}
-                label={
-                  <Box component="span" sx={{ display: 'block' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      Contributor
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Create and edit content
-                    </Typography>
-                  </Box>
-                }
-              />
-              <FormControlLabel
-                value={PermissionRole.MANAGE}
-                control={<Radio size="small" />}
-                label={
-                  <Box component="span" sx={{ display: 'block' }}>
-                    <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
-                      Manage
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      Full admin access
-                    </Typography>
-                  </Box>
-                }
-              />
-            </RadioGroup>
-          </FormControl>
-        </Box>
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
 
         <Divider />
 
-        {/* Current Selection Summary */}
-        <Box
-          sx={{
-            px: 2,
-            py: 1.5,
-            backgroundColor: cobraTheme.palette.grid.light,
-          }}
-        >
-          <Typography
-            variant="caption"
-            sx={{ fontWeight: 'bold', display: 'block', mb: 0.5 }}
-          >
-            Current Profile:
-          </Typography>
-          <Typography variant="caption">
-            <strong>Account:</strong> {accountFullName} ({accountEmail})
-          </Typography>
-          <br />
-          <Typography variant="caption">
-            <strong>Role:</strong> {selectedRole}
-          </Typography>
-        </Box>
+        {/* Logout Button (only show when authenticated) */}
+        {user && (
+          <MenuItem onClick={handleLogout} data-testid="logout-button">
+            <ListItemIcon>
+              <FontAwesomeIcon icon={faRightFromBracket} />
+            </ListItemIcon>
+            <ListItemText>Logout</ListItemText>
+          </MenuItem>
+        )}
       </Menu>
-
-      {/* Account Switch Dialog */}
-      <Dialog
-        open={accountDialogOpen}
-        onClose={handleCloseAccountDialog}
-        maxWidth="xs"
-        fullWidth
-        data-testid="account-switch-dialog"
-      >
-        <DialogTitle>Switch Account</DialogTitle>
-        <DialogContent>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-            Enter an email address and name to simulate a different user.
-          </Typography>
-          <TextField
-            autoFocus
-            margin="dense"
-            label="Email Address"
-            type="email"
-            fullWidth
-            variant="outlined"
-            value={tempEmail}
-            onChange={e => setTempEmail(e.target.value)}
-            placeholder="user@cadence.app"
-            sx={{ mb: 2 }}
-          />
-          <TextField
-            margin="dense"
-            label="Full Name"
-            type="text"
-            fullWidth
-            variant="outlined"
-            value={tempFullName}
-            onChange={e => setTempFullName(e.target.value)}
-            placeholder="John Doe"
-            helperText="If left blank, will use email prefix as name"
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleCloseAccountDialog}>Cancel</Button>
-          <Button onClick={handleSaveAccount} variant="contained">
-            Switch Account
-          </Button>
-        </DialogActions>
-      </Dialog>
     </>
   )
 }

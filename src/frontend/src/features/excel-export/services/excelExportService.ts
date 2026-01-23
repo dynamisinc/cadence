@@ -55,7 +55,7 @@ export const excelExportService = {
    * Returns a blob that can be downloaded
    */
   async exportMsel(request: ExportMselRequest): Promise<{ blob: Blob; info: ExportResultInfo }> {
-    const response = await api.post('/api/export/msel', request, {
+    const response = await api.post('/export/msel', request, {
       responseType: 'blob',
     })
 
@@ -82,7 +82,7 @@ export const excelExportService = {
    * Download an MSEL template file
    */
   async downloadTemplate(): Promise<{ blob: Blob; filename: string }> {
-    const response = await api.get('/api/export/template', {
+    const response = await api.get('/export/template', {
       responseType: 'blob',
     })
 

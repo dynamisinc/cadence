@@ -54,7 +54,7 @@ describe('exerciseService', () => {
 
       const result = await exerciseService.getExercises()
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises')
       expect(result).toHaveLength(1)
       expect(result[0].name).toBe('Test Exercise')
     })
@@ -66,7 +66,7 @@ describe('exerciseService', () => {
 
       const result = await exerciseService.getExercise('123')
 
-      expect(apiClient.get).toHaveBeenCalledWith('/api/exercises/123')
+      expect(apiClient.get).toHaveBeenCalledWith('/exercises/123')
       expect(result.name).toBe('Test Exercise')
     })
   })
@@ -85,7 +85,7 @@ describe('exerciseService', () => {
 
       const result = await exerciseService.createExercise(request)
 
-      expect(apiClient.post).toHaveBeenCalledWith('/api/exercises', request)
+      expect(apiClient.post).toHaveBeenCalledWith('/exercises', request)
       expect(result.name).toBe('Test Exercise')
       expect(result.status).toBe(ExerciseStatus.Draft)
     })
@@ -106,7 +106,7 @@ describe('exerciseService', () => {
 
       const result = await exerciseService.updateExercise('123', request)
 
-      expect(apiClient.put).toHaveBeenCalledWith('/api/exercises/123', request)
+      expect(apiClient.put).toHaveBeenCalledWith('/exercises/123', request)
       expect(result.name).toBe('Updated Exercise')
     })
   })

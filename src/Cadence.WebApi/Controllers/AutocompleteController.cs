@@ -1,5 +1,6 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.Autocomplete.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -8,9 +9,11 @@ namespace Cadence.WebApi.Controllers;
 /// <summary>
 /// API endpoints for autocomplete suggestions.
 /// Provides organization-scoped suggestions based on previously used values.
+/// Requires authentication for all endpoints.
 /// </summary>
 [ApiController]
 [Route("api/autocomplete")]
+[Authorize]
 public class AutocompleteController : ControllerBase
 {
     private readonly IAutocompleteService _service;

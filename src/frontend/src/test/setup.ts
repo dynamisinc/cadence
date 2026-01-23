@@ -37,3 +37,44 @@ Object.defineProperty(globalThis, 'crypto', {
     randomUUID: vi.fn().mockReturnValue('test-uuid-123'),
   },
 })
+
+// Mock authService to prevent actual API calls during tests
+vi.mock('../features/auth/services/authService', () => ({
+  authService: {
+    login: vi.fn().mockResolvedValue({
+      isSuccess: true,
+      accessToken: 'mock-token',
+      expiresIn: 900,
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      role: 'Observer',
+    }),
+    register: vi.fn().mockResolvedValue({
+      isSuccess: true,
+      accessToken: 'mock-token',
+      expiresIn: 900,
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      role: 'Administrator',
+      isFirstUser: false,
+      isNewAccount: true,
+    }),
+    logout: vi.fn().mockResolvedValue(undefined),
+    refresh: vi.fn().mockResolvedValue({
+      isSuccess: true,
+      accessToken: 'mock-refreshed-token',
+      expiresIn: 900,
+      userId: 'test-user-id',
+      email: 'test@example.com',
+      displayName: 'Test User',
+      role: 'Observer',
+    }),
+    getAvailableMethods: vi.fn().mockResolvedValue([
+      { provider: 'Identity', displayName: 'Email & Password', isEnabled: true, isExternal: false },
+    ]),
+    requestPasswordReset: vi.fn().mockResolvedValue(undefined),
+    resetPassword: vi.fn().mockResolvedValue(undefined),
+  },
+}))

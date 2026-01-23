@@ -1,12 +1,14 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Models.Entities;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace Cadence.Core.Data;
 
 /// <summary>
 /// Entity Framework Core database context for the application.
+/// Extends IdentityDbContext to support ASP.NET Core Identity for authentication.
 /// </summary>
-public class AppDbContext : DbContext
+public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
@@ -18,6 +20,10 @@ public class AppDbContext : DbContext
 
     public DbSet<Organization> Organizations => Set<Organization>();
     public DbSet<User> Users => Set<User>();
+    public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
+    public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
+    public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
+    public DbSet<ExternalLogin> ExternalLogins => Set<ExternalLogin>();
     public DbSet<Exercise> Exercises => Set<Exercise>();
     public DbSet<Msel> Msels => Set<Msel>();
     public DbSet<Phase> Phases => Set<Phase>();
@@ -68,6 +74,10 @@ public class AppDbContext : DbContext
         // Configure entities
         ConfigureOrganization(modelBuilder);
         ConfigureUser(modelBuilder);
+        ConfigureApplicationUser(modelBuilder);
+        ConfigureRefreshToken(modelBuilder);
+        ConfigurePasswordResetToken(modelBuilder);
+        ConfigureExternalLogin(modelBuilder);
         ConfigureExercise(modelBuilder);
         ConfigureMsel(modelBuilder);
         ConfigurePhase(modelBuilder);
@@ -140,6 +150,96 @@ public class AppDbContext : DbContext
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             });
+        });
+    }
+
+    private static void ConfigureApplicationUser(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ApplicationUser>(entity =>
+        {
+            entity.Property(e => e.DisplayName).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.SystemRole).HasConversion<string>().HasMaxLength(20).IsRequired();
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+
+            // Index for common queries
+            entity.HasIndex(e => e.Status);
+            entity.HasIndex(e => e.SystemRole);
+            entity.HasIndex(e => e.OrganizationId);
+
+            // Relationship to Organization
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Self-referential relationship for tracking who created the user
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureRefreshToken(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<RefreshToken>(entity =>
+        {
+            entity.Property(e => e.TokenHash).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.CreatedByIp).HasMaxLength(50);
+            entity.Property(e => e.DeviceInfo).HasMaxLength(200);
+
+            // Indexes for efficient token lookup and cleanup
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.TokenHash);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => new { e.UserId, e.IsRevoked });
+
+            // Relationship to ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.RefreshTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigurePasswordResetToken(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PasswordResetToken>(entity =>
+        {
+            entity.Property(e => e.TokenHash).HasMaxLength(256).IsRequired();
+            entity.Property(e => e.IpAddress).HasMaxLength(50);
+
+            // Indexes for efficient token lookup and cleanup
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => e.TokenHash);
+            entity.HasIndex(e => e.ExpiresAt);
+            entity.HasIndex(e => new { e.UserId, e.UsedAt });
+
+            // Relationship to ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.PasswordResetTokens)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureExternalLogin(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ExternalLogin>(entity =>
+        {
+            entity.Property(e => e.Provider).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.ProviderUserId).HasMaxLength(200).IsRequired();
+
+            // Unique index to prevent duplicate external logins
+            entity.HasIndex(e => new { e.Provider, e.ProviderUserId }).IsUnique();
+            entity.HasIndex(e => e.UserId);
+
+            // Relationship to ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.ExternalLogins)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 
@@ -321,7 +421,9 @@ public class AppDbContext : DbContext
         modelBuilder.Entity<ExerciseParticipant>(entity =>
         {
             entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.AssignedAt).IsRequired();
 
+            // Unique constraint: one role per user per exercise
             entity.HasIndex(e => new { e.ExerciseId, e.UserId }).IsUnique();
             entity.HasIndex(e => e.UserId);
 
@@ -330,14 +432,20 @@ public class AppDbContext : DbContext
                 .HasForeignKey(e => e.ExerciseId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // User navigation is optional to handle soft-deleted users gracefully.
-            // For historical reports, use IgnoreQueryFilters() to include deleted users.
+            // User navigation references ApplicationUser (ASP.NET Core Identity)
+            // Optional to handle deactivated users gracefully
             entity.HasOne(e => e.User)
                 .WithMany(u => u.ExerciseParticipations)
                 .HasForeignKey(e => e.UserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
+            // Assigned by user (for audit trail)
+            entity.HasOne(e => e.AssignedBy)
+                .WithMany()
+                .HasForeignKey(e => e.AssignedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

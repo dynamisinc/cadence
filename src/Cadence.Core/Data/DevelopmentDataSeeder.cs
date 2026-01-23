@@ -21,12 +21,13 @@ public static class DevelopmentDataSeeder
     private static readonly Guid DemoOrgId = Guid.Parse("11111111-1111-1111-1111-111111111111");
 
     // Users
-    private static readonly Guid AdminUserId = Guid.Parse("22222222-2222-2222-2222-222222222222");
-    private static readonly Guid DirectorUserId = Guid.Parse("22222222-2222-2222-2222-222222222233");
-    private static readonly Guid Controller1UserId = Guid.Parse("22222222-2222-2222-2222-222222222244");
-    private static readonly Guid Controller2UserId = Guid.Parse("22222222-2222-2222-2222-222222222255");
-    private static readonly Guid EvaluatorUserId = Guid.Parse("22222222-2222-2222-2222-222222222266");
-    private static readonly Guid ObserverUserId = Guid.Parse("22222222-2222-2222-2222-222222222277");
+    // ApplicationUser IDs are strings (ASP.NET Core Identity)
+    private static readonly string AdminUserId = "22222222-2222-2222-2222-222222222222";
+    private static readonly string DirectorUserId = "22222222-2222-2222-2222-222222222233";
+    private static readonly string Controller1UserId = "22222222-2222-2222-2222-222222222244";
+    private static readonly string Controller2UserId = "22222222-2222-2222-2222-222222222255";
+    private static readonly string EvaluatorUserId = "22222222-2222-2222-2222-222222222266";
+    private static readonly string ObserverUserId = "22222222-2222-2222-2222-222222222277";
 
     // Exercises
     private static readonly Guid HurricaneTtxId = Guid.Parse("33333333-3333-3333-3333-333333333333");
@@ -67,9 +68,12 @@ public static class DevelopmentDataSeeder
         var demoOrg = CreateOrganization();
         context.Organizations.Add(demoOrg);
 
-        // 2. Create Demo Users
-        var users = CreateUsers();
-        context.Users.AddRange(users);
+        // 2. ApplicationUsers are NOT seeded here (intentional design decision)
+        // ApplicationUsers require password hashing via UserManager, which needs DI.
+        // For development, create users through:
+        //   - POST /api/auth/register endpoint
+        //   - A separate startup seeder that injects UserManager (see DevelopmentUserSeeder)
+        // Demo user credentials are documented in docs/features/authentication/
 
         // 3. Create Exercises (without ActiveMselId to avoid circular dependency)
         var hurricaneTtx = CreateHurricaneTtxExercise(now);
@@ -112,12 +116,11 @@ public static class DevelopmentDataSeeder
         context.Injects.AddRange(hurricaneInjects);
         context.Injects.AddRange(floodInjects);
 
-        // 9. Create Participant Assignments
-        var hurricaneParticipants = CreateHurricaneParticipants(now);
-        var floodParticipants = CreateFloodParticipants(now);
-
-        context.ExerciseParticipants.AddRange(hurricaneParticipants);
-        context.ExerciseParticipants.AddRange(floodParticipants);
+        // 9. ExerciseParticipants are NOT seeded here (requires ApplicationUsers)
+        // Participants link ApplicationUsers to exercises with roles.
+        // After registering users, assign them to exercises via the UI or API.
+        // The CreateHurricaneParticipants/CreateFloodParticipants methods below
+        // are kept for reference and can be enabled once users are seeded.
 
         await context.SaveChangesAsync();
     }
@@ -139,8 +142,23 @@ public static class DevelopmentDataSeeder
 
     #endregion
 
-    #region Users
+    #region Users (DEPRECATED - Use ApplicationUsers via UserManager)
 
+    // TODO: Replace with ApplicationUser seeding via UserManager
+    // The deprecated User table is no longer used. ApplicationUsers are created through:
+    // 1. Authentication endpoints (/auth/register)
+    // 2. Direct UserManager usage with proper password hashing
+    // 3. Separate admin seeding script
+    //
+    // For reference, these were the demo users:
+    // - admin@metrocounty.gov (Maria Chen) - Admin
+    // - jwashington@metrocounty.gov (James Washington) - Manager/Director
+    // - smartinez@metrocounty.gov (Sarah Martinez) - User/Controller
+    // - mbrown@metrocounty.gov (Michael Brown) - User/Controller
+    // - ldavis@metrocounty.gov (Lisa Davis) - User/Evaluator
+    // - rjohnson@metrocounty.gov (Robert Johnson) - User/Observer
+
+    /*
     private static List<User> CreateUsers()
     {
         return new List<User>
@@ -207,6 +225,7 @@ public static class DevelopmentDataSeeder
             }
         };
     }
+    */
 
     #endregion
 
@@ -231,8 +250,8 @@ public static class DevelopmentDataSeeder
             TimeZoneId = "America/New_York",
             Location = "Metro County EOC, Conference Room A",
             OrganizationId = DemoOrgId,
-            CreatedBy = DirectorUserId,
-            ModifiedBy = DirectorUserId
+            CreatedBy = Guid.Empty, // TODO: Use actual user ID once ApplicationUsers are seeded
+            ModifiedBy = Guid.Empty
         };
     }
 
@@ -254,8 +273,8 @@ public static class DevelopmentDataSeeder
             TimeZoneId = "America/New_York",
             Location = "Metro County Courthouse (after hours)",
             OrganizationId = DemoOrgId,
-            CreatedBy = DirectorUserId,
-            ModifiedBy = DirectorUserId
+            CreatedBy = Guid.Empty, // TODO: Use actual user ID once ApplicationUsers are seeded
+            ModifiedBy = Guid.Empty
         };
     }
 
@@ -276,8 +295,8 @@ public static class DevelopmentDataSeeder
             TimeZoneId = "America/New_York",
             Location = "Metro County EOC, Training Room",
             OrganizationId = DemoOrgId,
-            CreatedBy = Controller1UserId,
-            ModifiedBy = Controller1UserId
+            CreatedBy = Guid.Empty, // TODO: Use actual user ID once ApplicationUsers are seeded
+            ModifiedBy = Guid.Empty
         };
     }
 
@@ -296,8 +315,8 @@ public static class DevelopmentDataSeeder
             Version = 1,
             IsActive = true,
             ExerciseId = HurricaneTtxId,
-            CreatedBy = DirectorUserId,
-            ModifiedBy = DirectorUserId
+            CreatedBy = Guid.Empty, // TODO: Use actual user ID once ApplicationUsers are seeded
+            ModifiedBy = Guid.Empty
         };
     }
 
@@ -311,8 +330,8 @@ public static class DevelopmentDataSeeder
             Version = 1,
             IsActive = true,
             ExerciseId = FloodTrainingId,
-            CreatedBy = Controller1UserId,
-            ModifiedBy = Controller1UserId
+            CreatedBy = Guid.Empty, // TODO: Use actual user ID once ApplicationUsers are seeded
+            ModifiedBy = Guid.Empty
         };
     }
 
@@ -332,8 +351,8 @@ public static class DevelopmentDataSeeder
                               "and protective action decisions.",
                 Sequence = 1,
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Phase
             {
@@ -343,8 +362,8 @@ public static class DevelopmentDataSeeder
                               "and special needs population support.",
                 Sequence = 2,
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Phase
             {
@@ -354,8 +373,8 @@ public static class DevelopmentDataSeeder
                               "and critical infrastructure protection.",
                 Sequence = 3,
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             }
         };
     }
@@ -376,8 +395,8 @@ public static class DevelopmentDataSeeder
                 Description = "Demonstrate the ability to activate the Emergency Operations Center within 2 hours " +
                               "of notification and establish effective coordination with all ESF partners.",
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Objective
             {
@@ -387,8 +406,8 @@ public static class DevelopmentDataSeeder
                 Description = "Demonstrate the ability to disseminate timely and accurate public warnings through " +
                               "multiple channels including EAS, social media, and direct notification systems.",
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Objective
             {
@@ -398,8 +417,8 @@ public static class DevelopmentDataSeeder
                 Description = "Demonstrate the ability to execute mandatory evacuation orders including traffic " +
                               "management, transportation support, and special needs population assistance.",
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Objective
             {
@@ -409,8 +428,8 @@ public static class DevelopmentDataSeeder
                 Description = "Demonstrate the ability to activate and manage emergency shelters with adequate " +
                               "capacity, supplies, and staffing for displaced residents.",
                 ExerciseId = HurricaneTtxId,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             }
         };
     }
@@ -452,11 +471,11 @@ public static class DevelopmentDataSeeder
                                  "Begin monitoring NWS updates.",
                 ControllerNotes = "Provide printed NWS briefing package. This inject starts the exercise.",
                 FiredAt = firedTime1,
-                FiredBy = Controller1UserId,
+                FiredBy = null,
                 MselId = HurricaneMselId,
                 PhaseId = Phase1Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 2 - FIRED (completed)
@@ -480,11 +499,11 @@ public static class DevelopmentDataSeeder
                                  "Schedule interview or provide written statement.",
                 ControllerNotes = "Evaluate PIO's messaging consistency with EOC operations. Note coordination with EOC Director.",
                 FiredAt = firedTime2,
-                FiredBy = Controller1UserId,
+                FiredBy = null,
                 MselId = HurricaneMselId,
                 PhaseId = Phase1Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 3 - FIRED (completed)
@@ -509,11 +528,11 @@ public static class DevelopmentDataSeeder
                                  "timeline based on forecast confidence.",
                 ControllerNotes = "Tests coordination between EOC and school district. Note decision-making process.",
                 FiredAt = firedTime3,
-                FiredBy = Controller2UserId,
+                FiredBy = null,
                 MselId = HurricaneMselId,
                 PhaseId = Phase1Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // ===== PHASE 2: Evacuation & Shelter =====
@@ -541,8 +560,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "KEY DECISION POINT - Observe protective action decision-making. Provide updated NWS briefing.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase2Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 5 - PENDING
@@ -568,8 +587,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "Tests special needs evacuation coordination. Provide registry printout as prop.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase2Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 6 - PENDING (Contingency)
@@ -596,8 +615,8 @@ public static class DevelopmentDataSeeder
                 FireCondition = "Use if players are ahead of schedule or evacuation discussion is too smooth",
                 MselId = HurricaneMselId,
                 PhaseId = Phase2Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 7 - PENDING
@@ -623,8 +642,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "Tests shelter management and resource allocation decisions.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase2Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 8 - PENDING
@@ -650,8 +669,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "Tests medical surge coordination. Note prioritization decisions.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase2Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // ===== PHASE 3: Response & Life Safety =====
@@ -679,8 +698,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "CRITICAL LIFE SAFETY - Observe prioritization and resource deployment decisions.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 10 - PENDING (Adaptive)
@@ -707,8 +726,8 @@ public static class DevelopmentDataSeeder
                 FireCondition = "Fire if players successfully manage water rescues; skip if overwhelmed",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 11 - PENDING
@@ -733,8 +752,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "Tests long-term recovery planning during response phase.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 12 - SKIPPED (example of skipped inject)
@@ -758,12 +777,12 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "COMPLEXITY - Use only if players are handling scenario easily and need more challenge.",
                 FireCondition = "Exercise Director discretion based on player performance",
                 SkippedAt = now.AddMinutes(-30),
-                SkippedBy = DirectorUserId,
+                SkippedBy = null,
                 SkipReason = "Time constraints - exercise running behind schedule. Saved for future exercise.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 13 - PENDING
@@ -788,8 +807,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "Tests information management and external coordination. Good capstone inject.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
 
             // Inject 14 - PENDING (EndEx)
@@ -814,8 +833,8 @@ public static class DevelopmentDataSeeder
                 ControllerNotes = "Read ENDEX statement. Ensure all players heard. Direct to hot wash location.",
                 MselId = HurricaneMselId,
                 PhaseId = Phase3Id,
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             }
         };
     }
@@ -846,8 +865,8 @@ public static class DevelopmentDataSeeder
                 ExpectedAction = "Monitor weather updates. Alert field crews.",
                 ControllerNotes = "Training inject - walk through EOC activation process.",
                 MselId = FloodMselId,
-                CreatedBy = Controller1UserId,
-                ModifiedBy = Controller1UserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Inject
             {
@@ -867,8 +886,8 @@ public static class DevelopmentDataSeeder
                 ExpectedAction = "Coordinate road closures. Update WebEOC road status.",
                 ControllerNotes = "Training inject - demonstrate road closure coordination process.",
                 MselId = FloodMselId,
-                CreatedBy = Controller1UserId,
-                ModifiedBy = Controller1UserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new Inject
             {
@@ -888,8 +907,8 @@ public static class DevelopmentDataSeeder
                 ExpectedAction = "Complete training feedback form.",
                 ControllerNotes = "End training session. Collect feedback.",
                 MselId = FloodMselId,
-                CreatedBy = Controller1UserId,
-                ModifiedBy = Controller1UserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             }
         };
     }
@@ -908,10 +927,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = AdminUserId,
                 Role = ExerciseRole.Administrator,
+                AssignedAt = now.AddDays(-7),
+                AssignedById = AdminUserId,
                 CreatedAt = now.AddDays(-7),
                 UpdatedAt = now.AddDays(-7),
-                CreatedBy = AdminUserId,
-                ModifiedBy = AdminUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new ExerciseParticipant
             {
@@ -919,10 +940,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = DirectorUserId,
                 Role = ExerciseRole.ExerciseDirector,
+                AssignedAt = now.AddDays(-7),
+                AssignedById = AdminUserId,
                 CreatedAt = now.AddDays(-7),
                 UpdatedAt = now.AddDays(-7),
-                CreatedBy = AdminUserId,
-                ModifiedBy = AdminUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new ExerciseParticipant
             {
@@ -930,10 +953,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = Controller1UserId,
                 Role = ExerciseRole.Controller,
+                AssignedAt = now.AddDays(-5),
+                AssignedById = DirectorUserId,
                 CreatedAt = now.AddDays(-5),
                 UpdatedAt = now.AddDays(-5),
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new ExerciseParticipant
             {
@@ -941,10 +966,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = Controller2UserId,
                 Role = ExerciseRole.Controller,
+                AssignedAt = now.AddDays(-5),
+                AssignedById = DirectorUserId,
                 CreatedAt = now.AddDays(-5),
                 UpdatedAt = now.AddDays(-5),
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new ExerciseParticipant
             {
@@ -952,10 +979,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = EvaluatorUserId,
                 Role = ExerciseRole.Evaluator,
+                AssignedAt = now.AddDays(-3),
+                AssignedById = DirectorUserId,
                 CreatedAt = now.AddDays(-3),
                 UpdatedAt = now.AddDays(-3),
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             },
             new ExerciseParticipant
             {
@@ -963,10 +992,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = HurricaneTtxId,
                 UserId = ObserverUserId,
                 Role = ExerciseRole.Observer,
+                AssignedAt = now.AddDays(-1),
+                AssignedById = DirectorUserId,
                 CreatedAt = now.AddDays(-1),
                 UpdatedAt = now.AddDays(-1),
-                CreatedBy = DirectorUserId,
-                ModifiedBy = DirectorUserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             }
         };
     }
@@ -981,10 +1012,12 @@ public static class DevelopmentDataSeeder
                 ExerciseId = FloodTrainingId,
                 UserId = Controller1UserId,
                 Role = ExerciseRole.ExerciseDirector,
+                AssignedAt = now.AddDays(-2),
+                AssignedById = Controller1UserId,
                 CreatedAt = now.AddDays(-2),
                 UpdatedAt = now.AddDays(-2),
-                CreatedBy = Controller1UserId,
-                ModifiedBy = Controller1UserId
+                CreatedBy = Guid.Empty,
+                ModifiedBy = Guid.Empty
             }
         };
     }

@@ -11,7 +11,7 @@
  *
  * Navigation Items:
  * - Home (/)
- * - Notes (/notes) - controlled by feature flag
+ * - Exercises (/exercises)
  */
 
 import React from 'react'
@@ -36,7 +36,6 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHome,
   faClipboardList,
-  faStickyNote,
   faChevronLeft,
   faChevronRight,
   faGear,
@@ -66,14 +65,6 @@ const navigationItems: NavItem[] = [
     icon: faClipboardList,
     path: '/exercises',
     section: 'main',
-  },
-  {
-    id: 'notes',
-    label: 'Notes',
-    icon: faStickyNote,
-    path: '/notes',
-    section: 'tools',
-    featureFlagKey: 'notes',
   },
   {
     id: 'example-tool-1',

@@ -155,23 +155,63 @@ public enum ExerciseStatus
 
 ---
 
-## Clock State Synchronization
+## Clock State vs Exercise Status (IMPORTANT)
 
-The Exercise Clock State and Exercise Status are related but distinct:
+> **Key Design Decision:** Exercise Status and Clock State are **INDEPENDENT** concepts.
 
-| Exercise Status | Valid Clock States | Behavior |
-|----------------|-------------------|----------|
-| Draft | Stopped | Cannot start clock |
-| Active | Running | Clock must be running or paused |
-| Paused | Paused | Clock must be paused |
-| Completed | Stopped | Clock stopped and locked |
-| Archived | Stopped | Clock stopped and locked |
+The Exercise Clock State and Exercise Status are related but **operate independently**:
 
-**Transition Rules:**
-- **Activate (Draft → Active)**: Requires starting clock (clock becomes Running)
-- **Pause (Active → Paused)**: Pauses clock (clock becomes Paused)
-- **Resume (Paused → Active)**: Resumes clock (clock becomes Running)
-- **Complete**: Stops and locks clock (clock becomes Stopped, cannot restart)
+| Concept | Purpose | Controls |
+|---------|---------|----------|
+| **Exercise Status** | Lifecycle phase (planning, conduct, post-conduct) | Permissions, data editability |
+| **Clock State** | Timing control (running, paused, stopped) | Inject scheduling, elapsed time |
+
+### Independence Matrix
+
+| Exercise Status | Valid Clock States | Notes |
+|----------------|-------------------|-------|
+| Draft | Stopped only | Cannot start clock until activated |
+| **Active** | **Running OR Paused** | Clock can pause while exercise stays Active |
+| **Paused** | Running OR Paused | Exercise paused ≠ clock paused |
+| Completed | Stopped | Clock locked |
+| Archived | Stopped | Clock locked |
+
+### Why They're Separate
+
+1. **Administrative Pause**: Director may need to pause exercise for safety/administrative reasons while clock keeps running (scenario time continues)
+2. **Clock Pause Only**: Controller may pause clock for discussion/clarification while exercise remains Active
+3. **Flexibility**: Different exercise types need different relationships between status and clock
+
+### Common Scenarios
+
+| Scenario | Exercise Status | Clock State | Example |
+|----------|-----------------|-------------|---------|
+| Normal conduct | Active | Running | Exercise in progress |
+| Break for lunch | Active | Paused | 30-min break, scenario time frozen |
+| Safety issue | **Paused** | Running | Real-world issue, but scenario time continues |
+| Hot wash discussion | **Paused** | **Paused** | Both frozen for AAR discussion |
+| Extended hold | Paused | Paused | Multi-hour hold, resume later |
+
+### Transition Behavior
+
+| Action | Exercise Status Change | Clock State Change |
+|--------|------------------------|-------------------|
+| **Activate Exercise** | Draft → Active | Stopped → Running |
+| **Pause Exercise** | Active → Paused | No automatic change |
+| **Pause Clock** | No change | Running → Paused |
+| **Resume Exercise** | Paused → Active | No automatic change |
+| **Resume Clock** | No change | Paused → Running |
+| **Complete Exercise** | Active/Paused → Completed | Any → Stopped (locked) |
+
+### UI Implications
+
+- "Pause Exercise" button affects **status only**
+- "Pause Clock" button affects **clock only**
+- Consider combined "Full Pause" action that pauses both
+- Display both states clearly in header:
+  ```
+  Hurricane Response 2025 | Status: Active ● | Clock: Paused ⏸ 02:45:30
+  ```
 
 ---
 
