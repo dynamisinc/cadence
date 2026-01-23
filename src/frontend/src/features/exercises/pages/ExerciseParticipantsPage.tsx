@@ -5,6 +5,8 @@
  * Directors and Admins can add, edit, and remove participants.
  * Other users have read-only access.
  *
+ * Can be used standalone (with route param) or embedded (with prop).
+ *
  * @module features/exercises/pages
  */
 
@@ -18,6 +20,11 @@ import { usePermissions } from '../../../shared/hooks'
 import CobraStyles from '../../../theme/CobraStyles'
 import type { AddParticipantRequest } from '../types'
 
+interface ExerciseParticipantsPageProps {
+  /** Exercise ID - if not provided, will attempt to get from route params */
+  exerciseId?: string
+}
+
 /**
  * Exercise Participants Page
  *
@@ -30,8 +37,10 @@ import type { AddParticipantRequest } from '../types'
  * - AC7: Admins can manage participants for any exercise
  * - AC8: Non-Directors/Admins cannot manage participants
  */
-export const ExerciseParticipantsPage: FC = () => {
-  const { exerciseId } = useParams<{ exerciseId: string }>()
+export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({ exerciseId: propExerciseId }) => {
+  // Support both prop-based (embedded in tabs) and route-based (standalone page) usage
+  const params = useParams<{ exerciseId?: string; id?: string }>()
+  const exerciseId = propExerciseId ?? params.exerciseId ?? params.id
   const { canManage } = usePermissions()
   const [dialogOpen, setDialogOpen] = useState(false)
 

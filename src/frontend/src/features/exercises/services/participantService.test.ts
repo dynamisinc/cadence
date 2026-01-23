@@ -38,7 +38,7 @@ describe('participantService', () => {
       ]
 
       vi.mocked(apiClient.get).mockResolvedValueOnce({
-        data: { participants: mockParticipants },
+        data: mockParticipants,
       })
 
       const result = await participantService.getParticipants(exerciseId)

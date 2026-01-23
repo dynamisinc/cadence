@@ -21,6 +21,7 @@ import {
   useDuplicateExercise,
   useExerciseStatus,
   useMselSummary,
+  useExerciseParticipants,
 } from '../hooks'
 import {
   ExerciseForm,
@@ -113,6 +114,13 @@ export const ExerciseDetailPage = () => {
 
   // Archive/delete actions
   const { archive, isTransitioning: isArchiving } = useExerciseStatus(id ?? '')
+
+  // Exercise participants (for director display)
+  const { participants } = useExerciseParticipants(id ?? '')
+  const director = useMemo(() =>
+    participants.find(p => p.exerciseRole === 'ExerciseDirector'),
+    [participants]
+  )
 
   // Set custom breadcrumbs with exercise name
   useBreadcrumbs(
@@ -438,12 +446,11 @@ export const ExerciseDetailPage = () => {
           {/* Tab Panels */}
           <TabPanel value={activeTab} index={0}>
             <Stack spacing={2}>
-              {/* Top row: Two equal-height cards */}
+              {/* Top row: Two cards side-by-side for Draft, single column otherwise */}
               <Grid
                 container
                 spacing={2}
                 sx={{
-                  // Equal height cards using CSS Grid
                   display: 'grid',
                   gridTemplateColumns: {
                     xs: '1fr',
@@ -452,30 +459,20 @@ export const ExerciseDetailPage = () => {
                       : '1fr',
                   },
                   gap: 2,
-                  // Fixed height for cards on desktop
-                  '& > .MuiGrid-root': {
-                    height: { md: 575 },
-                  },
+                  alignItems: 'start',
                 }}
               >
                 {/* Left column: Exercise Details */}
                 <Grid>
-                  <Paper
-                    sx={{
-                      p: 3,
-                      height: '100%',
-                      display: 'flex',
-                      flexDirection: 'column',
-                      overflow: 'auto',
-                    }}
-                  >
-                    <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>
+                  <Paper sx={{ p: 2 }}>
+
+                    <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>
                       Exercise Details
                     </Typography>
 
                     {/* Description */}
                     {exercise.description && (
-                      <Box sx={{ mb: 3 }}>
+                      <Box sx={{ mb: 1.5 }}>
                         <Typography
                           variant="body2"
                           color="text.secondary"
@@ -484,25 +481,25 @@ export const ExerciseDetailPage = () => {
                         >
                           Description
                         </Typography>
-                        <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
+                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                           {exercise.description}
                         </Typography>
                       </Box>
                     )}
 
                     {/* Two-column grid for metadata */}
-                    <Grid container spacing={2.5}>
+                    <Grid container spacing={1.5}>
                       {/* Schedule */}
                       <Grid size={{ xs: 12, sm: 6 }}>
                         <Typography
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Date
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                           {formatDate(exercise.scheduledDate)}
                         </Typography>
                       </Grid>
@@ -513,11 +510,11 @@ export const ExerciseDetailPage = () => {
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Time
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                           {exercise.startTime ? formatTime(exercise.startTime) : 'TBD'}
                           {exercise.endTime && ` - ${formatTime(exercise.endTime)}`}
                         </Typography>
@@ -529,11 +526,11 @@ export const ExerciseDetailPage = () => {
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Time Zone
                         </Typography>
-                        <Typography variant="body1">{exercise.timeZoneId}</Typography>
+                        <Typography variant="body2">{exercise.timeZoneId}</Typography>
                       </Grid>
 
                       {/* Location */}
@@ -542,13 +539,33 @@ export const ExerciseDetailPage = () => {
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Location
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                           {exercise.location || 'Not specified'}
                         </Typography>
+                      </Grid>
+
+                      {/* Exercise Director */}
+                      <Grid size={{ xs: 12, sm: 6 }}>
+                        <Typography
+                          variant="body2"
+                          color="text.secondary"
+                          fontWeight={500}
+                          sx={{ mb: 0.25 }}
+                        >
+                          Exercise Director
+                        </Typography>
+                        <Typography variant="body2">
+                          {director?.displayName || 'Not assigned'}
+                        </Typography>
+                        {director?.email && (
+                          <Typography variant="caption" color="text.secondary">
+                            {director.email}
+                          </Typography>
+                        )}
                       </Grid>
 
                       {/* Exercise Type */}
@@ -557,15 +574,12 @@ export const ExerciseDetailPage = () => {
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Exercise Type
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                           {getExerciseTypeFullName(exercise.exerciseType)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          ({exercise.exerciseType})
                         </Typography>
                       </Grid>
 
@@ -575,11 +589,11 @@ export const ExerciseDetailPage = () => {
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Mode
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                           {exercise.isPracticeMode ? 'Practice Mode' : 'Live Exercise'}
                         </Typography>
                       </Grid>
@@ -590,19 +604,14 @@ export const ExerciseDetailPage = () => {
                           variant="body2"
                           color="text.secondary"
                           fontWeight={500}
-                          sx={{ mb: 0.5 }}
+                          sx={{ mb: 0.25 }}
                         >
                           Inject Delivery
                         </Typography>
-                        <Typography variant="body1">
+                        <Typography variant="body2">
                           {exercise.deliveryMode === DeliveryMode.ClockDriven
                             ? 'Clock-driven'
                             : 'Facilitator-paced'}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {exercise.deliveryMode === DeliveryMode.ClockDriven
-                            ? 'Injects fire at scheduled times'
-                            : 'Manual inject delivery'}
                         </Typography>
                       </Grid>
 
@@ -613,25 +622,17 @@ export const ExerciseDetailPage = () => {
                             variant="body2"
                             color="text.secondary"
                             fontWeight={500}
-                            sx={{ mb: 0.5 }}
+                            sx={{ mb: 0.25 }}
                           >
                             Timeline
                           </Typography>
-                          <Typography variant="body1">
+                          <Typography variant="body2">
                             {exercise.timelineMode === TimelineMode.RealTime &&
                           'Real-time (1:1)'}
                             {exercise.timelineMode === TimelineMode.Compressed &&
                           `Compressed (${exercise.timeScale}x)`}
                             {exercise.timelineMode === TimelineMode.StoryOnly &&
                           'Story-only'}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary">
-                            {exercise.timelineMode === TimelineMode.RealTime &&
-                          'Exercise clock matches wall clock'}
-                            {exercise.timelineMode === TimelineMode.Compressed &&
-                          `1 real minute = ${exercise.timeScale} story minutes`}
-                            {exercise.timelineMode === TimelineMode.StoryOnly &&
-                          'No real-time clock'}
                           </Typography>
                         </Grid>
                       )}
@@ -640,8 +641,8 @@ export const ExerciseDetailPage = () => {
                       <Grid size={12}>
                         <Box
                           sx={{
-                            mt: 2,
-                            pt: 2,
+                            mt: 1.5,
+                            pt: 1.5,
                             borderTop: 1,
                             borderColor: 'divider',
                           }}
@@ -760,30 +761,14 @@ export const ExerciseDetailPage = () => {
 
           {/* Objectives Tab */}
           <TabPanel value={activeTab} index={1}>
-            <Paper
-              sx={{
-                p: 3,
-                height: 575,
-                display: 'flex',
-                flexDirection: 'column',
-                overflow: 'hidden',
-              }}
-            >
-              <Box
-                sx={{
-                  flex: 1,
-                  overflow: 'auto',
-                  minHeight: 0,
-                }}
-              >
-                <ObjectiveList exerciseId={exercise.id} canEdit={canEdit} />
-              </Box>
+            <Paper sx={{ p: 3 }}>
+              <ObjectiveList exerciseId={exercise.id} canEdit={canEdit} />
             </Paper>
           </TabPanel>
 
           {/* Participants Tab */}
           <TabPanel value={activeTab} index={2}>
-            <ExerciseParticipantsPage />
+            <ExerciseParticipantsPage exerciseId={id} />
           </TabPanel>
         </>
       )}

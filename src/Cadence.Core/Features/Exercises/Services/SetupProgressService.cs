@@ -1,5 +1,6 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.Core.Features.Exercises.Services;
@@ -8,9 +9,10 @@ namespace Cadence.Core.Features.Exercises.Services;
 /// Service for calculating exercise setup progress.
 ///
 /// Setup areas and weights:
-/// - MSEL (40%): Active MSEL with at least 1 inject
-/// - Phases (20%): At least 1 phase defined
-/// - Objectives (20%): At least 1 objective defined
+/// - MSEL (35%): Active MSEL with at least 1 inject
+/// - Participants (15%): At least 1 participant (ideally an Exercise Director)
+/// - Phases (15%): At least 1 phase defined
+/// - Objectives (15%): At least 1 objective defined
 /// - Scheduling (20%): Start time and end time set
 /// </summary>
 public class SetupProgressService : ISetupProgressService
@@ -18,9 +20,10 @@ public class SetupProgressService : ISetupProgressService
     private readonly AppDbContext _context;
 
     // Weights for each area (must sum to 100)
-    private const int MSEL_WEIGHT = 40;
-    private const int PHASES_WEIGHT = 20;
-    private const int OBJECTIVES_WEIGHT = 20;
+    private const int MSEL_WEIGHT = 35;
+    private const int PARTICIPANTS_WEIGHT = 15;
+    private const int PHASES_WEIGHT = 15;
+    private const int OBJECTIVES_WEIGHT = 15;
     private const int SCHEDULING_WEIGHT = 20;
 
     public SetupProgressService(AppDbContext context)
@@ -33,6 +36,7 @@ public class SetupProgressService : ISetupProgressService
         var exercise = await _context.Exercises
             .Include(e => e.Phases.Where(p => !p.IsDeleted))
             .Include(e => e.Objectives.Where(o => !o.IsDeleted))
+            .Include(e => e.Participants)
             .FirstOrDefaultAsync(e => e.Id == exerciseId && !e.IsDeleted);
 
         if (exercise == null)
@@ -50,7 +54,7 @@ public class SetupProgressService : ISetupProgressService
 
         var areas = new List<SetupAreaDto>();
 
-        // 1. MSEL Area (40%)
+        // 1. MSEL Area (35%)
         var hasMsel = mselInfo?.HasMsel ?? false;
         var injectCount = mselInfo?.InjectCount ?? 0;
         var mselComplete = hasMsel && injectCount > 0;
@@ -66,7 +70,23 @@ public class SetupProgressService : ISetupProgressService
             StatusMessage = GetMselStatusMessage(hasMsel, injectCount)
         });
 
-        // 2. Phases Area (20%)
+        // 2. Participants Area (15%)
+        var participantCount = exercise.Participants.Count;
+        var hasDirector = exercise.Participants.Any(p => p.Role == ExerciseRole.ExerciseDirector);
+        var participantsComplete = hasDirector;
+        areas.Add(new SetupAreaDto
+        {
+            Id = "participants",
+            Name = "Participants",
+            Description = "At least an Exercise Director assigned",
+            IsComplete = participantsComplete,
+            Weight = PARTICIPANTS_WEIGHT,
+            CurrentCount = participantCount,
+            RequiredCount = 1,
+            StatusMessage = GetParticipantsStatusMessage(participantCount, hasDirector)
+        });
+
+        // 3. Phases Area (15%)
         var phaseCount = exercise.Phases.Count;
         var phasesComplete = phaseCount > 0;
         areas.Add(new SetupAreaDto
@@ -83,7 +103,7 @@ public class SetupProgressService : ISetupProgressService
                 : "No phases defined"
         });
 
-        // 3. Objectives Area (20%)
+        // 4. Objectives Area (15%)
         var objectiveCount = exercise.Objectives.Count;
         var objectivesComplete = objectiveCount > 0;
         areas.Add(new SetupAreaDto
@@ -100,7 +120,7 @@ public class SetupProgressService : ISetupProgressService
                 : "No objectives defined"
         });
 
-        // 4. Scheduling Area (20%)
+        // 5. Scheduling Area (20%)
         var hasStartTime = exercise.StartTime.HasValue;
         var hasEndTime = exercise.EndTime.HasValue;
         var schedulingComplete = hasStartTime && hasEndTime;
@@ -154,5 +174,20 @@ public class SetupProgressService : ISetupProgressService
             return "Start time not set";
 
         return "No times configured";
+    }
+
+    private static string GetParticipantsStatusMessage(int participantCount, bool hasDirector)
+    {
+        if (hasDirector)
+        {
+            return participantCount == 1
+                ? "Exercise Director assigned"
+                : $"Exercise Director + {participantCount - 1} other{(participantCount > 2 ? "s" : "")}";
+        }
+
+        if (participantCount > 0)
+            return $"{participantCount} participant{(participantCount != 1 ? "s" : "")} (no Director)";
+
+        return "No participants assigned";
     }
 }

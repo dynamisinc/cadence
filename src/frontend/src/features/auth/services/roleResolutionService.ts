@@ -36,7 +36,7 @@ export const roleResolutionService = {
    */
   getExerciseParticipants: async (exerciseId: string): Promise<ExerciseParticipantDto[]> => {
     const response = await apiClient.get<ExerciseParticipantDto[]>(
-      `/api/exercises/${exerciseId}/participants`,
+      `/exercises/${exerciseId}/participants`,
     )
     return response.data
   },
@@ -66,7 +66,7 @@ export const roleResolutionService = {
    */
   getUserExerciseAssignments: async (userId: string): Promise<ExerciseAssignmentDto[]> => {
     const response = await apiClient.get<ExerciseAssignmentDto[]>(
-      `/api/users/${userId}/exercise-assignments`,
+      `/users/${userId}/exercise-assignments`,
     )
     return response.data.map(assignment => ({
       ...assignment,

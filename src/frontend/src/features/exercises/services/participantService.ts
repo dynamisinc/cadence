@@ -8,7 +8,6 @@
 import { apiClient } from '../../../core/services/api'
 import type {
   ExerciseParticipantDto,
-  ParticipantsListResponse,
   AddParticipantRequest,
   UpdateParticipantRoleRequest,
 } from '../types'
@@ -18,10 +17,10 @@ export const participantService = {
    * Get all participants for an exercise
    */
   getParticipants: async (exerciseId: string): Promise<ExerciseParticipantDto[]> => {
-    const response = await apiClient.get<ParticipantsListResponse>(
+    const response = await apiClient.get<ExerciseParticipantDto[]>(
       `/exercises/${exerciseId}/participants`,
     )
-    return response.data.participants
+    return response.data
   },
 
   /**

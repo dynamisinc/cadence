@@ -42,7 +42,7 @@ describe('roleResolutionService', () => {
 
       const result = await roleResolutionService.getExerciseParticipants(exerciseId)
 
-      expect(apiClient.get).toHaveBeenCalledWith(`/api/exercises/${exerciseId}/participants`)
+      expect(apiClient.get).toHaveBeenCalledWith(`/exercises/${exerciseId}/participants`)
       expect(result).toEqual(mockParticipants)
     })
 
