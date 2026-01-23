@@ -401,7 +401,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CadenceWebApplicatio
             new RegistrationRequest(email, password, "Admin User"));
 
         var authResponse = await registerResponse.Content.ReadFromJsonAsync<AuthResponse>();
-        authResponse!.Role.Should().Be("Administrator");
+        authResponse!.Role.Should().Be("Admin");
 
         // Set auth header
         client.DefaultRequestHeaders.Authorization =
