@@ -10,6 +10,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
 import { participantService } from '../services/participantService'
+import { setupProgressQueryKey } from './useSetupProgress'
 import type {
   ExerciseParticipantDto,
   AddParticipantRequest,
@@ -73,6 +74,8 @@ export const useExerciseParticipants = (exerciseId: string) => {
           p.participantId.startsWith('temp-') && p.userId === created.userId ? created : p,
         ),
       )
+      // Invalidate setup progress since participant count affects it
+      queryClient.invalidateQueries({ queryKey: setupProgressQueryKey(exerciseId) })
       toast.success('Participant added')
     },
     onError: (err, _variables, context) => {
@@ -135,6 +138,8 @@ export const useExerciseParticipants = (exerciseId: string) => {
       return { previousParticipants }
     },
     onSuccess: () => {
+      // Invalidate setup progress since participant count affects it
+      queryClient.invalidateQueries({ queryKey: setupProgressQueryKey(exerciseId) })
       toast.success('Participant removed')
     },
     onError: (err, _variables, context) => {

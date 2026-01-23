@@ -125,6 +125,30 @@ public record DeactivateUserRequest
 }
 
 /// <summary>
+/// Request to create a new user account.
+/// Used for inline user creation from exercise participants dialog.
+/// </summary>
+public record CreateUserRequest
+{
+    /// <summary>
+    /// User's display name shown in UI.
+    /// </summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User's email address (also login identifier).
+    /// Must be unique in the system.
+    /// </summary>
+    public string Email { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Initial password for the account.
+    /// Must meet password policy requirements.
+    /// </summary>
+    public string Password { get; init; } = string.Empty;
+}
+
+/// <summary>
 /// Extension methods for mapping between ApplicationUser entity and DTOs.
 /// </summary>
 public static class UserMapper
@@ -140,6 +164,6 @@ public static class UserMapper
         SystemRole = user.SystemRole.ToString(),
         Status = user.Status.ToString(),
         LastLoginAt = user.LastLoginAt,
-        CreatedAt = DateTime.UtcNow // TODO: Add CreatedAt to ApplicationUser entity
+        CreatedAt = user.CreatedAt
     };
 }

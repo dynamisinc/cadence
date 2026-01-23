@@ -3,8 +3,10 @@
  *
  * Provides user search/autocomplete and exercise role selection.
  * Shows user's system role for context during selection.
+ * Allows Admin/Manager users to create new users inline.
  *
  * @module features/exercises/components
+ * @see authentication/S25-inline-user-creation.md
  */
 
 import { FC, useState, useEffect } from 'react'
@@ -23,10 +25,15 @@ import {
   Typography,
   Box,
   CircularProgress,
+  Button,
 } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraLinkButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { useAuth } from '../../../contexts/AuthContext'
 import { userService } from '../../users/services/userService'
+import { CreateUserModal } from '../../users/components/CreateUserModal'
 import type { UserDto } from '../../users/types'
 import type { AddParticipantRequest } from '../types'
 
@@ -49,10 +56,15 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
   onAdd,
   onClose,
 }) => {
+  const { user: currentUser } = useAuth()
   const [selectedUser, setSelectedUser] = useState<UserDto | null>(null)
   const [selectedRole, setSelectedRole] = useState<string>('Observer')
   const [users, setUsers] = useState<UserDto[]>([])
   const [loading, setLoading] = useState(false)
+  const [showCreateUserModal, setShowCreateUserModal] = useState(false)
+
+  // Check if current user can create users (Admin or Manager)
+  const canCreateUsers = currentUser?.role === 'Admin' || currentUser?.role === 'Manager'
 
   // Load users when dialog opens
   useEffect(() => {
@@ -66,6 +78,7 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
     if (!open) {
       setSelectedUser(null)
       setSelectedRole('Observer')
+      setShowCreateUserModal(false)
     }
   }, [open])
 
@@ -88,6 +101,13 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
         role: selectedRole,
       })
     }
+  }
+
+  const handleUserCreated = (newUser: UserDto) => {
+    // Add the new user to the list and auto-select them
+    setUsers(prev => [...prev, newUser])
+    setSelectedUser(newUser)
+    setShowCreateUserModal(false)
   }
 
   return (
@@ -131,6 +151,23 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
             loading={loading}
             noOptionsText="No users found"
           />
+
+          {/* Create New User option for Admin/Manager users */}
+          {canCreateUsers && (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Typography variant="body2" color="text.secondary">
+                Can't find the person you're looking for?
+              </Typography>
+              <Button
+                size="small"
+                startIcon={<FontAwesomeIcon icon={faUserPlus} />}
+                onClick={() => setShowCreateUserModal(true)}
+                sx={{ textTransform: 'none' }}
+              >
+                Create New User
+              </Button>
+            </Box>
+          )}
 
           {/* Exercise Role Selector */}
           <FormControl fullWidth required>
@@ -178,6 +215,13 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
           Add Participant
         </CobraPrimaryButton>
       </DialogActions>
+
+      {/* Create User Modal - nested dialog */}
+      <CreateUserModal
+        open={showCreateUserModal}
+        onClose={() => setShowCreateUserModal(false)}
+        onUserCreated={handleUserCreated}
+      />
     </Dialog>
   )
 }

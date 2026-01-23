@@ -141,6 +141,8 @@ User (Global Role: Controller)
 | S21 | [OAuth Callback Handling](./S21-oauth-callback-handling.md) | P2 | 📋 Ready |
 | S22 | [Entra Admin Configuration](./S22-entra-admin-configuration.md) | P2 | 📋 Ready |
 | S23 | [External Auth Error Handling](./S23-external-auth-error-handling.md) | P2 | 📋 Ready |
+| S24 | [Password Reset](./S24-password-reset.md) | P2 | 📋 Ready |
+| S25 | [Inline User Creation](./S25-inline-user-creation.md) | P1 | 📋 Ready |
 
 ## Out of Scope (MVP)
 
@@ -171,6 +173,7 @@ User (Global Role: Controller)
 |------------|:-----:|:--------:|:----------:|:---------:|:--------:|
 | **System** |
 | Manage users | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Create users (Observer only) | ✅ | ✅† | ❌ | ❌ | ❌ |
 | View all exercises | ✅ | ❌ | ❌ | ❌ | ❌ |
 | System settings | ✅ | ❌ | ❌ | ❌ | ❌ |
 | **Exercise Setup** |
@@ -196,6 +199,7 @@ User (Global Role: Controller)
 | Export MSEL | ✅ | ✅* | ✅* | ❌ | ❌ |
 
 *\* Within exercises where user has this role*
+*† Directors can only create users with Observer global role (S25)*
 
 ---
 

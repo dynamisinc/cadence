@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
@@ -65,6 +66,44 @@ public class UsersController : ControllerBase
             return NotFound(new { message = $"User {id} not found" });
         }
         return Ok(user);
+    }
+
+    /// <summary>
+    /// Create a new user account.
+    /// Used for inline user creation from exercise participants dialog.
+    /// Admins and Managers (Exercise Directors) can create users.
+    /// Non-admin creators can only create users with User (Observer) role.
+    /// </summary>
+    /// <param name="request">User creation request.</param>
+    [HttpPost]
+    [Authorize(Policy = "RequireManager")] // Override class-level RequireAdmin
+    [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
+    {
+        var currentUserId = GetCurrentUserId();
+        var isAdmin = User.Claims.Any(c =>
+            c.Type == "role" && c.Value == SystemRole.Admin.ToString());
+
+        try
+        {
+            var result = await _userService.CreateUserAsync(request, currentUserId.ToString(), isAdmin);
+
+            _logger.LogInformation(
+                "User {NewUserId} created by {CreatorId} (Admin: {IsAdmin})",
+                result.Id, currentUserId, isAdmin);
+
+            return CreatedAtAction(nameof(GetUser), new { id = result.Id }, result);
+        }
+        catch (InvalidOperationException ex) when (ex.Message.Contains("already exists"))
+        {
+            return Conflict(new { error = "duplicate_email", message = ex.Message });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = "validation_error", message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -199,7 +238,7 @@ public class UsersController : ControllerBase
             return Unauthorized();
         }
 
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
         {
             return Unauthorized();
@@ -234,7 +273,7 @@ public class UsersController : ControllerBase
     /// </summary>
     private Guid GetCurrentUserId()
     {
-        var userIdClaim = User.FindFirst("sub")?.Value;
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
         {
             throw new UnauthorizedAccessException("User not authenticated");

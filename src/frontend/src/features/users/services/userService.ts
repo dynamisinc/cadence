@@ -13,6 +13,7 @@ import type {
   UserListResponse,
   UpdateUserRequest,
   ChangeRoleRequest,
+  CreateUserRequest,
 } from '../types'
 
 /**
@@ -50,6 +51,18 @@ export const userService = {
    */
   async getUser(id: string): Promise<UserDto> {
     const response = await apiClient.get<UserDto>(`/users/${id}`)
+    return response.data
+  },
+
+  /**
+   * Create a new user account
+   * Used for inline user creation from exercise participants dialog
+   * @param request User creation request with display name, email, and password
+   * @returns Created user
+   * @throws Error with status 409 if email already exists
+   */
+  async createUser(request: CreateUserRequest): Promise<UserDto> {
+    const response = await apiClient.post<UserDto>('/users', request)
     return response.data
   },
 

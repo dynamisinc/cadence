@@ -32,6 +32,17 @@ public class ApplicationUser : IdentityUser
     public DateTime? LastLoginAt { get; set; }
 
     /// <summary>
+    /// UTC timestamp when the user account was created.
+    /// </summary>
+    public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    /// <summary>
+    /// ID of the user who created this account.
+    /// Null for self-registered users.
+    /// </summary>
+    public string? CreatedById { get; set; }
+
+    /// <summary>
     /// Primary organization this user belongs to.
     /// </summary>
     public Guid OrganizationId { get; set; }
@@ -44,6 +55,12 @@ public class ApplicationUser : IdentityUser
     /// The organization this user belongs to.
     /// </summary>
     public Organization Organization { get; set; } = null!;
+
+    /// <summary>
+    /// The user who created this account.
+    /// Null for self-registered users.
+    /// </summary>
+    public ApplicationUser? CreatedByUser { get; set; }
 
     /// <summary>
     /// Refresh tokens issued to this user.

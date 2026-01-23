@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Models.Entities;
@@ -92,6 +93,71 @@ public class UserService : IUserService
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         return user?.ToDto();
+    }
+
+    /// <inheritdoc />
+    public async Task<UserDto> CreateUserAsync(CreateUserRequest request, string createdById, bool isCreatorAdmin)
+    {
+        // Validate request
+        if (string.IsNullOrWhiteSpace(request.DisplayName))
+        {
+            throw new ArgumentException("Display name is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+        {
+            throw new ArgumentException("Email is required");
+        }
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+        {
+            throw new ArgumentException("Password is required");
+        }
+
+        // Check for duplicate email
+        var existingUser = await _userManager.FindByEmailAsync(request.Email);
+        if (existingUser != null)
+        {
+            throw new InvalidOperationException("A user with this email already exists");
+        }
+
+        // Non-admins can only create users with User (Observer) role
+        var systemRole = SystemRole.User;
+
+        var user = new ApplicationUser
+        {
+            Email = request.Email,
+            UserName = request.Email,
+            DisplayName = request.DisplayName.Trim(),
+            SystemRole = systemRole,
+            Status = UserStatus.Active,
+            EmailConfirmed = true, // MVP: Skip email verification
+            OrganizationId = SystemConstants.DefaultOrganizationId,
+            CreatedAt = DateTime.UtcNow,
+            CreatedById = createdById
+        };
+
+        var result = await _userManager.CreateAsync(user, request.Password);
+        if (!result.Succeeded)
+        {
+            var errors = result.Errors.ToList();
+
+            // Check for duplicate email error from Identity
+            if (errors.Any(e => e.Code == "DuplicateEmail" || e.Code == "DuplicateUserName"))
+            {
+                throw new InvalidOperationException("A user with this email already exists");
+            }
+
+            // Return password validation errors
+            var errorMessages = string.Join("; ", errors.Select(e => e.Description));
+            throw new ArgumentException($"Failed to create user: {errorMessages}");
+        }
+
+        _logger.LogInformation(
+            "User {NewUserId} created by {CreatorId} via inline creation. Email: {Email}, Role: {Role}",
+            user.Id, createdById, user.Email, user.SystemRole);
+
+        return user.ToDto();
     }
 
     /// <inheritdoc />

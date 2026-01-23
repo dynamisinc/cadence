@@ -171,6 +171,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Self-referential relationship for tracking who created the user
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

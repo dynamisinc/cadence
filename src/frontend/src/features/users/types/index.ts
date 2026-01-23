@@ -64,6 +64,19 @@ export interface ChangeRoleRequest {
 }
 
 /**
+ * Create user request for inline user creation
+ * Used when creating users from exercise participants dialog
+ */
+export interface CreateUserRequest {
+  /** User's display name */
+  displayName: string;
+  /** User's email address (login identifier) */
+  email: string;
+  /** Initial password for the account */
+  password: string;
+}
+
+/**
  * Available system roles for user management
  * These are application-level roles, NOT exercise-specific HSEEP roles
  */
