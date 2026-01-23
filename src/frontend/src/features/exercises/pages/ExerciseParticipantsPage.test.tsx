@@ -7,14 +7,23 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider } from '@mui/material/styles'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
 import { usePermissions } from '../../../shared/hooks'
+import { cobraTheme } from '../../../theme/cobraTheme'
 import type { ReactNode } from 'react'
 
 vi.mock('../hooks/useExerciseParticipants')
 vi.mock('../../../shared/hooks', () => ({
   usePermissions: vi.fn(),
+}))
+vi.mock('../../../contexts/AuthContext', () => ({
+  useAuth: vi.fn(() => ({
+    user: { id: 'user-1', displayName: 'Test User', email: 'test@example.com', role: 'Admin' },
+    isAuthenticated: true,
+    isLoading: false,
+  })),
 }))
 
 const createWrapper = (exerciseId = 'ex-123') => {
@@ -27,11 +36,13 @@ const createWrapper = (exerciseId = 'ex-123') => {
 
   return ({ children }: { children: ReactNode }) => (
     <QueryClientProvider client={queryClient}>
-      <MemoryRouter initialEntries={[`/exercises/${exerciseId}/participants`]}>
-        <Routes>
-          <Route path="/exercises/:exerciseId/participants" element={children} />
-        </Routes>
-      </MemoryRouter>
+      <ThemeProvider theme={cobraTheme}>
+        <MemoryRouter initialEntries={[`/exercises/${exerciseId}/participants`]}>
+          <Routes>
+            <Route path="/exercises/:exerciseId/participants" element={children} />
+          </Routes>
+        </MemoryRouter>
+      </ThemeProvider>
     </QueryClientProvider>
   )
 }
@@ -116,7 +127,8 @@ describe('ExerciseParticipantsPage', () => {
     await user.click(addButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Add Participant')).toBeInTheDocument()
+      // Use heading role to target dialog title, not the button
+      expect(screen.getByRole('heading', { name: 'Add Participant' })).toBeInTheDocument()
     })
   })
 
@@ -141,7 +153,8 @@ describe('ExerciseParticipantsPage', () => {
     await user.click(addButton)
 
     await waitFor(() => {
-      expect(screen.getByText('Add Participant')).toBeInTheDocument()
+      // Use heading role to target dialog title, not the button
+      expect(screen.getByRole('heading', { name: 'Add Participant' })).toBeInTheDocument()
     })
 
     // Mock would require full dialog interaction - simplified test
@@ -202,8 +215,10 @@ describe('ExerciseParticipantsPage', () => {
 
     render(<ExerciseParticipantsPage />, { wrapper: createWrapper() })
 
+    // MUI Select requires click to open, then click option
     const roleSelect = screen.getByRole('combobox', { name: /exercise role/i })
-    await user.selectOptions(roleSelect, 'Controller')
+    await user.click(roleSelect)
+    await user.click(screen.getByRole('option', { name: 'Controller' }))
 
     await waitFor(() => {
       expect(mockHook.updateParticipantRole).toHaveBeenCalledWith('u1', { role: 'Controller' })

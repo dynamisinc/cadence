@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { render, screen } from '../../../test/test-utils'
 import userEvent from '@testing-library/user-event'
 import { ParticipantList } from './ParticipantList'
 import type { ExerciseParticipantDto } from '../types'
@@ -118,7 +118,8 @@ describe('ParticipantList', () => {
       />,
     )
 
-    expect(screen.getByText(/no participants/i)).toBeInTheDocument()
+    // Use heading role to avoid matching both heading and description text
+    expect(screen.getByRole('heading', { name: /no participants/i })).toBeInTheDocument()
   })
 
   it('shows engaging empty state with CTA when canEdit', () => {

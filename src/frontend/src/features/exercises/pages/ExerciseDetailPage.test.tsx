@@ -18,6 +18,7 @@ vi.mock('../hooks', () => ({
   useExerciseStatus: vi.fn(),
   useMselSummary: vi.fn(),
   useExerciseTransitions: vi.fn(() => ({ availableTransitions: [] })),
+  useExerciseParticipants: vi.fn(() => ({ participants: [], isLoading: false })),
 }))
 
 vi.mock('../../objectives', () => ({

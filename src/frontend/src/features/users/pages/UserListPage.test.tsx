@@ -17,7 +17,7 @@ const mockUserList: UserListResponse = {
       id: '1',
       email: 'admin@example.com',
       displayName: 'Admin User',
-      role: 'Administrator',
+      systemRole: 'Admin',
       status: 'Active',
       lastLoginAt: '2025-01-20T14:30:00Z',
       createdAt: '2025-01-01T09:00:00Z',
@@ -26,7 +26,7 @@ const mockUserList: UserListResponse = {
       id: '2',
       email: 'jane@example.com',
       displayName: 'Jane Smith',
-      role: 'Controller',
+      systemRole: 'Manager',
       status: 'Active',
       lastLoginAt: '2025-01-15T10:00:00Z',
       createdAt: '2025-01-05T12:00:00Z',
@@ -35,7 +35,7 @@ const mockUserList: UserListResponse = {
       id: '3',
       email: 'deactivated@example.com',
       displayName: 'Old User',
-      role: 'Observer',
+      systemRole: 'User',
       status: 'Deactivated',
       lastLoginAt: null,
       createdAt: '2024-12-01T08:00:00Z',
@@ -70,7 +70,7 @@ describe('UserListPage', () => {
 
     await waitFor(() => {
       expect(screen.getByText('admin@example.com')).toBeInTheDocument()
-      expect(screen.getByText('Administrator')).toBeInTheDocument()
+      expect(screen.getByText('Admin')).toBeInTheDocument()
       // Multiple "Active" statuses will exist, just check one is present
       expect(screen.getAllByText('Active').length).toBeGreaterThan(0)
     })
@@ -108,13 +108,13 @@ describe('UserListPage', () => {
     const roleFilter = screen.getByText('All Roles').closest('[role="combobox"]') as HTMLElement
     await user.click(roleFilter)
 
-    // Click Controller option in the listbox
-    const controllerOption = await screen.findByRole('option', { name: 'Controller' })
-    await user.click(controllerOption)
+    // Click Manager option in the listbox (system roles are Admin, Manager, User)
+    const managerOption = await screen.findByRole('option', { name: 'Manager' })
+    await user.click(managerOption)
 
     await waitFor(() => {
       expect(userService.getUsers).toHaveBeenCalledWith(
-        expect.objectContaining({ role: 'Controller' }),
+        expect.objectContaining({ role: 'Manager' }),
       )
     })
   })
@@ -216,7 +216,7 @@ describe('UserListPage', () => {
     const user = userEvent.setup()
     vi.mocked(userService.changeRole).mockResolvedValue({
       ...mockUserList.users[1],
-      role: 'Evaluator',
+      systemRole: 'User',
     })
 
     render(<UserListPage />)
@@ -226,19 +226,20 @@ describe('UserListPage', () => {
     })
 
     // Find Jane's role dropdown - filter for user role dropdowns (not the filter dropdown)
+    // System roles are: Admin, Manager, User
     const roleSelects = screen.getAllByRole('combobox').filter(el =>
-      el.textContent?.includes('Controller') || el.textContent?.includes('Administrator') || el.textContent?.includes('Observer'),
+      el.textContent?.includes('Manager') || el.textContent?.includes('Admin') || el.textContent?.includes('User'),
     )
-    const janeRoleSelect = roleSelects.find(el => el.textContent === 'Controller')
+    const janeRoleSelect = roleSelects.find(el => el.textContent === 'Manager')
     expect(janeRoleSelect).toBeDefined()
 
     await user.click(janeRoleSelect!)
 
-    const evaluatorOption = await screen.findByRole('option', { name: 'Evaluator' })
-    await user.click(evaluatorOption)
+    const userOption = await screen.findByRole('option', { name: 'User' })
+    await user.click(userOption)
 
     await waitFor(() => {
-      expect(userService.changeRole).toHaveBeenCalledWith('2', { role: 'Evaluator' })
+      expect(userService.changeRole).toHaveBeenCalledWith('2', { systemRole: 'User' })
     }, { timeout: 3000 })
   })
 
@@ -255,16 +256,17 @@ describe('UserListPage', () => {
     })
 
     // Find admin's role dropdown
+    // System roles are: Admin, Manager, User
     const roleSelects = screen.getAllByRole('combobox').filter(el =>
-      el.textContent?.includes('Controller') || el.textContent?.includes('Administrator') || el.textContent?.includes('Observer'),
+      el.textContent?.includes('Manager') || el.textContent?.includes('Admin') || el.textContent?.includes('User'),
     )
-    const adminRoleSelect = roleSelects.find(el => el.textContent === 'Administrator')
+    const adminRoleSelect = roleSelects.find(el => el.textContent === 'Admin')
     expect(adminRoleSelect).toBeDefined()
 
     await user.click(adminRoleSelect!)
 
-    const controllerOption = await screen.findByRole('option', { name: 'Controller' })
-    await user.click(controllerOption)
+    const managerOption = await screen.findByRole('option', { name: 'Manager' })
+    await user.click(managerOption)
 
     await waitFor(() => {
       expect(screen.getByText(/assign another administrator first/i)).toBeInTheDocument()
