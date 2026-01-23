@@ -119,7 +119,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
   }
 
   const handleFieldChange = (field: keyof FormState) => (
-    event: React.ChangeEvent<HTMLInputElement>
+    event: React.ChangeEvent<HTMLInputElement>,
   ) => {
     setForm(prev => ({ ...prev, [field]: event.target.value }))
     // Clear field error on change
@@ -325,8 +325,9 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
 
           <Alert severity="info" icon={false}>
             <Typography variant="body2">
-              This user will be created with <strong>User</strong> system role (Observer equivalent).
-              You can assign their exercise role after creation.
+              This user will be created with <strong>User</strong> system role
+              (Observer equivalent). You can assign their exercise role after
+              creation.
             </Typography>
           </Alert>
         </Stack>

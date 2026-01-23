@@ -37,7 +37,9 @@ interface ExerciseParticipantsPageProps {
  * - AC7: Admins can manage participants for any exercise
  * - AC8: Non-Directors/Admins cannot manage participants
  */
-export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({ exerciseId: propExerciseId }) => {
+export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
+  exerciseId: propExerciseId,
+}) => {
   // Support both prop-based (embedded in tabs) and route-based (standalone page) usage
   const params = useParams<{ exerciseId?: string; id?: string }>()
   const exerciseId = propExerciseId ?? params.exerciseId ?? params.id
