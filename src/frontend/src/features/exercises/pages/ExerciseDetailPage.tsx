@@ -117,9 +117,9 @@ export const ExerciseDetailPage = () => {
 
   // Exercise participants (for director display)
   const { participants } = useExerciseParticipants(id ?? '')
-  const director = useMemo(() =>
-    participants.find(p => p.exerciseRole === 'ExerciseDirector'),
-    [participants]
+  const director = useMemo(
+    () => participants.find(p => p.exerciseRole === 'ExerciseDirector'),
+    [participants],
   )
 
   // Set custom breadcrumbs with exercise name
