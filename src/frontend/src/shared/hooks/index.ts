@@ -13,3 +13,12 @@ export { useServiceWorker, type UseServiceWorkerReturn } from './useServiceWorke
 export { useSignalR } from './useSignalR'
 export type { ConnectionState } from './useSignalR'
 export { useUnsavedChangesWarning, type UnsavedChangesOptions } from './useUnsavedChangesWarning'
+export {
+  useFilteredMenu,
+  MENU_SECTION_LABELS,
+  type MenuItem,
+  type MenuSection,
+  type GroupedMenuItems,
+  type FilteredMenuResult,
+  type UseFilteredMenuOptions,
+} from './useFilteredMenu'

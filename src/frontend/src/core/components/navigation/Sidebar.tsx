@@ -3,22 +3,21 @@
  *
  * Collapsible left navigation with:
  * - Open (288px) / Closed (64px) states
- * - Navigation items with icons
+ * - HSEEP role-based menu filtering
+ * - Section headers (CONDUCT, ANALYSIS, SYSTEM)
  * - Active state highlighting
+ * - Disabled state for items requiring exercise context
  * - Mobile drawer variant
  * - localStorage persistence for open/closed state
- * - Feature flag integration for tool visibility
  *
- * Navigation Items:
- * - Home (/)
- * - Exercises (/exercises)
+ * @see docs/features/navigation-shell/S01-updated-sidebar-menu.md
+ * @see docs/features/navigation-shell/S02-role-based-menu-visibility.md
  */
 
-import React from 'react'
+import React, { useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
-  Chip,
   Divider,
   Drawer,
   List,
@@ -33,69 +32,31 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import {
-  faHome,
-  faClipboardList,
-  faChevronLeft,
-  faChevronRight,
-  faGear,
-  faWrench,
-  faFlask,
-} from '@fortawesome/free-solid-svg-icons'
-import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
-import { useFeatureFlags } from '../../../admin'
-import type { FeatureFlags } from '../../../admin'
-import usePermissions from '../../../shared/hooks/usePermissions'
-
-interface NavItem {
-  id: string;
-  label: string;
-  icon: IconDefinition;
-  path: string;
-  section?: 'main' | 'tools' | 'admin';
-  /** Optional feature flag key - if set, item visibility is controlled by the flag */
-  featureFlagKey?: keyof FeatureFlags;
-}
-
-const navigationItems: NavItem[] = [
-  { id: 'home', label: 'Home', icon: faHome, path: '/', section: 'main' },
-  {
-    id: 'exercises',
-    label: 'Exercises',
-    icon: faClipboardList,
-    path: '/exercises',
-    section: 'main',
-  },
-  {
-    id: 'example-tool-1',
-    label: 'Example Tool 1',
-    icon: faWrench,
-    path: '/example-tool-1',
-    section: 'tools',
-    featureFlagKey: 'exampleTool1',
-  },
-  {
-    id: 'example-tool-2',
-    label: 'Example Tool 2',
-    icon: faFlask,
-    path: '/example-tool-2',
-    section: 'tools',
-    featureFlagKey: 'exampleTool2',
-  },
-  {
-    id: 'admin',
-    label: 'Admin',
-    icon: faGear,
-    path: '/admin',
-    section: 'admin',
-  },
-]
+  useFilteredMenu,
+  MENU_SECTION_LABELS,
+  type MenuItem,
+  type MenuSection,
+} from '../../../shared/hooks'
 
 interface SidebarProps {
   open: boolean;
   onToggle: () => void;
   mobileOpen: boolean;
   onMobileClose: () => void;
+}
+
+/**
+ * Extract exercise ID from the current URL path
+ * Matches patterns like /exercises/:id/control, /exercises/:id/queue, etc.
+ */
+function extractExerciseId(pathname: string): string | null {
+  const match = pathname.match(/^\/exercises\/([^/]+)(?:\/|$)/)
+  if (match && match[1] && match[1] !== 'new') {
+    return match[1]
+  }
+  return null
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -108,48 +69,109 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const navigate = useNavigate()
   const location = useLocation()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
-  const { isVisible, isComingSoon } = useFeatureFlags()
-  const { canManage } = usePermissions()
+
+  // Extract exercise ID from current URL for context-aware navigation
+  const currentExerciseId = useMemo(
+    () => extractExerciseId(location.pathname),
+    [location.pathname],
+  )
+
+  // Get filtered menu items based on user role and exercise context
+  const {
+    groupedBySection,
+    visibleSections,
+    isItemDisabled,
+    getDisabledTooltip,
+  } = useFilteredMenu({ exerciseId: currentExerciseId })
 
   const drawerWidth = open
     ? theme.cssStyling.drawerOpenWidth
     : theme.cssStyling.drawerClosedWidth
 
   /**
-   * Filter nav items based on feature flags
-   * - Items without featureFlagKey are always shown
-   * - Items with featureFlagKey are shown only if flag is not "Hidden"
+   * Build the actual path for an item, replacing :id with current exercise ID
    */
-  const getVisibleItems = (items: NavItem[]) => {
-    return items.filter(item => {
-      if (!item.featureFlagKey) return true
-      return isVisible(item.featureFlagKey)
-    })
+  const buildPath = (item: MenuItem): string => {
+    if (item.path.includes(':id') && currentExerciseId) {
+      return item.path.replace(':id', currentExerciseId)
+    }
+    return item.path
   }
 
-  /**
-   * Check if a nav item is in "Coming Soon" state
-   */
-  const isItemComingSoon = (item: NavItem): boolean => {
-    if (!item.featureFlagKey) return false
-    return isComingSoon(item.featureFlagKey)
-  }
+  const handleNavigation = (item: MenuItem) => {
+    // Don't navigate if item is disabled
+    if (isItemDisabled(item.id)) return
 
-  const handleNavigation = (path: string, item: NavItem) => {
-    // Don't navigate if item is coming soon
-    if (isItemComingSoon(item)) return
-
+    const path = buildPath(item)
     navigate(path)
     if (isMobile) {
       onMobileClose()
     }
   }
 
-  const isActive = (path: string): boolean => {
+  /**
+   * Check if a menu item is currently active
+   */
+  const isActive = (item: MenuItem): boolean => {
+    const path = buildPath(item)
     if (path === '/') {
       return location.pathname === '/'
     }
+    // For exercise-scoped routes, check exact match or prefix
+    if (item.requiresExerciseContext && currentExerciseId) {
+      return location.pathname.startsWith(path)
+    }
     return location.pathname.startsWith(path)
+  }
+
+  /**
+   * Render a section with its items
+   */
+  const renderSection = (section: MenuSection, items: MenuItem[], isLast: boolean) => {
+    if (items.length === 0) return null
+
+    return (
+      <React.Fragment key={section}>
+        {/* Section Header (only when sidebar is open) */}
+        {open && (
+          <Typography
+            variant="caption"
+            data-testid={`section-${section}`}
+            sx={{
+              px: 2,
+              pt: section === 'conduct' ? 1 : 2,
+              pb: 0.5,
+              display: 'block',
+              color: theme.palette.text.secondary,
+              fontWeight: 'bold',
+              textTransform: 'uppercase',
+              letterSpacing: 1,
+              fontSize: '0.7rem',
+            }}
+          >
+            {MENU_SECTION_LABELS[section]}
+          </Typography>
+        )}
+
+        {/* Section Items */}
+        {items.map(item => (
+          <NavItemButton
+            key={item.id}
+            item={item}
+            isOpen={open}
+            isActive={isActive(item)}
+            isDisabled={isItemDisabled(item.id)}
+            disabledTooltip={getDisabledTooltip(item.id)}
+            onClick={() => handleNavigation(item)}
+          />
+        ))}
+
+        {/* Divider between sections (except after last) */}
+        {!isLast && open && (
+          <Divider sx={{ mt: 1 }} />
+        )}
+      </React.Fragment>
+    )
   }
 
   // Sidebar content shared between desktop and mobile
@@ -190,74 +212,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {/* Navigation List */}
       <List sx={{ flex: 1, py: 1, display: 'flex', flexDirection: 'column' }}>
-        {/* Main Section */}
-        {getVisibleItems(
-          navigationItems.filter(item => item.section === 'main'),
-        ).map(item => (
-          <NavItemButton
-            key={item.id}
-            item={item}
-            isOpen={open}
-            isActive={isActive(item.path)}
-            isComingSoon={isItemComingSoon(item)}
-            onClick={() => handleNavigation(item.path, item)}
-          />
-        ))}
-
-        {/* Tools Section */}
-        {open &&
-          getVisibleItems(
-            navigationItems.filter(item => item.section === 'tools'),
-          ).length > 0 && (
-          <Typography
-            variant="caption"
-            data-testid="tools-section-label"
-            sx={{
-              px: 2,
-              py: 1,
-              display: 'block',
-              color: theme.palette.text.secondary,
-              fontWeight: 'bold',
-              textTransform: 'uppercase',
-              letterSpacing: 1,
-            }}
-          >
-            Tools
-          </Typography>
+        {/* Render visible sections in order */}
+        {visibleSections.map((section, index) =>
+          renderSection(
+            section,
+            groupedBySection[section],
+            index === visibleSections.length - 1,
+          ),
         )}
-        {getVisibleItems(
-          navigationItems.filter(item => item.section === 'tools'),
-        ).map(item => (
-          <NavItemButton
-            key={item.id}
-            item={item}
-            isOpen={open}
-            isActive={isActive(item.path)}
-            isComingSoon={isItemComingSoon(item)}
-            onClick={() => handleNavigation(item.path, item)}
-          />
-        ))}
 
-        {/* Spacer to push admin to bottom */}
-        <Box sx={{ flex: 1 }} />
-
-        {/* Admin Section - at bottom, only for manage role */}
-        {canManage && (
-          <>
-            <Divider sx={{ my: 1 }} />
-            {getVisibleItems(
-              navigationItems.filter(item => item.section === 'admin'),
-            ).map(item => (
-              <NavItemButton
-                key={item.id}
-                item={item}
-                isOpen={open}
-                isActive={isActive(item.path)}
-                isComingSoon={isItemComingSoon(item)}
-                onClick={() => handleNavigation(item.path, item)}
-              />
-            ))}
-          </>
+        {/* Spacer to push system section to bottom if it exists */}
+        {visibleSections.includes('system') && visibleSections.length > 1 && (
+          <Box sx={{ flex: 1 }} />
         )}
       </List>
     </Box>
@@ -317,10 +283,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
  * Navigation Item Button
  */
 interface NavItemButtonProps {
-  item: NavItem;
+  item: MenuItem;
   isOpen: boolean;
   isActive: boolean;
-  isComingSoon?: boolean;
+  isDisabled?: boolean;
+  disabledTooltip?: string;
   onClick: () => void;
 }
 
@@ -328,60 +295,65 @@ const NavItemButton: React.FC<NavItemButtonProps> = ({
   item,
   isOpen,
   isActive,
-  isComingSoon = false,
+  isDisabled = false,
+  disabledTooltip,
   onClick,
 }) => {
   const theme = useTheme()
 
   // Determine colors based on state
   const getIconColor = () => {
-    if (isComingSoon) return theme.palette.text.disabled
+    if (isDisabled) return theme.palette.text.disabled
     if (isActive) return theme.palette.buttonPrimary.main
     return theme.palette.text.secondary
   }
 
   const getTextColor = () => {
-    if (isComingSoon) return theme.palette.text.disabled
+    if (isDisabled) return theme.palette.text.disabled
     if (isActive) return theme.palette.buttonPrimary.main
     return theme.palette.text.primary
   }
 
-  const tooltipTitle = isComingSoon
-    ? `${item.label} (Coming Soon)`
-    : item.label
+  // Tooltip shows label when collapsed, or disabled reason when disabled
+  const tooltipTitle = isDisabled && disabledTooltip
+    ? disabledTooltip
+    : isOpen
+      ? ''
+      : item.label
 
   const button = (
     <ListItem disablePadding sx={{ display: 'block' }}>
       <ListItemButton
         onClick={onClick}
-        disabled={isComingSoon}
+        disabled={isDisabled}
         data-testid={`nav-item-${item.id}`}
-        data-coming-soon={isComingSoon}
+        data-disabled={isDisabled}
         role="button"
         sx={{
           minHeight: 48,
           justifyContent: isOpen ? 'initial' : 'center',
           px: 2.5,
           backgroundColor:
-            isActive && !isComingSoon
+            isActive && !isDisabled
               ? theme.palette.grid.light
               : 'transparent',
           borderLeft:
-            isActive && !isComingSoon
+            isActive && !isDisabled
               ? `3px solid ${theme.palette.buttonPrimary.main}`
               : '3px solid transparent',
-          opacity: isComingSoon ? 0.7 : 1,
-          cursor: isComingSoon ? 'not-allowed' : 'pointer',
+          opacity: isDisabled ? 0.6 : 1,
+          cursor: isDisabled ? 'not-allowed' : 'pointer',
           '&:hover': {
             backgroundColor:
-              isActive && !isComingSoon
+              isActive && !isDisabled
                 ? theme.palette.grid.main
-                : isComingSoon
+                : isDisabled
                   ? 'transparent'
                   : theme.palette.action.hover,
           },
           '&.Mui-disabled': {
-            opacity: 0.7,
+            opacity: 0.6,
+            pointerEvents: 'auto', // Allow hover for tooltip
           },
         }}
       >
@@ -396,35 +368,20 @@ const NavItemButton: React.FC<NavItemButtonProps> = ({
           <FontAwesomeIcon icon={item.icon} />
         </ListItemIcon>
         {isOpen && (
-          <Box sx={{ display: 'flex', alignItems: 'center', flex: 1, gap: 1 }}>
-            <ListItemText
-              primary={item.label}
-              primaryTypographyProps={{
-                fontWeight: isActive && !isComingSoon ? 'bold' : 'normal',
-                color: getTextColor(),
-              }}
-            />
-            {isComingSoon && (
-              <Chip
-                label="Soon"
-                size="small"
-                data-testid={`nav-item-${item.id}-coming-soon`}
-                sx={{
-                  height: 20,
-                  fontSize: '0.65rem',
-                  backgroundColor: theme.palette.warning.light,
-                  color: theme.palette.warning.contrastText,
-                }}
-              />
-            )}
-          </Box>
+          <ListItemText
+            primary={item.label}
+            primaryTypographyProps={{
+              fontWeight: isActive && !isDisabled ? 'bold' : 'normal',
+              color: getTextColor(),
+            }}
+          />
         )}
       </ListItemButton>
     </ListItem>
   )
 
-  // Show tooltip when sidebar is collapsed
-  if (!isOpen) {
+  // Show tooltip when sidebar is collapsed OR when item is disabled
+  if (!isOpen || (isDisabled && disabledTooltip)) {
     return (
       <Tooltip title={tooltipTitle} placement="right">
         {button}
