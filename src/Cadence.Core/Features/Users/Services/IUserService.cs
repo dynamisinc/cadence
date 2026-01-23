@@ -32,11 +32,11 @@ public interface IUserService
     /// <summary>
     /// Create a new user account.
     /// Used for inline user creation from exercise participants dialog.
-    /// Non-admin creators can only create users with User (Observer) role.
+    /// Per story S25, all inline-created users receive User (Observer) role.
     /// </summary>
     /// <param name="request">User creation request with display name, email, and password.</param>
     /// <param name="createdById">ID of the user creating this account.</param>
-    /// <param name="isCreatorAdmin">Whether the creator is an admin (can assign any role).</param>
+    /// <param name="isCreatorAdmin">Reserved for future use. Currently all users are created with User role per S25 scope.</param>
     /// <returns>Created user DTO.</returns>
     /// <exception cref="InvalidOperationException">Email already exists (409 Conflict).</exception>
     /// <exception cref="ArgumentException">Invalid request data or password requirements not met.</exception>

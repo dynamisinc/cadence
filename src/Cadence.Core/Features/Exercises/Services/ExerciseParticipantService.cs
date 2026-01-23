@@ -87,8 +87,10 @@ public class ExerciseParticipantService : IExerciseParticipantService
             return participant.Role.ToString();
         }
 
-        // TODO: Fall back to global role once User.GlobalRole is available
-        // For now, default to Observer
+        // User is not a participant in this exercise.
+        // Note: SystemRole (Admin/Manager/User) is for system-level permissions,
+        // not exercise-specific roles. Non-participants default to Observer for
+        // exercise context, but actual access is controlled by authorization handlers.
         return nameof(ExerciseRole.Observer);
     }
 

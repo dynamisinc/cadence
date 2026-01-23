@@ -229,6 +229,23 @@ public class UserService : IUserService
         user.SystemRole = systemRole;
 
         var result = await _userManager.UpdateAsync(user);
+
+        // Re-check admin count after update to catch race conditions
+        // If we just demoted someone and there are now 0 admins, revert the change
+        if (oldRole == nameof(SystemRole.Admin) && systemRole != SystemRole.Admin)
+        {
+            var remainingAdmins = await _userManager.Users
+                .Where(u => u.SystemRole == SystemRole.Admin)
+                .CountAsync();
+
+            if (remainingAdmins == 0)
+            {
+                // Revert the change
+                user.SystemRole = SystemRole.Admin;
+                await _userManager.UpdateAsync(user);
+                throw new InvalidOperationException("Cannot remove the last Admin. Assign another Admin first.");
+            }
+        }
         if (!result.Succeeded)
         {
             var errors = string.Join(", ", result.Errors.Select(e => e.Description));

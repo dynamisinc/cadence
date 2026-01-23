@@ -6,6 +6,14 @@ namespace Cadence.Core.Models.Entities;
 /// Refresh token entity for JWT authentication.
 /// Stores hashed tokens for secure session management.
 /// </summary>
+/// <remarks>
+/// This entity implements IHasTimestamps but does NOT inherit from BaseEntity.
+/// This is intentional because:
+/// 1. Refresh tokens are system/infrastructure entities, not user-created domain entities
+/// 2. They don't require soft delete (tokens are revoked, not deleted)
+/// 3. They don't need CreatedBy/ModifiedBy audit fields (the UserId is the owner)
+/// 4. They have a different lifecycle than domain entities (short-lived, auto-expire)
+/// </remarks>
 public class RefreshToken : IHasTimestamps
 {
     /// <summary>

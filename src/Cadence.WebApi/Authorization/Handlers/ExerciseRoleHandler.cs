@@ -48,6 +48,12 @@ public class ExerciseRoleHandler : AuthorizationHandler<ExerciseRoleRequirement>
         }
     }
 
+    /// <summary>
+    /// Extracts exercise ID from route values.
+    /// Note: Route constraints ({id:guid}) validate GUID format before this handler runs,
+    /// so invalid GUIDs are caught earlier with 404. This null return handles edge cases
+    /// where routes don't have the constraint or the parameter is missing.
+    /// </summary>
     private Guid? GetExerciseIdFromRoute()
     {
         var httpContext = _httpContextAccessor.HttpContext;

@@ -68,12 +68,12 @@ public static class DevelopmentDataSeeder
         var demoOrg = CreateOrganization();
         context.Organizations.Add(demoOrg);
 
-        // 2. TODO: Create Demo ApplicationUsers via UserManager
-        // NOTE: The deprecated User table is no longer seeded.
-        // ApplicationUsers should be created through the authentication system or via UserManager.
-        // For development, register users through the /auth/register endpoint or use a separate seeding script.
-        // var users = CreateUsers();
-        // context.Users.AddRange(users);
+        // 2. ApplicationUsers are NOT seeded here (intentional design decision)
+        // ApplicationUsers require password hashing via UserManager, which needs DI.
+        // For development, create users through:
+        //   - POST /api/auth/register endpoint
+        //   - A separate startup seeder that injects UserManager (see DevelopmentUserSeeder)
+        // Demo user credentials are documented in docs/features/authentication/
 
         // 3. Create Exercises (without ActiveMselId to avoid circular dependency)
         var hurricaneTtx = CreateHurricaneTtxExercise(now);
@@ -116,12 +116,11 @@ public static class DevelopmentDataSeeder
         context.Injects.AddRange(hurricaneInjects);
         context.Injects.AddRange(floodInjects);
 
-        // 9. Create Participant Assignments
-        // TODO: Seed ExerciseParticipants once ApplicationUsers are seeded
-        // var hurricaneParticipants = CreateHurricaneParticipants(now);
-        // var floodParticipants = CreateFloodParticipants(now);
-        // context.ExerciseParticipants.AddRange(hurricaneParticipants);
-        // context.ExerciseParticipants.AddRange(floodParticipants);
+        // 9. ExerciseParticipants are NOT seeded here (requires ApplicationUsers)
+        // Participants link ApplicationUsers to exercises with roles.
+        // After registering users, assign them to exercises via the UI or API.
+        // The CreateHurricaneParticipants/CreateFloodParticipants methods below
+        // are kept for reference and can be enabled once users are seeded.
 
         await context.SaveChangesAsync();
     }
