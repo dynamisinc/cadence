@@ -11,7 +11,7 @@ const mockUser: UserDto = {
   id: '123',
   email: 'jane@example.com',
   displayName: 'Jane Smith',
-  role: 'Controller',
+  systemRole: 'User',
   status: 'Active',
   lastLoginAt: '2025-01-20T14:30:00Z',
   createdAt: '2025-01-01T09:00:00Z',

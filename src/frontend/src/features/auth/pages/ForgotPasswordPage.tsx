@@ -10,7 +10,8 @@
  * @module features/auth
  * @see authentication/S24-password-reset.md
  */
-import { FC, useState, FormEvent } from 'react'
+import { useState } from 'react'
+import type { FC, FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import {
   Stack,

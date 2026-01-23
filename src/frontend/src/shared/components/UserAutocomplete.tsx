@@ -8,7 +8,8 @@
  * @module shared/components
  */
 
-import { FC, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import type { FC } from 'react'
 import {
   Autocomplete,
   TextField,

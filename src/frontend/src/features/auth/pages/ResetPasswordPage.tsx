@@ -12,7 +12,8 @@
  * @module features/auth
  * @see authentication/S24-password-reset.md
  */
-import { FC, useState, FormEvent, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { FC, FormEvent } from 'react'
 import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import {
   Stack,

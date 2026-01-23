@@ -9,7 +9,7 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act, waitFor } from '@testing-library/react'
-import { ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import { BrowserRouter } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { AuthProvider, useAuth } from './AuthContext'
@@ -21,10 +21,10 @@ vi.mock('../features/auth/services/authService', () => ({
     login: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
-    refresh: vi.fn(),
+    refreshToken: vi.fn(),
     getAvailableMethods: vi.fn(),
     requestPasswordReset: vi.fn(),
-    resetPassword: vi.fn(),
+    completePasswordReset: vi.fn(),
   },
 }))
 
@@ -60,9 +60,11 @@ const createMockToken = (payload: Record<string, unknown>, expiresIn = 900) => {
 describe('AuthContext', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    // Default mock for refresh (used on initial load)
-    vi.mocked(authService.refresh).mockResolvedValue({
+    // Default mock for refreshToken (used on initial load)
+    vi.mocked(authService.refreshToken).mockResolvedValue({
       isSuccess: false,
+      expiresIn: 0,
+      tokenType: 'Bearer',
       error: { code: 'invalid_token', message: 'No refresh token' },
     })
   })
@@ -103,6 +105,7 @@ describe('AuthContext', () => {
         isSuccess: true,
         accessToken: mockToken,
         expiresIn: 900,
+        tokenType: 'Bearer',
         userId: 'user-123',
         email: 'test@example.com',
         displayName: 'Test User',
@@ -140,6 +143,7 @@ describe('AuthContext', () => {
         isSuccess: true,
         accessToken: mockToken,
         expiresIn: 900,
+        tokenType: 'Bearer',
         userId: 'user-123',
         email: 'test@example.com',
         displayName: 'Test User',
@@ -172,6 +176,8 @@ describe('AuthContext', () => {
     it('returns error on failed login', async () => {
       vi.mocked(authService.login).mockResolvedValue({
         isSuccess: false,
+        expiresIn: 0,
+        tokenType: 'Bearer',
         error: {
           code: 'invalid_credentials',
           message: 'Invalid email or password',
@@ -219,6 +225,7 @@ describe('AuthContext', () => {
         isSuccess: true,
         accessToken: mockToken,
         expiresIn: 900,
+        tokenType: 'Bearer',
         userId: 'new-user-123',
         email: 'newuser@example.com',
         displayName: 'New User',
@@ -260,6 +267,7 @@ describe('AuthContext', () => {
         isSuccess: true,
         accessToken: mockToken,
         expiresIn: 900,
+        tokenType: 'Bearer',
         userId: 'new-user-123',
         email: 'newuser@example.com',
         displayName: 'New User',
@@ -301,6 +309,7 @@ describe('AuthContext', () => {
         isSuccess: true,
         accessToken: mockToken,
         expiresIn: 900,
+        tokenType: 'Bearer',
         userId: 'user-123',
         email: 'test@example.com',
         displayName: 'Test User',
@@ -346,7 +355,7 @@ describe('AuthContext', () => {
       renderHook(() => useAuth(), { wrapper: createWrapper() })
 
       await waitFor(() => {
-        expect(authService.refresh).toHaveBeenCalled()
+        expect(authService.refreshToken).toHaveBeenCalled()
       })
     })
 
@@ -359,10 +368,11 @@ describe('AuthContext', () => {
         role: 'Observer',
       })
 
-      vi.mocked(authService.refresh).mockResolvedValue({
+      vi.mocked(authService.refreshToken).mockResolvedValue({
         isSuccess: true,
         accessToken: mockToken,
         expiresIn: 900,
+        tokenType: 'Bearer',
         userId: 'user-123',
         email: 'test@example.com',
         displayName: 'Test User',

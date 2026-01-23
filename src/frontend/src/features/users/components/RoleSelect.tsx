@@ -8,7 +8,7 @@
  * @module features/users/components
  * @see authentication/S13 Global Role Assignment
  */
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Select, MenuItem } from '@mui/material'
 import { USER_ROLES } from '../types'
 

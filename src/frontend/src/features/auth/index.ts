@@ -12,10 +12,10 @@ export { ResetPasswordPage } from './pages/ResetPasswordPage'
 
 // Components
 export { AuthLayout } from './components/AuthLayout'
-export { PasswordRequirements } from './components/PasswordRequirements'
 export { EffectiveRoleBadge } from './components/EffectiveRoleBadge'
 export { PermissionGate } from './components/PermissionGate'
 export { RoleExplanationTooltip } from './components/RoleExplanationTooltip'
+export { PasswordRequirements } from './components/PasswordRequirements'
 
 // Hooks
 export { useExerciseRole } from './hooks/useExerciseRole'
@@ -37,7 +37,7 @@ export type {
   AuthMethod,
   PasswordResetRequest,
   CompletePasswordResetRequest,
-  PasswordRequirements,
+  PasswordRequirements as PasswordRequirementsType,
 } from './types'
 
 export { validatePassword, isPasswordValid } from './types'

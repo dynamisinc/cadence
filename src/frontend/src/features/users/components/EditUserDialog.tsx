@@ -7,7 +7,8 @@
  * @module features/users/components
  * @see authentication/S11 Edit User Details
  */
-import { FC, useState } from 'react'
+import { useState } from 'react'
+import type { FC } from 'react'
 import { Dialog, DialogTitle, DialogContent, DialogActions, Alert, Stack } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSave, faXmark } from '@fortawesome/free-solid-svg-icons'

@@ -6,7 +6,7 @@
  *
  * @module features/auth
  */
-import { FC, ReactNode } from 'react'
+import type { FC, ReactNode } from 'react'
 import { Tooltip, Box, Typography } from '@mui/material'
 import { useExerciseRole } from '../hooks/useExerciseRole'
 import { getRoleDisplayName, getRoleDescription } from '../utils/permissions'
@@ -57,9 +57,7 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
       {systemRole && (
         <Typography variant="caption" sx={{ display: 'block', mb: 1, color: 'grey.300' }}>
           {exerciseRole
-            ? exerciseRole !== systemRole
-              ? `(overrides System Role: ${systemRole})`
-              : '(from exercise assignment)'
+            ? `(from exercise assignment - System Role: ${systemRole})`
             : `(from System Role: ${systemRole})`}
         </Typography>
       )}

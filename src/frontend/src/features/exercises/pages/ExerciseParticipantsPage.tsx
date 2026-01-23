@@ -10,7 +10,8 @@
  * @module features/exercises/pages
  */
 
-import { FC, useState, useCallback } from 'react'
+import { useState, useCallback } from 'react'
+import type { FC } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Alert } from '@mui/material'
 import { ParticipantList } from '../components/ParticipantList'

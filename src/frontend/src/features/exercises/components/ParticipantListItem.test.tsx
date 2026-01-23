@@ -29,9 +29,9 @@ describe('ParticipantListItem', () => {
 
   interface RenderProps {
     participant: ExerciseParticipantDto
-    canEdit?: boolean
-    onRoleChange?: (userId: string, newRole: string) => void
-    onRemove?: (userId: string, displayName: string) => void
+    canEdit: boolean
+    onRoleChange: (userId: string, newRole: string) => void
+    onRemove: (userId: string, displayName: string) => void
   }
 
   const renderItem = (props: RenderProps) => {

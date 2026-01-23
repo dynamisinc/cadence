@@ -10,7 +10,7 @@ import {
   getRoleDescription,
   getRoleColor,
 } from './permissions'
-import type { ExerciseRole } from '../../../types'
+import type { ExerciseRole } from '../constants/rolePermissions'
 
 describe('hasPermission', () => {
   it('grants view_exercise to all roles', () => {

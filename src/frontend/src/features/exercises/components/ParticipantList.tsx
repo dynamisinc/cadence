@@ -7,7 +7,7 @@
  * @module features/exercises/components
  */
 
-import { FC } from 'react'
+import type { FC } from 'react'
 import {
   Box,
   Typography,

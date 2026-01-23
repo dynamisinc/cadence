@@ -14,7 +14,8 @@
  * @see authentication/S04-login-form.md
  * @see authentication/S06-failed-login-handling.md
  */
-import { FC, useState, FormEvent, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { FC, FormEvent } from 'react'
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import {
   Stack,

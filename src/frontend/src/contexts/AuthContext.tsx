@@ -14,7 +14,8 @@
  * @see docs/features/authentication/S07-token-refresh.md
  * @see docs/features/authentication/S08-expiration-handling.md
  */
-import { createContext, useContext, FC, ReactNode, useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
+import { createContext, useContext, useState, useEffect, useLayoutEffect, useCallback, useRef } from 'react'
+import type { FC, ReactNode } from 'react'
 import type {
   UserInfo,
   LoginRequest,
@@ -86,7 +87,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [_tokenExpiry, setTokenExpiry] = useState<number | null>(null)
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null)
+  const refreshTimerRef = useRef<number | null>(null)
 
   /**
    * Schedule token refresh 2 minutes before expiry (S07)

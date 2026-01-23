@@ -17,16 +17,13 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { ProfileMenu } from '../ProfileMenu'
 import { ConnectionStatusIndicator } from '../ConnectionStatusIndicator'
-import { PermissionRole } from '../../../types'
 
 interface AppHeaderProps {
   onMobileMenuToggle: () => void;
-  onProfileChange?: (role: PermissionRole) => void;
 }
 
 export const AppHeader: React.FC<AppHeaderProps> = ({
   onMobileMenuToggle,
-  onProfileChange,
 }) => {
   const theme = useTheme()
 
@@ -98,7 +95,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
 
         {/* Profile Menu */}
         <Box sx={{ ml: 'auto' }}>
-          <ProfileMenu onProfileChange={onProfileChange} />
+          <ProfileMenu />
         </Box>
       </Toolbar>
     </AppBar>

@@ -14,7 +14,8 @@
  * @see authentication/S02-password-requirements.md
  * @see authentication/S03-first-user-admin.md
  */
-import { FC, useState, FormEvent, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { FC, FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   Stack,

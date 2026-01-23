@@ -12,10 +12,10 @@ vi.mock('../services/authService', () => ({
     login: vi.fn(),
     register: vi.fn(),
     logout: vi.fn(),
-    refresh: vi.fn(),
+    refreshToken: vi.fn(),
     getAvailableMethods: vi.fn(),
     requestPasswordReset: vi.fn(),
-    resetPassword: vi.fn(),
+    completePasswordReset: vi.fn(),
   },
 }))
 
@@ -28,8 +28,10 @@ Object.defineProperty(window.navigator, 'onLine', {
 describe('RegisterPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
-    vi.mocked(authService.refresh).mockResolvedValue({
+    vi.mocked(authService.refreshToken).mockResolvedValue({
       isSuccess: false,
+      expiresIn: 0,
+      tokenType: 'Bearer',
       error: { code: 'invalid_token', message: 'No token' },
     })
   })
@@ -215,6 +217,8 @@ describe('RegisterPage', () => {
   it('shows error message when registration fails', async () => {
     vi.mocked(authService.register).mockResolvedValue({
       isSuccess: false,
+      expiresIn: 0,
+      tokenType: 'Bearer',
       error: {
         code: 'duplicate_email',
         message: 'Email is already registered',

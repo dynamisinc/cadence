@@ -10,7 +10,7 @@
  * @see authentication/S01-registration-form.md
  * @see authentication/S24-password-reset.md
  */
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Box, Typography, useTheme } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faXmark } from '@fortawesome/free-solid-svg-icons'

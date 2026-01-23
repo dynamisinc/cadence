@@ -18,7 +18,8 @@
  * @see authentication/S12 Deactivate User Account
  * @see authentication/S13 Global Role Assignment
  */
-import { FC, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { FC } from 'react'
 import {
   Box,
   Typography,

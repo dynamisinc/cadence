@@ -8,6 +8,7 @@ import { useExerciseParticipants } from './useExerciseParticipants'
 import { participantService } from '../services/participantService'
 import { createTestWrapper } from '../../../test/testWrapper'
 import { toast } from 'react-toastify'
+import type { ExerciseParticipantDto } from '../types'
 
 vi.mock('../services/participantService')
 vi.mock('react-toastify', () => ({
@@ -75,8 +76,8 @@ describe('useExerciseParticipants', () => {
 
   describe('addParticipant', () => {
     it('adds participant and shows success toast', async () => {
-      const mockParticipants = []
-      const newParticipant = {
+      const mockParticipants: ExerciseParticipantDto[] = []
+      const newParticipant: ExerciseParticipantDto = {
         participantId: 'p1',
         userId: 'u1',
         displayName: 'John Doe',

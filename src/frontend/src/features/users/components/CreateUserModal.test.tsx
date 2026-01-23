@@ -141,6 +141,8 @@ describe('CreateUserModal', () => {
       displayName: 'John Doe',
       systemRole: 'User',
       status: 'Active',
+      lastLoginAt: null,
+      createdAt: '2025-01-23T10:00:00Z',
     }
     vi.mocked(userService.createUser).mockResolvedValueOnce(mockUser)
 
@@ -195,6 +197,8 @@ describe('CreateUserModal', () => {
       displayName: 'John Doe',
       systemRole: 'User',
       status: 'Active',
+      lastLoginAt: null,
+      createdAt: '2025-01-23T10:00:00Z',
     }
     vi.mocked(userService.createUser).mockResolvedValueOnce(mockUser)
 

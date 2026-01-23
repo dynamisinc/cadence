@@ -9,7 +9,8 @@
  * @see authentication/S25-inline-user-creation.md
  */
 
-import { FC, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { FC } from 'react'
 import {
   Dialog,
   DialogTitle,

@@ -274,7 +274,6 @@ describe('UserListPage', () => {
   })
 
   it('supports pagination', async () => {
-    const _user = userEvent.setup()
     render(<UserListPage />)
 
     await waitFor(() => {

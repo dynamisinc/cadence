@@ -6,7 +6,7 @@
  *
  * @module features/auth
  */
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Chip, Tooltip, Skeleton, Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShield } from '@fortawesome/free-solid-svg-icons'

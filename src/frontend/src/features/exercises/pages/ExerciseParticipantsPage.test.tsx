@@ -77,8 +77,13 @@ describe('ExerciseParticipantsPage', () => {
     vi.mocked(useExerciseParticipants).mockReturnValue(mockHook)
     vi.mocked(usePermissions).mockReturnValue({
       canManage: true,
-      canContribute: true,
+      canEdit: true,
       canView: true,
+      canDelete: true,
+      canFireInjects: true,
+      role: 'Manage' as any,
+      hasRole: vi.fn(() => true),
+      isRole: vi.fn(() => false),
     })
   })
 
@@ -98,7 +103,12 @@ describe('ExerciseParticipantsPage', () => {
   it('shows add button for users with manage permission', () => {
     vi.mocked(usePermissions).mockReturnValue({
       canManage: true,
-      canContribute: false,
+      canEdit: false,
+      canDelete: false,
+      canFireInjects: false,
+      role: 'Readonly' as any,
+      hasRole: vi.fn(() => false),
+      isRole: vi.fn(() => false),
       canView: true,
     })
 
@@ -110,7 +120,12 @@ describe('ExerciseParticipantsPage', () => {
   it('hides add button for users without manage permission', () => {
     vi.mocked(usePermissions).mockReturnValue({
       canManage: false,
-      canContribute: true,
+      canEdit: true,
+      canDelete: true,
+      canFireInjects: true,
+      role: 'Manage' as any,
+      hasRole: vi.fn(() => true),
+      isRole: vi.fn(() => false),
       canView: true,
     })
 
