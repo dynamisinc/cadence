@@ -222,7 +222,7 @@ export const ExerciseForm = ({
           render={({ field }) => (
             <UserAutocomplete
               value={selectedDirector}
-              onChange={(user) => {
+              onChange={user => {
                 setSelectedDirector(user)
                 field.onChange(user?.id || '')
                 setValue('directorId', user?.id || '', { shouldDirty: true })

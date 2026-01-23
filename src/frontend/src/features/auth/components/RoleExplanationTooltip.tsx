@@ -6,11 +6,11 @@
  *
  * @module features/auth
  */
-import { FC, ReactNode } from 'react';
-import { Tooltip, Box, Typography } from '@mui/material';
-import { useExerciseRole } from '../hooks/useExerciseRole';
-import { getRoleDisplayName, getRoleDescription } from '../utils/permissions';
-import { ROLE_PERMISSIONS } from '../constants/rolePermissions';
+import { FC, ReactNode } from 'react'
+import { Tooltip, Box, Typography } from '@mui/material'
+import { useExerciseRole } from '../hooks/useExerciseRole'
+import { getRoleDisplayName, getRoleDescription } from '../utils/permissions'
+import { ROLE_PERMISSIONS } from '../constants/rolePermissions'
 
 export interface RoleExplanationTooltipProps {
   /** Exercise ID */
@@ -36,15 +36,15 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
   children,
   showPermissions = false,
 }) => {
-  const { effectiveRole, systemRole, exerciseRole, isLoading } = useExerciseRole(exerciseId);
+  const { effectiveRole, systemRole, exerciseRole, isLoading } = useExerciseRole(exerciseId)
 
   if (isLoading) {
-    return <>{children}</>;
+    return <>{children}</>
   }
 
-  const roleName = getRoleDisplayName(effectiveRole);
-  const roleDesc = getRoleDescription(effectiveRole);
-  const permissions = ROLE_PERMISSIONS[effectiveRole] || [];
+  const roleName = getRoleDisplayName(effectiveRole)
+  const roleDesc = getRoleDescription(effectiveRole)
+  const permissions = ROLE_PERMISSIONS[effectiveRole] || []
 
   // Build tooltip content
   const tooltipContent = (
@@ -59,7 +59,7 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
           {exerciseRole
             ? exerciseRole !== systemRole
               ? `(overrides System Role: ${systemRole})`
-              : `(from exercise assignment)`
+              : '(from exercise assignment)'
             : `(from System Role: ${systemRole})`}
         </Typography>
       )}
@@ -75,7 +75,7 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
             You can:
           </Typography>
           <Box component="ul" sx={{ m: 0, pl: 2 }}>
-            {permissions.map((perm) => (
+            {permissions.map(perm => (
               <Typography
                 key={perm}
                 component="li"
@@ -89,7 +89,7 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
         </Box>
       )}
     </Box>
-  );
+  )
 
   return (
     <Tooltip title={tooltipContent} arrow placement="bottom">
@@ -97,8 +97,8 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
         {children}
       </Box>
     </Tooltip>
-  );
-};
+  )
+}
 
 /**
  * Format permission name for display
@@ -106,6 +106,6 @@ export const RoleExplanationTooltip: FC<RoleExplanationTooltipProps> = ({
 function formatPermission(permission: string): string {
   return permission
     .split('_')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(' ')
 }

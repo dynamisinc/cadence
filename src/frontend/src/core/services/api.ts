@@ -16,9 +16,9 @@
  *
  * @module core/services
  */
-import axios, { type AxiosError } from 'axios';
+import axios, { type AxiosError } from 'axios'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071'
 
 /**
  * Main axios instance for API requests
@@ -30,21 +30,21 @@ export const apiClient = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 /**
  * Token getter and refresher functions
  * These are set by the AuthProvider via setAuthInterceptors()
  */
-let getAccessToken: (() => string | null) | null = null;
-let refreshAccessToken: (() => Promise<void>) | null = null;
+let getAccessToken: (() => string | null) | null = null
+let refreshAccessToken: (() => Promise<void>) | null = null
 
 /**
  * Single-flight pattern for token refresh
  * Ensures that only one refresh request is made even if multiple
  * concurrent 401 responses trigger refresh attempts
  */
-let refreshPromise: Promise<void> | null = null;
+let refreshPromise: Promise<void> | null = null
 
 /**
  * Configure auth interceptors with token getter and refresher
@@ -52,43 +52,43 @@ let refreshPromise: Promise<void> | null = null;
  */
 export function setAuthInterceptors(
   tokenGetter: () => string | null,
-  tokenRefresher: () => Promise<void>
+  tokenRefresher: () => Promise<void>,
 ): void {
-  getAccessToken = tokenGetter;
-  refreshAccessToken = tokenRefresher;
+  getAccessToken = tokenGetter
+  refreshAccessToken = tokenRefresher
 }
 
 /**
  * Request interceptor - add Authorization header and correlation ID
  */
 apiClient.interceptors.request.use(
-  (config) => {
+  config => {
     // Add correlation ID for request tracing
-    config.headers['X-Correlation-Id'] = crypto.randomUUID();
+    config.headers['X-Correlation-Id'] = crypto.randomUUID()
 
     // Add auth token if available
-    const token = getAccessToken?.();
+    const token = getAccessToken?.()
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`
     }
 
-    return config;
+    return config
   },
-  (error) => Promise.reject(error)
-);
+  error => Promise.reject(error),
+)
 
 /**
  * Response interceptor - handle 401 errors with automatic token refresh
  * Uses single-flight pattern to prevent multiple concurrent refresh requests
  */
 apiClient.interceptors.response.use(
-  (response) => response,
+  response => response,
   async (error: AxiosError) => {
-    const originalRequest = error.config as typeof error.config & { _retry?: boolean };
+    const originalRequest = error.config as typeof error.config & { _retry?: boolean }
 
     // If 401 and we haven't retried yet, try to refresh token
     if (error.response?.status === 401 && !originalRequest?._retry && refreshAccessToken) {
-      originalRequest._retry = true;
+      originalRequest._retry = true
 
       try {
         // Single-flight: reuse existing refresh promise if one is in progress
@@ -96,37 +96,37 @@ apiClient.interceptors.response.use(
         // multiple refresh requests to the server
         if (!refreshPromise) {
           refreshPromise = refreshAccessToken().finally(() => {
-            refreshPromise = null;
-          });
+            refreshPromise = null
+          })
         }
 
         // All concurrent requests wait for the same refresh promise
-        await refreshPromise;
+        await refreshPromise
 
         // Retry original request with new token
-        const token = getAccessToken?.();
+        const token = getAccessToken?.()
         if (token && originalRequest) {
-          originalRequest.headers = originalRequest.headers || {};
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return apiClient(originalRequest);
+          originalRequest.headers = originalRequest.headers || {}
+          originalRequest.headers.Authorization = `Bearer ${token}`
+          return apiClient(originalRequest)
         }
       } catch (refreshError) {
         // Refresh failed - redirect to login with return URL
-        const returnUrl = window.location.pathname;
+        const returnUrl = window.location.pathname
         if (returnUrl !== '/login' && returnUrl !== '/register') {
-          sessionStorage.setItem('returnUrl', returnUrl);
+          sessionStorage.setItem('returnUrl', returnUrl)
         }
-        window.location.href = '/login?expired=true';
-        return Promise.reject(error);
+        window.location.href = '/login?expired=true'
+        return Promise.reject(error)
       }
     }
 
     // Log errors for debugging
-    console.error('API Error:', error.response?.data || error.message);
+    console.error('API Error:', error.response?.data || error.message)
 
-    return Promise.reject(error);
-  }
-);
+    return Promise.reject(error)
+  },
+)
 
 /**
  * Check if the API server is reachable
@@ -136,11 +136,11 @@ export async function checkApiHealth(): Promise<boolean> {
   try {
     const response = await apiClient.get('/health', {
       timeout: 5000, // 5 second timeout for health check
-    });
-    return response.status === 200;
+    })
+    return response.status === 200
   } catch {
-    return false;
+    return false
   }
 }
 
-export default apiClient;
+export default apiClient

@@ -41,7 +41,7 @@ export const useExerciseParticipants = (exerciseId: string) => {
   const addParticipantMutation = useMutation({
     mutationFn: (request: AddParticipantRequest) =>
       participantService.addParticipant(exerciseId, request),
-    onMutate: async (newParticipant) => {
+    onMutate: async newParticipant => {
       // Cancel outgoing refetches
       await queryClient.cancelQueries({ queryKey })
 
@@ -66,12 +66,12 @@ export const useExerciseParticipants = (exerciseId: string) => {
 
       return { previousParticipants }
     },
-    onSuccess: (created) => {
+    onSuccess: created => {
       // Replace temp with real data
       queryClient.setQueryData<ExerciseParticipantDto[]>(queryKey, (old = []) =>
-        old.map((p) =>
-          p.participantId.startsWith('temp-') && p.userId === created.userId ? created : p
-        )
+        old.map(p =>
+          p.participantId.startsWith('temp-') && p.userId === created.userId ? created : p,
+        ),
       )
       toast.success('Participant added')
     },
@@ -97,11 +97,11 @@ export const useExerciseParticipants = (exerciseId: string) => {
 
       // Optimistically update
       queryClient.setQueryData<ExerciseParticipantDto[]>(queryKey, (old = []) =>
-        old.map((p) =>
+        old.map(p =>
           p.userId === userId
             ? { ...p, exerciseRole: request.role, effectiveRole: request.role }
-            : p
-        )
+            : p,
+        ),
       )
 
       return { previousParticipants }
@@ -122,14 +122,14 @@ export const useExerciseParticipants = (exerciseId: string) => {
   // Remove participant mutation
   const removeParticipantMutation = useMutation({
     mutationFn: (userId: string) => participantService.removeParticipant(exerciseId, userId),
-    onMutate: async (userId) => {
+    onMutate: async userId => {
       await queryClient.cancelQueries({ queryKey })
 
       const previousParticipants = queryClient.getQueryData<ExerciseParticipantDto[]>(queryKey)
 
       // Optimistically remove
       queryClient.setQueryData<ExerciseParticipantDto[]>(queryKey, (old = []) =>
-        old.filter((p) => p.userId !== userId)
+        old.filter(p => p.userId !== userId),
       )
 
       return { previousParticipants }

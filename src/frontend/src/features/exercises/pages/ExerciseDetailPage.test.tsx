@@ -75,7 +75,7 @@ const renderExerciseDetailPage = (exerciseId = 'exercise-123') => {
           </Routes>
         </MemoryRouter>
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   )
 }
 

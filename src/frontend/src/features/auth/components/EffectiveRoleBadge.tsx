@@ -6,12 +6,12 @@
  *
  * @module features/auth
  */
-import { FC } from 'react';
-import { Chip, Tooltip, Skeleton, Box } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faShield } from '@fortawesome/free-solid-svg-icons';
-import { useExerciseRole } from '../hooks/useExerciseRole';
-import { getRoleDisplayName, getRoleDescription, getRoleColor } from '../utils/permissions';
+import { FC } from 'react'
+import { Chip, Tooltip, Skeleton, Box } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faShield } from '@fortawesome/free-solid-svg-icons'
+import { useExerciseRole } from '../hooks/useExerciseRole'
+import { getRoleDisplayName, getRoleDescription, getRoleColor } from '../utils/permissions'
 
 export interface EffectiveRoleBadgeProps {
   /** Exercise ID */
@@ -41,22 +41,22 @@ export const EffectiveRoleBadge: FC<EffectiveRoleBadgeProps> = ({
   showOverride = false,
   size = 'medium',
 }) => {
-  const { effectiveRole, systemRole, exerciseRole, isLoading } = useExerciseRole(exerciseId);
+  const { effectiveRole, systemRole, exerciseRole, isLoading } = useExerciseRole(exerciseId)
 
   if (isLoading) {
     return (
       <Box data-testid="role-badge-skeleton">
         <Skeleton variant="rounded" width={100} height={size === 'small' ? 24 : 32} />
       </Box>
-    );
+    )
   }
 
-  const displayName = getRoleDisplayName(effectiveRole);
-  const description = getRoleDescription(effectiveRole);
-  const color = getRoleColor(effectiveRole);
+  const displayName = getRoleDisplayName(effectiveRole)
+  const description = getRoleDescription(effectiveRole)
+  const color = getRoleColor(effectiveRole)
 
   // Build tooltip content
-  let tooltipContent = description;
+  let tooltipContent = description
 
   if (showOverride && systemRole) {
     if (exerciseRole) {
@@ -66,16 +66,16 @@ export const EffectiveRoleBadge: FC<EffectiveRoleBadgeProps> = ({
           ? 'Administrator'
           : systemRole === 'Manager'
             ? 'Manager'
-            : 'User';
+            : 'User'
 
       if (effectiveRole !== systemRoleDisplay) {
-        tooltipContent = `Your role: ${displayName}\n(overrides System Role: ${systemRoleDisplay})\n\n${description}`;
+        tooltipContent = `Your role: ${displayName}\n(overrides System Role: ${systemRoleDisplay})\n\n${description}`
       } else {
-        tooltipContent = `Your role: ${displayName}\n(from exercise assignment)\n\n${description}`;
+        tooltipContent = `Your role: ${displayName}\n(from exercise assignment)\n\n${description}`
       }
     } else {
       // Using system role as default
-      tooltipContent = `Your role: ${displayName}\n(from System Role: ${systemRole})\n\n${description}`;
+      tooltipContent = `Your role: ${displayName}\n(from System Role: ${systemRole})\n\n${description}`
     }
   }
 
@@ -92,5 +92,5 @@ export const EffectiveRoleBadge: FC<EffectiveRoleBadgeProps> = ({
         }}
       />
     </Tooltip>
-  );
-};
+  )
+}

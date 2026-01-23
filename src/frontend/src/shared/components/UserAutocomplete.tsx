@@ -8,7 +8,7 @@
  * @module shared/components
  */
 
-import { FC, useState, useEffect } from 'react'
+import { FC, useState, useEffect, useCallback } from 'react'
 import {
   Autocomplete,
   TextField,
@@ -62,11 +62,7 @@ export const UserAutocomplete: FC<UserAutocompleteProps> = ({
   const [users, setUsers] = useState<UserDto[]>([])
   const [loading, setLoading] = useState(false)
 
-  useEffect(() => {
-    loadUsers()
-  }, [filterToDirectorEligible])
-
-  const loadUsers = async () => {
+  const loadUsers = useCallback(async () => {
     try {
       setLoading(true)
       const response = await userService.getUsers({
@@ -86,7 +82,11 @@ export const UserAutocomplete: FC<UserAutocompleteProps> = ({
     } finally {
       setLoading(false)
     }
-  }
+  }, [filterToDirectorEligible])
+
+  useEffect(() => {
+    loadUsers()
+  }, [loadUsers])
 
   return (
     <Autocomplete
@@ -94,7 +94,7 @@ export const UserAutocomplete: FC<UserAutocompleteProps> = ({
       options={users}
       value={value}
       onChange={(_, newValue) => onChange(newValue)}
-      getOptionLabel={(user) => user.displayName}
+      getOptionLabel={user => user.displayName}
       isOptionEqualToValue={(option, val) => option.id === val.id}
       disabled={disabled}
       loading={loading}
@@ -114,7 +114,7 @@ export const UserAutocomplete: FC<UserAutocompleteProps> = ({
           </Box>
         </Box>
       )}
-      renderInput={(params) => (
+      renderInput={params => (
         <TextField
           {...params}
           label={label}

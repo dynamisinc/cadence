@@ -176,7 +176,7 @@ export const ParticipantList: FC<ParticipantListProps> = ({
             <ParticipantSkeleton />
           ) : (
             <TableBody>
-              {participants.map((participant) => (
+              {participants.map(participant => (
                 <ParticipantListItem
                   key={participant.participantId}
                   participant={participant}

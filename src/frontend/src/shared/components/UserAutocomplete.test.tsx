@@ -69,7 +69,7 @@ describe('UserAutocomplete', () => {
         value={null}
         onChange={vi.fn()}
         label="Select User"
-      />
+      />,
     )
 
     expect(screen.getByLabelText(/select user/i)).toBeInTheDocument()
@@ -86,7 +86,7 @@ describe('UserAutocomplete', () => {
         value={null}
         onChange={vi.fn()}
         label="Select User"
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select user/i)
@@ -101,7 +101,7 @@ describe('UserAutocomplete', () => {
 
   it('filters to Admin and Manager roles when filterToDirectorEligible is true', async () => {
     const adminsAndManagers = mockUsers.filter(u =>
-      u.systemRole === 'Admin' || u.systemRole === 'Manager'
+      u.systemRole === 'Admin' || u.systemRole === 'Manager',
     )
 
     vi.mocked(userService.getUsers).mockResolvedValue({
@@ -115,7 +115,7 @@ describe('UserAutocomplete', () => {
         onChange={vi.fn()}
         label="Select Director"
         filterToDirectorEligible
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select director/i)
@@ -141,7 +141,7 @@ describe('UserAutocomplete', () => {
         value={null}
         onChange={vi.fn()}
         label="Select User"
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select user/i)
@@ -164,7 +164,7 @@ describe('UserAutocomplete', () => {
         value={null}
         onChange={vi.fn()}
         label="Select User"
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select user/i)
@@ -197,7 +197,7 @@ describe('UserAutocomplete', () => {
         value={null}
         onChange={handleChange}
         label="Select User"
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select user/i)
@@ -214,7 +214,7 @@ describe('UserAutocomplete', () => {
 
   it('displays loading state while fetching users', () => {
     vi.mocked(userService.getUsers).mockImplementation(
-      () => new Promise(() => {}) // Never resolves
+      () => new Promise(() => {}), // Never resolves
     )
 
     render(
@@ -222,7 +222,7 @@ describe('UserAutocomplete', () => {
         value={null}
         onChange={vi.fn()}
         label="Select User"
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select user/i)
@@ -239,7 +239,7 @@ describe('UserAutocomplete', () => {
         onChange={vi.fn()}
         label="Select User"
         helperText="Choose an Exercise Director"
-      />
+      />,
     )
 
     expect(screen.getByText('Choose an Exercise Director')).toBeInTheDocument()
@@ -252,7 +252,7 @@ describe('UserAutocomplete', () => {
         onChange={vi.fn()}
         label="Select User"
         required
-      />
+      />,
     )
 
     const input = screen.getByLabelText(/select user/i)
@@ -272,7 +272,7 @@ describe('UserAutocomplete', () => {
         value={selectedUser}
         onChange={vi.fn()}
         label="Select User"
-      />
+      />,
     )
 
     await waitFor(() => {
@@ -295,7 +295,7 @@ describe('UserAutocomplete', () => {
         value={selectedUser}
         onChange={handleChange}
         label="Select User"
-      />
+      />,
     )
 
     // Find and click the clear button

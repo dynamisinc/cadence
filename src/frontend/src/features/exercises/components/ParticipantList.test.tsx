@@ -47,7 +47,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText('Exercise Participants')).toBeInTheDocument()
@@ -60,7 +60,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText('Jane Smith')).toBeInTheDocument()
@@ -74,7 +74,7 @@ describe('ParticipantList', () => {
         canEdit={true}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByRole('button', { name: /add participant/i })).toBeInTheDocument()
@@ -87,7 +87,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.queryByRole('button', { name: /add participant/i })).not.toBeInTheDocument()
@@ -100,7 +100,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={true}
         {...mockHandlers}
-      />
+      />,
     )
 
     // Should show skeleton rows
@@ -115,7 +115,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText(/no participants/i)).toBeInTheDocument()
@@ -128,7 +128,7 @@ describe('ParticipantList', () => {
         canEdit={true}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText(/add your first participant/i)).toBeInTheDocument()
@@ -143,7 +143,7 @@ describe('ParticipantList', () => {
         canEdit={true}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     const addButton = screen.getByRole('button', { name: /add participant/i })
@@ -159,7 +159,7 @@ describe('ParticipantList', () => {
         canEdit={true}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     // When canEdit is true, should show role dropdowns
@@ -173,7 +173,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText('Name')).toBeInTheDocument()
@@ -189,7 +189,7 @@ describe('ParticipantList', () => {
         canEdit={true}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.getByText('Actions')).toBeInTheDocument()
@@ -202,7 +202,7 @@ describe('ParticipantList', () => {
         canEdit={false}
         loading={false}
         {...mockHandlers}
-      />
+      />,
     )
 
     expect(screen.queryByText('Actions')).not.toBeInTheDocument()

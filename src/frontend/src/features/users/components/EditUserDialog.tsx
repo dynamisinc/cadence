@@ -7,13 +7,13 @@
  * @module features/users/components
  * @see authentication/S11 Edit User Details
  */
-import { FC, useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Alert, Stack } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faXmark } from '@fortawesome/free-solid-svg-icons';
-import { CobraTextField, CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents';
-import CobraStyles from '../../../theme/CobraStyles';
-import type { UserDto, UpdateUserRequest } from '../types';
+import { FC, useState } from 'react'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Alert, Stack } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSave, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { CobraTextField, CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
+import CobraStyles from '../../../theme/CobraStyles'
+import type { UserDto, UpdateUserRequest } from '../types'
 
 interface EditUserDialogProps {
   /** User to edit */
@@ -29,31 +29,31 @@ interface EditUserDialogProps {
  * Allows updating display name and email
  */
 export const EditUserDialog: FC<EditUserDialogProps> = ({ user, onClose, onSave }) => {
-  const [displayName, setDisplayName] = useState(user.displayName);
-  const [email, setEmail] = useState(user.email);
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [displayName, setDisplayName] = useState(user.displayName)
+  const [email, setEmail] = useState(user.email)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSave = async () => {
-    setIsLoading(true);
-    setError(null);
+    setIsLoading(true)
+    setError(null)
 
     try {
       // Only include fields that changed
-      const updates: UpdateUserRequest = {};
+      const updates: UpdateUserRequest = {}
       if (displayName !== user.displayName) {
-        updates.displayName = displayName;
+        updates.displayName = displayName
       }
       if (email !== user.email) {
-        updates.email = email;
+        updates.email = email
       }
 
-      await onSave(updates);
+      await onSave(updates)
     } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update user');
-      setIsLoading(false);
+      setError(err.response?.data?.message || 'Failed to update user')
+      setIsLoading(false)
     }
-  };
+  }
 
   return (
     <Dialog open onClose={onClose} maxWidth="sm" fullWidth>
@@ -68,7 +68,7 @@ export const EditUserDialog: FC<EditUserDialogProps> = ({ user, onClose, onSave 
           <CobraTextField
             label="Display Name"
             value={displayName}
-            onChange={(e) => setDisplayName(e.target.value)}
+            onChange={e => setDisplayName(e.target.value)}
             fullWidth
             required
           />
@@ -76,7 +76,7 @@ export const EditUserDialog: FC<EditUserDialogProps> = ({ user, onClose, onSave 
             label="Email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             fullWidth
             required
           />
@@ -93,5 +93,5 @@ export const EditUserDialog: FC<EditUserDialogProps> = ({ user, onClose, onSave 
         </CobraPrimaryButton>
       </DialogActions>
     </Dialog>
-  );
-};
+  )
+}

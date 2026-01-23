@@ -87,7 +87,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       expect(screen.getByLabelText(/exercise director \(optional\)/i)).toBeInTheDocument()
@@ -98,7 +98,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       expect(screen.getByText(/defaults to you if not specified/i)).toBeInTheDocument()
@@ -111,7 +111,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       const directorInput = screen.getByLabelText(/exercise director \(optional\)/i)
@@ -131,7 +131,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={handleSubmit}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       // Fill required fields
@@ -174,7 +174,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={handleSubmit}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       // Fill required fields only
@@ -206,7 +206,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       // Select director
@@ -243,7 +243,7 @@ describe('ExerciseForm - Director Selection', () => {
           exercise={mockExercise}
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       expect(screen.getByText(/change the assigned exercise director/i)).toBeInTheDocument()
@@ -258,7 +258,7 @@ describe('ExerciseForm - Director Selection', () => {
           exercise={mockExercise}
           onSubmit={handleSubmit}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       // Select a director
@@ -290,7 +290,7 @@ describe('ExerciseForm - Director Selection', () => {
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
           disabledFields={['directorId']}
-        />
+        />,
       )
 
       const directorInput = screen.getByLabelText(/exercise director \(optional\)/i)
@@ -306,7 +306,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       const directorInput = screen.getByLabelText(/exercise director \(optional\)/i)
@@ -316,7 +316,7 @@ describe('ExerciseForm - Director Selection', () => {
         expect(userService.getUsers).toHaveBeenCalledWith(
           expect.objectContaining({
             role: 'Admin,Manager',
-          })
+          }),
         )
       })
     })
@@ -328,7 +328,7 @@ describe('ExerciseForm - Director Selection', () => {
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       const directorInput = screen.getByLabelText(/exercise director \(optional\)/i)
@@ -349,14 +349,14 @@ describe('ExerciseForm - Director Selection', () => {
 
     it('shows loading state while fetching users', async () => {
       vi.mocked(userService.getUsers).mockImplementation(
-        () => new Promise(() => {}) // Never resolves
+        () => new Promise(() => {}), // Never resolves
       )
 
       render(
         <ExerciseForm
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
-        />
+        />,
       )
 
       const directorInput = screen.getByLabelText(/exercise director \(optional\)/i)

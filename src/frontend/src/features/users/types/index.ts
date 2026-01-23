@@ -71,6 +71,6 @@ export const USER_ROLES = [
   'Admin',
   'Manager',
   'User',
-] as const;
+] as const
 
-export type UserRole = typeof USER_ROLES[number];
+export type UserRole = typeof USER_ROLES[number]

@@ -7,7 +7,7 @@
  * @module features/auth
  */
 
-import axios from 'axios';
+import axios from 'axios'
 import type {
   LoginRequest,
   RegistrationRequest,
@@ -15,9 +15,9 @@ import type {
   AuthMethod,
   PasswordResetRequest,
   CompletePasswordResetRequest,
-} from '../types';
+} from '../types'
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071';
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071'
 
 /**
  * Axios instance for authentication endpoints
@@ -29,7 +29,7 @@ const authApi = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-});
+})
 
 export const authService = {
   /**
@@ -37,8 +37,8 @@ export const authService = {
    * Returns access token in response body and refresh token in HttpOnly cookie
    */
   login: async (request: LoginRequest): Promise<AuthResponse> => {
-    const response = await authApi.post<AuthResponse>('/login', request);
-    return response.data;
+    const response = await authApi.post<AuthResponse>('/login', request)
+    return response.data
   },
 
   /**
@@ -46,8 +46,8 @@ export const authService = {
    * Returns access token in response body and refresh token in HttpOnly cookie
    */
   register: async (request: RegistrationRequest): Promise<AuthResponse> => {
-    const response = await authApi.post<AuthResponse>('/register', request);
-    return response.data;
+    const response = await authApi.post<AuthResponse>('/register', request)
+    return response.data
   },
 
   /**
@@ -55,7 +55,7 @@ export const authService = {
    * Clears refresh token cookie on the server
    */
   logout: async (): Promise<void> => {
-    await authApi.post('/logout');
+    await authApi.post('/logout')
   },
 
   /**
@@ -63,8 +63,8 @@ export const authService = {
    * Returns new access token in response body
    */
   refreshToken: async (): Promise<AuthResponse> => {
-    const response = await authApi.post<AuthResponse>('/refresh');
-    return response.data;
+    const response = await authApi.post<AuthResponse>('/refresh')
+    return response.data
   },
 
   /**
@@ -72,7 +72,7 @@ export const authService = {
    * Sends reset link to the provided email if account exists
    */
   requestPasswordReset: async (email: string): Promise<void> => {
-    await authApi.post('/password-reset/request', { email });
+    await authApi.post('/password-reset/request', { email })
   },
 
   /**
@@ -80,7 +80,7 @@ export const authService = {
    * Sets new password for the account associated with the token
    */
   completePasswordReset: async (token: string, newPassword: string): Promise<void> => {
-    await authApi.post('/password-reset/complete', { token, newPassword });
+    await authApi.post('/password-reset/complete', { token, newPassword })
   },
 
   /**
@@ -88,7 +88,7 @@ export const authService = {
    * Used to determine which login buttons to show on the login page
    */
   getAvailableMethods: async (): Promise<AuthMethod[]> => {
-    const response = await authApi.get<AuthMethod[]>('/methods');
-    return response.data;
+    const response = await authApi.get<AuthMethod[]>('/methods')
+    return response.data
   },
-};
+}

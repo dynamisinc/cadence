@@ -113,13 +113,13 @@ export const validatePassword = (password: string): PasswordRequirements => {
     minLength: password.length >= 8,
     hasUppercase: /[A-Z]/.test(password),
     hasNumber: /[0-9]/.test(password),
-  };
-};
+  }
+}
 
 /**
  * Check if password meets all requirements
  */
 export const isPasswordValid = (password: string): boolean => {
-  const requirements = validatePassword(password);
-  return requirements.minLength && requirements.hasUppercase && requirements.hasNumber;
-};
+  const requirements = validatePassword(password)
+  return requirements.minLength && requirements.hasUppercase && requirements.hasNumber
+}

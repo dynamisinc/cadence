@@ -43,7 +43,7 @@ const getInitials = (fullName: string): string => {
  * Format HSEEP role for display (convert from API format to readable)
  */
 const formatRole = (role: string): string => {
-  // Convert from API format (e.g., "ExerciseDirector") to display format (e.g., "Exercise Director")
+  // Convert "ExerciseDirector" to "Exercise Director"
   const formatted = role
     .replace(/([A-Z])/g, ' $1')
     .trim()

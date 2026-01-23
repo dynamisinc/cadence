@@ -159,7 +159,7 @@ describe('ExerciseParticipantsPage', () => {
     await user.click(removeButton)
 
     expect(confirmSpy).toHaveBeenCalledWith(
-      expect.stringContaining('Are you sure you want to remove Jane Smith')
+      expect.stringContaining('Are you sure you want to remove Jane Smith'),
     )
 
     confirmSpy.mockRestore()

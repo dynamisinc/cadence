@@ -17,19 +17,19 @@ import type { UserInfo } from '../../features/auth/types'
 const mockLogout = vi.fn()
 const mockUseAuth = vi.fn()
 
-vi.mock('../../contexts/AuthContext', async (importOriginal) => {
-  const actual = await importOriginal()
+vi.mock('../../contexts/AuthContext', async importOriginal => {
+  const actual = await importOriginal() as Record<string, unknown>
   return {
-    ...actual as any,
+    ...actual,
     useAuth: () => mockUseAuth(),
   }
 })
 
 // Mock roleResolutionService
-vi.mock('@/features/auth', async (importOriginal) => {
-  const actual = await importOriginal()
+vi.mock('@/features/auth', async importOriginal => {
+  const actual = await importOriginal() as Record<string, unknown>
   return {
-    ...actual as any,
+    ...actual,
     roleResolutionService: {
       getUserExerciseAssignments: vi.fn().mockResolvedValue([]),
     },

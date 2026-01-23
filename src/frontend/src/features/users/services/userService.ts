@@ -7,13 +7,13 @@
  * @module features/users/services
  */
 
-import { apiClient } from '../../../core/services/api';
+import { apiClient } from '../../../core/services/api'
 import type {
   UserDto,
   UserListResponse,
   UpdateUserRequest,
   ChangeRoleRequest,
-} from '../types';
+} from '../types'
 
 /**
  * Query parameters for user list
@@ -39,8 +39,8 @@ export const userService = {
    * @returns Paginated user list
    */
   async getUsers(params: UserListParams): Promise<UserListResponse> {
-    const response = await apiClient.get<UserListResponse>('/users', { params });
-    return response.data;
+    const response = await apiClient.get<UserListResponse>('/users', { params })
+    return response.data
   },
 
   /**
@@ -49,8 +49,8 @@ export const userService = {
    * @returns User details
    */
   async getUser(id: string): Promise<UserDto> {
-    const response = await apiClient.get<UserDto>(`/users/${id}`);
-    return response.data;
+    const response = await apiClient.get<UserDto>(`/users/${id}`)
+    return response.data
   },
 
   /**
@@ -60,8 +60,8 @@ export const userService = {
    * @returns Updated user
    */
   async updateUser(id: string, request: UpdateUserRequest): Promise<UserDto> {
-    const response = await apiClient.put<UserDto>(`/users/${id}`, request);
-    return response.data;
+    const response = await apiClient.put<UserDto>(`/users/${id}`, request)
+    return response.data
   },
 
   /**
@@ -71,8 +71,8 @@ export const userService = {
    * @returns Updated user
    */
   async changeRole(id: string, request: ChangeRoleRequest): Promise<UserDto> {
-    const response = await apiClient.patch<UserDto>(`/users/${id}/role`, request);
-    return response.data;
+    const response = await apiClient.patch<UserDto>(`/users/${id}/role`, request)
+    return response.data
   },
 
   /**
@@ -82,8 +82,8 @@ export const userService = {
    * @returns Updated user with Deactivated status
    */
   async deactivateUser(id: string, reason?: string): Promise<UserDto> {
-    const response = await apiClient.post<UserDto>(`/users/${id}/deactivate`, { reason });
-    return response.data;
+    const response = await apiClient.post<UserDto>(`/users/${id}/deactivate`, { reason })
+    return response.data
   },
 
   /**
@@ -92,7 +92,7 @@ export const userService = {
    * @returns Updated user with Active status
    */
   async reactivateUser(id: string): Promise<UserDto> {
-    const response = await apiClient.post<UserDto>(`/users/${id}/reactivate`);
-    return response.data;
+    const response = await apiClient.post<UserDto>(`/users/${id}/reactivate`)
+    return response.data
   },
-};
+}

@@ -7,11 +7,11 @@
  *
  * @module features/auth
  */
-import { useState, useEffect, useCallback } from 'react';
-import { useAuth } from '@/contexts/AuthContext';
-import { roleResolutionService } from '../services/roleResolutionService';
-import { hasPermission } from '../utils/permissions';
-import type { ExerciseRole, Permission, SystemRole } from '../constants/rolePermissions';
+import { useState, useEffect, useCallback } from 'react'
+import { useAuth } from '@/contexts/AuthContext'
+import { roleResolutionService } from '../services/roleResolutionService'
+import { hasPermission } from '../utils/permissions'
+import type { ExerciseRole, Permission, SystemRole } from '../constants/rolePermissions'
 
 export interface UseExerciseRoleReturn {
   /** Effective role in this exercise (exercise role or mapped system role) */
@@ -33,12 +33,12 @@ export interface UseExerciseRoleReturn {
 function mapSystemRoleToExerciseRole(systemRole: string | null): ExerciseRole {
   switch (systemRole) {
     case 'Admin':
-      return 'Administrator';
+      return 'Administrator'
     case 'Manager':
-      return 'ExerciseDirector';
+      return 'ExerciseDirector'
     case 'User':
     default:
-      return 'Observer';
+      return 'Observer'
   }
 }
 
@@ -58,61 +58,61 @@ function mapSystemRoleToExerciseRole(systemRole: string | null): ExerciseRole {
  * ```
  */
 export function useExerciseRole(exerciseId: string | null): UseExerciseRoleReturn {
-  const { user } = useAuth();
-  const [exerciseRole, setExerciseRole] = useState<ExerciseRole | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth()
+  const [exerciseRole, setExerciseRole] = useState<ExerciseRole | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   // Get system role from user
-  const systemRole = (user?.role as SystemRole) || null;
+  const systemRole = (user?.role as SystemRole) || null
 
   // Determine effective role
-  const effectiveRole = exerciseRole || mapSystemRoleToExerciseRole(systemRole);
+  const effectiveRole = exerciseRole || mapSystemRoleToExerciseRole(systemRole)
 
   // Permission checker using effective role
   const can = useCallback(
     (permission: Permission): boolean => {
-      return hasPermission(effectiveRole, permission);
+      return hasPermission(effectiveRole, permission)
     },
-    [effectiveRole]
-  );
+    [effectiveRole],
+  )
 
   // Fetch exercise-specific role
   useEffect(() => {
     if (!exerciseId || !user) {
-      setIsLoading(false);
-      setExerciseRole(null);
-      return;
+      setIsLoading(false)
+      setExerciseRole(null)
+      return
     }
 
-    let isMounted = true;
+    let isMounted = true
 
     const fetchExerciseRole = async () => {
       try {
-        setIsLoading(true);
-        const role = await roleResolutionService.getUserExerciseRole(exerciseId, user.id);
+        setIsLoading(true)
+        const role = await roleResolutionService.getUserExerciseRole(exerciseId, user.id)
 
         if (isMounted) {
-          setExerciseRole(role);
+          setExerciseRole(role)
         }
       } catch (error) {
         // On error, fall back to system role
-        console.error('Failed to fetch exercise role:', error);
+        console.error('Failed to fetch exercise role:', error)
         if (isMounted) {
-          setExerciseRole(null);
+          setExerciseRole(null)
         }
       } finally {
         if (isMounted) {
-          setIsLoading(false);
+          setIsLoading(false)
         }
       }
-    };
+    }
 
-    fetchExerciseRole();
+    fetchExerciseRole()
 
     return () => {
-      isMounted = false;
-    };
-  }, [exerciseId, user]);
+      isMounted = false
+    }
+  }, [exerciseId, user])
 
   return {
     effectiveRole,
@@ -120,5 +120,5 @@ export function useExerciseRole(exerciseId: string | null): UseExerciseRoleRetur
     exerciseRole,
     can,
     isLoading,
-  };
+  }
 }

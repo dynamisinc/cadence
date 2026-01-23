@@ -10,7 +10,7 @@
 
 import { FC, useState, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
-import { Box, Typography, Alert } from '@mui/material'
+import { Box, Alert } from '@mui/material'
 import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
@@ -35,13 +35,8 @@ export const ExerciseParticipantsPage: FC = () => {
   const { canManage } = usePermissions()
   const [dialogOpen, setDialogOpen] = useState(false)
 
-  if (!exerciseId) {
-    return (
-      <Box padding={CobraStyles.Padding.MainWindow}>
-        <Alert severity="error">Exercise ID is required</Alert>
-      </Box>
-    )
-  }
+  // Use empty string fallback for hooks - they will handle missing exerciseId gracefully
+  const safeExerciseId = exerciseId ?? ''
 
   const {
     participants,
@@ -51,7 +46,7 @@ export const ExerciseParticipantsPage: FC = () => {
     addParticipant,
     updateParticipantRole,
     removeParticipant,
-  } = useExerciseParticipants(exerciseId)
+  } = useExerciseParticipants(safeExerciseId)
 
   const handleAddClick = useCallback(() => {
     setDialogOpen(true)
@@ -67,7 +62,7 @@ export const ExerciseParticipantsPage: FC = () => {
         console.error('Failed to add participant:', error)
       }
     },
-    [addParticipant]
+    [addParticipant],
   )
 
   const handleRoleChange = useCallback(
@@ -79,13 +74,13 @@ export const ExerciseParticipantsPage: FC = () => {
         console.error('Failed to update role:', error)
       }
     },
-    [updateParticipantRole]
+    [updateParticipantRole],
   )
 
   const handleRemove = useCallback(
     async (userId: string, displayName: string) => {
       const confirmed = window.confirm(
-        `Are you sure you want to remove ${displayName} from this exercise?`
+        `Are you sure you want to remove ${displayName} from this exercise?`,
       )
       if (!confirmed) return
 
@@ -96,8 +91,17 @@ export const ExerciseParticipantsPage: FC = () => {
         console.error('Failed to remove participant:', error)
       }
     },
-    [removeParticipant]
+    [removeParticipant],
   )
+
+  // Early return for missing exerciseId (after all hooks)
+  if (!exerciseId) {
+    return (
+      <Box padding={CobraStyles.Padding.MainWindow}>
+        <Alert severity="error">Exercise ID is required</Alert>
+      </Box>
+    )
+  }
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>

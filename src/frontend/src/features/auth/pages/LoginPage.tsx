@@ -14,8 +14,8 @@
  * @see authentication/S04-login-form.md
  * @see authentication/S06-failed-login-handling.md
  */
-import { FC, useState, FormEvent, useEffect } from 'react';
-import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { FC, useState, FormEvent, useEffect } from 'react'
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom'
 import {
   Stack,
   Checkbox,
@@ -26,156 +26,156 @@ import {
   Typography,
   Box,
   Alert,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '../../../theme/styledComponents';
-import CobraStyles from '../../../theme/CobraStyles';
-import { AuthLayout } from '../components/AuthLayout';
-import { useAuth } from '../../../contexts/AuthContext';
-import { authService } from '../services/authService';
-import type { AuthMethod } from '../types';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '../../../theme/styledComponents'
+import CobraStyles from '../../../theme/CobraStyles'
+import { AuthLayout } from '../components/AuthLayout'
+import { useAuth } from '../../../contexts/AuthContext'
+import { authService } from '../services/authService'
+import type { AuthMethod } from '../types'
 
 /**
  * Login page with email/password and optional external providers
  */
 export const LoginPage: FC = () => {
-  const { login, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
-  const location = useLocation();
-  const [searchParams] = useSearchParams();
+  const { login, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
+  const location = useLocation()
+  const [searchParams] = useSearchParams()
 
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [rememberMe, setRememberMe] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailError, setEmailError] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [authMethods, setAuthMethods] = useState<AuthMethod[]>([]);
-  const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null);
-  const [lockoutEnd, setLockoutEnd] = useState<Date | null>(null);
-  const [isOffline] = useState(!navigator.onLine);
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [rememberMe, setRememberMe] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [authMethods, setAuthMethods] = useState<AuthMethod[]>([])
+  const [attemptsRemaining, setAttemptsRemaining] = useState<number | null>(null)
+  const [lockoutEnd, setLockoutEnd] = useState<Date | null>(null)
+  const [isOffline] = useState(!navigator.onLine)
 
   // Check for session expired message
-  const sessionExpired = searchParams.get('expired') === 'true';
+  const sessionExpired = searchParams.get('expired') === 'true'
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      const returnUrl = sessionStorage.getItem('returnUrl') || '/';
-      sessionStorage.removeItem('returnUrl');
-      navigate(returnUrl, { replace: true });
+      const returnUrl = sessionStorage.getItem('returnUrl') || '/'
+      sessionStorage.removeItem('returnUrl')
+      navigate(returnUrl, { replace: true })
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate])
 
   // Load available auth methods on mount
   useEffect(() => {
     const loadAuthMethods = async () => {
       try {
-        const methods = await authService.getAvailableMethods();
-        setAuthMethods(methods);
+        const methods = await authService.getAvailableMethods()
+        setAuthMethods(methods)
       } catch {
         // For Phase 1, fall back to Identity only
         setAuthMethods([
           { provider: 'Identity', displayName: 'Email/Password', isEnabled: true, isExternal: false },
-        ]);
+        ])
       }
-    };
-    loadAuthMethods();
-  }, []);
+    }
+    loadAuthMethods()
+  }, [])
 
   const validateEmail = (value: string): boolean => {
     if (!value) {
-      setEmailError('Email is required');
-      return false;
+      setEmailError('Email is required')
+      return false
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(value)) {
-      setEmailError('Please enter a valid email address');
-      return false;
+      setEmailError('Please enter a valid email address')
+      return false
     }
-    setEmailError('');
-    return true;
-  };
+    setEmailError('')
+    return true
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!validateEmail(email)) {
-      return;
+      return
     }
 
     if (!password) {
-      return;
+      return
     }
 
-    setIsSubmitting(true);
-    setError(null);
-    setAttemptsRemaining(null);
-    setLockoutEnd(null);
+    setIsSubmitting(true)
+    setError(null)
+    setAttemptsRemaining(null)
+    setLockoutEnd(null)
 
     try {
-      const result = await login({ email, password, rememberMe });
+      const result = await login({ email, password, rememberMe })
 
       if (result.isSuccess) {
         // Success - navigation handled by useEffect
-        const returnUrl = (location.state as any)?.from?.pathname || '/';
-        navigate(returnUrl, { replace: true });
+        const returnUrl = (location.state as any)?.from?.pathname || '/'
+        navigate(returnUrl, { replace: true })
       } else if (result.error) {
         // Handle error response
-        setError(result.error.message);
+        setError(result.error.message)
 
         // Handle attempts remaining (S06)
         if (result.error.attemptsRemaining !== undefined) {
-          setAttemptsRemaining(result.error.attemptsRemaining);
+          setAttemptsRemaining(result.error.attemptsRemaining)
         }
 
         // Handle account lockout (S06)
         if (result.error.code === 'account_locked' && result.error.lockoutEnd) {
-          setLockoutEnd(new Date(result.error.lockoutEnd));
+          setLockoutEnd(new Date(result.error.lockoutEnd))
         }
 
         // Clear password on failure (S06)
-        setPassword('');
+        setPassword('')
       }
     } catch (err: any) {
       // Handle network/unexpected errors
       if (err.response?.data) {
-        const errorResponse = err.response.data;
-        setError(errorResponse.message || 'Login failed');
+        const errorResponse = err.response.data
+        setError(errorResponse.message || 'Login failed')
 
         if (errorResponse.attemptsRemaining !== undefined) {
-          setAttemptsRemaining(errorResponse.attemptsRemaining);
+          setAttemptsRemaining(errorResponse.attemptsRemaining)
         }
 
         if (errorResponse.code === 'account_locked' && errorResponse.lockoutEnd) {
-          setLockoutEnd(new Date(errorResponse.lockoutEnd));
+          setLockoutEnd(new Date(errorResponse.lockoutEnd))
         }
       } else if (!navigator.onLine) {
-        setError('You\'re offline. Please check your connection.');
+        setError('You\'re offline. Please check your connection.')
       } else {
-        setError('Unable to connect to server. Please check your connection.');
+        setError('Unable to connect to server. Please check your connection.')
       }
 
       // Clear password on failure (S06)
-      setPassword('');
+      setPassword('')
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleExternalLogin = (provider: string) => {
     if (isOffline) {
-      setError('External sign-in requires internet connection');
-      return;
+      setError('External sign-in requires internet connection')
+      return
     }
 
     // Phase 3: Redirect to external provider OAuth flow
-    window.location.href = `/api/auth/external/${provider}`;
-  };
+    window.location.href = `/api/auth/external/${provider}`
+  }
 
-  const externalMethods = authMethods.filter(m => m.isExternal && m.isEnabled);
+  const externalMethods = authMethods.filter(m => m.isExternal && m.isEnabled)
 
   return (
     <AuthLayout title="Sign In" showOfflineIndicator={isOffline}>
@@ -212,9 +212,9 @@ export const LoginPage: FC = () => {
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (emailError) validateEmail(e.target.value);
+            onChange={e => {
+              setEmail(e.target.value)
+              if (emailError) validateEmail(e.target.value)
             }}
             onBlur={() => validateEmail(email)}
             error={!!emailError}
@@ -230,7 +230,7 @@ export const LoginPage: FC = () => {
             label="Password"
             type={showPassword ? 'text' : 'password'}
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={e => setPassword(e.target.value)}
             fullWidth
             required
             autoComplete="current-password"
@@ -254,7 +254,7 @@ export const LoginPage: FC = () => {
             control={
               <Checkbox
                 checked={rememberMe}
-                onChange={(e) => setRememberMe(e.target.checked)}
+                onChange={e => setRememberMe(e.target.checked)}
                 size="small"
               />
             }
@@ -293,7 +293,7 @@ export const LoginPage: FC = () => {
               </Divider>
 
               <Stack spacing={CobraStyles.Spacing.FormFields}>
-                {externalMethods.map((method) => (
+                {externalMethods.map(method => (
                   <CobraSecondaryButton
                     key={method.provider}
                     onClick={() => handleExternalLogin(method.provider)}
@@ -325,5 +325,5 @@ export const LoginPage: FC = () => {
         </Stack>
       </form>
     </AuthLayout>
-  );
-};
+  )
+}

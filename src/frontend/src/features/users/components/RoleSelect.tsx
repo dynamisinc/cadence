@@ -8,9 +8,9 @@
  * @module features/users/components
  * @see authentication/S13 Global Role Assignment
  */
-import { FC } from 'react';
-import { Select, MenuItem } from '@mui/material';
-import { USER_ROLES } from '../types';
+import { FC } from 'react'
+import { Select, MenuItem } from '@mui/material'
+import { USER_ROLES } from '../types'
 
 interface RoleSelectProps {
   /** Currently selected role */
@@ -27,8 +27,8 @@ interface RoleSelectProps {
  */
 export const RoleSelect: FC<RoleSelectProps> = ({ value, onChange, disabled }) => {
   const handleChange = (event: any) => {
-    onChange(event.target.value);
-  };
+    onChange(event.target.value)
+  }
 
   return (
     <Select
@@ -38,11 +38,11 @@ export const RoleSelect: FC<RoleSelectProps> = ({ value, onChange, disabled }) =
       disabled={disabled}
       sx={{ minWidth: 150 }}
     >
-      {USER_ROLES.map((role) => (
+      {USER_ROLES.map(role => (
         <MenuItem key={role} value={role}>
           {role}
         </MenuItem>
       ))}
     </Select>
-  );
-};
+  )
+}

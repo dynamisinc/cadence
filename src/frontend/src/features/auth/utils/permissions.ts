@@ -5,8 +5,8 @@
  *
  * @module features/auth
  */
-import type { ExerciseRole, Permission } from '../constants/rolePermissions';
-import { ROLE_PERMISSIONS } from '../constants/rolePermissions';
+import type { ExerciseRole, Permission } from '../constants/rolePermissions'
+import { ROLE_PERMISSIONS } from '../constants/rolePermissions'
 
 /**
  * Check if a role has a specific permission
@@ -16,9 +16,9 @@ import { ROLE_PERMISSIONS } from '../constants/rolePermissions';
  * @returns True if role has permission
  */
 export function hasPermission(role: ExerciseRole, permission: Permission): boolean {
-  const permissions = ROLE_PERMISSIONS[role];
-  if (!permissions) return false;
-  return permissions.includes(permission);
+  const permissions = ROLE_PERMISSIONS[role]
+  if (!permissions) return false
+  return permissions.includes(permission)
 }
 
 /**
@@ -34,9 +34,9 @@ export function getRoleDisplayName(role: ExerciseRole): string {
     Controller: 'Controller',
     Evaluator: 'Evaluator',
     Observer: 'Observer',
-  };
+  }
 
-  return displayNames[role] || 'Unknown';
+  return displayNames[role] || 'Unknown'
 }
 
 /**
@@ -52,9 +52,9 @@ export function getRoleDescription(role: ExerciseRole): string {
     Controller: 'Delivers injects and manages scenario flow during exercise conduct',
     Evaluator: 'Records observations and documents player performance',
     Observer: 'Can observe and watch the exercise without interfering or making changes',
-  };
+  }
 
-  return descriptions[role] || 'Unknown role';
+  return descriptions[role] || 'Unknown role'
 }
 
 /**
@@ -64,7 +64,7 @@ export function getRoleDescription(role: ExerciseRole): string {
  * @returns MUI chip color
  */
 export function getRoleColor(
-  role: ExerciseRole
+  role: ExerciseRole,
 ): 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning' {
   const colors: Record<ExerciseRole, 'default' | 'primary' | 'error' | 'success'> = {
     Administrator: 'error', // Red for highest authority
@@ -72,7 +72,7 @@ export function getRoleColor(
     Controller: 'primary', // Blue for active role
     Evaluator: 'success', // Green for observer role
     Observer: 'default', // Gray for read-only
-  };
+  }
 
-  return colors[role] || 'default';
+  return colors[role] || 'default'
 }

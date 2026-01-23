@@ -6,10 +6,10 @@
  *
  * @module core/components
  */
-import React from 'react';
-import { Navigate, useLocation } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import { Loading } from '../../shared/components/Loading';
+import React from 'react'
+import { Navigate, useLocation } from 'react-router-dom'
+import { useAuth } from '../../contexts/AuthContext'
+import { Loading } from '../../shared/components/Loading'
 
 interface ProtectedRouteProps {
   /** Required role to access this route (optional) */
@@ -26,23 +26,23 @@ export const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   requiredRole,
   children,
 }) => {
-  const { isAuthenticated, isLoading, user } = useAuth();
-  const location = useLocation();
+  const { isAuthenticated, isLoading, user } = useAuth()
+  const location = useLocation()
 
   // Show loading state during initial auth check
   if (isLoading) {
-    return <Loading />;
+    return <Loading />
   }
 
   // Redirect to login if not authenticated
   if (!isAuthenticated) {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />
   }
 
   // Check role if required (Admin can access everything)
   if (requiredRole && user?.role !== requiredRole && user?.role !== 'Admin') {
-    return <Navigate to="/" replace />;
+    return <Navigate to="/" replace />
   }
 
-  return <>{children}</>;
-};
+  return <>{children}</>
+}

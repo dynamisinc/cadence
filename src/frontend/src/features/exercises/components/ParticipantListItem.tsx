@@ -84,7 +84,7 @@ export const ParticipantListItem: FC<ParticipantListItemProps> = ({
                 'aria-label': 'Exercise role',
               }}
             >
-              {EXERCISE_ROLES.map((role) => (
+              {EXERCISE_ROLES.map(role => (
                 <MenuItem key={role.value} value={role.value}>
                   {role.label}
                 </MenuItem>

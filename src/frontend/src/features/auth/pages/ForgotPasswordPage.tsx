@@ -10,70 +10,70 @@
  * @module features/auth
  * @see authentication/S24-password-reset.md
  */
-import { FC, useState, FormEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { FC, useState, FormEvent } from 'react'
+import { Link } from 'react-router-dom'
 import {
   Stack,
   Typography,
   Box,
   Alert,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSpinner, faEnvelope, faArrowLeft } from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton, CobraLinkButton, CobraTextField } from '../../../theme/styledComponents';
-import CobraStyles from '../../../theme/CobraStyles';
-import { AuthLayout } from '../components/AuthLayout';
-import { authService } from '../services/authService';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faSpinner, faEnvelope, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraLinkButton, CobraTextField } from '../../../theme/styledComponents'
+import CobraStyles from '../../../theme/CobraStyles'
+import { AuthLayout } from '../components/AuthLayout'
+import { authService } from '../services/authService'
 
 /**
  * Password reset request page
  */
 export const ForgotPasswordPage: FC = () => {
-  const [email, setEmail] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [emailError, setEmailError] = useState('');
-  const [successState, setSuccessState] = useState(false);
+  const [email, setEmail] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [emailError, setEmailError] = useState('')
+  const [successState, setSuccessState] = useState(false)
 
   const validateEmail = (value: string): boolean => {
     if (!value) {
-      setEmailError('Email is required');
-      return false;
+      setEmailError('Email is required')
+      return false
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(value)) {
-      setEmailError('Please enter a valid email address');
-      return false;
+      setEmailError('Please enter a valid email address')
+      return false
     }
-    setEmailError('');
-    return true;
-  };
+    setEmailError('')
+    return true
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!validateEmail(email)) {
-      return;
+      return
     }
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     try {
       // Always show success message to prevent email enumeration (S24)
-      await authService.requestPasswordReset(email);
-      setSuccessState(true);
+      await authService.requestPasswordReset(email)
+      setSuccessState(true)
     } catch (error) {
       // Even on error, show success message to prevent enumeration (S24)
-      console.error('Password reset request failed:', error);
-      setSuccessState(true);
+      console.error('Password reset request failed:', error)
+      setSuccessState(true)
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   const handleRequestAnother = () => {
-    setSuccessState(false);
-    setEmail('');
-  };
+    setSuccessState(false)
+    setEmail('')
+  }
 
   if (successState) {
     return (
@@ -111,7 +111,7 @@ export const ForgotPasswordPage: FC = () => {
           </Link>
         </Stack>
       </AuthLayout>
-    );
+    )
   }
 
   return (
@@ -127,9 +127,9 @@ export const ForgotPasswordPage: FC = () => {
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (emailError) validateEmail(e.target.value);
+            onChange={e => {
+              setEmail(e.target.value)
+              if (emailError) validateEmail(e.target.value)
             }}
             onBlur={() => validateEmail(email)}
             error={!!emailError}
@@ -162,5 +162,5 @@ export const ForgotPasswordPage: FC = () => {
         </Stack>
       </form>
     </AuthLayout>
-  );
-};
+  )
+}

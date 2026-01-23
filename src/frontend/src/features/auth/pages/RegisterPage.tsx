@@ -14,8 +14,8 @@
  * @see authentication/S02-password-requirements.md
  * @see authentication/S03-first-user-admin.md
  */
-import { FC, useState, FormEvent, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { FC, useState, FormEvent, useEffect } from 'react'
+import { Link, useNavigate } from 'react-router-dom'
 import {
   Stack,
   IconButton,
@@ -23,147 +23,147 @@ import {
   Typography,
   Box,
   Alert,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton, CobraTextField } from '../../../theme/styledComponents';
-import CobraStyles from '../../../theme/CobraStyles';
-import { AuthLayout } from '../components/AuthLayout';
-import { PasswordRequirements } from '../components/PasswordRequirements';
-import { useAuth } from '../../../contexts/AuthContext';
-import { validatePassword, isPasswordValid } from '../types';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraTextField } from '../../../theme/styledComponents'
+import CobraStyles from '../../../theme/CobraStyles'
+import { AuthLayout } from '../components/AuthLayout'
+import { PasswordRequirements } from '../components/PasswordRequirements'
+import { useAuth } from '../../../contexts/AuthContext'
+import { validatePassword, isPasswordValid } from '../types'
 
 /**
  * Registration page for creating new user accounts
  */
 export const RegisterPage: FC = () => {
-  const { register, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { register, isAuthenticated } = useAuth()
+  const navigate = useNavigate()
 
-  const [displayName, setDisplayName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [displayName, setDisplayName] = useState('')
+  const [email, setEmail] = useState('')
+  const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   // Validation errors
-  const [displayNameError, setDisplayNameError] = useState('');
-  const [emailError, setEmailError] = useState('');
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
-  const [isFirstUser, setIsFirstUser] = useState(false);
+  const [displayNameError, setDisplayNameError] = useState('')
+  const [emailError, setEmailError] = useState('')
+  const [confirmPasswordError, setConfirmPasswordError] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
+  const [isFirstUser, setIsFirstUser] = useState(false)
 
   // Password requirements state
-  const passwordReqs = validatePassword(password);
-  const passwordIsValid = isPasswordValid(password);
+  const passwordReqs = validatePassword(password)
+  const passwordIsValid = isPasswordValid(password)
 
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true });
+      navigate('/', { replace: true })
     }
-  }, [isAuthenticated, navigate]);
+  }, [isAuthenticated, navigate])
 
   const validateDisplayName = (value: string): boolean => {
     if (!value.trim()) {
-      setDisplayNameError('Display name is required');
-      return false;
+      setDisplayNameError('Display name is required')
+      return false
     }
-    setDisplayNameError('');
-    return true;
-  };
+    setDisplayNameError('')
+    return true
+  }
 
   const validateEmail = (value: string): boolean => {
     if (!value) {
-      setEmailError('Email is required');
-      return false;
+      setEmailError('Email is required')
+      return false
     }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(value)) {
-      setEmailError('Please enter a valid email address');
-      return false;
+      setEmailError('Please enter a valid email address')
+      return false
     }
-    setEmailError('');
-    return true;
-  };
+    setEmailError('')
+    return true
+  }
 
   const validateConfirmPassword = (value: string): boolean => {
     if (password && value && password !== value) {
-      setConfirmPasswordError('Passwords do not match');
-      return false;
+      setConfirmPasswordError('Passwords do not match')
+      return false
     }
-    setConfirmPasswordError('');
-    return true;
-  };
+    setConfirmPasswordError('')
+    return true
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     // Validate passwords match
     if (password !== confirmPassword) {
-      setConfirmPasswordError('Passwords do not match');
-      return;
+      setConfirmPasswordError('Passwords do not match')
+      return
     }
 
     // Validate all fields
-    const isDisplayNameValid = validateDisplayName(displayName);
-    const isEmailValid = validateEmail(email);
-    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+    const isDisplayNameValid = validateDisplayName(displayName)
+    const isEmailValid = validateEmail(email)
+    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
 
     if (!isDisplayNameValid || !isEmailValid || !passwordIsValid || !isConfirmPasswordValid) {
-      return;
+      return
     }
 
-    setIsSubmitting(true);
-    setError(null);
-    setFieldErrors({});
+    setIsSubmitting(true)
+    setError(null)
+    setFieldErrors({})
 
     try {
-      const result = await register({ email, password, displayName });
+      const result = await register({ email, password, displayName })
 
       if (result.isSuccess) {
         // Check if first user (S03)
         if (result.isFirstUser) {
-          setIsFirstUser(true);
+          setIsFirstUser(true)
           // Show admin welcome message before redirecting
-          setTimeout(() => navigate('/', { replace: true }), 3000);
+          setTimeout(() => navigate('/', { replace: true }), 3000)
         } else {
-          navigate('/', { replace: true });
+          navigate('/', { replace: true })
         }
       } else if (result.error) {
-        setError(result.error.message);
+        setError(result.error.message)
 
         // Handle field-specific errors
         if (result.error.validationErrors) {
-          const errors: Record<string, string> = {};
+          const errors: Record<string, string> = {}
           Object.entries(result.error.validationErrors).forEach(([field, messages]) => {
-            errors[field] = messages[0]; // Take first error message
-          });
-          setFieldErrors(errors);
+            errors[field] = messages[0] // Take first error message
+          })
+          setFieldErrors(errors)
         }
       }
     } catch (err: any) {
       if (err.response?.data) {
-        const errorResponse = err.response.data;
-        setError(errorResponse.message || 'Registration failed');
+        const errorResponse = err.response.data
+        setError(errorResponse.message || 'Registration failed')
 
         if (errorResponse.validationErrors) {
-          const errors: Record<string, string> = {};
+          const errors: Record<string, string> = {}
           Object.entries(errorResponse.validationErrors).forEach(([field, messages]: [string, any]) => {
-            errors[field] = Array.isArray(messages) ? messages[0] : messages;
-          });
-          setFieldErrors(errors);
+            errors[field] = Array.isArray(messages) ? messages[0] : messages
+          })
+          setFieldErrors(errors)
         }
       } else {
-        setError('Unable to connect to server. Please check your connection.');
+        setError('Unable to connect to server. Please check your connection.')
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   return (
     <AuthLayout title="Create Account">
@@ -186,9 +186,9 @@ export const RegisterPage: FC = () => {
           <CobraTextField
             label="Display Name"
             value={displayName}
-            onChange={(e) => {
-              setDisplayName(e.target.value);
-              if (displayNameError) validateDisplayName(e.target.value);
+            onChange={e => {
+              setDisplayName(e.target.value)
+              if (displayNameError) validateDisplayName(e.target.value)
             }}
             onBlur={() => validateDisplayName(displayName)}
             error={!!displayNameError}
@@ -204,9 +204,9 @@ export const RegisterPage: FC = () => {
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => {
-              setEmail(e.target.value);
-              if (emailError) validateEmail(e.target.value);
+            onChange={e => {
+              setEmail(e.target.value)
+              if (emailError) validateEmail(e.target.value)
             }}
             onBlur={() => validateEmail(email)}
             error={!!emailError}
@@ -222,7 +222,7 @@ export const RegisterPage: FC = () => {
               label="Password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={e => setPassword(e.target.value)}
               fullWidth
               required
               autoComplete="new-password"
@@ -249,9 +249,9 @@ export const RegisterPage: FC = () => {
             label="Confirm Password"
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-              if (confirmPasswordError) validateConfirmPassword(e.target.value);
+            onChange={e => {
+              setConfirmPassword(e.target.value)
+              if (confirmPasswordError) validateConfirmPassword(e.target.value)
             }}
             onBlur={() => validateConfirmPassword(confirmPassword)}
             error={!!confirmPasswordError}
@@ -305,5 +305,5 @@ export const RegisterPage: FC = () => {
         </Stack>
       </form>
     </AuthLayout>
-  );
-};
+  )
+}

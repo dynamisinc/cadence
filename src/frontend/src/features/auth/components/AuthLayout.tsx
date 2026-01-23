@@ -9,9 +9,9 @@
  *
  * @module features/auth
  */
-import { FC, ReactNode } from 'react';
-import { Box, Paper, Typography, Alert } from '@mui/material';
-import CobraStyles from '../../../theme/CobraStyles';
+import { FC, ReactNode } from 'react'
+import { Box, Paper, Typography, Alert } from '@mui/material'
+import CobraStyles from '../../../theme/CobraStyles'
 
 interface AuthLayoutProps {
   /** Page title (e.g., "Sign In", "Create Account") */
@@ -74,5 +74,5 @@ export const AuthLayout: FC<AuthLayoutProps> = ({
         </Alert>
       )}
     </Box>
-  );
-};
+  )
+}

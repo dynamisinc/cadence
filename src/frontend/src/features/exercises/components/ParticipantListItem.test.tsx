@@ -33,7 +33,7 @@ describe('ParticipantListItem', () => {
         <TableBody>
           <ParticipantListItem {...props} />
         </TableBody>
-      </Table>
+      </Table>,
     )
   }
 

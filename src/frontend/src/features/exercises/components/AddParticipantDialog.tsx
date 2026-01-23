@@ -73,7 +73,7 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
     try {
       setLoading(true)
       const response = await userService.getUsers({ pageSize: 100 })
-      setUsers(response.users.filter((u) => u.status === 'Active'))
+      setUsers(response.users.filter(u => u.status === 'Active'))
     } catch (error) {
       console.error('Failed to load users:', error)
     } finally {
@@ -101,7 +101,7 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
             options={users}
             value={selectedUser}
             onChange={(_event, newValue) => setSelectedUser(newValue)}
-            getOptionLabel={(user) => user.displayName}
+            getOptionLabel={user => user.displayName}
             renderOption={(props, user) => (
               <Box component="li" {...props}>
                 <Box>
@@ -112,7 +112,7 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
                 </Box>
               </Box>
             )}
-            renderInput={(params) => (
+            renderInput={params => (
               <TextField
                 {...params}
                 label="Select User"
@@ -140,9 +140,9 @@ export const AddParticipantDialog: FC<AddParticipantDialogProps> = ({
               id="exercise-role"
               value={selectedRole}
               label="Exercise Role"
-              onChange={(e) => setSelectedRole(e.target.value)}
+              onChange={e => setSelectedRole(e.target.value)}
             >
-              {EXERCISE_ROLES.map((role) => (
+              {EXERCISE_ROLES.map(role => (
                 <MenuItem key={role.value} value={role.value}>
                   {role.label}
                 </MenuItem>

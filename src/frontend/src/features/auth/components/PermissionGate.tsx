@@ -6,9 +6,9 @@
  *
  * @module features/auth
  */
-import { FC, ReactNode } from 'react';
-import { useExerciseRole } from '../hooks/useExerciseRole';
-import type { Permission } from '../constants/rolePermissions';
+import { FC, ReactNode } from 'react'
+import { useExerciseRole } from '../hooks/useExerciseRole'
+import type { Permission } from '../constants/rolePermissions'
 
 export interface PermissionGateProps {
   /** Exercise ID for context */
@@ -55,23 +55,23 @@ export const PermissionGate: FC<PermissionGateProps> = ({
   children,
   fallback = null,
 }) => {
-  const { can, isLoading } = useExerciseRole(exerciseId);
+  const { can, isLoading } = useExerciseRole(exerciseId)
 
   // Don't render anything while loading
   if (isLoading) {
-    return null;
+    return null
   }
 
   // Check permissions
   const hasPermission = Array.isArray(action)
     ? requireAll
-      ? action.every((perm) => can(perm))
-      : action.some((perm) => can(perm))
-    : can(action);
+      ? action.every(perm => can(perm))
+      : action.some(perm => can(perm))
+    : can(action)
 
   if (hasPermission) {
-    return <>{children}</>;
+    return <>{children}</>
   }
 
-  return <>{fallback}</>;
-};
+  return <>{fallback}</>
+}

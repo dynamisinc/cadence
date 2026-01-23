@@ -20,7 +20,7 @@ export type Permission =
   | 'edit_exercise'
   | 'delete_exercise'
   | 'start_clock'
-  | 'pause_clock';
+  | 'pause_clock'
 
 /**
  * Exercise roles matching backend ExerciseRole enum
@@ -30,12 +30,12 @@ export type ExerciseRole =
   | 'ExerciseDirector'
   | 'Controller'
   | 'Evaluator'
-  | 'Observer';
+  | 'Observer'
 
 /**
  * System roles matching backend SystemRole enum
  */
-export type SystemRole = 'Admin' | 'Manager' | 'User';
+export type SystemRole = 'Admin' | 'Manager' | 'User'
 
 /**
  * Role permission mapping
@@ -70,7 +70,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
     'start_clock',
     'pause_clock',
   ],
-};
+}
 
 /**
  * Role hierarchy values for comparison
@@ -82,4 +82,4 @@ export const ROLE_HIERARCHY: Record<ExerciseRole, number> = {
   Controller: 3,
   ExerciseDirector: 4,
   Administrator: 5,
-};
+}

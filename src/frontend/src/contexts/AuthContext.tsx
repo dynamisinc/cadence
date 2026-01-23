@@ -14,15 +14,15 @@
  * @see docs/features/authentication/S07-token-refresh.md
  * @see docs/features/authentication/S08-expiration-handling.md
  */
-import { createContext, useContext, FC, ReactNode, useState, useEffect, useCallback, useRef } from 'react';
+import { createContext, useContext, FC, ReactNode, useState, useEffect, useCallback, useRef } from 'react'
 import type {
   UserInfo,
   LoginRequest,
   RegistrationRequest,
   AuthResponse,
-} from '../features/auth/types';
-import { authService } from '../features/auth/services/authService';
-import { setAuthInterceptors } from '../core/services/api';
+} from '../features/auth/types'
+import { authService } from '../features/auth/services/authService'
+import { setAuthInterceptors } from '../core/services/api'
 
 interface AuthContextType {
   /** Currently authenticated user (null if not logged in) */
@@ -43,7 +43,7 @@ interface AuthContextType {
   refreshAccessToken: () => Promise<void>;
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 interface AuthProviderProps {
   children: ReactNode;
@@ -55,12 +55,12 @@ interface AuthProviderProps {
  */
 function parseToken(token: string): { exp: number; user: UserInfo } | null {
   try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
+    const payload = JSON.parse(atob(token.split('.')[1]))
 
     // ClaimTypes.Role uses full URI: "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
     const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
       || payload.role
-      || 'User';
+      || 'User'
 
     return {
       exp: payload.exp * 1000, // Convert to milliseconds
@@ -71,9 +71,9 @@ function parseToken(token: string): { exp: number; user: UserInfo } | null {
         role: roleClaim,
         status: 'Active',
       },
-    };
+    }
   } catch {
-    return null;
+    return null
   }
 }
 
@@ -82,11 +82,11 @@ function parseToken(token: string): { exp: number; user: UserInfo } | null {
  * Manages JWT tokens and user session state
  */
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
-  const [user, setUser] = useState<UserInfo | null>(null);
-  const [accessToken, setAccessToken] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [tokenExpiry, setTokenExpiry] = useState<number | null>(null);
-  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const [user, setUser] = useState<UserInfo | null>(null)
+  const [accessToken, setAccessToken] = useState<string | null>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [tokenExpiry, setTokenExpiry] = useState<number | null>(null)
+  const refreshTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   /**
    * Schedule token refresh 2 minutes before expiry (S07)
@@ -94,21 +94,21 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    */
   const scheduleRefresh = useCallback((expiresAt: number) => {
     if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
+      clearTimeout(refreshTimerRef.current)
     }
 
-    const refreshIn = expiresAt - Date.now() - 2 * 60 * 1000; // 2 minutes before expiry
+    const refreshIn = expiresAt - Date.now() - 2 * 60 * 1000 // 2 minutes before expiry
     if (refreshIn > 0) {
       refreshTimerRef.current = setTimeout(async () => {
         try {
-          await refreshAccessToken();
+          await refreshAccessToken()
         } catch {
           // Token refresh failed - will redirect to login on next API call
-          console.warn('Proactive token refresh failed');
+          console.warn('Proactive token refresh failed')
         }
-      }, refreshIn);
+      }, refreshIn)
     }
-  }, []);
+  }, [])
 
   /**
    * Refresh access token using refresh token cookie (S07)
@@ -116,28 +116,28 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    */
   const refreshAccessToken = useCallback(async () => {
     try {
-      const response = await authService.refreshToken();
+      const response = await authService.refreshToken()
 
       if (response.isSuccess && response.accessToken) {
-        const parsed = parseToken(response.accessToken);
+        const parsed = parseToken(response.accessToken)
         if (parsed) {
-          setAccessToken(response.accessToken);
-          setUser(parsed.user);
-          setTokenExpiry(parsed.exp);
-          scheduleRefresh(parsed.exp);
+          setAccessToken(response.accessToken)
+          setUser(parsed.user)
+          setTokenExpiry(parsed.exp)
+          scheduleRefresh(parsed.exp)
         }
       } else {
         // Refresh failed - clear auth state
-        throw new Error(response.error?.message || 'Token refresh failed');
+        throw new Error(response.error?.message || 'Token refresh failed')
       }
     } catch (error) {
       // Refresh failed - clear auth state
-      setAccessToken(null);
-      setUser(null);
-      setTokenExpiry(null);
-      throw error;
+      setAccessToken(null)
+      setUser(null)
+      setTokenExpiry(null)
+      throw error
     }
-  }, [scheduleRefresh]);
+  }, [scheduleRefresh])
 
   /**
    * Initialize: Try to refresh token on mount (S08)
@@ -146,22 +146,22 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const initAuth = async () => {
       try {
-        await refreshAccessToken();
+        await refreshAccessToken()
       } catch {
         // No valid session - user needs to log in
         // This is normal for first visit or expired session
       } finally {
-        setIsLoading(false);
+        setIsLoading(false)
       }
-    };
-    initAuth();
+    }
+    initAuth()
 
     return () => {
       if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current);
+        clearTimeout(refreshTimerRef.current)
       }
-    };
-  }, [refreshAccessToken]);
+    }
+  }, [refreshAccessToken])
 
   /**
    * Configure API interceptors with token getter and refresher
@@ -170,9 +170,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     setAuthInterceptors(
       () => accessToken,
-      refreshAccessToken
-    );
-  }, [accessToken, refreshAccessToken]);
+      refreshAccessToken,
+    )
+  }, [accessToken, refreshAccessToken])
 
   /**
    * Cross-tab logout synchronization (S09)
@@ -181,55 +181,55 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'logout') {
-        setUser(null);
-        setAccessToken(null);
-        setTokenExpiry(null);
-        window.location.href = '/login';
+        setUser(null)
+        setAccessToken(null)
+        setTokenExpiry(null)
+        window.location.href = '/login'
       }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+    }
+    window.addEventListener('storage', handleStorageChange)
+    return () => window.removeEventListener('storage', handleStorageChange)
+  }, [])
 
   /**
    * Login with email/password (S04, S05)
    * Sets access token in memory and refresh token in HttpOnly cookie
    */
   const login = async (request: LoginRequest): Promise<AuthResponse> => {
-    const response = await authService.login(request);
+    const response = await authService.login(request)
 
     if (response.isSuccess && response.accessToken) {
-      const parsed = parseToken(response.accessToken);
+      const parsed = parseToken(response.accessToken)
       if (parsed) {
-        setAccessToken(response.accessToken);
-        setUser(parsed.user);
-        setTokenExpiry(parsed.exp);
-        scheduleRefresh(parsed.exp);
+        setAccessToken(response.accessToken)
+        setUser(parsed.user)
+        setTokenExpiry(parsed.exp)
+        scheduleRefresh(parsed.exp)
       }
     }
 
-    return response;
-  };
+    return response
+  }
 
   /**
    * Register new user account (S03)
    * Sets access token in memory and refresh token in HttpOnly cookie
    */
   const register = async (request: RegistrationRequest): Promise<AuthResponse> => {
-    const response = await authService.register(request);
+    const response = await authService.register(request)
 
     if (response.isSuccess && response.accessToken) {
-      const parsed = parseToken(response.accessToken);
+      const parsed = parseToken(response.accessToken)
       if (parsed) {
-        setAccessToken(response.accessToken);
-        setUser(parsed.user);
-        setTokenExpiry(parsed.exp);
-        scheduleRefresh(parsed.exp);
+        setAccessToken(response.accessToken)
+        setUser(parsed.user)
+        setTokenExpiry(parsed.exp)
+        scheduleRefresh(parsed.exp)
       }
     }
 
-    return response;
-  };
+    return response
+  }
 
   /**
    * Logout current user (S09)
@@ -238,24 +238,24 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const logout = async () => {
     try {
       // Call backend to clear refresh token cookie
-      await authService.logout();
+      await authService.logout()
     } catch {
       // Continue with local logout even if server call fails
     }
 
     // Clear local state
-    setUser(null);
-    setAccessToken(null);
-    setTokenExpiry(null);
+    setUser(null)
+    setAccessToken(null)
+    setTokenExpiry(null)
 
     if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current);
+      clearTimeout(refreshTimerRef.current)
     }
 
     // Notify other tabs to logout (S09)
-    localStorage.setItem('logout', Date.now().toString());
-    localStorage.removeItem('logout');
-  };
+    localStorage.setItem('logout', Date.now().toString())
+    localStorage.removeItem('logout')
+  }
 
   const value: AuthContextType = {
     user,
@@ -266,19 +266,19 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     register,
     logout,
     refreshAccessToken,
-  };
+  }
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-};
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
+}
 
 /**
  * Hook to access authentication context
  * Must be used within AuthProvider
  */
 export const useAuth = (): AuthContextType => {
-  const context = useContext(AuthContext);
+  const context = useContext(AuthContext)
   if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
+    throw new Error('useAuth must be used within an AuthProvider')
   }
-  return context;
+  return context
 }

@@ -18,7 +18,7 @@
  * @see authentication/S12 Deactivate User Account
  * @see authentication/S13 Global Role Assignment
  */
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -35,93 +35,93 @@ import {
   InputAdornment,
   Alert,
   Stack,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPen,
   faUserSlash,
   faUserCheck,
   faMagnifyingGlass,
-} from '@fortawesome/free-solid-svg-icons';
-import { CobraTextField } from '../../../theme/styledComponents';
-import CobraStyles from '../../../theme/CobraStyles';
-import { userService } from '../services/userService';
-import type { UserDto } from '../types';
-import { EditUserDialog } from '../components/EditUserDialog';
-import { RoleSelect } from '../components/RoleSelect';
-import { ConfirmDialog } from '../../../shared/components/ConfirmDialog';
-import { USER_ROLES } from '../types';
+} from '@fortawesome/free-solid-svg-icons'
+import { CobraTextField } from '../../../theme/styledComponents'
+import CobraStyles from '../../../theme/CobraStyles'
+import { userService } from '../services/userService'
+import type { UserDto } from '../types'
+import { EditUserDialog } from '../components/EditUserDialog'
+import { RoleSelect } from '../components/RoleSelect'
+import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
+import { USER_ROLES } from '../types'
 
 /**
  * User management page
  * Administrators only
  */
 export const UserListPage: FC = () => {
-  const [users, setUsers] = useState<UserDto[]>([]);
+  const [users, setUsers] = useState<UserDto[]>([])
   const [pagination, setPagination] = useState({
     page: 0, // 0-indexed for TablePagination
     pageSize: 20,
     totalCount: 0,
     totalPages: 0,
-  });
-  const [search, setSearch] = useState('');
-  const [roleFilter, setRoleFilter] = useState('');
-  const [isLoading, setIsLoading] = useState(true);
-  const [editingUser, setEditingUser] = useState<UserDto | null>(null);
-  const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  })
+  const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState('')
+  const [isLoading, setIsLoading] = useState(true)
+  const [editingUser, setEditingUser] = useState<UserDto | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
     message: string;
     onConfirm: () => void;
-  }>({ open: false, title: '', message: '', onConfirm: () => {} });
+  }>({ open: false, title: '', message: '', onConfirm: () => {} })
 
   /**
    * Load users from API with current filters and pagination
    */
   const loadUsers = async () => {
-    setIsLoading(true);
-    setErrorMessage(null);
+    setIsLoading(true)
+    setErrorMessage(null)
     try {
       const response = await userService.getUsers({
         page: pagination.page + 1, // API is 1-indexed
         pageSize: pagination.pageSize,
         search: search || undefined,
         role: roleFilter || undefined,
-      });
-      setUsers(response.users);
-      setPagination((prev) => ({
+      })
+      setUsers(response.users)
+      setPagination(prev => ({
         ...prev,
         totalCount: response.pagination.totalCount,
         totalPages: response.pagination.totalPages,
-      }));
+      }))
     } catch (error) {
-      setErrorMessage('Failed to load users');
+      setErrorMessage('Failed to load users')
     } finally {
-      setIsLoading(false);
+      setIsLoading(false)
     }
-  };
+  }
 
   // Load users when filters or pagination change
   useEffect(() => {
-    loadUsers();
-  }, [pagination.page, pagination.pageSize, search, roleFilter]);
+    loadUsers()
+  }, [pagination.page, pagination.pageSize, search, roleFilter])
 
   /**
    * Handle role change for a user
    */
   const handleRoleChange = async (user: UserDto, newRole: string) => {
     try {
-      await userService.changeRole(user.id, { systemRole: newRole });
-      loadUsers();
+      await userService.changeRole(user.id, { systemRole: newRole })
+      loadUsers()
     } catch (error: any) {
       if (error.response?.data?.error === 'last_administrator') {
-        setErrorMessage('Cannot remove the last Administrator. Assign another Administrator first.');
+        setErrorMessage('Cannot remove the last Administrator. Assign another Administrator first.')
       } else {
-        setErrorMessage('Failed to change user role');
+        setErrorMessage('Failed to change user role')
       }
     }
-  };
+  }
 
   /**
    * Show confirmation dialog for deactivation
@@ -133,39 +133,39 @@ export const UserListPage: FC = () => {
       message: `Are you sure you want to deactivate ${user.displayName}? They will no longer be able to log in.`,
       onConfirm: async () => {
         try {
-          await userService.deactivateUser(user.id);
-          loadUsers();
-          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          await userService.deactivateUser(user.id)
+          loadUsers()
+          setConfirmDialog(prev => ({ ...prev, open: false }))
         } catch {
-          setErrorMessage('Failed to deactivate user');
-          setConfirmDialog((prev) => ({ ...prev, open: false }));
+          setErrorMessage('Failed to deactivate user')
+          setConfirmDialog(prev => ({ ...prev, open: false }))
         }
       },
-    });
-  };
+    })
+  }
 
   /**
    * Reactivate a deactivated user
    */
   const handleReactivate = async (user: UserDto) => {
     try {
-      await userService.reactivateUser(user.id);
-      loadUsers();
+      await userService.reactivateUser(user.id)
+      loadUsers()
     } catch {
-      setErrorMessage('Failed to reactivate user');
+      setErrorMessage('Failed to reactivate user')
     }
-  };
+  }
 
   /**
    * Handle user edit save
    */
   const handleEditSave = async (updates: any) => {
     if (editingUser) {
-      await userService.updateUser(editingUser.id, updates);
-      loadUsers();
-      setEditingUser(null);
+      await userService.updateUser(editingUser.id, updates)
+      loadUsers()
+      setEditingUser(null)
     }
-  };
+  }
 
   return (
     <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
@@ -185,7 +185,7 @@ export const UserListPage: FC = () => {
         <CobraTextField
           placeholder="Search by name or email"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -197,13 +197,13 @@ export const UserListPage: FC = () => {
         />
         <Select
           value={roleFilter}
-          onChange={(e) => setRoleFilter(e.target.value)}
+          onChange={e => setRoleFilter(e.target.value)}
           displayEmpty
           size="small"
           sx={{ minWidth: 150 }}
         >
           <MenuItem value="">All Roles</MenuItem>
-          {USER_ROLES.map((role) => (
+          {USER_ROLES.map(role => (
             <MenuItem key={role} value={role}>
               {role}
             </MenuItem>
@@ -224,14 +224,14 @@ export const UserListPage: FC = () => {
           </TableRow>
         </TableHead>
         <TableBody>
-          {users.map((user) => (
+          {users.map(user => (
             <TableRow key={user.id}>
               <TableCell>{user.displayName}</TableCell>
               <TableCell>{user.email}</TableCell>
               <TableCell>
                 <RoleSelect
                   value={user.systemRole}
-                  onChange={(role) => handleRoleChange(user, role)}
+                  onChange={role => handleRoleChange(user, role)}
                 />
               </TableCell>
               <TableCell>
@@ -284,10 +284,10 @@ export const UserListPage: FC = () => {
         component="div"
         count={pagination.totalCount}
         page={pagination.page}
-        onPageChange={(_, page) => setPagination((prev) => ({ ...prev, page }))}
+        onPageChange={(_, page) => setPagination(prev => ({ ...prev, page }))}
         rowsPerPage={pagination.pageSize}
-        onRowsPerPageChange={(e) =>
-          setPagination((prev) => ({ ...prev, pageSize: parseInt(e.target.value), page: 0 }))
+        onRowsPerPageChange={e =>
+          setPagination(prev => ({ ...prev, pageSize: parseInt(e.target.value), page: 0 }))
         }
         rowsPerPageOptions={[10, 20, 50]}
       />
@@ -309,8 +309,8 @@ export const UserListPage: FC = () => {
         severity="danger"
         confirmLabel="Deactivate"
         onConfirm={confirmDialog.onConfirm}
-        onCancel={() => setConfirmDialog((prev) => ({ ...prev, open: false }))}
+        onCancel={() => setConfirmDialog(prev => ({ ...prev, open: false }))}
       />
     </Box>
-  );
-};
+  )
+}

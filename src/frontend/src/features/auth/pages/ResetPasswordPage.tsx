@@ -12,8 +12,8 @@
  * @module features/auth
  * @see authentication/S24-password-reset.md
  */
-import { FC, useState, FormEvent, useEffect } from 'react';
-import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { FC, useState, FormEvent, useEffect } from 'react'
+import { useSearchParams, useNavigate, Link } from 'react-router-dom'
 import {
   Stack,
   IconButton,
@@ -21,94 +21,94 @@ import {
   Typography,
   Box,
   Alert,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton, CobraTextField } from '../../../theme/styledComponents';
-import CobraStyles from '../../../theme/CobraStyles';
-import { AuthLayout } from '../components/AuthLayout';
-import { PasswordRequirements } from '../components/PasswordRequirements';
-import { authService } from '../services/authService';
-import { validatePassword, isPasswordValid } from '../types';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faEye, faEyeSlash, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraTextField } from '../../../theme/styledComponents'
+import CobraStyles from '../../../theme/CobraStyles'
+import { AuthLayout } from '../components/AuthLayout'
+import { PasswordRequirements } from '../components/PasswordRequirements'
+import { authService } from '../services/authService'
+import { validatePassword, isPasswordValid } from '../types'
 
 /**
  * Password reset completion page (accessed via email link)
  */
 export const ResetPasswordPage: FC = () => {
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-  const token = searchParams.get('token');
+  const [searchParams] = useSearchParams()
+  const navigate = useNavigate()
+  const token = searchParams.get('token')
 
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [isSubmitting, setIsSubmitting] = useState(false);
-  const [confirmPasswordError, setConfirmPasswordError] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [tokenError, setTokenError] = useState('');
-  const [isSuccess, setIsSuccess] = useState(false);
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [showNewPassword, setShowNewPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [confirmPasswordError, setConfirmPasswordError] = useState('')
+  const [error, setError] = useState<string | null>(null)
+  const [tokenError, setTokenError] = useState('')
+  const [isSuccess, setIsSuccess] = useState(false)
 
   // Password requirements state
-  const passwordReqs = validatePassword(newPassword);
-  const passwordValid = isPasswordValid(newPassword);
+  const passwordReqs = validatePassword(newPassword)
+  const passwordValid = isPasswordValid(newPassword)
 
   // Validate token on mount
   useEffect(() => {
     if (!token) {
-      setTokenError('No reset token provided. Please request a new password reset.');
+      setTokenError('No reset token provided. Please request a new password reset.')
     }
-  }, [token]);
+  }, [token])
 
   const validateConfirmPassword = (value: string): boolean => {
     if (newPassword && value && newPassword !== value) {
-      setConfirmPasswordError('Passwords do not match');
-      return false;
+      setConfirmPasswordError('Passwords do not match')
+      return false
     }
-    setConfirmPasswordError('');
-    return true;
-  };
+    setConfirmPasswordError('')
+    return true
+  }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!token) {
-      return;
+      return
     }
 
     if (!passwordValid) {
-      return;
+      return
     }
 
-    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword);
+    const isConfirmPasswordValid = validateConfirmPassword(confirmPassword)
     if (!isConfirmPasswordValid) {
-      return;
+      return
     }
 
-    setIsSubmitting(true);
-    setError(null);
+    setIsSubmitting(true)
+    setError(null)
 
     try {
-      await authService.completePasswordReset(token, newPassword);
-      setIsSuccess(true);
+      await authService.completePasswordReset(token, newPassword)
+      setIsSuccess(true)
 
       // Redirect to login after 3 seconds
-      setTimeout(() => navigate('/login'), 3000);
+      setTimeout(() => navigate('/login'), 3000)
     } catch (err: any) {
       if (err.response?.data) {
-        const errorResponse = err.response.data;
+        const errorResponse = err.response.data
         if (errorResponse.code === 'invalid_token' || errorResponse.error?.code === 'invalid_token') {
-          setTokenError('This reset link is invalid or has expired. Please request a new one.');
+          setTokenError('This reset link is invalid or has expired. Please request a new one.')
         } else {
-          setError(errorResponse.message || errorResponse.error?.message || 'Failed to reset password');
+          setError(errorResponse.message || errorResponse.error?.message || 'Failed to reset password')
         }
       } else {
-        setError('Unable to connect to server. Please check your connection.');
+        setError('Unable to connect to server. Please check your connection.')
       }
     } finally {
-      setIsSubmitting(false);
+      setIsSubmitting(false)
     }
-  };
+  }
 
   // Show error if token is invalid/missing
   if (tokenError) {
@@ -128,7 +128,7 @@ export const ResetPasswordPage: FC = () => {
           </Link>
         </Stack>
       </AuthLayout>
-    );
+    )
   }
 
   // Show success state
@@ -146,7 +146,7 @@ export const ResetPasswordPage: FC = () => {
           </Link>
         </Stack>
       </AuthLayout>
-    );
+    )
   }
 
   return (
@@ -164,7 +164,7 @@ export const ResetPasswordPage: FC = () => {
               label="New Password"
               type={showNewPassword ? 'text' : 'password'}
               value={newPassword}
-              onChange={(e) => setNewPassword(e.target.value)}
+              onChange={e => setNewPassword(e.target.value)}
               fullWidth
               required
               autoFocus
@@ -192,9 +192,9 @@ export const ResetPasswordPage: FC = () => {
             label="Confirm Password"
             type={showConfirmPassword ? 'text' : 'password'}
             value={confirmPassword}
-            onChange={(e) => {
-              setConfirmPassword(e.target.value);
-              if (confirmPasswordError) validateConfirmPassword(e.target.value);
+            onChange={e => {
+              setConfirmPassword(e.target.value)
+              if (confirmPasswordError) validateConfirmPassword(e.target.value)
             }}
             onBlur={() => validateConfirmPassword(confirmPassword)}
             error={!!confirmPasswordError}
@@ -232,5 +232,5 @@ export const ResetPasswordPage: FC = () => {
         </Stack>
       </form>
     </AuthLayout>
-  );
-};
+  )
+}
