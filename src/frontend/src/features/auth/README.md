@@ -1,18 +1,18 @@
-# Authentication Feature
+# Authentication & Authorization Feature
 
-UI components for user authentication in Cadence.
+Complete authentication and role-based authorization system for Cadence.
 
-## Phase 1 Status: UI SHELLS ONLY
+## Implementation Status
 
-This is **Phase 1** implementation - UI components only with **NO API integration**.
-
-- ✅ All authentication pages implemented
-- ✅ Form validation (client-side)
-- ✅ Password strength requirements
-- ✅ Responsive layouts with COBRA styling
-- ❌ API integration (Phase 3)
-- ❌ Token management (Phase 3)
-- ❌ Session persistence (Phase 3)
+- ✅ All authentication pages implemented (S01-S12)
+- ✅ JWT token management with refresh (S05-S08)
+- ✅ API integration complete
+- ✅ User management (S10-S12)
+- ✅ Global role assignment (S13)
+- ✅ Exercise role assignment (S14)
+- ✅ **Role inheritance & resolution (S15) - NEW** ✨
+- ✅ Password reset flow (S24)
+- ✅ External auth providers ready (S17-S23)
 
 ## Components
 
@@ -154,10 +154,169 @@ Phase 2 will include:
 - User interaction tests
 - Accessibility tests
 
+---
+
+## 🆕 Role Inheritance & Resolution (S15)
+
+Exercise roles override system roles, providing fine-grained access control per exercise.
+
+### New Components
+
+#### EffectiveRoleBadge
+
+Displays user's effective role in an exercise with color coding and explanatory tooltip.
+
+```tsx
+import { EffectiveRoleBadge } from '@/features/auth';
+
+// Show user's role in exercise header
+<EffectiveRoleBadge exerciseId={exercise.id} showOverride />
+```
+
+**Color Coding:**
+- 🔴 Red: Administrator, Exercise Director
+- 🔵 Blue: Controller
+- 🟢 Green: Evaluator
+- ⚪ Gray: Observer
+
+#### PermissionGate
+
+Conditional rendering based on user permissions.
+
+```tsx
+import { PermissionGate } from '@/features/auth';
+
+// Only show to users who can fire injects
+<PermissionGate exerciseId={exerciseId} action="fire_inject">
+  <FireInjectButton inject={inject} />
+</PermissionGate>
+
+// With fallback message
+<PermissionGate
+  exerciseId={exerciseId}
+  action="manage_participants"
+  fallback={<Alert>Requires Director role</Alert>}
+>
+  <ParticipantManager />
+</PermissionGate>
+```
+
+#### RoleExplanationTooltip
+
+Shows role hierarchy and permissions on hover.
+
+```tsx
+import { RoleExplanationTooltip } from '@/features/auth';
+
+<RoleExplanationTooltip exerciseId={exerciseId} showPermissions>
+  <InfoIcon />
+</RoleExplanationTooltip>
+```
+
+### New Hooks
+
+#### useExerciseRole
+
+Determines user's effective role and permissions in an exercise.
+
+```tsx
+import { useExerciseRole } from '@/features/auth';
+
+function InjectControls({ exerciseId, inject }) {
+  const { effectiveRole, can, isLoading } = useExerciseRole(exerciseId);
+
+  if (isLoading) return <Skeleton />;
+
+  return (
+    <>
+      {can('view_exercise') && <ViewButton />}
+      {can('fire_inject') && <FireButton inject={inject} />}
+      {can('edit_inject') && <EditButton inject={inject} />}
+    </>
+  );
+}
+```
+
+### Permission Types
+
+```typescript
+type Permission =
+  | 'view_exercise'
+  | 'add_observation'
+  | 'fire_inject'
+  | 'edit_inject'
+  | 'manage_participants'
+  | 'edit_exercise'
+  | 'delete_exercise'
+  | 'start_clock'
+  | 'pause_clock';
+```
+
+### Role Hierarchy
+
+```
+Observer (level 1)
+  ↓ inherits + adds
+Evaluator (level 2)
+  ↓ inherits + adds
+Controller (level 3)
+  ↓ inherits + adds
+Exercise Director (level 4)
+  ↓ inherits + adds
+Administrator (level 5)
+```
+
+### System Role Mapping
+
+When a user has no exercise-specific role, their system role maps to:
+- **Admin** → Administrator
+- **Manager** → Exercise Director
+- **User** → Observer
+
+### Full Integration Example
+
+```tsx
+import {
+  EffectiveRoleBadge,
+  PermissionGate,
+  useExerciseRole
+} from '@/features/auth';
+
+function ExercisePage({ exerciseId }) {
+  const { effectiveRole, can } = useExerciseRole(exerciseId);
+
+  return (
+    <Box>
+      {/* Header with role badge */}
+      <Stack direction="row" justifyContent="space-between">
+        <Typography variant="h4">Exercise</Typography>
+        <EffectiveRoleBadge exerciseId={exerciseId} showOverride />
+      </Stack>
+
+      {/* Role-based content */}
+      <PermissionGate exerciseId={exerciseId} action="fire_inject">
+        <InjectControls />
+      </PermissionGate>
+
+      <PermissionGate
+        exerciseId={exerciseId}
+        action="edit_exercise"
+        fallback={<Alert>Settings require Director role</Alert>}
+      >
+        <ExerciseSettings />
+      </PermissionGate>
+    </Box>
+  );
+}
+```
+
+---
+
 ## Documentation References
 
 - [S01: Registration Form](../../../../docs/features/authentication/S01-registration-form.md)
 - [S04: Login Form](../../../../docs/features/authentication/S04-login-form.md)
+- [S15: Role Inheritance](../../../../docs/features/authentication/S15-role-inheritance.md)
 - [S24: Password Reset](../../../../docs/features/authentication/S24-password-reset.md)
 - [COBRA Styling](../../../docs/COBRA_STYLING.md)
 - [Coding Standards](../../../docs/CODING_STANDARDS.md)

@@ -54,6 +54,7 @@ export const createExerciseSchema = z.object({
     .max(60, 'Time scale cannot exceed 60x')
     .nullable()
     .optional(),
+  directorId: z.string().optional().or(z.literal('')),
 }).refine(
   data => {
     // If both times are provided, end must be after start

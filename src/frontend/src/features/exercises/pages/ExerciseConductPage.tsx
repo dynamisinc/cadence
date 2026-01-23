@@ -54,6 +54,7 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs, useConnectivity } from '../../../core/contexts'
 import { useExerciseSignalR } from '../../../shared/hooks'
 import { ExerciseStatus, InjectStatus, ExerciseClockState, DeliveryMode } from '../../../types'
+import { EffectiveRoleBadge, useExerciseRole } from '@/features/auth'
 
 // Feature imports
 import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime } from '../../exercise-clock'
@@ -77,6 +78,7 @@ export const ExerciseConductPage = () => {
 
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
+  const { effectiveRole, can } = useExerciseRole(exerciseId ?? null)
   const {
     clockState,
     displayTime,
@@ -379,16 +381,16 @@ export const ExerciseConductPage = () => {
     previousConnectionStateRef.current = connectionState
   }, [connectionState, setSignalRState, handleReconnected, elapsedTimeMs])
 
-  // Permission checks (simplified - should use actual RBAC)
+  // Permission checks using role-based access control
   const canControl = useMemo(() => {
     // Controllers and Exercise Directors can control injects/clock
-    return exercise?.status === ExerciseStatus.Active
-  }, [exercise])
+    return exercise?.status === ExerciseStatus.Active && can('fire_inject')
+  }, [exercise, can])
 
   const canAddObservations = useMemo(() => {
     // Evaluators can add observations during active exercises
-    return exercise?.status === ExerciseStatus.Active
-  }, [exercise])
+    return exercise?.status === ExerciseStatus.Active && can('add_observation')
+  }, [exercise, can])
 
   // Calculate ready-to-fire count for badge
   const readyToFireCount = useMemo(() => {
@@ -530,6 +532,9 @@ export const ExerciseConductPage = () => {
         exercise={exercise}
         actions={
           <>
+            {/* User's Exercise Role Badge */}
+            <EffectiveRoleBadge exerciseId={exerciseId ?? null} showOverride />
+
             {/* View Mode Toggle */}
             <ToggleButtonGroup
               value={viewMode}

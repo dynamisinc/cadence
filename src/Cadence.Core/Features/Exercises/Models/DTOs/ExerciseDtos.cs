@@ -17,6 +17,13 @@ public class CreateExerciseRequest
     public DeliveryMode DeliveryMode { get; init; } = DeliveryMode.ClockDriven;
     public TimelineMode TimelineMode { get; init; } = TimelineMode.RealTime;
     public decimal? TimeScale { get; init; }
+
+    /// <summary>
+    /// Optional ID of user to assign as Exercise Director.
+    /// If not provided, the creator will be auto-assigned if they are Admin or Manager.
+    /// Must be an Admin or Manager (SystemRole check).
+    /// </summary>
+    public string? DirectorId { get; init; }
 }
 
 /// <summary>
@@ -36,6 +43,13 @@ public class UpdateExerciseRequest
     public DeliveryMode DeliveryMode { get; init; } = DeliveryMode.ClockDriven;
     public TimelineMode TimelineMode { get; init; } = TimelineMode.RealTime;
     public decimal? TimeScale { get; init; }
+
+    /// <summary>
+    /// Optional ID of user to assign as Exercise Director.
+    /// If provided, will update the Exercise Director assignment.
+    /// Must be an Admin or Manager (SystemRole check).
+    /// </summary>
+    public string? DirectorId { get; init; }
 }
 
 /// <summary>
@@ -217,3 +231,18 @@ public class DeleteExerciseResult
     public static DeleteExerciseResult Failed(string message, CannotDeleteReason reason) =>
         new() { Success = false, ErrorMessage = message, CannotDeleteReason = reason };
 }
+
+// =========================================================================
+// Exercise Assignment DTOs (for Profile Menu)
+// =========================================================================
+
+/// <summary>
+/// DTO representing a user's exercise assignment.
+/// Used in profile menu to show all exercises where the user has a role.
+/// </summary>
+public record ExerciseAssignmentDto(
+    Guid ExerciseId,
+    string ExerciseName,
+    string ExerciseRole,
+    DateTime AssignedAt
+);

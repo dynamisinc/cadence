@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
@@ -26,6 +26,8 @@ import type { ExerciseDto } from '../types'
 import { TIME_ZONES, getBrowserTimeZone, getTimeZoneOption, type TimeZoneOption } from '../utils/timezones'
 import { getDefaultDeliveryMode, getDefaultTimelineMode } from '../utils/timingDefaults'
 import TimingConfigurationSection from './TimingConfigurationSection'
+import { UserAutocomplete } from '../../../shared/components'
+import type { UserDto } from '../../users/types'
 
 interface ExerciseFormProps {
   exercise?: ExerciseDto | null
@@ -64,6 +66,7 @@ export const ExerciseForm = ({
   onDirtyChange,
 }: ExerciseFormProps) => {
   const isEdit = !!exercise
+  const [selectedDirector, setSelectedDirector] = useState<UserDto | null>(null)
 
   const {
     control,
@@ -87,6 +90,7 @@ export const ExerciseForm = ({
       deliveryMode: DeliveryMode.ClockDriven,
       timelineMode: TimelineMode.RealTime,
       timeScale: null,
+      directorId: '',
     },
     mode: 'onBlur',
   })
@@ -135,7 +139,11 @@ export const ExerciseForm = ({
         deliveryMode: exercise.deliveryMode,
         timelineMode: exercise.timelineMode,
         timeScale: exercise.timeScale,
+        directorId: '', // TODO: Load director user object when exercise.directorId is available
       })
+      // Note: selectedDirector state would need to be set here if we have directorId in ExerciseDto
+      // For now, leaving as null since backend doesn't return directorId yet
+      setSelectedDirector(null)
     }
   }, [exercise, reset])
 
@@ -204,6 +212,32 @@ export const ExerciseForm = ({
                 <FormHelperText>Cannot modify during active exercise</FormHelperText>
               )}
             </FormControl>
+          )}
+        />
+
+        {/* Exercise Director (Optional) */}
+        <Controller
+          name="directorId"
+          control={control}
+          render={({ field }) => (
+            <UserAutocomplete
+              value={selectedDirector}
+              onChange={(user) => {
+                setSelectedDirector(user)
+                field.onChange(user?.id || '')
+                setValue('directorId', user?.id || '', { shouldDirty: true })
+              }}
+              label="Exercise Director (Optional)"
+              helperText={
+                errors.directorId?.message ||
+                (isEdit
+                  ? 'Change the assigned Exercise Director'
+                  : 'Defaults to you if not specified')
+              }
+              error={!!errors.directorId}
+              disabled={isFieldDisabled('directorId' as keyof CreateExerciseFormValues)}
+              filterToDirectorEligible
+            />
           )}
         />
 

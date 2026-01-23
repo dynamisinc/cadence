@@ -1,5 +1,8 @@
+using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Features.Users.Services;
+using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,11 +18,16 @@ namespace Cadence.WebApi.Controllers;
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
+    private readonly IExerciseParticipantService _exerciseParticipantService;
     private readonly ILogger<UsersController> _logger;
 
-    public UsersController(IUserService userService, ILogger<UsersController> logger)
+    public UsersController(
+        IUserService userService,
+        IExerciseParticipantService exerciseParticipantService,
+        ILogger<UsersController> logger)
     {
         _userService = userService;
+        _exerciseParticipantService = exerciseParticipantService;
         _logger = logger;
     }
 
@@ -171,6 +179,54 @@ public class UsersController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Get a user's exercise assignments (exercises where they have a role).
+    /// Users can get their own assignments, Admins can get any user's assignments.
+    /// </summary>
+    /// <param name="userId">User ID (GUID as string path parameter).</param>
+    [HttpGet("{userId:guid}/exercise-assignments")]
+    [Authorize] // Override controller-level RequireAdmin policy
+    [ProducesResponseType(typeof(IEnumerable<ExerciseAssignmentDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetUserExerciseAssignments(Guid userId)
+    {
+        // Check if user is authenticated
+        if (!User.Identity?.IsAuthenticated ?? true)
+        {
+            return Unauthorized();
+        }
+
+        var userIdClaim = User.FindFirst("sub")?.Value;
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            return Unauthorized();
+        }
+
+        var currentUserId = Guid.Parse(userIdClaim);
+
+        // Check authorization: User can get their own assignments, Admin can get any user's
+        var isAdmin = User.Claims.Any(c =>
+            c.Type == "role" && c.Value == SystemRole.Admin.ToString());
+
+        if (currentUserId != userId && !isAdmin)
+        {
+            _logger.LogWarning(
+                "User {CurrentUserId} attempted to access exercise assignments for user {RequestedUserId} without authorization",
+                currentUserId, userId);
+            return Forbid();
+        }
+
+        // Get the user's exercise assignments
+        var assignments = await _exerciseParticipantService.GetUserExerciseAssignmentsAsync(userId.ToString());
+
+        _logger.LogInformation(
+            "Retrieved {Count} exercise assignments for user {UserId}",
+            assignments.Count(), userId);
+
+        return Ok(assignments);
     }
 
     /// <summary>

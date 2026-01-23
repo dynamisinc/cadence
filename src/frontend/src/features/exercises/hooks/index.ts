@@ -9,3 +9,4 @@ export {
 } from './useMselSummary'
 export { useDuplicateExercise } from './useDuplicateExercise'
 export { useSetupProgress, setupProgressQueryKey } from './useSetupProgress'
+export { useExerciseParticipants } from './useExerciseParticipants'

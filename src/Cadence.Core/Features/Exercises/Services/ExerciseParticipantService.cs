@@ -105,13 +105,23 @@ public class ExerciseParticipantService : IExerciseParticipantService
             throw new KeyNotFoundException($"User {request.UserId} not found");
         }
 
+        // Parse the requested role
+        var role = ParseRole(request.Role) ?? ExerciseRole.Observer;
+
+        // Validate Exercise Director assignment
+        if (role == ExerciseRole.ExerciseDirector)
+        {
+            if (user.SystemRole != SystemRole.Admin && user.SystemRole != SystemRole.Manager)
+            {
+                throw new InvalidOperationException("Only Admins and Managers can be assigned as Exercise Director");
+            }
+        }
+
         // Check if already a participant (including soft-deleted)
         var existing = await _context.ExerciseParticipants
             .Where(p => p.ExerciseId == exerciseId && p.UserId == request.UserId)
             .IgnoreQueryFilters()
             .FirstOrDefaultAsync(ct);
-
-        var role = ParseRole(request.Role) ?? ExerciseRole.Observer;
 
         if (existing != null)
         {
@@ -178,6 +188,15 @@ public class ExerciseParticipantService : IExerciseParticipantService
 
         // Parse the new role, default to Observer if null
         var newRole = ParseRole(request.Role) ?? ExerciseRole.Observer;
+
+        // Validate Exercise Director assignment
+        if (newRole == ExerciseRole.ExerciseDirector)
+        {
+            if (participant.User.SystemRole != SystemRole.Admin && participant.User.SystemRole != SystemRole.Manager)
+            {
+                throw new InvalidOperationException("Only Admins and Managers can be assigned as Exercise Director");
+            }
+        }
 
         participant.Role = newRole;
 
@@ -256,6 +275,30 @@ public class ExerciseParticipantService : IExerciseParticipantService
         _logger.LogInformation(
             "Bulk updated {Count} participants for exercise {ExerciseId}",
             request.Participants.Count, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task<IEnumerable<ExerciseAssignmentDto>> GetUserExerciseAssignmentsAsync(
+        string userId,
+        CancellationToken ct = default)
+    {
+        var assignments = await _context.ExerciseParticipants
+            .Include(p => p.Exercise)
+            .Where(p => p.UserId == userId && !p.IsDeleted && !p.Exercise.IsDeleted)
+            .OrderByDescending(p => p.AssignedAt)
+            .Select(p => new ExerciseAssignmentDto(
+                p.ExerciseId,
+                p.Exercise.Name,
+                p.Role.ToString(),
+                p.AssignedAt
+            ))
+            .ToListAsync(ct);
+
+        _logger.LogInformation(
+            "Retrieved {Count} exercise assignments for user {UserId}",
+            assignments.Count, userId);
+
+        return assignments;
     }
 
     // =========================================================================

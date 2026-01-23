@@ -138,10 +138,22 @@ public class ExercisesController : ControllerBase
         _logger.LogInformation("Created exercise {ExerciseId}: {ExerciseName} by user {UserId}",
             exercise.Id, exercise.Name, currentUserId);
 
-        // Auto-assign creator as Exercise Director if they are Admin or Manager
-        var currentUser = await _context.ApplicationUsers.FindAsync(currentUserId);
-        if (currentUser != null &&
-            (currentUser.SystemRole == SystemRole.Admin || currentUser.SystemRole == SystemRole.Manager))
+        // Assign Exercise Director
+        string? directorId = request.DirectorId;
+
+        // If no directorId provided, use creator if they are Admin or Manager
+        if (string.IsNullOrEmpty(directorId))
+        {
+            var currentUser = await _context.ApplicationUsers.FindAsync(currentUserId);
+            if (currentUser != null &&
+                (currentUser.SystemRole == SystemRole.Admin || currentUser.SystemRole == SystemRole.Manager))
+            {
+                directorId = currentUserId;
+            }
+        }
+
+        // Assign director if we have a valid ID
+        if (!string.IsNullOrEmpty(directorId))
         {
             try
             {
@@ -149,19 +161,27 @@ public class ExercisesController : ControllerBase
                     exercise.Id,
                     new AddParticipantRequest
                     {
-                        UserId = currentUserId,
+                        UserId = directorId,
                         Role = ExerciseRole.ExerciseDirector.ToString()
                     });
 
                 _logger.LogInformation(
-                    "Auto-assigned user {UserId} as Exercise Director for exercise {ExerciseId}",
-                    currentUserId, exercise.Id);
+                    "Assigned user {UserId} as Exercise Director for exercise {ExerciseId}",
+                    directorId, exercise.Id);
+            }
+            catch (KeyNotFoundException)
+            {
+                return BadRequest(new { message = "User not found" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex,
-                    "Failed to auto-assign user {UserId} as Director for exercise {ExerciseId}. Exercise created successfully.",
-                    currentUserId, exercise.Id);
+                    "Failed to assign user {UserId} as Director for exercise {ExerciseId}. Exercise created successfully.",
+                    directorId, exercise.Id);
                 // Don't fail the exercise creation if auto-assignment fails
             }
         }
@@ -231,6 +251,74 @@ public class ExercisesController : ControllerBase
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated exercise {ExerciseId}: {ExerciseName}", exercise.Id, exercise.Name);
+
+        // Handle director reassignment if provided
+        if (!string.IsNullOrEmpty(request.DirectorId))
+        {
+            try
+            {
+                // Check if there's already a director
+                var participants = await _participantService.GetParticipantsAsync(exercise.Id);
+                var existingDirector = participants.FirstOrDefault(p => p.ExerciseRole == ExerciseRole.ExerciseDirector.ToString());
+
+                // If there's a different director, we need to replace them
+                if (existingDirector != null && existingDirector.UserId != request.DirectorId)
+                {
+                    // Remove old director
+                    await _participantService.RemoveParticipantAsync(exercise.Id, existingDirector.UserId);
+
+                    _logger.LogInformation(
+                        "Removed previous director {OldDirectorId} from exercise {ExerciseId}",
+                        existingDirector.UserId, exercise.Id);
+                }
+
+                // Add or update new director (only if not already director)
+                if (existingDirector == null || existingDirector.UserId != request.DirectorId)
+                {
+                    // Check if user is already a participant with a different role
+                    var existingParticipant = participants.FirstOrDefault(p => p.UserId == request.DirectorId);
+
+                    if (existingParticipant != null)
+                    {
+                        // Update their role to Director
+                        await _participantService.UpdateParticipantRoleAsync(
+                            exercise.Id,
+                            request.DirectorId,
+                            new UpdateParticipantRoleRequest { Role = ExerciseRole.ExerciseDirector.ToString() });
+                    }
+                    else
+                    {
+                        // Add as new director
+                        await _participantService.AddParticipantAsync(
+                            exercise.Id,
+                            new AddParticipantRequest
+                            {
+                                UserId = request.DirectorId,
+                                Role = ExerciseRole.ExerciseDirector.ToString()
+                            });
+                    }
+
+                    _logger.LogInformation(
+                        "Assigned user {UserId} as Exercise Director for exercise {ExerciseId}",
+                        request.DirectorId, exercise.Id);
+                }
+            }
+            catch (KeyNotFoundException)
+            {
+                return BadRequest(new { message = "User not found" });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex,
+                    "Failed to update director for exercise {ExerciseId}",
+                    exercise.Id);
+                // Don't fail the exercise update if director assignment fails
+            }
+        }
 
         return Ok(exercise.ToDto());
     }

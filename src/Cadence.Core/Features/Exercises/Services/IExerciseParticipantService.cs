@@ -95,4 +95,16 @@ public interface IExerciseParticipantService
         Guid exerciseId,
         BulkUpdateParticipantsRequest request,
         CancellationToken ct = default);
+
+    /// <summary>
+    /// Get all exercise assignments for a user.
+    /// Returns all active exercises where the user has a role assignment.
+    /// Excludes deleted exercises and deleted participant records.
+    /// </summary>
+    /// <param name="userId">User ID (ApplicationUser.Id string)</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of exercise assignments ordered by most recently assigned first</returns>
+    Task<IEnumerable<ExerciseAssignmentDto>> GetUserExerciseAssignmentsAsync(
+        string userId,
+        CancellationToken ct = default);
 }

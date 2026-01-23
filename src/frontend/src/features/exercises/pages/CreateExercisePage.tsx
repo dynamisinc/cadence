@@ -68,6 +68,7 @@ export const CreateExercisePage = () => {
         deliveryMode: values.deliveryMode,
         timelineMode: values.timelineMode,
         timeScale: values.timeScale ?? undefined,
+        directorId: values.directorId?.trim() || undefined,
       }
 
       const created = await exerciseService.createExercise(request)

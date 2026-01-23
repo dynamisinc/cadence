@@ -25,6 +25,19 @@ vi.mock('../../contexts/AuthContext', async (importOriginal) => {
   }
 })
 
+// Mock roleResolutionService
+vi.mock('@/features/auth', async (importOriginal) => {
+  const actual = await importOriginal()
+  return {
+    ...actual as any,
+    roleResolutionService: {
+      getUserExerciseAssignments: vi.fn().mockResolvedValue([]),
+    },
+    getRoleColor: vi.fn().mockReturnValue('primary.main'),
+    getRoleDisplayName: vi.fn().mockReturnValue('Controller'),
+  }
+})
+
 describe('ProfileMenu', () => {
   beforeEach(() => {
     vi.clearAllMocks()

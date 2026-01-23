@@ -8,9 +8,11 @@ import {
   Grid,
   LinearProgress,
   Stack,
+  Tabs,
+  Tab,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faList, faPen, faPlay, faCopy, faBoxArchive, faTrash } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faList, faPen, faPlay, faCopy, faBoxArchive, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import {
@@ -30,6 +32,7 @@ import {
   DeleteExerciseDialog,
 } from '../components'
 import { ObjectiveList } from '../../objectives'
+import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -41,14 +44,38 @@ import { usePermissions, useUnsavedChangesWarning } from '../../../shared/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
+import { EffectiveRoleBadge } from '@/features/auth'
 import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
 
 /**
- * Exercise Detail Page (S02)
+ * Tab Panel Component
+ */
+interface TabPanelProps {
+  children?: React.ReactNode
+  index: number
+  value: number
+}
+
+function TabPanel({ children, value, index }: TabPanelProps) {
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`exercise-tabpanel-${index}`}
+      aria-labelledby={`exercise-tab-${index}`}
+    >
+      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
+    </div>
+  )
+}
+
+/**
+ * Exercise Detail Page (S02, S14)
  *
- * Displays exercise details with edit capability:
- * - View mode: Shows all exercise information
- * - Edit mode: Form for editing (when user clicks Edit)
+ * Displays exercise details with tabbed interface:
+ * - Details tab: Shows all exercise information (with edit capability)
+ * - Objectives tab: Manage exercise objectives
+ * - Participants tab: Manage exercise participants (S14)
  *
  * Editing rules per status:
  * - Draft: All fields editable
@@ -69,6 +96,7 @@ export const ExerciseDetailPage = () => {
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [activeTab, setActiveTab] = useState(0)
 
   // Setup progress for Draft exercises
   const {
@@ -165,6 +193,7 @@ export const ExerciseDetailPage = () => {
         deliveryMode: values.deliveryMode,
         timelineMode: values.timelineMode,
         timeScale: values.timeScale ?? undefined,
+        directorId: values.directorId?.trim() || undefined,
       }
 
       await updateExercise(request)
@@ -299,6 +328,8 @@ export const ExerciseDetailPage = () => {
         marginBottom={3}
         actions={
           <>
+            {/* User's Exercise Role Badge */}
+            <EffectiveRoleBadge exerciseId={id ?? null} showOverride />
             <CobraLinkButton onClick={handleBackToList}>
               Back to List
             </CobraLinkButton>
@@ -384,8 +415,30 @@ export const ExerciseDetailPage = () => {
           />
         </Paper>
       ) : (
-        <Stack spacing={2}>
-          {/* Top row: Three equal-height cards */}
+        <>
+          {/* Tabs */}
+          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+            <Tabs
+              value={activeTab}
+              onChange={(_, newValue) => setActiveTab(newValue)}
+              aria-label="exercise detail tabs"
+            >
+              <Tab label="Details" id="exercise-tab-0" aria-controls="exercise-tabpanel-0" />
+              <Tab label="Objectives" id="exercise-tab-1" aria-controls="exercise-tabpanel-1" />
+              <Tab
+                label="Participants"
+                icon={<FontAwesomeIcon icon={faUsers} />}
+                iconPosition="start"
+                id="exercise-tab-2"
+                aria-controls="exercise-tabpanel-2"
+              />
+            </Tabs>
+          </Box>
+
+          {/* Tab Panels */}
+          <TabPanel value={activeTab} index={0}>
+            <Stack spacing={2}>
+          {/* Top row: Two equal-height cards */}
           <Grid
             container
             spacing={2}
@@ -394,13 +447,12 @@ export const ExerciseDetailPage = () => {
               display: 'grid',
               gridTemplateColumns: {
                 xs: '1fr',
-                sm: 'repeat(2, 1fr)',
                 md: exercise.status === ExerciseStatus.Draft
-                  ? 'repeat(3, 1fr)'
-                  : 'repeat(2, 1fr)',
+                  ? 'repeat(2, 1fr)'
+                  : '1fr',
               },
               gap: 2,
-              // Fixed height for cards on desktop (575px fits ~4 objectives)
+              // Fixed height for cards on desktop
               '& > .MuiGrid-root': {
                 height: { md: 575 },
               },
@@ -610,29 +662,6 @@ export const ExerciseDetailPage = () => {
               </Paper>
             </Grid>
 
-            {/* Middle column: Objectives */}
-            <Grid>
-              <Paper
-                sx={{
-                  p: 3,
-                  height: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  overflow: 'hidden',
-                }}
-              >
-                <Box
-                  sx={{
-                    flex: 1,
-                    overflow: 'auto',
-                    minHeight: 0,
-                  }}
-                >
-                  <ObjectiveList exerciseId={exercise.id} canEdit={canEdit} />
-                </Box>
-              </Paper>
-            </Grid>
-
             {/* Right column: Setup Progress (Draft only) */}
             {exercise.status === ExerciseStatus.Draft && (
               <Grid>
@@ -726,7 +755,37 @@ export const ExerciseDetailPage = () => {
               </Stack>
             </Paper>
           )}
-        </Stack>
+            </Stack>
+          </TabPanel>
+
+          {/* Objectives Tab */}
+          <TabPanel value={activeTab} index={1}>
+            <Paper
+              sx={{
+                p: 3,
+                height: 575,
+                display: 'flex',
+                flexDirection: 'column',
+                overflow: 'hidden',
+              }}
+            >
+              <Box
+                sx={{
+                  flex: 1,
+                  overflow: 'auto',
+                  minHeight: 0,
+                }}
+              >
+                <ObjectiveList exerciseId={exercise.id} canEdit={canEdit} />
+              </Box>
+            </Paper>
+          </TabPanel>
+
+          {/* Participants Tab */}
+          <TabPanel value={activeTab} index={2}>
+            <ExerciseParticipantsPage />
+          </TabPanel>
+        </>
       )}
 
       {/* Duplicate Exercise Dialog */}

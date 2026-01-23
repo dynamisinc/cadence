@@ -3,11 +3,12 @@
  *
  * User profile dropdown showing:
  * - Avatar with user initials
- * - User's HSEEP role
+ * - User's system role
+ * - Exercise role assignments (if any)
  * - Logout option
  */
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import {
   Box,
   Button,
@@ -18,11 +19,15 @@ import {
   MenuItem,
   ListItemIcon,
   ListItemText,
+  Chip,
+  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faRightFromBracket } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faRightFromBracket, faDumbbell } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
+import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
+import type { ExerciseAssignmentDto } from '@/features/auth'
 
 /**
  * Get user initials from full name
@@ -48,6 +53,8 @@ const formatRole = (role: string): string => {
 export const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
+  const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
 
   const open = Boolean(anchorEl)
 
@@ -55,6 +62,28 @@ export const ProfileMenu: React.FC = () => {
   const accountEmail = user?.email || 'guest@cadence.app'
   const accountFullName = user?.displayName || 'Guest User'
   const accountRole = user?.role ? formatRole(user.role) : 'No Role Assigned'
+
+  // Fetch exercise assignments when menu opens
+  useEffect(() => {
+    if (!open || !user) {
+      return
+    }
+
+    const fetchAssignments = async () => {
+      try {
+        setIsLoadingAssignments(true)
+        const assignments = await roleResolutionService.getUserExerciseAssignments(user.id)
+        setExerciseAssignments(assignments)
+      } catch (error) {
+        console.error('Failed to fetch exercise assignments:', error)
+        setExerciseAssignments([])
+      } finally {
+        setIsLoadingAssignments(false)
+      }
+    }
+
+    fetchAssignments()
+  }, [open, user])
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -163,6 +192,59 @@ export const ProfileMenu: React.FC = () => {
             </Box>
           </Box>
         </Box>
+
+        <Divider />
+
+        {/* Exercise Assignments Section */}
+        {user && (
+          <Box sx={{ px: 2, py: 1.5 }}>
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
+              <FontAwesomeIcon icon={faDumbbell} size="sm" />
+              <Typography variant="caption" fontWeight={600} color="text.secondary">
+                Exercise Assignments
+              </Typography>
+            </Stack>
+            {isLoadingAssignments ? (
+              <Typography variant="caption" color="text.secondary">
+                Loading...
+              </Typography>
+            ) : exerciseAssignments.length === 0 ? (
+              <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                No active exercise assignments
+              </Typography>
+            ) : (
+              <Stack spacing={1}>
+                {exerciseAssignments.map(assignment => (
+                  <Box
+                    key={assignment.exerciseId}
+                    sx={{
+                      p: 1,
+                      bgcolor: 'grey.50',
+                      borderRadius: 1,
+                      borderLeft: '3px solid',
+                      borderLeftColor: getRoleColor(assignment.role),
+                    }}
+                  >
+                    <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
+                      {assignment.exerciseName}
+                    </Typography>
+                    <Chip
+                      label={getRoleDisplayName(assignment.role)}
+                      size="small"
+                      sx={{
+                        height: 20,
+                        fontSize: '0.7rem',
+                        bgcolor: getRoleColor(assignment.role),
+                        color: 'white',
+                        fontWeight: 600,
+                      }}
+                    />
+                  </Box>
+                ))}
+              </Stack>
+            )}
+          </Box>
+        )}
 
         <Divider />
 
