@@ -12,6 +12,7 @@ import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
 import { usePermissions } from '../../../shared/hooks'
 import { cobraTheme } from '../../../theme/cobraTheme'
+import { PermissionRole } from '../../../types'
 import type { ReactNode } from 'react'
 
 vi.mock('../hooks/useExerciseParticipants')
@@ -81,7 +82,7 @@ describe('ExerciseParticipantsPage', () => {
       canView: true,
       canDelete: true,
       canFireInjects: true,
-      role: 'Manage' as any,
+      role: PermissionRole.MANAGE,
       hasRole: vi.fn(() => true),
       isRole: vi.fn(() => false),
     })
@@ -106,7 +107,7 @@ describe('ExerciseParticipantsPage', () => {
       canEdit: false,
       canDelete: false,
       canFireInjects: false,
-      role: 'Readonly' as any,
+      role: PermissionRole.READONLY,
       hasRole: vi.fn(() => false),
       isRole: vi.fn(() => false),
       canView: true,
@@ -123,7 +124,7 @@ describe('ExerciseParticipantsPage', () => {
       canEdit: true,
       canDelete: true,
       canFireInjects: true,
-      role: 'Manage' as any,
+      role: PermissionRole.MANAGE,
       hasRole: vi.fn(() => true),
       isRole: vi.fn(() => false),
       canView: true,
