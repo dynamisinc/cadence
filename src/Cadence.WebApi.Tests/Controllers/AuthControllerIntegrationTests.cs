@@ -124,7 +124,7 @@ public class AuthControllerIntegrationTests : IClassFixture<CadenceWebApplicatio
         var content = await response.Content.ReadFromJsonAsync<AuthResponse>();
         content.Should().NotBeNull();
         content!.IsFirstUser.Should().BeTrue();
-        content.Role.Should().Be("Administrator");
+        content.Role.Should().Be("Admin");
     }
 
     #endregion
