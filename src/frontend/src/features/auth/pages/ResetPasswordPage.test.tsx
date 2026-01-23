@@ -29,7 +29,7 @@ vi.mock('../services/authService', () => ({
 const renderPage = (token = 'valid-token') => {
   vi.mocked(useSearchParams).mockReturnValue([
     new URLSearchParams(token ? `token=${token}` : ''),
-    vi.fn() as any,
+    vi.fn() as unknown as ReturnType<typeof useSearchParams>[1],
   ])
   vi.mocked(useNavigate).mockReturnValue(vi.fn())
   return render(<ResetPasswordPage />)
