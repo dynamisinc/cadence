@@ -27,7 +27,14 @@ describe('ParticipantListItem', () => {
     onRemove: vi.fn(),
   }
 
-  const renderItem = (props: any) => {
+  interface RenderProps {
+    participant: ExerciseParticipantDto
+    canEdit?: boolean
+    onRoleChange?: (userId: string, newRole: string) => void
+    onRemove?: (userId: string, displayName: string) => void
+  }
+
+  const renderItem = (props: RenderProps) => {
     return render(
       <Table>
         <TableBody>

@@ -85,7 +85,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [tokenExpiry, setTokenExpiry] = useState<number | null>(null)
+  const [_tokenExpiry, setTokenExpiry] = useState<number | null>(null)
   const refreshTimerRef = useRef<NodeJS.Timeout | null>(null)
 
   /**

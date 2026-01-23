@@ -8,7 +8,7 @@
  * @see authentication/S11 Edit User Details
  */
 import { FC, useState } from 'react'
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Alert, Stack } from '@mui/material'
+import { Dialog, DialogTitle, DialogContent, DialogActions, Alert, Stack } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSave, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
@@ -49,8 +49,9 @@ export const EditUserDialog: FC<EditUserDialogProps> = ({ user, onClose, onSave 
       }
 
       await onSave(updates)
-    } catch (err: any) {
-      setError(err.response?.data?.message || 'Failed to update user')
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      setError(axiosError.response?.data?.message || 'Failed to update user')
       setIsLoading(false)
     }
   }

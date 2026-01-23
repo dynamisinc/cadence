@@ -66,7 +66,7 @@ export const UserListPage: FC = () => {
   })
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
+  const [_isLoading, setIsLoading] = useState(true)
   const [editingUser, setEditingUser] = useState<UserDto | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{
@@ -95,7 +95,7 @@ export const UserListPage: FC = () => {
         totalCount: response.pagination.totalCount,
         totalPages: response.pagination.totalPages,
       }))
-    } catch (error) {
+    } catch {
       setErrorMessage('Failed to load users')
     } finally {
       setIsLoading(false)
@@ -114,8 +114,9 @@ export const UserListPage: FC = () => {
     try {
       await userService.changeRole(user.id, { systemRole: newRole })
       loadUsers()
-    } catch (error: any) {
-      if (error.response?.data?.error === 'last_administrator') {
+    } catch (error: unknown) {
+      const axiosError = error as { response?: { data?: { error?: string } } }
+      if (axiosError.response?.data?.error === 'last_administrator') {
         setErrorMessage('Cannot remove the last Administrator. Assign another Administrator first.')
       } else {
         setErrorMessage('Failed to change user role')
@@ -159,7 +160,7 @@ export const UserListPage: FC = () => {
   /**
    * Handle user edit save
    */
-  const handleEditSave = async (updates: any) => {
+  const handleEditSave = async (updates: { displayName?: string }) => {
     if (editingUser) {
       await userService.updateUser(editingUser.id, updates)
       loadUsers()

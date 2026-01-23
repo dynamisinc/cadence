@@ -13,8 +13,6 @@ import type {
   RegistrationRequest,
   AuthResponse,
   AuthMethod,
-  PasswordResetRequest,
-  CompletePasswordResetRequest,
 } from '../types'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071'

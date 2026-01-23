@@ -2,7 +2,7 @@
  * UserListPage Component Tests
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor, within } from '../../../test/test-utils'
+import { render, screen, waitFor } from '../../../test/test-utils'
 import userEvent from '@testing-library/user-event'
 import { UserListPage } from './UserListPage'
 import { userService } from '../services/userService'
@@ -272,7 +272,7 @@ describe('UserListPage', () => {
   })
 
   it('supports pagination', async () => {
-    const user = userEvent.setup()
+    const _user = userEvent.setup()
     render(<UserListPage />)
 
     await waitFor(() => {

@@ -10,6 +10,7 @@ import {
   getRoleDescription,
   getRoleColor,
 } from './permissions'
+import type { ExerciseRole } from '../../../types'
 
 describe('hasPermission', () => {
   it('grants view_exercise to all roles', () => {
@@ -63,7 +64,7 @@ describe('getRoleDisplayName', () => {
   })
 
   it('returns Unknown for invalid roles', () => {
-    expect(getRoleDisplayName('InvalidRole' as any)).toBe('Unknown')
+    expect(getRoleDisplayName('InvalidRole' as unknown as ExerciseRole)).toBe('Unknown')
   })
 })
 
@@ -105,6 +106,6 @@ describe('getRoleColor', () => {
   })
 
   it('returns default color for invalid roles', () => {
-    expect(getRoleColor('InvalidRole' as any)).toBe('default')
+    expect(getRoleColor('InvalidRole' as unknown as ExerciseRole)).toBe('default')
   })
 })

@@ -78,7 +78,7 @@ export const ExerciseConductPage = () => {
 
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
-  const { effectiveRole, can } = useExerciseRole(exerciseId ?? null)
+  const { effectiveRole: _effectiveRole, can } = useExerciseRole(exerciseId ?? null)
   const {
     clockState,
     displayTime,

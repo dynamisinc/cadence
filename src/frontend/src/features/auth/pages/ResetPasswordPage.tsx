@@ -18,7 +18,6 @@ import {
   Stack,
   IconButton,
   InputAdornment,
-  Typography,
   Box,
   Alert,
 } from '@mui/material'
@@ -94,9 +93,15 @@ export const ResetPasswordPage: FC = () => {
 
       // Redirect to login after 3 seconds
       setTimeout(() => navigate('/login'), 3000)
-    } catch (err: any) {
-      if (err.response?.data) {
-        const errorResponse = err.response.data
+    } catch (err: unknown) {
+      interface ErrorData {
+        code?: string
+        message?: string
+        error?: { code?: string; message?: string }
+      }
+      const axiosError = err as { response?: { data?: ErrorData } }
+      if (axiosError.response?.data) {
+        const errorResponse = axiosError.response.data
         if (errorResponse.code === 'invalid_token' || errorResponse.error?.code === 'invalid_token') {
           setTokenError('This reset link is invalid or has expired. Please request a new one.')
         } else {

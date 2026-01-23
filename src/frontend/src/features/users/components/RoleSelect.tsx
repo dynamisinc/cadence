@@ -26,7 +26,7 @@ interface RoleSelectProps {
  * Displays all system roles (Admin, Manager, User) for selection
  */
 export const RoleSelect: FC<RoleSelectProps> = ({ value, onChange, disabled }) => {
-  const handleChange = (event: any) => {
+  const handleChange = (event: { target: { value: string } }) => {
     onChange(event.target.value)
   }
 

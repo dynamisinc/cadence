@@ -131,7 +131,7 @@ describe('useExerciseParticipants', () => {
 
       try {
         await result.current.addParticipant({ userId: 'u1', role: 'Controller' })
-      } catch (error) {
+      } catch {
         // Expected error
       }
 

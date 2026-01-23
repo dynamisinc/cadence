@@ -120,7 +120,7 @@ export const LoginPage: FC = () => {
 
       if (result.isSuccess) {
         // Success - navigation handled by useEffect
-        const returnUrl = (location.state as any)?.from?.pathname || '/'
+        const returnUrl = (location.state as { from?: { pathname?: string } })?.from?.pathname || '/'
         navigate(returnUrl, { replace: true })
       } else if (result.error) {
         // Handle error response
@@ -139,10 +139,17 @@ export const LoginPage: FC = () => {
         // Clear password on failure (S06)
         setPassword('')
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       // Handle network/unexpected errors
-      if (err.response?.data) {
-        const errorResponse = err.response.data
+      interface ErrorResponse {
+        message?: string
+        attemptsRemaining?: number
+        code?: string
+        lockoutEnd?: string
+      }
+      const axiosError = err as { response?: { data?: ErrorResponse } }
+      if (axiosError.response?.data) {
+        const errorResponse = axiosError.response.data
         setError(errorResponse.message || 'Login failed')
 
         if (errorResponse.attemptsRemaining !== undefined) {

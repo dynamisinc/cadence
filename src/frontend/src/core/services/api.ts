@@ -110,7 +110,7 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${token}`
           return apiClient(originalRequest)
         }
-      } catch (refreshError) {
+      } catch {
         // Refresh failed - redirect to login with return URL
         const returnUrl = window.location.pathname
         if (returnUrl !== '/login' && returnUrl !== '/register') {

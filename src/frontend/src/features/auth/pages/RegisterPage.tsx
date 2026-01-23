@@ -145,14 +145,15 @@ export const RegisterPage: FC = () => {
           setFieldErrors(errors)
         }
       }
-    } catch (err: any) {
-      if (err.response?.data) {
-        const errorResponse = err.response.data
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { message?: string; validationErrors?: Record<string, string[]> } } }
+      if (axiosError.response?.data) {
+        const errorResponse = axiosError.response.data
         setError(errorResponse.message || 'Registration failed')
 
         if (errorResponse.validationErrors) {
           const errors: Record<string, string> = {}
-          Object.entries(errorResponse.validationErrors).forEach(([field, messages]: [string, any]) => {
+          Object.entries(errorResponse.validationErrors).forEach(([field, messages]) => {
             errors[field] = Array.isArray(messages) ? messages[0] : messages
           })
           setFieldErrors(errors)
