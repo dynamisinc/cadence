@@ -19,3 +19,11 @@ export {
   getMenuItemById,
   getMenuItemsBySection,
 } from './menuConfig'
+
+// Exercise-specific menu configuration
+export {
+  EXERCISE_MENU_ITEMS,
+  getExerciseMenuItems,
+  buildExerciseMenuPath,
+  type ExerciseMenuItem,
+} from './exerciseMenuConfig'

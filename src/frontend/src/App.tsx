@@ -13,6 +13,8 @@ import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
+import { ExerciseNavigationProvider } from './shared/contexts'
+import { ExerciseContextWrapper } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
@@ -21,6 +23,10 @@ import {
   CreateExercisePage,
   ExerciseDetailPage,
   ExerciseConductPage,
+  ExerciseParticipantsPage,
+  ObservationsPlaceholderPage,
+  MetricsPlaceholderPage,
+  SettingsPlaceholderPage,
 } from './features/exercises'
 import {
   InjectListPage,
@@ -164,18 +170,28 @@ const router = createBrowserRouter([
       // Home page
       { index: true, element: <HomePage /> },
 
-      // Exercise routes
+      // Exercise list and create (no context needed)
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
-      { path: 'exercises/:id', element: <ExerciseDetailPage /> },
-      { path: 'exercises/:id/edit', element: <ExerciseDetailPage /> },
-      { path: 'exercises/:id/conduct', element: <ExerciseConductPage /> },
 
-      // Inject (MSEL) routes
-      { path: 'exercises/:exerciseId/msel', element: <InjectListPage /> },
-      { path: 'exercises/:exerciseId/injects/new', element: <CreateInjectPage /> },
-      { path: 'exercises/:exerciseId/injects/:injectId', element: <InjectDetailPage /> },
-      { path: 'exercises/:exerciseId/injects/:injectId/edit', element: <EditInjectPage /> },
+      // Exercise-scoped routes (wrapped with ExerciseContextWrapper)
+      {
+        path: 'exercises/:id',
+        element: <ExerciseContextWrapper />,
+        children: [
+          { index: true, element: <ExerciseDetailPage /> },
+          { path: 'edit', element: <ExerciseDetailPage /> },
+          { path: 'conduct', element: <ExerciseConductPage /> },
+          { path: 'msel', element: <InjectListPage /> },
+          { path: 'injects/new', element: <CreateInjectPage /> },
+          { path: 'injects/:injectId', element: <InjectDetailPage /> },
+          { path: 'injects/:injectId/edit', element: <EditInjectPage /> },
+          { path: 'observations', element: <ObservationsPlaceholderPage /> },
+          { path: 'participants', element: <ExerciseParticipantsPage /> },
+          { path: 'metrics', element: <MetricsPlaceholderPage /> },
+          { path: 'settings', element: <SettingsPlaceholderPage /> },
+        ],
+      },
 
       // Admin pages - Admin system role required
       {
@@ -227,18 +243,20 @@ function App() {
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
         <AuthProvider>
-          <ConnectivityProvider>
-            <OfflineSyncProvider>
-              <MobileBlocker>
-                <FeatureFlagsProvider>
-                  <RouterProvider router={router} />
-                  <GlobalSyncStatus />
-                  <UpdatePrompt />
-                  <InstallBanner />
-                </FeatureFlagsProvider>
-              </MobileBlocker>
-            </OfflineSyncProvider>
-          </ConnectivityProvider>
+          <ExerciseNavigationProvider>
+            <ConnectivityProvider>
+              <OfflineSyncProvider>
+                <MobileBlocker>
+                  <FeatureFlagsProvider>
+                    <RouterProvider router={router} />
+                    <GlobalSyncStatus />
+                    <UpdatePrompt />
+                    <InstallBanner />
+                  </FeatureFlagsProvider>
+                </MobileBlocker>
+              </OfflineSyncProvider>
+            </ConnectivityProvider>
+          </ExerciseNavigationProvider>
         </AuthProvider>
 
         <ToastContainer

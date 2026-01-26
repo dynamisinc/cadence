@@ -7,5 +7,6 @@
 export { AppLayout } from './AppLayout'
 export { AppHeader } from './AppHeader'
 export { Sidebar } from './Sidebar'
+export { ExerciseSidebar } from './ExerciseSidebar'
 export { Breadcrumb } from './Breadcrumb'
 export type { BreadcrumbItem } from './Breadcrumb'

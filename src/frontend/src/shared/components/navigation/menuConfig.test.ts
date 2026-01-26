@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 9 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(9)
+    it('has exactly 10 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(10)
     })
 
     it('all items have required properties', () => {
@@ -80,9 +80,9 @@ describe('menuConfig', () => {
       expect(analysisItems).toHaveLength(2)
     })
 
-    it('SYSTEM section has 3 items', () => {
+    it('SYSTEM section has 4 items', () => {
       const systemItems = MENU_ITEMS.filter(item => item.section === 'system')
-      expect(systemItems).toHaveLength(3)
+      expect(systemItems).toHaveLength(4)
     })
 
     it('CONDUCT section contains correct items', () => {
@@ -104,6 +104,7 @@ describe('menuConfig', () => {
     it('SYSTEM section contains correct items', () => {
       const systemItems = MENU_ITEMS.filter(item => item.section === 'system')
       const ids = systemItems.map(item => item.id)
+      expect(ids).toContain('admin')
       expect(ids).toContain('templates')
       expect(ids).toContain('users')
       expect(ids).toContain('settings')
@@ -282,6 +283,35 @@ describe('menuConfig', () => {
       })
     })
 
+    describe('Admin', () => {
+      const item = MENU_ITEMS.find(i => i.id === 'admin')!
+
+      it('exists', () => {
+        expect(item).toBeDefined()
+      })
+
+      it('has correct path', () => {
+        expect(item.path).toBe('/admin')
+      })
+
+      it('is in SYSTEM section', () => {
+        expect(item.section).toBe('system')
+      })
+
+      it('is visible to Admin only', () => {
+        expect(item.allowedRoles).toContain(HseepRole.Administrator)
+        expect(item.allowedRoles).toHaveLength(1)
+      })
+
+      it('requires Admin system role', () => {
+        expect(item.allowedSystemRoles).toContain(SystemRole.Admin)
+      })
+
+      it('does not require exercise context', () => {
+        expect(item.requiresExerciseContext).toBeFalsy()
+      })
+    })
+
     describe('Templates', () => {
       const item = MENU_ITEMS.find(i => i.id === 'templates')!
 
@@ -319,7 +349,7 @@ describe('menuConfig', () => {
       })
 
       it('has correct path', () => {
-        expect(item.path).toBe('/users')
+        expect(item.path).toBe('/admin/users')
       })
 
       it('is in SYSTEM section', () => {
@@ -370,20 +400,25 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 9 items', () => {
+      it('can see all 10 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(9)
+        expect(visibleItems).toHaveLength(10)
       })
     })
 
     describe('ExerciseDirector', () => {
-      it('can see 7 items (all except Templates and Users)', () => {
+      it('can see 7 items (all except Admin, Templates and Users)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.ExerciseDirector),
         )
         expect(visibleItems).toHaveLength(7)
+      })
+
+      it('cannot see Admin', () => {
+        const admin = MENU_ITEMS.find(i => i.id === 'admin')!
+        expect(admin.allowedRoles).not.toContain(HseepRole.ExerciseDirector)
       })
 
       it('cannot see Templates', () => {
@@ -557,7 +592,7 @@ describe('menuConfig', () => {
 
       it('returns correct items for SYSTEM section', () => {
         const items = getMenuItemsBySection('system')
-        expect(items).toHaveLength(3)
+        expect(items).toHaveLength(4)
         items.forEach(item => {
           expect(item.section).toBe('system')
         })
@@ -598,9 +633,10 @@ describe('menuConfig', () => {
       expect(MENU_ITEMS[5].id).toBe('reports')
 
       // SYSTEM items last
-      expect(MENU_ITEMS[6].id).toBe('templates')
-      expect(MENU_ITEMS[7].id).toBe('users')
-      expect(MENU_ITEMS[8].id).toBe('settings')
+      expect(MENU_ITEMS[6].id).toBe('admin')
+      expect(MENU_ITEMS[7].id).toBe('templates')
+      expect(MENU_ITEMS[8].id).toBe('users')
+      expect(MENU_ITEMS[9].id).toBe('settings')
     })
   })
 })

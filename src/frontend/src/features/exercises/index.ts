@@ -4,6 +4,11 @@ export {
   CreateExercisePage,
   ExerciseDetailPage,
   ExerciseConductPage,
+  ExerciseParticipantsPage,
+  PlaceholderPage,
+  ObservationsPlaceholderPage,
+  MetricsPlaceholderPage,
+  SettingsPlaceholderPage,
 } from './pages'
 
 // Components

@@ -15,8 +15,10 @@ import { Box, useMediaQuery } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { AppHeader } from './AppHeader'
 import { Sidebar } from './Sidebar'
+import { ExerciseSidebar } from './ExerciseSidebar'
 import { Breadcrumb } from './Breadcrumb'
 import { useBreadcrumbContext } from '../../contexts'
+import { useExerciseNavigation } from '@/shared/contexts'
 
 const SIDEBAR_STATE_KEY = 'cadence-sidebar-open'
 
@@ -58,6 +60,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
   const theme = useTheme()
   const isMobile = useMediaQuery(theme.breakpoints.down('md'))
   const { breadcrumbs } = useBreadcrumbContext()
+  const { isInExerciseContext } = useExerciseNavigation()
 
   // Sidebar state
   const [sidebarOpen, setSidebarOpen] = useState(getStoredSidebarState)
@@ -120,13 +123,22 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
         </Box>
       )}
 
-      {/* Sidebar */}
-      <Sidebar
-        open={sidebarOpen}
-        onToggle={handleSidebarToggle}
-        mobileOpen={mobileMenuOpen}
-        onMobileClose={handleMobileMenuClose}
-      />
+      {/* Sidebar - Switches between global and exercise-specific */}
+      {isInExerciseContext ? (
+        <ExerciseSidebar
+          open={sidebarOpen}
+          onToggle={handleSidebarToggle}
+          mobileOpen={mobileMenuOpen}
+          onMobileClose={handleMobileMenuClose}
+        />
+      ) : (
+        <Sidebar
+          open={sidebarOpen}
+          onToggle={handleSidebarToggle}
+          mobileOpen={mobileMenuOpen}
+          onMobileClose={handleMobileMenuClose}
+        />
+      )}
 
       {/* Main Content Area */}
       <Box

@@ -68,8 +68,8 @@ import {
  */
 export const InjectDetailPage = () => {
   const navigate = useNavigate()
-  const { exerciseId, injectId } = useParams<{
-    exerciseId: string
+  const { id: exerciseId, injectId } = useParams<{
+    id: string
     injectId: string
   }>()
   const { exercise } = useExercise(exerciseId || '')

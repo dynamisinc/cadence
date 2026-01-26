@@ -22,6 +22,7 @@ import {
   faFileAlt,
   faUsers,
   faCog,
+  faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
@@ -145,6 +146,15 @@ export const MENU_ITEMS: MenuItem[] = [
   // SYSTEM Section - Administration and configuration
   // ============================================================================
   {
+    id: 'admin',
+    label: 'Admin',
+    icon: faShieldHalved,
+    path: '/admin',
+    section: 'system',
+    allowedRoles: ADMIN_ROLES,
+    allowedSystemRoles: [SystemRole.Admin],
+  },
+  {
     id: 'templates',
     label: 'Templates',
     icon: faFileAlt,
@@ -157,7 +167,7 @@ export const MENU_ITEMS: MenuItem[] = [
     id: 'users',
     label: 'Users',
     icon: faUsers,
-    path: '/users',
+    path: '/admin/users',
     section: 'system',
     allowedRoles: ADMIN_ROLES,
     allowedSystemRoles: [SystemRole.Admin],

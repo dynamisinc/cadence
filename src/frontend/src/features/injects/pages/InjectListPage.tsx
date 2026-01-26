@@ -100,7 +100,7 @@ const isSequenceOrder = (sort: SortConfig): boolean => {
  * - Fire/Skip actions for Controllers
  */
 export const InjectListPage = () => {
-  const { exerciseId } = useParams<{ exerciseId: string }>()
+  const { id: exerciseId } = useParams<{ id: string }>()
 
   if (!exerciseId) {
     return null

@@ -14,6 +14,7 @@ import { screen, fireEvent, waitFor } from '@testing-library/react'
 import { render } from '../../../test/testUtils'
 import { AppLayout } from './AppLayout'
 import { BreadcrumbProvider } from '../../contexts'
+import { ExerciseNavigationProvider } from '@/shared/contexts'
 
 // Mock useMediaQuery for desktop behavior
 vi.mock('@mui/material', async () => {
@@ -30,9 +31,11 @@ const renderAppLayout = (
   props = {},
 ) => {
   return render(
-    <BreadcrumbProvider>
-      <AppLayout {...props}>{children}</AppLayout>
-    </BreadcrumbProvider>,
+    <ExerciseNavigationProvider>
+      <BreadcrumbProvider>
+        <AppLayout {...props}>{children}</AppLayout>
+      </BreadcrumbProvider>
+    </ExerciseNavigationProvider>,
   )
 }
 
