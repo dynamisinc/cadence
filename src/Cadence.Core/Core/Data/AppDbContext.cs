@@ -35,6 +35,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InjectObjective> InjectObjectives => Set<InjectObjective>();
     public DbSet<DeliveryMethodLookup> DeliveryMethods => Set<DeliveryMethodLookup>();
     public DbSet<ExpectedOutcome> ExpectedOutcomes => Set<ExpectedOutcome>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     // =========================================================================
     // Model Configuration
@@ -89,6 +90,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureInjectObjective(modelBuilder);
         ConfigureDeliveryMethodLookup(modelBuilder);
         ConfigureExpectedOutcome(modelBuilder);
+        ConfigureNotification(modelBuilder);
     }
 
     /// <summary>
@@ -731,6 +733,31 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.Inject)
                 .WithMany(i => i.ExpectedOutcomes)
                 .HasForeignKey(e => e.InjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureNotification(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Message).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.ActionUrl).HasMaxLength(500);
+            entity.Property(e => e.RelatedEntityType).HasMaxLength(50);
+            entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(30);
+            entity.Property(e => e.Priority).HasConversion<string>().HasMaxLength(20);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.IsRead });
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+
+            // Relationship to ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

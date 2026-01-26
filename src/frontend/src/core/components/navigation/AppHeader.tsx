@@ -5,6 +5,7 @@
  * - Mobile menu toggle (hamburger)
  * - App title/logo
  * - Connection status indicator
+ * - Notification bell
  * - Profile menu integration
  *
  * Fixed position, 54px height, stays above sidebar
@@ -17,6 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { ProfileMenu } from '../ProfileMenu'
 import { ConnectionStatusIndicator } from '../ConnectionStatusIndicator'
+import { NotificationBell } from '@/features/notifications'
 
 interface AppHeaderProps {
   onMobileMenuToggle: () => void;
@@ -89,8 +91,13 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         </Typography>
 
         {/* Connection Status Indicator */}
-        <Box sx={{ mr: 2 }}>
+        <Box sx={{ mr: 1 }}>
           <ConnectionStatusIndicator compact />
+        </Box>
+
+        {/* Notification Bell */}
+        <Box sx={{ mr: 1 }}>
+          <NotificationBell />
         </Box>
 
         {/* Profile Menu */}

@@ -41,6 +41,8 @@ import {
   ResetPasswordPage,
 } from './features/auth'
 import { UserListPage } from './features/users'
+import { MyAssignmentsPage } from './features/assignments'
+import { NotificationToastProvider } from './features/notifications'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
 
@@ -170,6 +172,9 @@ const router = createBrowserRouter([
       // Home page
       { index: true, element: <HomePage /> },
 
+      // Assignments page
+      { path: 'assignments', element: <MyAssignmentsPage /> },
+
       // Exercise list and create (no context needed)
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
@@ -248,7 +253,9 @@ function App() {
               <OfflineSyncProvider>
                 <MobileBlocker>
                   <FeatureFlagsProvider>
+                  <NotificationToastProvider>
                     <RouterProvider router={router} />
+                  </NotificationToastProvider>
                     <GlobalSyncStatus />
                     <UpdatePrompt />
                     <InstallBanner />
