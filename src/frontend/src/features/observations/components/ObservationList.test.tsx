@@ -5,7 +5,8 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, fireEvent } from '@testing-library/react'
+import { screen, fireEvent } from '@testing-library/react'
+import { render } from '../../../test/test-utils'
 import { ObservationList } from './ObservationList'
 import { ObservationRating } from '../../../types'
 import type { ObservationDto } from '../types'

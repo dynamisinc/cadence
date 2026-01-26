@@ -105,7 +105,7 @@ export const excelExportService = {
    * Returns a blob that can be downloaded
    */
   async exportObservations(
-    request: ExportObservationsRequest
+    request: ExportObservationsRequest,
   ): Promise<{ blob: Blob; info: ExportResultInfo }> {
     const params = new URLSearchParams()
     if (request.includeFormatting !== undefined) {
@@ -140,7 +140,7 @@ export const excelExportService = {
    * Returns a blob that can be downloaded
    */
   async exportFullPackage(
-    request: ExportFullPackageRequest
+    request: ExportFullPackageRequest,
   ): Promise<{ blob: Blob; info: ExportResultInfo }> {
     const params = new URLSearchParams()
     if (request.includeFormatting !== undefined) {

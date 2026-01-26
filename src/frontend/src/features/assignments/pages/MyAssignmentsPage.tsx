@@ -4,7 +4,7 @@
  * Displays all exercise assignments for the current user,
  * grouped into Active, Upcoming, and Completed sections.
  */
-import { Box, Typography, Alert, Skeleton } from '@mui/material'
+import { Box, Typography, Alert } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faUserClock, faHome } from '@fortawesome/free-solid-svg-icons'
 import { useBreadcrumbs } from '@/core/contexts'

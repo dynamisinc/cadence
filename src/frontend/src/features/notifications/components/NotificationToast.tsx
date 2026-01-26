@@ -117,7 +117,7 @@ export function NotificationToast({
         {/* Close Button */}
         <IconButton
           size="small"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation()
             onDismiss(toast.id)
           }}

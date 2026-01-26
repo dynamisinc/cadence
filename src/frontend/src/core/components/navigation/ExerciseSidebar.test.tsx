@@ -63,7 +63,7 @@ const renderWithProviders = (ui: React.ReactElement) => {
           {ui}
         </MemoryRouter>
       </ThemeProvider>
-    </QueryClientProvider>
+    </QueryClientProvider>,
   )
 }
 
@@ -84,7 +84,7 @@ describe('ExerciseSidebar', () => {
       renderWithProviders(<ExerciseSidebar {...defaultProps} />)
 
       expect(screen.getByTestId('exercise-sidebar-name')).toHaveTextContent(
-        'Hurricane Response 2025'
+        'Hurricane Response 2025',
       )
     })
 

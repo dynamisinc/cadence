@@ -84,7 +84,7 @@ function saveToStorage(data: ExerciseNavigationData | null): void {
 }
 
 const ExerciseNavigationContext = createContext<ExerciseNavigationContextValue | undefined>(
-  undefined
+  undefined,
 )
 
 interface ExerciseNavigationProviderProps {
@@ -106,7 +106,7 @@ interface ExerciseNavigationProviderProps {
 export const ExerciseNavigationProvider = ({ children }: ExerciseNavigationProviderProps) => {
   // Initialize from sessionStorage for refresh survival
   const [currentExercise, setCurrentExercise] = useState<ExerciseNavigationData | null>(() =>
-    loadFromStorage()
+    loadFromStorage(),
   )
 
   // Persist to sessionStorage when context changes
@@ -151,7 +151,7 @@ export const ExerciseNavigationProvider = ({ children }: ExerciseNavigationProvi
       isInExerciseContext,
       updateExercise,
     }),
-    [currentExercise, enterExercise, exitExercise, isInExerciseContext, updateExercise]
+    [currentExercise, enterExercise, exitExercise, isInExerciseContext, updateExercise],
   )
 
   return (

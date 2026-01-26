@@ -87,7 +87,7 @@ export function AssignmentSection({
         {/* Expand/Collapse Icon */}
         <IconButton
           size="small"
-          onClick={(e) => {
+          onClick={e => {
             e.stopPropagation()
             handleToggle()
           }}
@@ -130,7 +130,7 @@ export function AssignmentSection({
         {/* Loading State */}
         {isLoading && (
           <Box>
-            {[1, 2].map((n) => (
+            {[1, 2].map(n => (
               <Skeleton
                 key={n}
                 variant="rectangular"
@@ -150,7 +150,7 @@ export function AssignmentSection({
 
         {/* Assignment Cards */}
         {!isLoading &&
-          assignments.map((assignment) => (
+          assignments.map(assignment => (
             <AssignmentCard
               key={assignment.exerciseId}
               assignment={assignment}

@@ -288,9 +288,9 @@ function App() {
               <OfflineSyncProvider>
                 <MobileBlocker>
                   <FeatureFlagsProvider>
-                  <NotificationToastProvider>
-                    <RouterProvider router={router} />
-                  </NotificationToastProvider>
+                    <NotificationToastProvider>
+                      <RouterProvider router={router} />
+                    </NotificationToastProvider>
                     <GlobalSyncStatus />
                     <UpdatePrompt />
                     <InstallBanner />

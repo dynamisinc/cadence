@@ -67,7 +67,7 @@ function isExercisePath(pathname: string): boolean {
  */
 export const ExerciseContextWrapper = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
-  const location = useLocation()
+  const _location = useLocation()
   const navigate = useNavigate()
   const { currentExercise, enterExercise, exitExercise, updateExercise } = useExerciseNavigation()
 

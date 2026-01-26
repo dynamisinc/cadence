@@ -22,8 +22,8 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Button,
 } from '@mui/material'
+import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
@@ -133,7 +133,7 @@ export const ObservationList = ({
               id="rating-filter"
               value={ratingFilter}
               label="Filter by Rating"
-              onChange={(e) => setRatingFilter(e.target.value as RatingFilterValue)}
+              onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
             >
               <MenuItem value="all">All Ratings</MenuItem>
               <Divider />
@@ -155,9 +155,9 @@ export const ObservationList = ({
           </FormControl>
 
           {hasActiveFilters && (
-            <Button onClick={handleClearFilters} size="small" variant="text">
+            <CobraLinkButton onClick={handleClearFilters} size="small">
               Clear Filters
-            </Button>
+            </CobraLinkButton>
           )}
         </Stack>
 
@@ -182,115 +182,115 @@ export const ObservationList = ({
             {filteredObservations.map((observation, index) => {
               const isDeleting = deletingId === observation.id
 
-          return (
-            <Box key={observation.id}>
-              {index > 0 && <Divider />}
-              <ListItem
-                sx={{
-                  py: 2,
-                  px: 2,
-                  alignItems: 'flex-start',
-                }}
-                secondaryAction={
-                  canEdit ? (
-                    <Stack direction="row" spacing={0.5}>
-                      <Tooltip title="Edit">
-                        <IconButton
-                          size="small"
-                          onClick={() => onEdit?.(observation)}
-                          disabled={isDeleting}
-                        >
-                          <FontAwesomeIcon icon={faPen} size="sm" />
-                        </IconButton>
-                      </Tooltip>
-                      <Tooltip title="Delete">
-                        <IconButton
-                          size="small"
-                          onClick={() => onDelete?.(observation.id)}
-                          disabled={isDeleting}
-                          color="error"
-                        >
-                          {isDeleting ? (
-                            <FontAwesomeIcon icon={faSpinner} spin size="sm" />
-                          ) : (
-                            <FontAwesomeIcon icon={faTrash} size="sm" />
-                          )}
-                        </IconButton>
-                      </Tooltip>
-                    </Stack>
-                  ) : undefined
-                }
-              >
-                <Stack spacing={1} sx={{ flex: 1, pr: canEdit ? 8 : 0 }}>
-                  {/* Header with rating and timestamp */}
-                  <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-                    <RatingBadge rating={observation.rating} />
-                    <Typography variant="caption" color="text.secondary">
-                      {formatTime(observation.createdAt)}
-                    </Typography>
-                    {/* Inject Reference or General observation label */}
-                    {observation.injectId && observation.injectTitle ? (
-                      onInjectClick ? (
-                        <Typography
-                          component="button"
-                          variant="caption"
-                          onClick={() => onInjectClick(observation.injectId!)}
-                          sx={{
-                            color: 'primary.main',
-                            cursor: 'pointer',
-                            textDecoration: 'underline',
-                            border: 'none',
-                            background: 'none',
-                            padding: 0,
-                            fontFamily: 'inherit',
-                            '&:hover': {
-                              color: 'primary.dark',
-                            },
-                          }}
-                          aria-label={`View inject: ${observation.injectTitle}`}
-                        >
-                          Re: #{observation.injectNumber} {observation.injectTitle}
-                        </Typography>
-                      ) : (
+              return (
+                <Box key={observation.id}>
+                  {index > 0 && <Divider />}
+                  <ListItem
+                    sx={{
+                      py: 2,
+                      px: 2,
+                      alignItems: 'flex-start',
+                    }}
+                    secondaryAction={
+                      canEdit ? (
+                        <Stack direction="row" spacing={0.5}>
+                          <Tooltip title="Edit">
+                            <IconButton
+                              size="small"
+                              onClick={() => onEdit?.(observation)}
+                              disabled={isDeleting}
+                            >
+                              <FontAwesomeIcon icon={faPen} size="sm" />
+                            </IconButton>
+                          </Tooltip>
+                          <Tooltip title="Delete">
+                            <IconButton
+                              size="small"
+                              onClick={() => onDelete?.(observation.id)}
+                              disabled={isDeleting}
+                              color="error"
+                            >
+                              {isDeleting ? (
+                                <FontAwesomeIcon icon={faSpinner} spin size="sm" />
+                              ) : (
+                                <FontAwesomeIcon icon={faTrash} size="sm" />
+                              )}
+                            </IconButton>
+                          </Tooltip>
+                        </Stack>
+                      ) : undefined
+                    }
+                  >
+                    <Stack spacing={1} sx={{ flex: 1, pr: canEdit ? 8 : 0 }}>
+                      {/* Header with rating and timestamp */}
+                      <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+                        <RatingBadge rating={observation.rating} />
                         <Typography variant="caption" color="text.secondary">
-                          Re: #{observation.injectNumber} {observation.injectTitle}
+                          {formatTime(observation.createdAt)}
                         </Typography>
-                      )
-                    ) : (
-                      <Typography variant="caption" color="text.secondary" fontStyle="italic">
-                        General observation
-                      </Typography>
-                    )}
-                  </Stack>
+                        {/* Inject Reference or General observation label */}
+                        {observation.injectId && observation.injectTitle ? (
+                          onInjectClick ? (
+                            <Typography
+                              component="button"
+                              variant="caption"
+                              onClick={() => onInjectClick(observation.injectId!)}
+                              sx={{
+                                color: 'primary.main',
+                                cursor: 'pointer',
+                                textDecoration: 'underline',
+                                border: 'none',
+                                background: 'none',
+                                padding: 0,
+                                fontFamily: 'inherit',
+                                '&:hover': {
+                                  color: 'primary.dark',
+                                },
+                              }}
+                              aria-label={`View inject: ${observation.injectTitle}`}
+                            >
+                              Re: #{observation.injectNumber} {observation.injectTitle}
+                            </Typography>
+                          ) : (
+                            <Typography variant="caption" color="text.secondary">
+                              Re: #{observation.injectNumber} {observation.injectTitle}
+                            </Typography>
+                          )
+                        ) : (
+                          <Typography variant="caption" color="text.secondary" fontStyle="italic">
+                            General observation
+                          </Typography>
+                        )}
+                      </Stack>
 
-                  {/* Observation content */}
-                  <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                    {observation.content}
-                  </Typography>
-
-                  {/* Recommendation if present */}
-                  {observation.recommendation && (
-                    <Box
-                      sx={{
-                        mt: 1,
-                        p: 1.5,
-                        bgcolor: 'grey.50',
-                        borderRadius: 1,
-                        borderLeft: '3px solid',
-                        borderLeftColor: 'primary.main',
-                      }}
-                    >
-                      <Typography variant="caption" color="text.secondary" display="block">
-                        Recommendation
-                      </Typography>
+                      {/* Observation content */}
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                        {observation.recommendation}
+                        {observation.content}
                       </Typography>
-                    </Box>
-                  )}
-                </Stack>
-              </ListItem>
-            </Box>
+
+                      {/* Recommendation if present */}
+                      {observation.recommendation && (
+                        <Box
+                          sx={{
+                            mt: 1,
+                            p: 1.5,
+                            bgcolor: 'grey.50',
+                            borderRadius: 1,
+                            borderLeft: '3px solid',
+                            borderLeftColor: 'primary.main',
+                          }}
+                        >
+                          <Typography variant="caption" color="text.secondary" display="block">
+                            Recommendation
+                          </Typography>
+                          <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                            {observation.recommendation}
+                          </Typography>
+                        </Box>
+                      )}
+                    </Stack>
+                  </ListItem>
+                </Box>
               )
             })}
           </List>

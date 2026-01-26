@@ -17,7 +17,6 @@ import React, { useMemo } from 'react'
 import { useNavigate, useLocation } from 'react-router-dom'
 import {
   Box,
-  Divider,
   Drawer,
   List,
   ListItem,
@@ -43,7 +42,7 @@ import {
   faCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { useExerciseClock } from '@/features/exercise-clock'
-import { useExerciseNavigation, type ExerciseNavigationData } from '@/shared/contexts'
+import { useExerciseNavigation } from '@/shared/contexts'
 import {
   getExerciseMenuItems,
   buildExerciseMenuPath,
@@ -63,7 +62,7 @@ interface ExerciseSidebarProps {
  */
 function getStatusBadge(
   clockState: ExerciseClockState | undefined,
-  exerciseStatus: ExerciseStatus
+  exerciseStatus: ExerciseStatus,
 ): { label: string; color: 'success' | 'warning' | 'default' | 'info'; icon: typeof faPlay } {
   // If exercise is completed, show completed badge
   if (exerciseStatus === ExerciseStatus.Completed) {
@@ -98,14 +97,15 @@ export const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
 
   // Get clock state for the current exercise
   const { clockState, displayTime, loading: clockLoading } = useExerciseClock(
-    currentExercise?.id ?? ''
+    currentExercise?.id ?? '',
   )
 
   // Get menu items filtered by user's role
+  const userRole = currentExercise?.userRole
   const menuItems = useMemo(() => {
-    if (!currentExercise?.userRole) return []
-    return getExerciseMenuItems(currentExercise.userRole)
-  }, [currentExercise?.userRole])
+    if (!userRole) return []
+    return getExerciseMenuItems(userRole)
+  }, [userRole])
 
   const drawerWidth = open
     ? theme.cssStyling.drawerOpenWidth

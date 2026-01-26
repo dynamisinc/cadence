@@ -66,7 +66,7 @@ export function useMarkAsRead() {
           [...NOTIFICATIONS_QUERY_KEY, { limit: 10 }],
           {
             ...previousNotifications,
-            items: previousNotifications.items.map((n) =>
+            items: previousNotifications.items.map(n =>
               n.id === notificationId
                 ? { ...n, isRead: true, readAt: new Date().toISOString() }
                 : n,
@@ -128,7 +128,7 @@ export function useMarkAllAsRead() {
           [...NOTIFICATIONS_QUERY_KEY, { limit: 10 }],
           {
             ...previousNotifications,
-            items: previousNotifications.items.map((n) => ({
+            items: previousNotifications.items.map(n => ({
               ...n,
               isRead: true,
               readAt: n.readAt || new Date().toISOString(),
@@ -167,7 +167,7 @@ export function addNotificationToCache(
   // Update notifications list
   queryClient.setQueryData<NotificationsResponse>(
     [...NOTIFICATIONS_QUERY_KEY, { limit: 10 }],
-    (old) => {
+    old => {
       if (!old) return old
       return {
         ...old,
@@ -179,7 +179,7 @@ export function addNotificationToCache(
   )
 
   // Update unread count
-  queryClient.setQueryData<number>(UNREAD_COUNT_QUERY_KEY, (old) =>
+  queryClient.setQueryData<number>(UNREAD_COUNT_QUERY_KEY, old =>
     old !== undefined ? old + 1 : 1,
   )
 }

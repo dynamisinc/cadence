@@ -9,7 +9,7 @@ import { screen, fireEvent } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { MemoryRouter } from 'react-router-dom'
 import { NotificationToast } from './NotificationToast'
-import type { Toast, NotificationDto, NotificationPriority } from '../types'
+import type { Toast, NotificationDto } from '../types'
 import type { ReactNode } from 'react'
 
 // Mock useNavigate

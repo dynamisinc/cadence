@@ -180,20 +180,20 @@ export function AssignmentCard({ assignment, sectionType }: AssignmentCardProps)
             {sectionType === 'active' &&
               assignment.role === 'Controller' &&
               assignment.readyInjects > 0 && (
-                <Box display="flex" alignItems="center" gap={1}>
-                  <FontAwesomeIcon
-                    icon={faClock}
-                    style={{ color: '#ff9800', fontSize: '0.875rem' }}
-                  />
-                  <Typography
-                    variant="body2"
-                    color="warning.main"
-                    fontWeight="medium"
-                  >
-                    {assignment.readyInjects} inject{assignment.readyInjects > 1 ? 's' : ''} ready
-                  </Typography>
-                </Box>
-              )}
+              <Box display="flex" alignItems="center" gap={1}>
+                <FontAwesomeIcon
+                  icon={faClock}
+                  style={{ color: '#ff9800', fontSize: '0.875rem' }}
+                />
+                <Typography
+                  variant="body2"
+                  color="warning.main"
+                  fontWeight="medium"
+                >
+                  {assignment.readyInjects} inject{assignment.readyInjects > 1 ? 's' : ''} ready
+                </Typography>
+              </Box>
+            )}
           </Box>
 
           {/* Progress Bar (for active exercises) */}

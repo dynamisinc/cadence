@@ -17,13 +17,10 @@
  * @module features/exercises
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { renderHook, waitFor } from '@testing-library/react'
+import { describe, it, expect } from 'vitest'
 import {
   ExerciseStatus,
-  ExerciseType,
   DeliveryMode,
-  TimelineMode,
   InjectStatus,
   ExerciseClockState,
 } from '../../../types'
@@ -123,7 +120,7 @@ describe('ExerciseConductPage', () => {
     })
 
     it('shows error message when SignalR has error', () => {
-      const connectionState = 'error'
+      const _connectionState = 'error'
       const error = 'Connection failed'
       const displayText = error || 'Disconnected'
       expect(displayText).toBe('Connection failed')

@@ -13,11 +13,16 @@ public class NotificationService : INotificationService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<NotificationService> _logger;
+    private readonly INotificationBroadcaster _broadcaster;
 
-    public NotificationService(AppDbContext context, ILogger<NotificationService> logger)
+    public NotificationService(
+        AppDbContext context,
+        ILogger<NotificationService> logger,
+        INotificationBroadcaster broadcaster)
     {
         _context = context;
         _logger = logger;
+        _broadcaster = broadcaster;
     }
 
     /// <inheritdoc />
@@ -135,11 +140,16 @@ public class NotificationService : INotificationService
         _context.Notifications.Add(notification);
         await _context.SaveChangesAsync(ct);
 
+        var dto = notification.ToDto();
+
+        // Broadcast to connected user via SignalR
+        await _broadcaster.BroadcastToUserAsync(notification.UserId, dto);
+
         _logger.LogDebug(
             "Created notification {NotificationId} of type {Type} for user {UserId}",
             notification.Id, notification.Type, notification.UserId);
 
-        return notification.ToDto();
+        return dto;
     }
 
     /// <inheritdoc />
@@ -165,11 +175,18 @@ public class NotificationService : INotificationService
         _context.Notifications.AddRange(notifications);
         await _context.SaveChangesAsync(ct);
 
+        var dtos = notifications.Select(n => n.ToDto()).ToList();
+
+        // Broadcast to all connected users via SignalR
+        var broadcastTasks = notifications.Select(n =>
+            _broadcaster.BroadcastToUserAsync(n.UserId, n.ToDto()));
+        await Task.WhenAll(broadcastTasks);
+
         _logger.LogInformation(
             "Created {Count} notifications of type {Type}",
             notifications.Count, request.Type);
 
-        return notifications.Select(n => n.ToDto()).ToList();
+        return dtos;
     }
 
     /// <inheritdoc />

@@ -66,7 +66,7 @@ describe('ExerciseNavigationContext', () => {
       // Pre-populate sessionStorage
       mockSessionStorage.setItem(
         'cadence-exercise-navigation-context',
-        JSON.stringify(sampleExercise)
+        JSON.stringify(sampleExercise),
       )
 
       const { result } = renderHook(() => useExerciseNavigation(), { wrapper })
@@ -97,7 +97,7 @@ describe('ExerciseNavigationContext', () => {
 
       expect(mockSessionStorage.setItem).toHaveBeenCalledWith(
         'cadence-exercise-navigation-context',
-        JSON.stringify(sampleExercise)
+        JSON.stringify(sampleExercise),
       )
     })
 
@@ -151,7 +151,7 @@ describe('ExerciseNavigationContext', () => {
       })
 
       expect(mockSessionStorage.removeItem).toHaveBeenCalledWith(
-        'cadence-exercise-navigation-context'
+        'cadence-exercise-navigation-context',
       )
     })
   })
@@ -202,7 +202,7 @@ describe('ExerciseNavigationContext', () => {
       // First mount - enter exercise
       const { result: result1, unmount } = renderHook(
         () => useExerciseNavigation(),
-        { wrapper }
+        { wrapper },
       )
 
       act(() => {

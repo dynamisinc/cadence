@@ -48,8 +48,20 @@ export function useNotificationToast() {
   // Clean up timers on unmount
   useEffect(() => {
     return () => {
-      timerRefs.current.forEach((timer) => clearTimeout(timer))
+      timerRefs.current.forEach(timer => clearTimeout(timer))
       timerRefs.current.clear()
+    }
+  }, [])
+
+  // Remove a toast
+  const removeToast = useCallback((toastId: string) => {
+    setToasts(prev => prev.filter(t => t.id !== toastId))
+
+    // Clear timer if exists
+    const timer = timerRefs.current.get(toastId)
+    if (timer) {
+      clearTimeout(timer)
+      timerRefs.current.delete(toastId)
     }
   }, [])
 
@@ -66,7 +78,7 @@ export function useNotificationToast() {
       createdAt: new Date(),
     }
 
-    setToasts((prev) => {
+    setToasts(prev => {
       // Limit to MAX_VISIBLE_TOASTS, removing oldest
       const newToasts = [toast, ...prev].slice(0, MAX_VISIBLE_TOASTS)
       return newToasts
@@ -79,19 +91,7 @@ export function useNotificationToast() {
       }, config.autoDismissMs)
       timerRefs.current.set(toast.id, timer)
     }
-  }, [])
-
-  // Remove a toast
-  const removeToast = useCallback((toastId: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== toastId))
-
-    // Clear timer if exists
-    const timer = timerRefs.current.get(toastId)
-    if (timer) {
-      clearTimeout(timer)
-      timerRefs.current.delete(toastId)
-    }
-  }, [])
+  }, [removeToast])
 
   // Pause auto-dismiss (on hover)
   const pauseAutoDismiss = useCallback((toastId: string) => {
@@ -115,7 +115,7 @@ export function useNotificationToast() {
 
   // Clear all toasts
   const clearAll = useCallback(() => {
-    timerRefs.current.forEach((timer) => clearTimeout(timer))
+    timerRefs.current.forEach(timer => clearTimeout(timer))
     timerRefs.current.clear()
     setToasts([])
   }, [])

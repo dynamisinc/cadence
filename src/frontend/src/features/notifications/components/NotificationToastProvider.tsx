@@ -20,6 +20,7 @@ const NotificationToastContext = createContext<NotificationToastContextType | nu
 /**
  * Hook to access toast functions.
  */
+// eslint-disable-next-line react-refresh/only-export-components
 export function useToast() {
   const context = useContext(NotificationToastContext)
   if (!context) {
@@ -80,7 +81,7 @@ export function NotificationToastProvider({ children }: NotificationToastProvide
             alignItems: 'flex-end',
           }}
         >
-          {toasts.map((toast) => (
+          {toasts.map(toast => (
             <NotificationToast
               key={toast.id}
               toast={toast}

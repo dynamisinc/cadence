@@ -26,11 +26,11 @@ export const PlaceholderPage = ({ featureName, description }: PlaceholderPagePro
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: featureName },
-        ]
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: featureName },
+      ]
       : undefined,
   )
 

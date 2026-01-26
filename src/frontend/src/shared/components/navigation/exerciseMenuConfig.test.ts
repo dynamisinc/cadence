@@ -50,9 +50,10 @@ describe('exerciseMenuConfig', () => {
         expect(itemIds).toContain('inject-queue')
         expect(itemIds).toContain('observations')
         expect(itemIds).toContain('participants')
+        expect(itemIds).toContain('reports')
         expect(itemIds).toContain('metrics')
         expect(itemIds).toContain('settings')
-        expect(items.length).toBe(7)
+        expect(items.length).toBe(8)
       })
     })
 
@@ -66,9 +67,10 @@ describe('exerciseMenuConfig', () => {
         expect(itemIds).toContain('inject-queue')
         expect(itemIds).toContain('observations')
         expect(itemIds).toContain('participants')
+        expect(itemIds).toContain('reports')
         expect(itemIds).toContain('metrics')
         expect(itemIds).toContain('settings')
-        expect(items.length).toBe(7)
+        expect(items.length).toBe(8)
       })
     })
 

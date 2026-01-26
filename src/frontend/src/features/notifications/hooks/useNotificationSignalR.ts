@@ -45,7 +45,7 @@ export function useNotificationSignalR({
     if (!connection || !userId) return
 
     // Join user-specific group for notifications
-    connection.invoke('JoinUserGroup', userId).catch((err) => {
+    connection.invoke('JoinUserGroup', userId).catch(err => {
       console.error('Failed to join user group:', err)
     })
 
@@ -57,7 +57,7 @@ export function useNotificationSignalR({
       connection.off('NotificationCreated', handleNotification)
 
       // Leave user group
-      connection.invoke('LeaveUserGroup', userId).catch((err) => {
+      connection.invoke('LeaveUserGroup', userId).catch(err => {
         console.error('Failed to leave user group:', err)
       })
     }

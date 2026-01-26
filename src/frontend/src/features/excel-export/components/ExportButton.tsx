@@ -74,7 +74,7 @@ export function ExportButton({
           break
       }
     } catch {
-      setError(`Export failed. Please try again.`)
+      setError('Export failed. Please try again.')
     }
   }
 

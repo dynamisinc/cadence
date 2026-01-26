@@ -61,11 +61,11 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
   useBreadcrumbs(
     isStandalone && exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'Participants' },
-        ]
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'Participants' },
+      ]
       : undefined,
   )
 

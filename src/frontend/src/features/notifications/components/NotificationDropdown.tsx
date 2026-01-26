@@ -43,7 +43,7 @@ export function NotificationDropdown({
     }
   }
 
-  const unreadCount = notifications.filter((n) => !n.isRead).length
+  const unreadCount = notifications.filter(n => !n.isRead).length
 
   return (
     <Box sx={{ width: 360, maxHeight: 480, overflow: 'hidden' }}>
@@ -100,7 +100,7 @@ export function NotificationDropdown({
       {/* Notification List */}
       {!isLoading && !isError && notifications.length > 0 && (
         <List disablePadding sx={{ maxHeight: 400, overflow: 'auto' }}>
-          {notifications.map((notification) => (
+          {notifications.map(notification => (
             <NotificationItem
               key={notification.id}
               notification={notification}
