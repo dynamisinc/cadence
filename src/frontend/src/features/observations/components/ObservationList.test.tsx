@@ -182,4 +182,134 @@ describe('ObservationList', () => {
       expect(screen.queryByLabelText('Delete')).not.toBeInTheDocument()
     })
   })
+
+  describe('Filtering', () => {
+    const observations: ObservationDto[] = [
+      createMockObservation({
+        id: 'obs-1',
+        content: 'Excellent response time',
+        rating: ObservationRating.Performed,
+      }),
+      createMockObservation({
+        id: 'obs-2',
+        content: 'Communication needs improvement',
+        rating: ObservationRating.Marginal,
+      }),
+      createMockObservation({
+        id: 'obs-3',
+        content: 'Adequate performance',
+        rating: ObservationRating.Satisfactory,
+      }),
+      createMockObservation({
+        id: 'obs-4',
+        content: 'Failed to follow protocol',
+        rating: ObservationRating.Unsatisfactory,
+      }),
+      createMockObservation({
+        id: 'obs-5',
+        content: 'General observation',
+        rating: null,
+      }),
+    ]
+
+    it('shows all observations by default', () => {
+      render(<ObservationList observations={observations} />)
+
+      expect(screen.getByText('Excellent response time')).toBeInTheDocument()
+      expect(screen.getByText('Communication needs improvement')).toBeInTheDocument()
+      expect(screen.getByText('Adequate performance')).toBeInTheDocument()
+      expect(screen.getByText('Failed to follow protocol')).toBeInTheDocument()
+      expect(screen.getAllByText('General observation').length).toBeGreaterThan(0)
+    })
+
+    it('filters by rating P', () => {
+      render(<ObservationList observations={observations} />)
+
+      // Select P rating filter
+      const ratingFilter = screen.getByLabelText('Filter by Rating')
+      fireEvent.mouseDown(ratingFilter)
+      fireEvent.click(screen.getByRole('option', { name: /P - Performed/ }))
+
+      // Should only show P-rated observation
+      expect(screen.getByText('Excellent response time')).toBeInTheDocument()
+      expect(screen.queryByText('Communication needs improvement')).not.toBeInTheDocument()
+      expect(screen.queryByText('Adequate performance')).not.toBeInTheDocument()
+    })
+
+    it('filters by rating M', () => {
+      render(<ObservationList observations={observations} />)
+
+      // Select M rating filter
+      const ratingFilter = screen.getByLabelText('Filter by Rating')
+      fireEvent.mouseDown(ratingFilter)
+      fireEvent.click(screen.getByRole('option', { name: /M - Marginal/ }))
+
+      // Should only show M-rated observation
+      expect(screen.getByText('Communication needs improvement')).toBeInTheDocument()
+      expect(screen.queryByText('Excellent response time')).not.toBeInTheDocument()
+      expect(screen.queryByText('Adequate performance')).not.toBeInTheDocument()
+    })
+
+    it('filters by unrated observations', () => {
+      render(<ObservationList observations={observations} />)
+
+      // Select Unrated filter
+      const ratingFilter = screen.getByLabelText('Filter by Rating')
+      fireEvent.mouseDown(ratingFilter)
+      fireEvent.click(screen.getByRole('option', { name: /Unrated/ }))
+
+      // Should only show unrated observation (content is "General observation" too)
+      expect(screen.getAllByText(/General observation/).length).toBeGreaterThan(0)
+      expect(screen.queryByText('Excellent response time')).not.toBeInTheDocument()
+      expect(screen.queryByText('Communication needs improvement')).not.toBeInTheDocument()
+      expect(screen.queryByText('Adequate performance')).not.toBeInTheDocument()
+    })
+
+    it('shows filter count when filtering is active', () => {
+      render(<ObservationList observations={observations} />)
+
+      // Select P rating filter
+      const ratingFilter = screen.getByLabelText('Filter by Rating')
+      fireEvent.mouseDown(ratingFilter)
+      fireEvent.click(screen.getByRole('option', { name: /P - Performed/ }))
+
+      // Should show filtered count
+      expect(screen.getByText(/Showing 1 of 5 observations/)).toBeInTheDocument()
+    })
+
+    it('clears filters when Clear Filters button clicked', () => {
+      render(<ObservationList observations={observations} />)
+
+      // Apply filter
+      const ratingFilter = screen.getByLabelText('Filter by Rating')
+      fireEvent.mouseDown(ratingFilter)
+      fireEvent.click(screen.getByRole('option', { name: /P - Performed/ }))
+
+      // Verify filter is applied
+      expect(screen.queryByText('Adequate performance')).not.toBeInTheDocument()
+
+      // Clear filters
+      const clearButton = screen.getByRole('button', { name: /Clear Filters/i })
+      fireEvent.click(clearButton)
+
+      // All observations should be visible again
+      expect(screen.getByText('Excellent response time')).toBeInTheDocument()
+      expect(screen.getByText('Communication needs improvement')).toBeInTheDocument()
+      expect(screen.getByText('Adequate performance')).toBeInTheDocument()
+    })
+
+    it('shows empty state when no observations match filter', () => {
+      const singleObservation = [observations[0]] // Only P-rated
+
+      render(<ObservationList observations={singleObservation} />)
+
+      // Filter by U rating
+      const ratingFilter = screen.getByLabelText('Filter by Rating')
+      fireEvent.mouseDown(ratingFilter)
+      fireEvent.click(screen.getByRole('option', { name: /U - Unsatisfactory/ }))
+
+      // Should show no matches message
+      expect(screen.getByText(/No observations match your filters/)).toBeInTheDocument()
+    })
+  })
 })

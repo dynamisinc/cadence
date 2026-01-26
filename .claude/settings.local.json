@@ -50,7 +50,10 @@
       "Bash(for file in src/Cadence.Core/Features/Autocomplete/Services/AutocompleteService.cs src/Cadence.Core/Features/DeliveryMethods/Services/DeliveryMethodService.cs src/Cadence.Core/Features/ExcelExport/Services/ExcelExportService.cs src/Cadence.Core/Features/ExcelImport/Services/ExcelImportService.cs src/Cadence.Core/Features/Exercises/Services/ExerciseDeleteService.cs src/Cadence.Core/Features/ExpectedOutcomes/Services/ExpectedOutcomeService.cs)",
       "mcp__plugin_playwright_playwright__browser_snapshot",
       "mcp__plugin_playwright_playwright__browser_navigate",
-      "mcp__plugin_playwright_playwright__browser_click"
+      "mcp__plugin_playwright_playwright__browser_click",
+      "Bash(tee:*)",
+      "Skill(commit-commands:commit)",
+      "Skill(commit-commands:commit:*)"
     ],
     "deny": [],
     "ask": [],

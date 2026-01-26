@@ -182,7 +182,7 @@ export const ExerciseStatusActions = ({
               handleConfirmAction(
                 'complete',
                 'Complete Exercise',
-                'Are you sure you want to complete this exercise? This will stop the clock and mark the exercise as finished. This action cannot be undone.',
+                `Are you sure you want to complete "${exercise.name}"? This will end the exercise conduct phase.`,
                 complete,
                 true,
               )
@@ -204,7 +204,7 @@ export const ExerciseStatusActions = ({
                 handleConfirmAction(
                   'revert',
                   'Revert to Draft',
-                  'WARNING: This will clear all conduct data including fired times and observations. The exercise will return to Draft status. This action cannot be undone.',
+                  'WARNING: This will reset all inject statuses and delete observations. This action cannot be undone.',
                   revertToDraft,
                   true,
                 )
@@ -215,7 +215,7 @@ export const ExerciseStatusActions = ({
               </ListItemIcon>
               <ListItemText
                 primary="Revert to Draft"
-                secondary="Clears all conduct data"
+                secondary="Resets inject statuses & deletes observations"
               />
             </MenuItem>
           </>

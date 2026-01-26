@@ -331,6 +331,7 @@ public class ExercisesController : ControllerBase
     /// Get the current clock state for an exercise.
     /// </summary>
     [HttpGet("{id:guid}/clock")]
+    [Authorize(Policy = "ExerciseAccess")]
     public async Task<ActionResult<ClockStateDto>> GetClockState(Guid id)
     {
         var clockState = await _clockService.GetClockStateAsync(id);
@@ -348,12 +349,12 @@ public class ExercisesController : ControllerBase
     /// This also transitions the exercise from Draft to Active status.
     /// </summary>
     [HttpPost("{id:guid}/clock/start")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<ClockStateDto>> StartClock(Guid id)
     {
         try
         {
-            // System user until auth is implemented
-            var startedBy = SystemConstants.SystemUserId;
+            var startedBy = GetCurrentUserId();
 
             var clockState = await _clockService.StartClockAsync(id, startedBy);
 
@@ -372,12 +373,12 @@ public class ExercisesController : ControllerBase
     /// Preserves elapsed time for later resumption.
     /// </summary>
     [HttpPost("{id:guid}/clock/pause")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<ClockStateDto>> PauseClock(Guid id)
     {
         try
         {
-            // System user until auth is implemented
-            var pausedBy = SystemConstants.SystemUserId;
+            var pausedBy = GetCurrentUserId();
 
             var clockState = await _clockService.PauseClockAsync(id, pausedBy);
 
@@ -396,12 +397,12 @@ public class ExercisesController : ControllerBase
     /// This transitions the exercise to Completed status.
     /// </summary>
     [HttpPost("{id:guid}/clock/stop")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<ClockStateDto>> StopClock(Guid id)
     {
         try
         {
-            // System user until auth is implemented
-            var stoppedBy = SystemConstants.SystemUserId;
+            var stoppedBy = GetCurrentUserId();
 
             var clockState = await _clockService.StopClockAsync(id, stoppedBy);
 
@@ -420,12 +421,12 @@ public class ExercisesController : ControllerBase
     /// Only allowed for Draft exercises or when clock is Stopped.
     /// </summary>
     [HttpPost("{id:guid}/clock/reset")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<ClockStateDto>> ResetClock(Guid id)
     {
         try
         {
-            // System user until auth is implemented
-            var resetBy = SystemConstants.SystemUserId;
+            var resetBy = GetCurrentUserId();
 
             var clockState = await _clockService.ResetClockAsync(id, resetBy);
 
@@ -1114,5 +1115,18 @@ public class ExercisesController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Get current authenticated user's ID from JWT claims.
+    /// </summary>
+    private Guid GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+        return Guid.Parse(userIdClaim);
     }
 }

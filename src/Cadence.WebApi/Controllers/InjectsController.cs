@@ -1,3 +1,4 @@
+using System.Security.Claims;
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Injects.Models.DTOs;
@@ -42,6 +43,7 @@ public class InjectsController : ControllerBase
     /// Uses split query approach to avoid cartesian explosion with objectives.
     /// </summary>
     [HttpGet]
+    [Authorize(Policy = "ExerciseAccess")]
     public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(Guid exerciseId)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -172,6 +174,7 @@ public class InjectsController : ControllerBase
     /// Get a single inject by ID.
     /// </summary>
     [HttpGet("{id:guid}")]
+    [Authorize(Policy = "ExerciseAccess")]
     public async Task<ActionResult<InjectDto>> GetInject(Guid exerciseId, Guid id)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -199,6 +202,7 @@ public class InjectsController : ControllerBase
     /// Create a new inject.
     /// </summary>
     [HttpPost]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<InjectDto>> CreateInject(Guid exerciseId, CreateInjectRequest request)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -228,8 +232,8 @@ public class InjectsController : ControllerBase
                 Version = 1,
                 IsActive = true,
                 ExerciseId = exerciseId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = GetCurrentUserId(),
+                ModifiedBy = GetCurrentUserId()
             };
             _context.Msels.Add(msel);
             exercise.ActiveMselId = msel.Id;
@@ -250,7 +254,7 @@ public class InjectsController : ControllerBase
             .MaxAsync(i => (int?)i.Sequence) ?? 0;
 
         // Create inject (system user until auth is implemented)
-        var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1, SystemConstants.SystemUserId);
+        var inject = request.ToEntity(mselId, maxInjectNumber + 1, maxSequence + 1, GetCurrentUserId());
 
         _context.Injects.Add(inject);
 
@@ -293,6 +297,7 @@ public class InjectsController : ControllerBase
     /// Update an existing inject.
     /// </summary>
     [HttpPut("{id:guid}")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<InjectDto>> UpdateInject(Guid exerciseId, Guid id, UpdateInjectRequest request)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -333,12 +338,12 @@ public class InjectsController : ControllerBase
         {
             // Only Notes can be edited on fired injects
             inject.ControllerNotes = request.ControllerNotes;
-            inject.ModifiedBy = SystemConstants.SystemUserId;
+            inject.ModifiedBy = GetCurrentUserId();
         }
         else
         {
             // Full edit allowed for Pending/Skipped injects
-            inject.UpdateFromRequest(request, SystemConstants.SystemUserId);
+            inject.UpdateFromRequest(request, GetCurrentUserId());
 
             // Update objective links if provided (only for non-fired injects)
             if (request.ObjectiveIds != null)
@@ -376,6 +381,7 @@ public class InjectsController : ControllerBase
     /// Fire (deliver) an inject.
     /// </summary>
     [HttpPost("{id:guid}/fire")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<InjectDto>> FireInject(Guid exerciseId, Guid id, FireInjectRequest? request = null)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -405,8 +411,8 @@ public class InjectsController : ControllerBase
         // Fire the inject (system user until auth is implemented)
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredBy = SystemConstants.SystemUserId;
-        inject.ModifiedBy = SystemConstants.SystemUserId;
+        inject.FiredBy = GetCurrentUserId();
+        inject.ModifiedBy = GetCurrentUserId();
 
         // Add notes if provided
         if (!string.IsNullOrWhiteSpace(request?.Notes))
@@ -436,6 +442,7 @@ public class InjectsController : ControllerBase
     /// Skip an inject.
     /// </summary>
     [HttpPost("{id:guid}/skip")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<InjectDto>> SkipInject(Guid exerciseId, Guid id, SkipInjectRequest request)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -476,9 +483,9 @@ public class InjectsController : ControllerBase
         // Skip the inject (system user until auth is implemented)
         inject.Status = InjectStatus.Skipped;
         inject.SkippedAt = DateTime.UtcNow;
-        inject.SkippedBy = SystemConstants.SystemUserId;
+        inject.SkippedBy = GetCurrentUserId();
         inject.SkipReason = request.Reason;
-        inject.ModifiedBy = SystemConstants.SystemUserId;
+        inject.ModifiedBy = GetCurrentUserId();
 
         await _context.SaveChangesAsync();
 
@@ -500,6 +507,7 @@ public class InjectsController : ControllerBase
     /// Reset an inject back to pending status.
     /// </summary>
     [HttpPost("{id:guid}/reset")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult<InjectDto>> ResetInject(Guid exerciseId, Guid id)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -533,7 +541,7 @@ public class InjectsController : ControllerBase
         inject.SkippedAt = null;
         inject.SkippedBy = null;
         inject.SkipReason = null;
-        inject.ModifiedBy = SystemConstants.SystemUserId;
+        inject.ModifiedBy = GetCurrentUserId();
 
         await _context.SaveChangesAsync();
 
@@ -552,6 +560,7 @@ public class InjectsController : ControllerBase
     /// Reorder injects by updating their sequence values.
     /// </summary>
     [HttpPost("reorder")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult> ReorderInjects(Guid exerciseId, ReorderInjectsRequest request)
     {
         // Validate request
@@ -588,6 +597,7 @@ public class InjectsController : ControllerBase
     /// Delete an inject.
     /// </summary>
     [HttpDelete("{id:guid}")]
+    [Authorize(Policy = "ExerciseController")]
     public async Task<ActionResult> DeleteInject(Guid exerciseId, Guid id)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -612,7 +622,7 @@ public class InjectsController : ControllerBase
         // Soft delete (system user until auth is implemented)
         inject.IsDeleted = true;
         inject.DeletedAt = DateTime.UtcNow;
-        inject.DeletedBy = SystemConstants.SystemUserId;
+        inject.DeletedBy = GetCurrentUserId();
 
         await _context.SaveChangesAsync();
 
@@ -689,5 +699,18 @@ public class InjectsController : ControllerBase
         }
 
         return null;
+    }
+
+    /// <summary>
+    /// Get current authenticated user's ID from JWT claims.
+    /// </summary>
+    private Guid GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+        return Guid.Parse(userIdClaim);
     }
 }
