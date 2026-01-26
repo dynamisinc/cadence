@@ -1,4 +1,5 @@
-import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner } from './core/components'
 import { ThemeProvider } from '@mui/material/styles'
@@ -50,12 +51,35 @@ const queryClient = new QueryClient({
 })
 
 /**
+ * Redirect component for invalid routes
+ *
+ * Captures the attempted path and redirects to /not-found with state
+ */
+const NotFoundRedirect = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Redirect to /not-found, replacing the invalid URL in history
+    // Pass the attempted path so we can show it to the user
+    navigate('/not-found', {
+      replace: true,
+      state: { attemptedPath: location.pathname },
+    })
+  }, [location.pathname, navigate])
+
+  return null
+}
+
+/**
  * 404 Not Found Page Component
  *
  * Displayed when user navigates to a non-existent route
  */
 const NotFoundPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const attemptedPath = (location.state as { attemptedPath?: string })?.attemptedPath
 
   // Set custom breadcrumb instead of auto-generating from invalid URL path
   useBreadcrumbs([
@@ -69,7 +93,9 @@ const NotFoundPage = () => {
         Page Not Found
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        The page you're looking for doesn't exist.
+        {attemptedPath
+          ? `The page "${attemptedPath}" doesn't exist.`
+          : "The page you're looking for doesn't exist."}
       </Typography>
       <CobraPrimaryButton onClick={() => navigate('/')}>
         Go to Home
@@ -177,8 +203,11 @@ const router = createBrowserRouter([
         ),
       },
 
-      // 404 fallback
-      { path: '*', element: <NotFoundPage /> },
+      // 404 page - explicit route
+      { path: 'not-found', element: <NotFoundPage /> },
+
+      // 404 fallback - redirects invalid URLs to /not-found
+      { path: '*', element: <NotFoundRedirect /> },
     ],
   },
 ])
