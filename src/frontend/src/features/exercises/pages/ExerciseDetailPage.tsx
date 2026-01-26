@@ -32,6 +32,7 @@ import {
   ArchiveExerciseDialog,
   DeleteExerciseDialog,
 } from '../components'
+import { ExportButton } from '@/features/excel-export'
 import { ObjectiveList } from '../../objectives'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import {
@@ -122,16 +123,12 @@ export const ExerciseDetailPage = () => {
     [participants],
   )
 
-  // Set custom breadcrumbs with exercise name
-  useBreadcrumbs(
-    exercise
-      ? [
-        { label: 'Home', path: '/', icon: faHome },
-        { label: 'Exercises', path: '/exercises' },
-        { label: exercise.name },
-      ]
-      : undefined,
-  )
+  // Set custom breadcrumbs with exercise name (show loading placeholder while fetching)
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'Exercises', path: '/exercises' },
+    { label: exercise?.name ?? 'Loading...' },
+  ])
 
   // Warn user before navigating away with unsaved changes (only when editing)
   const { UnsavedChangesDialog } = useUnsavedChangesWarning(isEditing && isDirty && !isSubmitting)
@@ -347,6 +344,7 @@ export const ExerciseDetailPage = () => {
             >
               View MSEL
             </CobraPrimaryButton>
+            {!isEditing && <ExportButton exerciseId={exercise.id} />}
             {exercise.status === ExerciseStatus.Active && !isEditing && (
               <CobraPrimaryButton
                 startIcon={<FontAwesomeIcon icon={faPlay} />}
