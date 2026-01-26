@@ -14,6 +14,7 @@ Cross-cutting concerns are technical capabilities that span multiple features an
 | [S02](./S02-keyboard-navigation.md) | Keyboard Navigation | P1 | 📋 Ready |
 | [S03](./S03-auto-save.md) | Auto-save | P0 | 📋 Ready |
 | [S04](./S04-responsive-design.md) | Responsive Design | P1 | 📋 Ready |
+| [S05](./S05-deprecate-user-table.md) | Deprecate Legacy User Table | P2 | 📋 Ready |
 
 ## EXIS Analysis Insights
 
@@ -63,6 +64,12 @@ These stories are dependencies for many other features:
 - Breakpoint definitions
 - Component adaptation patterns
 - Touch target sizing
+
+### Deprecate Legacy User Table
+- Multi-phase migration to avoid data loss
+- Dual-write period during transition
+- System user handling for audit fields
+- Type change from Guid to string for audit columns
 
 ## Notes
 
