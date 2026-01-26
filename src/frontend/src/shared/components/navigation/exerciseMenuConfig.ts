@@ -24,6 +24,7 @@ import {
   faBinoculars,
   faUsers,
   faChartBar,
+  faFileExport,
   faCog,
 } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
@@ -130,6 +131,13 @@ export const EXERCISE_MENU_ITEMS: ExerciseMenuItem[] = [
     label: 'Metrics',
     icon: faChartBar,
     path: 'metrics',
+    allowedRoles: MANAGEMENT_ROLES,
+  },
+  {
+    id: 'reports',
+    label: 'Reports',
+    icon: faFileExport,
+    path: 'reports',
     allowedRoles: MANAGEMENT_ROLES,
   },
   {

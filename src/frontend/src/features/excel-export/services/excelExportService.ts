@@ -1,5 +1,10 @@
 import api from '@/core/services/api'
-import type { ExportMselRequest, ExportResultInfo } from '../types'
+import type {
+  ExportMselRequest,
+  ExportObservationsRequest,
+  ExportFullPackageRequest,
+  ExportResultInfo,
+} from '../types'
 
 /**
  * Extract filename from Content-Disposition header.
@@ -92,6 +97,78 @@ export const excelExportService = {
     return {
       blob: response.data,
       filename,
+    }
+  },
+
+  /**
+   * Export observations to Excel format
+   * Returns a blob that can be downloaded
+   */
+  async exportObservations(
+    request: ExportObservationsRequest
+  ): Promise<{ blob: Blob; info: ExportResultInfo }> {
+    const params = new URLSearchParams()
+    if (request.includeFormatting !== undefined) {
+      params.append('includeFormatting', String(request.includeFormatting))
+    }
+    if (request.filename) {
+      params.append('filename', request.filename)
+    }
+
+    const url = `/export/exercises/${request.exerciseId}/observations${params.toString() ? `?${params.toString()}` : ''}`
+    const response = await api.get(url, {
+      responseType: 'blob',
+    })
+
+    const filename =
+      extractFilename(response.headers['content-disposition']) ?? 'Observations_Export.xlsx'
+    const observationCount = parseInt(response.headers['x-observation-count'] ?? '0', 10)
+
+    return {
+      blob: response.data,
+      info: {
+        filename,
+        injectCount: 0,
+        phaseCount: 0,
+        objectiveCount: observationCount,
+      },
+    }
+  },
+
+  /**
+   * Export full exercise package as a ZIP file
+   * Returns a blob that can be downloaded
+   */
+  async exportFullPackage(
+    request: ExportFullPackageRequest
+  ): Promise<{ blob: Blob; info: ExportResultInfo }> {
+    const params = new URLSearchParams()
+    if (request.includeFormatting !== undefined) {
+      params.append('includeFormatting', String(request.includeFormatting))
+    }
+    if (request.filename) {
+      params.append('filename', request.filename)
+    }
+
+    const url = `/export/exercises/${request.exerciseId}/full${params.toString() ? `?${params.toString()}` : ''}`
+    const response = await api.get(url, {
+      responseType: 'blob',
+    })
+
+    const filename =
+      extractFilename(response.headers['content-disposition']) ?? 'Exercise_Package.zip'
+    const injectCount = parseInt(response.headers['x-inject-count'] ?? '0', 10)
+    const phaseCount = parseInt(response.headers['x-phase-count'] ?? '0', 10)
+    const objectiveCount = parseInt(response.headers['x-objective-count'] ?? '0', 10)
+
+    return {
+      blob: response.data,
+      info: {
+        filename,
+        injectCount,
+        phaseCount,
+        objectiveCount,
+      },
     }
   },
 }

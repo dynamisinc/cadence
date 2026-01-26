@@ -5,6 +5,7 @@ export {
   ExerciseDetailPage,
   ExerciseConductPage,
   ExerciseParticipantsPage,
+  ReportsPage,
   PlaceholderPage,
   ObservationsPlaceholderPage,
   MetricsPlaceholderPage,

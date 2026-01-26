@@ -32,7 +32,6 @@ import {
   ArchiveExerciseDialog,
   DeleteExerciseDialog,
 } from '../components'
-import { ExportButton } from '@/features/excel-export'
 import { ObjectiveList } from '../../objectives'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import {
@@ -344,7 +343,6 @@ export const ExerciseDetailPage = () => {
             >
               View MSEL
             </CobraPrimaryButton>
-            {!isEditing && <ExportButton exerciseId={exercise.id} />}
             {exercise.status === ExerciseStatus.Active && !isEditing && (
               <CobraPrimaryButton
                 startIcon={<FontAwesomeIcon icon={faPlay} />}

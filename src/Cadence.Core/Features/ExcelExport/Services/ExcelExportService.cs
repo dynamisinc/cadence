@@ -1,4 +1,6 @@
+using System.IO.Compression;
 using System.Text;
+using System.Text.Json;
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExcelExport.Models.DTOs;
 using Cadence.Core.Models.Entities;
@@ -43,6 +45,19 @@ public class ExcelExportService : IExcelExportService
         ("Status", "Status", 12),
         ("FiredAt", "Fired At", 20),
         ("FiredBy", "Fired By", 20),
+    };
+
+    // Column definitions for observations worksheet
+    private static readonly (string Field, string Header, int Width)[] ObservationColumns =
+    {
+        ("ObservedAt", "Timestamp", 20),
+        ("Observer", "Observer", 25),
+        ("RelatedInject", "Related Inject", 30),
+        ("Content", "Observation", 60),
+        ("Rating", "Rating (P/S/M/U)", 18),
+        ("Recommendation", "Recommendation", 50),
+        ("Location", "Location", 20),
+        ("RelatedObjective", "Related Objective", 30),
     };
 
     public ExcelExportService(
@@ -228,15 +243,196 @@ public class ExcelExportService : IExcelExportService
         });
     }
 
+    public async Task<ExportResult> ExportObservationsAsync(ExportObservationsRequest request)
+    {
+        // Get exercise
+        var exercise = await _context.Exercises
+            .FirstOrDefaultAsync(e => e.Id == request.ExerciseId);
+
+        if (exercise == null)
+        {
+            throw new InvalidOperationException("Exercise not found.");
+        }
+
+        // Get observations with related data
+        var observations = await _context.Observations
+            .Include(o => o.CreatedByUser)
+            .Include(o => o.Inject)
+            .Include(o => o.Objective)
+            .Where(o => o.ExerciseId == request.ExerciseId && !o.IsDeleted)
+            .OrderBy(o => o.ObservedAt)
+            .ToListAsync();
+
+        // Generate filename
+        var filename = request.Filename ?? GenerateObservationsFilename(exercise.Name);
+
+        // Generate Excel file
+        using var workbook = new XLWorkbook();
+        AddObservationsWorksheet(workbook, observations, request.IncludeFormatting);
+
+        // Convert to bytes
+        using var stream = new MemoryStream();
+        workbook.SaveAs(stream);
+        var bytes = stream.ToArray();
+
+        return new ExportResult
+        {
+            Content = bytes,
+            Filename = $"{filename}.xlsx",
+            ContentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            InjectCount = 0,
+            PhaseCount = 0,
+            ObjectiveCount = observations.Count
+        };
+    }
+
+    public async Task<ExportResult> ExportFullPackageAsync(ExportFullPackageRequest request)
+    {
+        // Get exercise with related data
+        var exercise = await _context.Exercises
+            .Include(e => e.Msels)
+            .FirstOrDefaultAsync(e => e.Id == request.ExerciseId);
+
+        if (exercise == null)
+        {
+            throw new InvalidOperationException("Exercise not found.");
+        }
+
+        var activeMsel = exercise.Msels.FirstOrDefault(m => m.IsActive);
+
+        // Get injects
+        var injects = activeMsel != null
+            ? await _context.Injects
+                .Include(i => i.Phase)
+                .Include(i => i.DeliveryMethodLookup)
+                .Include(i => i.FiredByUser)
+                .Where(i => i.MselId == activeMsel.Id && !i.IsDeleted)
+                .OrderBy(i => i.Sequence)
+                .ToListAsync()
+            : new List<Inject>();
+
+        // Get observations
+        var observations = await _context.Observations
+            .Include(o => o.CreatedByUser)
+            .Include(o => o.Inject)
+            .Include(o => o.Objective)
+            .Where(o => o.ExerciseId == request.ExerciseId && !o.IsDeleted)
+            .OrderBy(o => o.ObservedAt)
+            .ToListAsync();
+
+        // Get phases
+        var phases = await _context.Phases
+            .Where(p => p.ExerciseId == request.ExerciseId && !p.IsDeleted)
+            .OrderBy(p => p.Sequence)
+            .ToListAsync();
+
+        // Get objectives
+        var objectives = await _context.Objectives
+            .Where(o => o.ExerciseId == request.ExerciseId && !o.IsDeleted)
+            .OrderBy(o => o.ObjectiveNumber)
+            .ToListAsync();
+
+        // Generate filename
+        var safeName = GenerateSafeFilename(exercise.Name);
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var zipFilename = request.Filename ?? $"{safeName}_Package_{date}";
+
+        // Create ZIP in memory
+        using var zipStream = new MemoryStream();
+        using (var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true))
+        {
+            // Add MSEL.xlsx
+            var mselEntry = archive.CreateEntry("MSEL.xlsx", CompressionLevel.Optimal);
+            using (var mselEntryStream = mselEntry.Open())
+            {
+                using var mselWorkbook = new XLWorkbook();
+                AddMselWorksheet(mselWorkbook, injects, request.IncludeFormatting, true);
+                if (phases.Count > 0)
+                {
+                    AddPhasesWorksheet(mselWorkbook, phases, request.IncludeFormatting);
+                }
+                if (objectives.Count > 0)
+                {
+                    AddObjectivesWorksheet(mselWorkbook, objectives, request.IncludeFormatting);
+                }
+                mselWorkbook.SaveAs(mselEntryStream);
+            }
+
+            // Add Observations.xlsx
+            var obsEntry = archive.CreateEntry("Observations.xlsx", CompressionLevel.Optimal);
+            using (var obsEntryStream = obsEntry.Open())
+            {
+                using var obsWorkbook = new XLWorkbook();
+                AddObservationsWorksheet(obsWorkbook, observations, request.IncludeFormatting);
+                obsWorkbook.SaveAs(obsEntryStream);
+            }
+
+            // Add Summary.json
+            var summaryEntry = archive.CreateEntry("Summary.json", CompressionLevel.Optimal);
+            using (var summaryEntryStream = summaryEntry.Open())
+            {
+                var summary = new ExerciseSummaryDto
+                {
+                    Name = exercise.Name,
+                    ExerciseType = exercise.ExerciseType.ToString(),
+                    Description = exercise.Description,
+                    ScheduledDate = exercise.ScheduledDate.ToString("yyyy-MM-dd"),
+                    StartTime = exercise.StartTime?.ToString("HH:mm"),
+                    EndTime = exercise.EndTime?.ToString("HH:mm"),
+                    Status = exercise.Status.ToString(),
+                    InjectCount = injects.Count,
+                    InjectsFired = injects.Count(i => i.Status == InjectStatus.Fired),
+                    InjectsSkipped = injects.Count(i => i.Status == InjectStatus.Skipped),
+                    InjectsPending = injects.Count(i => i.Status == InjectStatus.Pending),
+                    ObservationCount = observations.Count,
+                    PhaseCount = phases.Count,
+                    ObjectiveCount = objectives.Count,
+                    ExportedAt = DateTime.UtcNow
+                };
+
+                var options = new JsonSerializerOptions
+                {
+                    WriteIndented = true,
+                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+                };
+                var json = JsonSerializer.Serialize(summary, options);
+                using var writer = new StreamWriter(summaryEntryStream);
+                await writer.WriteAsync(json);
+            }
+        }
+
+        return new ExportResult
+        {
+            Content = zipStream.ToArray(),
+            Filename = $"{zipFilename}.zip",
+            ContentType = "application/zip",
+            InjectCount = injects.Count,
+            PhaseCount = phases.Count,
+            ObjectiveCount = objectives.Count
+        };
+    }
+
     #region Private Methods
 
     private static string GenerateFilename(string exerciseName)
     {
         // Sanitize exercise name for filename
-        var safeName = string.Join("_", exerciseName.Split(Path.GetInvalidFileNameChars()));
-        safeName = safeName.Replace(" ", "_");
+        var safeName = GenerateSafeFilename(exerciseName);
         var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
         return $"{safeName}_MSEL_{date}";
+    }
+
+    private static string GenerateObservationsFilename(string exerciseName)
+    {
+        var safeName = GenerateSafeFilename(exerciseName);
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        return $"{safeName}_Observations_{date}";
+    }
+
+    private static string GenerateSafeFilename(string name)
+    {
+        var safeName = string.Join("_", name.Split(Path.GetInvalidFileNameChars()));
+        return safeName.Replace(" ", "_");
     }
 
     private void AddMselWorksheet(XLWorkbook workbook, List<Inject> injects, bool includeFormatting, bool includeConductData)
@@ -401,6 +597,88 @@ public class ExcelExportService : IExcelExportService
         {
             ws.RangeUsed()?.SetAutoFilter();
         }
+    }
+
+    private void AddObservationsWorksheet(XLWorkbook workbook, List<Observation> observations, bool includeFormatting)
+    {
+        var ws = workbook.Worksheets.Add("Observations");
+
+        // Add header row
+        for (int i = 0; i < ObservationColumns.Length; i++)
+        {
+            var cell = ws.Cell(1, i + 1);
+            cell.Value = ObservationColumns[i].Header;
+
+            if (includeFormatting)
+            {
+                cell.Style.Font.Bold = true;
+                cell.Style.Fill.BackgroundColor = XLColor.LightYellow;
+                cell.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                ws.Column(i + 1).Width = ObservationColumns[i].Width;
+            }
+        }
+
+        // Add data rows
+        var row = 2;
+        foreach (var observation in observations)
+        {
+            var col = 1;
+
+            // Timestamp
+            ws.Cell(row, col++).Value = observation.ObservedAt.ToString("yyyy-MM-dd HH:mm:ss");
+
+            // Observer
+            ws.Cell(row, col++).Value = observation.CreatedByUser?.DisplayName ?? "";
+
+            // Related Inject
+            ws.Cell(row, col++).Value = observation.Inject != null
+                ? $"#{observation.Inject.InjectNumber} - {observation.Inject.Title}"
+                : "General";
+
+            // Content
+            ws.Cell(row, col++).Value = observation.Content;
+
+            // Rating
+            ws.Cell(row, col++).Value = GetRatingDisplay(observation.Rating);
+
+            // Recommendation
+            ws.Cell(row, col++).Value = observation.Recommendation ?? "";
+
+            // Location
+            ws.Cell(row, col++).Value = observation.Location ?? "";
+
+            // Related Objective
+            ws.Cell(row, col++).Value = observation.Objective?.Name ?? "";
+
+            // Alternating row colors
+            if (includeFormatting && row % 2 == 0)
+            {
+                for (int c = 1; c <= ObservationColumns.Length; c++)
+                {
+                    ws.Cell(row, c).Style.Fill.BackgroundColor = XLColor.LightGoldenrodYellow;
+                }
+            }
+
+            row++;
+        }
+
+        // Add auto-filter
+        if (includeFormatting && observations.Count > 0)
+        {
+            ws.RangeUsed()?.SetAutoFilter();
+        }
+    }
+
+    private static string GetRatingDisplay(ObservationRating? rating)
+    {
+        return rating switch
+        {
+            ObservationRating.Performed => "P - Performed",
+            ObservationRating.Satisfactory => "S - Satisfactory",
+            ObservationRating.Marginal => "M - Marginal",
+            ObservationRating.Unsatisfactory => "U - Unsatisfactory",
+            _ => ""
+        };
     }
 
     private string GenerateCsv(List<Inject> injects, bool includeConductData)
