@@ -1,11 +1,20 @@
 /**
  * AssignmentSection Component
  *
- * Displays a section of assignments (Active, Upcoming, or Completed).
+ * Displays a collapsible section of assignments (Active, Upcoming, or Completed).
+ * Completed section is collapsed by default.
  */
-import { Box, Typography, Skeleton, Alert } from '@mui/material'
+import { useState } from 'react'
+import { Box, Typography, Skeleton, Alert, Collapse, IconButton, Chip } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faCalendarAlt, faCheckCircle, faInbox } from '@fortawesome/free-solid-svg-icons'
+import {
+  faPlay,
+  faCalendarAlt,
+  faCheckCircle,
+  faInbox,
+  faChevronDown,
+  faChevronRight,
+} from '@fortawesome/free-solid-svg-icons'
 import type { AssignmentSectionProps } from '../types'
 import { AssignmentCard } from './AssignmentCard'
 
@@ -48,55 +57,107 @@ export function AssignmentSection({
   isLoading = false,
   emptyMessage = 'No assignments',
 }: AssignmentSectionProps) {
+  // Completed section is collapsed by default
+  const [isExpanded, setIsExpanded] = useState(type !== 'completed')
+
   const icon = getSectionIcon(type)
   const color = getSectionColor(type)
 
+  const handleToggle = () => {
+    setIsExpanded(!isExpanded)
+  }
+
   return (
     <Box mb={4}>
-      {/* Section Header */}
-      <Box display="flex" alignItems="center" gap={1.5} mb={2}>
+      {/* Section Header - Clickable to toggle */}
+      <Box
+        display="flex"
+        alignItems="center"
+        gap={1}
+        mb={isExpanded ? 2 : 0}
+        onClick={handleToggle}
+        sx={{
+          cursor: 'pointer',
+          userSelect: 'none',
+          '&:hover': {
+            opacity: 0.8,
+          },
+        }}
+      >
+        {/* Expand/Collapse Icon */}
+        <IconButton
+          size="small"
+          onClick={(e) => {
+            e.stopPropagation()
+            handleToggle()
+          }}
+          aria-label={isExpanded ? `Collapse ${title}` : `Expand ${title}`}
+          aria-expanded={isExpanded}
+        >
+          <FontAwesomeIcon
+            icon={isExpanded ? faChevronDown : faChevronRight}
+            style={{ fontSize: '0.875rem' }}
+          />
+        </IconButton>
+
+        {/* Section Icon */}
         <FontAwesomeIcon
           icon={icon}
           style={{ color, fontSize: '1.25rem' }}
         />
+
+        {/* Title */}
         <Typography variant="h6" component="h2">
           {title}
         </Typography>
-        <Typography variant="body2" color="text.secondary">
-          ({assignments.length})
-        </Typography>
+
+        {/* Count Badge */}
+        <Chip
+          label={assignments.length}
+          size="small"
+          sx={{
+            height: 22,
+            minWidth: 28,
+            backgroundColor: color,
+            color: 'white',
+            fontWeight: 'medium',
+          }}
+        />
       </Box>
 
-      {/* Loading State */}
-      {isLoading && (
-        <Box>
-          {[1, 2].map((n) => (
-            <Skeleton
-              key={n}
-              variant="rectangular"
-              height={120}
-              sx={{ mb: 2, borderRadius: 1 }}
+      {/* Collapsible Content */}
+      <Collapse in={isExpanded}>
+        {/* Loading State */}
+        {isLoading && (
+          <Box>
+            {[1, 2].map((n) => (
+              <Skeleton
+                key={n}
+                variant="rectangular"
+                height={120}
+                sx={{ mb: 2, borderRadius: 1 }}
+              />
+            ))}
+          </Box>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && assignments.length === 0 && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            {emptyMessage}
+          </Alert>
+        )}
+
+        {/* Assignment Cards */}
+        {!isLoading &&
+          assignments.map((assignment) => (
+            <AssignmentCard
+              key={assignment.exerciseId}
+              assignment={assignment}
+              sectionType={type}
             />
           ))}
-        </Box>
-      )}
-
-      {/* Empty State */}
-      {!isLoading && assignments.length === 0 && (
-        <Alert severity="info" sx={{ mb: 2 }}>
-          {emptyMessage}
-        </Alert>
-      )}
-
-      {/* Assignment Cards */}
-      {!isLoading &&
-        assignments.map((assignment) => (
-          <AssignmentCard
-            key={assignment.exerciseId}
-            assignment={assignment}
-            sectionType={type}
-          />
-        ))}
+      </Collapse>
     </Box>
   )
 }
