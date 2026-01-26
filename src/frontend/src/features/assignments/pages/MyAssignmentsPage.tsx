@@ -115,35 +115,29 @@ export function MyAssignmentsPage() {
         <Typography variant="h4">My Assignments</Typography>
       </Box>
 
-      {/* Active Section */}
-      {data.active.length > 0 && (
-        <AssignmentSection
-          title="Active Now"
-          type="active"
-          assignments={data.active}
-          emptyMessage="No exercises are currently in conduct."
-        />
-      )}
+      {/* Active Section - always show */}
+      <AssignmentSection
+        title="Active Now"
+        type="active"
+        assignments={data.active}
+        emptyMessage="No exercises are currently in conduct."
+      />
 
-      {/* Upcoming Section */}
-      {data.upcoming.length > 0 && (
-        <AssignmentSection
-          title="Upcoming"
-          type="upcoming"
-          assignments={data.upcoming}
-          emptyMessage="No upcoming exercises."
-        />
-      )}
+      {/* Upcoming Section - always show */}
+      <AssignmentSection
+        title="Upcoming"
+        type="upcoming"
+        assignments={data.upcoming}
+        emptyMessage="No upcoming exercises."
+      />
 
-      {/* Completed Section */}
-      {data.completed.length > 0 && (
-        <AssignmentSection
-          title="Recently Completed"
-          type="completed"
-          assignments={data.completed}
-          emptyMessage="No completed exercises."
-        />
-      )}
+      {/* Completed Section - always show (collapsed by default) */}
+      <AssignmentSection
+        title="Recently Completed"
+        type="completed"
+        assignments={data.completed}
+        emptyMessage="No completed exercises."
+      />
     </Box>
   )
 }
