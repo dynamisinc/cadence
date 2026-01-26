@@ -557,11 +557,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Recommendation).HasMaxLength(2000);
             entity.Property(e => e.Location).HasMaxLength(200);
             entity.Property(e => e.Rating).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.CreatedByUserId).HasMaxLength(450); // Match AspNetUsers.Id length
 
             entity.HasIndex(e => e.ExerciseId);
             entity.HasIndex(e => e.InjectId);
             entity.HasIndex(e => e.ObjectiveId);
             entity.HasIndex(e => e.ObservedAt);
+            entity.HasIndex(e => e.CreatedByUserId);
 
             entity.HasOne(e => e.Exercise)
                 .WithMany(ex => ex.Observations)
@@ -580,10 +582,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // User who created the observation (optional to handle soft-deleted users)
+            // User who created the observation - references ApplicationUser (ASP.NET Core Identity)
+            // Uses string FK to match IdentityUser.Id type
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
-                .HasForeignKey(e => e.CreatedBy)
+                .HasForeignKey(e => e.CreatedByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
         });

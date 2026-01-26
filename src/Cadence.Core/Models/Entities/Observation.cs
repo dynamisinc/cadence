@@ -61,6 +61,12 @@ public class Observation : BaseEntity
     /// </summary>
     public Guid? ObjectiveId { get; set; }
 
+    /// <summary>
+    /// The ApplicationUser ID who created this observation.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
+    /// </summary>
+    public string? CreatedByUserId { get; set; }
+
     // =========================================================================
     // Navigation Properties
     // =========================================================================
@@ -82,7 +88,8 @@ public class Observation : BaseEntity
 
     /// <summary>
     /// The user who created this observation.
-    /// May be null if the user has been soft-deleted.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if the user has been deactivated.
     /// </summary>
-    public User? CreatedByUser { get; set; }
+    public ApplicationUser? CreatedByUser { get; set; }
 }

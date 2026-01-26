@@ -10,7 +10,6 @@ import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
   Typography,
-  Paper,
   Stack,
   CircularProgress,
   Alert,
@@ -35,12 +34,14 @@ import {
   useExportObservations,
   useExportFullPackage,
 } from '@/features/excel-export'
+import { useObservations } from '@/features/observations'
 
 export const ReportsPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
   const { data: mselSummary } = useMselSummary(exerciseId ?? '')
+  const { observations } = useObservations(exerciseId ?? '')
   const [error, setError] = useState<string | null>(null)
 
   const exportMsel = useExportMsel()
@@ -51,12 +52,12 @@ export const ReportsPage = () => {
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'Reports' },
-        ]
-      : undefined
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'Reports' },
+      ]
+      : undefined,
   )
 
   const handleExportMsel = async () => {
@@ -239,9 +240,14 @@ export const ReportsPage = () => {
                 <Typography variant="h6" gutterBottom>
                   Export Observations
                 </Typography>
-                <Typography variant="body2" color="text.secondary">
+                <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
                   Download all evaluator observations as an Excel file. Includes timestamps,
                   observer names, ratings, recommendations, and related injects.
+                </Typography>
+                <Typography variant="caption" color="text.secondary">
+                  {observations.length === 0
+                    ? 'No observations recorded yet. Add observations from the Exercise Hub to export them.'
+                    : `${observations.length} observation${observations.length === 1 ? '' : 's'} available for export`}
                 </Typography>
               </Box>
             </Stack>
@@ -249,7 +255,7 @@ export const ReportsPage = () => {
           <CardActions sx={{ px: 2, pb: 2 }}>
             <CobraPrimaryButton
               onClick={handleExportObservations}
-              disabled={exportObservations.isPending}
+              disabled={exportObservations.isPending || observations.length === 0}
               startIcon={
                 exportObservations.isPending ? (
                   <CircularProgress size={16} color="inherit" />
