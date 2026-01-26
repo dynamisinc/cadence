@@ -1,4 +1,5 @@
 using Cadence.Core.Data;
+using Cadence.Core.Features.Notifications;
 using Cadence.Core.Features.Notifications.Models.DTOs;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Models.Entities;
@@ -22,7 +23,8 @@ public class NotificationServiceTests
     {
         _context = TestDbContextFactory.Create();
         var logger = new Mock<ILogger<NotificationService>>();
-        _service = new NotificationService(_context, logger.Object);
+        var broadcaster = new Mock<INotificationBroadcaster>();
+        _service = new NotificationService(_context, logger.Object, broadcaster.Object);
     }
 
     /// <summary>
