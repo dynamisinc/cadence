@@ -3,8 +3,10 @@
  *
  * Displays a list of observations recorded during exercise conduct.
  * Shows rating badges, content, and optional recommendations.
+ * Supports filtering by rating (P/S/M/U/Unrated).
  */
 
+import { useState, useMemo } from 'react'
 import {
   Box,
   Paper,
@@ -16,12 +18,18 @@ import {
   IconButton,
   Tooltip,
   Divider,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Button,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { RatingBadge } from './RatingBadge'
+import { ObservationRating, ObservationRatingLabels } from '../../../types'
 import type { ObservationDto } from '../types'
 
 interface ObservationListProps {
@@ -40,6 +48,8 @@ interface ObservationListProps {
   onInjectClick?: (injectId: string) => void
 }
 
+type RatingFilterValue = 'all' | ObservationRating | 'unrated'
+
 export const ObservationList = ({
   observations,
   loading = false,
@@ -50,12 +60,39 @@ export const ObservationList = ({
   deletingId = null,
   onInjectClick,
 }: ObservationListProps) => {
+  // Filter state
+  const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
+
   const formatTime = (dateStr: string) => {
     try {
       return format(parseISO(dateStr), 'h:mm a')
     } catch {
       return ''
     }
+  }
+
+  // Apply filters using useMemo for performance
+  const filteredObservations = useMemo(() => {
+    let filtered = [...observations]
+
+    // Filter by rating
+    if (ratingFilter !== 'all') {
+      if (ratingFilter === 'unrated') {
+        filtered = filtered.filter(obs => obs.rating === null)
+      } else {
+        filtered = filtered.filter(obs => obs.rating === ratingFilter)
+      }
+    }
+
+    return filtered
+  }, [observations, ratingFilter])
+
+  // Check if any filters are active
+  const hasActiveFilters = ratingFilter !== 'all'
+
+  // Clear all filters
+  const handleClearFilters = () => {
+    setRatingFilter('all')
   }
 
   if (loading) {
@@ -85,10 +122,65 @@ export const ObservationList = ({
   }
 
   return (
-    <Paper>
-      <List disablePadding>
-        {observations.map((observation, index) => {
-          const isDeleting = deletingId === observation.id
+    <Box>
+      {/* Filter Bar */}
+      <Paper sx={{ p: 2, mb: 2 }}>
+        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+          <FormControl size="small" sx={{ minWidth: 200 }}>
+            <InputLabel id="rating-filter-label">Filter by Rating</InputLabel>
+            <Select
+              labelId="rating-filter-label"
+              id="rating-filter"
+              value={ratingFilter}
+              label="Filter by Rating"
+              onChange={(e) => setRatingFilter(e.target.value as RatingFilterValue)}
+            >
+              <MenuItem value="all">All Ratings</MenuItem>
+              <Divider />
+              <MenuItem value={ObservationRating.Performed}>
+                {ObservationRatingLabels[ObservationRating.Performed]}
+              </MenuItem>
+              <MenuItem value={ObservationRating.Satisfactory}>
+                {ObservationRatingLabels[ObservationRating.Satisfactory]}
+              </MenuItem>
+              <MenuItem value={ObservationRating.Marginal}>
+                {ObservationRatingLabels[ObservationRating.Marginal]}
+              </MenuItem>
+              <MenuItem value={ObservationRating.Unsatisfactory}>
+                {ObservationRatingLabels[ObservationRating.Unsatisfactory]}
+              </MenuItem>
+              <Divider />
+              <MenuItem value="unrated">Unrated</MenuItem>
+            </Select>
+          </FormControl>
+
+          {hasActiveFilters && (
+            <Button onClick={handleClearFilters} size="small" variant="text">
+              Clear Filters
+            </Button>
+          )}
+        </Stack>
+
+        {/* Filter count */}
+        {hasActiveFilters && (
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            Showing {filteredObservations.length} of {observations.length} observations
+          </Typography>
+        )}
+      </Paper>
+
+      {/* Empty state for filtered results */}
+      {filteredObservations.length === 0 ? (
+        <Paper sx={{ p: 3, textAlign: 'center' }}>
+          <Typography color="text.secondary">
+            No observations match your filters.
+          </Typography>
+        </Paper>
+      ) : (
+        <Paper>
+          <List disablePadding>
+            {filteredObservations.map((observation, index) => {
+              const isDeleting = deletingId === observation.id
 
           return (
             <Box key={observation.id}>
@@ -199,10 +291,12 @@ export const ObservationList = ({
                 </Stack>
               </ListItem>
             </Box>
-          )
-        })}
-      </List>
-    </Paper>
+              )
+            })}
+          </List>
+        </Paper>
+      )}
+    </Box>
   )
 }
 

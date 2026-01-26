@@ -1,4 +1,4 @@
-using Cadence.Core.Constants;
+using System.Security.Claims;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -29,6 +29,7 @@ public class ObservationsController : ControllerBase
     /// Get all observations for an exercise.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/observations")]
+    [Authorize(Policy = "ExerciseAccess")]
     public async Task<ActionResult<IEnumerable<ObservationDto>>> GetObservationsByExercise(Guid exerciseId)
     {
         var observations = await _observationService.GetObservationsByExerciseAsync(exerciseId);
@@ -63,8 +64,10 @@ public class ObservationsController : ControllerBase
 
     /// <summary>
     /// Create a new observation for an exercise.
+    /// Requires Evaluator or higher role in the exercise.
     /// </summary>
     [HttpPost("exercises/{exerciseId:guid}/observations")]
+    [Authorize(Policy = "ExerciseEvaluator")]
     public async Task<ActionResult<ObservationDto>> CreateObservation(Guid exerciseId, CreateObservationRequest request)
     {
         // Validation
@@ -90,9 +93,7 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            // System user until auth is implemented
-            var createdBy = SystemConstants.SystemUserId;
-
+            var createdBy = GetCurrentUserId();
             var observation = await _observationService.CreateObservationAsync(exerciseId, request, createdBy);
 
             return CreatedAtAction(
@@ -136,9 +137,7 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            // System user until auth is implemented
-            var modifiedBy = SystemConstants.SystemUserId;
-
+            var modifiedBy = GetCurrentUserId();
             var observation = await _observationService.UpdateObservationAsync(id, request, modifiedBy);
 
             if (observation == null)
@@ -160,9 +159,7 @@ public class ObservationsController : ControllerBase
     [HttpDelete("observations/{id:guid}")]
     public async Task<IActionResult> DeleteObservation(Guid id)
     {
-        // System user until auth is implemented
-        var deletedBy = SystemConstants.SystemUserId;
-
+        var deletedBy = GetCurrentUserId();
         var deleted = await _observationService.DeleteObservationAsync(id, deletedBy);
 
         if (!deleted)
@@ -171,5 +168,18 @@ public class ObservationsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Get current authenticated user's ID from JWT claims.
+    /// </summary>
+    private Guid GetCurrentUserId()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+        return Guid.Parse(userIdClaim);
     }
 }
