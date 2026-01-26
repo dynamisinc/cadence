@@ -14,10 +14,13 @@ import { useState, useCallback } from 'react'
 import type { FC } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Alert } from '@mui/material'
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
+import { useExercise } from '../hooks'
 import { usePermissions } from '../../../shared/hooks'
+import { useBreadcrumbs } from '../../../core/contexts'
 import CobraStyles from '../../../theme/CobraStyles'
 import type { AddParticipantRequest } from '../types'
 
@@ -44,11 +47,27 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
   // Support both prop-based (embedded in tabs) and route-based (standalone page) usage
   const params = useParams<{ exerciseId?: string; id?: string }>()
   const exerciseId = propExerciseId ?? params.exerciseId ?? params.id
+  const isStandalone = !propExerciseId // Only set breadcrumbs when used as standalone page
   const { canManage } = usePermissions()
   const [dialogOpen, setDialogOpen] = useState(false)
 
   // Use empty string fallback for hooks - they will handle missing exerciseId gracefully
   const safeExerciseId = exerciseId ?? ''
+
+  // Fetch exercise data for breadcrumbs (only needed for standalone)
+  const { exercise } = useExercise(isStandalone ? safeExerciseId : undefined)
+
+  // Set breadcrumbs with exercise name (only for standalone page)
+  useBreadcrumbs(
+    isStandalone && exercise
+      ? [
+          { label: 'Home', path: '/', icon: faHome },
+          { label: 'Exercises', path: '/exercises' },
+          { label: exercise.name, path: `/exercises/${exerciseId}` },
+          { label: 'Participants' },
+        ]
+      : undefined,
+  )
 
   const {
     participants,

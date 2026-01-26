@@ -8,4 +8,6 @@ export {
   ObservationsPlaceholderPage,
   MetricsPlaceholderPage,
   SettingsPlaceholderPage,
+  ReportsPlaceholderPage,
+  TemplatesPlaceholderPage,
 } from './PlaceholderPage'

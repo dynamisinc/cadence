@@ -8,3 +8,4 @@ export { ConfirmDialog, type ConfirmDialogProps, type ConfirmDialogSeverity } fr
 export { Loading, type LoadingProps } from './Loading'
 export { UserAutocomplete, type UserAutocompleteProps } from './UserAutocomplete'
 export { ExerciseContextWrapper } from './ExerciseContextWrapper'
+export { GlobalPlaceholderPage } from './GlobalPlaceholderPage'

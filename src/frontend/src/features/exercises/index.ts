@@ -9,6 +9,8 @@ export {
   ObservationsPlaceholderPage,
   MetricsPlaceholderPage,
   SettingsPlaceholderPage,
+  ReportsPlaceholderPage,
+  TemplatesPlaceholderPage,
 } from './pages'
 
 // Components

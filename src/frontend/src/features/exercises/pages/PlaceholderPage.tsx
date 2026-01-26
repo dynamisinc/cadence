@@ -8,8 +8,10 @@
 import { useParams } from 'react-router-dom'
 import { Box, Typography, Paper } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHardHat } from '@fortawesome/free-solid-svg-icons'
+import { faHardHat, faHome } from '@fortawesome/free-solid-svg-icons'
 import CobraStyles from '@/theme/CobraStyles'
+import { useBreadcrumbs } from '@/core/contexts'
+import { useExercise } from '../hooks'
 
 interface PlaceholderPageProps {
   featureName: string
@@ -18,6 +20,19 @@ interface PlaceholderPageProps {
 
 export const PlaceholderPage = ({ featureName, description }: PlaceholderPageProps) => {
   const { id: exerciseId } = useParams<{ id: string }>()
+  const { exercise } = useExercise(exerciseId)
+
+  // Set breadcrumbs with exercise name
+  useBreadcrumbs(
+    exercise
+      ? [
+          { label: 'Home', path: '/', icon: faHome },
+          { label: 'Exercises', path: '/exercises' },
+          { label: exercise.name, path: `/exercises/${exerciseId}` },
+          { label: featureName },
+        ]
+      : undefined,
+  )
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
@@ -41,9 +56,11 @@ export const PlaceholderPage = ({ featureName, description }: PlaceholderPagePro
         <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
           {description || 'This feature is coming soon.'}
         </Typography>
-        <Typography variant="caption" color="text.disabled">
-          Exercise ID: {exerciseId}
-        </Typography>
+        {exercise && (
+          <Typography variant="caption" color="text.disabled">
+            Exercise: {exercise.name}
+          </Typography>
+        )}
       </Paper>
     </Box>
   )
@@ -75,6 +92,20 @@ export const SettingsPlaceholderPage = () => (
   <PlaceholderPage
     featureName="Settings"
     description="Configure exercise settings and preferences."
+  />
+)
+
+export const ReportsPlaceholderPage = () => (
+  <PlaceholderPage
+    featureName="Reports"
+    description="Generate and view exercise reports and after-action documentation."
+  />
+)
+
+export const TemplatesPlaceholderPage = () => (
+  <PlaceholderPage
+    featureName="Templates"
+    description="Manage inject templates and exercise blueprints."
   />
 )
 

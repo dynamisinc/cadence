@@ -14,7 +14,7 @@ import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
 import { ExerciseNavigationProvider } from './shared/contexts'
-import { ExerciseContextWrapper } from './shared/components'
+import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
@@ -174,6 +174,39 @@ const router = createBrowserRouter([
 
       // Assignments page
       { path: 'assignments', element: <MyAssignmentsPage /> },
+
+      // Reports page (top-level, not exercise-scoped)
+      {
+        path: 'reports',
+        element: (
+          <GlobalPlaceholderPage
+            featureName="Reports"
+            description="Generate and view exercise reports and after-action documentation."
+          />
+        ),
+      },
+
+      // Templates page (top-level, not exercise-scoped)
+      {
+        path: 'templates',
+        element: (
+          <GlobalPlaceholderPage
+            featureName="Templates"
+            description="Manage inject templates and exercise blueprints."
+          />
+        ),
+      },
+
+      // Settings page (top-level, not exercise-scoped)
+      {
+        path: 'settings',
+        element: (
+          <GlobalPlaceholderPage
+            featureName="Settings"
+            description="Configure application preferences and account settings."
+          />
+        ),
+      },
 
       // Exercise list and create (no context needed)
       { path: 'exercises', element: <ExerciseListPage /> },
