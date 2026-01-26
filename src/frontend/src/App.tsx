@@ -7,9 +7,10 @@ import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
-import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider } from './core/contexts'
+import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
@@ -56,10 +57,16 @@ const queryClient = new QueryClient({
 const NotFoundPage = () => {
   const navigate = useNavigate()
 
+  // Set custom breadcrumb instead of auto-generating from invalid URL path
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'Page Not Found' },
+  ])
+
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
       <Typography variant="h4" gutterBottom>
-        404 - Not Found
+        Page Not Found
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
         The page you're looking for doesn't exist.
