@@ -16,7 +16,7 @@ public interface IExerciseClockService
     /// Start the exercise clock.
     /// Exercise must be in Active status and clock must be Stopped or Paused.
     /// </summary>
-    Task<ClockStateDto> StartClockAsync(Guid exerciseId, Guid startedBy);
+    Task<ClockStateDto> StartClockAsync(Guid exerciseId, string startedBy);
 
     /// <summary>
     /// Pause the exercise clock.

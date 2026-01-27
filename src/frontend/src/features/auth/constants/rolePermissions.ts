@@ -14,6 +14,7 @@
 export type Permission =
   | 'view_exercise'
   | 'add_observation'
+  | 'delete_observation'
   | 'fire_inject'
   | 'edit_inject'
   | 'manage_participants'
@@ -51,6 +52,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
   ExerciseDirector: [
     'view_exercise',
     'add_observation',
+    'delete_observation',
     'fire_inject',
     'edit_inject',
     'manage_participants',
@@ -62,6 +64,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
   Administrator: [
     'view_exercise',
     'add_observation',
+    'delete_observation',
     'fire_inject',
     'edit_inject',
     'manage_participants',

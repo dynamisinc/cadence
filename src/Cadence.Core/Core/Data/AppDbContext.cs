@@ -277,31 +277,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(e => e.ActiveMselId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // Clock started by user reference (optional)
-            entity.HasOne(e => e.ClockStartedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.ClockStartedBy)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            // Status transition audit user references (optional)
-            entity.HasOne(e => e.ActivatedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.ActivatedBy)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            entity.HasOne(e => e.CompletedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.CompletedBy)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
-
-            entity.HasOne(e => e.ArchivedByUser)
-                .WithMany()
-                .HasForeignKey(e => e.ArchivedBy)
-                .IsRequired(false)
-                .OnDelete(DeleteBehavior.NoAction);
+            // Note: ClockStartedBy, ActivatedBy, CompletedBy, ArchivedBy store ApplicationUser IDs
+            // as strings, but without FK constraints (for migration simplicity with existing data).
+            // Navigation properties are ignored - user lookup should be done manually if needed.
+            entity.Ignore(e => e.ClockStartedByUser);
+            entity.Ignore(e => e.ActivatedByUser);
+            entity.Ignore(e => e.CompletedByUser);
+            entity.Ignore(e => e.ArchivedByUser);
 
             // Archive/delete tracking fields
             entity.Property(e => e.PreviousStatus).HasConversion<string>().HasMaxLength(20);

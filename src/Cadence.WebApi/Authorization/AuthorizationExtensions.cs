@@ -26,7 +26,7 @@ public static class AuthorizationExtensions
 
         // Configure authorization policies
         services.AddAuthorizationBuilder()
-            .AddPolicy("RequireAdmin", policy =>
+            .AddPolicy(PolicyNames.RequireAdmin, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireAssertion(context =>
@@ -35,7 +35,7 @@ public static class AuthorizationExtensions
                     return systemRoleClaim?.Value == SystemRole.Admin.ToString();
                 });
             })
-            .AddPolicy("RequireManager", policy =>
+            .AddPolicy(PolicyNames.RequireManager, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.RequireAssertion(context =>
@@ -45,22 +45,22 @@ public static class AuthorizationExtensions
                            systemRoleClaim?.Value == SystemRole.Manager.ToString();
                 });
             })
-            .AddPolicy("ExerciseAccess", policy =>
+            .AddPolicy(PolicyNames.ExerciseAccess, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new ExerciseAccessRequirement());
             })
-            .AddPolicy("ExerciseController", policy =>
+            .AddPolicy(PolicyNames.ExerciseController, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new ExerciseRoleRequirement(ExerciseRole.Controller));
             })
-            .AddPolicy("ExerciseDirector", policy =>
+            .AddPolicy(PolicyNames.ExerciseDirector, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new ExerciseRoleRequirement(ExerciseRole.ExerciseDirector));
             })
-            .AddPolicy("ExerciseEvaluator", policy =>
+            .AddPolicy(PolicyNames.ExerciseEvaluator, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new ExerciseRoleRequirement(ExerciseRole.Evaluator));

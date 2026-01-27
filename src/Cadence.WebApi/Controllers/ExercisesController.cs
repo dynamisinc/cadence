@@ -8,6 +8,7 @@ using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Msel.Models.DTOs;
 using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Models.Entities;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -331,7 +332,7 @@ public class ExercisesController : ControllerBase
     /// Get the current clock state for an exercise.
     /// </summary>
     [HttpGet("{id:guid}/clock")]
-    [Authorize(Policy = "ExerciseAccess")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<ClockStateDto>> GetClockState(Guid id)
     {
         var clockState = await _clockService.GetClockStateAsync(id);
@@ -349,12 +350,12 @@ public class ExercisesController : ControllerBase
     /// This also transitions the exercise from Draft to Active status.
     /// </summary>
     [HttpPost("{id:guid}/clock/start")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<ClockStateDto>> StartClock(Guid id)
     {
         try
         {
-            var startedBy = GetCurrentUserId();
+            var startedBy = GetCurrentUserIdString();
 
             var clockState = await _clockService.StartClockAsync(id, startedBy);
 
@@ -373,7 +374,7 @@ public class ExercisesController : ControllerBase
     /// Preserves elapsed time for later resumption.
     /// </summary>
     [HttpPost("{id:guid}/clock/pause")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<ClockStateDto>> PauseClock(Guid id)
     {
         try
@@ -397,7 +398,7 @@ public class ExercisesController : ControllerBase
     /// This transitions the exercise to Completed status.
     /// </summary>
     [HttpPost("{id:guid}/clock/stop")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<ClockStateDto>> StopClock(Guid id)
     {
         try
@@ -421,7 +422,7 @@ public class ExercisesController : ControllerBase
     /// Only allowed for Draft exercises or when clock is Stopped.
     /// </summary>
     [HttpPost("{id:guid}/clock/reset")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<ClockStateDto>> ResetClock(Guid id)
     {
         try
@@ -1128,5 +1129,19 @@ public class ExercisesController : ControllerBase
             throw new UnauthorizedAccessException("User not authenticated");
         }
         return Guid.Parse(userIdClaim);
+    }
+
+    /// <summary>
+    /// Get current authenticated user's ID as string from JWT claims.
+    /// Used for ApplicationUser FK references.
+    /// </summary>
+    private string GetCurrentUserIdString()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+        return userIdClaim;
     }
 }

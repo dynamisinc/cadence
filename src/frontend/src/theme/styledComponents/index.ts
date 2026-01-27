@@ -19,6 +19,7 @@ export { CobraPrimaryButton } from './CobraPrimaryButton'
 export { CobraSecondaryButton } from './CobraSecondaryButton'
 export { CobraDeleteButton } from './CobraDeleteButton'
 export { CobraLinkButton } from './CobraLinkButton'
+export { CobraIconButton } from './CobraIconButton'
 
 // Form Controls
 export { CobraTextField } from './CobraTextField'

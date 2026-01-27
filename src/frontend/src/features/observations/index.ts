@@ -13,3 +13,6 @@ export { useObservations, observationsQueryKey, observationsByInjectQueryKey } f
 
 // Components
 export { ObservationForm, ObservationList, RatingBadge } from './components'
+
+// Pages
+export { ObservationsPage } from './pages'

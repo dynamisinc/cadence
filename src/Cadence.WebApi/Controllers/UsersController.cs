@@ -4,6 +4,7 @@ using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Models.Entities;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -15,7 +16,7 @@ namespace Cadence.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/users")]
-[Authorize(Policy = "RequireAdmin")]
+[AuthorizeAdmin]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -76,7 +77,7 @@ public class UsersController : ControllerBase
     /// </summary>
     /// <param name="request">User creation request.</param>
     [HttpPost]
-    [Authorize(Policy = "RequireManager")] // Override class-level RequireAdmin
+    [AuthorizeManager] // Override class-level AuthorizeAdmin
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]

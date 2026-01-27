@@ -25,10 +25,10 @@ import {
   ExerciseConductPage,
   ExerciseParticipantsPage,
   ReportsPage,
-  ObservationsPlaceholderPage,
   MetricsPlaceholderPage,
   SettingsPlaceholderPage,
 } from './features/exercises'
+import { ObservationsPage } from './features/observations'
 import {
   InjectListPage,
   InjectDetailPage,
@@ -225,7 +225,7 @@ const router = createBrowserRouter([
           { path: 'injects/new', element: <CreateInjectPage /> },
           { path: 'injects/:injectId', element: <InjectDetailPage /> },
           { path: 'injects/:injectId/edit', element: <EditInjectPage /> },
-          { path: 'observations', element: <ObservationsPlaceholderPage /> },
+          { path: 'observations', element: <ObservationsPage /> },
           { path: 'participants', element: <ExerciseParticipantsPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'metrics', element: <MetricsPlaceholderPage /> },

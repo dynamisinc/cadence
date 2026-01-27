@@ -1,3 +1,4 @@
+using Cadence.Core.Data;
 using Cadence.Core.Models.Entities;
 
 namespace Cadence.Core.Features.ExerciseClock.Models.DTOs;
@@ -29,9 +30,9 @@ public record ClockStateDto(
     TimeSpan ElapsedTime,
 
     /// <summary>
-    /// User who last started the clock.
+    /// ApplicationUser ID who last started the clock.
     /// </summary>
-    Guid? StartedBy,
+    string? StartedBy,
 
     /// <summary>
     /// Display name of the user who started the clock.
@@ -58,8 +59,33 @@ public static class ClockMapper
 {
     /// <summary>
     /// Calculate the current clock state DTO from an exercise entity.
+    /// Does not include StartedByName (returns null).
     /// </summary>
     public static ClockStateDto ToClockStateDto(this Exercise exercise)
+    {
+        return exercise.ToClockStateDto(startedByName: null);
+    }
+
+    /// <summary>
+    /// Calculate the current clock state DTO from an exercise entity.
+    /// Looks up the ApplicationUser to get the display name.
+    /// </summary>
+    public static ClockStateDto ToClockStateDto(this Exercise exercise, AppDbContext context)
+    {
+        string? startedByName = null;
+        if (!string.IsNullOrEmpty(exercise.ClockStartedBy))
+        {
+            var user = context.ApplicationUsers.Find(exercise.ClockStartedBy);
+            startedByName = user?.DisplayName;
+        }
+
+        return exercise.ToClockStateDto(startedByName);
+    }
+
+    /// <summary>
+    /// Calculate the current clock state DTO from an exercise entity with explicit display name.
+    /// </summary>
+    private static ClockStateDto ToClockStateDto(this Exercise exercise, string? startedByName)
     {
         var elapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
 
@@ -75,7 +101,7 @@ public static class ClockMapper
             exercise.ClockStartedAt,
             elapsed,
             exercise.ClockStartedBy,
-            exercise.ClockStartedByUser?.DisplayName,
+            startedByName,
             DateTime.UtcNow,
             exercise.StartTime
         );

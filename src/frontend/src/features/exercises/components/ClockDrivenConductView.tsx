@@ -36,12 +36,16 @@ interface ClockDrivenConductViewProps {
   onSkip: (injectId: string, request: SkipInjectRequest) => Promise<void> | void
   /** Whether the current user can control injects */
   canControl?: boolean
+  /** Whether the current user can add observations (Evaluators) */
+  canAddObservation?: boolean
   /** Whether actions are currently being submitted */
   isSubmitting?: boolean
   /** ID of inject to show in drawer (controlled externally) */
   openInjectId?: string | null
   /** Called when drawer is closed */
   onDrawerClose?: () => void
+  /** Called when user wants to add observation for an inject */
+  onAddObservation?: (injectId: string) => void
 }
 
 export const ClockDrivenConductView = ({
@@ -51,9 +55,11 @@ export const ClockDrivenConductView = ({
   onFire,
   onSkip,
   canControl = true,
+  canAddObservation = false,
   isSubmitting = false,
   openInjectId,
   onDrawerClose,
+  onAddObservation,
 }: ClockDrivenConductViewProps) => {
   // Group injects by section
   const grouped = useMemo(
@@ -156,9 +162,11 @@ export const ClockDrivenConductView = ({
         open={drawerOpen}
         onClose={handleDrawerClose}
         canControl={canControl}
+        canAddObservation={canAddObservation}
         isSubmitting={isSubmitting}
         onFire={handleDrawerFire}
         onSkip={handleDrawerSkip}
+        onAddObservation={onAddObservation}
       />
     </>
   )

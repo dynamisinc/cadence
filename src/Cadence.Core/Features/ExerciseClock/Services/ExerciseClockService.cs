@@ -34,18 +34,16 @@ public class ExerciseClockService : IExerciseClockService
     public async Task<ClockStateDto?> GetClockStateAsync(Guid exerciseId)
     {
         var exercise = await _context.Exercises
-            .Include(e => e.ClockStartedByUser)
-            .FirstOrDefaultAsync(e => e.Id == exerciseId);
+                        .FirstOrDefaultAsync(e => e.Id == exerciseId);
 
         return exercise?.ToClockStateDto();
     }
 
     /// <inheritdoc />
-    public async Task<ClockStateDto> StartClockAsync(Guid exerciseId, Guid startedBy)
+    public async Task<ClockStateDto> StartClockAsync(Guid exerciseId, string startedBy)
     {
         var exercise = await _context.Exercises
-            .Include(e => e.ClockStartedByUser)
-            .FirstOrDefaultAsync(e => e.Id == exerciseId);
+                        .FirstOrDefaultAsync(e => e.Id == exerciseId);
 
         if (exercise == null)
         {
@@ -83,10 +81,7 @@ public class ExerciseClockService : IExerciseClockService
             "Started clock for exercise {ExerciseId} at {StartedAt}",
             exerciseId, exercise.ClockStartedAt);
 
-        // Reload user navigation
-        await _context.Entry(exercise).Reference(e => e.ClockStartedByUser).LoadAsync();
-
-        var clockState = exercise.ToClockStateDto();
+        var clockState = exercise.ToClockStateDto(_context);
 
         // Broadcast clock started event to all connected clients
         await _hubContext.NotifyClockStarted(exerciseId, clockState);
@@ -101,8 +96,7 @@ public class ExerciseClockService : IExerciseClockService
     public async Task<ClockStateDto> PauseClockAsync(Guid exerciseId, Guid pausedBy)
     {
         var exercise = await _context.Exercises
-            .Include(e => e.ClockStartedByUser)
-            .FirstOrDefaultAsync(e => e.Id == exerciseId);
+                        .FirstOrDefaultAsync(e => e.Id == exerciseId);
 
         if (exercise == null)
         {
@@ -143,8 +137,7 @@ public class ExerciseClockService : IExerciseClockService
     public async Task<ClockStateDto> StopClockAsync(Guid exerciseId, Guid stoppedBy)
     {
         var exercise = await _context.Exercises
-            .Include(e => e.ClockStartedByUser)
-            .FirstOrDefaultAsync(e => e.Id == exerciseId);
+                        .FirstOrDefaultAsync(e => e.Id == exerciseId);
 
         if (exercise == null)
         {
@@ -187,8 +180,7 @@ public class ExerciseClockService : IExerciseClockService
     public async Task<ClockStateDto> ResetClockAsync(Guid exerciseId, Guid resetBy)
     {
         var exercise = await _context.Exercises
-            .Include(e => e.ClockStartedByUser)
-            .FirstOrDefaultAsync(e => e.Id == exerciseId);
+                        .FirstOrDefaultAsync(e => e.Id == exerciseId);
 
         if (exercise == null)
         {

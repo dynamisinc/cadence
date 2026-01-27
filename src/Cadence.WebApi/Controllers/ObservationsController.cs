@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,7 +30,7 @@ public class ObservationsController : ControllerBase
     /// Get all observations for an exercise.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/observations")]
-    [Authorize(Policy = "ExerciseAccess")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<ObservationDto>>> GetObservationsByExercise(Guid exerciseId)
     {
         var observations = await _observationService.GetObservationsByExerciseAsync(exerciseId);
@@ -67,7 +68,7 @@ public class ObservationsController : ControllerBase
     /// Requires Evaluator or higher role in the exercise.
     /// </summary>
     [HttpPost("exercises/{exerciseId:guid}/observations")]
-    [Authorize(Policy = "ExerciseEvaluator")]
+    [AuthorizeExerciseEvaluator]
     public async Task<ActionResult<ObservationDto>> CreateObservation(Guid exerciseId, CreateObservationRequest request)
     {
         // Validation
@@ -110,8 +111,10 @@ public class ObservationsController : ControllerBase
 
     /// <summary>
     /// Update an existing observation.
+    /// Requires Evaluator or higher role. Evaluators can only edit their own observations.
     /// </summary>
     [HttpPut("observations/{id:guid}")]
+    [AuthorizeExerciseEvaluator]
     public async Task<ActionResult<ObservationDto>> UpdateObservation(Guid id, UpdateObservationRequest request)
     {
         // Validation
@@ -155,8 +158,10 @@ public class ObservationsController : ControllerBase
 
     /// <summary>
     /// Delete an observation (soft delete).
+    /// Requires Exercise Director or Administrator role.
     /// </summary>
     [HttpDelete("observations/{id:guid}")]
+    [AuthorizeExerciseDirector]
     public async Task<IActionResult> DeleteObservation(Guid id)
     {
         var deletedBy = GetCurrentUserId();

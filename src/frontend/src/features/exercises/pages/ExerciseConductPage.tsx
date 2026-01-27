@@ -402,6 +402,9 @@ export const ExerciseConductPage = () => {
     }).length
   }, [injects, exerciseStartTime, elapsedTimeMs])
 
+  // Handle adding observation from inject drawer - pre-select the inject
+  const [preSelectedInjectId, setPreSelectedInjectId] = useState<string | null>(null)
+
   // Handlers
   const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0]) => {
     setIsSubmittingObservation(true)
@@ -413,6 +416,7 @@ export const ExerciseConductPage = () => {
         await createObservation(data)
       }
       setShowObservationForm(false)
+      setPreSelectedInjectId(null) // Clear pre-selected inject after submission
     } finally {
       setIsSubmittingObservation(false)
     }
@@ -421,11 +425,6 @@ export const ExerciseConductPage = () => {
   const handleEditObservation = (observation: ObservationDto) => {
     setEditingObservation(observation)
     setShowObservationForm(true)
-  }
-
-  const handleCancelObservationForm = () => {
-    setShowObservationForm(false)
-    setEditingObservation(null)
   }
 
   const handleDeleteObservation = async (observationId: string) => {
@@ -440,6 +439,20 @@ export const ExerciseConductPage = () => {
   // Handle clicking inject link in observation
   const handleInjectClick = (injectId: string) => {
     setOpenInjectId(injectId)
+  }
+
+  // Handle adding observation from inject drawer
+  const handleAddObservationForInject = (injectId: string) => {
+    setPreSelectedInjectId(injectId)
+    setShowObservationForm(true)
+    setOpenInjectId(null) // Close the drawer
+  }
+
+  // Clear pre-selected inject when form is closed
+  const handleCancelObservationFormWithReset = () => {
+    setShowObservationForm(false)
+    setEditingObservation(null)
+    setPreSelectedInjectId(null)
   }
 
   // Stop clock with confirmation
@@ -766,11 +779,13 @@ export const ExerciseConductPage = () => {
                       injects={injects}
                       elapsedTimeMs={elapsedTimeMs}
                       canControl={canControl}
+                      canAddObservation={canAddObservations}
                       isSubmitting={false}
                       onFire={async id => { await fireInject(id) }}
                       onSkip={async (id, req) => { await skipInject(id, req) }}
                       openInjectId={openInjectId}
                       onDrawerClose={() => setOpenInjectId(null)}
+                      onAddObservation={handleAddObservationForInject}
                     />
                   ) : (
                     /* Facilitator-Paced View - Current Inject focused, no clock */
@@ -839,6 +854,7 @@ export const ExerciseConductPage = () => {
                 {observationsExpanded && showObservationForm && (
                   <Box sx={{ mb: 2, flexShrink: 0 }}>
                     <ObservationForm
+                      inject={preSelectedInjectId ? injects.find(i => i.id === preSelectedInjectId) : undefined}
                       injects={injects}
                       initialValues={
                         editingObservation
@@ -848,10 +864,12 @@ export const ExerciseConductPage = () => {
                             recommendation: editingObservation.recommendation ?? undefined,
                             injectId: editingObservation.injectId ?? undefined,
                           }
-                          : undefined
+                          : preSelectedInjectId
+                            ? { rating: undefined as never, content: '', injectId: preSelectedInjectId }
+                            : undefined
                       }
                       onSubmit={handleSubmitObservation}
-                      onCancel={handleCancelObservationForm}
+                      onCancel={handleCancelObservationFormWithReset}
                       isSubmitting={isSubmittingObservation}
                     />
                     <Divider sx={{ my: 2 }} />

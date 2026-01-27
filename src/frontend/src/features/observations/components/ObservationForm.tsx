@@ -5,11 +5,10 @@
  * Evaluators use this to record their observations with HSEEP P/S/M/U ratings.
  */
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef, useEffect } from 'react'
 import {
   Box,
   Stack,
-  Typography,
   FormControl,
   InputLabel,
   Select,
@@ -38,6 +37,7 @@ interface ObservationFormProps {
     rating: ObservationRating
     content: string
     recommendation?: string
+    location?: string
     injectId?: string
   }
   /** Called on submit */
@@ -56,14 +56,28 @@ export const ObservationForm = ({
   onCancel,
   isSubmitting = false,
 }: ObservationFormProps) => {
-  const [rating, setRating] = useState<ObservationRating>(
-    initialValues?.rating ?? ObservationRating.Satisfactory,
+  // Rating starts as null for new observations (requires active selection)
+  const [rating, setRating] = useState<ObservationRating | null>(
+    initialValues?.rating ?? null,
   )
   const [content, setContent] = useState(initialValues?.content ?? '')
   const [recommendation, setRecommendation] = useState(initialValues?.recommendation ?? '')
+  const [location, setLocation] = useState(initialValues?.location ?? '')
   const [selectedInjectId, setSelectedInjectId] = useState<string>(
     inject?.id ?? initialValues?.injectId ?? '',
   )
+
+  // Ref for auto-focusing the content input
+  const contentInputRef = useRef<HTMLTextAreaElement>(null)
+
+  // Auto-focus content input when form opens
+  useEffect(() => {
+    // Small delay to ensure the dialog animation completes
+    const timer = setTimeout(() => {
+      contentInputRef.current?.focus()
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   // Sort injects: recently fired first, then by sequence
   const sortedInjects = useMemo(() => {
@@ -99,8 +113,9 @@ export const ObservationForm = ({
     return ''
   }
 
-  const handleRatingChange = (event: SelectChangeEvent<ObservationRating>) => {
-    setRating(event.target.value as ObservationRating)
+  const handleRatingChange = (event: SelectChangeEvent<ObservationRating | ''>) => {
+    const value = event.target.value
+    setRating(value === '' ? null : (value as ObservationRating))
   }
 
   const handleInjectChange = (event: SelectChangeEvent<string>) => {
@@ -108,34 +123,39 @@ export const ObservationForm = ({
   }
 
   const handleSubmit = async () => {
+    if (!rating) return // Guard against submitting without rating
+
     const data: CreateObservationRequest = {
       rating,
       content: content.trim(),
       recommendation: recommendation.trim() || undefined,
+      location: location.trim() || undefined,
       injectId: selectedInjectId || undefined,
     }
 
     await onSubmit(data)
   }
 
-  const isValid = content.trim().length > 0
+  // Require both content and rating selection
+  const isValid = content.trim().length > 0 && rating !== null
 
   return (
     <Box>
-      <Typography variant="h6" gutterBottom>
-        {initialValues ? 'Edit Observation' : 'Add Observation'}
-      </Typography>
-
       <Stack spacing={2}>
         {/* Rating Selection */}
-        <FormControl fullWidth size="small">
-          <InputLabel id="rating-label">Rating</InputLabel>
+        <FormControl fullWidth size="small" required>
+          <InputLabel id="rating-label" shrink>Rating *</InputLabel>
           <Select
             labelId="rating-label"
-            value={rating}
-            label="Rating"
+            value={rating ?? ''}
+            label="Rating *"
             onChange={handleRatingChange}
+            displayEmpty
+            notched
           >
+            <MenuItem value="" disabled>
+              <em>Select a rating...</em>
+            </MenuItem>
             <MenuItem value={ObservationRating.Performed}>
               {getObservationRatingLabel(ObservationRating.Performed)}
             </MenuItem>
@@ -185,6 +205,7 @@ export const ObservationForm = ({
           onChange={e => setContent(e.target.value)}
           required
           fullWidth
+          inputRef={contentInputRef}
         />
 
         {/* Recommendation (Optional) */}
@@ -196,6 +217,19 @@ export const ObservationForm = ({
           value={recommendation}
           onChange={e => setRecommendation(e.target.value)}
           fullWidth
+        />
+
+        {/* Location (Optional) */}
+        <CobraTextField
+          label="Location (Optional)"
+          placeholder="Where did this occur? (e.g., EOC, Field Site A)"
+          value={location}
+          onChange={e => setLocation(e.target.value)}
+          fullWidth
+          slotProps={{
+            htmlInput: { maxLength: 200 },
+          }}
+          helperText={location.length > 0 ? `${location.length}/200` : undefined}
         />
 
         {/* Actions */}

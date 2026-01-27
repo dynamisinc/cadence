@@ -7,6 +7,7 @@ import { cobraTheme } from '../theme/cobraTheme'
 import { FeatureFlagsProvider } from '../admin'
 import { ConnectivityProvider, OfflineSyncProvider } from '../core/contexts'
 import { AuthProvider } from '../contexts/AuthContext'
+import { ExerciseNavigationProvider } from '../shared/contexts'
 
 /**
  * Custom render function that wraps components with necessary providers
@@ -34,7 +35,11 @@ const AllProviders = ({ children }: WrapperProps) => {
           <OfflineSyncProvider>
             <FeatureFlagsProvider>
               <AuthProvider>
-                <BrowserRouter>{children}</BrowserRouter>
+                <BrowserRouter>
+                  <ExerciseNavigationProvider>
+                    {children}
+                  </ExerciseNavigationProvider>
+                </BrowserRouter>
               </AuthProvider>
             </FeatureFlagsProvider>
           </OfflineSyncProvider>
