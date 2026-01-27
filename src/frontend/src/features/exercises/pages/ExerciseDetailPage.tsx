@@ -122,16 +122,12 @@ export const ExerciseDetailPage = () => {
     [participants],
   )
 
-  // Set custom breadcrumbs with exercise name
-  useBreadcrumbs(
-    exercise
-      ? [
-        { label: 'Home', path: '/', icon: faHome },
-        { label: 'Exercises', path: '/exercises' },
-        { label: exercise.name },
-      ]
-      : undefined,
-  )
+  // Set custom breadcrumbs with exercise name (show loading placeholder while fetching)
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'Exercises', path: '/exercises' },
+    { label: exercise?.name ?? 'Loading...' },
+  ])
 
   // Warn user before navigating away with unsaved changes (only when editing)
   const { UnsavedChangesDialog } = useUnsavedChangesWarning(isEditing && isDirty && !isSubmitting)

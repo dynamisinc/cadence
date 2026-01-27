@@ -5,6 +5,7 @@ namespace Cadence.WebApi.Hubs;
 /// <summary>
 /// SignalR hub for exercise-related real-time communications.
 /// Clients join exercise-specific groups to receive updates.
+/// Also supports user-specific groups for notifications.
 /// </summary>
 public class ExerciseHub : Hub
 {
@@ -35,6 +36,29 @@ public class ExerciseHub : Hub
         _logger.LogInformation(
             "Client {ConnectionId} left exercise group {ExerciseId}",
             Context.ConnectionId, exerciseId);
+    }
+
+    /// <summary>
+    /// Join a user-specific group for notifications.
+    /// Called automatically when user authenticates.
+    /// </summary>
+    public async Task JoinUserGroup(string userId)
+    {
+        await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
+        _logger.LogInformation(
+            "Client {ConnectionId} joined user group {UserId}",
+            Context.ConnectionId, userId);
+    }
+
+    /// <summary>
+    /// Leave a user-specific group.
+    /// </summary>
+    public async Task LeaveUserGroup(string userId)
+    {
+        await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user-{userId}");
+        _logger.LogInformation(
+            "Client {ConnectionId} left user group {UserId}",
+            Context.ConnectionId, userId);
     }
 
     public override async Task OnConnectedAsync()

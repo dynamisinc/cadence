@@ -26,6 +26,22 @@ vi.mock('../../../contexts/AuthContext', () => ({
     isLoading: false,
   })),
 }))
+vi.mock('@/core/contexts', () => ({
+  useBreadcrumbs: vi.fn(),
+}))
+vi.mock('../hooks', () => ({
+  useExercise: vi.fn(() => ({
+    exercise: {
+      id: 'ex-123',
+      name: 'Test Exercise',
+      description: 'Test description',
+      status: 'Draft',
+    },
+    loading: false,
+    error: null,
+    updateExercise: vi.fn(),
+  })),
+}))
 
 const createWrapper = (exerciseId = 'ex-123') => {
   const queryClient = new QueryClient({

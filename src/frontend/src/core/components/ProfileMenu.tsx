@@ -187,7 +187,7 @@ export const ProfileMenu: React.FC = () => {
                 {accountEmail}
               </Typography>
               <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                <strong>Role:</strong> {accountRole}
+                <strong>System Role:</strong> {accountRole}
               </Typography>
             </Box>
           </Box>

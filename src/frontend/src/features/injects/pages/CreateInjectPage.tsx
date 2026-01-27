@@ -34,7 +34,7 @@ import type { CreateInjectRequest } from '../types'
  */
 export const CreateInjectPage = () => {
   const navigate = useNavigate()
-  const { exerciseId } = useParams<{ exerciseId: string }>()
+  const { id: exerciseId } = useParams<{ id: string }>()
   const { exercise, loading: exerciseLoading } = useExercise(exerciseId || '')
   const { createInject, isCreating } = useInjects(exerciseId || '')
   const { phases } = usePhases(exerciseId || '')

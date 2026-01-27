@@ -35,8 +35,8 @@ import type { UpdateInjectRequest } from '../types'
  */
 export const EditInjectPage = () => {
   const navigate = useNavigate()
-  const { exerciseId, injectId } = useParams<{
-    exerciseId: string
+  const { id: exerciseId, injectId } = useParams<{
+    id: string
     injectId: string
   }>()
   const { exercise, loading: exerciseLoading } = useExercise(exerciseId || '')

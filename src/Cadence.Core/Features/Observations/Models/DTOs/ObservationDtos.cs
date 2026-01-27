@@ -139,6 +139,8 @@ public static class ObservationMapper
         Recommendation = request.Recommendation,
         ObservedAt = request.ObservedAt ?? DateTime.UtcNow,
         Location = request.Location,
+        // Set both the string FK for ApplicationUser and the Guid for BaseEntity audit
+        CreatedByUserId = createdBy.ToString(),
         CreatedBy = createdBy,
         ModifiedBy = createdBy
     };

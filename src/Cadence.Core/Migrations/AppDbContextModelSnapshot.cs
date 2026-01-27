@@ -941,6 +941,84 @@ namespace Cadence.Core.Migrations
                     b.ToTable("Msels");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Notification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("ActionUrl")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("CreatedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("DeletedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<Guid>("ModifiedBy")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Priority")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("RelatedEntityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("RelatedEntityType")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("Notifications");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Objective", b =>
                 {
                     b.Property<Guid>("Id")
@@ -1009,6 +1087,10 @@ namespace Cadence.Core.Migrations
                     b.Property<Guid>("CreatedBy")
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<string>("CreatedByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<DateTime?>("DeletedAt")
                         .HasColumnType("datetime2");
 
@@ -1050,7 +1132,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("CreatedBy");
+                    b.HasIndex("CreatedByUserId");
 
                     b.HasIndex("ExerciseId");
 
@@ -1666,6 +1748,16 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Exercise");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Notification", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Objective", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
@@ -1679,9 +1771,9 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Observation", b =>
                 {
-                    b.HasOne("Cadence.Core.Models.Entities.User", "CreatedByUser")
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "CreatedByUser")
                         .WithMany()
-                        .HasForeignKey("CreatedBy")
+                        .HasForeignKey("CreatedByUserId")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")

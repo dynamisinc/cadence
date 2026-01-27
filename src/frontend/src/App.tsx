@@ -1,4 +1,5 @@
-import { createBrowserRouter, RouterProvider, useNavigate, Outlet } from 'react-router-dom'
+import { useEffect } from 'react'
+import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner } from './core/components'
 import { ThemeProvider } from '@mui/material/styles'
@@ -7,10 +8,13 @@ import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from './theme/cobraTheme'
 import { AppLayout } from './core/components/navigation'
-import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider } from './core/contexts'
+import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
+import { ExerciseNavigationProvider } from './shared/contexts'
+import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
@@ -19,6 +23,11 @@ import {
   CreateExercisePage,
   ExerciseDetailPage,
   ExerciseConductPage,
+  ExerciseParticipantsPage,
+  ReportsPage,
+  ObservationsPlaceholderPage,
+  MetricsPlaceholderPage,
+  SettingsPlaceholderPage,
 } from './features/exercises'
 import {
   InjectListPage,
@@ -33,6 +42,8 @@ import {
   ResetPasswordPage,
 } from './features/auth'
 import { UserListPage } from './features/users'
+import { MyAssignmentsPage } from './features/assignments'
+import { NotificationToastProvider } from './features/notifications'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
 
@@ -49,20 +60,51 @@ const queryClient = new QueryClient({
 })
 
 /**
+ * Redirect component for invalid routes
+ *
+ * Captures the attempted path and redirects to /not-found with state
+ */
+const NotFoundRedirect = () => {
+  const location = useLocation()
+  const navigate = useNavigate()
+
+  useEffect(() => {
+    // Redirect to /not-found, replacing the invalid URL in history
+    // Pass the attempted path so we can show it to the user
+    navigate('/not-found', {
+      replace: true,
+      state: { attemptedPath: location.pathname },
+    })
+  }, [location.pathname, navigate])
+
+  return null
+}
+
+/**
  * 404 Not Found Page Component
  *
  * Displayed when user navigates to a non-existent route
  */
 const NotFoundPage = () => {
   const navigate = useNavigate()
+  const location = useLocation()
+  const attemptedPath = (location.state as { attemptedPath?: string })?.attemptedPath
+
+  // Set custom breadcrumb instead of auto-generating from invalid URL path
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'Page Not Found' },
+  ])
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
       <Typography variant="h4" gutterBottom>
-        404 - Not Found
+        Page Not Found
       </Typography>
       <Typography variant="body1" color="text.secondary" sx={{ mb: 3 }}>
-        The page you're looking for doesn't exist.
+        {attemptedPath
+          ? `The page "${attemptedPath}" doesn't exist.`
+          : "The page you're looking for doesn't exist."}
       </Typography>
       <CobraPrimaryButton onClick={() => navigate('/')}>
         Go to Home
@@ -131,18 +173,65 @@ const router = createBrowserRouter([
       // Home page
       { index: true, element: <HomePage /> },
 
-      // Exercise routes
+      // Assignments page
+      { path: 'assignments', element: <MyAssignmentsPage /> },
+
+      // Reports page (top-level, not exercise-scoped)
+      {
+        path: 'reports',
+        element: (
+          <GlobalPlaceholderPage
+            featureName="Reports"
+            description="Generate and view exercise reports and after-action documentation."
+          />
+        ),
+      },
+
+      // Templates page (top-level, not exercise-scoped)
+      {
+        path: 'templates',
+        element: (
+          <GlobalPlaceholderPage
+            featureName="Templates"
+            description="Manage inject templates and exercise blueprints."
+          />
+        ),
+      },
+
+      // Settings page (top-level, not exercise-scoped)
+      {
+        path: 'settings',
+        element: (
+          <GlobalPlaceholderPage
+            featureName="Settings"
+            description="Configure application preferences and account settings."
+          />
+        ),
+      },
+
+      // Exercise list and create (no context needed)
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
-      { path: 'exercises/:id', element: <ExerciseDetailPage /> },
-      { path: 'exercises/:id/edit', element: <ExerciseDetailPage /> },
-      { path: 'exercises/:id/conduct', element: <ExerciseConductPage /> },
 
-      // Inject (MSEL) routes
-      { path: 'exercises/:exerciseId/msel', element: <InjectListPage /> },
-      { path: 'exercises/:exerciseId/injects/new', element: <CreateInjectPage /> },
-      { path: 'exercises/:exerciseId/injects/:injectId', element: <InjectDetailPage /> },
-      { path: 'exercises/:exerciseId/injects/:injectId/edit', element: <EditInjectPage /> },
+      // Exercise-scoped routes (wrapped with ExerciseContextWrapper)
+      {
+        path: 'exercises/:id',
+        element: <ExerciseContextWrapper />,
+        children: [
+          { index: true, element: <ExerciseDetailPage /> },
+          { path: 'edit', element: <ExerciseDetailPage /> },
+          { path: 'conduct', element: <ExerciseConductPage /> },
+          { path: 'msel', element: <InjectListPage /> },
+          { path: 'injects/new', element: <CreateInjectPage /> },
+          { path: 'injects/:injectId', element: <InjectDetailPage /> },
+          { path: 'injects/:injectId/edit', element: <EditInjectPage /> },
+          { path: 'observations', element: <ObservationsPlaceholderPage /> },
+          { path: 'participants', element: <ExerciseParticipantsPage /> },
+          { path: 'reports', element: <ReportsPage /> },
+          { path: 'metrics', element: <MetricsPlaceholderPage /> },
+          { path: 'settings', element: <SettingsPlaceholderPage /> },
+        ],
+      },
 
       // Admin pages - Admin system role required
       {
@@ -170,8 +259,11 @@ const router = createBrowserRouter([
         ),
       },
 
-      // 404 fallback
-      { path: '*', element: <NotFoundPage /> },
+      // 404 page - explicit route
+      { path: 'not-found', element: <NotFoundPage /> },
+
+      // 404 fallback - redirects invalid URLs to /not-found
+      { path: '*', element: <NotFoundRedirect /> },
     ],
   },
 ])
@@ -191,18 +283,22 @@ function App() {
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
         <AuthProvider>
-          <ConnectivityProvider>
-            <OfflineSyncProvider>
-              <MobileBlocker>
-                <FeatureFlagsProvider>
-                  <RouterProvider router={router} />
-                  <GlobalSyncStatus />
-                  <UpdatePrompt />
-                  <InstallBanner />
-                </FeatureFlagsProvider>
-              </MobileBlocker>
-            </OfflineSyncProvider>
-          </ConnectivityProvider>
+          <ExerciseNavigationProvider>
+            <ConnectivityProvider>
+              <OfflineSyncProvider>
+                <MobileBlocker>
+                  <FeatureFlagsProvider>
+                    <NotificationToastProvider>
+                      <RouterProvider router={router} />
+                    </NotificationToastProvider>
+                    <GlobalSyncStatus />
+                    <UpdatePrompt />
+                    <InstallBanner />
+                  </FeatureFlagsProvider>
+                </MobileBlocker>
+              </OfflineSyncProvider>
+            </ConnectivityProvider>
+          </ExerciseNavigationProvider>
         </AuthProvider>
 
         <ToastContainer

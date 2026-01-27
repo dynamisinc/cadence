@@ -35,6 +35,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InjectObjective> InjectObjectives => Set<InjectObjective>();
     public DbSet<DeliveryMethodLookup> DeliveryMethods => Set<DeliveryMethodLookup>();
     public DbSet<ExpectedOutcome> ExpectedOutcomes => Set<ExpectedOutcome>();
+    public DbSet<Notification> Notifications => Set<Notification>();
 
     // =========================================================================
     // Model Configuration
@@ -89,6 +90,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureInjectObjective(modelBuilder);
         ConfigureDeliveryMethodLookup(modelBuilder);
         ConfigureExpectedOutcome(modelBuilder);
+        ConfigureNotification(modelBuilder);
     }
 
     /// <summary>
@@ -555,11 +557,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Recommendation).HasMaxLength(2000);
             entity.Property(e => e.Location).HasMaxLength(200);
             entity.Property(e => e.Rating).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.CreatedByUserId).HasMaxLength(450); // Match AspNetUsers.Id length
 
             entity.HasIndex(e => e.ExerciseId);
             entity.HasIndex(e => e.InjectId);
             entity.HasIndex(e => e.ObjectiveId);
             entity.HasIndex(e => e.ObservedAt);
+            entity.HasIndex(e => e.CreatedByUserId);
 
             entity.HasOne(e => e.Exercise)
                 .WithMany(ex => ex.Observations)
@@ -578,10 +582,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // User who created the observation (optional to handle soft-deleted users)
+            // User who created the observation - references ApplicationUser (ASP.NET Core Identity)
+            // Uses string FK to match IdentityUser.Id type
             entity.HasOne(e => e.CreatedByUser)
                 .WithMany()
-                .HasForeignKey(e => e.CreatedBy)
+                .HasForeignKey(e => e.CreatedByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
         });
@@ -731,6 +736,31 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.Inject)
                 .WithMany(i => i.ExpectedOutcomes)
                 .HasForeignKey(e => e.InjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureNotification(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Notification>(entity =>
+        {
+            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Message).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.ActionUrl).HasMaxLength(500);
+            entity.Property(e => e.RelatedEntityType).HasMaxLength(50);
+            entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(30);
+            entity.Property(e => e.Priority).HasConversion<string>().HasMaxLength(20);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.UserId);
+            entity.HasIndex(e => new { e.UserId, e.IsRead });
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt });
+
+            // Relationship to ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

@@ -59,6 +59,11 @@ public static class AuthorizationExtensions
             {
                 policy.RequireAuthenticatedUser();
                 policy.AddRequirements(new ExerciseRoleRequirement(ExerciseRole.ExerciseDirector));
+            })
+            .AddPolicy("ExerciseEvaluator", policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.AddRequirements(new ExerciseRoleRequirement(ExerciseRole.Evaluator));
             });
 
         return services;

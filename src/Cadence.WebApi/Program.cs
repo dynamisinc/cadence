@@ -12,6 +12,7 @@ using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Hubs;
+using Cadence.Core.Features.Notifications;
 using Cadence.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -129,6 +130,7 @@ builder.Services.AddApplicationServices();
 
 // Add SignalR Hub Context
 builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();
+builder.Services.AddScoped<INotificationBroadcaster, NotificationBroadcaster>();
 
 // Add Background Services
 builder.Services.AddHostedService<InjectReadinessBackgroundService>();
