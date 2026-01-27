@@ -211,3 +211,4 @@ temp_*.json
 .claudecontext
 tmpclaude-*/
 tmpclaude-*-cwd
+.claude/settings.local.json
