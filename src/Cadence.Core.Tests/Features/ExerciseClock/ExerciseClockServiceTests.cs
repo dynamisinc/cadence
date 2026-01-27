@@ -166,7 +166,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var act = () => service.StartClockAsync(Guid.NewGuid(), userId);
+        var act = () => service.StartClockAsync(Guid.NewGuid(), userId.ToString());
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -182,7 +182,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var act = () => service.StartClockAsync(exercise.Id, userId);
+        var act = () => service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -198,7 +198,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var act = () => service.StartClockAsync(exercise.Id, userId);
+        var act = () => service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -219,7 +219,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var act = () => service.StartClockAsync(exercise.Id, userId);
+        var act = () => service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         await act.Should().ThrowAsync<InvalidOperationException>()
@@ -235,7 +235,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.StartClockAsync(exercise.Id, userId);
+        var result = await service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
@@ -252,7 +252,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.StartClockAsync(exercise.Id, userId);
+        var result = await service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
@@ -270,7 +270,7 @@ public class ExerciseClockServiceTests
         var beforeStart = DateTime.UtcNow;
 
         // Act
-        var result = await service.StartClockAsync(exercise.Id, userId);
+        var result = await service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
@@ -288,11 +288,11 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.StartClockAsync(exercise.Id, userId);
+        var result = await service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
-        updatedExercise!.ClockStartedBy.Should().Be(userId);
+        updatedExercise!.ClockStartedBy.Should().Be(userId.ToString());
     }
 
     [Fact]
@@ -304,7 +304,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        await service.StartClockAsync(exercise.Id, userId);
+        await service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         _hubContextMock.Verify(
@@ -328,7 +328,7 @@ public class ExerciseClockServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.StartClockAsync(exercise.Id, userId);
+        var result = await service.StartClockAsync(exercise.Id, userId.ToString());
 
         // Assert
         result.State.Should().Be(ExerciseClockState.Running);
@@ -742,7 +742,7 @@ public class ExerciseClockServiceTests
             status: ExerciseStatus.Completed,
             clockState: ExerciseClockState.Stopped);
         exercise.ClockElapsedBeforePause = TimeSpan.FromHours(2);
-        exercise.ClockStartedBy = Guid.NewGuid();
+        exercise.ClockStartedBy = Guid.NewGuid().ToString();
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
@@ -763,7 +763,7 @@ public class ExerciseClockServiceTests
         var (context, _, exercise) = CreateTestContext(status: ExerciseStatus.Draft);
         exercise.ClockStartedAt = DateTime.UtcNow;
         exercise.ClockElapsedBeforePause = TimeSpan.FromMinutes(30);
-        exercise.ClockStartedBy = Guid.NewGuid();
+        exercise.ClockStartedBy = Guid.NewGuid().ToString();
         await context.SaveChangesAsync();
 
         var service = CreateService(context);

@@ -313,7 +313,7 @@ public class ExerciseStatusServiceTests
         var updated = await context.Exercises.FindAsync(exercise.Id);
         updated!.ActivatedAt.Should().NotBeNull();
         updated.ActivatedAt!.Value.Should().BeOnOrAfter(beforeActivation);
-        updated.ActivatedBy.Should().Be(userId);
+        updated.ActivatedBy.Should().Be(userId.ToString());
     }
 
     #endregion
@@ -404,7 +404,7 @@ public class ExerciseStatusServiceTests
         var updated = await context.Exercises.FindAsync(exercise.Id);
         updated!.ClockState.Should().Be(ExerciseClockState.Running);
         updated.ClockStartedAt.Should().NotBeNull();
-        updated.ClockStartedBy.Should().Be(userId);
+        updated.ClockStartedBy.Should().Be(userId.ToString());
     }
 
     #endregion
@@ -466,7 +466,7 @@ public class ExerciseStatusServiceTests
         var updated = await context.Exercises.FindAsync(exercise.Id);
         updated!.CompletedAt.Should().NotBeNull();
         updated.CompletedAt!.Value.Should().BeOnOrAfter(beforeCompletion);
-        updated.CompletedBy.Should().Be(userId);
+        updated.CompletedBy.Should().Be(userId.ToString());
     }
 
     [Fact]
@@ -576,7 +576,7 @@ public class ExerciseStatusServiceTests
         var updated = await context.Exercises.FindAsync(exercise.Id);
         updated!.ArchivedAt.Should().NotBeNull();
         updated.ArchivedAt!.Value.Should().BeOnOrAfter(beforeArchive);
-        updated.ArchivedBy.Should().Be(userId);
+        updated.ArchivedBy.Should().Be(userId.ToString());
     }
 
     #endregion
@@ -638,7 +638,7 @@ public class ExerciseStatusServiceTests
         var exercise = CreateExercise(context, org, ExerciseStatus.Archived);
         exercise.PreviousStatus = ExerciseStatus.Active;
         exercise.ArchivedAt = DateTime.UtcNow.AddDays(-1);
-        exercise.ArchivedBy = Guid.NewGuid();
+        exercise.ArchivedBy = Guid.NewGuid().ToString();
         context.SaveChanges();
 
         var service = CreateService(context);
@@ -746,7 +746,7 @@ public class ExerciseStatusServiceTests
         var exercise = CreateExercise(context, org, ExerciseStatus.Paused);
         exercise.ClockState = ExerciseClockState.Paused;
         exercise.ClockElapsedBeforePause = TimeSpan.FromMinutes(45);
-        exercise.ClockStartedBy = Guid.NewGuid();
+        exercise.ClockStartedBy = Guid.NewGuid().ToString();
         context.SaveChanges();
 
         var service = CreateService(context);
@@ -766,7 +766,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Paused);
         exercise.ActivatedAt = DateTime.UtcNow.AddHours(-2);
-        exercise.ActivatedBy = Guid.NewGuid();
+        exercise.ActivatedBy = Guid.NewGuid().ToString();
         context.SaveChanges();
 
         var service = CreateService(context);

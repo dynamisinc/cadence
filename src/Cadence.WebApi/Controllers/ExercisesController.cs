@@ -355,7 +355,7 @@ public class ExercisesController : ControllerBase
     {
         try
         {
-            var startedBy = GetCurrentUserId();
+            var startedBy = GetCurrentUserIdString();
 
             var clockState = await _clockService.StartClockAsync(id, startedBy);
 
@@ -1129,5 +1129,19 @@ public class ExercisesController : ControllerBase
             throw new UnauthorizedAccessException("User not authenticated");
         }
         return Guid.Parse(userIdClaim);
+    }
+
+    /// <summary>
+    /// Get current authenticated user's ID as string from JWT claims.
+    /// Used for ApplicationUser FK references.
+    /// </summary>
+    private string GetCurrentUserIdString()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+        return userIdClaim;
     }
 }

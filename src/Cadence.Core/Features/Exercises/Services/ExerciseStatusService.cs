@@ -80,7 +80,7 @@ public class ExerciseStatusService : IExerciseStatusService
         // Perform transition
         exercise.Status = ExerciseStatus.Active;
         exercise.ActivatedAt = DateTime.UtcNow;
-        exercise.ActivatedBy = userId;
+        exercise.ActivatedBy = userId.ToString();
         exercise.ModifiedBy = userId;
 
         // Mark as published - once true, never set back to false
@@ -150,7 +150,7 @@ public class ExerciseStatusService : IExerciseStatusService
         // Resume the clock
         exercise.ClockState = ExerciseClockState.Running;
         exercise.ClockStartedAt = DateTime.UtcNow;
-        exercise.ClockStartedBy = userId;
+        exercise.ClockStartedBy = userId.ToString();
 
         // Perform transition
         exercise.Status = ExerciseStatus.Active;
@@ -194,7 +194,7 @@ public class ExerciseStatusService : IExerciseStatusService
         // Perform transition
         exercise.Status = ExerciseStatus.Completed;
         exercise.CompletedAt = DateTime.UtcNow;
-        exercise.CompletedBy = userId;
+        exercise.CompletedBy = userId.ToString();
         exercise.ModifiedBy = userId;
 
         await _context.SaveChangesAsync();
@@ -237,7 +237,7 @@ public class ExerciseStatusService : IExerciseStatusService
         exercise.PreviousStatus = previousStatus;
         exercise.Status = ExerciseStatus.Archived;
         exercise.ArchivedAt = DateTime.UtcNow;
-        exercise.ArchivedBy = userId;
+        exercise.ArchivedBy = userId.ToString();
         exercise.ModifiedBy = userId;
 
         await _context.SaveChangesAsync();
@@ -359,10 +359,6 @@ public class ExerciseStatusService : IExerciseStatusService
     private async Task<Exercise?> GetExerciseAsync(Guid exerciseId)
     {
         return await _context.Exercises
-            .Include(e => e.ClockStartedByUser)
-            .Include(e => e.ActivatedByUser)
-            .Include(e => e.CompletedByUser)
-            .Include(e => e.ArchivedByUser)
             .FirstOrDefaultAsync(e => e.Id == exerciseId && !e.IsDeleted);
     }
 }

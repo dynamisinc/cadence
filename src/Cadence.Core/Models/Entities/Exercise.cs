@@ -88,9 +88,9 @@ public class Exercise : BaseEntity
     public DateTime? ActivatedAt { get; set; }
 
     /// <summary>
-    /// User ID who activated the exercise.
+    /// ApplicationUser ID who activated the exercise.
     /// </summary>
-    public Guid? ActivatedBy { get; set; }
+    public string? ActivatedBy { get; set; }
 
     /// <summary>
     /// UTC timestamp when exercise was completed (Active/Paused → Completed).
@@ -98,9 +98,9 @@ public class Exercise : BaseEntity
     public DateTime? CompletedAt { get; set; }
 
     /// <summary>
-    /// User ID who completed the exercise.
+    /// ApplicationUser ID who completed the exercise.
     /// </summary>
-    public Guid? CompletedBy { get; set; }
+    public string? CompletedBy { get; set; }
 
     /// <summary>
     /// UTC timestamp when exercise was archived (Completed → Archived).
@@ -108,9 +108,9 @@ public class Exercise : BaseEntity
     public DateTime? ArchivedAt { get; set; }
 
     /// <summary>
-    /// User ID who archived the exercise.
+    /// ApplicationUser ID who archived the exercise.
     /// </summary>
-    public Guid? ArchivedBy { get; set; }
+    public string? ArchivedBy { get; set; }
 
     /// <summary>
     /// True if the exercise has ever been published (left Draft status).
@@ -147,9 +147,9 @@ public class Exercise : BaseEntity
     public TimeSpan? ClockElapsedBeforePause { get; set; }
 
     /// <summary>
-    /// User ID of who last started the clock.
+    /// ApplicationUser ID of who last started the clock.
     /// </summary>
-    public Guid? ClockStartedBy { get; set; }
+    public string? ClockStartedBy { get; set; }
 
     // =========================================================================
     // Timing Configuration Properties
@@ -212,22 +212,22 @@ public class Exercise : BaseEntity
     public ICollection<Observation> Observations { get; set; } = new List<Observation>();
 
     /// <summary>
-    /// User who last started the clock (if any).
+    /// ApplicationUser who last started the clock (if any).
     /// </summary>
-    public User? ClockStartedByUser { get; set; }
+    public ApplicationUser? ClockStartedByUser { get; set; }
 
     /// <summary>
-    /// User who activated the exercise (if any).
+    /// ApplicationUser who activated the exercise (if any).
     /// </summary>
-    public User? ActivatedByUser { get; set; }
+    public ApplicationUser? ActivatedByUser { get; set; }
 
     /// <summary>
-    /// User who completed the exercise (if any).
+    /// ApplicationUser who completed the exercise (if any).
     /// </summary>
-    public User? CompletedByUser { get; set; }
+    public ApplicationUser? CompletedByUser { get; set; }
 
     /// <summary>
-    /// User who archived the exercise (if any).
+    /// ApplicationUser who archived the exercise (if any).
     /// </summary>
-    public User? ArchivedByUser { get; set; }
+    public ApplicationUser? ArchivedByUser { get; set; }
 }

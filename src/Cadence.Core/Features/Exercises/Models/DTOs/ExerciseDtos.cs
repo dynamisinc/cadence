@@ -91,11 +91,11 @@ public record ExerciseDto(
     Guid CreatedBy,
     // Status transition audit fields
     DateTime? ActivatedAt,
-    Guid? ActivatedBy,
+    string? ActivatedBy,
     DateTime? CompletedAt,
-    Guid? CompletedBy,
+    string? CompletedBy,
     DateTime? ArchivedAt,
-    Guid? ArchivedBy,
+    string? ArchivedBy,
     // Archive/delete tracking fields
     bool HasBeenPublished,
     ExerciseStatus? PreviousStatus,
