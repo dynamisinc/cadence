@@ -34,7 +34,7 @@ import type { ExerciseDto } from '../types'
 import { ImportWizard } from '../../excel-import/components'
 import { useAuth } from '../../../contexts/AuthContext'
 import { roleResolutionService, getRoleDisplayName, getRoleColor } from '@/features/auth'
-import type { ExerciseAssignmentDto } from '@/features/auth'
+import type { ExerciseAssignmentDto, ExerciseRole } from '@/features/auth'
 
 type SortField = 'name' | 'exerciseType' | 'status' | 'scheduledDate'
 type SortOrder = 'asc' | 'desc'
@@ -80,9 +80,9 @@ export const ExerciseListPage = () => {
 
   // Create a map for quick role lookup by exercise ID
   const roleByExerciseId = useMemo(() => {
-    const map = new Map<string, string>()
+    const map = new Map<string, ExerciseRole>()
     exerciseAssignments.forEach(a => {
-      map.set(a.exerciseId, a.exerciseRole)
+      map.set(a.exerciseId, a.exerciseRole as ExerciseRole)
     })
     return map
   }, [exerciseAssignments])
@@ -369,7 +369,7 @@ interface ExerciseRowProps {
   formatDate: (date: string) => string
   canManage: boolean
   onImportClick: (e: React.MouseEvent) => void
-  userRole?: string
+  userRole?: ExerciseRole
 }
 
 const ExerciseRow = ({

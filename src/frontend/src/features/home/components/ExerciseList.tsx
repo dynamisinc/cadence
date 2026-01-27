@@ -23,7 +23,7 @@ import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../../exercises'
 import { useAuth } from '../../../contexts/AuthContext'
 import { roleResolutionService, getRoleDisplayName, getRoleColor } from '@/features/auth'
-import type { ExerciseAssignmentDto } from '@/features/auth'
+import type { ExerciseAssignmentDto, ExerciseRole } from '@/features/auth'
 
 interface ExerciseListProps {
   exercises: ExerciseDto[]
@@ -74,9 +74,9 @@ export const ExerciseList = ({
 
   // Create a map for quick role lookup by exercise ID
   const roleByExerciseId = useMemo(() => {
-    const map = new Map<string, string>()
+    const map = new Map<string, ExerciseRole>()
     exerciseAssignments.forEach(a => {
-      map.set(a.exerciseId, a.exerciseRole)
+      map.set(a.exerciseId, a.exerciseRole as ExerciseRole)
     })
     return map
   }, [exerciseAssignments])
