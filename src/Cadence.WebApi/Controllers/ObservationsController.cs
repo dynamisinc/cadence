@@ -110,8 +110,10 @@ public class ObservationsController : ControllerBase
 
     /// <summary>
     /// Update an existing observation.
+    /// Requires Evaluator or higher role. Evaluators can only edit their own observations.
     /// </summary>
     [HttpPut("observations/{id:guid}")]
+    [Authorize(Policy = "ExerciseEvaluator")]
     public async Task<ActionResult<ObservationDto>> UpdateObservation(Guid id, UpdateObservationRequest request)
     {
         // Validation
@@ -155,8 +157,10 @@ public class ObservationsController : ControllerBase
 
     /// <summary>
     /// Delete an observation (soft delete).
+    /// Requires Exercise Director or Administrator role.
     /// </summary>
     [HttpDelete("observations/{id:guid}")]
+    [Authorize(Policy = "ExerciseDirector")]
     public async Task<IActionResult> DeleteObservation(Guid id)
     {
         var deletedBy = GetCurrentUserId();

@@ -36,6 +36,7 @@ import {
   faUserTie,
   faFlag,
   faSitemap,
+  faEye,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { InjectStatusChip, InjectTypeChip } from './'
@@ -56,6 +57,8 @@ interface InjectDetailDrawerProps {
   onClose: () => void
   /** Can the user control this inject (fire/skip/reset)? */
   canControl?: boolean
+  /** Can the user add observations? (Evaluators) */
+  canAddObservation?: boolean
   /** Is an action currently being submitted? */
   isSubmitting?: boolean
   /** Called when fire button is clicked */
@@ -64,6 +67,8 @@ interface InjectDetailDrawerProps {
   onSkip?: (injectId: string) => void
   /** Called when reset button is clicked */
   onReset?: (injectId: string) => void
+  /** Called when user wants to add observation for this inject */
+  onAddObservation?: (injectId: string) => void
   /** Available objectives for displaying linked objectives */
   objectives?: ObjectiveSummaryDto[]
 }
@@ -115,10 +120,12 @@ export const InjectDetailDrawer = ({
   open,
   onClose,
   canControl = false,
+  canAddObservation = false,
   isSubmitting = false,
   onFire,
   onSkip,
   onReset,
+  onAddObservation,
   objectives = [],
 }: InjectDetailDrawerProps) => {
   if (!inject) return null
@@ -137,6 +144,10 @@ export const InjectDetailDrawer = ({
 
   const handleReset = () => {
     if (onReset) onReset(inject.id)
+  }
+
+  const handleAddObservation = () => {
+    if (onAddObservation) onAddObservation(inject.id)
   }
 
   // Format fired/skipped time for display
@@ -567,13 +578,27 @@ export const InjectDetailDrawer = ({
           }}
         >
           <Stack direction="row" spacing={1} justifyContent="space-between">
-            <CobraSecondaryButton
-              size="small"
-              startIcon={<FontAwesomeIcon icon={faXmark} />}
-              onClick={onClose}
-            >
-              Close
-            </CobraSecondaryButton>
+            <Stack direction="row" spacing={1}>
+              <CobraSecondaryButton
+                size="small"
+                startIcon={<FontAwesomeIcon icon={faXmark} />}
+                onClick={onClose}
+              >
+                Close
+              </CobraSecondaryButton>
+              {/* Add Observation button - visible for evaluators when inject is fired */}
+              {canAddObservation && isFired && onAddObservation && (
+                <Tooltip title="Add an observation about this inject">
+                  <CobraSecondaryButton
+                    size="small"
+                    startIcon={<FontAwesomeIcon icon={faEye} />}
+                    onClick={handleAddObservation}
+                  >
+                    Add Observation
+                  </CobraSecondaryButton>
+                </Tooltip>
+              )}
+            </Stack>
             {canControl && (
               <Stack direction="row" spacing={1}>
                 {isPending && (

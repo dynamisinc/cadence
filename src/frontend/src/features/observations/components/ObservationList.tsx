@@ -46,6 +46,8 @@ interface ObservationListProps {
   deletingId?: string | null
   /** Called when user clicks on an inject reference */
   onInjectClick?: (injectId: string) => void
+  /** Whether to show the internal filter bar (default: true) */
+  showFilterBar?: boolean
 }
 
 type RatingFilterValue = 'all' | ObservationRating | 'unrated'
@@ -59,6 +61,7 @@ export const ObservationList = ({
   onDelete,
   deletingId = null,
   onInjectClick,
+  showFilterBar = true,
 }: ObservationListProps) => {
   // Filter state
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
@@ -71,8 +74,11 @@ export const ObservationList = ({
     }
   }
 
-  // Apply filters using useMemo for performance
+  // Apply filters using useMemo for performance (only when filter bar is shown)
   const filteredObservations = useMemo(() => {
+    // If filter bar is hidden, don't apply internal filtering
+    if (!showFilterBar) return observations
+
     let filtered = [...observations]
 
     // Filter by rating
@@ -85,10 +91,10 @@ export const ObservationList = ({
     }
 
     return filtered
-  }, [observations, ratingFilter])
+  }, [observations, ratingFilter, showFilterBar])
 
   // Check if any filters are active
-  const hasActiveFilters = ratingFilter !== 'all'
+  const hasActiveFilters = showFilterBar && ratingFilter !== 'all'
 
   // Clear all filters
   const handleClearFilters = () => {
@@ -123,51 +129,53 @@ export const ObservationList = ({
 
   return (
     <Box>
-      {/* Filter Bar */}
-      <Paper sx={{ p: 2, mb: 2 }}>
-        <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel id="rating-filter-label">Filter by Rating</InputLabel>
-            <Select
-              labelId="rating-filter-label"
-              id="rating-filter"
-              value={ratingFilter}
-              label="Filter by Rating"
-              onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
-            >
-              <MenuItem value="all">All Ratings</MenuItem>
-              <Divider />
-              <MenuItem value={ObservationRating.Performed}>
-                {ObservationRatingLabels[ObservationRating.Performed]}
-              </MenuItem>
-              <MenuItem value={ObservationRating.Satisfactory}>
-                {ObservationRatingLabels[ObservationRating.Satisfactory]}
-              </MenuItem>
-              <MenuItem value={ObservationRating.Marginal}>
-                {ObservationRatingLabels[ObservationRating.Marginal]}
-              </MenuItem>
-              <MenuItem value={ObservationRating.Unsatisfactory}>
-                {ObservationRatingLabels[ObservationRating.Unsatisfactory]}
-              </MenuItem>
-              <Divider />
-              <MenuItem value="unrated">Unrated</MenuItem>
-            </Select>
-          </FormControl>
+      {/* Filter Bar (optional) */}
+      {showFilterBar && (
+        <Paper sx={{ p: 2, mb: 2 }}>
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
+            <FormControl size="small" sx={{ minWidth: 200 }}>
+              <InputLabel id="rating-filter-label">Filter by Rating</InputLabel>
+              <Select
+                labelId="rating-filter-label"
+                id="rating-filter"
+                value={ratingFilter}
+                label="Filter by Rating"
+                onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
+              >
+                <MenuItem value="all">All Ratings</MenuItem>
+                <Divider />
+                <MenuItem value={ObservationRating.Performed}>
+                  {ObservationRatingLabels[ObservationRating.Performed]}
+                </MenuItem>
+                <MenuItem value={ObservationRating.Satisfactory}>
+                  {ObservationRatingLabels[ObservationRating.Satisfactory]}
+                </MenuItem>
+                <MenuItem value={ObservationRating.Marginal}>
+                  {ObservationRatingLabels[ObservationRating.Marginal]}
+                </MenuItem>
+                <MenuItem value={ObservationRating.Unsatisfactory}>
+                  {ObservationRatingLabels[ObservationRating.Unsatisfactory]}
+                </MenuItem>
+                <Divider />
+                <MenuItem value="unrated">Unrated</MenuItem>
+              </Select>
+            </FormControl>
 
+            {hasActiveFilters && (
+              <CobraLinkButton onClick={handleClearFilters} size="small">
+                Clear Filters
+              </CobraLinkButton>
+            )}
+          </Stack>
+
+          {/* Filter count */}
           {hasActiveFilters && (
-            <CobraLinkButton onClick={handleClearFilters} size="small">
-              Clear Filters
-            </CobraLinkButton>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+              Showing {filteredObservations.length} of {observations.length} observations
+            </Typography>
           )}
-        </Stack>
-
-        {/* Filter count */}
-        {hasActiveFilters && (
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-            Showing {filteredObservations.length} of {observations.length} observations
-          </Typography>
-        )}
-      </Paper>
+        </Paper>
+      )}
 
       {/* Empty state for filtered results */}
       {filteredObservations.length === 0 ? (
