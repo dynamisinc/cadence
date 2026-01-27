@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -32,6 +32,9 @@ import { usePermissions } from '../../../shared/hooks'
 import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../types'
 import { ImportWizard } from '../../excel-import/components'
+import { useAuth } from '../../../contexts/AuthContext'
+import { roleResolutionService, getRoleDisplayName, getRoleColor } from '@/features/auth'
+import type { ExerciseAssignmentDto } from '@/features/auth'
 
 type SortField = 'name' | 'exerciseType' | 'status' | 'scheduledDate'
 type SortOrder = 'asc' | 'desc'
@@ -50,12 +53,39 @@ export const ExerciseListPage = () => {
   const navigate = useNavigate()
   const { exercises, loading, isFetching, error } = useExercises()
   const { canManage } = usePermissions()
+  const { user } = useAuth()
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortField, setSortField] = useState<SortField>('scheduledDate')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
   const [showArchived, setShowArchived] = useState(false)
   const [importExerciseId, setImportExerciseId] = useState<string | null>(null)
+  const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
+
+  // Fetch user's exercise role assignments
+  useEffect(() => {
+    if (!user?.id) return
+
+    const fetchAssignments = async () => {
+      try {
+        const assignments = await roleResolutionService.getUserExerciseAssignments(user.id)
+        setExerciseAssignments(assignments)
+      } catch (err) {
+        console.error('Failed to fetch exercise assignments:', err)
+      }
+    }
+
+    fetchAssignments()
+  }, [user?.id])
+
+  // Create a map for quick role lookup by exercise ID
+  const roleByExerciseId = useMemo(() => {
+    const map = new Map<string, string>()
+    exerciseAssignments.forEach(a => {
+      map.set(a.exerciseId, a.exerciseRole)
+    })
+    return map
+  }, [exerciseAssignments])
 
   // Filter and sort exercises
   const filteredExercises = useMemo(() => {
@@ -251,6 +281,7 @@ export const ExerciseListPage = () => {
                     Date
                   </TableSortLabel>
                 </TableCell>
+                <TableCell>Your Role</TableCell>
                 <TableCell>Practice</TableCell>
                 {canManage && <TableCell align="right">Actions</TableCell>}
               </TableRow>
@@ -264,6 +295,7 @@ export const ExerciseListPage = () => {
                   formatDate={formatDate}
                   canManage={canManage}
                   onImportClick={e => handleImportClick(exercise.id, e)}
+                  userRole={roleByExerciseId.get(exercise.id)}
                 />
               ))}
             </TableBody>
@@ -298,6 +330,7 @@ const ExerciseTableSkeleton = () => {
             <TableCell>Type</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Date</TableCell>
+            <TableCell>Your Role</TableCell>
             <TableCell>Practice</TableCell>
           </TableRow>
         </TableHead>
@@ -317,6 +350,9 @@ const ExerciseTableSkeleton = () => {
                 <Skeleton variant="text" width={100} />
               </TableCell>
               <TableCell>
+                <Skeleton variant="rounded" width={80} height={24} />
+              </TableCell>
+              <TableCell>
                 <Skeleton variant="circular" width={20} height={20} />
               </TableCell>
             </TableRow>
@@ -333,10 +369,11 @@ interface ExerciseRowProps {
   formatDate: (date: string) => string
   canManage: boolean
   onImportClick: (e: React.MouseEvent) => void
+  userRole?: string
 }
 
 const ExerciseRow = ({
-  exercise, onClick, formatDate, canManage, onImportClick,
+  exercise, onClick, formatDate, canManage, onImportClick, userRole,
 }: ExerciseRowProps) => {
   // Only show import button for Draft exercises
   const canImport = canManage && exercise.status === ExerciseStatus.Draft
@@ -363,6 +400,23 @@ const ExerciseRow = ({
         <Typography variant="body2">
           {formatDate(exercise.scheduledDate)}
         </Typography>
+      </TableCell>
+      <TableCell>
+        {userRole ? (
+          <Chip
+            label={getRoleDisplayName(userRole)}
+            size="small"
+            color={getRoleColor(userRole)}
+            sx={{
+              fontWeight: 600,
+              fontSize: '0.75rem',
+            }}
+          />
+        ) : (
+          <Typography variant="body2" color="text.secondary" fontStyle="italic">
+            Not assigned
+          </Typography>
+        )}
       </TableCell>
       <TableCell>
         {exercise.isPracticeMode && (

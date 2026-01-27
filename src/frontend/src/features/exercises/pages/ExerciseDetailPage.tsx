@@ -10,9 +10,14 @@ import {
   Stack,
   Tabs,
   Tab,
+  Menu,
+  MenuItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faList, faPen, faPlay, faCopy, faBoxArchive, faTrash, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import {
@@ -37,8 +42,7 @@ import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
-  CobraLinkButton,
-  CobraDeleteButton,
+  CobraIconButton,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { usePermissions, useUnsavedChangesWarning } from '../../../shared/hooks'
@@ -98,6 +102,7 @@ export const ExerciseDetailPage = () => {
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
+  const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null)
 
   // Setup progress for Draft exercises
   const {
@@ -221,11 +226,6 @@ export const ExerciseDetailPage = () => {
     navigate(`/exercises/${id}`, { replace: true })
   }
 
-  const handleBackToList = () => {
-    // useBlocker handles the unsaved changes warning automatically
-    navigate('/exercises')
-  }
-
   const handleArchived = () => {
     // Navigate back to exercises list after archive
     navigate('/exercises')
@@ -234,6 +234,15 @@ export const ExerciseDetailPage = () => {
   const handleDeleted = () => {
     // Navigate back to exercises list after delete
     navigate('/exercises')
+  }
+
+  // More menu handlers
+  const handleMoreMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
+    setMoreMenuAnchor(event.currentTarget)
+  }
+
+  const handleMoreMenuClose = () => {
+    setMoreMenuAnchor(null)
   }
 
   // Determine if exercise can be deleted (never published OR already archived)
@@ -247,10 +256,6 @@ export const ExerciseDetailPage = () => {
     if (!exercise || !canManage) return false
     return exercise.status !== ExerciseStatus.Archived
   }, [exercise, canManage])
-
-  const handleViewMsel = () => {
-    navigate(`/exercises/${id}/msel`)
-  }
 
   const formatDate = (dateStr: string) => {
     try {
@@ -334,23 +339,6 @@ export const ExerciseDetailPage = () => {
           <>
             {/* User's Exercise Role Badge */}
             <EffectiveRoleBadge exerciseId={id ?? null} showOverride />
-            <CobraLinkButton onClick={handleBackToList}>
-              Back to List
-            </CobraLinkButton>
-            <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faList} />}
-              onClick={handleViewMsel}
-            >
-              View MSEL
-            </CobraPrimaryButton>
-            {exercise.status === ExerciseStatus.Active && !isEditing && (
-              <CobraPrimaryButton
-                startIcon={<FontAwesomeIcon icon={faPlay} />}
-                onClick={() => navigate(`/exercises/${id}/conduct`)}
-              >
-                Conduct
-              </CobraPrimaryButton>
-            )}
             {canEdit && !isEditing && (
               <CobraSecondaryButton
                 startIcon={<FontAwesomeIcon icon={faPen} />}
@@ -359,35 +347,80 @@ export const ExerciseDetailPage = () => {
                 Edit
               </CobraSecondaryButton>
             )}
-            {!isEditing && canManage && (
-              <CobraSecondaryButton
-                startIcon={<FontAwesomeIcon icon={faCopy} />}
-                onClick={() => setDuplicateDialogOpen(true)}
-              >
-                Duplicate
-              </CobraSecondaryButton>
-            )}
-            {!isEditing && canArchive && (
-              <CobraSecondaryButton
-                startIcon={<FontAwesomeIcon icon={faBoxArchive} />}
-                onClick={() => setArchiveDialogOpen(true)}
-              >
-                Archive
-              </CobraSecondaryButton>
-            )}
-            {!isEditing && canDelete && (
-              <CobraDeleteButton
-                startIcon={<FontAwesomeIcon icon={faTrash} />}
-                onClick={() => setDeleteDialogOpen(true)}
-              >
-                Delete
-              </CobraDeleteButton>
-            )}
             {!isEditing && (
               <ExerciseStatusActions
                 exercise={exercise}
                 isReadyToActivate={setupProgress?.isReadyToActivate}
               />
+            )}
+            {/* More menu for lifecycle actions */}
+            {!isEditing && canManage && (
+              <>
+                <CobraIconButton
+                  onClick={handleMoreMenuOpen}
+                  aria-label="More actions"
+                  aria-controls={moreMenuAnchor ? 'exercise-more-menu' : undefined}
+                  aria-haspopup="true"
+                  aria-expanded={moreMenuAnchor ? 'true' : undefined}
+                >
+                  <FontAwesomeIcon icon={faEllipsisVertical} />
+                </CobraIconButton>
+                <Menu
+                  id="exercise-more-menu"
+                  anchorEl={moreMenuAnchor}
+                  open={Boolean(moreMenuAnchor)}
+                  onClose={handleMoreMenuClose}
+                  anchorOrigin={{
+                    vertical: 'bottom',
+                    horizontal: 'right',
+                  }}
+                  transformOrigin={{
+                    vertical: 'top',
+                    horizontal: 'right',
+                  }}
+                >
+                  <MenuItem
+                    onClick={() => {
+                      handleMoreMenuClose()
+                      setDuplicateDialogOpen(true)
+                    }}
+                  >
+                    <ListItemIcon>
+                      <FontAwesomeIcon icon={faCopy} />
+                    </ListItemIcon>
+                    <ListItemText>Duplicate</ListItemText>
+                  </MenuItem>
+                  {canArchive && (
+                    <MenuItem
+                      onClick={() => {
+                        handleMoreMenuClose()
+                        setArchiveDialogOpen(true)
+                      }}
+                    >
+                      <ListItemIcon>
+                        <FontAwesomeIcon icon={faBoxArchive} />
+                      </ListItemIcon>
+                      <ListItemText>Archive</ListItemText>
+                    </MenuItem>
+                  )}
+                  {canDelete && [
+                    <Divider key="delete-divider" />,
+                    <MenuItem
+                      key="delete-item"
+                      onClick={() => {
+                        handleMoreMenuClose()
+                        setDeleteDialogOpen(true)
+                      }}
+                      sx={{ color: 'error.main' }}
+                    >
+                      <ListItemIcon sx={{ color: 'error.main' }}>
+                        <FontAwesomeIcon icon={faTrash} />
+                      </ListItemIcon>
+                      <ListItemText>Delete</ListItemText>
+                    </MenuItem>,
+                  ]}
+                </Menu>
+              </>
             )}
           </>
         }

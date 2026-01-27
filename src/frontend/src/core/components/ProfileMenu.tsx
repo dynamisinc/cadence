@@ -23,10 +23,11 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faRightFromBracket, faDumbbell } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faRightFromBracket, faDumbbell, faPlay } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
+import { useExerciseNavigation } from '@/shared/contexts'
 import type { ExerciseAssignmentDto } from '@/features/auth'
 
 /**
@@ -52,6 +53,7 @@ const formatRole = (role: string): string => {
 
 export const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth()
+  const { currentExercise, isInExerciseContext } = useExerciseNavigation()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
@@ -62,6 +64,11 @@ export const ProfileMenu: React.FC = () => {
   const accountEmail = user?.email || 'guest@cadence.app'
   const accountFullName = user?.displayName || 'Guest User'
   const accountRole = user?.role ? formatRole(user.role) : 'No Role Assigned'
+
+  // Current exercise role for display
+  const currentExerciseRole = isInExerciseContext && currentExercise?.userRole
+    ? getRoleDisplayName(currentExercise.userRole)
+    : null
 
   // Fetch exercise assignments when menu opens
   useEffect(() => {
@@ -143,7 +150,7 @@ export const ProfileMenu: React.FC = () => {
             {accountFullName}
           </Typography>
           <Typography variant="caption" sx={{ opacity: 0.8, lineHeight: 1.2 }}>
-            {accountRole}
+            {currentExerciseRole || accountRole}
           </Typography>
         </Box>
         <FontAwesomeIcon icon={faChevronDown} size="sm" />
@@ -195,6 +202,42 @@ export const ProfileMenu: React.FC = () => {
 
         <Divider />
 
+        {/* Current Exercise Context - Show prominently when in exercise */}
+        {isInExerciseContext && currentExercise && (
+          <>
+            <Box
+              sx={{
+                px: 2,
+                py: 1.5,
+                bgcolor: `${getRoleColor(currentExercise.userRole)}.50`,
+                borderLeft: '4px solid',
+                borderLeftColor: `${getRoleColor(currentExercise.userRole)}.main`,
+              }}
+            >
+              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+                <FontAwesomeIcon icon={faPlay} size="xs" />
+                <Typography variant="caption" fontWeight={600} color="text.secondary">
+                  Current Exercise
+                </Typography>
+              </Stack>
+              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+                {currentExercise.name}
+              </Typography>
+              <Chip
+                label={getRoleDisplayName(currentExercise.userRole)}
+                size="small"
+                color={getRoleColor(currentExercise.userRole)}
+                sx={{
+                  height: 22,
+                  fontSize: '0.75rem',
+                  fontWeight: 600,
+                }}
+              />
+            </Box>
+            <Divider />
+          </>
+        )}
+
         {/* Exercise Assignments Section */}
         {user && (
           <Box sx={{ px: 2, py: 1.5 }}>
@@ -222,7 +265,7 @@ export const ProfileMenu: React.FC = () => {
                       bgcolor: 'grey.50',
                       borderRadius: 1,
                       borderLeft: '3px solid',
-                      borderLeftColor: getRoleColor(assignment.role),
+                      borderLeftColor: `${getRoleColor(assignment.role)}.main`,
                     }}
                   >
                     <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
@@ -231,11 +274,10 @@ export const ProfileMenu: React.FC = () => {
                     <Chip
                       label={getRoleDisplayName(assignment.role)}
                       size="small"
+                      color={getRoleColor(assignment.role)}
                       sx={{
                         height: 20,
                         fontSize: '0.7rem',
-                        bgcolor: getRoleColor(assignment.role),
-                        color: 'white',
                         fontWeight: 600,
                       }}
                     />

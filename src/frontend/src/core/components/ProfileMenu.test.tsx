@@ -33,10 +33,21 @@ vi.mock('@/features/auth', async importOriginal => {
     roleResolutionService: {
       getUserExerciseAssignments: vi.fn().mockResolvedValue([]),
     },
-    getRoleColor: vi.fn().mockReturnValue('primary.main'),
+    getRoleColor: vi.fn().mockReturnValue('primary'),
     getRoleDisplayName: vi.fn().mockReturnValue('Controller'),
   }
 })
+
+// Mock ExerciseNavigationContext
+vi.mock('@/shared/contexts', () => ({
+  useExerciseNavigation: vi.fn().mockReturnValue({
+    currentExercise: null,
+    isInExerciseContext: false,
+    enterExercise: vi.fn(),
+    exitExercise: vi.fn(),
+    updateExercise: vi.fn(),
+  }),
+}))
 
 describe('ProfileMenu', () => {
   beforeEach(() => {

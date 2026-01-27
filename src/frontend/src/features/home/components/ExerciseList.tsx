@@ -1,3 +1,4 @@
+import { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -11,6 +12,7 @@ import {
   Paper,
   Tooltip,
   Skeleton,
+  Chip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faScrewdriverWrench, faClipboardList, faListCheck } from '@fortawesome/free-solid-svg-icons'
@@ -19,6 +21,9 @@ import { formatDate } from '../../../shared/utils/dateUtils'
 import { CobraPrimaryButton } from '../../../theme/styledComponents'
 import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../../exercises'
+import { useAuth } from '../../../contexts/AuthContext'
+import { roleResolutionService, getRoleDisplayName, getRoleColor } from '@/features/auth'
+import type { ExerciseAssignmentDto } from '@/features/auth'
 
 interface ExerciseListProps {
   exercises: ExerciseDto[]
@@ -48,6 +53,33 @@ export const ExerciseList = ({
   maxItems,
 }: ExerciseListProps) => {
   const navigate = useNavigate()
+  const { user } = useAuth()
+  const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
+
+  // Fetch user's exercise role assignments
+  useEffect(() => {
+    if (!user?.id) return
+
+    const fetchAssignments = async () => {
+      try {
+        const assignments = await roleResolutionService.getUserExerciseAssignments(user.id)
+        setExerciseAssignments(assignments)
+      } catch (err) {
+        console.error('Failed to fetch exercise assignments:', err)
+      }
+    }
+
+    fetchAssignments()
+  }, [user?.id])
+
+  // Create a map for quick role lookup by exercise ID
+  const roleByExerciseId = useMemo(() => {
+    const map = new Map<string, string>()
+    exerciseAssignments.forEach(a => {
+      map.set(a.exerciseId, a.exerciseRole)
+    })
+    return map
+  }, [exerciseAssignments])
 
   // Filter out archived and apply maxItems limit
   const displayedExercises = exercises
@@ -113,47 +145,68 @@ export const ExerciseList = ({
             <TableCell>Type</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Date</TableCell>
+            <TableCell>Your Role</TableCell>
             <TableCell width={60}>Practice</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
-          {displayedExercises.map(exercise => (
-            <TableRow
-              key={exercise.id}
-              hover
-              onClick={() => handleRowClick(exercise.id)}
-              sx={{
-                cursor: 'pointer',
-                '& td': { py: 1.5 },
-              }}
-            >
-              <TableCell>
-                <Typography variant="body2" fontWeight={500}>
-                  {exercise.name}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                <ExerciseTypeChip type={exercise.exerciseType} />
-              </TableCell>
-              <TableCell>
-                <ExerciseStatusChip status={exercise.status} />
-              </TableCell>
-              <TableCell>
-                <Typography variant="body2">
-                  {formatDate(exercise.scheduledDate)}
-                </Typography>
-              </TableCell>
-              <TableCell>
-                {exercise.isPracticeMode && (
-                  <Tooltip title="Practice Mode - excluded from production reports">
-                    <Box component="span" sx={{ color: 'text.secondary' }}>
-                      <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
-                    </Box>
-                  </Tooltip>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
+          {displayedExercises.map(exercise => {
+            const userRole = roleByExerciseId.get(exercise.id)
+            return (
+              <TableRow
+                key={exercise.id}
+                hover
+                onClick={() => handleRowClick(exercise.id)}
+                sx={{
+                  cursor: 'pointer',
+                  '& td': { py: 1.5 },
+                }}
+              >
+                <TableCell>
+                  <Typography variant="body2" fontWeight={500}>
+                    {exercise.name}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  <ExerciseTypeChip type={exercise.exerciseType} />
+                </TableCell>
+                <TableCell>
+                  <ExerciseStatusChip status={exercise.status} />
+                </TableCell>
+                <TableCell>
+                  <Typography variant="body2">
+                    {formatDate(exercise.scheduledDate)}
+                  </Typography>
+                </TableCell>
+                <TableCell>
+                  {userRole ? (
+                    <Chip
+                      label={getRoleDisplayName(userRole)}
+                      size="small"
+                      color={getRoleColor(userRole)}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '0.7rem',
+                      }}
+                    />
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" fontStyle="italic">
+                      Not assigned
+                    </Typography>
+                  )}
+                </TableCell>
+                <TableCell>
+                  {exercise.isPracticeMode && (
+                    <Tooltip title="Practice Mode - excluded from production reports">
+                      <Box component="span" sx={{ color: 'text.secondary' }}>
+                        <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
+                      </Box>
+                    </Tooltip>
+                  )}
+                </TableCell>
+              </TableRow>
+            )
+          })}
         </TableBody>
       </Table>
     </TableContainer>
@@ -175,6 +228,7 @@ const ExerciseListSkeleton = () => {
             <TableCell>Type</TableCell>
             <TableCell>Status</TableCell>
             <TableCell>Date</TableCell>
+            <TableCell>Your Role</TableCell>
             <TableCell>Practice</TableCell>
           </TableRow>
         </TableHead>
@@ -192,6 +246,9 @@ const ExerciseListSkeleton = () => {
               </TableCell>
               <TableCell>
                 <Skeleton variant="text" width={90} />
+              </TableCell>
+              <TableCell>
+                <Skeleton variant="rounded" width={70} height={22} />
               </TableCell>
               <TableCell>
                 <Skeleton variant="circular" width={18} height={18} />
