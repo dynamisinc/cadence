@@ -25,6 +25,22 @@ This creates several problems:
 2. **Confusion**: Two user tables with overlapping fields (Email, DisplayName, OrganizationId)
 3. **Broken lookups**: Code like `MselService.cs:103` looks up display names from wrong table
 4. **Orphaned relationships**: `Organization.Users` references deprecated `User` entity
+5. **No FK constraints**: Guid audit fields have no referential integrity (just scalar values)
+6. **Schema mismatch**: `User.ExerciseParticipations` navigation exists but `ExerciseParticipant.UserId` is `string` FK to `ApplicationUser`
+
+### Mixed Authentication Compatibility
+
+**This migration is fully compatible with mixed authentication (local + Entra ID):**
+
+| Auth Method      | User Entity                                        | Impact                                               |
+|------------------|----------------------------------------------------|----------------------------------------------------- |
+| Local (password) | `ApplicationUser`                                  | No change - already uses correct entity              |
+| Entra (SSO)      | `ApplicationUser` + `ExternalLogin`                | No change - `ExternalLogin.UserId` is already string |
+| Hybrid (both)    | `ApplicationUser` with password + `ExternalLogins` | Fully supported                                      |
+
+The `ExternalLogin` table correctly uses `string UserId` referencing `ApplicationUser`. When Entra is implemented, it will create `ApplicationUser` records directly - it never touches the legacy `User` table.
+
+**CRITICAL**: This migration should be completed BEFORE enabling Entra authentication to avoid dual user systems.
 
 ### Current Architecture
 
@@ -112,14 +128,32 @@ BaseEntity
 - All existing data must be backed up before migration
 - Coordinate with any pending features that touch user relationships
 
+### Blocking
+
+This story **MUST be completed before**:
+- Entra ID authentication implementation (S18-entra-provider)
+- User account linking service (S19-user-account-linking)
+
+Completing this migration first ensures Entra users are created in a unified `ApplicationUser` system without dual-table complexity.
+
 ## Risks & Mitigations
 
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| Data loss during migration | High | Backup database, run migration on staging first |
-| Broken foreign keys | High | Multi-phase migration with transition period |
-| Performance regression | Medium | Index new string columns appropriately |
-| Missed code references | Medium | Comprehensive grep/search before removing old code |
+| Risk                         | Impact | Mitigation                                                              |
+|------------------------------|--------|-------------------------------------------------------------------------|
+| Data loss during migration   | High   | Backup database, run migration on staging first                         |
+| Broken foreign keys          | Low    | **No FK constraints exist** on Guid audit fields (simplifies migration) |
+| Performance regression       | Medium | Index new string columns appropriately                                  |
+| Missed code references       | Medium | Comprehensive grep/search before removing old code                      |
+| Inconsistent historical data | Medium | Audit data before migration; log unmapped records                       |
+
+### Simplifying Factor: No FK Constraints
+
+Analysis revealed that `BaseEntity.CreatedBy`, `ModifiedBy`, and `DeletedBy` are **scalar Guid values with no foreign key constraints** configured in the DbContext. This means:
+
+- ✅ No FK constraints to drop during migration
+- ✅ No cascade delete concerns
+- ⚠️ Historical data may already contain orphaned Guid references
+- ⚠️ Must audit data integrity before assuming all Guids map to valid users
 
 ## Migration Strategy
 
@@ -159,19 +193,31 @@ WHERE CreatedByUserId IS NULL;
 ## Affected Files
 
 ### Entities to Modify
-- `Models/Entities/BaseEntity.cs` - Change audit field types
+
+- `Models/Entities/BaseEntity.cs` - Change audit field types from Guid to string
 - `Models/Entities/User.cs` - Delete entirely
-- `Models/Entities/Organization.cs` - Remove `Users` navigation
+- `Models/Entities/Organization.cs` - Remove `Users` navigation property
 
 ### DbContext Changes
-- `Core/Data/AppDbContext.cs` - Remove `Users` DbSet, update configurations
+
+- `Core/Data/AppDbContext.cs`:
+  - Remove `DbSet<User> Users` property
+  - Remove `ConfigureUser()` method
+  - Update `ConfigureOrganization()` to remove User relationship
+  - **Add System ApplicationUser seeding** (currently only seeded in Users table)
 
 ### Services to Update
+
 - `Features/Msel/Services/MselService.cs` - Fix user lookup (line 103)
 - Any service using `_context.Users`
 
 ### Constants
+
 - `Constants/SystemConstants.cs` - Add `SystemUserIdString` constant
+
+### Schema Fixes (Pre-existing Issues)
+
+- `Models/Entities/User.cs` line 40: Remove `ExerciseParticipations` navigation (incorrectly configured - `ExerciseParticipant.UserId` is string FK to `ApplicationUser`, not `User`)
 
 ## Technical Notes
 
@@ -253,4 +299,4 @@ public abstract class BaseEntity : IHasTimestamps, ISoftDeletable
 
 *Related Stories*: [S01 Session Management](./S01-session-management.md), [Authentication](../authentication/FEATURE.md)
 
-*Last updated: 2025-01-26*
+*Last updated: 2025-01-27*
