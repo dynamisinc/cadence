@@ -82,6 +82,7 @@ const mockMenuItems = {
     section: 'conduct',
     allowedRoles: [],
     requiresExerciseContext: false,
+    disabledTooltip: undefined,
   },
   'exercises': {
     id: 'exercises',
@@ -91,6 +92,7 @@ const mockMenuItems = {
     section: 'conduct',
     allowedRoles: [],
     requiresExerciseContext: false,
+    disabledTooltip: undefined,
   },
   'control-room': {
     id: 'control-room',
@@ -130,6 +132,7 @@ const mockMenuItems = {
     section: 'analysis',
     allowedRoles: [HseepRole.Administrator, HseepRole.ExerciseDirector],
     requiresExerciseContext: false,
+    disabledTooltip: undefined,
   },
   'templates': {
     id: 'templates',
@@ -139,6 +142,7 @@ const mockMenuItems = {
     section: 'system',
     allowedRoles: [HseepRole.Administrator],
     requiresExerciseContext: false,
+    disabledTooltip: undefined,
   },
   'users': {
     id: 'users',
@@ -148,6 +152,7 @@ const mockMenuItems = {
     section: 'system',
     allowedRoles: [HseepRole.Administrator],
     requiresExerciseContext: false,
+    disabledTooltip: undefined,
   },
   'settings': {
     id: 'settings',
@@ -157,6 +162,7 @@ const mockMenuItems = {
     section: 'system',
     allowedRoles: [],
     requiresExerciseContext: false,
+    disabledTooltip: undefined,
   },
 }
 

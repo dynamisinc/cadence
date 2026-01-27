@@ -87,7 +87,7 @@ export function useMarkAsRead() {
 
       return { previousNotifications, previousCount }
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       // Rollback on error
       if (context?.previousNotifications) {
         queryClient.setQueryData(
@@ -142,7 +142,7 @@ export function useMarkAllAsRead() {
 
       return { previousNotifications }
     },
-    onError: (err, variables, context) => {
+    onError: (_err, _variables, context) => {
       if (context?.previousNotifications) {
         queryClient.setQueryData(
           [...NOTIFICATIONS_QUERY_KEY, { limit: 10 }],

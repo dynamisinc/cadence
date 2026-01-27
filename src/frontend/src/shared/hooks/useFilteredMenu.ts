@@ -179,4 +179,3 @@ export function useFilteredMenu(options: UseFilteredMenuOptions = {}): FilteredM
 // Re-export types and constants for convenience
 export { MENU_SECTION_LABELS }
 export type { MenuItem, MenuSection, GroupedMenuItems, FilteredMenuResult }
-export type { UseFilteredMenuOptions }

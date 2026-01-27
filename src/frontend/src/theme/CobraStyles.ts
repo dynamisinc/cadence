@@ -27,6 +27,9 @@ const CobraStyles = {
 
     /** Popover content padding: 12px */
     PopoverContent: '12px',
+
+    /** Card content padding: 16px */
+    Card: '16px',
   },
 
   /**

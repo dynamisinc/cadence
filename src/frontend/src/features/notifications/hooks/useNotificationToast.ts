@@ -43,7 +43,7 @@ export function getToastConfig(priority: NotificationPriority): ToastConfig {
  */
 export function useNotificationToast() {
   const [toasts, setToasts] = useState<Toast[]>([])
-  const timerRefs = useRef<Map<string, NodeJS.Timeout>>(new Map())
+  const timerRefs = useRef<Map<string, ReturnType<typeof setTimeout>>>(new Map())
 
   // Clean up timers on unmount
   useEffect(() => {

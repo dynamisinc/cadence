@@ -4,7 +4,7 @@
  * Tests for the assignment card display.
  */
 
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { screen, fireEvent } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { MemoryRouter } from 'react-router-dom'

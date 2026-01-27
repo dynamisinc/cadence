@@ -16,7 +16,7 @@
  */
 
 import { useEffect, useRef } from 'react'
-import { useParams, useLocation, Outlet } from 'react-router-dom'
+import { useParams, Outlet } from 'react-router-dom'
 import { CircularProgress, Box, Alert } from '@mui/material'
 import { useExercise } from '@/features/exercises/hooks'
 import { useExerciseRole } from '@/features/auth'
@@ -67,7 +67,6 @@ function isExercisePath(pathname: string): boolean {
  */
 export const ExerciseContextWrapper = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
-  const _location = useLocation()
   const navigate = useNavigate()
   const { currentExercise, enterExercise, exitExercise, updateExercise } = useExerciseNavigation()
 
@@ -137,15 +136,13 @@ export const ExerciseContextWrapper = () => {
       // This cleanup runs when the component unmounts
       // Check if we're actually leaving exercise routes
       // Note: We use a short timeout to check the new location after navigation
-      const timeoutId = setTimeout(() => {
+      setTimeout(() => {
         if (!isExercisePath(window.location.pathname)) {
           exitExercise()
           hasEnteredRef.current = false
           prevExerciseIdRef.current = null
         }
       }, 0)
-
-      return () => clearTimeout(timeoutId)
     }
   }, [exitExercise])
 

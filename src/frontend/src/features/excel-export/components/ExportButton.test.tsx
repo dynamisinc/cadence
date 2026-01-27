@@ -72,7 +72,7 @@ describe('ExportButton', () => {
     vi.mocked(useExportMsel).mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,
-    } as ReturnType<typeof useExportMsel>)
+    } as unknown as ReturnType<typeof useExportMsel>)
 
     renderWithQueryClient(<ExportButton exerciseId="test-exercise-id" />)
 
@@ -100,7 +100,7 @@ describe('ExportButton', () => {
     vi.mocked(useExportObservations).mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,
-    } as ReturnType<typeof useExportObservations>)
+    } as unknown as ReturnType<typeof useExportObservations>)
 
     renderWithQueryClient(<ExportButton exerciseId="test-exercise-id" />)
 
@@ -126,7 +126,7 @@ describe('ExportButton', () => {
     vi.mocked(useExportFullPackage).mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,
-    } as ReturnType<typeof useExportFullPackage>)
+    } as unknown as ReturnType<typeof useExportFullPackage>)
 
     renderWithQueryClient(<ExportButton exerciseId="test-exercise-id" />)
 
@@ -151,7 +151,7 @@ describe('ExportButton', () => {
     vi.mocked(useExportMsel).mockReturnValue({
       mutateAsync: vi.fn(),
       isPending: true,
-    } as ReturnType<typeof useExportMsel>)
+    } as unknown as ReturnType<typeof useExportMsel>)
 
     renderWithQueryClient(<ExportButton exerciseId="test-exercise-id" />)
 
@@ -170,7 +170,7 @@ describe('ExportButton', () => {
     vi.mocked(useExportMsel).mockReturnValue({
       mutateAsync: mockMutateAsync,
       isPending: false,
-    } as ReturnType<typeof useExportMsel>)
+    } as unknown as ReturnType<typeof useExportMsel>)
 
     renderWithQueryClient(<ExportButton exerciseId="test-exercise-id" />)
 
