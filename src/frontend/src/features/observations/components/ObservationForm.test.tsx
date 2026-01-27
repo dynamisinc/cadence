@@ -231,7 +231,7 @@ describe('ObservationForm', () => {
       expect(screen.getByRole('button', { name: /Save/i })).toBeDisabled()
     })
 
-    it('enables save button when content has text', () => {
+    it('enables save button when content has text and rating is selected', () => {
       render(
         <ObservationForm
           onSubmit={vi.fn()}
@@ -239,8 +239,15 @@ describe('ObservationForm', () => {
         />,
       )
 
+      // Fill in observation content
       const textarea = screen.getByLabelText(/Observation/i)
       fireEvent.change(textarea, { target: { value: 'Test observation' } })
+
+      // Select a rating (required for form to be valid)
+      const ratingSelect = screen.getByLabelText(/Rating/i)
+      fireEvent.mouseDown(ratingSelect)
+      const listbox = within(screen.getByRole('listbox'))
+      fireEvent.click(listbox.getByText('P - Performed'))
 
       expect(screen.getByRole('button', { name: /Save/i })).not.toBeDisabled()
     })

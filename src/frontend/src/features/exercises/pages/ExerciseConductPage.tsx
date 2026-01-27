@@ -427,11 +427,6 @@ export const ExerciseConductPage = () => {
     setShowObservationForm(true)
   }
 
-  const handleCancelObservationForm = () => {
-    setShowObservationForm(false)
-    setEditingObservation(null)
-  }
-
   const handleDeleteObservation = async (observationId: string) => {
     setDeletingObservationId(observationId)
     try {

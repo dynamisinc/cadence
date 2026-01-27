@@ -47,6 +47,8 @@ vi.mock('@/shared/contexts', () => ({
     exitExercise: vi.fn(),
     updateExercise: vi.fn(),
   }),
+  // Provider passthrough for testUtils
+  ExerciseNavigationProvider: ({ children }: { children: React.ReactNode }) => children,
 }))
 
 describe('ProfileMenu', () => {
