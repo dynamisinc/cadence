@@ -5,6 +5,7 @@ using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -43,7 +44,7 @@ public class InjectsController : ControllerBase
     /// Uses split query approach to avoid cartesian explosion with objectives.
     /// </summary>
     [HttpGet]
-    [Authorize(Policy = "ExerciseAccess")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(Guid exerciseId)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -174,7 +175,7 @@ public class InjectsController : ControllerBase
     /// Get a single inject by ID.
     /// </summary>
     [HttpGet("{id:guid}")]
-    [Authorize(Policy = "ExerciseAccess")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<InjectDto>> GetInject(Guid exerciseId, Guid id)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -202,7 +203,7 @@ public class InjectsController : ControllerBase
     /// Create a new inject.
     /// </summary>
     [HttpPost]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> CreateInject(Guid exerciseId, CreateInjectRequest request)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -297,7 +298,7 @@ public class InjectsController : ControllerBase
     /// Update an existing inject.
     /// </summary>
     [HttpPut("{id:guid}")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> UpdateInject(Guid exerciseId, Guid id, UpdateInjectRequest request)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -381,7 +382,7 @@ public class InjectsController : ControllerBase
     /// Fire (deliver) an inject.
     /// </summary>
     [HttpPost("{id:guid}/fire")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> FireInject(Guid exerciseId, Guid id, FireInjectRequest? request = null)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -442,7 +443,7 @@ public class InjectsController : ControllerBase
     /// Skip an inject.
     /// </summary>
     [HttpPost("{id:guid}/skip")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> SkipInject(Guid exerciseId, Guid id, SkipInjectRequest request)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -507,7 +508,7 @@ public class InjectsController : ControllerBase
     /// Reset an inject back to pending status.
     /// </summary>
     [HttpPost("{id:guid}/reset")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> ResetInject(Guid exerciseId, Guid id)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -560,7 +561,7 @@ public class InjectsController : ControllerBase
     /// Reorder injects by updating their sequence values.
     /// </summary>
     [HttpPost("reorder")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult> ReorderInjects(Guid exerciseId, ReorderInjectsRequest request)
     {
         // Validate request
@@ -597,7 +598,7 @@ public class InjectsController : ControllerBase
     /// Delete an inject.
     /// </summary>
     [HttpDelete("{id:guid}")]
-    [Authorize(Policy = "ExerciseController")]
+    [AuthorizeExerciseController]
     public async Task<ActionResult> DeleteInject(Guid exerciseId, Guid id)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
