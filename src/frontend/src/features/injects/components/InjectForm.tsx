@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -244,7 +244,7 @@ export const InjectForm = ({
     return !error
   }
 
-  const validateForm = (): boolean => {
+  const validateForm = (): { isValid: boolean; errorMessages: string[] } => {
     const fieldsToValidate: (keyof InjectFormValues)[] = [
       'title',
       'description',
@@ -257,10 +257,29 @@ export const InjectForm = ({
       'triggerCondition',
     ]
 
-    let isValid = true
+    const errorMessages: string[] = []
     fieldsToValidate.forEach(field => {
       if (!validateField(field)) {
-        isValid = false
+        // Get error message for the failed field
+        let error: string | undefined
+        switch (field) {
+          case 'title':
+            if (!values.title.trim()) error = 'Title is required'
+            break
+          case 'description':
+            if (!values.description.trim()) error = 'Description is required'
+            break
+          case 'target':
+            if (!values.target.trim()) error = 'Target is required'
+            break
+          case 'scheduledTime':
+            if (!values.scheduledTime) error = 'Scheduled time is required'
+            break
+          case 'scenarioDay':
+            if (values.scenarioTime && !values.scenarioDay) error = 'Scenario Day is required when Scenario Time is provided'
+            break
+        }
+        if (error) errorMessages.push(error)
       }
     })
 
@@ -272,13 +291,16 @@ export const InjectForm = ({
       ),
     )
 
-    return isValid
+    return { isValid: errorMessages.length === 0, errorMessages }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
-    if (!validateForm()) {
+    const { isValid, errorMessages } = validateForm()
+    if (!isValid) {
+      // Show toast with first error message
+      toast.error(errorMessages[0] || 'Please fix the validation errors')
       return
     }
 
