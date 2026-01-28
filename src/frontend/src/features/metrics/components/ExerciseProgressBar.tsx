@@ -6,7 +6,7 @@
  * Expandable for additional detail (upcoming injects, P/S/M/U breakdown).
  */
 
-import { useState, useMemo } from 'react'
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -36,7 +36,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import { useExerciseProgress } from '../hooks/useExerciseProgress'
-import { parseTimeSpan, formatDuration } from '../types'
+import { parseTimeSpan } from '../types'
 import type { ExerciseProgressDto, UpcomingInjectDto } from '../types'
 import { ExerciseClockState, InjectStatus } from '../../../types'
 

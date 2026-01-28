@@ -1,3 +1,4 @@
+using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
 using Cadence.Core.Features.DeliveryMethods.Services;
 using Cadence.Core.Features.ExcelExport.Services;
@@ -8,11 +9,10 @@ using Cadence.Core.Features.ExpectedOutcomes.Services;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Features.Metrics.Services;
 using Cadence.Core.Features.Msel.Services;
+using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Features.Users.Services;
-using Cadence.Core.Features.Assignments.Services;
-using Cadence.Core.Features.Notifications.Services;
 using FluentValidation;
 
 namespace Cadence.Core.Extensions;

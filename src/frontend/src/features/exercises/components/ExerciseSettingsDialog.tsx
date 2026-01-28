@@ -121,7 +121,7 @@ const ConfirmationSwitch = ({
     </Stack>
     <Switch
       checked={checked}
-      onChange={(e) => onChange(e.target.checked)}
+      onChange={e => onChange(e.target.checked)}
       disabled={disabled}
       size="small"
     />
@@ -190,7 +190,7 @@ export const ExerciseSettingsDialog = ({
         setIsSaving(false)
       }
     },
-    [exerciseId, settings, onSettingsUpdated]
+    [exerciseId, settings, onSettingsUpdated],
   )
 
   const handleClockMultiplierChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -289,7 +289,7 @@ export const ExerciseSettingsDialog = ({
               onChange={handleClockMultiplierChange}
               sx={{ pl: 1 }}
             >
-              {CLOCK_MULTIPLIER_PRESETS.map((preset) => (
+              {CLOCK_MULTIPLIER_PRESETS.map(preset => (
                 <FormControlLabel
                   key={preset.value}
                   value={preset.value}
@@ -338,7 +338,7 @@ export const ExerciseSettingsDialog = ({
             </Box>
             <Switch
               checked={settings?.autoFireEnabled ?? false}
-              onChange={(e) => handleAutoFireChange(e.target.checked)}
+              onChange={e => handleAutoFireChange(e.target.checked)}
               disabled={isSaving}
             />
           </Box>

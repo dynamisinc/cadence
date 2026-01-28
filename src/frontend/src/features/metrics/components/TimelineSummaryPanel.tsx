@@ -38,7 +38,6 @@ import { useTimelineSummary } from '../hooks/useTimelineSummary'
 import { parseTimeSpan, formatDuration } from '../types'
 import type {
   TimelineSummaryDto,
-  PauseEventDto,
   ClockEventDto,
   PhaseTimingDto,
   InjectPacingDto,
@@ -120,7 +119,7 @@ const getEventColor = (eventType: string, theme: ReturnType<typeof useTheme>) =>
  * Duration summary card
  */
 const DurationSummary = ({ data }: { data: TimelineSummaryDto }) => {
-  const theme = useTheme()
+  const _theme = useTheme()
 
   const isOverTime = data.durationVariance && parseTimeSpan(data.durationVariance) > 0
   const isUnderTime = data.durationVariance && parseTimeSpan(data.durationVariance) < 0

@@ -111,7 +111,7 @@ const ConfirmationSwitch = ({
     </Stack>
     <Switch
       checked={checked}
-      onChange={(e) => onChange(e.target.checked)}
+      onChange={e => onChange(e.target.checked)}
       disabled={disabled}
       size="small"
     />
@@ -136,12 +136,12 @@ export const ExerciseSettingsPage = () => {
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'Settings' },
-        ]
-      : undefined
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'Settings' },
+      ]
+      : undefined,
   )
 
   // Fetch settings when page loads
@@ -190,7 +190,7 @@ export const ExerciseSettingsPage = () => {
         setIsSaving(false)
       }
     },
-    [exerciseId, settings]
+    [exerciseId, settings],
   )
 
   const handleClockMultiplierChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -278,7 +278,7 @@ export const ExerciseSettingsPage = () => {
                   onChange={handleClockMultiplierChange}
                   sx={{ pl: 1 }}
                 >
-                  {CLOCK_MULTIPLIER_PRESETS.map((preset) => (
+                  {CLOCK_MULTIPLIER_PRESETS.map(preset => (
                     <FormControlLabel
                       key={preset.value}
                       value={preset.value}
@@ -329,7 +329,7 @@ export const ExerciseSettingsPage = () => {
                 </Box>
                 <Switch
                   checked={settings?.autoFireEnabled ?? false}
-                  onChange={(e) => handleAutoFireChange(e.target.checked)}
+                  onChange={e => handleAutoFireChange(e.target.checked)}
                   disabled={isSaving}
                 />
               </Box>

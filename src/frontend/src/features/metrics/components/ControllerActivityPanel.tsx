@@ -10,12 +10,6 @@ import {
   Typography,
   Stack,
   Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
   Skeleton,
   Alert,
   Chip,
@@ -32,7 +26,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import { useControllerActivity } from '../hooks/useControllerActivity'
-import { parseTimeSpan, formatDuration } from '../types'
+import { parseTimeSpan } from '../types'
 import type { ControllerActivityDto, ControllerActivitySummaryDto } from '../types'
 
 interface ControllerActivityPanelProps {
@@ -116,8 +110,8 @@ const SummaryCard = ({ data }: { data: ControllerActivitySummaryDto }) => {
 /**
  * Workload distribution bar
  */
-const WorkloadBar = ({ controller, totalFired }: { controller: ControllerActivityDto; totalFired: number }) => {
-  const theme = useTheme()
+const WorkloadBar = ({ controller, _totalFired }: { controller: ControllerActivityDto; _totalFired: number }) => {
+  const _theme = useTheme()
   const percentage = controller.workloadPercentage
 
   return (
@@ -259,7 +253,7 @@ const LoadingSkeleton = () => (
  */
 export const ControllerActivityPanel = ({ exerciseId }: ControllerActivityPanelProps) => {
   const { data, isLoading, error } = useControllerActivity(exerciseId)
-  const theme = useTheme()
+  const _theme = useTheme()
 
   if (isLoading) {
     return <LoadingSkeleton />

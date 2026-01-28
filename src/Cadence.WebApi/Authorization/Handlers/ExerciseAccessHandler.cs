@@ -1,6 +1,6 @@
 using System.Security.Claims;
-using Cadence.WebApi.Authorization.Requirements;
 using Cadence.Core.Features.Authorization.Services;
+using Cadence.WebApi.Authorization.Requirements;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 

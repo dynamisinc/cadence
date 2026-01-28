@@ -1,7 +1,7 @@
+using System.Security.Claims;
 using Cadence.Core.Features.Assignments.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Cadence.WebApi.Controllers;
 

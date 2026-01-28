@@ -13,7 +13,6 @@ import {
   Skeleton,
   Alert,
   Chip,
-  LinearProgress,
   useTheme,
   Accordion,
   AccordionSummary,
@@ -168,9 +167,9 @@ const SummaryCard = ({ data }: { data: CapabilityPerformanceSummaryDto }) => {
  * Single capability card
  */
 const CapabilityCard = ({ capability }: { capability: CapabilityPerformanceDto }) => {
-  const theme = useTheme()
+  const _theme = useTheme()
   const ratingCounts = capability.ratingCounts
-  const total = ratingCounts.performed + ratingCounts.satisfactory + ratingCounts.marginal + ratingCounts.unsatisfactory + ratingCounts.unrated
+  const _total = ratingCounts.performed + ratingCounts.satisfactory + ratingCounts.marginal + ratingCounts.unsatisfactory + ratingCounts.unrated
 
   return (
     <Paper
@@ -316,7 +315,7 @@ const UnevaluatedTargetsAlert = ({ data }: { data: CapabilityPerformanceSummaryD
  * Mission area accordion
  */
 const MissionAreaAccordion = ({ area }: { area: MissionAreaSummaryDto }) => {
-  const theme = useTheme()
+  const _theme = useTheme()
   const ratingCounts = area.ratingCounts
 
   return (

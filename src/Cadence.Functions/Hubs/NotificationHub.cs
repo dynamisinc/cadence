@@ -1,5 +1,5 @@
-using Microsoft.Azure.Functions.Worker;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Azure.Functions.Worker;
 
 namespace Cadence.Functions.Hubs;
 

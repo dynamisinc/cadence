@@ -68,7 +68,7 @@ const defaultPreferences: UserPreferencesDto = {
 /**
  * Resolve 'System' theme to actual light/dark based on OS preference
  */
-function resolveTheme(theme: ThemePreference): ResolvedTheme {
+function _resolveTheme(theme: ThemePreference): ResolvedTheme {
   if (theme === 'System') {
     return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
   }
@@ -137,13 +137,13 @@ export const UserPreferencesProvider: FC<UserPreferencesProviderProps> = ({
 
       // Optimistic update
       const previousPreferences = preferences
-      setPreferences((prev) =>
+      setPreferences(prev =>
         prev
           ? {
-              ...prev,
-              ...request,
-              updatedAt: new Date().toISOString(),
-            }
+            ...prev,
+            ...request,
+            updatedAt: new Date().toISOString(),
+          }
           : prev,
       )
 

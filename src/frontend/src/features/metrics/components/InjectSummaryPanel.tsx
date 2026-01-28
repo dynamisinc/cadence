@@ -18,9 +18,7 @@ import {
   TableRow,
   Skeleton,
   Alert,
-  Chip,
   useTheme,
-  LinearProgress,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -33,7 +31,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import { useInjectSummary } from '../hooks/useInjectSummary'
-import { formatVariance, parseTimeSpan } from '../types'
+import { formatVariance } from '../types'
 import type {
   InjectSummaryDto,
   PhaseInjectSummaryDto,
@@ -62,7 +60,7 @@ const MetricCard = ({
   icon: typeof faFire
   color: string
 }) => {
-  const theme = useTheme()
+  const _theme = useTheme()
 
   return (
     <Paper

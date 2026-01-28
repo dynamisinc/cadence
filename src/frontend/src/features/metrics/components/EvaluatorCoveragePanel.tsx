@@ -19,20 +19,17 @@ import {
   Skeleton,
   Alert,
   Chip,
-  LinearProgress,
   useTheme,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faUserCheck,
-  faClipboardList,
   faCheckCircle,
   faExclamationTriangle,
   faTimesCircle,
   faChartPie,
   faLayerGroup,
   faBalanceScale,
-  faShieldAlt,
   faArrowUp,
   faArrowDown,
 } from '@fortawesome/free-solid-svg-icons'
@@ -148,9 +145,9 @@ const SummaryCard = ({ data }: { data: EvaluatorCoverageSummaryDto }) => {
  * Evaluator detail card
  */
 const EvaluatorCard = ({ evaluator }: { evaluator: EvaluatorCoverageDto }) => {
-  const theme = useTheme()
+  const _theme = useTheme()
   const ratingCounts = evaluator.ratingCounts
-  const total = ratingCounts.performed + ratingCounts.satisfactory + ratingCounts.marginal + ratingCounts.unsatisfactory + ratingCounts.unrated
+  const _total = ratingCounts.performed + ratingCounts.satisfactory + ratingCounts.marginal + ratingCounts.unsatisfactory + ratingCounts.unrated
 
   return (
     <Paper elevation={1} sx={{ p: 2, mb: 2 }}>

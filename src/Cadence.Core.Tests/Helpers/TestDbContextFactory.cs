@@ -1,6 +1,6 @@
+using Cadence.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
-using Cadence.Core.Data;
 
 namespace Cadence.Core.Tests.Helpers;
 
