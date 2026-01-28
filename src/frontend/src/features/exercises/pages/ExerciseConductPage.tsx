@@ -138,10 +138,43 @@ export const ExerciseConductPage = () => {
   const [clockConfirmAction, setClockConfirmAction] = useState<ClockAction | null>(null)
   const [pendingSkipInjectId, setPendingSkipInjectId] = useState<string | null>(null)
 
-  // Session-level "don't ask again" flags (reset when page is refreshed)
-  const [skipFireConfirmation, setSkipFireConfirmation] = useState(false)
-  const [skipSkipConfirmation, setSkipSkipConfirmation] = useState(false)
-  const [skipClockConfirmation, setSkipClockConfirmation] = useState(false)
+  // User-level "don't ask again" flags with localStorage persistence (per-exercise)
+  const getStorageKey = (type: string) => `cadence:skipConfirmation:${exerciseId}:${type}`
+
+  const [skipFireConfirmation, setSkipFireConfirmation] = useState(() => {
+    if (!exerciseId) return false
+    return localStorage.getItem(getStorageKey('fire')) === 'true'
+  })
+  const [skipSkipConfirmation, setSkipSkipConfirmation] = useState(() => {
+    if (!exerciseId) return false
+    return localStorage.getItem(getStorageKey('skip')) === 'true'
+  })
+  const [skipClockConfirmation, setSkipClockConfirmation] = useState(() => {
+    if (!exerciseId) return false
+    return localStorage.getItem(getStorageKey('clock')) === 'true'
+  })
+
+  // Persist "don't ask again" choices to localStorage
+  const handleSkipFireConfirmation = useCallback(() => {
+    setSkipFireConfirmation(true)
+    if (exerciseId) {
+      localStorage.setItem(getStorageKey('fire'), 'true')
+    }
+  }, [exerciseId])
+
+  const handleSkipSkipConfirmation = useCallback(() => {
+    setSkipSkipConfirmation(true)
+    if (exerciseId) {
+      localStorage.setItem(getStorageKey('skip'), 'true')
+    }
+  }, [exerciseId])
+
+  const handleSkipClockConfirmation = useCallback(() => {
+    setSkipClockConfirmation(true)
+    if (exerciseId) {
+      localStorage.setItem(getStorageKey('clock'), 'true')
+    }
+  }, [exerciseId])
 
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'controller' | 'narrative'>(() => {
@@ -1093,7 +1126,7 @@ export const ExerciseConductPage = () => {
         inject={fireConfirmInject}
         onConfirm={handleFireConfirmed}
         onCancel={handleFireCancelled}
-        onDontAskAgain={() => setSkipFireConfirmation(true)}
+        onDontAskAgain={handleSkipFireConfirmation}
       />
 
       {/* Skip Inject Confirmation Dialog (pre-confirmation before reason) */}
@@ -1102,7 +1135,7 @@ export const ExerciseConductPage = () => {
         inject={skipConfirmInject}
         onConfirm={handleSkipConfirmProceed}
         onCancel={handleSkipConfirmCancelled}
-        onDontAskAgain={() => setSkipSkipConfirmation(true)}
+        onDontAskAgain={handleSkipSkipConfirmation}
       />
 
       {/* Clock Control Confirmation Dialog */}
@@ -1112,7 +1145,7 @@ export const ExerciseConductPage = () => {
         currentTime={displayTime}
         onConfirm={handleClockConfirmed}
         onCancel={handleClockCancelled}
-        onDontAskAgain={() => setSkipClockConfirmation(true)}
+        onDontAskAgain={handleSkipClockConfirmation}
       />
 
       {/* Exercise Settings Dialog */}

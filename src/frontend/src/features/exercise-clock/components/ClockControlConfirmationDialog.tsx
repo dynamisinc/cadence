@@ -234,7 +234,7 @@ export const ClockControlConfirmationDialog = ({
                 size="small"
               />
             }
-            label="Don't ask again this session"
+            label="Don't ask again for this exercise"
           />
         </Stack>
       </DialogContent>
