@@ -133,7 +133,7 @@ describe('FireConfirmationDialog', () => {
     it('displays "don\'t ask again" checkbox', () => {
       render(<FireConfirmationDialog {...defaultProps} />)
 
-      expect(screen.getByRole('checkbox', { name: /don't ask again this session/i })).toBeInTheDocument()
+      expect(screen.getByRole('checkbox', { name: /don't ask again for this exercise/i })).toBeInTheDocument()
     })
 
     it('displays Cancel and Confirm Fire buttons', () => {
@@ -169,7 +169,7 @@ describe('FireConfirmationDialog', () => {
       const user = userEvent.setup()
       render(<FireConfirmationDialog {...defaultProps} />)
 
-      const checkbox = screen.getByRole('checkbox', { name: /don't ask again this session/i })
+      const checkbox = screen.getByRole('checkbox', { name: /don't ask again for this exercise/i })
       await user.click(checkbox)
 
       const confirmButton = screen.getByRole('button', { name: /confirm fire/i })
@@ -212,7 +212,7 @@ describe('FireConfirmationDialog', () => {
       const user = userEvent.setup()
       render(<FireConfirmationDialog {...defaultProps} />)
 
-      const checkbox = screen.getByRole('checkbox', { name: /don't ask again this session/i })
+      const checkbox = screen.getByRole('checkbox', { name: /don't ask again for this exercise/i })
       await user.click(checkbox)
 
       await user.keyboard('{Enter}')
@@ -225,7 +225,7 @@ describe('FireConfirmationDialog', () => {
       const user = userEvent.setup()
       render(<FireConfirmationDialog {...defaultProps} />)
 
-      const checkbox = screen.getByRole('checkbox', { name: /don't ask again this session/i })
+      const checkbox = screen.getByRole('checkbox', { name: /don't ask again for this exercise/i })
       await user.click(checkbox)
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i })
