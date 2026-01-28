@@ -28,6 +28,7 @@ import {
   useMselSummary,
   useExerciseParticipants,
 } from '../hooks'
+import { exerciseCapabilityService } from '../services/exerciseCapabilityService'
 import {
   ExerciseForm,
   ExerciseHeader,
@@ -37,6 +38,7 @@ import {
   ArchiveExerciseDialog,
   DeleteExerciseDialog,
   ExerciseSettingsDialog,
+  TargetCapabilitiesDisplay,
 } from '../components'
 import { ObjectiveList } from '../../objectives'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
@@ -208,6 +210,15 @@ export const ExerciseDetailPage = () => {
       }
 
       await updateExercise(request)
+
+      // Update target capabilities if changed (S04)
+      if (values.targetCapabilityIds !== undefined) {
+        await exerciseCapabilityService.setTargetCapabilities(
+          id!,
+          values.targetCapabilityIds,
+        )
+      }
+
       setIsDirty(false)
       // Navigate back to detail view after successful save
       navigate(`/exercises/${id}`, { replace: true })
@@ -717,6 +728,9 @@ export const ExerciseDetailPage = () => {
                   </Grid>
                 )}
               </Grid>
+
+              {/* Target Capabilities (S04) */}
+              <TargetCapabilitiesDisplay exerciseId={id!} />
 
               {/* Bottom row: MSEL Progress */}
               {mselSummary && mselSummary.totalInjects > 0 && (

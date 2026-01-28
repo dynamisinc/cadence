@@ -28,6 +28,8 @@ import { getDefaultDeliveryMode, getDefaultTimelineMode } from '../utils/timingD
 import TimingConfigurationSection from './TimingConfigurationSection'
 import { UserAutocomplete } from '../../../shared/components'
 import type { UserDto } from '../../users/types'
+import { TargetCapabilitiesSelector } from './TargetCapabilitiesSelector'
+import { useExerciseTargetCapabilities } from '../hooks/useExerciseCapabilities'
 
 interface ExerciseFormProps {
   exercise?: ExerciseDto | null
@@ -68,6 +70,9 @@ export const ExerciseForm = ({
   const isEdit = !!exercise
   const [selectedDirector, setSelectedDirector] = useState<UserDto | null>(null)
 
+  // Load target capabilities if editing an existing exercise (S04)
+  const { data: targetCapabilities } = useExerciseTargetCapabilities(exercise?.id)
+
   const {
     control,
     handleSubmit,
@@ -92,6 +97,7 @@ export const ExerciseForm = ({
       timelineMode: TimelineMode.RealTime,
       clockMultiplier: 1,
       directorId: '',
+      targetCapabilityIds: [],
     },
     mode: 'onBlur',
   })
@@ -141,12 +147,13 @@ export const ExerciseForm = ({
         timelineMode: exercise.timelineMode,
         clockMultiplier: exercise.clockMultiplier ?? 1,
         directorId: '', // TODO: Load director user object when exercise.directorId is available
+        targetCapabilityIds: targetCapabilities?.map(c => c.id) ?? [], // S04: Load target capabilities
       })
       // Note: selectedDirector state would need to be set here if we have directorId in ExerciseDto
       // For now, leaving as null since backend doesn't return directorId yet
       setSelectedDirector(null)
     }
-  }, [exercise, reset])
+  }, [exercise, targetCapabilities, reset])
 
   const isFieldDisabled = (field: keyof CreateExerciseFormValues) =>
     disabledFields.includes(field)
@@ -430,6 +437,20 @@ export const ExerciseForm = ({
             Practice exercises are excluded from production reports and analytics
           </Typography>
         </Paper>
+
+        {/* Target Capabilities (S04) */}
+        <Controller
+          name="targetCapabilityIds"
+          control={control}
+          render={({ field }) => (
+            <TargetCapabilitiesSelector
+              organizationId="00000000-0000-0000-0000-000000000001"
+              selectedIds={field.value || []}
+              onChange={field.onChange}
+              disabled={isFieldDisabled('targetCapabilityIds' as keyof CreateExerciseFormValues)}
+            />
+          )}
+        />
 
         {/* Form Actions */}
         <Stack direction="row" justifyContent="flex-end" spacing={2} pt={2}>

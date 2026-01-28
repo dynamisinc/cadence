@@ -948,4 +948,296 @@ public class ObservationServiceTests
     }
 
     #endregion
+
+    #region Capability Tagging Tests (S05)
+
+    private Capability CreateCapability(AppDbContext context, Organization org, string name, string? category = null)
+    {
+        var capability = new Capability
+        {
+            Id = Guid.NewGuid(),
+            OrganizationId = org.Id,
+            Name = name,
+            Category = category,
+            IsActive = true,
+            SortOrder = 1
+        };
+        context.Capabilities.Add(capability);
+        context.SaveChanges();
+
+        return capability;
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_WithCapabilities_LinksCapabilities()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var capability1 = CreateCapability(context, org, "Mass Care Services");
+        var capability2 = CreateCapability(context, org, "Operational Communications");
+        var service = CreateService(context);
+        var request = new CreateObservationRequest
+        {
+            Content = "Test observation",
+            CapabilityIds = new List<Guid> { capability1.Id, capability2.Id }
+        };
+        var userId = Guid.NewGuid();
+
+        // Act
+        var result = await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Capabilities.Should().HaveCount(2);
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability1.Id && c.Name == "Mass Care Services");
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability2.Id && c.Name == "Operational Communications");
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_NullCapabilities_NoLinks()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext();
+        var service = CreateService(context);
+        var request = new CreateObservationRequest
+        {
+            Content = "Test observation",
+            CapabilityIds = null
+        };
+        var userId = Guid.NewGuid();
+
+        // Act
+        var result = await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Capabilities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_EmptyCapabilities_NoLinks()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext();
+        var service = CreateService(context);
+        var request = new CreateObservationRequest
+        {
+            Content = "Test observation",
+            CapabilityIds = new List<Guid>()
+        };
+        var userId = Guid.NewGuid();
+
+        // Act
+        var result = await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Capabilities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_ChangesCapabilities()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var capability1 = CreateCapability(context, org, "Planning");
+        var capability2 = CreateCapability(context, org, "Public Information");
+        var capability3 = CreateCapability(context, org, "Intelligence");
+
+        var observation = CreateObservation(context, exercise);
+
+        // Initially link capability1
+        context.ObservationCapabilities.Add(new ObservationCapability
+        {
+            ObservationId = observation.Id,
+            CapabilityId = capability1.Id
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest
+        {
+            Content = "Updated observation",
+            CapabilityIds = new List<Guid> { capability2.Id, capability3.Id }
+        };
+        var userId = Guid.NewGuid();
+
+        // Act
+        var result = await service.UpdateObservationAsync(observation.Id, request, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Capabilities.Should().HaveCount(2);
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability2.Id && c.Name == "Public Information");
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability3.Id && c.Name == "Intelligence");
+        result.Capabilities.Should().NotContain(c => c.Id == capability1.Id);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_ClearsCapabilities_WhenEmptyList()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var capability1 = CreateCapability(context, org, "Planning");
+
+        var observation = CreateObservation(context, exercise);
+
+        // Initially link capability
+        context.ObservationCapabilities.Add(new ObservationCapability
+        {
+            ObservationId = observation.Id,
+            CapabilityId = capability1.Id
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest
+        {
+            Content = "Updated observation",
+            CapabilityIds = new List<Guid>() // Empty list should clear all capabilities
+        };
+        var userId = Guid.NewGuid();
+
+        // Act
+        var result = await service.UpdateObservationAsync(observation.Id, request, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Capabilities.Should().BeEmpty();
+
+        // Verify database state
+        var dbCapabilities = await context.ObservationCapabilities
+            .Where(oc => oc.ObservationId == observation.Id)
+            .ToListAsync();
+        dbCapabilities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_NullCapabilities_DoesNotChangeExisting()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var capability1 = CreateCapability(context, org, "Planning");
+
+        var observation = CreateObservation(context, exercise);
+
+        // Initially link capability
+        context.ObservationCapabilities.Add(new ObservationCapability
+        {
+            ObservationId = observation.Id,
+            CapabilityId = capability1.Id
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest
+        {
+            Content = "Updated observation",
+            CapabilityIds = null // Null should not change capabilities
+        };
+        var userId = Guid.NewGuid();
+
+        // Act
+        var result = await service.UpdateObservationAsync(observation.Id, request, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Capabilities.Should().HaveCount(1);
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability1.Id);
+    }
+
+    [Fact]
+    public async Task GetObservationAsync_IncludesCapabilities()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var capability1 = CreateCapability(context, org, "Mass Care Services", "Response");
+        var capability2 = CreateCapability(context, org, "Operational Communications", "Response");
+
+        var observation = CreateObservation(context, exercise);
+
+        // Link capabilities
+        context.ObservationCapabilities.AddRange(new[]
+        {
+            new ObservationCapability { ObservationId = observation.Id, CapabilityId = capability1.Id },
+            new ObservationCapability { ObservationId = observation.Id, CapabilityId = capability2.Id }
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.GetObservationAsync(observation.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Capabilities.Should().HaveCount(2);
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability1.Id && c.Name == "Mass Care Services" && c.Category == "Response");
+        result.Capabilities.Should().ContainSingle(c => c.Id == capability2.Id && c.Name == "Operational Communications" && c.Category == "Response");
+    }
+
+    [Fact]
+    public async Task GetObservationsByExerciseAsync_IncludesCapabilities()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var capability = CreateCapability(context, org, "Planning");
+
+        var observation1 = CreateObservation(context, exercise);
+        var observation2 = CreateObservation(context, exercise);
+
+        // Link capability to observation1 only
+        context.ObservationCapabilities.Add(new ObservationCapability
+        {
+            ObservationId = observation1.Id,
+            CapabilityId = capability.Id
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = (await service.GetObservationsByExerciseAsync(exercise.Id)).ToList();
+
+        // Assert
+        result.Should().HaveCount(2);
+
+        var resultObs1 = result.First(o => o.Id == observation1.Id);
+        resultObs1.Capabilities.Should().HaveCount(1);
+        resultObs1.Capabilities.Should().ContainSingle(c => c.Id == capability.Id && c.Name == "Planning");
+
+        var resultObs2 = result.First(o => o.Id == observation2.Id);
+        resultObs2.Capabilities.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task GetObservationsByInjectAsync_IncludesCapabilities()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var (_, inject) = CreateInject(context, exercise);
+        var capability = CreateCapability(context, org, "Public Health");
+
+        var observation = CreateObservation(context, exercise, inject.Id);
+
+        // Link capability
+        context.ObservationCapabilities.Add(new ObservationCapability
+        {
+            ObservationId = observation.Id,
+            CapabilityId = capability.Id
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = (await service.GetObservationsByInjectAsync(inject.Id)).ToList();
+
+        // Assert
+        result.Should().HaveCount(1);
+        result[0].Capabilities.Should().HaveCount(1);
+        result[0].Capabilities.Should().ContainSingle(c => c.Id == capability.Id && c.Name == "Public Health");
+    }
+
+    #endregion
 }

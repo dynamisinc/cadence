@@ -14,3 +14,9 @@ export {
   useExerciseSettings,
   exerciseSettingsQueryKey,
 } from './useExerciseSettings'
+export {
+  useExerciseTargetCapabilities,
+  useSetExerciseCapabilities,
+  useExerciseCapabilitySummary,
+  exerciseCapabilityKeys,
+} from './useExerciseCapabilities'

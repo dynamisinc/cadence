@@ -8,6 +8,15 @@
 import { ObservationRating } from '../../../types'
 
 /**
+ * Capability tag DTO - Lightweight capability info for observation display
+ */
+export interface CapabilityTagDto {
+  id: string
+  name: string
+  category: string | null
+}
+
+/**
  * Observation DTO - Response from API
  */
 export interface ObservationDto {
@@ -26,6 +35,7 @@ export interface ObservationDto {
   createdByName: string | null
   injectTitle: string | null
   injectNumber: number | null
+  capabilities: CapabilityTagDto[] // S05: Capability tags
 }
 
 /**
@@ -39,6 +49,7 @@ export interface CreateObservationRequest {
   location?: string | null
   injectId?: string | null
   objectiveId?: string | null
+  capabilityIds?: string[] // S05: Capability tags
 }
 
 /**
@@ -52,4 +63,5 @@ export interface UpdateObservationRequest {
   location?: string | null
   injectId?: string | null
   objectiveId?: string | null
+  capabilityIds?: string[] // S05: Capability tags
 }

@@ -15,6 +15,7 @@ import { faFileImport, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 
 import { ExerciseForm } from '../components'
 import { exerciseService } from '../services/exerciseService'
+import { exerciseCapabilityService } from '../services/exerciseCapabilityService'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useUnsavedChangesWarning } from '../../../shared/hooks'
 import type { CreateExerciseFormValues, CreateExerciseRequest, ExerciseDto } from '../types'
@@ -72,6 +73,15 @@ export const CreateExercisePage = () => {
       }
 
       const created = await exerciseService.createExercise(request)
+
+      // Save target capabilities if any were selected (S04)
+      if (values.targetCapabilityIds && values.targetCapabilityIds.length > 0) {
+        await exerciseCapabilityService.setTargetCapabilities(
+          created.id,
+          values.targetCapabilityIds,
+        )
+      }
+
       toast.success('Exercise created')
       // Clear dirty state since exercise was saved successfully
       setIsDirty(false)

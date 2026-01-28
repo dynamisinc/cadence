@@ -30,6 +30,7 @@ const createMockObservation = (
   createdByName: 'Test User',
   injectTitle: null,
   injectNumber: null,
+  capabilities: [],
   ...overrides,
 })
 
@@ -311,6 +312,73 @@ describe('ObservationList', () => {
 
       // Should show no matches message
       expect(screen.getByText(/No observations match your filters/)).toBeInTheDocument()
+    })
+  })
+
+  describe('Capability Tags (S05)', () => {
+    it('displays capability tags when present', () => {
+      const observationWithCapabilities: ObservationDto = {
+        id: 'obs-with-caps',
+        exerciseId: 'ex-1',
+        content: 'Test observation with capabilities',
+        rating: ObservationRating.Satisfactory,
+        recommendation: null,
+        observedAt: '2024-03-15T10:30:00Z',
+        createdAt: '2024-03-15T10:30:00Z',
+        updatedAt: '2024-03-15T10:30:00Z',
+        createdBy: 'user-1',
+        createdByName: 'Test Evaluator',
+        injectId: null,
+        injectTitle: null,
+        injectNumber: null,
+        objectiveId: null,
+        location: null,
+        capabilities: [
+          {
+            id: 'cap-1',
+            name: 'Mass Care Services',
+            category: 'Response',
+          },
+          {
+            id: 'cap-2',
+            name: 'Public Health',
+            category: 'Response',
+          },
+        ],
+      }
+
+      render(<ObservationList observations={[observationWithCapabilities]} />)
+
+      // Check that capability chips are displayed
+      expect(screen.getByText('Mass Care Services')).toBeInTheDocument()
+      expect(screen.getByText('Public Health')).toBeInTheDocument()
+    })
+
+    it('does not display capability section when no tags present', () => {
+      const observationWithoutCapabilities: ObservationDto = {
+        id: 'obs-no-caps',
+        exerciseId: 'ex-1',
+        content: 'Test observation without capabilities',
+        rating: ObservationRating.Performed,
+        recommendation: null,
+        observedAt: '2024-03-15T10:30:00Z',
+        createdAt: '2024-03-15T10:30:00Z',
+        updatedAt: '2024-03-15T10:30:00Z',
+        createdBy: 'user-1',
+        createdByName: 'Test Evaluator',
+        injectId: null,
+        injectTitle: null,
+        injectNumber: null,
+        objectiveId: null,
+        location: null,
+        capabilities: [],
+      }
+
+      render(<ObservationList observations={[observationWithoutCapabilities]} />)
+
+      // Check that no capability chips are displayed
+      expect(screen.queryByText('Mass Care Services')).not.toBeInTheDocument()
+      expect(screen.queryByText('Public Health')).not.toBeInTheDocument()
     })
   })
 })

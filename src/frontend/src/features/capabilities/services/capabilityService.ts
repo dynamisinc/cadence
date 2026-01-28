@@ -6,7 +6,13 @@
  */
 
 import { apiClient } from '@/core/services/api'
-import type { CapabilityDto, CreateCapabilityRequest, UpdateCapabilityRequest } from '../types'
+import type {
+  CapabilityDto,
+  CreateCapabilityRequest,
+  UpdateCapabilityRequest,
+  PredefinedLibraryInfo,
+  ImportLibraryResult,
+} from '../types'
 
 /**
  * Default organization ID (single-tenant architecture)
@@ -108,6 +114,33 @@ export const capabilityService = {
       { params },
     )
     return response.data.isAvailable
+  },
+
+  /**
+   * Get available predefined capability libraries
+   * @param organizationId Organization ID (defaults to system organization)
+   */
+  async getAvailableLibraries(organizationId?: string): Promise<PredefinedLibraryInfo[]> {
+    const response = await apiClient.get<PredefinedLibraryInfo[]>(
+      `${getBaseUrl(organizationId)}/libraries`,
+    )
+    return response.data
+  },
+
+  /**
+   * Import a predefined capability library
+   * @param libraryName Name/ID of the library to import (e.g., "FEMA", "NATO")
+   * @param organizationId Organization ID (defaults to system organization)
+   */
+  async importLibrary(
+    libraryName: string,
+    organizationId?: string,
+  ): Promise<ImportLibraryResult> {
+    const response = await apiClient.post<ImportLibraryResult>(
+      `${getBaseUrl(organizationId)}/import`,
+      { libraryName },
+    )
+    return response.data
   },
 }
 

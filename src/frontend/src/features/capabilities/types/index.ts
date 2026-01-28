@@ -121,3 +121,23 @@ export const getUniqueCategories = (capabilities: CapabilityDto[]): string[] => 
   }
   return Array.from(categories).sort()
 }
+
+/**
+ * Information about a predefined capability library
+ */
+export interface PredefinedLibraryInfo {
+  id: string
+  name: string
+  description: string
+  capabilityCount: number
+}
+
+/**
+ * Result of importing a predefined library
+ */
+export interface ImportLibraryResult {
+  totalInLibrary: number
+  imported: number
+  skippedDuplicates: number
+  importedNames: string[]
+}

@@ -52,7 +52,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAssignmentService, AssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IExerciseMetricsService, ExerciseMetricsService>();
+        services.AddScoped<IExerciseCapabilityService, ExerciseCapabilityService>();
         services.AddScoped<ICapabilityService, CapabilityService>();
+        services.AddSingleton<IPredefinedLibraryProvider, PredefinedLibraryProvider>();
+        services.AddScoped<ICapabilityImportService, CapabilityImportService>();
 
         return services;
     }

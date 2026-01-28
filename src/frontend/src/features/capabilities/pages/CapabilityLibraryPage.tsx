@@ -31,6 +31,7 @@ import { getUniqueCategories } from '../types'
 import type { CapabilityDto, CreateCapabilityRequest, UpdateCapabilityRequest } from '../types'
 import CapabilityList from '../components/CapabilityList'
 import CapabilityDialog from '../components/CapabilityDialog'
+import ImportLibraryMenu from '../components/ImportLibraryMenu'
 
 /**
  * Main capability library management page
@@ -152,7 +153,7 @@ export const CapabilityLibraryPage = () => {
           alignItems={{ xs: 'stretch', sm: 'center' }}
           spacing={2}
         >
-          <Stack direction="row" spacing={2} alignItems="center">
+          <Stack direction="row" spacing={2} alignItems="center" flexWrap="wrap">
             <CobraPrimaryButton
               onClick={handleAddClick}
               startIcon={<FontAwesomeIcon icon={faPlus} />}
@@ -160,6 +161,7 @@ export const CapabilityLibraryPage = () => {
             >
               Add Capability
             </CobraPrimaryButton>
+            <ImportLibraryMenu />
             <Typography variant="body2" color="text.secondary">
               {capabilities.filter(c => c.isActive).length} active capabilities
               {showInactive && ` (${capabilities.length} total)`}

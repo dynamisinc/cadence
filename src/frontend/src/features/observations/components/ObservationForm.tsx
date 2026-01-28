@@ -13,6 +13,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
+  Divider,
 } from '@mui/material'
 import type { SelectChangeEvent } from '@mui/material/Select'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -26,12 +27,18 @@ import {
 import { ObservationRating, InjectStatus, getObservationRatingLabel } from '../../../types'
 import type { InjectDto } from '../../injects/types'
 import type { CreateObservationRequest, UpdateObservationRequest } from '../types'
+import type { CapabilityDto } from '../../capabilities/types'
+import { ObservationCapabilitySelector } from './ObservationCapabilitySelector'
 
 interface ObservationFormProps {
   /** Inject to link observation to (optional) */
   inject?: InjectDto | null
   /** Available injects for selection */
   injects?: InjectDto[]
+  /** Available capabilities for tagging */
+  capabilities?: CapabilityDto[]
+  /** Target capability IDs for this exercise */
+  targetCapabilityIds?: string[]
   /** Initial values for editing */
   initialValues?: {
     rating: ObservationRating
@@ -39,6 +46,7 @@ interface ObservationFormProps {
     recommendation?: string
     location?: string
     injectId?: string
+    capabilityIds?: string[]
   }
   /** Called on submit */
   onSubmit: (data: CreateObservationRequest | UpdateObservationRequest) => Promise<void>
@@ -51,6 +59,8 @@ interface ObservationFormProps {
 export const ObservationForm = ({
   inject,
   injects = [],
+  capabilities = [],
+  targetCapabilityIds = [],
   initialValues,
   onSubmit,
   onCancel,
@@ -65,6 +75,9 @@ export const ObservationForm = ({
   const [location, setLocation] = useState(initialValues?.location ?? '')
   const [selectedInjectId, setSelectedInjectId] = useState<string>(
     inject?.id ?? initialValues?.injectId ?? '',
+  )
+  const [selectedCapabilityIds, setSelectedCapabilityIds] = useState<string[]>(
+    initialValues?.capabilityIds ?? [],
   )
 
   // Ref for auto-focusing the content input
@@ -131,6 +144,7 @@ export const ObservationForm = ({
       recommendation: recommendation.trim() || undefined,
       location: location.trim() || undefined,
       injectId: selectedInjectId || undefined,
+      capabilityIds: selectedCapabilityIds.length > 0 ? selectedCapabilityIds : undefined,
     }
 
     await onSubmit(data)
@@ -231,6 +245,20 @@ export const ObservationForm = ({
           }}
           helperText={location.length > 0 ? `${location.length}/200` : undefined}
         />
+
+        {/* Capability Tags (S05) */}
+        {capabilities.length > 0 && (
+          <>
+            <Divider sx={{ my: 1 }} />
+            <ObservationCapabilitySelector
+              capabilities={capabilities}
+              targetCapabilityIds={targetCapabilityIds}
+              selectedIds={selectedCapabilityIds}
+              onChange={setSelectedCapabilityIds}
+              disabled={isSubmitting}
+            />
+          </>
+        )}
 
         {/* Actions */}
         <Stack direction="row" spacing={1} justifyContent="flex-end">

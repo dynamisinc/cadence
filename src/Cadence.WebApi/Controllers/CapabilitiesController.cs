@@ -16,11 +16,19 @@ namespace Cadence.WebApi.Controllers;
 public class CapabilitiesController : ControllerBase
 {
     private readonly ICapabilityService _capabilityService;
+    private readonly IPredefinedLibraryProvider _libraryProvider;
+    private readonly ICapabilityImportService _importService;
     private readonly ILogger<CapabilitiesController> _logger;
 
-    public CapabilitiesController(ICapabilityService capabilityService, ILogger<CapabilitiesController> logger)
+    public CapabilitiesController(
+        ICapabilityService capabilityService,
+        IPredefinedLibraryProvider libraryProvider,
+        ICapabilityImportService importService,
+        ILogger<CapabilitiesController> logger)
     {
         _capabilityService = capabilityService;
+        _libraryProvider = libraryProvider;
+        _importService = importService;
         _logger = logger;
     }
 
@@ -180,6 +188,56 @@ public class CapabilitiesController : ControllerBase
 
         var isAvailable = await _capabilityService.IsNameUniqueAsync(organizationId, name, excludeId);
         return Ok(new { isAvailable });
+    }
+
+    // =========================================================================
+    // Predefined Library Import Endpoints
+    // =========================================================================
+
+    /// <summary>
+    /// Get available predefined capability libraries.
+    /// </summary>
+    /// <param name="organizationId">The organization ID (required by route but not used).</param>
+    /// <returns>List of available libraries with metadata.</returns>
+    [HttpGet("libraries")]
+    public ActionResult<IEnumerable<PredefinedLibraryInfo>> GetAvailableLibraries(Guid organizationId)
+    {
+        var libraries = _libraryProvider.GetAvailableLibraries();
+        return Ok(libraries);
+    }
+
+    /// <summary>
+    /// Import a predefined capability library into an organization.
+    /// Skips capabilities that already exist by name (case-insensitive).
+    /// </summary>
+    /// <param name="organizationId">The organization ID.</param>
+    /// <param name="request">Import request containing library name.</param>
+    /// <returns>Import result with counts and imported capability names.</returns>
+    [HttpPost("import")]
+    public async Task<ActionResult<ImportLibraryResult>> ImportLibrary(
+        Guid organizationId,
+        [FromBody] ImportLibraryRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.LibraryName))
+        {
+            return BadRequest(new { message = "Library name is required" });
+        }
+
+        try
+        {
+            var result = await _importService.ImportLibraryAsync(organizationId, request.LibraryName);
+
+            _logger.LogInformation(
+                "Imported {ImportedCount} capabilities from library '{LibraryName}' into organization {OrganizationId}. " +
+                "Skipped {SkippedCount} duplicates.",
+                result.Imported, request.LibraryName, organizationId, result.SkippedDuplicates);
+
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     // =========================================================================

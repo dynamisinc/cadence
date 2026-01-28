@@ -88,3 +88,28 @@ public class UpdateCapabilityRequest
     /// </summary>
     public bool IsActive { get; init; } = true;
 }
+
+/// <summary>
+/// Request DTO for importing a predefined capability library.
+/// </summary>
+public record ImportLibraryRequest(string LibraryName);
+
+/// <summary>
+/// Response DTO containing the results of a library import operation.
+/// </summary>
+public record ImportLibraryResult(
+    int TotalInLibrary,
+    int Imported,
+    int SkippedDuplicates,
+    List<string> ImportedNames
+);
+
+/// <summary>
+/// Response DTO providing metadata about a predefined capability library.
+/// </summary>
+public record PredefinedLibraryInfo(
+    string Id,
+    string Name,
+    string Description,
+    int CapabilityCount
+);
