@@ -167,13 +167,13 @@ jobs:
       - name: Health check
         run: |
           WEBAPP_URL="${{ steps.deploy-webapi.outputs.webapp-url }}"
-          echo "Checking health at: ${WEBAPP_URL}/api/health"
+          echo "Checking liveness at: ${WEBAPP_URL}/api/health/live"
           echo "Waiting 60 seconds for app to warm up..."
           sleep 60
 
           for i in 1 2 3 4 5; do
             echo "Health check attempt $i..."
-            response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health" || echo "000")
+            response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health/live" || echo "000")
             if [ "$response" = "200" ]; then
               echo "Health check passed!"
               exit 0
