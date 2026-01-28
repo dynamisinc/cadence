@@ -87,8 +87,11 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
-      - name: Restore dependencies
-        run: dotnet restore ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj
+      - name: Restore dependencies (for migrations)
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: |
+          dotnet restore src/Cadence.Core/Cadence.Core.csproj
+          dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
 
       - name: Build
         run: dotnet build ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --no-restore
