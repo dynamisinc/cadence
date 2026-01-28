@@ -1,19 +1,20 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner } from './core/components'
-import { ThemeProvider } from '@mui/material/styles'
-import CssBaseline from '@mui/material/CssBaseline'
+import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
 
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from './theme/cobraTheme'
+import { ThemeProvider } from '@mui/material/styles'
+import CssBaseline from '@mui/material/CssBaseline'
 import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
 import { ExerciseNavigationProvider } from './shared/contexts'
+import { UserPreferencesProvider } from './features/settings'
 import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
@@ -24,10 +25,11 @@ import {
   ExerciseDetailPage,
   ExerciseConductPage,
   ExerciseParticipantsPage,
+  ExerciseSettingsPage,
   ReportsPage,
-  MetricsPlaceholderPage,
-  SettingsPlaceholderPage,
 } from './features/exercises'
+import { UserSettingsPage } from './features/settings'
+import { ExerciseMetricsPage } from './features/metrics'
 import { ObservationsPage } from './features/observations'
 import {
   InjectListPage,
@@ -201,12 +203,7 @@ const router = createBrowserRouter([
       // Settings page (top-level, not exercise-scoped)
       {
         path: 'settings',
-        element: (
-          <GlobalPlaceholderPage
-            featureName="Settings"
-            description="Configure application preferences and account settings."
-          />
-        ),
+        element: <UserSettingsPage />,
       },
 
       // Exercise list and create (no context needed)
@@ -228,8 +225,8 @@ const router = createBrowserRouter([
           { path: 'observations', element: <ObservationsPage /> },
           { path: 'participants', element: <ExerciseParticipantsPage /> },
           { path: 'reports', element: <ReportsPage /> },
-          { path: 'metrics', element: <MetricsPlaceholderPage /> },
-          { path: 'settings', element: <SettingsPlaceholderPage /> },
+          { path: 'metrics', element: <ExerciseMetricsPage /> },
+          { path: 'settings', element: <ExerciseSettingsPage /> },
         ],
       },
 
@@ -280,25 +277,32 @@ const router = createBrowserRouter([
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
+      {/* Base theme for auth pages (before preferences load) */}
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
         <AuthProvider>
-          <ExerciseNavigationProvider>
-            <ConnectivityProvider>
-              <OfflineSyncProvider>
-                <MobileBlocker>
-                  <FeatureFlagsProvider>
-                    <NotificationToastProvider>
-                      <RouterProvider router={router} />
-                    </NotificationToastProvider>
-                    <GlobalSyncStatus />
-                    <UpdatePrompt />
-                    <InstallBanner />
-                  </FeatureFlagsProvider>
-                </MobileBlocker>
-              </OfflineSyncProvider>
-            </ConnectivityProvider>
-          </ExerciseNavigationProvider>
+          {/* User preferences provider loads after auth */}
+          <UserPreferencesProvider>
+            {/* ThemedApp applies dynamic theme based on user preferences */}
+            <ThemedApp>
+              <ExerciseNavigationProvider>
+                <ConnectivityProvider>
+                  <OfflineSyncProvider>
+                    <MobileBlocker>
+                      <FeatureFlagsProvider>
+                        <NotificationToastProvider>
+                          <RouterProvider router={router} />
+                        </NotificationToastProvider>
+                        <GlobalSyncStatus />
+                        <UpdatePrompt />
+                        <InstallBanner />
+                      </FeatureFlagsProvider>
+                    </MobileBlocker>
+                  </OfflineSyncProvider>
+                </ConnectivityProvider>
+              </ExerciseNavigationProvider>
+            </ThemedApp>
+          </UserPreferencesProvider>
         </AuthProvider>
 
         <ToastContainer

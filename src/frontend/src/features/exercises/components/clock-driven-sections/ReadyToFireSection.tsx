@@ -8,7 +8,7 @@
  * @see exercise-config/S06-clock-driven-conduct-view
  */
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -63,6 +63,16 @@ interface ReadyToFireSectionProps {
   onSkip: (injectId: string, request: SkipInjectRequest) => Promise<void> | void
   /** Called when inject row is clicked to open details drawer */
   onInjectClick?: (inject: InjectDto) => void
+  /**
+   * Pre-confirmation callback for skip.
+   * Returns true if confirmation dialog is being shown (reason dialog should wait).
+   * Returns false if no confirmation needed (proceed to reason dialog immediately).
+   */
+  onSkipPreConfirmation?: (injectId: string) => boolean | null
+  /** When set, opens the skip reason dialog for this inject (after pre-confirmation) */
+  pendingSkipInjectId?: string | null
+  /** Called when pending skip is cleared (dialog closed without completing) */
+  onPendingSkipClear?: () => void
 }
 
 export const ReadyToFireSection = ({
@@ -73,13 +83,35 @@ export const ReadyToFireSection = ({
   onFire,
   onSkip,
   onInjectClick,
+  onSkipPreConfirmation,
+  pendingSkipInjectId,
+  onPendingSkipClear,
 }: ReadyToFireSectionProps) => {
   const [expanded, setExpanded] = useState(true)
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
   const [skipReason, setSkipReason] = useState('')
 
+  // Handle pending skip from parent (after pre-confirmation)
+  useEffect(() => {
+    if (pendingSkipInjectId) {
+      setSkipInjectId(pendingSkipInjectId)
+      setSkipReason('')
+      setSkipDialogOpen(true)
+    }
+  }, [pendingSkipInjectId])
+
   const handleSkipClick = (injectId: string) => {
+    // Check if pre-confirmation is needed
+    if (onSkipPreConfirmation) {
+      const needsConfirmation = onSkipPreConfirmation(injectId)
+      if (needsConfirmation) {
+        // Parent will show pre-confirmation dialog first
+        // When confirmed, pendingSkipInjectId will be set to trigger this dialog
+        return
+      }
+    }
+    // No pre-confirmation needed, open reason dialog directly
     setSkipInjectId(injectId)
     setSkipReason('')
     setSkipDialogOpen(true)
@@ -91,7 +123,17 @@ export const ReadyToFireSection = ({
       setSkipDialogOpen(false)
       setSkipInjectId(null)
       setSkipReason('')
+      // Clear pending skip from parent
+      onPendingSkipClear?.()
     }
+  }
+
+  const handleSkipCancel = () => {
+    setSkipDialogOpen(false)
+    setSkipInjectId(null)
+    setSkipReason('')
+    // Clear pending skip from parent
+    onPendingSkipClear?.()
   }
 
   // Don't render section if no ready injects
@@ -291,7 +333,7 @@ export const ReadyToFireSection = ({
       </Paper>
 
       {/* Skip Reason Dialog */}
-      <Dialog open={skipDialogOpen} onClose={() => setSkipDialogOpen(false)} maxWidth="sm" fullWidth>
+      <Dialog open={skipDialogOpen} onClose={handleSkipCancel} maxWidth="sm" fullWidth>
         <DialogTitle>Skip Inject</DialogTitle>
         <DialogContent>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
@@ -310,7 +352,7 @@ export const ReadyToFireSection = ({
           />
         </DialogContent>
         <DialogActions>
-          <CobraSecondaryButton onClick={() => setSkipDialogOpen(false)} disabled={isSubmitting}>
+          <CobraSecondaryButton onClick={handleSkipCancel} disabled={isSubmitting}>
             Cancel
           </CobraSecondaryButton>
           <CobraPrimaryButton

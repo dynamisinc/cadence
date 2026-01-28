@@ -1,3 +1,4 @@
+using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
 using Cadence.Core.Features.DeliveryMethods.Services;
 using Cadence.Core.Features.ExcelExport.Services;
@@ -6,12 +7,12 @@ using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.ExpectedOutcomes.Services;
 using Cadence.Core.Features.Injects.Services;
+using Cadence.Core.Features.Metrics.Services;
 using Cadence.Core.Features.Msel.Services;
+using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Features.Users.Services;
-using Cadence.Core.Features.Assignments.Services;
-using Cadence.Core.Features.Notifications.Services;
 using FluentValidation;
 
 namespace Cadence.Core.Extensions;
@@ -46,8 +47,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExcelImportService, ExcelImportService>();
         services.AddScoped<IExcelExportService, ExcelExportService>();
         services.AddScoped<IUserService, UserService>();
+        services.AddScoped<IUserPreferencesService, UserPreferencesService>();
         services.AddScoped<IAssignmentService, AssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IExerciseMetricsService, ExerciseMetricsService>();
 
         return services;
     }

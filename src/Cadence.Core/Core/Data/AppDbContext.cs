@@ -36,6 +36,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<DeliveryMethodLookup> DeliveryMethods => Set<DeliveryMethodLookup>();
     public DbSet<ExpectedOutcome> ExpectedOutcomes => Set<ExpectedOutcome>();
     public DbSet<Notification> Notifications => Set<Notification>();
+    public DbSet<ClockEvent> ClockEvents => Set<ClockEvent>();
+    public DbSet<UserPreferences> UserPreferences => Set<UserPreferences>();
+    public DbSet<CoreCapability> CoreCapabilities => Set<CoreCapability>();
+    public DbSet<ObservationCapability> ObservationCapabilities => Set<ObservationCapability>();
+    public DbSet<ExerciseTargetCapability> ExerciseTargetCapabilities => Set<ExerciseTargetCapability>();
 
     // =========================================================================
     // Model Configuration
@@ -91,6 +96,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureDeliveryMethodLookup(modelBuilder);
         ConfigureExpectedOutcome(modelBuilder);
         ConfigureNotification(modelBuilder);
+        ConfigureClockEvent(modelBuilder);
+        ConfigureUserPreferences(modelBuilder);
+        ConfigureCoreCapability(modelBuilder);
+        ConfigureObservationCapability(modelBuilder);
+        ConfigureExerciseTargetCapability(modelBuilder);
     }
 
     /// <summary>
@@ -264,6 +274,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.TimelineMode).HasConversion<string>().HasMaxLength(20);
             entity.Property(e => e.TimeScale).HasColumnType("decimal(5,2)");
 
+            // Exercise settings (S03-S05)
+            entity.Property(e => e.ClockMultiplier).HasColumnType("decimal(4,2)").HasDefaultValue(1.0m);
+
             entity.HasIndex(e => new { e.OrganizationId, e.Status });
             entity.HasIndex(e => e.ScheduledDate);
 
@@ -362,6 +375,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.ParentInjectId);
             entity.HasIndex(e => e.Track);
             entity.HasIndex(e => e.DeliveryMethodId);
+            entity.HasIndex(e => e.FiredByUserId);
+            entity.HasIndex(e => e.SkippedByUserId);
 
             entity.HasOne(e => e.Msel)
                 .WithMany(m => m.Injects)
@@ -378,17 +393,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(e => e.ParentInjectId)
                 .OnDelete(DeleteBehavior.NoAction);
 
-            // User references are optional to handle soft-deleted users gracefully.
-            // For historical reports, use IgnoreQueryFilters() to include deleted users.
+            // User references (ApplicationUser) are optional to handle deactivated users gracefully.
             entity.HasOne(e => e.FiredByUser)
                 .WithMany()
-                .HasForeignKey(e => e.FiredBy)
+                .HasForeignKey(e => e.FiredByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
             entity.HasOne(e => e.SkippedByUser)
                 .WithMany()
-                .HasForeignKey(e => e.SkippedBy)
+                .HasForeignKey(e => e.SkippedByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
@@ -743,6 +757,171 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(e => e.UserId)
                 .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureClockEvent(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ClockEvent>(entity =>
+        {
+            entity.Property(e => e.EventType).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Notes).HasMaxLength(500);
+            entity.Property(e => e.UserId).HasMaxLength(450); // Match AspNetUsers.Id length
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => new { e.ExerciseId, e.OccurredAt });
+
+            // Relationship to Exercise
+            entity.HasOne(e => e.Exercise)
+                .WithMany(ex => ex.ClockEvents)
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // User who triggered the event - references ApplicationUser (ASP.NET Core Identity)
+            // Uses string FK to match IdentityUser.Id type
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureUserPreferences(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserPreferences>(entity =>
+        {
+            // Use UserId as primary key (1:1 relationship with ApplicationUser)
+            entity.HasKey(e => e.UserId);
+            entity.Property(e => e.UserId).HasMaxLength(450); // Match AspNetUsers.Id length
+
+            // Enums stored as strings for readability
+            entity.Property(e => e.Theme).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.DisplayDensity).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.TimeFormat).HasConversion<string>().HasMaxLength(20);
+
+            // One-to-one relationship with ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithOne(u => u.Preferences)
+                .HasForeignKey<UserPreferences>(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureCoreCapability(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CoreCapability>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.MissionArea).HasConversion<string>().HasMaxLength(20);
+
+            // Index for efficient queries
+            entity.HasIndex(e => e.Name).IsUnique();
+            entity.HasIndex(e => e.MissionArea);
+            entity.HasIndex(e => e.IsActive);
+
+            // Seed FEMA Core Capabilities
+            // Reference: https://www.fema.gov/emergency-managers/national-preparedness/mission-core-capabilities
+            SeedCoreCapabilities(entity);
+        });
+    }
+
+    private static void SeedCoreCapabilities(Microsoft.EntityFrameworkCore.Metadata.Builders.EntityTypeBuilder<CoreCapability> entity)
+    {
+        // All Mission Areas - Common Capabilities
+        entity.HasData(
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000001"), Name = "Planning", MissionArea = MissionArea.Response, DisplayOrder = 1, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000002"), Name = "Public Information and Warning", MissionArea = MissionArea.Response, DisplayOrder = 2, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000003"), Name = "Operational Coordination", MissionArea = MissionArea.Response, DisplayOrder = 3, IsActive = true }
+        );
+
+        // Prevention
+        entity.HasData(
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000101"), Name = "Intelligence and Information Sharing", MissionArea = MissionArea.Prevention, DisplayOrder = 1, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000102"), Name = "Interdiction and Disruption", MissionArea = MissionArea.Prevention, DisplayOrder = 2, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000103"), Name = "Screening, Search, and Detection", MissionArea = MissionArea.Prevention, DisplayOrder = 3, IsActive = true }
+        );
+
+        // Protection
+        entity.HasData(
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000201"), Name = "Access Control and Identity Verification", MissionArea = MissionArea.Protection, DisplayOrder = 1, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000202"), Name = "Cybersecurity", MissionArea = MissionArea.Protection, DisplayOrder = 2, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000203"), Name = "Physical Protective Measures", MissionArea = MissionArea.Protection, DisplayOrder = 3, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000204"), Name = "Risk Management for Protection Programs and Activities", MissionArea = MissionArea.Protection, DisplayOrder = 4, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000205"), Name = "Supply Chain Integrity and Security", MissionArea = MissionArea.Protection, DisplayOrder = 5, IsActive = true }
+        );
+
+        // Mitigation
+        entity.HasData(
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000301"), Name = "Community Resilience", MissionArea = MissionArea.Mitigation, DisplayOrder = 1, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000302"), Name = "Long-term Vulnerability Reduction", MissionArea = MissionArea.Mitigation, DisplayOrder = 2, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000303"), Name = "Risk and Disaster Resilience Assessment", MissionArea = MissionArea.Mitigation, DisplayOrder = 3, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000304"), Name = "Threats and Hazard Identification", MissionArea = MissionArea.Mitigation, DisplayOrder = 4, IsActive = true }
+        );
+
+        // Response
+        entity.HasData(
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000401"), Name = "Critical Transportation", MissionArea = MissionArea.Response, DisplayOrder = 4, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000402"), Name = "Environmental Response/Health and Safety", MissionArea = MissionArea.Response, DisplayOrder = 5, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000403"), Name = "Fatality Management Services", MissionArea = MissionArea.Response, DisplayOrder = 6, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000404"), Name = "Fire Management and Suppression", MissionArea = MissionArea.Response, DisplayOrder = 7, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000405"), Name = "Infrastructure Systems", MissionArea = MissionArea.Response, DisplayOrder = 8, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000406"), Name = "Logistics and Supply Chain Management", MissionArea = MissionArea.Response, DisplayOrder = 9, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000407"), Name = "Mass Care Services", MissionArea = MissionArea.Response, DisplayOrder = 10, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000408"), Name = "Mass Search and Rescue Operations", MissionArea = MissionArea.Response, DisplayOrder = 11, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000409"), Name = "On-scene Security, Protection, and Law Enforcement", MissionArea = MissionArea.Response, DisplayOrder = 12, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000410"), Name = "Operational Communications", MissionArea = MissionArea.Response, DisplayOrder = 13, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000411"), Name = "Public Health, Healthcare, and Emergency Medical Services", MissionArea = MissionArea.Response, DisplayOrder = 14, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000412"), Name = "Situational Assessment", MissionArea = MissionArea.Response, DisplayOrder = 15, IsActive = true }
+        );
+
+        // Recovery
+        entity.HasData(
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000501"), Name = "Economic Recovery", MissionArea = MissionArea.Recovery, DisplayOrder = 1, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000502"), Name = "Health and Social Services", MissionArea = MissionArea.Recovery, DisplayOrder = 2, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000503"), Name = "Housing", MissionArea = MissionArea.Recovery, DisplayOrder = 3, IsActive = true },
+            new CoreCapability { Id = Guid.Parse("00000001-0000-0000-0000-000000000504"), Name = "Natural and Cultural Resources", MissionArea = MissionArea.Recovery, DisplayOrder = 4, IsActive = true }
+        );
+    }
+
+    private static void ConfigureObservationCapability(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ObservationCapability>(entity =>
+        {
+            // Composite primary key
+            entity.HasKey(e => new { e.ObservationId, e.CoreCapabilityId });
+
+            // Relationships
+            entity.HasOne(e => e.Observation)
+                .WithMany(o => o.ObservationCapabilities)
+                .HasForeignKey(e => e.ObservationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.CoreCapability)
+                .WithMany(c => c.ObservationCapabilities)
+                .HasForeignKey(e => e.CoreCapabilityId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureExerciseTargetCapability(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ExerciseTargetCapability>(entity =>
+        {
+            // Composite primary key
+            entity.HasKey(e => new { e.ExerciseId, e.CoreCapabilityId });
+
+            // Relationships
+            entity.HasOne(e => e.Exercise)
+                .WithMany(ex => ex.TargetCapabilities)
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.CoreCapability)
+                .WithMany(c => c.ExerciseTargetCapabilities)
+                .HasForeignKey(e => e.CoreCapabilityId)
                 .OnDelete(DeleteBehavior.Cascade);
         });
     }

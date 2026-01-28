@@ -41,6 +41,12 @@ export interface ExerciseDto {
   // Archive/delete tracking fields
   hasBeenPublished: boolean // True if exercise ever left Draft status
   previousStatus: ExerciseStatus | null // Status before archiving, used for restore
+  // Exercise settings (S03-S05)
+  clockMultiplier: number
+  autoFireEnabled: boolean
+  confirmFireInject: boolean
+  confirmSkipInject: boolean
+  confirmClockControl: boolean
 }
 
 /**
@@ -56,7 +62,7 @@ export interface CreateExerciseRequest {
   isPracticeMode?: boolean
   deliveryMode: DeliveryMode
   timelineMode: TimelineMode
-  timeScale?: number | null
+  clockMultiplier: number // Clock speed (1, 2, 5, 10, or 20)
   directorId?: string // Optional - user with Admin or Manager role to assign as Exercise Director
 }
 
@@ -75,7 +81,7 @@ export interface UpdateExerciseRequest {
   isPracticeMode?: boolean
   deliveryMode: DeliveryMode
   timelineMode: TimelineMode
-  timeScale?: number | null
+  clockMultiplier: number // Clock speed (1, 2, 5, 10, or 20)
   directorId?: string // Optional - user with Admin or Manager role to assign as Exercise Director
 }
 
@@ -240,6 +246,43 @@ export interface UpdateParticipantRoleRequest {
 export interface ParticipantsListResponse {
   participants: ExerciseParticipantDto[]
 }
+
+// =========================================================================
+// Exercise Settings Types (S03-S05)
+// =========================================================================
+
+/**
+ * Exercise settings DTO - Settings-only view of an exercise
+ */
+export interface ExerciseSettingsDto {
+  clockMultiplier: number
+  autoFireEnabled: boolean
+  confirmFireInject: boolean
+  confirmSkipInject: boolean
+  confirmClockControl: boolean
+}
+
+/**
+ * Request to update exercise settings
+ */
+export interface UpdateExerciseSettingsRequest {
+  clockMultiplier?: number
+  autoFireEnabled?: boolean
+  confirmFireInject?: boolean
+  confirmSkipInject?: boolean
+  confirmClockControl?: boolean
+}
+
+/**
+ * Clock multiplier preset options
+ */
+export const CLOCK_MULTIPLIER_PRESETS = [
+  { value: 1, label: '1x (Real-time)' },
+  { value: 2, label: '2x' },
+  { value: 5, label: '5x' },
+  { value: 10, label: '10x' },
+  { value: 20, label: '20x (Max)' },
+] as const
 
 // Re-export validation types
 export type { CreateExerciseFormValues, UpdateExerciseFormValues } from './validation'

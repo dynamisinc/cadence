@@ -23,12 +23,13 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faRightFromBracket, faDumbbell, faPlay } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
 import { useExerciseNavigation } from '@/shared/contexts'
 import type { ExerciseAssignmentDto } from '@/features/auth'
+import { UserSettingsDialog } from '@/features/settings'
 
 /**
  * Get user initials from full name
@@ -57,6 +58,7 @@ export const ProfileMenu: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
+  const [settingsOpen, setSettingsOpen] = useState(false)
 
   const open = Boolean(anchorEl)
 
@@ -103,6 +105,15 @@ export const ProfileMenu: React.FC = () => {
   const handleLogout = async () => {
     handleClose()
     await logout()
+  }
+
+  const handleOpenSettings = () => {
+    handleClose()
+    setSettingsOpen(true)
+  }
+
+  const handleCloseSettings = () => {
+    setSettingsOpen(false)
   }
 
   const userInitials = getInitials(accountFullName)
@@ -290,6 +301,16 @@ export const ProfileMenu: React.FC = () => {
 
         <Divider />
 
+        {/* Settings */}
+        {user && (
+          <MenuItem onClick={handleOpenSettings} data-testid="settings-button">
+            <ListItemIcon>
+              <FontAwesomeIcon icon={faGear} />
+            </ListItemIcon>
+            <ListItemText>Settings</ListItemText>
+          </MenuItem>
+        )}
+
         {/* Logout Button (only show when authenticated) */}
         {user && (
           <MenuItem onClick={handleLogout} data-testid="logout-button">
@@ -300,6 +321,9 @@ export const ProfileMenu: React.FC = () => {
           </MenuItem>
         )}
       </Menu>
+
+      {/* Settings Dialog */}
+      <UserSettingsDialog open={settingsOpen} onClose={handleCloseSettings} />
     </>
   )
 }

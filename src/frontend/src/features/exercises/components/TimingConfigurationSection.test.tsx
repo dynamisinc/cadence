@@ -20,7 +20,7 @@ describe('TimingConfigurationSection', () => {
   const defaultProps = {
     deliveryMode: DeliveryMode.ClockDriven,
     timelineMode: TimelineMode.RealTime,
-    timeScale: null,
+    clockMultiplier: 1,
     exerciseType: ExerciseType.FSE,
     isLocked: false,
     onChange: vi.fn(),
@@ -65,8 +65,13 @@ describe('TimingConfigurationSection', () => {
         />,
       )
 
-      const realTimeRadio = screen.getByRole('radio', { name: /Real-time/ })
-      expect(realTimeRadio).toBeChecked()
+      // Use getAllByRole and find the one that's checked to avoid name collision
+      // with the "1x (Real-time)" clock speed option
+      const realTimeRadios = screen.getAllByRole('radio', { name: /Real-time/ })
+      const checkedRealTimeRadio = realTimeRadios.find(
+        radio => radio.getAttribute('value') === 'RealTime',
+      )
+      expect(checkedRealTimeRadio).toBeChecked()
     })
 
     it('calls onChange when delivery mode changes', async () => {
@@ -97,80 +102,59 @@ describe('TimingConfigurationSection', () => {
       expect(onChange).toHaveBeenCalledWith('timelineMode', TimelineMode.Compressed)
     })
 
-    it('shows time scale input when Compressed selected', () => {
+    it('shows clock speed options when Clock-driven selected', () => {
       renderWithTheme(
         <TimingConfigurationSection
           {...defaultProps}
-          timelineMode={TimelineMode.Compressed}
+          deliveryMode={DeliveryMode.ClockDriven}
         />,
       )
 
-      expect(screen.getByLabelText(/Time Scale/i)).toBeInTheDocument()
+      expect(screen.getByText('Clock Speed')).toBeInTheDocument()
+      expect(screen.getByText('1x (Real-time)')).toBeInTheDocument()
+      expect(screen.getByText('2x')).toBeInTheDocument()
+      expect(screen.getByText('5x')).toBeInTheDocument()
     })
 
-    it('hides time scale input when Real-time selected', () => {
+    it('hides timeline and clock speed options when Facilitator-paced selected', () => {
       renderWithTheme(
         <TimingConfigurationSection
           {...defaultProps}
-          timelineMode={TimelineMode.RealTime}
+          deliveryMode={DeliveryMode.FacilitatorPaced}
         />,
       )
 
-      expect(screen.queryByLabelText(/Time Scale/i)).not.toBeInTheDocument()
+      expect(screen.queryByText('What timeline will the exercise use?')).not.toBeInTheDocument()
+      expect(screen.queryByText('Clock Speed')).not.toBeInTheDocument()
     })
 
-    it('hides time scale input when Story-only selected', () => {
+    it('displays helper text for clock multiplier greater than 1', () => {
       renderWithTheme(
         <TimingConfigurationSection
           {...defaultProps}
-          timelineMode={TimelineMode.StoryOnly}
+          clockMultiplier={5}
         />,
       )
 
-      expect(screen.queryByLabelText(/Time Scale/i)).not.toBeInTheDocument()
+      expect(screen.getByText('1 minute wall clock = 5 minutes scenario time')).toBeInTheDocument()
     })
 
-    it('displays helper text with calculated story time', () => {
-      renderWithTheme(
-        <TimingConfigurationSection
-          {...defaultProps}
-          timelineMode={TimelineMode.Compressed}
-          timeScale={4}
-        />,
-      )
-
-      expect(screen.getByText('1 real minute = 4 story minutes')).toBeInTheDocument()
-    })
-
-    it('displays singular "minute" for timeScale = 1', () => {
-      renderWithTheme(
-        <TimingConfigurationSection
-          {...defaultProps}
-          timelineMode={TimelineMode.Compressed}
-          timeScale={1}
-        />,
-      )
-
-      expect(screen.getByText('1 real minute = 1 story minute')).toBeInTheDocument()
-    })
-
-    it('calls onChange with numeric value when time scale input changes', async () => {
+    it('calls onChange with numeric value when clock multiplier changes', async () => {
       const onChange = vi.fn()
       const user = userEvent.setup()
 
       renderWithTheme(
         <TimingConfigurationSection
           {...defaultProps}
-          timelineMode={TimelineMode.Compressed}
+          clockMultiplier={1}
           onChange={onChange}
         />,
       )
 
-      const timeScaleInput = screen.getByLabelText(/Time Scale/i)
-      await user.clear(timeScaleInput)
-      await user.type(timeScaleInput, '8')
+      const twoXRadio = screen.getByRole('radio', { name: /2x/ })
+      await user.click(twoXRadio)
 
-      expect(onChange).toHaveBeenCalledWith('timeScale', 8)
+      expect(onChange).toHaveBeenCalledWith('clockMultiplier', 2)
     })
 
     it('shows validation error for delivery mode', () => {
@@ -195,16 +179,15 @@ describe('TimingConfigurationSection', () => {
       expect(screen.getByText('Timeline mode is required')).toBeInTheDocument()
     })
 
-    it('shows validation error for time scale', () => {
+    it('shows validation error for clock multiplier', () => {
       renderWithTheme(
         <TimingConfigurationSection
           {...defaultProps}
-          timelineMode={TimelineMode.Compressed}
-          errors={{ timeScale: 'Time scale must be at least 0.1x' }}
+          errors={{ clockMultiplier: 'Clock multiplier is required' }}
         />,
       )
 
-      expect(screen.getByText('Time scale must be at least 0.1x')).toBeInTheDocument()
+      expect(screen.getByText('Clock multiplier is required')).toBeInTheDocument()
     })
 
     it('shows help tooltips for both sections', () => {
@@ -261,20 +244,21 @@ describe('TimingConfigurationSection', () => {
       )
 
       expect(screen.getByText('Timeline Mode:')).toBeInTheDocument()
-      expect(screen.getByText('Real-time (1:1)')).toBeInTheDocument()
+      expect(screen.getByText('Real-time')).toBeInTheDocument()
     })
 
-    it('displays current timeline mode as Compressed with scale in locked state', () => {
+    it('displays current timeline mode as Compressed in locked state', () => {
       renderWithTheme(
         <TimingConfigurationSection
           {...defaultProps}
           timelineMode={TimelineMode.Compressed}
-          timeScale={4}
+          clockMultiplier={5}
           isLocked={true}
         />,
       )
 
-      expect(screen.getByText('Compressed (4x)')).toBeInTheDocument()
+      expect(screen.getByText('Timeline Mode:')).toBeInTheDocument()
+      expect(screen.getByText('Compressed')).toBeInTheDocument()
     })
 
     it('displays current timeline mode as Story-only in locked state', () => {

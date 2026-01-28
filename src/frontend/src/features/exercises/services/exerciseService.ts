@@ -15,6 +15,8 @@ import type {
   MselSummaryDto,
   SetupProgressDto,
   DeleteSummaryResponse,
+  ExerciseSettingsDto,
+  UpdateExerciseSettingsRequest,
 } from '../types'
 
 export const exerciseService = {
@@ -248,6 +250,35 @@ export const exerciseService = {
    */
   deleteExercise: async (id: string): Promise<void> => {
     await apiClient.delete(`/exercises/${id}`)
+  },
+
+  // =========================================================================
+  // Exercise Settings Methods (S03-S05)
+  // =========================================================================
+
+  /**
+   * Get the current settings for an exercise
+   */
+  getSettings: async (id: string): Promise<ExerciseSettingsDto> => {
+    const response = await apiClient.get<ExerciseSettingsDto>(
+      `/exercises/${id}/settings`,
+    )
+    return response.data
+  },
+
+  /**
+   * Update exercise settings
+   * Requires Exercise Director or higher role
+   */
+  updateSettings: async (
+    id: string,
+    request: UpdateExerciseSettingsRequest,
+  ): Promise<ExerciseSettingsDto> => {
+    const response = await apiClient.put<ExerciseSettingsDto>(
+      `/exercises/${id}/settings`,
+      request,
+    )
+    return response.data
   },
 }
 

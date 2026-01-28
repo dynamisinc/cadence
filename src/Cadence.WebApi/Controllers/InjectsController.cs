@@ -88,10 +88,10 @@ public class InjectsController : ControllerBase
                 i.ControllerNotes,
                 i.ReadyAt,
                 i.FiredAt,
-                i.FiredBy,
+                i.FiredByUserId,
                 FiredByName = i.FiredByUser != null ? i.FiredByUser.DisplayName : null,
                 i.SkippedAt,
-                i.SkippedBy,
+                i.SkippedByUserId,
                 SkippedByName = i.SkippedByUser != null ? i.SkippedByUser.DisplayName : null,
                 i.SkipReason,
                 i.MselId,
@@ -147,10 +147,11 @@ public class InjectsController : ControllerBase
             i.ControllerNotes,
             i.ReadyAt,
             i.FiredAt,
-            i.FiredBy,
+            // Parse string ApplicationUser.Id to Guid for DTO backward compatibility
+            string.IsNullOrEmpty(i.FiredByUserId) ? null : Guid.Parse(i.FiredByUserId),
             i.FiredByName,
             i.SkippedAt,
-            i.SkippedBy,
+            string.IsNullOrEmpty(i.SkippedByUserId) ? null : Guid.Parse(i.SkippedByUserId),
             i.SkippedByName,
             i.SkipReason,
             i.MselId,
@@ -403,16 +404,28 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Only pending injects can be fired
-        if (inject.Status != InjectStatus.Pending)
+        // Validate inject can be fired based on delivery mode
+        // In clock-driven mode, inject must be Ready
+        // In facilitator-paced mode, inject can be Pending or Ready
+        if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
         {
-            return BadRequest(new { message = $"Only pending injects can be fired. Current status: {inject.Status}" });
+            if (inject.Status != InjectStatus.Ready)
+            {
+                return BadRequest(new { message = $"Inject must be Ready to fire in clock-driven mode. Current status: {inject.Status}" });
+            }
+        }
+        else // FacilitatorPaced
+        {
+            if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+            {
+                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Pending or Ready injects can be fired." });
+            }
         }
 
-        // Fire the inject (system user until auth is implemented)
+        // Fire the inject
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredBy = GetCurrentUserId();
+        inject.FiredByUserId = GetCurrentUserIdString();
         inject.ModifiedBy = GetCurrentUserId();
 
         // Add notes if provided
@@ -464,10 +477,10 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Only pending injects can be skipped
-        if (inject.Status != InjectStatus.Pending)
+        // Injects can be skipped from Pending or Ready status
+        if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
         {
-            return BadRequest(new { message = $"Only pending injects can be skipped. Current status: {inject.Status}" });
+            return BadRequest(new { message = $"Only Pending or Ready injects can be skipped. Current status: {inject.Status}" });
         }
 
         // Validate skip reason
@@ -481,10 +494,10 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = "Skip reason must be 500 characters or less" });
         }
 
-        // Skip the inject (system user until auth is implemented)
+        // Skip the inject
         inject.Status = InjectStatus.Skipped;
         inject.SkippedAt = DateTime.UtcNow;
-        inject.SkippedBy = GetCurrentUserId();
+        inject.SkippedByUserId = GetCurrentUserIdString();
         inject.SkipReason = request.Reason;
         inject.ModifiedBy = GetCurrentUserId();
 
@@ -535,12 +548,12 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = "Inject is already pending" });
         }
 
-        // Reset the inject (system user until auth is implemented)
+        // Reset the inject
         inject.Status = InjectStatus.Pending;
         inject.FiredAt = null;
-        inject.FiredBy = null;
+        inject.FiredByUserId = null;
         inject.SkippedAt = null;
-        inject.SkippedBy = null;
+        inject.SkippedByUserId = null;
         inject.SkipReason = null;
         inject.ModifiedBy = GetCurrentUserId();
 
@@ -703,7 +716,7 @@ public class InjectsController : ControllerBase
     }
 
     /// <summary>
-    /// Get current authenticated user's ID from JWT claims.
+    /// Get current authenticated user's ID from JWT claims as Guid (for audit fields).
     /// </summary>
     private Guid GetCurrentUserId()
     {
@@ -713,5 +726,18 @@ public class InjectsController : ControllerBase
             throw new UnauthorizedAccessException("User not authenticated");
         }
         return Guid.Parse(userIdClaim);
+    }
+
+    /// <summary>
+    /// Get current authenticated user's ID from JWT claims as string (for ApplicationUser FK).
+    /// </summary>
+    private string GetCurrentUserIdString()
+    {
+        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userIdClaim))
+        {
+            throw new UnauthorizedAccessException("User not authenticated");
+        }
+        return userIdClaim;
     }
 }

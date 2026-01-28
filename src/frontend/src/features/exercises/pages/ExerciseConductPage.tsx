@@ -37,10 +37,11 @@ import {
   faBookOpen,
   faGrip,
   faWindowMaximize,
+  faGear,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { useExercise } from '../hooks'
+import { useExercise, useExerciseSettings } from '../hooks'
 import {
   ExerciseHeader,
   NarrativeView,
@@ -48,6 +49,7 @@ import {
   FloatingClockChip,
   ClockDrivenConductView,
   FacilitatorPacedConductView,
+  ExerciseSettingsDialog,
 } from '../components'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
@@ -57,8 +59,8 @@ import { ExerciseStatus, InjectStatus, ExerciseClockState, DeliveryMode } from '
 import { EffectiveRoleBadge, useExerciseRole } from '@/features/auth'
 
 // Feature imports
-import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime } from '../../exercise-clock'
-import { ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset } from '../../injects'
+import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime, ClockControlConfirmationDialog, type ClockAction } from '../../exercise-clock'
+import { ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset, FireConfirmationDialog, SkipConfirmationDialog } from '../../injects'
 import {
   ObservationForm,
   ObservationList,
@@ -99,6 +101,7 @@ export const ExerciseConductPage = () => {
     loading: injectsLoading,
     fireInject,
     skipInject,
+    resetInject,
   } = useInjects(exerciseId!)
   const {
     observations,
@@ -110,6 +113,15 @@ export const ExerciseConductPage = () => {
   } = useObservations(exerciseId!)
   const { summaries: _objectives } = useObjectiveSummaries(exerciseId!)
 
+  // Exercise settings for confirmation dialogs
+  const {
+    confirmFireInject,
+    confirmSkipInject,
+    confirmClockControl,
+    settings: _exerciseSettings,
+    isLoading: _settingsLoading,
+  } = useExerciseSettings(exerciseId)
+
   // UI state
   const [showObservationForm, setShowObservationForm] = useState(false)
   const [editingObservation, setEditingObservation] = useState<ObservationDto | null>(null)
@@ -118,6 +130,51 @@ export const ExerciseConductPage = () => {
   const [observationsExpanded, setObservationsExpanded] = useState(true)
   const [showStopConfirm, setShowStopConfirm] = useState(false)
   const [openInjectId, setOpenInjectId] = useState<string | null>(null)
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
+
+  // Confirmation dialog state
+  const [fireConfirmInject, setFireConfirmInject] = useState<InjectDto | null>(null)
+  const [skipConfirmInject, setSkipConfirmInject] = useState<InjectDto | null>(null)
+  const [clockConfirmAction, setClockConfirmAction] = useState<ClockAction | null>(null)
+  const [pendingSkipInjectId, setPendingSkipInjectId] = useState<string | null>(null)
+
+  // User-level "don't ask again" flags with localStorage persistence (per-exercise)
+  const getStorageKey = (type: string) => `cadence:skipConfirmation:${exerciseId}:${type}`
+
+  const [skipFireConfirmation, setSkipFireConfirmation] = useState(() => {
+    if (!exerciseId) return false
+    return localStorage.getItem(getStorageKey('fire')) === 'true'
+  })
+  const [skipSkipConfirmation, setSkipSkipConfirmation] = useState(() => {
+    if (!exerciseId) return false
+    return localStorage.getItem(getStorageKey('skip')) === 'true'
+  })
+  const [skipClockConfirmation, setSkipClockConfirmation] = useState(() => {
+    if (!exerciseId) return false
+    return localStorage.getItem(getStorageKey('clock')) === 'true'
+  })
+
+  // Persist "don't ask again" choices to localStorage
+  const handleSkipFireConfirmation = useCallback(() => {
+    setSkipFireConfirmation(true)
+    if (exerciseId) {
+      localStorage.setItem(getStorageKey('fire'), 'true')
+    }
+  }, [exerciseId])
+
+  const handleSkipSkipConfirmation = useCallback(() => {
+    setSkipSkipConfirmation(true)
+    if (exerciseId) {
+      localStorage.setItem(getStorageKey('skip'), 'true')
+    }
+  }, [exerciseId])
+
+  const handleSkipClockConfirmation = useCallback(() => {
+    setSkipClockConfirmation(true)
+    if (exerciseId) {
+      localStorage.setItem(getStorageKey('clock'), 'true')
+    }
+  }, [exerciseId])
 
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'controller' | 'narrative'>(() => {
@@ -476,6 +533,132 @@ export const ExerciseConductPage = () => {
     // since all prior pending injects have been skipped
   }
 
+  // =========================================================================
+  // Confirmation-wrapped handlers
+  // =========================================================================
+
+  // Fire inject with optional confirmation
+  const handleFireWithConfirmation = useCallback(
+    async (injectId: string) => {
+      const inject = injects.find(i => i.id === injectId)
+      if (!inject) return
+
+      // Check if we need to show confirmation
+      if (confirmFireInject && !skipFireConfirmation) {
+        setFireConfirmInject(inject)
+      } else {
+        // Fire immediately
+        await fireInject(injectId)
+      }
+    },
+    [injects, confirmFireInject, skipFireConfirmation, fireInject],
+  )
+
+  const handleFireConfirmed = useCallback(async () => {
+    if (fireConfirmInject) {
+      await fireInject(fireConfirmInject.id)
+      setFireConfirmInject(null)
+    }
+  }, [fireConfirmInject, fireInject])
+
+  const handleFireCancelled = useCallback(() => {
+    setFireConfirmInject(null)
+  }, [])
+
+  // Skip inject with optional confirmation (then goes to reason dialog)
+  // The skip reason dialog is always shown (in the child component)
+  // This is the extra "are you sure?" step before that
+  const handleSkipWithConfirmation = useCallback(
+    async (injectId: string, request: { reason: string }) => {
+      // Skip reason dialog is handled by the child component (ReadyToFireSection)
+      // This handler is called AFTER the reason is provided
+      // So we just forward to skipInject
+      await skipInject(injectId, request)
+    },
+    [skipInject],
+  )
+
+  // For the pre-confirmation step (before reason dialog)
+  const handleSkipPreConfirmation = useCallback(
+    (injectId: string) => {
+      const inject = injects.find(i => i.id === injectId)
+      if (!inject) return null
+
+      // Check if we need to show the "are you sure?" confirmation
+      if (confirmSkipInject && !skipSkipConfirmation) {
+        setSkipConfirmInject(inject)
+        return true // Indicates confirmation is needed
+      }
+      return false // No confirmation needed, proceed to reason dialog
+    },
+    [injects, confirmSkipInject, skipSkipConfirmation],
+  )
+
+  const handleSkipConfirmProceed = useCallback(() => {
+    // User confirmed they want to skip, now they need to provide a reason
+    // Set pendingSkipInjectId to trigger the reason dialog in ReadyToFireSection
+    if (skipConfirmInject?.id) {
+      setPendingSkipInjectId(skipConfirmInject.id)
+    }
+    setSkipConfirmInject(null)
+  }, [skipConfirmInject])
+
+  const handleSkipConfirmCancelled = useCallback(() => {
+    setSkipConfirmInject(null)
+    setPendingSkipInjectId(null)
+  }, [])
+
+  const handlePendingSkipClear = useCallback(() => {
+    setPendingSkipInjectId(null)
+  }, [])
+
+  // Clock control with optional confirmation
+  const handleClockAction = useCallback(
+    async (action: ClockAction) => {
+      // Stop always shows confirmation (it's destructive)
+      if (action === 'stop') {
+        setShowStopConfirm(true)
+        return
+      }
+
+      // Check if we need to show confirmation for other actions
+      if (confirmClockControl && !skipClockConfirmation) {
+        setClockConfirmAction(action)
+      } else {
+        // Execute immediately
+        if (action === 'start' || action === 'resume') {
+          await startClock()
+        } else if (action === 'pause') {
+          await pauseClock()
+        }
+      }
+    },
+    [confirmClockControl, skipClockConfirmation, startClock, pauseClock],
+  )
+
+  const handleClockConfirmed = useCallback(async () => {
+    if (clockConfirmAction === 'start' || clockConfirmAction === 'resume') {
+      await startClock()
+    } else if (clockConfirmAction === 'pause') {
+      await pauseClock()
+    }
+    setClockConfirmAction(null)
+  }, [clockConfirmAction, startClock, pauseClock])
+
+  const handleClockCancelled = useCallback(() => {
+    setClockConfirmAction(null)
+  }, [])
+
+  // Wrapped clock handlers for components
+  const handleStartWithConfirmation = useCallback(() => {
+    const action = clockState?.state === ExerciseClockState.Paused ? 'resume' : 'start'
+    handleClockAction(action)
+  }, [clockState?.state, handleClockAction])
+
+  const handlePauseWithConfirmation = useCallback(() => {
+    handleClockAction('pause')
+  }, [handleClockAction])
+
   // Loading state
   if (exerciseLoading && !exercise) {
     return (
@@ -617,6 +800,17 @@ export const ExerciseConductPage = () => {
               </Typography>
             </Stack>
 
+            {/* Exercise Settings */}
+            <Tooltip title="Exercise Settings" arrow>
+              <IconButton
+                onClick={() => setSettingsDialogOpen(true)}
+                size="small"
+                aria-label="Exercise settings"
+              >
+                <FontAwesomeIcon icon={faGear} />
+              </IconButton>
+            </Tooltip>
+
             <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
               Exit Conduct
             </CobraLinkButton>
@@ -647,8 +841,8 @@ export const ExerciseConductPage = () => {
               injects={injects}
               readyToFireCount={readyToFireCount}
               canControl={canControl}
-              onStart={startClock}
-              onPause={pauseClock}
+              onStart={handleStartWithConfirmation}
+              onPause={handlePauseWithConfirmation}
               onStop={handleStopClick}
               onReset={resetClock}
               isStarting={isStarting}
@@ -669,8 +863,8 @@ export const ExerciseConductPage = () => {
               injects={injects}
               readyToFireCount={readyToFireCount}
               canControl={canControl}
-              onStart={startClock}
-              onPause={pauseClock}
+              onStart={handleStartWithConfirmation}
+              onPause={handlePauseWithConfirmation}
               onStop={handleStopClick}
               onReset={resetClock}
               isStarting={isStarting}
@@ -721,8 +915,8 @@ export const ExerciseConductPage = () => {
                       {canControl && (
                         <ClockControls
                           state={clockState?.state}
-                          onStart={startClock}
-                          onPause={pauseClock}
+                          onStart={handleStartWithConfirmation}
+                          onPause={handlePauseWithConfirmation}
                           onStop={handleStopClick}
                           onReset={resetClock}
                           isStarting={isStarting}
@@ -781,8 +975,12 @@ export const ExerciseConductPage = () => {
                       canControl={canControl}
                       canAddObservation={canAddObservations}
                       isSubmitting={false}
-                      onFire={async id => { await fireInject(id) }}
-                      onSkip={async (id, req) => { await skipInject(id, req) }}
+                      onFire={handleFireWithConfirmation}
+                      onSkip={handleSkipWithConfirmation}
+                      onReset={(id: string) => { resetInject(id) }}
+                      onSkipPreConfirmation={handleSkipPreConfirmation}
+                      pendingSkipInjectId={pendingSkipInjectId}
+                      onPendingSkipClear={handlePendingSkipClear}
                       openInjectId={openInjectId}
                       onDrawerClose={() => setOpenInjectId(null)}
                       onAddObservation={handleAddObservationForInject}
@@ -795,8 +993,12 @@ export const ExerciseConductPage = () => {
                       canControl={canControl}
                       isSubmitting={false}
                       isLoading={injectsLoading}
-                      onFire={async id => { await fireInject(id) }}
-                      onSkip={async (id, req) => { await skipInject(id, req) }}
+                      onFire={handleFireWithConfirmation}
+                      onSkip={handleSkipWithConfirmation}
+                      onReset={(id: string) => { resetInject(id) }}
+                      onSkipPreConfirmation={handleSkipPreConfirmation}
+                      pendingSkipInjectId={pendingSkipInjectId}
+                      onPendingSkipClear={handlePendingSkipClear}
                       onJumpTo={handleJumpTo}
                     />
                   )}
@@ -916,6 +1118,42 @@ export const ExerciseConductPage = () => {
         onConfirm={handleStopConfirmed}
         onCancel={() => setShowStopConfirm(false)}
         isConfirming={isStopping}
+      />
+
+      {/* Fire Inject Confirmation Dialog */}
+      <FireConfirmationDialog
+        open={!!fireConfirmInject}
+        inject={fireConfirmInject}
+        onConfirm={handleFireConfirmed}
+        onCancel={handleFireCancelled}
+        onDontAskAgain={handleSkipFireConfirmation}
+      />
+
+      {/* Skip Inject Confirmation Dialog (pre-confirmation before reason) */}
+      <SkipConfirmationDialog
+        open={!!skipConfirmInject}
+        inject={skipConfirmInject}
+        onConfirm={handleSkipConfirmProceed}
+        onCancel={handleSkipConfirmCancelled}
+        onDontAskAgain={handleSkipSkipConfirmation}
+      />
+
+      {/* Clock Control Confirmation Dialog */}
+      <ClockControlConfirmationDialog
+        open={!!clockConfirmAction}
+        action={clockConfirmAction}
+        currentTime={displayTime}
+        onConfirm={handleClockConfirmed}
+        onCancel={handleClockCancelled}
+        onDontAskAgain={handleSkipClockConfirmation}
+      />
+
+      {/* Exercise Settings Dialog */}
+      <ExerciseSettingsDialog
+        open={settingsDialogOpen}
+        exerciseId={exerciseId!}
+        exerciseName={exercise.name}
+        onClose={() => setSettingsDialogOpen(false)}
       />
     </Box>
   )

@@ -308,9 +308,9 @@ public class ExerciseStatusService : IExerciseStatusService
         {
             inject.Status = InjectStatus.Pending;
             inject.FiredAt = null;
-            inject.FiredBy = null;
+            inject.FiredByUserId = null;
             inject.SkippedAt = null;
-            inject.SkippedBy = null;
+            inject.SkippedByUserId = null;
             inject.ModifiedBy = userId;
         }
 

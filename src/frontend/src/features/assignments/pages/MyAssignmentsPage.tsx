@@ -26,9 +26,9 @@ export function MyAssignmentsPage() {
   if (isLoading) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <Box display="flex" alignItems="center" gap={2} mb={4}>
+        <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
           <FontAwesomeIcon icon={faUserClock} size="lg" />
-          <Typography variant="h4">My Assignments</Typography>
+          <Typography variant="h5" component="h1">My Assignments</Typography>
         </Box>
         <AssignmentSection
           title="Active Now"
@@ -50,9 +50,9 @@ export function MyAssignmentsPage() {
   if (isError) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <Box display="flex" alignItems="center" gap={2} mb={4}>
+        <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
           <FontAwesomeIcon icon={faUserClock} size="lg" />
-          <Typography variant="h4">My Assignments</Typography>
+          <Typography variant="h5" component="h1">My Assignments</Typography>
         </Box>
         <Alert
           severity="error"
@@ -78,9 +78,9 @@ export function MyAssignmentsPage() {
   if (hasNoAssignments) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <Box display="flex" alignItems="center" gap={2} mb={4}>
+        <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
           <FontAwesomeIcon icon={faUserClock} size="lg" />
-          <Typography variant="h4">My Assignments</Typography>
+          <Typography variant="h5" component="h1">My Assignments</Typography>
         </Box>
         <Box
           display="flex"
@@ -110,9 +110,9 @@ export function MyAssignmentsPage() {
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
       {/* Page Header */}
-      <Box display="flex" alignItems="center" gap={2} mb={4}>
+      <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
         <FontAwesomeIcon icon={faUserClock} size="lg" />
-        <Typography variant="h4">My Assignments</Typography>
+        <Typography variant="h5" component="h1">My Assignments</Typography>
       </Box>
 
       {/* Active Section - always show */}

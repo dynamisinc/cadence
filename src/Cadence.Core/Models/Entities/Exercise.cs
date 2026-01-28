@@ -173,6 +173,42 @@ public class Exercise : BaseEntity
     public decimal? TimeScale { get; set; }
 
     // =========================================================================
+    // Exercise Settings (S03-S05)
+    // =========================================================================
+
+    /// <summary>
+    /// Clock speed multiplier for exercise conduct.
+    /// 1.0 = real-time, 2.0 = 2x speed, etc.
+    /// Valid range: 0.5 to 20.0. Default: 1.0 (real-time)
+    /// </summary>
+    public decimal ClockMultiplier { get; set; } = 1.0m;
+
+    /// <summary>
+    /// Whether injects should automatically fire at their scheduled time.
+    /// When false, injects remain pending until manually fired.
+    /// Default: false (manual fire)
+    /// </summary>
+    public bool AutoFireEnabled { get; set; } = false;
+
+    /// <summary>
+    /// Whether to show confirmation dialog before firing an inject.
+    /// Default: true (show confirmation)
+    /// </summary>
+    public bool ConfirmFireInject { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show confirmation dialog before skipping an inject.
+    /// Default: true (show confirmation)
+    /// </summary>
+    public bool ConfirmSkipInject { get; set; } = true;
+
+    /// <summary>
+    /// Whether to show confirmation dialog for clock control actions (start/pause/stop).
+    /// Default: true (show confirmation)
+    /// </summary>
+    public bool ConfirmClockControl { get; set; } = true;
+
+    // =========================================================================
     // Navigation Properties
     // =========================================================================
 
@@ -230,4 +266,15 @@ public class Exercise : BaseEntity
     /// ApplicationUser who archived the exercise (if any).
     /// </summary>
     public ApplicationUser? ArchivedByUser { get; set; }
+
+    /// <summary>
+    /// Clock events recorded during exercise conduct (start, pause, stop).
+    /// Used for timeline analysis and pause history.
+    /// </summary>
+    public ICollection<ClockEvent> ClockEvents { get; set; } = new List<ClockEvent>();
+
+    /// <summary>
+    /// Core capabilities specifically targeted for evaluation in this exercise.
+    /// </summary>
+    public ICollection<ExerciseTargetCapability> TargetCapabilities { get; set; } = new List<ExerciseTargetCapability>();
 }

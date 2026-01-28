@@ -13,11 +13,13 @@ namespace Cadence.Core.Tests.Features.Injects;
 public class InjectReadinessServiceTests
 {
     private readonly Mock<IExerciseHubContext> _hubContextMock;
+    private readonly Mock<IInjectService> _injectServiceMock;
     private readonly Mock<ILogger<InjectReadinessService>> _loggerMock;
 
     public InjectReadinessServiceTests()
     {
         _hubContextMock = new Mock<IExerciseHubContext>();
+        _injectServiceMock = new Mock<IInjectService>();
         _loggerMock = new Mock<ILogger<InjectReadinessService>>();
     }
 
@@ -79,7 +81,7 @@ public class InjectReadinessServiceTests
 
     private InjectReadinessService CreateService(AppDbContext context)
     {
-        return new InjectReadinessService(context, _hubContextMock.Object, _loggerMock.Object);
+        return new InjectReadinessService(context, _hubContextMock.Object, _injectServiceMock.Object, _loggerMock.Object);
     }
 
     private Inject CreateInject(
@@ -658,7 +660,7 @@ public class InjectReadinessServiceTests
         var injectToFire = await concurrentContext.Injects.FindAsync(inject.Id);
         injectToFire!.Status = InjectStatus.Fired;
         injectToFire.FiredAt = DateTime.UtcNow;
-        injectToFire.FiredBy = Guid.NewGuid();
+        injectToFire.FiredByUserId = Guid.NewGuid().ToString();
         await concurrentContext.SaveChangesAsync();
 
         // Act - Background service attempts to mark as Ready
@@ -669,7 +671,7 @@ public class InjectReadinessServiceTests
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(InjectStatus.Fired, "fired status should not be overwritten by background service");
         updated.FiredAt.Should().NotBeNull("FiredAt should not be cleared");
-        updated.FiredBy.Should().NotBeNull("FiredBy should not be cleared");
+        updated.FiredByUserId.Should().NotBeNull("FiredBy should not be cleared");
         updated.ReadyAt.Should().BeNull("ReadyAt should not be set if inject was already fired");
 
         // Should not broadcast Ready notification if inject was already fired
@@ -737,7 +739,7 @@ public class InjectReadinessServiceTests
         var injectToSkip = await concurrentContext.Injects.FindAsync(inject.Id);
         injectToSkip!.Status = InjectStatus.Skipped;
         injectToSkip.SkippedAt = DateTime.UtcNow;
-        injectToSkip.SkippedBy = Guid.NewGuid();
+        injectToSkip.SkippedByUserId = Guid.NewGuid().ToString();
         injectToSkip.SkipReason = "No longer relevant";
         await concurrentContext.SaveChangesAsync();
 
@@ -749,7 +751,7 @@ public class InjectReadinessServiceTests
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(InjectStatus.Skipped);
         updated.SkippedAt.Should().NotBeNull();
-        updated.SkippedBy.Should().NotBeNull();
+        updated.SkippedByUserId.Should().NotBeNull();
         updated.ReadyAt.Should().BeNull();
 
         _hubContextMock.Verify(

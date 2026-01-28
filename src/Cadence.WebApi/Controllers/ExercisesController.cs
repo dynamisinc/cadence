@@ -1,8 +1,6 @@
 using System.Security.Claims;
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
-using Cadence.Core.Features.ExerciseClock.Models.DTOs;
-using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Msel.Models.DTOs;
@@ -16,8 +14,9 @@ using Microsoft.EntityFrameworkCore;
 namespace Cadence.WebApi.Controllers;
 
 /// <summary>
-/// API endpoints for exercise management.
-/// Requires authentication for all endpoints.
+/// API endpoints for exercise management - CRUD, duplication, deletion, MSEL, setup, and settings.
+/// Additional endpoints are in ExerciseClockController, ExerciseStatusController,
+/// ExerciseParticipantsController, and ExerciseMetricsController.
 /// </summary>
 [ApiController]
 [Route("api/[controller]")]
@@ -25,8 +24,6 @@ namespace Cadence.WebApi.Controllers;
 public class ExercisesController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly IExerciseClockService _clockService;
-    private readonly IExerciseStatusService _statusService;
     private readonly IExerciseDeleteService _deleteService;
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
@@ -35,8 +32,6 @@ public class ExercisesController : ControllerBase
 
     public ExercisesController(
         AppDbContext context,
-        IExerciseClockService clockService,
-        IExerciseStatusService statusService,
         IExerciseDeleteService deleteService,
         IMselService mselService,
         ISetupProgressService setupProgressService,
@@ -44,14 +39,16 @@ public class ExercisesController : ControllerBase
         ILogger<ExercisesController> logger)
     {
         _context = context;
-        _clockService = clockService;
-        _statusService = statusService;
         _deleteService = deleteService;
         _mselService = mselService;
         _setupProgressService = setupProgressService;
         _participantService = participantService;
         _logger = logger;
     }
+
+    // =========================================================================
+    // Exercise CRUD Endpoints
+    // =========================================================================
 
     /// <summary>
     /// Get all exercises with optional archive filtering.
@@ -237,7 +234,9 @@ public class ExercisesController : ControllerBase
             // Timing configuration fields (CLK-01)
             exercise.DeliveryMode = request.DeliveryMode;
             exercise.TimelineMode = request.TimelineMode;
-            exercise.TimeScale = request.TimeScale;
+            // ClockMultiplier is the source of truth; TimeScale is kept in sync for backwards compatibility
+            exercise.ClockMultiplier = request.ClockMultiplier;
+            exercise.TimeScale = request.ClockMultiplier;
         }
 
         // End time can always be updated (as long as not Completed/Archived)
@@ -322,123 +321,6 @@ public class ExercisesController : ControllerBase
         }
 
         return Ok(exercise.ToDto());
-    }
-
-    // =========================================================================
-    // Exercise Clock Endpoints
-    // =========================================================================
-
-    /// <summary>
-    /// Get the current clock state for an exercise.
-    /// </summary>
-    [HttpGet("{id:guid}/clock")]
-    [AuthorizeExerciseAccess]
-    public async Task<ActionResult<ClockStateDto>> GetClockState(Guid id)
-    {
-        var clockState = await _clockService.GetClockStateAsync(id);
-
-        if (clockState == null)
-        {
-            return NotFound();
-        }
-
-        return Ok(clockState);
-    }
-
-    /// <summary>
-    /// Start the exercise clock.
-    /// This also transitions the exercise from Draft to Active status.
-    /// </summary>
-    [HttpPost("{id:guid}/clock/start")]
-    [AuthorizeExerciseController]
-    public async Task<ActionResult<ClockStateDto>> StartClock(Guid id)
-    {
-        try
-        {
-            var startedBy = GetCurrentUserIdString();
-
-            var clockState = await _clockService.StartClockAsync(id, startedBy);
-
-            _logger.LogInformation("Started clock for exercise {ExerciseId}", id);
-
-            return Ok(clockState);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Pause the exercise clock.
-    /// Preserves elapsed time for later resumption.
-    /// </summary>
-    [HttpPost("{id:guid}/clock/pause")]
-    [AuthorizeExerciseController]
-    public async Task<ActionResult<ClockStateDto>> PauseClock(Guid id)
-    {
-        try
-        {
-            var pausedBy = GetCurrentUserId();
-
-            var clockState = await _clockService.PauseClockAsync(id, pausedBy);
-
-            _logger.LogInformation("Paused clock for exercise {ExerciseId}", id);
-
-            return Ok(clockState);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Stop the exercise clock and complete the exercise.
-    /// This transitions the exercise to Completed status.
-    /// </summary>
-    [HttpPost("{id:guid}/clock/stop")]
-    [AuthorizeExerciseController]
-    public async Task<ActionResult<ClockStateDto>> StopClock(Guid id)
-    {
-        try
-        {
-            var stoppedBy = GetCurrentUserId();
-
-            var clockState = await _clockService.StopClockAsync(id, stoppedBy);
-
-            _logger.LogInformation("Stopped clock for exercise {ExerciseId}. Exercise completed.", id);
-
-            return Ok(clockState);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Reset the exercise clock to zero.
-    /// Only allowed for Draft exercises or when clock is Stopped.
-    /// </summary>
-    [HttpPost("{id:guid}/clock/reset")]
-    [AuthorizeExerciseController]
-    public async Task<ActionResult<ClockStateDto>> ResetClock(Guid id)
-    {
-        try
-        {
-            var resetBy = GetCurrentUserId();
-
-            var clockState = await _clockService.ResetClockAsync(id, resetBy);
-
-            _logger.LogInformation("Reset clock for exercise {ExerciseId}", id);
-
-            return Ok(clockState);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
     }
 
     // =========================================================================
@@ -564,9 +446,6 @@ public class ExercisesController : ControllerBase
             };
             _context.Msels.Add(newMsel);
 
-            // Note: ActiveMselId is set AFTER first SaveChanges to avoid circular dependency
-            // (Exercise -> Msel via ActiveMselId, Msel -> Exercise via ExerciseId)
-
             // Copy injects (reset status to Pending)
             foreach (var sourceInject in sourceMsel.Injects.OrderBy(i => i.Sequence))
             {
@@ -587,19 +466,17 @@ public class ExercisesController : ControllerBase
                     InjectType = sourceInject.InjectType,
                     Status = InjectStatus.Pending, // Always reset to Pending
                     Sequence = sourceInject.Sequence,
-                    // Skip ParentInjectId for simplicity (branching would need additional mapping)
                     ParentInjectId = null,
                     FireCondition = sourceInject.FireCondition,
                     ExpectedAction = sourceInject.ExpectedAction,
                     ControllerNotes = sourceInject.ControllerNotes,
                     // Conduct data NOT copied
                     FiredAt = null,
-                    FiredBy = null,
+                    FiredByUserId = null,
                     SkippedAt = null,
-                    SkippedBy = null,
+                    SkippedByUserId = null,
                     SkipReason = null,
                     MselId = newMselId.Value,
-                    // Map phase ID if inject was assigned to a phase
                     PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
                         ? phaseIdMap[sourceInject.PhaseId.Value]
                         : null,
@@ -627,7 +504,6 @@ public class ExercisesController : ControllerBase
         await _context.SaveChangesAsync();
 
         // Second save: Now set the ActiveMselId to complete the relationship
-        // This avoids the circular dependency (Exercise -> Msel -> Exercise)
         if (newMselId.HasValue)
         {
             newExercise.ActiveMselId = newMselId.Value;
@@ -643,183 +519,6 @@ public class ExercisesController : ControllerBase
             new { id = newExercise.Id },
             newExercise.ToDto()
         );
-    }
-
-    // =========================================================================
-    // Exercise Status Workflow Endpoints
-    // =========================================================================
-
-    /// <summary>
-    /// Activate an exercise (Draft → Active).
-    /// Requires at least one inject in the MSEL.
-    /// </summary>
-    [HttpPost("{id:guid}/activate")]
-    public async Task<ActionResult<ExerciseDto>> ActivateExercise(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.ActivateAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogInformation("Activated exercise {ExerciseId}", id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Pause an exercise (Active → Paused).
-    /// Preserves clock elapsed time.
-    /// </summary>
-    [HttpPost("{id:guid}/pause")]
-    public async Task<ActionResult<ExerciseDto>> PauseExercise(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.PauseAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogInformation("Paused exercise {ExerciseId}", id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Resume a paused exercise (Paused → Active).
-    /// </summary>
-    [HttpPost("{id:guid}/resume")]
-    public async Task<ActionResult<ExerciseDto>> ResumeExercise(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.ResumeAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogInformation("Resumed exercise {ExerciseId}", id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Complete an exercise (Active/Paused → Completed).
-    /// Permanently stops the clock.
-    /// </summary>
-    [HttpPost("{id:guid}/complete")]
-    public async Task<ActionResult<ExerciseDto>> CompleteExercise(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.CompleteAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogInformation("Completed exercise {ExerciseId}", id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Archive a completed exercise (Completed → Archived).
-    /// Makes the exercise fully read-only.
-    /// </summary>
-    [HttpPost("{id:guid}/archive")]
-    public async Task<ActionResult<ExerciseDto>> ArchiveExercise(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.ArchiveAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogInformation("Archived exercise {ExerciseId}", id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Unarchive an exercise (Archived → Completed).
-    /// Restores the exercise to completed status.
-    /// </summary>
-    [HttpPost("{id:guid}/unarchive")]
-    public async Task<ActionResult<ExerciseDto>> UnarchiveExercise(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.UnarchiveAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogInformation("Unarchived exercise {ExerciseId}", id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Revert a paused exercise to draft (Paused → Draft).
-    /// WARNING: This clears all conduct data (fired times, observations).
-    /// </summary>
-    [HttpPost("{id:guid}/revert-to-draft")]
-    public async Task<ActionResult<ExerciseDto>> RevertToDraft(Guid id)
-    {
-        // System user until auth is implemented
-        var userId = SystemConstants.SystemUserId;
-
-        var result = await _statusService.RevertToDraftAsync(id, userId);
-
-        if (!result.Success)
-        {
-            return BadRequest(new { message = result.ErrorMessage });
-        }
-
-        _logger.LogWarning(
-            "Exercise {ExerciseId} reverted to Draft - conduct data cleared",
-            id);
-
-        return Ok(result.Exercise);
-    }
-
-    /// <summary>
-    /// Get available status transitions for an exercise.
-    /// </summary>
-    [HttpGet("{id:guid}/available-transitions")]
-    public async Task<ActionResult<IReadOnlyList<ExerciseStatus>>> GetAvailableTransitions(Guid id)
-    {
-        var exercise = await _context.Exercises.FindAsync(id);
-
-        if (exercise == null)
-        {
-            return NotFound();
-        }
-
-        var transitions = _statusService.GetAvailableTransitions(exercise.Status);
-
-        return Ok(transitions);
     }
 
     // =========================================================================
@@ -878,7 +577,7 @@ public class ExercisesController : ControllerBase
     }
 
     // =========================================================================
-    // Setup Progress Endpoints
+    // Setup Progress Endpoint
     // =========================================================================
 
     /// <summary>
@@ -905,18 +604,12 @@ public class ExercisesController : ControllerBase
     /// <summary>
     /// Get a summary of what would be deleted if the exercise is permanently deleted.
     /// Also indicates whether the exercise can be deleted based on its status.
-    ///
-    /// Delete eligibility rules:
-    /// - Draft exercises that have never been published: Creator OR Administrator
-    /// - Archived exercises: Administrator only
-    /// - Published/Active/Completed exercises (not archived): Cannot delete - must archive first
     /// </summary>
     [HttpGet("{id:guid}/delete-summary")]
     public async Task<ActionResult<DeleteSummaryResponse>> GetDeleteSummary(Guid id)
     {
-        // TODO: Get actual user ID and admin status from auth context
         var userId = SystemConstants.SystemUserId;
-        var isAdmin = true; // For now, treat all users as admin until auth is implemented
+        var isAdmin = true;
 
         var summary = await _deleteService.GetDeleteSummaryAsync(id, userId, isAdmin);
 
@@ -931,18 +624,12 @@ public class ExercisesController : ControllerBase
     /// <summary>
     /// Permanently delete an exercise and all related data.
     /// This action is irreversible.
-    ///
-    /// Delete eligibility rules:
-    /// - Draft exercises that have never been published: Creator OR Administrator
-    /// - Archived exercises: Administrator only
-    /// - Published/Active/Completed exercises (not archived): Cannot delete - must archive first
     /// </summary>
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteExercise(Guid id)
     {
-        // TODO: Get actual user ID and admin status from auth context
         var userId = SystemConstants.SystemUserId;
-        var isAdmin = true; // For now, treat all users as admin until auth is implemented
+        var isAdmin = true;
 
         var result = await _deleteService.DeleteExerciseAsync(id, userId, isAdmin);
 
@@ -965,183 +652,107 @@ public class ExercisesController : ControllerBase
     }
 
     // =========================================================================
-    // Participant Management Endpoints
+    // Exercise Settings Endpoints (S03-S05)
     // =========================================================================
 
     /// <summary>
-    /// Get all participants for an exercise.
-    /// Shows exercise-specific roles and effective roles.
+    /// Get exercise settings (clock mode, auto-fire, confirmations).
     /// </summary>
-    [HttpGet("{id:guid}/participants")]
-    public async Task<ActionResult<List<ExerciseParticipantDto>>> GetParticipants(Guid id)
+    [HttpGet("{id:guid}/settings")]
+    [AuthorizeExerciseAccess]
+    [ProducesResponseType(typeof(ExerciseSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ExerciseSettingsDto>> GetExerciseSettings(Guid id)
     {
-        var participants = await _participantService.GetParticipantsAsync(id);
-        return Ok(participants);
-    }
+        var exercise = await _context.Exercises.FindAsync(id);
 
-    /// <summary>
-    /// Get a specific participant for an exercise.
-    /// </summary>
-    [HttpGet("{id:guid}/participants/{userId}")]
-    public async Task<ActionResult<ExerciseParticipantDto>> GetParticipant(Guid id, string userId)
-    {
-        var participant = await _participantService.GetParticipantAsync(id, userId);
-
-        if (participant == null)
+        if (exercise == null)
         {
-            return NotFound(new { message = "Participant not found" });
+            return NotFound();
         }
 
-        return Ok(participant);
+        return Ok(new ExerciseSettingsDto(
+            exercise.ClockMultiplier,
+            exercise.AutoFireEnabled,
+            exercise.ConfirmFireInject,
+            exercise.ConfirmSkipInject,
+            exercise.ConfirmClockControl
+        ));
     }
 
     /// <summary>
-    /// Add a participant to an exercise with an optional exercise-specific role.
-    /// If no role is specified, the user's global role is used.
-    /// Only Administrators and Exercise Directors can add participants.
+    /// Update exercise settings.
+    /// Only Directors+ can modify settings.
+    /// Clock multiplier can only be changed when exercise is paused or in draft.
     /// </summary>
-    [HttpPost("{id:guid}/participants")]
-    public async Task<ActionResult<ExerciseParticipantDto>> AddParticipant(
+    [HttpPut("{id:guid}/settings")]
+    [AuthorizeExerciseDirector]
+    [ProducesResponseType(typeof(ExerciseSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ExerciseSettingsDto>> UpdateExerciseSettings(
         Guid id,
-        [FromBody] AddParticipantRequest request)
+        [FromBody] UpdateExerciseSettingsRequest request)
     {
-        try
-        {
-            var result = await _participantService.AddParticipantAsync(id, request);
+        var exercise = await _context.Exercises.FindAsync(id);
 
-            _logger.LogInformation(
-                "Added participant {UserId} to exercise {ExerciseId}",
-                request.UserId, id);
-
-            return CreatedAtAction(
-                nameof(GetParticipant),
-                new { id, userId = request.UserId },
-                result);
-        }
-        catch (KeyNotFoundException ex)
+        if (exercise == null)
         {
-            return NotFound(new { message = ex.Message });
+            return NotFound();
         }
-        catch (InvalidOperationException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
 
-    /// <summary>
-    /// Update a participant's exercise-specific role.
-    /// Setting role to null removes the override and uses the user's global role.
-    /// Only Administrators and Exercise Directors can update participant roles.
-    /// </summary>
-    [HttpPut("{id:guid}/participants/{userId}/role")]
-    public async Task<ActionResult<ExerciseParticipantDto>> UpdateParticipantRole(
-        Guid id,
-        string userId,
-        [FromBody] UpdateParticipantRoleRequest request)
-    {
-        try
+        // Validate clock multiplier change
+        if (request.ClockMultiplier.HasValue)
         {
-            var result = await _participantService.UpdateParticipantRoleAsync(id, userId, request);
+            // Validate range
+            if (request.ClockMultiplier < 0.5m || request.ClockMultiplier > 20.0m)
+            {
+                return BadRequest(new { message = "Clock multiplier must be between 0.5 and 20" });
+            }
 
-            _logger.LogInformation(
-                "Updated participant {UserId} role in exercise {ExerciseId}",
-                userId, id);
+            // Can only change when paused or draft
+            if (exercise.ClockState == ExerciseClockState.Running)
+            {
+                return BadRequest(new { message = "Cannot change clock multiplier while clock is running. Pause the exercise first." });
+            }
 
-            return Ok(result);
+            exercise.ClockMultiplier = request.ClockMultiplier.Value;
+            exercise.TimeScale = request.ClockMultiplier.Value;
         }
-        catch (KeyNotFoundException ex)
+
+        // Update boolean settings (can be changed anytime)
+        if (request.AutoFireEnabled.HasValue)
         {
-            return NotFound(new { message = ex.Message });
+            exercise.AutoFireEnabled = request.AutoFireEnabled.Value;
         }
-        catch (ArgumentException ex)
+
+        if (request.ConfirmFireInject.HasValue)
         {
-            return BadRequest(new { message = ex.Message });
+            exercise.ConfirmFireInject = request.ConfirmFireInject.Value;
         }
-    }
 
-    /// <summary>
-    /// Remove a participant from an exercise.
-    /// Only Administrators and Exercise Directors can remove participants.
-    /// </summary>
-    [HttpDelete("{id:guid}/participants/{userId}")]
-    public async Task<IActionResult> RemoveParticipant(Guid id, string userId)
-    {
-        try
+        if (request.ConfirmSkipInject.HasValue)
         {
-            await _participantService.RemoveParticipantAsync(id, userId);
-
-            _logger.LogInformation(
-                "Removed participant {UserId} from exercise {ExerciseId}",
-                userId, id);
-
-            return NoContent();
+            exercise.ConfirmSkipInject = request.ConfirmSkipInject.Value;
         }
-        catch (KeyNotFoundException ex)
+
+        if (request.ConfirmClockControl.HasValue)
         {
-            return NotFound(new { message = ex.Message });
+            exercise.ConfirmClockControl = request.ConfirmClockControl.Value;
         }
-    }
 
-    /// <summary>
-    /// Bulk update participants for an exercise.
-    /// Adds or updates multiple participants in a single request.
-    /// Only Administrators and Exercise Directors can bulk update participants.
-    /// </summary>
-    [HttpPut("{id:guid}/participants")]
-    public async Task<ActionResult<List<ExerciseParticipantDto>>> BulkUpdateParticipants(
-        Guid id,
-        [FromBody] BulkUpdateParticipantsRequest request)
-    {
-        try
-        {
-            await _participantService.BulkUpdateParticipantsAsync(id, request);
+        await _context.SaveChangesAsync();
 
-            var participants = await _participantService.GetParticipantsAsync(id);
+        _logger.LogInformation(
+            "Updated settings for exercise {ExerciseId}: ClockMultiplier={ClockMultiplier}, AutoFire={AutoFire}",
+            id, exercise.ClockMultiplier, exercise.AutoFireEnabled);
 
-            _logger.LogInformation(
-                "Bulk updated {Count} participants for exercise {ExerciseId}",
-                request.Participants.Count, id);
-
-            return Ok(participants);
-        }
-        catch (KeyNotFoundException ex)
-        {
-            return NotFound(new { message = ex.Message });
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(new { message = ex.Message });
-        }
-    }
-
-    /// <summary>
-    /// Get current authenticated user's ID from JWT claims.
-    /// </summary>
-    private Guid GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return Guid.Parse(userIdClaim);
-    }
-
-    /// <summary>
-    /// Get current authenticated user's ID as string from JWT claims.
-    /// Used for ApplicationUser FK references.
-    /// </summary>
-    private string GetCurrentUserIdString()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
+        return Ok(new ExerciseSettingsDto(
+            exercise.ClockMultiplier,
+            exercise.AutoFireEnabled,
+            exercise.ConfirmFireInject,
+            exercise.ConfirmSkipInject,
+            exercise.ConfirmClockControl
+        ));
     }
 }

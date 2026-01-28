@@ -63,7 +63,9 @@ export const useExerciseClock = (exerciseId: string) => {
       return
     }
 
+    // baseElapsed is already scenario time (with multiplier applied by server)
     const baseElapsed = parseElapsedTime(clockState.elapsedTime)
+    const clockMultiplier = clockState.clockMultiplier ?? 1
 
     if (clockState.state === ExerciseClockState.Running && clockState.startedAt) {
       // Update every second while running
@@ -71,8 +73,11 @@ export const useExerciseClock = (exerciseId: string) => {
 
       const updateDisplay = () => {
         const now = Date.now()
-        const additionalElapsed = now - capturedAt
-        const totalElapsed = baseElapsed + additionalElapsed
+        // Wall clock time since last server update
+        const wallClockElapsed = now - capturedAt
+        // Apply multiplier to get additional scenario time
+        const additionalScenarioTime = wallClockElapsed * clockMultiplier
+        const totalElapsed = baseElapsed + additionalScenarioTime
         setDisplayTime(formatElapsedTime(totalElapsed))
         setElapsedTimeMs(totalElapsed)
       }
@@ -119,6 +124,7 @@ export const useExerciseClock = (exerciseId: string) => {
         startedByName: 'You',
         exerciseStartTime: previousState?.exerciseStartTime ?? null,
         capturedAt: now,
+        clockMultiplier: previousState?.clockMultiplier ?? 1,
       }
 
       queryClient.setQueryData(clockQueryKey(exerciseId), optimisticState)
@@ -162,6 +168,7 @@ export const useExerciseClock = (exerciseId: string) => {
         startedByName: previousState?.startedByName ?? null,
         exerciseStartTime: previousState?.exerciseStartTime ?? null,
         capturedAt: now,
+        clockMultiplier: previousState?.clockMultiplier ?? 1,
       }
 
       queryClient.setQueryData(clockQueryKey(exerciseId), optimisticState)

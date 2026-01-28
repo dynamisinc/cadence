@@ -272,3 +272,46 @@ public enum UserStatus
     /// <summary>Account has been deactivated and cannot authenticate.</summary>
     Deactivated = 2
 }
+
+// =============================================================================
+// User Preferences Enums
+// =============================================================================
+
+/// <summary>
+/// Theme preference for UI appearance.
+/// </summary>
+public enum ThemePreference
+{
+    /// <summary>Light theme - bright background, dark text.</summary>
+    Light = 0,
+
+    /// <summary>Dark theme - dark background, light text.</summary>
+    Dark = 1,
+
+    /// <summary>Follow operating system preference.</summary>
+    System = 2
+}
+
+/// <summary>
+/// Display density preference for UI spacing.
+/// </summary>
+public enum DisplayDensity
+{
+    /// <summary>Standard spacing - more whitespace, easier to read.</summary>
+    Comfortable = 0,
+
+    /// <summary>Reduced spacing - more information density.</summary>
+    Compact = 1
+}
+
+/// <summary>
+/// Time format preference for displaying times.
+/// </summary>
+public enum TimeFormat
+{
+    /// <summary>24-hour format (e.g., 14:30) - military time, EM standard.</summary>
+    TwentyFourHour = 0,
+
+    /// <summary>12-hour format (e.g., 2:30 PM).</summary>
+    TwelveHour = 1
+}

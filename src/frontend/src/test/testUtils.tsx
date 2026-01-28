@@ -8,6 +8,7 @@ import { FeatureFlagsProvider } from '../admin'
 import { ConnectivityProvider, OfflineSyncProvider } from '../core/contexts'
 import { AuthProvider } from '../contexts/AuthContext'
 import { ExerciseNavigationProvider } from '../shared/contexts'
+import { UserPreferencesProvider } from '../features/settings/contexts/UserPreferencesContext'
 
 /**
  * Custom render function that wraps components with necessary providers
@@ -35,11 +36,13 @@ const AllProviders = ({ children }: WrapperProps) => {
           <OfflineSyncProvider>
             <FeatureFlagsProvider>
               <AuthProvider>
-                <BrowserRouter>
-                  <ExerciseNavigationProvider>
-                    {children}
-                  </ExerciseNavigationProvider>
-                </BrowserRouter>
+                <UserPreferencesProvider>
+                  <BrowserRouter>
+                    <ExerciseNavigationProvider>
+                      {children}
+                    </ExerciseNavigationProvider>
+                  </BrowserRouter>
+                </UserPreferencesProvider>
               </AuthProvider>
             </FeatureFlagsProvider>
           </OfflineSyncProvider>

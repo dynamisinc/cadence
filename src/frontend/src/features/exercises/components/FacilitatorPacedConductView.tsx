@@ -9,8 +9,18 @@
  * @see exercise-config/S07-facilitator-paced-conduct-view
  */
 
-import { useMemo, useState } from 'react'
-import { Box, Typography, Paper, Stack, Skeleton } from '@mui/material'
+import { useMemo, useState, useEffect } from 'react'
+import {
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  Skeleton,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBook, faCheck } from '@fortawesome/free-solid-svg-icons'
 
@@ -28,6 +38,11 @@ import {
 import { InjectDetailDrawer } from '../../injects/components'
 import { CompletedSection } from './clock-driven-sections'
 import { InjectStatus } from '../../../types'
+import {
+  CobraPrimaryButton,
+  CobraSecondaryButton,
+  CobraTextField,
+} from '../../../theme/styledComponents'
 
 interface FacilitatorPacedConductViewProps {
   /** The exercise being conducted */
@@ -38,6 +53,8 @@ interface FacilitatorPacedConductViewProps {
   onFire: (injectId: string) => Promise<void> | void
   /** Called when Controller skips an inject */
   onSkip: (injectId: string, request: SkipInjectRequest) => Promise<void> | void
+  /** Called when Controller resets an inject to pending */
+  onReset?: (injectId: string) => Promise<void> | void
   /** Called when Controller jumps to a later inject */
   onJumpTo: (targetInjectId: string, skipInjectIds: string[]) => Promise<void> | void
   /** Whether the current user can control injects */
@@ -46,6 +63,16 @@ interface FacilitatorPacedConductViewProps {
   isSubmitting?: boolean
   /** Whether injects are loading */
   isLoading?: boolean
+  /**
+   * Pre-confirmation callback for skip.
+   * Returns true if confirmation dialog is being shown (reason dialog should wait).
+   * Returns false if no confirmation needed (proceed to reason dialog immediately).
+   */
+  onSkipPreConfirmation?: (injectId: string) => boolean | null
+  /** When set, opens the skip reason dialog for this inject (after pre-confirmation) */
+  pendingSkipInjectId?: string | null
+  /** Called when pending skip is cleared (dialog closed without completing) */
+  onPendingSkipClear?: () => void
 }
 
 export const FacilitatorPacedConductView = ({
@@ -53,10 +80,14 @@ export const FacilitatorPacedConductView = ({
   injects,
   onFire,
   onSkip,
+  onReset,
   onJumpTo,
   canControl = true,
   isSubmitting = false,
   isLoading = false,
+  onSkipPreConfirmation,
+  pendingSkipInjectId,
+  onPendingSkipClear,
 }: FacilitatorPacedConductViewProps) => {
   // Get current and upcoming injects
   const currentInject = useMemo(() => getCurrentInject(injects), [injects])
@@ -87,6 +118,20 @@ export const FacilitatorPacedConductView = ({
   // Drawer state for inject details
   const [selectedInject, setSelectedInject] = useState<InjectDto | null>(null)
 
+  // Skip reason dialog state
+  const [skipDialogOpen, setSkipDialogOpen] = useState(false)
+  const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
+  const [skipReason, setSkipReason] = useState('')
+
+  // Handle pending skip from parent (after pre-confirmation)
+  useEffect(() => {
+    if (pendingSkipInjectId) {
+      setSkipInjectId(pendingSkipInjectId)
+      setSkipReason('')
+      setSkipDialogOpen(true)
+    }
+  }, [pendingSkipInjectId])
+
   // Handle fire current inject
   const handleFireAndContinue = async () => {
     if (currentInject) {
@@ -94,15 +139,47 @@ export const FacilitatorPacedConductView = ({
     }
   }
 
-  // Handle skip current inject
-  const handleSkip = async () => {
-    if (currentInject) {
-      const reason = prompt('Reason for skipping (optional):')
-      if (reason !== null) {
-        // User didn't cancel
-        await onSkip(currentInject.id, { reason: reason || 'Skipped by facilitator' })
+  // Handle skip button click - checks pre-confirmation first
+  const handleSkipClick = (injectId: string) => {
+    // Check if pre-confirmation is needed
+    if (onSkipPreConfirmation) {
+      const needsConfirmation = onSkipPreConfirmation(injectId)
+      if (needsConfirmation) {
+        // Parent will show pre-confirmation dialog first
+        // When confirmed, pendingSkipInjectId will be set to trigger reason dialog
+        return
       }
     }
+    // No pre-confirmation needed, open reason dialog directly
+    setSkipInjectId(injectId)
+    setSkipReason('')
+    setSkipDialogOpen(true)
+  }
+
+  // Handle skip current inject
+  const handleSkip = () => {
+    if (currentInject) {
+      handleSkipClick(currentInject.id)
+    }
+  }
+
+  // Handle skip confirmation
+  const handleSkipConfirm = async () => {
+    if (skipInjectId && skipReason.trim()) {
+      await onSkip(skipInjectId, { reason: skipReason.trim() })
+      setSkipDialogOpen(false)
+      setSkipInjectId(null)
+      setSkipReason('')
+      onPendingSkipClear?.()
+    }
+  }
+
+  // Handle skip cancel
+  const handleSkipCancel = () => {
+    setSkipDialogOpen(false)
+    setSkipInjectId(null)
+    setSkipReason('')
+    onPendingSkipClear?.()
   }
 
   // Handle jump confirmation
@@ -292,13 +369,46 @@ export const FacilitatorPacedConductView = ({
           setSelectedInject(null)
         }}
         onSkip={id => {
-          const reason = prompt('Reason for skipping (optional):')
-          if (reason !== null) {
-            onSkip(id, { reason: reason || 'Skipped by facilitator' })
-            setSelectedInject(null)
-          }
+          setSelectedInject(null)
+          handleSkipClick(id)
         }}
+        onReset={onReset ? id => {
+          onReset(id)
+          setSelectedInject(null)
+        } : undefined}
       />
+
+      {/* Skip Reason Dialog */}
+      <Dialog open={skipDialogOpen} onClose={handleSkipCancel} maxWidth="sm" fullWidth>
+        <DialogTitle>Skip Inject</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Please provide a reason for skipping this inject. This will be recorded for the
+            after-action report.
+          </Typography>
+          <CobraTextField
+            label="Skip Reason"
+            value={skipReason}
+            onChange={e => setSkipReason(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            required
+            placeholder="e.g., Time constraints, players ahead of schedule, etc."
+          />
+        </DialogContent>
+        <DialogActions>
+          <CobraSecondaryButton onClick={handleSkipCancel} disabled={isSubmitting}>
+            Cancel
+          </CobraSecondaryButton>
+          <CobraPrimaryButton
+            onClick={handleSkipConfirm}
+            disabled={!skipReason.trim() || isSubmitting}
+          >
+            Skip Inject
+          </CobraPrimaryButton>
+        </DialogActions>
+      </Dialog>
     </Box>
   )
 }

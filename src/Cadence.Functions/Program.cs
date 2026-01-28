@@ -1,10 +1,10 @@
+using Cadence.Core.Data;
+using Cadence.Core.Extensions;
+using Cadence.Functions.Middleware;
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Cadence.Core.Data;
-using Cadence.Core.Extensions;
-using Cadence.Functions.Middleware;
 
 // =============================================================================
 // Cadence - Azure Functions Entry Point

@@ -83,6 +83,9 @@ public class ExerciseClockService : IExerciseClockService
 
         var clockState = exercise.ToClockStateDto(_context);
 
+        // Log the clock event for timeline tracking
+        await LogClockEventAsync(exerciseId, ClockEventType.Started, startedBy, clockState.ElapsedTime);
+
         // Broadcast clock started event to all connected clients
         await _hubContext.NotifyClockStarted(exerciseId, clockState);
 
@@ -127,6 +130,9 @@ public class ExerciseClockService : IExerciseClockService
 
         var clockState = exercise.ToClockStateDto();
 
+        // Log the clock event for timeline tracking
+        await LogClockEventAsync(exerciseId, ClockEventType.Paused, pausedBy.ToString(), clockState.ElapsedTime);
+
         // Broadcast clock paused event to all connected clients
         await _hubContext.NotifyClockPaused(exerciseId, clockState);
 
@@ -170,6 +176,9 @@ public class ExerciseClockService : IExerciseClockService
 
         var clockState = exercise.ToClockStateDto();
 
+        // Log the clock event for timeline tracking
+        await LogClockEventAsync(exerciseId, ClockEventType.Stopped, stoppedBy.ToString(), clockState.ElapsedTime);
+
         // Broadcast clock stopped event to all connected clients
         await _hubContext.NotifyClockStopped(exerciseId, clockState);
 
@@ -210,5 +219,34 @@ public class ExerciseClockService : IExerciseClockService
         await _hubContext.NotifyClockStopped(exerciseId, clockState);
 
         return clockState;
+    }
+
+    /// <summary>
+    /// Logs a clock event for timeline tracking.
+    /// </summary>
+    private async Task LogClockEventAsync(
+        Guid exerciseId,
+        ClockEventType eventType,
+        string? userId,
+        TimeSpan elapsedTime,
+        string? notes = null)
+    {
+        var clockEvent = new ClockEvent
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exerciseId,
+            EventType = eventType,
+            OccurredAt = DateTime.UtcNow,
+            UserId = userId,
+            ElapsedTimeAtEvent = elapsedTime,
+            Notes = notes
+        };
+
+        _context.ClockEvents.Add(clockEvent);
+        await _context.SaveChangesAsync();
+
+        _logger.LogDebug(
+            "Logged clock event {EventType} for exercise {ExerciseId} at elapsed {Elapsed}",
+            eventType, exerciseId, elapsedTime);
     }
 }

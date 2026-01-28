@@ -9,6 +9,7 @@ export { ReadyToFireBadge } from './ReadyToFireBadge'
 export { ReadyNotification } from './ReadyNotification'
 export { InjectDetailDrawer } from './InjectDetailDrawer'
 export { FireConfirmationDialog } from './FireConfirmationDialog'
+export { SkipConfirmationDialog } from './SkipConfirmationDialog'
 
 // Organization components
 export { SortableTableHeader } from './SortableTableHeader'

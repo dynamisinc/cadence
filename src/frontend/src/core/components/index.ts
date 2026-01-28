@@ -13,6 +13,7 @@ export { ConnectionStatusIndicator } from './ConnectionStatusIndicator'
 export { ConflictDialog } from './ConflictDialog'
 export { GlobalSyncStatus } from './GlobalSyncStatus'
 export { UpdatePrompt } from './UpdatePrompt'
+export { ThemedApp } from './ThemedApp'
 
 // Navigation components
 export * from './navigation'

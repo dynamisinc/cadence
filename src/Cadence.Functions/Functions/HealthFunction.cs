@@ -1,7 +1,7 @@
+using Cadence.Core.Data;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Azure.Functions.Worker;
-using Cadence.Core.Data;
 
 namespace Cadence.Functions.Functions;
 

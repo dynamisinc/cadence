@@ -9,21 +9,25 @@ namespace Cadence.Core.Features.Injects.Services;
 
 /// <summary>
 /// Service for evaluating and transitioning injects to Ready status when their
-/// delivery time is reached in clock-driven exercises.
+/// delivery time is reached in clock-driven exercises. Also handles auto-fire
+/// when enabled for the exercise.
 /// </summary>
 public class InjectReadinessService : IInjectReadinessService
 {
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
     private readonly ILogger<InjectReadinessService> _logger;
+    private readonly IInjectService _injectService;
 
     public InjectReadinessService(
         AppDbContext context,
         IExerciseHubContext hubContext,
+        IInjectService injectService,
         ILogger<InjectReadinessService> logger)
     {
         _context = context;
         _hubContext = hubContext;
+        _injectService = injectService;
         _logger = logger;
     }
 
@@ -175,23 +179,61 @@ public class InjectReadinessService : IInjectReadinessService
                     inject.Id);
             }
         }
+
+        // Auto-fire injects if AutoFireEnabled is true for this exercise
+        if (exercise.AutoFireEnabled)
+        {
+            _logger.LogInformation(
+                "Auto-fire enabled for exercise {ExerciseId}, firing {Count} ready injects",
+                exerciseId,
+                injectsToUpdate.Count);
+
+            foreach (var inject in injectsToUpdate)
+            {
+                try
+                {
+                    // Pass null to indicate system auto-fire (no specific user)
+                    await _injectService.FireInjectAsync(exerciseId, inject.Id, null, ct);
+
+                    _logger.LogInformation(
+                        "Auto-fired inject {InjectId} (#{InjectNumber}) in exercise {ExerciseId}",
+                        inject.Id,
+                        inject.InjectNumber,
+                        exerciseId);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(
+                        ex,
+                        "Error auto-firing inject {InjectId} in exercise {ExerciseId}",
+                        inject.Id,
+                        exerciseId);
+                }
+            }
+        }
     }
 
     /// <summary>
-    /// Calculates the total elapsed time for an exercise based on its clock state.
+    /// Calculates the total elapsed scenario time for an exercise based on its clock state.
+    /// Applies the clock multiplier to get scenario time from wall clock time.
     /// </summary>
     /// <param name="exercise">The exercise to calculate elapsed time for</param>
-    /// <returns>Total elapsed time</returns>
+    /// <returns>Total elapsed scenario time (with clock multiplier applied)</returns>
     private TimeSpan CalculateElapsedTime(Exercise exercise)
     {
-        var elapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
+        // Calculate wall clock elapsed time
+        var wallClockElapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
 
         // If clock is currently running, add time since last start
         if (exercise.ClockStartedAt.HasValue)
         {
-            elapsed += DateTime.UtcNow - exercise.ClockStartedAt.Value;
+            wallClockElapsed += DateTime.UtcNow - exercise.ClockStartedAt.Value;
         }
 
-        return elapsed;
+        // Apply clock multiplier to get scenario time
+        // ClockMultiplier of 2.0 means scenario time runs 2x faster than wall clock
+        var scenarioElapsed = TimeSpan.FromTicks((long)(wallClockElapsed.Ticks * (double)exercise.ClockMultiplier));
+
+        return scenarioElapsed;
     }
 }

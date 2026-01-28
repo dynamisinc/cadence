@@ -10,3 +10,7 @@ export {
 export { useDuplicateExercise } from './useDuplicateExercise'
 export { useSetupProgress, setupProgressQueryKey } from './useSetupProgress'
 export { useExerciseParticipants } from './useExerciseParticipants'
+export {
+  useExerciseSettings,
+  exerciseSettingsQueryKey,
+} from './useExerciseSettings'
