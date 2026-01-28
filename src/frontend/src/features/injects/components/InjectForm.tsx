@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import {
   Box,
   Typography,
@@ -13,6 +13,7 @@ import {
   Autocomplete,
   Chip,
 } from '@mui/material'
+import { toast } from 'react-toastify'
 
 import {
   CobraPrimaryButton,
