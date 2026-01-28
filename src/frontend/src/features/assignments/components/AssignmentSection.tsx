@@ -68,13 +68,13 @@ export function AssignmentSection({
   }
 
   return (
-    <Box mb={4}>
+    <Box mb={3}>
       {/* Section Header - Clickable to toggle */}
       <Box
         display="flex"
         alignItems="center"
         gap={1}
-        mb={isExpanded ? 2 : 0}
+        mb={isExpanded ? 1.5 : 0}
         onClick={handleToggle}
         sx={{
           cursor: 'pointer',

@@ -4,6 +4,7 @@ using Cadence.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cadence.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260127202521_AddExerciseSettings")]
+    partial class AddExerciseSettings
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -1094,8 +1097,8 @@ namespace Cadence.Core.Migrations
                     b.Property<DateTime?>("FiredAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("FiredByUserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid?>("FiredBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<int>("InjectNumber")
                         .HasColumnType("int");
@@ -1157,8 +1160,8 @@ namespace Cadence.Core.Migrations
                     b.Property<DateTime?>("SkippedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("SkippedByUserId")
-                        .HasColumnType("nvarchar(450)");
+                    b.Property<Guid?>("SkippedBy")
+                        .HasColumnType("uniqueidentifier");
 
                     b.Property<string>("Source")
                         .HasMaxLength(200)
@@ -1199,13 +1202,13 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("DeliveryMethodId");
 
-                    b.HasIndex("FiredByUserId");
+                    b.HasIndex("FiredBy");
 
                     b.HasIndex("ParentInjectId");
 
                     b.HasIndex("PhaseId");
 
-                    b.HasIndex("SkippedByUserId");
+                    b.HasIndex("SkippedBy");
 
                     b.HasIndex("Track");
 
@@ -2079,9 +2082,9 @@ namespace Cadence.Core.Migrations
                         .HasForeignKey("DeliveryMethodId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "FiredByUser")
+                    b.HasOne("Cadence.Core.Models.Entities.User", "FiredByUser")
                         .WithMany()
-                        .HasForeignKey("FiredByUserId")
+                        .HasForeignKey("FiredBy")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.HasOne("Cadence.Core.Models.Entities.Msel", "Msel")
@@ -2100,9 +2103,9 @@ namespace Cadence.Core.Migrations
                         .HasForeignKey("PhaseId")
                         .OnDelete(DeleteBehavior.NoAction);
 
-                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "SkippedByUser")
+                    b.HasOne("Cadence.Core.Models.Entities.User", "SkippedByUser")
                         .WithMany()
-                        .HasForeignKey("SkippedByUserId")
+                        .HasForeignKey("SkippedBy")
                         .OnDelete(DeleteBehavior.NoAction);
 
                     b.Navigation("DeliveryMethodLookup");
