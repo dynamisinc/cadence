@@ -141,6 +141,36 @@ jobs:
         if: needs.check-changes.outputs.migrations_changed == 'true'
         run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
 
+      - name: Debug - Investigate build issue
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: |
+          echo "=== All .props and .targets files ==="
+          find . -type f \( -name "*.props" -o -name "*.targets" \) 2>/dev/null || echo "None found"
+          
+          echo ""
+          echo "=== Check for global.json ==="
+          cat global.json 2>/dev/null || echo "No global.json"
+          
+          echo ""
+          echo "=== Check for .editorconfig with build settings ==="
+          head -50 .editorconfig 2>/dev/null || echo "No .editorconfig"
+          
+          echo ""
+          echo "=== NuGet package props/targets in obj folder ==="
+          find . -path "*/obj/*.props" -o -path "*/obj/*.targets" 2>/dev/null | head -20
+          
+          echo ""
+          echo "=== Cadence.Core.csproj content ==="
+          cat src/Cadence.Core/Cadence.Core.csproj
+          
+          echo ""
+          echo "=== Try standalone build of Core project ==="
+          dotnet build src/Cadence.Core/Cadence.Core.csproj --verbosity detailed 2>&1 | grep -A5 -B5 "CS2001\|CS2021\|Compile Include\|\*\*/\*" || echo "No matching errors found in detailed output"
+          
+          echo ""
+          echo "=== Check generated props files ==="
+          cat src/Cadence.Core/obj/Cadence.Core.csproj.nuget.g.props 2>/dev/null || echo "No nuget.g.props"
+
       - name: Apply EF Core migrations
         if: needs.check-changes.outputs.migrations_changed == 'true'
         run: |
