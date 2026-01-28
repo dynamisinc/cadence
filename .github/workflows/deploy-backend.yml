@@ -18,7 +18,13 @@ on:
 
 env:
   DOTNET_VERSION: "10.0.x"
-  AZURE_WEBAPP_NAME: "app-cadence-api-uat" # UPDATE after creating resource
+  # ============================================================================
+  # IMPORTANT: Update this value after creating your Azure App Service
+  # Format: app-cadence-api-{environment}
+  # UAT Example: app-cadence-api-uat
+  # Production Example: app-cadence-api-prod
+  # ============================================================================
+  AZURE_WEBAPP_NAME: "app-cadence-api-uat"
   WEBAPI_PROJECT_PATH: "src/Cadence.WebApi"
 
 concurrency:
@@ -46,17 +52,20 @@ jobs:
             BASE_SHA="${{ github.event.workflow_run.head_commit.id }}~1"
             HEAD_SHA="${{ github.event.workflow_run.head_commit.id }}"
           else
+            # Manual trigger always deploys
             echo "backend=true" >> $GITHUB_OUTPUT
             echo "migrations=true" >> $GITHUB_OUTPUT
             exit 0
           fi
 
-          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.(Core|WebApi|Functions)(\.Tests)?/'; then
+          # Check for backend changes
+          if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.(Core|WebApi)(\.Tests)?/'; then
             echo "backend=true" >> $GITHUB_OUTPUT
           else
             echo "backend=false" >> $GITHUB_OUTPUT
           fi
 
+          # Check for migration changes
           if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/Cadence\.Core/Migrations/'; then
             echo "migrations=true" >> $GITHUB_OUTPUT
           else

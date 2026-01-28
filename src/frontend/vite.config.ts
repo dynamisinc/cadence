@@ -59,6 +59,8 @@ export default defineConfig(({ mode }) => {
         workbox: {
           // Precache app shell
           globPatterns: ['**/*.{js,css,html,ico,svg,woff2}'],
+          // Increase limit to 3 MiB (default is 2 MiB) to accommodate larger bundles
+          maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
           // Runtime caching strategies
           runtimeCaching: [
             {
