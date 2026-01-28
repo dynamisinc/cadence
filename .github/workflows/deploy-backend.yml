@@ -168,6 +168,7 @@ jobs:
             --startup-project src/Cadence.WebApi/Cadence.WebApi.csproj \
             --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" \
             --configuration Release \
+            --context AppDbContext \
             --no-build \
             --verbose
         env:
