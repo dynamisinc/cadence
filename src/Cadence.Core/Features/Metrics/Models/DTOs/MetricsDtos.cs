@@ -737,12 +737,12 @@ public record CapabilityPerformanceSummaryDto
     /// <summary>Target capabilities with no observations (gaps).</summary>
     public List<UnevaluatedCapabilityDto> UnevaluatedTargets { get; init; } = new();
 
-    /// <summary>Performance grouped by mission area.</summary>
-    public List<MissionAreaSummaryDto> ByMissionArea { get; init; } = new();
+    /// <summary>Performance grouped by category.</summary>
+    public List<CategorySummaryDto> ByCategory { get; init; } = new();
 }
 
 /// <summary>
-/// Performance metrics for a single core capability.
+/// Performance metrics for a single capability.
 /// </summary>
 public record CapabilityPerformanceDto
 {
@@ -752,8 +752,8 @@ public record CapabilityPerformanceDto
     /// <summary>Capability name (e.g., "Mass Care Services").</summary>
     public string Name { get; init; } = string.Empty;
 
-    /// <summary>FEMA mission area (Prevention, Protection, Mitigation, Response, Recovery).</summary>
-    public string MissionArea { get; init; } = string.Empty;
+    /// <summary>Category grouping (e.g., "Response", "Protection" for FEMA, or custom categories).</summary>
+    public string Category { get; init; } = string.Empty;
 
     /// <summary>Number of observations tagged with this capability.</summary>
     public int ObservationCount { get; init; }
@@ -781,16 +781,16 @@ public record UnevaluatedCapabilityDto
 {
     public Guid Id { get; init; }
     public string Name { get; init; } = string.Empty;
-    public string MissionArea { get; init; } = string.Empty;
+    public string Category { get; init; } = string.Empty;
 }
 
 /// <summary>
-/// Performance summary grouped by FEMA mission area.
+/// Performance summary grouped by category.
 /// </summary>
-public record MissionAreaSummaryDto
+public record CategorySummaryDto
 {
-    /// <summary>Mission area name.</summary>
-    public string MissionArea { get; init; } = string.Empty;
+    /// <summary>Category name.</summary>
+    public string Category { get; init; } = string.Empty;
 
     /// <summary>Number of capabilities evaluated in this area.</summary>
     public int CapabilitiesEvaluated { get; init; }

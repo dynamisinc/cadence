@@ -183,12 +183,12 @@ public class ObservationMetricsService : IObservationMetricsService
 
         // Get all covered capability IDs
         var allCoveredCapabilityIds = observations
-            .SelectMany(o => o.ObservationCapabilities.Select(oc => oc.CoreCapabilityId))
+            .SelectMany(o => o.ObservationCapabilities.Select(oc => oc.CapabilityId))
             .Distinct()
             .ToHashSet();
 
         // Get total active capabilities for coverage calculation
-        var totalCapabilities = await _context.CoreCapabilities
+        var totalCapabilities = await _context.Capabilities
             .AsNoTracking()
             .CountAsync(c => c.IsActive);
 
@@ -214,7 +214,7 @@ public class ObservationMetricsService : IObservationMetricsService
 
                 // Calculate capabilities covered by this evaluator
                 var evalCapabilitiesCovered = evalObservations
-                    .SelectMany(o => o.ObservationCapabilities.Select(oc => oc.CoreCapabilityId))
+                    .SelectMany(o => o.ObservationCapabilities.Select(oc => oc.CapabilityId))
                     .Distinct()
                     .Count();
 
@@ -350,18 +350,18 @@ public class ObservationMetricsService : IObservationMetricsService
             .AsNoTracking()
             .Where(o => o.ExerciseId == exerciseId)
             .Include(o => o.ObservationCapabilities)
-                .ThenInclude(oc => oc.CoreCapability)
+                .ThenInclude(oc => oc.Capability)
             .ToListAsync();
 
         // Get target capabilities for this exercise
         var targetCapabilityIds = await _context.ExerciseTargetCapabilities
             .AsNoTracking()
             .Where(etc => etc.ExerciseId == exerciseId)
-            .Select(etc => etc.CoreCapabilityId)
+            .Select(etc => etc.CapabilityId)
             .ToListAsync();
 
         // Get all core capabilities for reference
-        var allCapabilities = await _context.CoreCapabilities
+        var allCapabilities = await _context.Capabilities
             .AsNoTracking()
             .Where(c => c.IsActive)
             .ToListAsync();
@@ -376,7 +376,7 @@ public class ObservationMetricsService : IObservationMetricsService
 
         // Group observations by capability
         var observationsByCapability = taggedObservations
-            .SelectMany(o => o.ObservationCapabilities.Select(oc => new { Observation = o, Capability = oc.CoreCapability }))
+            .SelectMany(o => o.ObservationCapabilities.Select(oc => new { Observation = o, Capability = oc.Capability }))
             .GroupBy(x => x.Capability.Id)
             .ToDictionary(g => g.Key, g => g.ToList());
 
@@ -423,7 +423,7 @@ public class ObservationMetricsService : IObservationMetricsService
                 {
                     CapabilityId = capability.Id,
                     Name = capability.Name,
-                    MissionArea = capability.MissionArea.ToString(),
+                    Category = capability.Category ?? "Uncategorized",
                     ObservationCount = capObservations.Count,
                     AverageRating = avgRating,
                     RatingCategory = ratingCategory,
@@ -458,13 +458,13 @@ public class ObservationMetricsService : IObservationMetricsService
             {
                 Id = c.Id,
                 Name = c.Name,
-                MissionArea = c.MissionArea.ToString()
+                Category = c.Category ?? "Uncategorized"
             })
             .ToList();
 
-        // Group by mission area
-        var byMissionArea = capabilities
-            .GroupBy(c => c.MissionArea)
+        // Group by category
+        var byCategory = capabilities
+            .GroupBy(c => c.Category)
             .Select(g =>
             {
                 var areaObservations = g.Sum(c => c.ObservationCount);
@@ -479,9 +479,9 @@ public class ObservationMetricsService : IObservationMetricsService
                         areaAvgRating = Math.Round(weightedSum / totalRated, 2);
                 }
 
-                return new MissionAreaSummaryDto
+                return new CategorySummaryDto
                 {
-                    MissionArea = g.Key,
+                    Category = g.Key,
                     CapabilitiesEvaluated = g.Count(),
                     ObservationCount = areaObservations,
                     AverageRating = areaAvgRating,
@@ -495,7 +495,7 @@ public class ObservationMetricsService : IObservationMetricsService
                     }
                 };
             })
-            .OrderBy(m => m.MissionArea)
+            .OrderBy(m => m.Category)
             .ToList();
 
         return new CapabilityPerformanceSummaryDto
@@ -509,7 +509,7 @@ public class ObservationMetricsService : IObservationMetricsService
             TaggingRate = taggingRate,
             Capabilities = capabilities,
             UnevaluatedTargets = unevaluatedTargets,
-            ByMissionArea = byMissionArea
+            ByCategory = byCategory
         };
     }
 

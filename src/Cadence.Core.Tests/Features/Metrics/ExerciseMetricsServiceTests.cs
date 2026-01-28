@@ -218,8 +218,8 @@ public class ExerciseMetricsServiceTests
         var exercise = CreateExercise(context, org);
         var (msel, _) = CreateInjects(context, exercise, 1);
 
-        // The DbContext should have seeded CoreCapabilities
-        var totalActiveCapabilities = context.CoreCapabilities.Count(c => c.IsActive);
+        // Capabilities are now organization-scoped, count active ones for this org
+        var totalActiveCapabilities = context.Capabilities.Count(c => c.IsActive && c.OrganizationId == org.Id);
         var service = new ExerciseMetricsService(context);
 
         // Act
