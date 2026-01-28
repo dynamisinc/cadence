@@ -16,7 +16,12 @@ public class CreateExerciseRequest
     public bool IsPracticeMode { get; init; }
     public DeliveryMode DeliveryMode { get; init; } = DeliveryMode.ClockDriven;
     public TimelineMode TimelineMode { get; init; } = TimelineMode.RealTime;
-    public decimal? TimeScale { get; init; }
+
+    /// <summary>
+    /// Clock speed multiplier (1, 2, 5, 10, or 20).
+    /// Default: 1 (real-time).
+    /// </summary>
+    public decimal ClockMultiplier { get; init; } = 1.0m;
 
     /// <summary>
     /// Optional ID of user to assign as Exercise Director.
@@ -42,7 +47,12 @@ public class UpdateExerciseRequest
     public bool IsPracticeMode { get; init; }
     public DeliveryMode DeliveryMode { get; init; } = DeliveryMode.ClockDriven;
     public TimelineMode TimelineMode { get; init; } = TimelineMode.RealTime;
-    public decimal? TimeScale { get; init; }
+
+    /// <summary>
+    /// Clock speed multiplier (1, 2, 5, 10, or 20).
+    /// Default: 1 (real-time).
+    /// </summary>
+    public decimal ClockMultiplier { get; init; } = 1.0m;
 
     /// <summary>
     /// Optional ID of user to assign as Exercise Director.
@@ -68,6 +78,50 @@ public class DuplicateExerciseRequest
     /// </summary>
     public DateOnly? ScheduledDate { get; init; }
 }
+
+/// <summary>
+/// DTO for updating exercise settings (S03-S05).
+/// Used by Directors+ to configure exercise behavior.
+/// </summary>
+public class UpdateExerciseSettingsRequest
+{
+    /// <summary>
+    /// Clock speed multiplier. 1.0 = real-time.
+    /// Valid range: 0.5 to 20.0
+    /// </summary>
+    public decimal? ClockMultiplier { get; init; }
+
+    /// <summary>
+    /// Whether injects should automatically fire at scheduled time.
+    /// </summary>
+    public bool? AutoFireEnabled { get; init; }
+
+    /// <summary>
+    /// Whether to show confirmation dialog before firing an inject.
+    /// </summary>
+    public bool? ConfirmFireInject { get; init; }
+
+    /// <summary>
+    /// Whether to show confirmation dialog before skipping an inject.
+    /// </summary>
+    public bool? ConfirmSkipInject { get; init; }
+
+    /// <summary>
+    /// Whether to show confirmation for clock control actions.
+    /// </summary>
+    public bool? ConfirmClockControl { get; init; }
+}
+
+/// <summary>
+/// DTO for exercise settings response.
+/// </summary>
+public record ExerciseSettingsDto(
+    decimal ClockMultiplier,
+    bool AutoFireEnabled,
+    bool ConfirmFireInject,
+    bool ConfirmSkipInject,
+    bool ConfirmClockControl
+);
 
 /// <summary>
 /// DTO for exercise response.
@@ -102,7 +156,13 @@ public record ExerciseDto(
     // Timing configuration fields
     DeliveryMode DeliveryMode,
     TimelineMode TimelineMode,
-    decimal? TimeScale
+    decimal? TimeScale,
+    // Exercise settings (S03-S05)
+    decimal ClockMultiplier,
+    bool AutoFireEnabled,
+    bool ConfirmFireInject,
+    bool ConfirmSkipInject,
+    bool ConfirmClockControl
 );
 
 /// <summary>
@@ -137,7 +197,12 @@ public static class ExerciseMapper
         entity.PreviousStatus,
         entity.DeliveryMode,
         entity.TimelineMode,
-        entity.TimeScale
+        entity.TimeScale,
+        entity.ClockMultiplier,
+        entity.AutoFireEnabled,
+        entity.ConfirmFireInject,
+        entity.ConfirmSkipInject,
+        entity.ConfirmClockControl
     );
 
     public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, Guid createdBy) => new()
@@ -156,7 +221,9 @@ public static class ExerciseMapper
         ModifiedBy = createdBy,
         DeliveryMode = request.DeliveryMode,
         TimelineMode = request.TimelineMode,
-        TimeScale = request.TimeScale
+        // ClockMultiplier is the source of truth; TimeScale is kept in sync for backwards compatibility
+        ClockMultiplier = request.ClockMultiplier,
+        TimeScale = request.ClockMultiplier
     };
 }
 

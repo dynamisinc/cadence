@@ -5,6 +5,8 @@ using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
+using Cadence.Core.Features.Metrics.Models.DTOs;
+using Cadence.Core.Features.Metrics.Services;
 using Cadence.Core.Features.Msel.Models.DTOs;
 using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Models.Entities;
@@ -31,6 +33,7 @@ public class ExercisesController : ControllerBase
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
     private readonly IExerciseParticipantService _participantService;
+    private readonly IExerciseMetricsService _metricsService;
     private readonly ILogger<ExercisesController> _logger;
 
     public ExercisesController(
@@ -41,6 +44,7 @@ public class ExercisesController : ControllerBase
         IMselService mselService,
         ISetupProgressService setupProgressService,
         IExerciseParticipantService participantService,
+        IExerciseMetricsService metricsService,
         ILogger<ExercisesController> logger)
     {
         _context = context;
@@ -50,6 +54,7 @@ public class ExercisesController : ControllerBase
         _mselService = mselService;
         _setupProgressService = setupProgressService;
         _participantService = participantService;
+        _metricsService = metricsService;
         _logger = logger;
     }
 
@@ -237,7 +242,9 @@ public class ExercisesController : ControllerBase
             // Timing configuration fields (CLK-01)
             exercise.DeliveryMode = request.DeliveryMode;
             exercise.TimelineMode = request.TimelineMode;
-            exercise.TimeScale = request.TimeScale;
+            // ClockMultiplier is the source of truth; TimeScale is kept in sync for backwards compatibility
+            exercise.ClockMultiplier = request.ClockMultiplier;
+            exercise.TimeScale = request.ClockMultiplier;
         }
 
         // End time can always be updated (as long as not Completed/Archived)
@@ -594,9 +601,9 @@ public class ExercisesController : ControllerBase
                     ControllerNotes = sourceInject.ControllerNotes,
                     // Conduct data NOT copied
                     FiredAt = null,
-                    FiredBy = null,
+                    FiredByUserId = null,
                     SkippedAt = null,
-                    SkippedBy = null,
+                    SkippedByUserId = null,
                     SkipReason = null,
                     MselId = newMselId.Value,
                     // Map phase ID if inject was assigned to a phase
@@ -1117,6 +1124,263 @@ public class ExercisesController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
     }
+
+    // =========================================================================
+    // Metrics Endpoints (S01, S02, S03)
+    // =========================================================================
+
+    /// <summary>
+    /// Get real-time exercise progress for conduct view.
+    /// Provides situational awareness: inject counts, observation counts, clock status.
+    /// Used by Controllers and Directors during active exercises.
+    /// </summary>
+    [HttpGet("{id:guid}/progress")]
+    public async Task<ActionResult<ExerciseProgressDto>> GetExerciseProgress(Guid id)
+    {
+        var progress = await _metricsService.GetExerciseProgressAsync(id);
+
+        if (progress == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(progress);
+    }
+
+    /// <summary>
+    /// Get comprehensive inject delivery statistics for after-action review.
+    /// Shows timing performance, on-time rate, and breakdowns by phase/controller.
+    /// </summary>
+    /// <param name="id">The exercise ID.</param>
+    /// <param name="onTimeToleranceMinutes">Minutes tolerance for on-time calculation (default: 5).</param>
+    [HttpGet("{id:guid}/metrics/injects")]
+    public async Task<ActionResult<InjectSummaryDto>> GetInjectMetrics(
+        Guid id,
+        [FromQuery] int onTimeToleranceMinutes = 5)
+    {
+        var summary = await _metricsService.GetInjectSummaryAsync(id, onTimeToleranceMinutes);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Get comprehensive observation statistics for after-action review.
+    /// Shows P/S/M/U distribution, coverage rates, and breakdowns by evaluator/phase.
+    /// </summary>
+    [HttpGet("{id:guid}/metrics/observations")]
+    public async Task<ActionResult<ObservationSummaryDto>> GetObservationMetrics(Guid id)
+    {
+        var summary = await _metricsService.GetObservationSummaryAsync(id);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Get comprehensive timeline and duration analysis for after-action review.
+    /// Includes pause history, phase timing, and inject pacing analysis.
+    /// </summary>
+    /// <param name="id">Exercise ID.</param>
+    /// <returns>Timeline summary data.</returns>
+    [HttpGet("{id:guid}/metrics/timeline")]
+    [ProducesResponseType(typeof(TimelineSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<TimelineSummaryDto>> GetTimelineMetrics(Guid id)
+    {
+        var summary = await _metricsService.GetTimelineSummaryAsync(id);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Get controller activity metrics for after-action review.
+    /// Shows workload distribution, timing performance, and phase activity per controller.
+    /// </summary>
+    /// <param name="id">Exercise ID.</param>
+    /// <param name="onTimeToleranceMinutes">Minutes tolerance for on-time calculation (default: 5).</param>
+    /// <returns>Controller activity summary data.</returns>
+    [HttpGet("{id:guid}/metrics/controllers")]
+    [ProducesResponseType(typeof(ControllerActivitySummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ControllerActivitySummaryDto>> GetControllerMetrics(
+        Guid id,
+        [FromQuery] int onTimeToleranceMinutes = 5)
+    {
+        var summary = await _metricsService.GetControllerActivityAsync(id, onTimeToleranceMinutes);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Get evaluator coverage metrics for after-action review.
+    /// Shows observation distribution, objective coverage, and rating consistency per evaluator.
+    /// </summary>
+    /// <param name="id">Exercise ID.</param>
+    /// <returns>Evaluator coverage summary data.</returns>
+    [HttpGet("{id:guid}/metrics/evaluators")]
+    [ProducesResponseType(typeof(EvaluatorCoverageSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<EvaluatorCoverageSummaryDto>> GetEvaluatorMetrics(Guid id)
+    {
+        var summary = await _metricsService.GetEvaluatorCoverageAsync(id);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    /// <summary>
+    /// Get capability performance metrics for an exercise (S06).
+    /// Shows P/S/M/U ratings broken down by FEMA Core Capability.
+    /// </summary>
+    /// <param name="id">The exercise ID.</param>
+    /// <returns>Capability performance summary or 404 if not found.</returns>
+    [HttpGet("{id:guid}/metrics/capabilities")]
+    [ProducesResponseType(typeof(CapabilityPerformanceSummaryDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<CapabilityPerformanceSummaryDto>> GetCapabilityMetrics(Guid id)
+    {
+        var summary = await _metricsService.GetCapabilityPerformanceAsync(id);
+
+        if (summary == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(summary);
+    }
+
+    // =========================================================================
+    // Exercise Settings Endpoints (S03-S05)
+    // =========================================================================
+
+    /// <summary>
+    /// Get exercise settings (clock mode, auto-fire, confirmations).
+    /// </summary>
+    [HttpGet("{id:guid}/settings")]
+    [AuthorizeExerciseAccess]
+    [ProducesResponseType(typeof(ExerciseSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ExerciseSettingsDto>> GetExerciseSettings(Guid id)
+    {
+        var exercise = await _context.Exercises.FindAsync(id);
+
+        if (exercise == null)
+        {
+            return NotFound();
+        }
+
+        return Ok(new ExerciseSettingsDto(
+            exercise.ClockMultiplier,
+            exercise.AutoFireEnabled,
+            exercise.ConfirmFireInject,
+            exercise.ConfirmSkipInject,
+            exercise.ConfirmClockControl
+        ));
+    }
+
+    /// <summary>
+    /// Update exercise settings.
+    /// Only Directors+ can modify settings.
+    /// Clock multiplier can only be changed when exercise is paused or in draft.
+    /// </summary>
+    [HttpPut("{id:guid}/settings")]
+    [AuthorizeExerciseDirector]
+    [ProducesResponseType(typeof(ExerciseSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ExerciseSettingsDto>> UpdateExerciseSettings(
+        Guid id,
+        [FromBody] UpdateExerciseSettingsRequest request)
+    {
+        var exercise = await _context.Exercises.FindAsync(id);
+
+        if (exercise == null)
+        {
+            return NotFound();
+        }
+
+        // Validate clock multiplier change
+        if (request.ClockMultiplier.HasValue)
+        {
+            // Validate range
+            if (request.ClockMultiplier < 0.5m || request.ClockMultiplier > 20.0m)
+            {
+                return BadRequest(new { message = "Clock multiplier must be between 0.5 and 20" });
+            }
+
+            // Can only change when paused or draft
+            if (exercise.ClockState == ExerciseClockState.Running)
+            {
+                return BadRequest(new { message = "Cannot change clock multiplier while clock is running. Pause the exercise first." });
+            }
+
+            // ClockMultiplier is the source of truth; TimeScale is kept in sync for backwards compatibility
+            exercise.ClockMultiplier = request.ClockMultiplier.Value;
+            exercise.TimeScale = request.ClockMultiplier.Value;
+        }
+
+        // Update boolean settings (can be changed anytime)
+        if (request.AutoFireEnabled.HasValue)
+        {
+            exercise.AutoFireEnabled = request.AutoFireEnabled.Value;
+        }
+
+        if (request.ConfirmFireInject.HasValue)
+        {
+            exercise.ConfirmFireInject = request.ConfirmFireInject.Value;
+        }
+
+        if (request.ConfirmSkipInject.HasValue)
+        {
+            exercise.ConfirmSkipInject = request.ConfirmSkipInject.Value;
+        }
+
+        if (request.ConfirmClockControl.HasValue)
+        {
+            exercise.ConfirmClockControl = request.ConfirmClockControl.Value;
+        }
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Updated settings for exercise {ExerciseId}: ClockMultiplier={ClockMultiplier}, AutoFire={AutoFire}",
+            id, exercise.ClockMultiplier, exercise.AutoFireEnabled);
+
+        return Ok(new ExerciseSettingsDto(
+            exercise.ClockMultiplier,
+            exercise.AutoFireEnabled,
+            exercise.ConfirmFireInject,
+            exercise.ConfirmSkipInject,
+            exercise.ConfirmClockControl
+        ));
+    }
+
+    // =========================================================================
+    // Private Helpers
+    // =========================================================================
 
     /// <summary>
     /// Get current authenticated user's ID from JWT claims.

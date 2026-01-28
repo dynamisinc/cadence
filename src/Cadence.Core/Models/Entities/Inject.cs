@@ -188,9 +188,10 @@ public class Inject : BaseEntity
     public DateTime? FiredAt { get; set; }
 
     /// <summary>
-    /// Controller who fired the inject.
+    /// ApplicationUser ID who fired the inject.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
     /// </summary>
-    public Guid? FiredBy { get; set; }
+    public string? FiredByUserId { get; set; }
 
     /// <summary>
     /// UTC timestamp when skipped. Set when skipped.
@@ -198,9 +199,10 @@ public class Inject : BaseEntity
     public DateTime? SkippedAt { get; set; }
 
     /// <summary>
-    /// User who skipped the inject.
+    /// ApplicationUser ID who skipped the inject.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
     /// </summary>
-    public Guid? SkippedBy { get; set; }
+    public string? SkippedByUserId { get; set; }
 
     /// <summary>
     /// Reason for skipping. Max 500 characters.
@@ -246,18 +248,18 @@ public class Inject : BaseEntity
     public ICollection<Inject> ChildInjects { get; set; } = new List<Inject>();
 
     /// <summary>
-    /// User who fired this inject (if fired).
-    /// May be null if inject not fired or if the user has been soft-deleted.
-    /// For historical reports, use IgnoreQueryFilters() to include deleted users.
+    /// The user who fired this inject.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if inject not fired or if the user has been deactivated.
     /// </summary>
-    public User? FiredByUser { get; set; }
+    public ApplicationUser? FiredByUser { get; set; }
 
     /// <summary>
-    /// User who skipped this inject (if skipped).
-    /// May be null if inject not skipped or if the user has been soft-deleted.
-    /// For historical reports, use IgnoreQueryFilters() to include deleted users.
+    /// The user who skipped this inject.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if inject not skipped or if the user has been deactivated.
     /// </summary>
-    public User? SkippedByUser { get; set; }
+    public ApplicationUser? SkippedByUser { get; set; }
 
     /// <summary>
     /// Observations linked to this inject.

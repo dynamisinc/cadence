@@ -36,7 +36,7 @@ public class MselService : IMselService
         if (msel == null)
             return null;
 
-        return await BuildMselSummary(msel, exercise);
+        return BuildMselSummary(msel, exercise);
     }
 
     /// <inheritdoc />
@@ -76,10 +76,10 @@ public class MselService : IMselService
         if (msel == null)
             return null;
 
-        return await BuildMselSummary(msel, msel.Exercise);
+        return BuildMselSummary(msel, msel.Exercise);
     }
 
-    private async Task<MselSummaryDto> BuildMselSummary(Cadence.Core.Models.Entities.Msel msel, Exercise exercise)
+    private MselSummaryDto BuildMselSummary(Cadence.Core.Models.Entities.Msel msel, Exercise exercise)
     {
         var injects = msel.Injects.ToList();
         var totalInjects = injects.Count;
@@ -97,12 +97,10 @@ public class MselService : IMselService
             .OrderByDescending(i => i.UpdatedAt)
             .FirstOrDefault();
 
-        string? lastModifiedByName = null;
-        if (lastModifiedInject?.ModifiedBy != null)
-        {
-            var user = await _context.Users.FindAsync(lastModifiedInject.ModifiedBy);
-            lastModifiedByName = user?.DisplayName ?? user?.Email;
-        }
+        // Note: LastModifiedByName is not populated here due to type mismatch between
+        // BaseEntity.ModifiedBy (Guid) and ApplicationUser.Id (string).
+        // This avoids an N+1 query that was causing performance issues.
+        // Future: Consider denormalizing the user name or fixing the FK type.
 
         return new MselSummaryDto
         {
@@ -120,7 +118,7 @@ public class MselService : IMselService
             PhaseCount = exercise.Phases.Count(p => !p.IsDeleted),
             ObjectiveCount = exercise.Objectives.Count(o => !o.IsDeleted),
             LastModifiedAt = lastModifiedInject?.UpdatedAt,
-            LastModifiedByName = lastModifiedByName,
+            LastModifiedByName = null, // Not populated - see comment above
             CreatedAt = msel.CreatedAt,
             UpdatedAt = msel.UpdatedAt,
         };

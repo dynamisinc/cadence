@@ -89,7 +89,7 @@ export const ExerciseForm = ({
       isPracticeMode: false,
       deliveryMode: DeliveryMode.ClockDriven,
       timelineMode: TimelineMode.RealTime,
-      timeScale: null,
+      clockMultiplier: 1,
       directorId: '',
     },
     mode: 'onBlur',
@@ -100,7 +100,7 @@ export const ExerciseForm = ({
   const exerciseTypeValue = watch('exerciseType')
   const deliveryModeValue = watch('deliveryMode')
   const timelineModeValue = watch('timelineMode')
-  const timeScaleValue = watch('timeScale')
+  const clockMultiplierValue = watch('clockMultiplier')
 
   // Apply smart defaults when exercise type changes
   useEffect(() => {
@@ -111,9 +111,9 @@ export const ExerciseForm = ({
       setValue('deliveryMode', defaultDeliveryMode)
       setValue('timelineMode', defaultTimelineMode)
 
-      // Clear time scale if switching away from Compressed mode
+      // Reset clock multiplier to 1x if switching away from Compressed mode
       if (defaultTimelineMode !== TimelineMode.Compressed) {
-        setValue('timeScale', null)
+        setValue('clockMultiplier', 1)
       }
     }
   }, [exerciseTypeValue, isEdit, setValue])
@@ -138,7 +138,7 @@ export const ExerciseForm = ({
         isPracticeMode: exercise.isPracticeMode,
         deliveryMode: exercise.deliveryMode,
         timelineMode: exercise.timelineMode,
-        timeScale: exercise.timeScale,
+        clockMultiplier: exercise.clockMultiplier ?? 1,
         directorId: '', // TODO: Load director user object when exercise.directorId is available
       })
       // Note: selectedDirector state would need to be set here if we have directorId in ExerciseDto
@@ -246,7 +246,7 @@ export const ExerciseForm = ({
           <TimingConfigurationSection
             deliveryMode={deliveryModeValue}
             timelineMode={timelineModeValue}
-            timeScale={timeScaleValue ?? null}
+            clockMultiplier={clockMultiplierValue ?? 1}
             exerciseType={exerciseTypeValue}
             isLocked={exercise?.status === ExerciseStatus.Active}
             onChange={(field, value) => {
@@ -259,7 +259,7 @@ export const ExerciseForm = ({
             errors={{
               deliveryMode: errors.deliveryMode?.message,
               timelineMode: errors.timelineMode?.message,
-              timeScale: errors.timeScale?.message,
+              clockMultiplier: errors.clockMultiplier?.message,
             }}
           />
         )}

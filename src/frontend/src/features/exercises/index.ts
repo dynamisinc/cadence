@@ -5,6 +5,7 @@ export {
   ExerciseDetailPage,
   ExerciseConductPage,
   ExerciseParticipantsPage,
+  ExerciseSettingsPage,
   ReportsPage,
   PlaceholderPage,
   ObservationsPlaceholderPage,
@@ -21,6 +22,7 @@ export {
   ExerciseForm,
   DuplicateExerciseDialog,
   SetupProgress,
+  ExerciseSettingsDialog,
 } from './components'
 
 // Hooks
@@ -46,4 +48,8 @@ export type {
   MselSummaryDto,
   SetupProgressDto,
   SetupAreaDto,
+  ExerciseSettingsDto,
+  UpdateExerciseSettingsRequest,
 } from './types'
+
+export { CLOCK_MULTIPLIER_PRESETS } from './types'

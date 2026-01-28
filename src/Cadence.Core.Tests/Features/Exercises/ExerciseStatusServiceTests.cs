@@ -693,7 +693,7 @@ public class ExerciseStatusServiceTests
 
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredBy = Guid.NewGuid();
+        inject.FiredByUserId = Guid.NewGuid().ToString();
         context.SaveChanges();
 
         var service = CreateService(context);
@@ -704,7 +704,7 @@ public class ExerciseStatusServiceTests
         var updatedInject = await context.Injects.FindAsync(inject.Id);
         updatedInject!.Status.Should().Be(InjectStatus.Pending);
         updatedInject.FiredAt.Should().BeNull();
-        updatedInject.FiredBy.Should().BeNull();
+        updatedInject.FiredByUserId.Should().BeNull();
     }
 
     [Fact]

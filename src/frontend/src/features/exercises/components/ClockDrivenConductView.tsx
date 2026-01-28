@@ -34,6 +34,8 @@ interface ClockDrivenConductViewProps {
   onFire: (injectId: string) => Promise<void> | void
   /** Called when Controller skips an inject */
   onSkip: (injectId: string, request: SkipInjectRequest) => Promise<void> | void
+  /** Called when Controller resets an inject to pending */
+  onReset?: (injectId: string) => Promise<void> | void
   /** Whether the current user can control injects */
   canControl?: boolean
   /** Whether the current user can add observations (Evaluators) */
@@ -46,6 +48,16 @@ interface ClockDrivenConductViewProps {
   onDrawerClose?: () => void
   /** Called when user wants to add observation for an inject */
   onAddObservation?: (injectId: string) => void
+  /**
+   * Pre-confirmation callback for skip.
+   * Returns true if confirmation dialog is being shown (reason dialog should wait).
+   * Returns false if no confirmation needed (proceed to reason dialog immediately).
+   */
+  onSkipPreConfirmation?: (injectId: string) => boolean | null
+  /** When set, opens the skip reason dialog for this inject (after pre-confirmation) */
+  pendingSkipInjectId?: string | null
+  /** Called when pending skip is cleared (dialog closed without completing) */
+  onPendingSkipClear?: () => void
 }
 
 export const ClockDrivenConductView = ({
@@ -54,12 +66,16 @@ export const ClockDrivenConductView = ({
   elapsedTimeMs,
   onFire,
   onSkip,
+  onReset,
   canControl = true,
   canAddObservation = false,
   isSubmitting = false,
   openInjectId,
   onDrawerClose,
   onAddObservation,
+  onSkipPreConfirmation,
+  pendingSkipInjectId,
+  onPendingSkipClear,
 }: ClockDrivenConductViewProps) => {
   // Group injects by section
   const grouped = useMemo(
@@ -111,6 +127,12 @@ export const ClockDrivenConductView = ({
     onDrawerClose?.()
   }
 
+  const handleDrawerReset = async (injectId: string) => {
+    if (onReset) {
+      await onReset(injectId)
+    }
+  }
+
   // Show alert if no injects at all
   if (injects.length === 0) {
     return (
@@ -134,6 +156,9 @@ export const ClockDrivenConductView = ({
           onFire={onFire}
           onSkip={onSkip}
           onInjectClick={handleInjectClick}
+          onSkipPreConfirmation={onSkipPreConfirmation}
+          pendingSkipInjectId={pendingSkipInjectId}
+          onPendingSkipClear={onPendingSkipClear}
         />
 
         {/* Upcoming Section */}
@@ -166,6 +191,7 @@ export const ClockDrivenConductView = ({
         isSubmitting={isSubmitting}
         onFire={handleDrawerFire}
         onSkip={handleDrawerSkip}
+        onReset={handleDrawerReset}
         onAddObservation={onAddObservation}
       />
     </>

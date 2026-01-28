@@ -33,11 +33,13 @@
     "axios": "^1.13.2",
     "date-fns": "^4.1.0",
     "dexie": "^4.2.1",
+    "html2canvas": "^1.4.1",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.0",
     "react-router-dom": "^7.10.1",
     "react-toastify": "^11.0.5",
+    "recharts": "^3.7.0",
     "zod": "^4.3.5"
   },
   "devDependencies": {

@@ -17,7 +17,7 @@ import {
   Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical, faGear } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import {
@@ -36,6 +36,7 @@ import {
   DuplicateExerciseDialog,
   ArchiveExerciseDialog,
   DeleteExerciseDialog,
+  ExerciseSettingsDialog,
 } from '../components'
 import { ObjectiveList } from '../../objectives'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
@@ -101,6 +102,7 @@ export const ExerciseDetailPage = () => {
   const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
   const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null)
 
@@ -201,7 +203,7 @@ export const ExerciseDetailPage = () => {
         isPracticeMode: values.isPracticeMode,
         deliveryMode: values.deliveryMode,
         timelineMode: values.timelineMode,
-        timeScale: values.timeScale ?? undefined,
+        clockMultiplier: values.clockMultiplier,
         directorId: values.directorId?.trim() || undefined,
       }
 
@@ -379,6 +381,18 @@ export const ExerciseDetailPage = () => {
                     horizontal: 'right',
                   }}
                 >
+                  <MenuItem
+                    onClick={() => {
+                      handleMoreMenuClose()
+                      setSettingsDialogOpen(true)
+                    }}
+                  >
+                    <ListItemIcon>
+                      <FontAwesomeIcon icon={faGear} />
+                    </ListItemIcon>
+                    <ListItemText>Settings</ListItemText>
+                  </MenuItem>
+                  <Divider />
                   <MenuItem
                     onClick={() => {
                       handleMoreMenuClose()
@@ -659,7 +673,7 @@ export const ExerciseDetailPage = () => {
                             {exercise.timelineMode === TimelineMode.RealTime &&
                           'Real-time (1:1)'}
                             {exercise.timelineMode === TimelineMode.Compressed &&
-                          `Compressed (${exercise.timeScale}x)`}
+                          `Compressed (${exercise.clockMultiplier}x)`}
                             {exercise.timelineMode === TimelineMode.StoryOnly &&
                           'Story-only'}
                           </Typography>
@@ -832,6 +846,14 @@ export const ExerciseDetailPage = () => {
         exercise={exercise}
         onClose={() => setDeleteDialogOpen(false)}
         onDeleted={handleDeleted}
+      />
+
+      {/* Exercise Settings Dialog */}
+      <ExerciseSettingsDialog
+        open={settingsDialogOpen}
+        exerciseId={exercise.id}
+        exerciseName={exercise.name}
+        onClose={() => setSettingsDialogOpen(false)}
       />
 
       {/* Unsaved changes dialog for navigation blocking */}

@@ -14,6 +14,9 @@ export const EXERCISE_FIELD_LIMITS = {
   location: { max: 500 },
 } as const
 
+/** Valid clock multiplier values (must match CLOCK_MULTIPLIER_PRESETS) */
+const VALID_CLOCK_MULTIPLIERS = [1, 2, 5, 10, 20] as const
+
 /**
  * Schema for creating a new exercise
  */
@@ -48,12 +51,12 @@ export const createExerciseSchema = z.object({
   timelineMode: z.nativeEnum(TimelineMode, {
     error: 'Timeline mode is required',
   }),
-  timeScale: z
+  clockMultiplier: z
     .number()
-    .min(0.1, 'Time scale must be at least 0.1x')
-    .max(60, 'Time scale cannot exceed 60x')
-    .nullable()
-    .optional(),
+    .refine(val => VALID_CLOCK_MULTIPLIERS.includes(val as typeof VALID_CLOCK_MULTIPLIERS[number]), {
+      message: 'Clock multiplier must be 1x, 2x, 5x, 10x, or 20x',
+    })
+    .default(1),
   directorId: z.string().optional().or(z.literal('')),
 }).refine(
   data => {
@@ -66,18 +69,6 @@ export const createExerciseSchema = z.object({
   {
     message: 'End time must be after start time',
     path: ['endTime'],
-  },
-).refine(
-  data => {
-    // TimeScale is required when TimelineMode is Compressed
-    if (data.timelineMode === TimelineMode.Compressed && !data.timeScale) {
-      return false
-    }
-    return true
-  },
-  {
-    message: 'Time scale is required for compressed timeline mode',
-    path: ['timeScale'],
   },
 )
 

@@ -86,4 +86,9 @@ public class ApplicationUser : IdentityUser
     /// Exercises created by this user (for ownership tracking).
     /// </summary>
     public ICollection<Exercise> CreatedExercises { get; set; } = new List<Exercise>();
+
+    /// <summary>
+    /// User preferences for display and behavior settings.
+    /// </summary>
+    public UserPreferences? Preferences { get; set; }
 }

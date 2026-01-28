@@ -14,11 +14,12 @@ export interface ClockStateDto {
   exerciseId: string
   state: ExerciseClockState
   startedAt: string | null // DateTime as ISO string
-  elapsedTime: string // TimeSpan as HH:MM:SS or d.HH:MM:SS
+  elapsedTime: string // TimeSpan as HH:MM:SS or d.HH:MM:SS - scenario time with multiplier applied
   startedBy: string | null
   startedByName: string | null
   capturedAt: string // DateTime as ISO string
   exerciseStartTime: string | null // TimeOnly as HH:MM:SS - planned exercise start time
+  clockMultiplier: number // 1.0 = real-time, 2.0 = scenario time runs 2x faster
 }
 
 /**

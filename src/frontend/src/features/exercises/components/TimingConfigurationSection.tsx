@@ -2,7 +2,7 @@
  * TimingConfigurationSection - Exercise timing configuration fields
  *
  * Provides UI for configuring Delivery Mode (Clock-driven / Facilitator-paced)
- * and Timeline Mode (Real-time / Compressed / Story-only) per CLK-03.
+ * and Clock Speed (1x, 2x, 5x, 10x, 20x) per CLK-03.
  *
  * Smart defaults are applied based on exercise type:
  * - TTX → Facilitator-paced
@@ -12,7 +12,7 @@
  * @see exercise-config/S03-timing-configuration-ui
  */
 
-import { type FC, useMemo } from 'react'
+import { type FC } from 'react'
 import {
   Box,
   FormControl,
@@ -29,39 +29,28 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLock, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
-import { CobraTextField } from '../../../theme/styledComponents'
 import { DeliveryMode, TimelineMode, ExerciseType } from '../../../types'
+import { CLOCK_MULTIPLIER_PRESETS } from '../types'
 
 interface TimingConfigurationSectionProps {
   /** Current delivery mode */
   deliveryMode: DeliveryMode
   /** Current timeline mode */
   timelineMode: TimelineMode
-  /** Current time scale (for Compressed mode) */
-  timeScale: number | null
+  /** Current clock multiplier (1, 2, 5, 10, or 20) */
+  clockMultiplier: number
   /** Exercise type (kept for API consistency, not directly used in component) */
   exerciseType?: ExerciseType
   /** Whether fields are locked (exercise is Active) */
   isLocked: boolean
   /** Callback for field changes */
-  onChange: (field: string, value: DeliveryMode | TimelineMode | number | null) => void
+  onChange: (field: string, value: DeliveryMode | TimelineMode | number) => void
   /** Validation errors */
   errors?: {
     deliveryMode?: string
     timelineMode?: string
-    timeScale?: string
+    clockMultiplier?: string
   }
-}
-
-/**
- * Helper text calculator for time scale
- */
-const getTimeScaleHelperText = (timeScale: number | null, error?: string): string => {
-  if (error) return error
-  if (timeScale && timeScale > 0) {
-    return `1 real minute = ${timeScale} story ${timeScale === 1 ? 'minute' : 'minutes'}`
-  }
-  return '1 real minute = X story minutes'
 }
 
 /**
@@ -70,7 +59,7 @@ const getTimeScaleHelperText = (timeScale: number | null, error?: string): strin
 export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = ({
   deliveryMode,
   timelineMode,
-  timeScale,
+  clockMultiplier,
   exerciseType: _exerciseType,
   isLocked,
   onChange,
@@ -79,17 +68,11 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
   // Timeline options only shown for Clock-driven mode
   const showTimelineOptions = deliveryMode === DeliveryMode.ClockDriven
 
-  // Calculate if time scale input should be shown
-  const showTimeScale = useMemo(
-    () => showTimelineOptions && timelineMode === TimelineMode.Compressed,
-    [showTimelineOptions, timelineMode],
-  )
-
-  // Calculate helper text for time scale
-  const timeScaleHelperText = useMemo(
-    () => getTimeScaleHelperText(timeScale, errors.timeScale),
-    [timeScale, errors.timeScale],
-  )
+  // Get label for current clock multiplier
+  const getClockMultiplierLabel = (value: number) => {
+    const preset = CLOCK_MULTIPLIER_PRESETS.find(p => p.value === value)
+    return preset?.label ?? `${value}x`
+  }
 
   // Locked state UI
   if (isLocked) {
@@ -120,16 +103,26 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
           </Box>
 
           {showTimelineOptions && (
-            <Box>
-              <Typography variant="body2" color="text.secondary">
-                Timeline Mode:
-              </Typography>
-              <Typography variant="body1">
-                {timelineMode === TimelineMode.RealTime && 'Real-time (1:1)'}
-                {timelineMode === TimelineMode.Compressed && `Compressed (${timeScale}x)`}
-                {timelineMode === TimelineMode.StoryOnly && 'Story-only'}
-              </Typography>
-            </Box>
+            <>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Timeline Mode:
+                </Typography>
+                <Typography variant="body1">
+                  {timelineMode === TimelineMode.RealTime && 'Real-time'}
+                  {timelineMode === TimelineMode.Compressed && 'Compressed'}
+                  {timelineMode === TimelineMode.StoryOnly && 'Story-only'}
+                </Typography>
+              </Box>
+              <Box>
+                <Typography variant="body2" color="text.secondary">
+                  Clock Speed:
+                </Typography>
+                <Typography variant="body1">
+                  {getClockMultiplierLabel(clockMultiplier)}
+                </Typography>
+              </Box>
+            </>
           )}
         </Stack>
 
@@ -258,34 +251,52 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
             />
           </RadioGroup>
 
-          {/* Time Scale Input (shown only for Compressed mode) */}
-          {showTimeScale && (
-            <Box sx={{ mt: 2, ml: 4 }}>
-              <CobraTextField
-                label="Time Scale"
-                type="number"
-                value={timeScale ?? ''}
-                onChange={e => {
-                  const value = e.target.value ? parseFloat(e.target.value) : null
-                  onChange('timeScale', value)
-                }}
-                error={!!errors.timeScale}
-                helperText={timeScaleHelperText}
-                placeholder="e.g., 4"
-                slotProps={{
-                  htmlInput: {
-                    min: 0.1,
-                    max: 60,
-                    step: 0.1,
-                  },
-                }}
-                sx={{ maxWidth: 200 }}
-              />
-            </Box>
-          )}
-
           {errors.timelineMode && (
             <FormHelperText>{errors.timelineMode}</FormHelperText>
+          )}
+        </FormControl>
+      )}
+
+      {/* Clock Speed Section - Only shown for Clock-driven */}
+      {showTimelineOptions && (
+        <FormControl component="fieldset" error={!!errors.clockMultiplier} sx={{ minWidth: 280 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
+            <FormLabel component="legend" sx={{ mb: 0 }}>
+              Clock Speed
+            </FormLabel>
+            <Tooltip title="How fast scenario time runs compared to wall clock time">
+              <IconButton size="small" aria-label="Clock speed help">
+                <FontAwesomeIcon icon={faCircleQuestion} size="sm" />
+              </IconButton>
+            </Tooltip>
+          </Box>
+
+          <RadioGroup
+            value={clockMultiplier}
+            onChange={e => onChange('clockMultiplier', Number(e.target.value))}
+            aria-labelledby="clock-multiplier-label"
+          >
+            {CLOCK_MULTIPLIER_PRESETS.map(preset => (
+              <FormControlLabel
+                key={preset.value}
+                value={preset.value}
+                control={<Radio size="small" />}
+                label={
+                  <Stack spacing={0}>
+                    <span>{preset.label}</span>
+                    {preset.value > 1 && (
+                      <Typography variant="caption" color="text.secondary">
+                        1 minute wall clock = {preset.value} minutes scenario time
+                      </Typography>
+                    )}
+                  </Stack>
+                }
+              />
+            ))}
+          </RadioGroup>
+
+          {errors.clockMultiplier && (
+            <FormHelperText>{errors.clockMultiplier}</FormHelperText>
           )}
         </FormControl>
       )}

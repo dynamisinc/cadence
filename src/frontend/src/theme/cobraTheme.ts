@@ -434,4 +434,155 @@ export const getExerciseTypeFullName = (type: string): string => {
   }
 }
 
+/**
+ * Create a theme with specified mode (light or dark)
+ * Used for dynamic theme switching based on user preferences
+ */
+export function createCobraTheme(mode: 'light' | 'dark') {
+  const isDark = mode === 'dark'
+
+  return createTheme({
+    breakpoints: cadenceBreakpoints,
+    cssStyling: {
+      drawerClosedWidth: 64,
+      drawerOpenWidth: 288,
+      headerHeight: 54,
+    },
+    palette: {
+      mode,
+      primary: {
+        dark: isDark ? '#a0a0a0' : '#696969',
+        main: isDark ? '#c0c0c0' : '#c0c0c0',
+        contrastText: isDark ? '#ffffff' : '#1a1a1a',
+        light: isDark ? '#e0e0e0' : '#dadbdd',
+      },
+      secondary: {
+        main: '#b22222',
+      },
+      background: {
+        default: isDark ? '#121212' : '#f8f8f8',
+        paper: isDark ? '#1e1e1e' : '#ffffff',
+      },
+      border: {
+        main: isDark ? alpha('#ffffff', 0.23) : alpha('#1a1a1a', 0.23),
+      },
+      breadcrumb: {
+        background: isDark ? '#2a2a2a' : '#F1F1F1',
+      },
+      grid: {
+        light: isDark ? '#1a3352' : '#EAF2FB',
+        main: isDark ? '#1a4480' : '#DBE9FA',
+      },
+      text: {
+        primary: isDark ? '#e0e0e0' : '#1a1a1a',
+        secondary: isDark ? '#a0a0a0' : '#848482',
+      },
+      error: {
+        main: '#e42217',
+      },
+      info: {
+        main: isDark ? '#4a90d9' : '#0020c2',
+        light: isDark ? '#6ba3e0' : '#0000ff',
+        dark: isDark ? '#2a70b9' : '#00008b',
+      },
+      divider: isDark ? '#404040' : '#848482',
+      success: {
+        main: isDark ? '#2e8b57' : '#08682a',
+      },
+      buttonDelete: {
+        contrastText: '#ffffff',
+        dark: '#c11b17',
+        light: '#ff0000',
+        main: '#e42217',
+      },
+      buttonPrimary: {
+        contrastText: '#ffffff',
+        dark: isDark ? '#1a50a0' : '#00008b',
+        light: isDark ? '#4a90d9' : '#0000ff',
+        main: isDark ? '#2a70c2' : '#0020c2',
+      },
+      linkButton: {
+        contrastText: '#ffffff',
+        dark: isDark ? '#1a50a0' : '#00008b',
+        light: isDark ? '#1a3352' : '#DBE9FA',
+        main: isDark ? '#4a90d9' : '#0020c2',
+      },
+      notifications: {
+        error: isDark ? '#5c2020' : '#EFB6B6',
+        errorText: isDark ? '#ff6b6b' : '#b22222',
+        info: isDark ? '#1a3352' : '#DBE9FA',
+        success: isDark ? '#1a4030' : '#AEFBB8',
+        successText: isDark ? '#50c878' : '#008000',
+        warning: isDark ? '#4a4020' : '#F9F9BE',
+        warningText: isDark ? '#d4a574' : '#6F4E37',
+      },
+      statusChart: {
+        grey: '#C0C0C0',
+        red: '#C11B17',
+        yellow: '#FFEF00',
+        green: '#008000',
+        black: isDark ? '#ffffff' : '#000000',
+      },
+    },
+    typography: {
+      fontFamily: 'Roboto, Arial, sans-serif',
+      fontSize: 14,
+      button: {
+        textTransform: 'none',
+      },
+    },
+    components: {
+      MuiIconButton: {
+        styleOverrides: {
+          root: {
+            color: isDark ? '#e0e0e0' : '#1a1a1a',
+          },
+        },
+      },
+      MuiTextField: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiAutocomplete: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiSelect: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiInputLabel: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiButtonGroup: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiToggleButtonGroup: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiButton: {
+        defaultProps: {
+          size: 'small',
+        },
+      },
+      MuiListItemIcon: {
+        styleOverrides: {
+          root: {
+            color: isDark ? '#b0b0b0' : '#3A3B3C',
+          },
+        },
+      },
+    },
+  })
+}
+
 export default cobraTheme

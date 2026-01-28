@@ -67,7 +67,7 @@ export const CreateExercisePage = () => {
         isPracticeMode: values.isPracticeMode,
         deliveryMode: values.deliveryMode,
         timelineMode: values.timelineMode,
-        timeScale: values.timeScale ?? undefined,
+        clockMultiplier: values.clockMultiplier,
         directorId: values.directorId?.trim() || undefined,
       }
 

@@ -51,10 +51,10 @@ public class InjectService : IInjectService
 
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredBy = userId;
+        inject.FiredByUserId = userId.ToString();
         inject.ModifiedBy = userId;
         inject.SkippedAt = null;
-        inject.SkippedBy = null;
+        inject.SkippedByUserId = null;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -83,10 +83,10 @@ public class InjectService : IInjectService
 
         inject.Status = InjectStatus.Skipped;
         inject.SkippedAt = DateTime.UtcNow;
-        inject.SkippedBy = userId;
+        inject.SkippedByUserId = userId.ToString();
         inject.ModifiedBy = userId;
         inject.FiredAt = null;
-        inject.FiredBy = null;
+        inject.FiredByUserId = null;
 
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -110,9 +110,9 @@ public class InjectService : IInjectService
         inject.Status = InjectStatus.Pending;
         inject.ReadyAt = null;
         inject.FiredAt = null;
-        inject.FiredBy = null;
+        inject.FiredByUserId = null;
         inject.SkippedAt = null;
-        inject.SkippedBy = null;
+        inject.SkippedByUserId = null;
         inject.ModifiedBy = userId;
 
         await _context.SaveChangesAsync(cancellationToken);

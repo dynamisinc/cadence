@@ -120,7 +120,7 @@ public class InjectServiceTests
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(InjectStatus.Fired);
-        updated.FiredBy.Should().Be(userId);
+        updated.FiredByUserId.Should().Be(userId.ToString());
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when firing an inject");
         updated.FiredAt.Should().NotBeNull();
         updated.FiredAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
@@ -184,7 +184,7 @@ public class InjectServiceTests
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(InjectStatus.Skipped);
-        updated.SkippedBy.Should().Be(userId);
+        updated.SkippedByUserId.Should().Be(userId.ToString());
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when skipping an inject");
         updated.SkippedAt.Should().NotBeNull();
         updated.SkippedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
@@ -217,7 +217,7 @@ public class InjectServiceTests
         var (context, _, exercise, msel, userId) = CreateTestContext();
         var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, userId);
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredBy = userId;
+        inject.FiredByUserId = userId.ToString();
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -239,7 +239,7 @@ public class InjectServiceTests
         var (context, _, exercise, msel, userId) = CreateTestContext();
         var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, userId);
         inject.FiredAt = DateTime.UtcNow.AddMinutes(-5);
-        inject.FiredBy = userId;
+        inject.FiredByUserId = userId.ToString();
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -253,7 +253,7 @@ public class InjectServiceTests
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(InjectStatus.Pending);
         updated.FiredAt.Should().BeNull();
-        updated.FiredBy.Should().BeNull();
+        updated.FiredByUserId.Should().BeNull();
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when resetting an inject");
 
         _hubContextMock.Verify(
@@ -268,7 +268,7 @@ public class InjectServiceTests
         var (context, _, exercise, msel, userId) = CreateTestContext();
         var inject = CreateInject(msel.Id, 1, InjectStatus.Skipped, userId);
         inject.SkippedAt = DateTime.UtcNow.AddMinutes(-5);
-        inject.SkippedBy = userId;
+        inject.SkippedByUserId = userId.ToString();
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -282,7 +282,7 @@ public class InjectServiceTests
         updated.Should().NotBeNull();
         updated!.Status.Should().Be(InjectStatus.Pending);
         updated.SkippedAt.Should().BeNull();
-        updated.SkippedBy.Should().BeNull();
+        updated.SkippedByUserId.Should().BeNull();
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when resetting an inject");
 
         _hubContextMock.Verify(
@@ -324,7 +324,7 @@ public class InjectServiceTests
         var (context, _, exercise, msel, userId) = CreateTestContext(status: ExerciseStatus.Draft);
         var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, userId);
         inject.FiredAt = DateTime.UtcNow.AddMinutes(-5);
-        inject.FiredBy = userId;
+        inject.FiredByUserId = userId.ToString();
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -356,19 +356,19 @@ public class InjectServiceTests
         // Act & Assert - Fire by controller
         await service.FireInjectAsync(exercise.Id, inject.Id, controllerUserId);
         var afterFire = await context.Injects.AsNoTracking().FirstAsync(i => i.Id == inject.Id);
-        afterFire.FiredBy.Should().Be(controllerUserId);
+        afterFire.FiredByUserId.Should().Be(controllerUserId.ToString());
         afterFire.ModifiedBy.Should().Be(controllerUserId, "Controller should be tracked as modifier when firing");
 
         // Act & Assert - Reset by supervisor
         await service.ResetInjectAsync(exercise.Id, inject.Id, supervisorUserId);
         var afterReset = await context.Injects.AsNoTracking().FirstAsync(i => i.Id == inject.Id);
         afterReset.ModifiedBy.Should().Be(supervisorUserId, "Supervisor should be tracked as modifier when resetting");
-        afterReset.FiredBy.Should().BeNull("FiredBy should be cleared on reset");
+        afterReset.FiredByUserId.Should().BeNull("FiredBy should be cleared on reset");
 
         // Act & Assert - Skip by controller
         await service.SkipInjectAsync(exercise.Id, inject.Id, controllerUserId);
         var afterSkip = await context.Injects.AsNoTracking().FirstAsync(i => i.Id == inject.Id);
-        afterSkip.SkippedBy.Should().Be(controllerUserId);
+        afterSkip.SkippedByUserId.Should().Be(controllerUserId.ToString());
         afterSkip.ModifiedBy.Should().Be(controllerUserId, "Controller should be tracked as modifier when skipping");
     }
 

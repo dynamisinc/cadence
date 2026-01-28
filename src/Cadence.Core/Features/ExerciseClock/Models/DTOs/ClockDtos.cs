@@ -24,8 +24,8 @@ public record ClockStateDto(
     DateTime? StartedAt,
 
     /// <summary>
-    /// Total elapsed time in the exercise.
-    /// Includes time from previous running periods.
+    /// Total elapsed scenario time in the exercise.
+    /// Includes time from previous running periods, with clock multiplier applied.
     /// </summary>
     TimeSpan ElapsedTime,
 
@@ -49,7 +49,13 @@ public record ClockStateDto(
     /// Used by frontend to calculate inject scheduled offsets.
     /// Null if not set on the exercise.
     /// </summary>
-    TimeOnly? ExerciseStartTime
+    TimeOnly? ExerciseStartTime,
+
+    /// <summary>
+    /// Clock multiplier for scenario time progression.
+    /// Default 1.0 means real-time. 2.0 means scenario time runs 2x faster than wall clock.
+    /// </summary>
+    decimal ClockMultiplier = 1.0m
 );
 
 /// <summary>
@@ -87,23 +93,29 @@ public static class ClockMapper
     /// </summary>
     private static ClockStateDto ToClockStateDto(this Exercise exercise, string? startedByName)
     {
-        var elapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
+        // Calculate wall clock elapsed time
+        var wallClockElapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
 
         // If currently running, add time since start
         if (exercise.ClockState == ExerciseClockState.Running && exercise.ClockStartedAt.HasValue)
         {
-            elapsed += DateTime.UtcNow - exercise.ClockStartedAt.Value;
+            wallClockElapsed += DateTime.UtcNow - exercise.ClockStartedAt.Value;
         }
+
+        // Apply clock multiplier to get scenario time
+        // ClockMultiplier of 2.0 means scenario time runs 2x faster than wall clock
+        var scenarioElapsed = TimeSpan.FromTicks((long)(wallClockElapsed.Ticks * (double)exercise.ClockMultiplier));
 
         return new ClockStateDto(
             exercise.Id,
             exercise.ClockState,
             exercise.ClockStartedAt,
-            elapsed,
+            scenarioElapsed,
             exercise.ClockStartedBy,
             startedByName,
             DateTime.UtcNow,
-            exercise.StartTime
+            exercise.StartTime,
+            exercise.ClockMultiplier
         );
     }
 }

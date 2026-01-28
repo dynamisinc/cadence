@@ -3,6 +3,7 @@ export { ExerciseConductPage } from './ExerciseConductPage'
 export { ExerciseDetailPage } from './ExerciseDetailPage'
 export { ExerciseListPage } from './ExerciseListPage'
 export { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
+export { ExerciseSettingsPage } from './ExerciseSettingsPage'
 export { ReportsPage } from './ReportsPage'
 export {
   PlaceholderPage,

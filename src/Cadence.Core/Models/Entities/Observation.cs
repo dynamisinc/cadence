@@ -92,4 +92,9 @@ public class Observation : BaseEntity
     /// May be null if the user has been deactivated.
     /// </summary>
     public ApplicationUser? CreatedByUser { get; set; }
+
+    /// <summary>
+    /// Core capabilities tagged on this observation (many-to-many).
+    /// </summary>
+    public ICollection<ObservationCapability> ObservationCapabilities { get; set; } = new List<ObservationCapability>();
 }

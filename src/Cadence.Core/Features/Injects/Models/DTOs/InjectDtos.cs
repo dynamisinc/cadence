@@ -385,10 +385,11 @@ public static class InjectMapper
         entity.ControllerNotes,
         entity.ReadyAt,
         entity.FiredAt,
-        entity.FiredBy,
+        // Parse string ApplicationUser.Id to Guid for DTO backward compatibility
+        string.IsNullOrEmpty(entity.FiredByUserId) ? null : Guid.Parse(entity.FiredByUserId),
         entity.FiredByUser?.DisplayName,
         entity.SkippedAt,
-        entity.SkippedBy,
+        string.IsNullOrEmpty(entity.SkippedByUserId) ? null : Guid.Parse(entity.SkippedByUserId),
         entity.SkippedByUser?.DisplayName,
         entity.SkipReason,
         entity.MselId,
