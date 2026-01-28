@@ -138,17 +138,15 @@ jobs:
           echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
 
       - name: Clean obj folders before migration
-    if: needs.check-changes.outputs.migrations_changed == 'true'
-    run: |
-      rm -rf src/Cadence.Core/obj
-      rm -rf src/Cadence.WebApi/obj
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: |
+          rm -rf src/Cadence.Core/obj
+          rm -rf src/Cadence.WebApi/obj
 
       - name: Restore dependencies (for migrations)
         if: needs.check-changes.outputs.migrations_changed == 'true'
-        run: |
-          dotnet restore src/Cadence.Core/Cadence.Core.csproj
-          dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
-      
+        run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
+
       - name: Apply EF Core migrations
         if: needs.check-changes.outputs.migrations_changed == 'true'
         run: |
@@ -160,65 +158,49 @@ jobs:
             --verbose
         env:
           DOTNET_ENVIRONMENT: Production
-      
-            - name: Restore dependencies (for migrations)
-              if: needs.check-changes.outputs.migrations_changed == 'true'
-              run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
-              
-            - name: Apply EF Core migrations
-              if: needs.check-changes.outputs.migrations_changed == 'true'
-              run: |
-                echo "Applying EF Core migrations to database..."
-                ~/.dotnet/tools/dotnet-ef database update \
-                  --project src/Cadence.Core/Cadence.Core.csproj \
-                  --startup-project src/Cadence.WebApi/Cadence.WebApi.csproj \
-                  --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" \
-                  --verbose
-              env:
-                DOTNET_ENVIRONMENT: Production
-      
-            - name: Download artifact
-              uses: actions/download-artifact@v4
-              with:
-                name: web-api
-                path: ./web-api
-      
-            - name: Deploy to Azure Web App
-              id: deploy-webapi
-              uses: azure/webapps-deploy@v3
-              with:
-                app-name: ${{ env.AZURE_WEBAPP_NAME }}
-                package: ./web-api
-                publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
-      
-            - name: Health check
-              run: |
-                WEBAPP_URL="${{ steps.deploy-webapi.outputs.webapp-url }}"
-                echo "Checking liveness at: ${WEBAPP_URL}/api/health/live"
-                echo "Waiting 60 seconds for app to warm up..."
-                sleep 60
-      
-                for i in 1 2 3 4 5; do
-                  echo "Health check attempt $i..."
-                  response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health/live" || echo "000")
-                  if [ "$response" = "200" ]; then
-                    echo "Health check passed!"
-                    exit 0
-                  fi
-                  echo "Got status $response, waiting 15 seconds before retry..."
-                  sleep 15
-                done
-      
-                echo "Health check failed after 5 attempts"
-                exit 1
-      
-        skip-deploy:
-          name: Skip Backend Deploy (No Changes)
-          runs-on: ubuntu-latest
-          needs: check-changes
-          if: needs.check-changes.outputs.backend_changed == 'false'
-          steps:
-            - name: Log skip reason
-              run: |
-                echo "Skipping backend deployment - no backend changes detected"
-                echo "To force deployment, use workflow_dispatch manually"
+
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: web-api
+          path: ./web-api
+
+      - name: Deploy to Azure Web App
+        id: deploy-webapi
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          package: ./web-api
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+
+      - name: Health check
+        run: |
+          WEBAPP_URL="${{ steps.deploy-webapi.outputs.webapp-url }}"
+          echo "Checking liveness at: ${WEBAPP_URL}/api/health/live"
+          echo "Waiting 60 seconds for app to warm up..."
+          sleep 60
+
+          for i in 1 2 3 4 5; do
+            echo "Health check attempt $i..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health/live" || echo "000")
+            if [ "$response" = "200" ]; then
+              echo "Health check passed!"
+              exit 0
+            fi
+            echo "Got status $response, waiting 15 seconds before retry..."
+            sleep 15
+          done
+
+          echo "Health check failed after 5 attempts"
+          exit 1
+
+  skip-deploy:
+    name: Skip Backend Deploy (No Changes)
+    runs-on: ubuntu-latest
+    needs: check-changes
+    if: needs.check-changes.outputs.backend_changed == 'false'
+    steps:
+      - name: Log skip reason
+        run: |
+          echo "Skipping backend deployment - no backend changes detected"
+          echo "To force deployment, use workflow_dispatch manually"
