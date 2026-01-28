@@ -167,6 +167,7 @@ jobs:
             --project src/Cadence.Core/Cadence.Core.csproj \
             --startup-project src/Cadence.WebApi/Cadence.WebApi.csproj \
             --connection "${{ secrets.AZURE_SQL_CONNECTION_STRING }}" \
+            --no-build \
             --verbose
         env:
           DOTNET_ENVIRONMENT: Production
