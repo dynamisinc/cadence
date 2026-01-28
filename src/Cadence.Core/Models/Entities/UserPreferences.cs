@@ -1,3 +1,5 @@
+using Cadence.Core.Data;
+
 namespace Cadence.Core.Models.Entities;
 
 /// <summary>
@@ -5,7 +7,7 @@ namespace Cadence.Core.Models.Entities;
 /// One-to-one relationship with ApplicationUser.
 /// These settings follow the user across all exercises.
 /// </summary>
-public class UserPreferences
+public class UserPreferences : IHasTimestamps
 {
     /// <summary>
     /// Primary key - matches the associated ApplicationUser.Id.
@@ -39,13 +41,18 @@ public class UserPreferences
     public TimeFormat TimeFormat { get; set; } = TimeFormat.TwentyFourHour;
 
     // =========================================================================
-    // Timestamps
+    // IHasTimestamps
     // =========================================================================
+
+    /// <summary>
+    /// UTC timestamp when preferences were created.
+    /// </summary>
+    public DateTime CreatedAt { get; set; }
 
     /// <summary>
     /// UTC timestamp when preferences were last updated.
     /// </summary>
-    public DateTime UpdatedAt { get; set; } = DateTime.UtcNow;
+    public DateTime UpdatedAt { get; set; }
 
     // =========================================================================
     // Navigation Properties

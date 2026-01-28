@@ -404,10 +404,22 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Only pending injects can be fired
-        if (inject.Status != InjectStatus.Pending)
+        // Validate inject can be fired based on delivery mode
+        // In clock-driven mode, inject must be Ready
+        // In facilitator-paced mode, inject can be Pending or Ready
+        if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
         {
-            return BadRequest(new { message = $"Only pending injects can be fired. Current status: {inject.Status}" });
+            if (inject.Status != InjectStatus.Ready)
+            {
+                return BadRequest(new { message = $"Inject must be Ready to fire in clock-driven mode. Current status: {inject.Status}" });
+            }
+        }
+        else // FacilitatorPaced
+        {
+            if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+            {
+                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Pending or Ready injects can be fired." });
+            }
         }
 
         // Fire the inject
@@ -465,10 +477,10 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Only pending injects can be skipped
-        if (inject.Status != InjectStatus.Pending)
+        // Injects can be skipped from Pending or Ready status
+        if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
         {
-            return BadRequest(new { message = $"Only pending injects can be skipped. Current status: {inject.Status}" });
+            return BadRequest(new { message = $"Only Pending or Ready injects can be skipped. Current status: {inject.Status}" });
         }
 
         // Validate skip reason

@@ -192,8 +192,8 @@ public class InjectReadinessService : IInjectReadinessService
             {
                 try
                 {
-                    // Use Guid.Empty to indicate system auto-fire (no specific user)
-                    await _injectService.FireInjectAsync(exerciseId, inject.Id, Guid.Empty, ct);
+                    // Pass null to indicate system auto-fire (no specific user)
+                    await _injectService.FireInjectAsync(exerciseId, inject.Id, null, ct);
 
                     _logger.LogInformation(
                         "Auto-fired inject {InjectId} (#{InjectNumber}) in exercise {ExerciseId}",

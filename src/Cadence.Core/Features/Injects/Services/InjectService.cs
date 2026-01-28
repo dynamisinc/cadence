@@ -21,7 +21,7 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, Guid? userId, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
@@ -51,8 +51,9 @@ public class InjectService : IInjectService
 
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
-        inject.FiredByUserId = userId.ToString();
-        inject.ModifiedBy = userId;
+        // FiredByUserId is null for system auto-fire, otherwise store the user's ID
+        inject.FiredByUserId = userId?.ToString();
+        inject.ModifiedBy = userId ?? Guid.Empty;
         inject.SkippedAt = null;
         inject.SkippedByUserId = null;
 
