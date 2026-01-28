@@ -44,6 +44,7 @@ import {
   ResetPasswordPage,
 } from './features/auth'
 import { UserListPage } from './features/users'
+import { CapabilityLibraryPage } from './features/capabilities'
 import { MyAssignmentsPage } from './features/assignments'
 import { NotificationToastProvider } from './features/notifications'
 import { CobraPrimaryButton } from './theme/styledComponents'
@@ -252,6 +253,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute requiredRole={SystemRole.Admin}>
             <UserListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/capabilities',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <CapabilityLibraryPage />
           </ProtectedRoute>
         ),
       },

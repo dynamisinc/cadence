@@ -14,7 +14,7 @@ import React from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Container, Stack, Box, Paper, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faGear, faBoxArchive, faChevronRight, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faBoxArchive, faChevronRight, faUsers, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
 
 export const AdminPage: React.FC = () => {
@@ -70,6 +70,46 @@ export const AdminPage: React.FC = () => {
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Manage user accounts, assign HSEEP roles, and control access.
+              </Typography>
+            </Box>
+            <FontAwesomeIcon icon={faChevronRight} />
+          </Stack>
+        </Paper>
+
+        {/* Capability Library Section */}
+        <Paper
+          sx={{
+            p: 3,
+            cursor: 'pointer',
+            transition: 'box-shadow 0.2s',
+            '&:hover': {
+              boxShadow: 3,
+            },
+          }}
+          onClick={() => navigate('/admin/capabilities')}
+          data-testid="capability-library-section"
+        >
+          <Stack direction="row" alignItems="center" spacing={2}>
+            <Box
+              sx={{
+                width: 48,
+                height: 48,
+                borderRadius: 1,
+                backgroundColor: 'success.light',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'success.dark',
+              }}
+            >
+              <FontAwesomeIcon icon={faShieldHalved} size="lg" />
+            </Box>
+            <Box sx={{ flex: 1 }}>
+              <Typography variant="h6" gutterBottom sx={{ mb: 0.5 }}>
+                Capability Library
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                Define organizational capabilities for exercise evaluation and metrics.
               </Typography>
             </Box>
             <FontAwesomeIcon icon={faChevronRight} />
