@@ -123,11 +123,7 @@ export const ClockControlConfirmationDialog = ({
   const theme = useTheme()
   const [dontAsk, setDontAsk] = useState(false)
 
-  // Don't render if no action specified
-  if (!action) return null
-
-  const config = actionConfig[action]
-
+  // All hooks must be called before any early returns to comply with Rules of Hooks
   const handleConfirm = useCallback(() => {
     if (dontAsk) {
       onDontAskAgain(true)
@@ -137,7 +133,7 @@ export const ClockControlConfirmationDialog = ({
 
   // Handle keyboard shortcuts
   useEffect(() => {
-    if (!open) return
+    if (!open || !action) return
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Enter') {
@@ -151,7 +147,7 @@ export const ClockControlConfirmationDialog = ({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [open, handleConfirm, onCancel])
+  }, [open, action, handleConfirm, onCancel])
 
   // Reset "don't ask" checkbox when dialog opens
   useEffect(() => {
@@ -159,6 +155,11 @@ export const ClockControlConfirmationDialog = ({
       setDontAsk(false)
     }
   }, [open])
+
+  // Don't render if no action specified (after all hooks)
+  if (!action) return null
+
+  const config = actionConfig[action]
 
   // Get theme color for the action
   const getColor = () => {
