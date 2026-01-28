@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useForm, Controller } from 'react-hook-form'
+import { useForm, Controller, type Resolver } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import {
   Stack,
@@ -76,7 +76,8 @@ export const ExerciseForm = ({
     setValue,
     formState: { errors, isDirty },
   } = useForm<CreateExerciseFormValues>({
-    resolver: zodResolver(createExerciseSchema),
+    // Type assertion needed for Zod v4 + @hookform/resolvers v5 compatibility
+    resolver: zodResolver(createExerciseSchema) as Resolver<CreateExerciseFormValues>,
     defaultValues: {
       name: '',
       exerciseType: '' as ExerciseType,

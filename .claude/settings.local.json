@@ -54,7 +54,14 @@
       "Bash(tee:*)",
       "Skill(commit-commands:commit)",
       "Skill(commit-commands:commit:*)",
-      "Bash(git status:*)"
+      "Bash(git status:*)",
+      "Bash(az account show:*)",
+      "Bash(az group list:*)",
+      "Bash(az account set:*)",
+      "Bash(az account list:*)",
+      "Bash(az ad sp create-for-rbac:*)",
+      "Bash(dotnet format:*)",
+      "Bash(gh pr reviews:*)"
     ],
     "deny": [],
     "ask": [],

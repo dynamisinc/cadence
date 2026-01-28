@@ -21,6 +21,7 @@ import {
   Chip,
   Divider,
   useTheme,
+  type Theme,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -102,7 +103,7 @@ const getEventIcon = (eventType: string) => {
 /**
  * Get color for clock event type
  */
-const getEventColor = (eventType: string, theme: ReturnType<typeof useTheme>) => {
+const getEventColor = (eventType: string, theme: Theme) => {
   switch (eventType) {
     case 'Started':
       return theme.palette.success.main
@@ -119,8 +120,6 @@ const getEventColor = (eventType: string, theme: ReturnType<typeof useTheme>) =>
  * Duration summary card
  */
 const DurationSummary = ({ data }: { data: TimelineSummaryDto }) => {
-  const _theme = useTheme()
-
   const isOverTime = data.durationVariance && parseTimeSpan(data.durationVariance) > 0
   const isUnderTime = data.durationVariance && parseTimeSpan(data.durationVariance) < 0
 

@@ -78,6 +78,12 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
     archivedBy: null,
     hasBeenPublished: false, // Not tracked in cache
     previousStatus: null, // Not tracked in cache
+    // Exercise settings - not tracked in cache, use defaults
+    clockMultiplier: 1,
+    autoFireEnabled: false,
+    confirmFireInject: true,
+    confirmSkipInject: true,
+    confirmClockControl: false,
   }
 }
 

@@ -66,16 +66,6 @@ const defaultPreferences: UserPreferencesDto = {
 }
 
 /**
- * Resolve 'System' theme to actual light/dark based on OS preference
- */
-function _resolveTheme(theme: ThemePreference): ResolvedTheme {
-  if (theme === 'System') {
-    return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
-  }
-  return theme.toLowerCase() as ResolvedTheme
-}
-
-/**
  * User preferences context provider
  * Loads preferences when user is authenticated
  */

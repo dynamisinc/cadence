@@ -24,6 +24,7 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
+  type Theme,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -52,7 +53,7 @@ interface ObservationSummaryPanelProps {
 /**
  * Rating colors matching HSEEP P/S/M/U scale
  */
-const getRatingColor = (rating: 'P' | 'S' | 'M' | 'U', theme: ReturnType<typeof useTheme>) => {
+const getRatingColor = (rating: 'P' | 'S' | 'M' | 'U', theme: Theme) => {
   switch (rating) {
     case 'P':
       return theme.palette.success.main

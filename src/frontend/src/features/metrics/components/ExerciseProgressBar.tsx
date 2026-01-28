@@ -20,6 +20,7 @@ import {
   useTheme,
   useMediaQuery,
   IconButton,
+  type Theme,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -79,7 +80,7 @@ const getClockIcon = (status: string) => {
 /**
  * Get clock state color
  */
-const getClockColor = (status: string, theme: ReturnType<typeof useTheme>) => {
+const getClockColor = (status: string, theme: Theme) => {
   switch (status) {
     case ExerciseClockState.Running:
       return theme.palette.success.main

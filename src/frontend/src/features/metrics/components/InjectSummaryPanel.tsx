@@ -60,8 +60,6 @@ const MetricCard = ({
   icon: typeof faFire
   color: string
 }) => {
-  const _theme = useTheme()
-
   return (
     <Paper
       elevation={0}

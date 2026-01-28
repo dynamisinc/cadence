@@ -20,6 +20,7 @@ import {
   Alert,
   Chip,
   useTheme,
+  type Theme,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -60,7 +61,7 @@ const formatRating = (rating: number | null): string => {
 /**
  * Get rating color
  */
-const getRatingColor = (rating: number | null, theme: ReturnType<typeof useTheme>) => {
+const getRatingColor = (rating: number | null, theme: Theme) => {
   if (rating === null) return theme.palette.text.secondary
   if (rating <= 1.5) return theme.palette.success.main
   if (rating <= 2.5) return theme.palette.info.main
@@ -145,9 +146,8 @@ const SummaryCard = ({ data }: { data: EvaluatorCoverageSummaryDto }) => {
  * Evaluator detail card
  */
 const EvaluatorCard = ({ evaluator }: { evaluator: EvaluatorCoverageDto }) => {
-  const _theme = useTheme()
+  const theme = useTheme()
   const ratingCounts = evaluator.ratingCounts
-  const _total = ratingCounts.performed + ratingCounts.satisfactory + ratingCounts.marginal + ratingCounts.unsatisfactory + ratingCounts.unrated
 
   return (
     <Paper elevation={1} sx={{ p: 2, mb: 2 }}>

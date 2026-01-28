@@ -977,7 +977,7 @@ export const ExerciseConductPage = () => {
                       isSubmitting={false}
                       onFire={handleFireWithConfirmation}
                       onSkip={handleSkipWithConfirmation}
-                      onReset={resetInject}
+                      onReset={(id: string) => { resetInject(id) }}
                       onSkipPreConfirmation={handleSkipPreConfirmation}
                       pendingSkipInjectId={pendingSkipInjectId}
                       onPendingSkipClear={handlePendingSkipClear}
@@ -995,7 +995,7 @@ export const ExerciseConductPage = () => {
                       isLoading={injectsLoading}
                       onFire={handleFireWithConfirmation}
                       onSkip={handleSkipWithConfirmation}
-                      onReset={resetInject}
+                      onReset={(id: string) => { resetInject(id) }}
                       onSkipPreConfirmation={handleSkipPreConfirmation}
                       pendingSkipInjectId={pendingSkipInjectId}
                       onPendingSkipClear={handlePendingSkipClear}
