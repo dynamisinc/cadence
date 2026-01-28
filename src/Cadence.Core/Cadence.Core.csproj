@@ -6,6 +6,8 @@
     <Nullable>enable</Nullable>
     <RootNamespace>Cadence.Core</RootNamespace>
     <AssemblyName>Cadence.Core</AssemblyName>
+    <!-- Prevent MSB3552 error when no .resx files exist -->
+    <EnableDefaultEmbeddedResourceItems>false</EnableDefaultEmbeddedResourceItems>
   </PropertyGroup>
 
   <ItemGroup>
