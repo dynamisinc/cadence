@@ -141,12 +141,24 @@ jobs:
         if: needs.check-changes.outputs.migrations_changed == 'true'
         run: |
           rm -rf src/Cadence.Core/obj
+          rm -rf src/Cadence.Core/bin
           rm -rf src/Cadence.WebApi/obj
+          rm -rf src/Cadence.WebApi/bin
 
       - name: Restore dependencies (for migrations)
         if: needs.check-changes.outputs.migrations_changed == 'true'
         run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
 
+      - name: Build before migrations
+        if: needs.check-changes.outputs.migrations_changed == 'true'
+        run: |
+          echo "=== Building Core project with diagnostic output ==="
+          dotnet build src/Cadence.Core/Cadence.Core.csproj --configuration Release -v diag 2>&1 | grep -i "compile\|\.cs\|\*\*" | head -100
+          
+          echo ""
+          echo "=== Building WebApi project ==="
+          dotnet build src/Cadence.WebApi/Cadence.WebApi.csproj --configuration Release
+    
       - name: Apply EF Core migrations
         if: needs.check-changes.outputs.migrations_changed == 'true'
         run: |
