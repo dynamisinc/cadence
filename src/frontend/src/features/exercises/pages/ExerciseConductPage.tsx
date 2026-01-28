@@ -118,6 +118,8 @@ export const ExerciseConductPage = () => {
     confirmFireInject,
     confirmSkipInject,
     confirmClockControl,
+    settings: exerciseSettings,
+    isLoading: settingsLoading,
   } = useExerciseSettings(exerciseId)
 
   // UI state

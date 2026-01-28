@@ -9,7 +9,19 @@
  */
 
 import { useMemo, useState, useEffect } from 'react'
-import { Box, Typography } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from '@mui/material'
+import {
+  CobraPrimaryButton,
+  CobraSecondaryButton,
+  CobraTextField,
+} from '../../../theme/styledComponents'
 
 import type { ExerciseDto } from '../types'
 import type { InjectDto, SkipInjectRequest } from '../../injects/types'
@@ -91,6 +103,20 @@ export const ClockDrivenConductView = ({
   const [selectedInjectOffset, setSelectedInjectOffset] = useState<number | null>(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
 
+  // Skip reason dialog state (for skipping from drawer)
+  const [skipDialogOpen, setSkipDialogOpen] = useState(false)
+  const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
+  const [skipReason, setSkipReason] = useState('')
+
+  // Handle pending skip from parent (after pre-confirmation)
+  useEffect(() => {
+    if (pendingSkipInjectId) {
+      setSkipInjectId(pendingSkipInjectId)
+      setSkipReason('')
+      setSkipDialogOpen(true)
+    }
+  }, [pendingSkipInjectId])
+
   // Open drawer when openInjectId is set externally
   useEffect(() => {
     if (openInjectId) {
@@ -121,10 +147,47 @@ export const ClockDrivenConductView = ({
     await onFire(injectId)
   }
 
-  const handleDrawerSkip = (_injectId: string) => {
-    // Close drawer first, then the section's skip dialog will handle the reason
+  // Handle skip button click - checks pre-confirmation first
+  const handleSkipClick = (injectId: string) => {
+    // Check if pre-confirmation is needed
+    if (onSkipPreConfirmation) {
+      const needsConfirmation = onSkipPreConfirmation(injectId)
+      if (needsConfirmation) {
+        // Parent will show pre-confirmation dialog first
+        // When confirmed, pendingSkipInjectId will be set to trigger reason dialog
+        return
+      }
+    }
+    // No pre-confirmation needed, open reason dialog directly
+    setSkipInjectId(injectId)
+    setSkipReason('')
+    setSkipDialogOpen(true)
+  }
+
+  // Handle skip confirmation (after reason is entered)
+  const handleSkipConfirm = async () => {
+    if (skipInjectId && skipReason.trim()) {
+      await onSkip(skipInjectId, { reason: skipReason.trim() })
+      setSkipDialogOpen(false)
+      setSkipInjectId(null)
+      setSkipReason('')
+      onPendingSkipClear?.()
+    }
+  }
+
+  // Handle skip cancel
+  const handleSkipCancel = () => {
+    setSkipDialogOpen(false)
+    setSkipInjectId(null)
+    setSkipReason('')
+    onPendingSkipClear?.()
+  }
+
+  const handleDrawerSkip = (injectId: string) => {
+    // Close drawer first, then trigger skip flow
     setDrawerOpen(false)
     onDrawerClose?.()
+    handleSkipClick(injectId)
   }
 
   const handleDrawerReset = async (injectId: string) => {
@@ -194,6 +257,38 @@ export const ClockDrivenConductView = ({
         onReset={handleDrawerReset}
         onAddObservation={onAddObservation}
       />
+
+      {/* Skip Reason Dialog */}
+      <Dialog open={skipDialogOpen} onClose={handleSkipCancel} maxWidth="sm" fullWidth>
+        <DialogTitle>Skip Inject</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Please provide a reason for skipping this inject. This will be recorded for the
+            after-action report.
+          </Typography>
+          <CobraTextField
+            label="Skip Reason"
+            value={skipReason}
+            onChange={e => setSkipReason(e.target.value)}
+            multiline
+            rows={3}
+            fullWidth
+            required
+            placeholder="e.g., Time constraints, players ahead of schedule, etc."
+          />
+        </DialogContent>
+        <DialogActions>
+          <CobraSecondaryButton onClick={handleSkipCancel} disabled={isSubmitting}>
+            Cancel
+          </CobraSecondaryButton>
+          <CobraPrimaryButton
+            onClick={handleSkipConfirm}
+            disabled={!skipReason.trim() || isSubmitting}
+          >
+            Skip Inject
+          </CobraPrimaryButton>
+        </DialogActions>
+      </Dialog>
     </>
   )
 }
