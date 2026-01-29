@@ -775,6 +775,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Notes).HasMaxLength(500);
             entity.Property(e => e.UserId).HasMaxLength(450); // Match AspNetUsers.Id length
 
+            // Store ElapsedTimeAtEvent as bigint (ticks) to support durations > 24 hours
+            entity.Property(e => e.ElapsedTimeAtEvent)
+                .HasConversion(
+                    v => v.Ticks,
+                    v => TimeSpan.FromTicks(v));
+
             // Indexes for efficient queries
             entity.HasIndex(e => e.ExerciseId);
             entity.HasIndex(e => new { e.ExerciseId, e.OccurredAt });
