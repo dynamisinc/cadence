@@ -1,5 +1,7 @@
 export { ExerciseStatusChip } from './ExerciseStatusChip'
 export { ExerciseTypeChip } from './ExerciseTypeChip'
+export { ExerciseTable } from './ExerciseTable'
+export type { ExerciseTableProps } from './ExerciseTable'
 export { ExerciseForm } from './ExerciseForm'
 export { ExerciseHeader } from './ExerciseHeader'
 export { NarrativeView } from './NarrativeView'

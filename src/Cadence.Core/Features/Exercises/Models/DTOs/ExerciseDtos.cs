@@ -162,7 +162,10 @@ public record ExerciseDto(
     bool AutoFireEnabled,
     bool ConfirmFireInject,
     bool ConfirmSkipInject,
-    bool ConfirmClockControl
+    bool ConfirmClockControl,
+    // Summary counts (for list views)
+    int InjectCount = 0,
+    int FiredInjectCount = 0
 );
 
 /// <summary>
@@ -170,7 +173,16 @@ public record ExerciseDto(
 /// </summary>
 public static class ExerciseMapper
 {
-    public static ExerciseDto ToDto(this Exercise entity) => new(
+    /// <summary>
+    /// Maps an Exercise entity to ExerciseDto with inject counts = 0.
+    /// Use the overload with count parameters for list views.
+    /// </summary>
+    public static ExerciseDto ToDto(this Exercise entity) => entity.ToDto(0, 0);
+
+    /// <summary>
+    /// Maps an Exercise entity to ExerciseDto with the specified inject counts.
+    /// </summary>
+    public static ExerciseDto ToDto(this Exercise entity, int injectCount, int firedInjectCount) => new(
         entity.Id,
         entity.Name,
         entity.Description,
@@ -202,7 +214,9 @@ public static class ExerciseMapper
         entity.AutoFireEnabled,
         entity.ConfirmFireInject,
         entity.ConfirmSkipInject,
-        entity.ConfirmClockControl
+        entity.ConfirmClockControl,
+        injectCount,
+        firedInjectCount
     );
 
     public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, Guid createdBy) => new()

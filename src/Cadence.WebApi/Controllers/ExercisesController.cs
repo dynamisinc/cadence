@@ -52,6 +52,7 @@ public class ExercisesController : ControllerBase
 
     /// <summary>
     /// Get all exercises with optional archive filtering.
+    /// Includes inject count from active MSEL for each exercise.
     /// </summary>
     /// <param name="includeArchived">Include archived exercises (default: false)</param>
     /// <param name="archivedOnly">Return only archived exercises (default: false)</param>
@@ -72,11 +73,22 @@ public class ExercisesController : ControllerBase
             query = query.Where(e => e.Status != ExerciseStatus.Archived);
         }
 
+        // Project to include inject counts from active MSEL in a single query
         var exercises = await query
             .OrderByDescending(e => e.ScheduledDate)
+            .Select(e => new
+            {
+                Exercise = e,
+                InjectCount = e.ActiveMselId != null
+                    ? _context.Injects.Count(i => i.MselId == e.ActiveMselId)
+                    : 0,
+                FiredInjectCount = e.ActiveMselId != null
+                    ? _context.Injects.Count(i => i.MselId == e.ActiveMselId && i.Status == InjectStatus.Fired)
+                    : 0
+            })
             .ToListAsync();
 
-        return Ok(exercises.Select(e => e.ToDto()));
+        return Ok(exercises.Select(x => x.Exercise.ToDto(x.InjectCount, x.FiredInjectCount)));
     }
 
     /// <summary>

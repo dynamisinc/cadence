@@ -3,8 +3,7 @@ import { Box, Typography, Stack, Paper, Divider } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faList } from '@fortawesome/free-solid-svg-icons'
 
-import { useExercises } from '../../exercises'
-import { ExerciseList } from '../components'
+import { useExercises, ExerciseTable } from '../../exercises'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import {
@@ -19,7 +18,7 @@ import {
  * Landing page that provides:
  * - Role-aware welcome message
  * - Quick actions based on permissions
- * - Exercise list as primary content
+ * - Exercise list as primary content (using shared ExerciseTable)
  *
  * This page serves as the dashboard entry point and will evolve
  * to include metrics, recent activity, and role-specific widgets.
@@ -103,13 +102,15 @@ export const HomePage = () => {
           </Typography>
         </Stack>
 
-        <ExerciseList
+        <ExerciseTable
           exercises={exercises}
           loading={loading}
           error={error}
           canManage={canCreateExercise}
           onCreateClick={handleCreateExercise}
           maxItems={5}
+          size="small"
+          hideArchived
         />
 
         {exercises.length > 5 && (

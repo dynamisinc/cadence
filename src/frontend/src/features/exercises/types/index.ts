@@ -47,6 +47,9 @@ export interface ExerciseDto {
   confirmFireInject: boolean
   confirmSkipInject: boolean
   confirmClockControl: boolean
+  // Summary counts (for list views)
+  injectCount: number
+  firedInjectCount: number
 }
 
 /**
