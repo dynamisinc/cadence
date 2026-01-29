@@ -110,8 +110,25 @@ apiClient.interceptors.response.use(
           originalRequest.headers.Authorization = `Bearer ${token}`
           return apiClient(originalRequest)
         }
-      } catch {
-        // Refresh failed - redirect to login with return URL
+      } catch (refreshError) {
+        // Distinguish between network errors and actual auth failures
+        // Network errors (API unreachable) should NOT redirect to login - allow offline mode
+        const isNetworkError =
+          refreshError instanceof Error &&
+          (refreshError.message === 'Network Error' ||
+            refreshError.message.includes('ECONNREFUSED') ||
+            refreshError.message.includes('ERR_NETWORK') ||
+            // Axios network errors have no response
+            (refreshError as AxiosError).code === 'ERR_NETWORK' ||
+            (refreshError as AxiosError).code === 'ECONNABORTED')
+
+        if (isNetworkError) {
+          // Network error - don't redirect, let offline handling deal with it
+          console.warn('Token refresh failed due to network error - staying in offline mode')
+          return Promise.reject(error)
+        }
+
+        // Auth failure (invalid credentials, expired refresh token) - redirect to login
         const returnUrl = window.location.pathname
         if (returnUrl !== '/login' && returnUrl !== '/register') {
           sessionStorage.setItem('returnUrl', returnUrl)
