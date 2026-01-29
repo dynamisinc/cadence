@@ -169,7 +169,7 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("OrganizationId", "Name")
                         .IsUnique();
 
-                    b.ToTable("Capabilities");
+                    b.ToTable("Capabilities", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ClockEvent", b =>
@@ -208,7 +208,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("ExerciseId", "OccurredAt");
 
-                    b.ToTable("ClockEvents");
+                    b.ToTable("ClockEvents", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.DeliveryMethodLookup", b =>
@@ -263,7 +263,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("SortOrder");
 
-                    b.ToTable("DeliveryMethods");
+                    b.ToTable("DeliveryMethods", (string)null);
 
                     b.HasData(
                         new
@@ -521,7 +521,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("OrganizationId", "Status");
 
-                    b.ToTable("Exercises");
+                    b.ToTable("Exercises", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExerciseParticipant", b =>
@@ -583,7 +583,7 @@ namespace Cadence.Core.Migrations
                         .IsUnique()
                         .HasFilter("[UserId] IS NOT NULL");
 
-                    b.ToTable("ExerciseParticipants");
+                    b.ToTable("ExerciseParticipants", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExerciseTargetCapability", b =>
@@ -598,7 +598,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("CapabilityId");
 
-                    b.ToTable("ExerciseTargetCapabilities");
+                    b.ToTable("ExerciseTargetCapabilities", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExpectedOutcome", b =>
@@ -650,7 +650,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("InjectId", "SortOrder");
 
-                    b.ToTable("ExpectedOutcomes");
+                    b.ToTable("ExpectedOutcomes", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExternalLogin", b =>
@@ -689,7 +689,7 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("Provider", "ProviderUserId")
                         .IsUnique();
 
-                    b.ToTable("ExternalLogins");
+                    b.ToTable("ExternalLogins", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.HseepRole", b =>
@@ -738,7 +738,7 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("Code")
                         .IsUnique();
 
-                    b.ToTable("HseepRoles");
+                    b.ToTable("HseepRoles", (string)null);
 
                     b.HasData(
                         new
@@ -982,7 +982,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("MselId", "Status");
 
-                    b.ToTable("Injects");
+                    b.ToTable("Injects", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.InjectObjective", b =>
@@ -999,7 +999,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("ObjectiveId");
 
-                    b.ToTable("InjectObjectives");
+                    b.ToTable("InjectObjectives", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>
@@ -1051,7 +1051,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("ExerciseId", "Version");
 
-                    b.ToTable("Msels");
+                    b.ToTable("Msels", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Notification", b =>
@@ -1129,7 +1129,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("UserId", "IsRead");
 
-                    b.ToTable("Notifications");
+                    b.ToTable("Notifications", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Objective", b =>
@@ -1180,7 +1180,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("ExerciseId", "ObjectiveNumber");
 
-                    b.ToTable("Objectives");
+                    b.ToTable("Objectives", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Observation", b =>
@@ -1255,7 +1255,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("ObservedAt");
 
-                    b.ToTable("Observations");
+                    b.ToTable("Observations", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ObservationCapability", b =>
@@ -1270,7 +1270,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("CapabilityId");
 
-                    b.ToTable("ObservationCapabilities");
+                    b.ToTable("ObservationCapabilities", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Organization", b =>
@@ -1311,7 +1311,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Organizations");
+                    b.ToTable("Organizations", (string)null);
 
                     b.HasData(
                         new
@@ -1368,7 +1368,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("UserId", "UsedAt");
 
-                    b.ToTable("PasswordResetTokens");
+                    b.ToTable("PasswordResetTokens", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Phase", b =>
@@ -1423,7 +1423,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("ExerciseId", "Sequence");
 
-                    b.ToTable("Phases");
+                    b.ToTable("Phases", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.RefreshToken", b =>
@@ -1477,7 +1477,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("UserId", "IsRevoked");
 
-                    b.ToTable("RefreshTokens");
+                    b.ToTable("RefreshTokens", (string)null);
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.User", b =>
@@ -1530,7 +1530,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("OrganizationId");
 
-                    b.ToTable("Users");
+                    b.ToTable("Users", (string)null);
 
                     b.HasData(
                         new
@@ -1577,7 +1577,7 @@ namespace Cadence.Core.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("UserPreferences");
+                    b.ToTable("UserPreferences", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

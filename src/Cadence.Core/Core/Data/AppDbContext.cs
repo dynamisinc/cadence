@@ -839,6 +839,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Composite primary key
             entity.HasKey(e => new { e.ObservationId, e.CapabilityId });
 
+            // Index on CapabilityId for reverse lookups (finding observations by capability)
+            entity.HasIndex(e => e.CapabilityId);
+
             // Relationships
             entity.HasOne(e => e.Observation)
                 .WithMany(o => o.ObservationCapabilities)
@@ -858,6 +861,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         {
             // Composite primary key
             entity.HasKey(e => new { e.ExerciseId, e.CapabilityId });
+
+            // Index on CapabilityId for reverse lookups (finding exercises by capability)
+            entity.HasIndex(e => e.CapabilityId);
 
             // Relationships
             entity.HasOne(e => e.Exercise)

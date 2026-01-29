@@ -119,14 +119,12 @@ public class ExerciseCapabilityService : IExerciseCapabilityService
 
         // Get count of target capabilities that have been evaluated
         // A capability is "evaluated" if it appears in at least one observation
+        // Use navigation property for efficient single-query translation
         var evaluatedCount = await _context.ExerciseTargetCapabilities
             .AsNoTracking()
             .Where(etc => etc.ExerciseId == exerciseId)
-            .Where(etc => _context.ObservationCapabilities
-                .Any(oc => oc.CapabilityId == etc.CapabilityId &&
-                           oc.Observation.ExerciseId == exerciseId))
-            .Select(etc => etc.CapabilityId)
-            .Distinct()
+            .Where(etc => etc.Capability.ObservationCapabilities
+                .Any(oc => oc.Observation.ExerciseId == exerciseId))
             .CountAsync(ct);
 
         // Calculate coverage percentage
