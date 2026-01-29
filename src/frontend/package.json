@@ -12,10 +12,14 @@
     "format": "eslint . --fix",
     "preview": "vite preview",
     "preview:local": "tsc -b && vite build --mode development && vite preview",
+    "type-check": "tsc --noEmit",
     "test": "vitest",
+    "test:watch": "vitest --watch",
     "test:run": "vitest run",
+    "test:ci": "vitest run --bail=10",
     "test:coverage": "vitest run --coverage",
-    "type-check": "tsc --noEmit"
+    "test:ui": "vitest --ui",
+    "test:failed": "vitest run --bail=1"
   },
   "dependencies": {
     "@dnd-kit/core": "^6.3.1",
@@ -53,6 +57,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "@vitest/coverage-v8": "^4.0.15",
+    "@vitest/ui": "^4.0.15",
     "eslint": "^9.39.1",
     "eslint-plugin-react-hooks": "^7.0.1",
     "eslint-plugin-react-refresh": "^0.4.24",
