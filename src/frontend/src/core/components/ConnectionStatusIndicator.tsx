@@ -7,9 +7,11 @@
  * - Red: Offline/Disconnected
  *
  * Shows pending count when there are queued offline actions.
+ * Clicking on the indicator opens a popover with pending action details
+ * and a "Sync Now" button.
  */
 
-import React from 'react'
+import React, { useState } from 'react'
 import { Box, Tooltip, Typography, Chip } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -18,6 +20,7 @@ import {
   faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
 import { useConnectivity, type ConnectivityState } from '../contexts/ConnectivityContext'
+import { PendingActionsPopover } from './PendingActionsPopover'
 
 interface StatusConfig {
   color: string
@@ -74,68 +77,95 @@ export const ConnectionStatusIndicator: React.FC<ConnectionStatusIndicatorProps>
 }) => {
   const { connectivityState, pendingCount } = useConnectivity()
   const config = statusConfigs[connectivityState]
+  const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
-  // In compact mode, don't show anything when online
+  // In compact mode, don't show anything when online with no pending
   if (compact && connectivityState === 'online' && pendingCount === 0) {
     return null
   }
 
   const showLabel = !compact || connectivityState !== 'online'
   const showPending = pendingCount > 0
+  const isClickable = pendingCount > 0
+  const popoverOpen = Boolean(anchorEl)
+
+  const handleClick = (event: React.MouseEvent<HTMLElement>) => {
+    if (isClickable) {
+      setAnchorEl(event.currentTarget)
+    }
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
+  const tooltipText = isClickable
+    ? `${config.tooltip} Click to view pending changes.`
+    : config.tooltip
 
   return (
-    <Tooltip title={config.tooltip} arrow>
-      <Chip
-        data-testid="connection-status-indicator"
-        data-status={connectivityState}
-        icon={
-          <FontAwesomeIcon
-            icon={config.icon}
-            spin={config.spin}
-            style={{ color: config.color }}
-          />
-        }
-        label={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            {showLabel && config.label && (
-              <Typography
-                variant="caption"
-                sx={{ color: config.color, fontWeight: 500 }}
-              >
-                {config.label}
-              </Typography>
-            )}
-            {showPending && (
-              <Typography
-                variant="caption"
-                sx={{
-                  color: config.color,
-                  fontWeight: 600,
-                  ml: showLabel && config.label ? 0.5 : 0,
-                }}
-              >
-                ({pendingCount} pending)
-              </Typography>
-            )}
-          </Box>
-        }
-        size="small"
-        className={className}
-        sx={{
-          backgroundColor: config.bgColor,
-          border: `1px solid ${config.color}`,
-          '& .MuiChip-icon': {
-            color: config.color,
-            ml: 1,
-          },
-          '& .MuiChip-label': {
-            px: showLabel || showPending ? 1 : 0.5,
-          },
-          height: 28,
-          cursor: 'default',
-        }}
-      />
-    </Tooltip>
+    <>
+      <Tooltip title={tooltipText} arrow>
+        <Chip
+          data-testid="connection-status-indicator"
+          data-status={connectivityState}
+          onClick={handleClick}
+          icon={
+            <FontAwesomeIcon
+              icon={config.icon}
+              spin={config.spin}
+              style={{ color: config.color }}
+            />
+          }
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              {showLabel && config.label && (
+                <Typography
+                  variant="caption"
+                  sx={{ color: config.color, fontWeight: 500 }}
+                >
+                  {config.label}
+                </Typography>
+              )}
+              {showPending && (
+                <Typography
+                  variant="caption"
+                  sx={{
+                    color: config.color,
+                    fontWeight: 600,
+                    ml: showLabel && config.label ? 0.5 : 0,
+                  }}
+                >
+                  ({pendingCount} pending)
+                </Typography>
+              )}
+            </Box>
+          }
+          size="small"
+          className={className}
+          sx={{
+            backgroundColor: config.bgColor,
+            border: `1px solid ${config.color}`,
+            '& .MuiChip-icon': {
+              color: config.color,
+              ml: 1,
+            },
+            '& .MuiChip-label': {
+              px: showLabel || showPending ? 1 : 0.5,
+            },
+            height: 28,
+            cursor: isClickable ? 'pointer' : 'default',
+            '&:hover': isClickable
+              ? {
+                  backgroundColor: config.bgColor,
+                  filter: 'brightness(0.95)',
+                }
+              : {},
+          }}
+        />
+      </Tooltip>
+      <PendingActionsPopover anchorEl={anchorEl} open={popoverOpen} onClose={handleClose} />
+    </>
   )
 }
 
