@@ -13,6 +13,11 @@ vi.mock('../contexts/ConnectivityContext', () => ({
   useConnectivity: () => mockUseConnectivity(),
 }))
 
+// Mock PendingActionsPopover to avoid OfflineSyncContext requirement
+vi.mock('./PendingActionsPopover', () => ({
+  PendingActionsPopover: () => null,
+}))
+
 describe('ConnectionStatusIndicator', () => {
   it('renders nothing when online in compact mode with no pending', () => {
     mockUseConnectivity.mockReturnValue({

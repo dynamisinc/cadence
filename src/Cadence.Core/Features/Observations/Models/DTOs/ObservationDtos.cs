@@ -41,6 +41,11 @@ public class CreateObservationRequest
     /// The objective this observation relates to. Optional.
     /// </summary>
     public Guid? ObjectiveId { get; init; }
+
+    /// <summary>
+    /// Capability IDs to tag this observation with. Optional.
+    /// </summary>
+    public List<Guid>? CapabilityIds { get; init; }
 }
 
 /// <summary>
@@ -82,6 +87,13 @@ public class UpdateObservationRequest
     /// The objective this observation relates to. Optional.
     /// </summary>
     public Guid? ObjectiveId { get; init; }
+
+    /// <summary>
+    /// Capability IDs to tag this observation with. Optional.
+    /// If provided (including empty list), replaces existing capability links.
+    /// If null, existing capability links are preserved.
+    /// </summary>
+    public List<Guid>? CapabilityIds { get; init; }
 }
 
 /// <summary>
@@ -102,7 +114,17 @@ public record ObservationDto(
     Guid? CreatedBy,
     string? CreatedByName,
     string? InjectTitle,
-    int? InjectNumber
+    int? InjectNumber,
+    List<CapabilityTagDto> Capabilities
+);
+
+/// <summary>
+/// DTO for capability tags on observations.
+/// </summary>
+public record CapabilityTagDto(
+    Guid Id,
+    string Name,
+    string? Category
 );
 
 /// <summary>
@@ -125,7 +147,13 @@ public static class ObservationMapper
         entity.CreatedBy,
         entity.CreatedByUser?.DisplayName,
         entity.Inject?.Title,
-        entity.Inject?.InjectNumber
+        entity.Inject?.InjectNumber,
+        entity.ObservationCapabilities
+            .Select(oc => new CapabilityTagDto(
+                oc.Capability.Id,
+                oc.Capability.Name,
+                oc.Capability.Category))
+            .ToList()
     );
 
     public static Observation ToEntity(this CreateObservationRequest request, Guid exerciseId, Guid createdBy) => new()

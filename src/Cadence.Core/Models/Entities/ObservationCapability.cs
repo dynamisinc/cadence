@@ -1,7 +1,7 @@
 namespace Cadence.Core.Models.Entities;
 
 /// <summary>
-/// Join entity for the many-to-many relationship between Observations and CoreCapabilities.
+/// Join entity for the many-to-many relationship between Observations and Capabilities.
 /// Allows an observation to be tagged with multiple capabilities.
 /// </summary>
 public class ObservationCapability
@@ -14,7 +14,7 @@ public class ObservationCapability
     /// <summary>
     /// The capability tag.
     /// </summary>
-    public Guid CoreCapabilityId { get; set; }
+    public Guid CapabilityId { get; set; }
 
     // =========================================================================
     // Navigation Properties
@@ -26,7 +26,7 @@ public class ObservationCapability
     public Observation Observation { get; set; } = null!;
 
     /// <summary>
-    /// The core capability.
+    /// The capability.
     /// </summary>
-    public CoreCapability CoreCapability { get; set; } = null!;
+    public Capability Capability { get; set; } = null!;
 }

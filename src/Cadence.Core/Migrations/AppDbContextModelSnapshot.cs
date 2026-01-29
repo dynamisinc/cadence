@@ -122,14 +122,66 @@ namespace Cadence.Core.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Capability", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Category")
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Description")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SourceLibrary")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Category");
+
+                    b.HasIndex("IsActive");
+
+                    b.HasIndex("OrganizationId", "Name")
+                        .IsUnique();
+
+                    b.HasIndex("OrganizationId", "IsActive", "Category", "SortOrder", "Name");
+
+                    b.ToTable("Capabilities");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.ClockEvent", b =>
                 {
                     b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<TimeSpan>("ElapsedTimeAtEvent")
-                        .HasColumnType("time");
+                    b.Property<long>("ElapsedTimeAtEvent")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("EventType")
                         .IsRequired()
@@ -159,290 +211,6 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("ExerciseId", "OccurredAt");
 
                     b.ToTable("ClockEvents");
-                });
-
-            modelBuilder.Entity("Cadence.Core.Models.Entities.CoreCapability", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<int>("DisplayOrder")
-                        .HasColumnType("int");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("MissionArea")
-                        .IsRequired()
-                        .HasMaxLength(20)
-                        .HasColumnType("nvarchar(20)");
-
-                    b.Property<string>("Name")
-                        .IsRequired()
-                        .HasMaxLength(200)
-                        .HasColumnType("nvarchar(200)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("IsActive");
-
-                    b.HasIndex("MissionArea");
-
-                    b.HasIndex("Name")
-                        .IsUnique();
-
-                    b.ToTable("CoreCapabilities");
-
-                    b.HasData(
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000001"),
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Planning"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000002"),
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Public Information and Warning"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000003"),
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Operational Coordination"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000101"),
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            MissionArea = "Prevention",
-                            Name = "Intelligence and Information Sharing"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000102"),
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            MissionArea = "Prevention",
-                            Name = "Interdiction and Disruption"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000103"),
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            MissionArea = "Prevention",
-                            Name = "Screening, Search, and Detection"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000201"),
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            MissionArea = "Protection",
-                            Name = "Access Control and Identity Verification"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000202"),
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            MissionArea = "Protection",
-                            Name = "Cybersecurity"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000203"),
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            MissionArea = "Protection",
-                            Name = "Physical Protective Measures"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000204"),
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            MissionArea = "Protection",
-                            Name = "Risk Management for Protection Programs and Activities"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000205"),
-                            DisplayOrder = 5,
-                            IsActive = true,
-                            MissionArea = "Protection",
-                            Name = "Supply Chain Integrity and Security"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000301"),
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            MissionArea = "Mitigation",
-                            Name = "Community Resilience"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000302"),
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            MissionArea = "Mitigation",
-                            Name = "Long-term Vulnerability Reduction"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000303"),
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            MissionArea = "Mitigation",
-                            Name = "Risk and Disaster Resilience Assessment"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000304"),
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            MissionArea = "Mitigation",
-                            Name = "Threats and Hazard Identification"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000401"),
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Critical Transportation"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000402"),
-                            DisplayOrder = 5,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Environmental Response/Health and Safety"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000403"),
-                            DisplayOrder = 6,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Fatality Management Services"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000404"),
-                            DisplayOrder = 7,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Fire Management and Suppression"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000405"),
-                            DisplayOrder = 8,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Infrastructure Systems"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000406"),
-                            DisplayOrder = 9,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Logistics and Supply Chain Management"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000407"),
-                            DisplayOrder = 10,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Mass Care Services"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000408"),
-                            DisplayOrder = 11,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Mass Search and Rescue Operations"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000409"),
-                            DisplayOrder = 12,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "On-scene Security, Protection, and Law Enforcement"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000410"),
-                            DisplayOrder = 13,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Operational Communications"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000411"),
-                            DisplayOrder = 14,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Public Health, Healthcare, and Emergency Medical Services"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000412"),
-                            DisplayOrder = 15,
-                            IsActive = true,
-                            MissionArea = "Response",
-                            Name = "Situational Assessment"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000501"),
-                            DisplayOrder = 1,
-                            IsActive = true,
-                            MissionArea = "Recovery",
-                            Name = "Economic Recovery"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000502"),
-                            DisplayOrder = 2,
-                            IsActive = true,
-                            MissionArea = "Recovery",
-                            Name = "Health and Social Services"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000503"),
-                            DisplayOrder = 3,
-                            IsActive = true,
-                            MissionArea = "Recovery",
-                            Name = "Housing"
-                        },
-                        new
-                        {
-                            Id = new Guid("00000001-0000-0000-0000-000000000504"),
-                            DisplayOrder = 4,
-                            IsActive = true,
-                            MissionArea = "Recovery",
-                            Name = "Natural and Cultural Resources"
-                        });
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.DeliveryMethodLookup", b =>
@@ -627,8 +395,8 @@ namespace Cadence.Core.Migrations
                     b.Property<bool>("AutoFireEnabled")
                         .HasColumnType("bit");
 
-                    b.Property<TimeSpan?>("ClockElapsedBeforePause")
-                        .HasColumnType("time");
+                    b.Property<long?>("ClockElapsedBeforePause")
+                        .HasColumnType("bigint");
 
                     b.Property<decimal>("ClockMultiplier")
                         .ValueGeneratedOnAdd()
@@ -825,12 +593,12 @@ namespace Cadence.Core.Migrations
                     b.Property<Guid>("ExerciseId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("CoreCapabilityId")
+                    b.Property<Guid>("CapabilityId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("ExerciseId", "CoreCapabilityId");
+                    b.HasKey("ExerciseId", "CapabilityId");
 
-                    b.HasIndex("CoreCapabilityId");
+                    b.HasIndex("CapabilityId");
 
                     b.ToTable("ExerciseTargetCapabilities");
                 });
@@ -1497,12 +1265,12 @@ namespace Cadence.Core.Migrations
                     b.Property<Guid>("ObservationId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<Guid>("CoreCapabilityId")
+                    b.Property<Guid>("CapabilityId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.HasKey("ObservationId", "CoreCapabilityId");
+                    b.HasKey("ObservationId", "CapabilityId");
 
-                    b.HasIndex("CoreCapabilityId");
+                    b.HasIndex("CapabilityId");
 
                     b.ToTable("ObservationCapabilities");
                 });
@@ -1965,6 +1733,17 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Capability", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.ClockEvent", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
@@ -2036,9 +1815,9 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExerciseTargetCapability", b =>
                 {
-                    b.HasOne("Cadence.Core.Models.Entities.CoreCapability", "CoreCapability")
+                    b.HasOne("Cadence.Core.Models.Entities.Capability", "Capability")
                         .WithMany("ExerciseTargetCapabilities")
-                        .HasForeignKey("CoreCapabilityId")
+                        .HasForeignKey("CapabilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2048,7 +1827,7 @@ namespace Cadence.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CoreCapability");
+                    b.Navigation("Capability");
 
                     b.Navigation("Exercise");
                 });
@@ -2206,9 +1985,9 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.ObservationCapability", b =>
                 {
-                    b.HasOne("Cadence.Core.Models.Entities.CoreCapability", "CoreCapability")
+                    b.HasOne("Cadence.Core.Models.Entities.Capability", "Capability")
                         .WithMany("ObservationCapabilities")
-                        .HasForeignKey("CoreCapabilityId")
+                        .HasForeignKey("CapabilityId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
@@ -2218,7 +1997,7 @@ namespace Cadence.Core.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.Navigation("CoreCapability");
+                    b.Navigation("Capability");
 
                     b.Navigation("Observation");
                 });
@@ -2344,7 +2123,7 @@ namespace Cadence.Core.Migrations
                     b.Navigation("RefreshTokens");
                 });
 
-            modelBuilder.Entity("Cadence.Core.Models.Entities.CoreCapability", b =>
+            modelBuilder.Entity("Cadence.Core.Models.Entities.Capability", b =>
                 {
                     b.Navigation("ExerciseTargetCapabilities");
 

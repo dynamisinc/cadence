@@ -1,5 +1,7 @@
+using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Cadence.Core.Data;
 
@@ -123,6 +125,47 @@ public static class DevelopmentDataSeeder
         // are kept for reference and can be enabled once users are seeded.
 
         await context.SaveChangesAsync();
+    }
+
+    /// <summary>
+    /// Seeds FEMA Core Capabilities for the demo organization if not already present.
+    /// Call this after SeedAsync to import predefined capability libraries.
+    /// </summary>
+    public static async Task SeedCapabilitiesAsync(
+        AppDbContext context,
+        ICapabilityImportService importService,
+        ILogger? logger = null)
+    {
+        // Check if capabilities already exist for demo org
+        var hasCapabilities = await context.Capabilities
+            .AnyAsync(c => c.OrganizationId == DemoOrgId);
+
+        if (hasCapabilities)
+        {
+            logger?.LogInformation("Capabilities already seeded for demo organization");
+            return;
+        }
+
+        // Check if demo org exists (should have been seeded by SeedAsync)
+        var orgExists = await context.Organizations.AnyAsync(o => o.Id == DemoOrgId);
+        if (!orgExists)
+        {
+            logger?.LogWarning("Demo organization not found - skipping capability seeding");
+            return;
+        }
+
+        try
+        {
+            // Import FEMA Core Capabilities
+            var result = await importService.ImportLibraryAsync(DemoOrgId, "FEMA");
+            logger?.LogInformation(
+                "Seeded {Count} FEMA Core Capabilities for demo organization",
+                result.Imported);
+        }
+        catch (Exception ex)
+        {
+            logger?.LogError(ex, "Failed to seed capabilities for demo organization");
+        }
     }
 
     #region Organization

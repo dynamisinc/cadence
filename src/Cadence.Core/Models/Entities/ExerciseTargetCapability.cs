@@ -1,7 +1,7 @@
 namespace Cadence.Core.Models.Entities;
 
 /// <summary>
-/// Join entity for the many-to-many relationship between Exercises and CoreCapabilities.
+/// Join entity for the many-to-many relationship between Exercises and Capabilities.
 /// Tracks which capabilities are specifically targeted for evaluation in an exercise.
 /// </summary>
 public class ExerciseTargetCapability
@@ -14,7 +14,7 @@ public class ExerciseTargetCapability
     /// <summary>
     /// The target capability.
     /// </summary>
-    public Guid CoreCapabilityId { get; set; }
+    public Guid CapabilityId { get; set; }
 
     // =========================================================================
     // Navigation Properties
@@ -26,7 +26,7 @@ public class ExerciseTargetCapability
     public Exercise Exercise { get; set; } = null!;
 
     /// <summary>
-    /// The core capability.
+    /// The capability.
     /// </summary>
-    public CoreCapability CoreCapability { get; set; } = null!;
+    public Capability Capability { get; set; } = null!;
 }

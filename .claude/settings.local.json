@@ -61,7 +61,8 @@
       "Bash(az account list:*)",
       "Bash(az ad sp create-for-rbac:*)",
       "Bash(dotnet format:*)",
-      "Bash(gh pr reviews:*)"
+      "Bash(gh pr reviews:*)",
+      "Bash(dotnet msbuild:*)"
     ],
     "deny": [],
     "ask": [],

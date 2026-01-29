@@ -32,6 +32,8 @@ public class ObservationService : IObservationService
         var observations = await _context.Observations
             .Include(o => o.CreatedByUser)
             .Include(o => o.Inject)
+            .Include(o => o.ObservationCapabilities)
+                .ThenInclude(oc => oc.Capability)
             .Where(o => o.ExerciseId == exerciseId)
             .OrderByDescending(o => o.ObservedAt)
             .ToListAsync();
@@ -45,6 +47,8 @@ public class ObservationService : IObservationService
         var observations = await _context.Observations
             .Include(o => o.CreatedByUser)
             .Include(o => o.Inject)
+            .Include(o => o.ObservationCapabilities)
+                .ThenInclude(oc => oc.Capability)
             .Where(o => o.InjectId == injectId)
             .OrderByDescending(o => o.ObservedAt)
             .ToListAsync();
@@ -58,6 +62,8 @@ public class ObservationService : IObservationService
         var observation = await _context.Observations
             .Include(o => o.CreatedByUser)
             .Include(o => o.Inject)
+            .Include(o => o.ObservationCapabilities)
+                .ThenInclude(oc => oc.Capability)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         return observation?.ToDto();
@@ -103,6 +109,18 @@ public class ObservationService : IObservationService
         _context.Observations.Add(observation);
         await _context.SaveChangesAsync();
 
+        // Link capabilities if provided
+        if (request.CapabilityIds?.Any() == true)
+        {
+            var capabilityLinks = request.CapabilityIds.Select(capId => new ObservationCapability
+            {
+                ObservationId = observation.Id,
+                CapabilityId = capId
+            });
+            _context.ObservationCapabilities.AddRange(capabilityLinks);
+            await _context.SaveChangesAsync();
+        }
+
         _logger.LogInformation(
             "Created observation {ObservationId} for exercise {ExerciseId}",
             observation.Id, exerciseId);
@@ -113,6 +131,11 @@ public class ObservationService : IObservationService
             .LoadAsync();
         await _context.Entry(observation)
             .Reference(o => o.Inject)
+            .LoadAsync();
+        await _context.Entry(observation)
+            .Collection(o => o.ObservationCapabilities)
+            .Query()
+            .Include(oc => oc.Capability)
             .LoadAsync();
 
         var dto = observation.ToDto();
@@ -177,6 +200,28 @@ public class ObservationService : IObservationService
             observation.ObservedAt = request.ObservedAt.Value;
         }
 
+        // Update capability links if provided
+        // null = keep existing, empty list = clear all, populated list = replace
+        if (request.CapabilityIds != null)
+        {
+            // Remove existing links
+            var existingLinks = await _context.ObservationCapabilities
+                .Where(oc => oc.ObservationId == id)
+                .ToListAsync();
+            _context.ObservationCapabilities.RemoveRange(existingLinks);
+
+            // Add new links
+            if (request.CapabilityIds.Any())
+            {
+                var newLinks = request.CapabilityIds.Select(capId => new ObservationCapability
+                {
+                    ObservationId = id,
+                    CapabilityId = capId
+                });
+                _context.ObservationCapabilities.AddRange(newLinks);
+            }
+        }
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated observation {ObservationId}", id);
@@ -184,6 +229,13 @@ public class ObservationService : IObservationService
         // Reload inject navigation if it changed
         await _context.Entry(observation)
             .Reference(o => o.Inject)
+            .LoadAsync();
+
+        // Reload capabilities
+        await _context.Entry(observation)
+            .Collection(o => o.ObservationCapabilities)
+            .Query()
+            .Include(oc => oc.Capability)
             .LoadAsync();
 
         var dto = observation.ToDto();

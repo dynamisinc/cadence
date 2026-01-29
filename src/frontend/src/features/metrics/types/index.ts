@@ -570,20 +570,20 @@ export interface CapabilityPerformanceSummaryDto {
   capabilities: CapabilityPerformanceDto[]
   /** Target capabilities with no observations (gaps). */
   unevaluatedTargets: UnevaluatedCapabilityDto[]
-  /** Performance grouped by mission area. */
-  byMissionArea: MissionAreaSummaryDto[]
+  /** Performance grouped by category. */
+  byCategory: CategorySummaryDto[]
 }
 
 /**
- * Performance metrics for a single core capability.
+ * Performance metrics for a single capability.
  */
 export interface CapabilityPerformanceDto {
   /** Capability ID. */
   capabilityId: string
   /** Capability name (e.g., "Mass Care Services"). */
   name: string
-  /** FEMA mission area (Prevention, Protection, Mitigation, Response, Recovery). */
-  missionArea: string
+  /** Capability category (e.g., Response, Prevention, etc.). */
+  category: string
   /** Number of observations tagged with this capability. */
   observationCount: number
   /** Average rating (P=1, S=2, M=3, U=4). Lower is better. */
@@ -604,22 +604,22 @@ export interface CapabilityPerformanceDto {
 export interface UnevaluatedCapabilityDto {
   id: string
   name: string
-  missionArea: string
+  category: string
 }
 
 /**
- * Performance summary grouped by FEMA mission area.
+ * Performance summary grouped by category.
  */
-export interface MissionAreaSummaryDto {
-  /** Mission area name. */
-  missionArea: string
-  /** Number of capabilities evaluated in this area. */
+export interface CategorySummaryDto {
+  /** Category name. */
+  category: string
+  /** Number of capabilities evaluated in this category. */
   capabilitiesEvaluated: number
-  /** Total observations in this area. */
+  /** Total observations in this category. */
   observationCount: number
-  /** Average rating across all capabilities in this area. */
+  /** Average rating across all capabilities in this category. */
   averageRating: number | null
-  /** Rating distribution for this mission area. */
+  /** Rating distribution for this category. */
   ratingCounts: RatingCountsDto
 }
 

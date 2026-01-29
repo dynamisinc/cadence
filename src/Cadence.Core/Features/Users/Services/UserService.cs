@@ -58,10 +58,19 @@ public class UserService : IUserService
                 u.Email!.ToLower().Contains(searchLower));
         }
 
-        // Apply role filter
-        if (!string.IsNullOrWhiteSpace(role) && Enum.TryParse<SystemRole>(role, out var systemRole))
+        // Apply role filter (supports comma-separated values like "Admin,Manager")
+        if (!string.IsNullOrWhiteSpace(role))
         {
-            query = query.Where(u => u.SystemRole == systemRole);
+            var roleNames = role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+            var validRoles = roleNames
+                .Where(r => Enum.TryParse<SystemRole>(r, out _))
+                .Select(r => Enum.Parse<SystemRole>(r))
+                .ToList();
+
+            if (validRoles.Count > 0)
+            {
+                query = query.Where(u => validRoles.Contains(u.SystemRole));
+            }
         }
 
         // Get total count

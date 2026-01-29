@@ -19,11 +19,14 @@ export {
 export {
   ExerciseStatusChip,
   ExerciseTypeChip,
+  ExerciseTable,
   ExerciseForm,
   DuplicateExerciseDialog,
   SetupProgress,
   ExerciseSettingsDialog,
 } from './components'
+
+export type { ExerciseTableProps } from './components'
 
 // Hooks
 export {

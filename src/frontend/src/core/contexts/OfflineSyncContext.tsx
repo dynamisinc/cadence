@@ -82,6 +82,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
   const wasOfflineRef = useRef(false)
   const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const hasInitializedRef = useRef(false)
+  const hasSyncedOnMountRef = useRef(false)
   const isMountedRef = useRef(true)
 
   // Track mounted state to prevent state updates after unmount
@@ -102,15 +103,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
     }
   }, [setPendingCount])
 
-  // Initial pending count on mount
-  useEffect(() => {
-    if (!hasInitializedRef.current) {
-      hasInitializedRef.current = true
-      refreshPendingCount()
-    }
-  }, [refreshPendingCount])
-
-  // Sync function
+  // Sync function (defined early so it can be used in initialization)
   const sync = useCallback(async (): Promise<SyncResult> => {
     // Don't start if already syncing
     if (getSyncStatus() === 'syncing') {
@@ -224,6 +217,48 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
       }
     }
   }, [connectivityState, autoSyncDelay, sync])
+
+  // Initial pending count on mount
+  useEffect(() => {
+    if (!hasInitializedRef.current) {
+      hasInitializedRef.current = true
+      refreshPendingCount()
+    }
+  }, [refreshPendingCount])
+
+  // Auto-sync stale pending changes when online
+  // This handles the case where user refreshes page with stale pending changes
+  useEffect(() => {
+    // Only run this once when we first become online with pending changes
+    if (
+      !hasSyncedOnMountRef.current &&
+      connectivityState === 'online' &&
+      getSyncStatus() !== 'syncing'
+    ) {
+      const checkAndSyncStaleChanges = async () => {
+        // Small delay to ensure everything is initialized
+        await new Promise(resolve => setTimeout(resolve, 1500))
+
+        if (!isMountedRef.current) return
+
+        try {
+          const count = await getPendingActionCount()
+          if (count > 0 && isMountedRef.current) {
+            hasSyncedOnMountRef.current = true
+            toast.info(`Found ${count} pending change(s). Syncing...`, { autoClose: 2000 })
+            await sync()
+          } else {
+            // No pending changes, mark as synced so we don't check again
+            hasSyncedOnMountRef.current = true
+          }
+        } catch (error) {
+          console.error('Initial sync check failed:', error)
+        }
+      }
+
+      checkAndSyncStaleChanges()
+    }
+  }, [connectivityState, sync])
 
   // Clear conflicts and delete failed actions from IndexedDB
   const clearConflicts = useCallback(async () => {

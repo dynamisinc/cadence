@@ -22,11 +22,13 @@ export interface ExerciseParticipantDto {
 
 /**
  * Exercise assignment DTO for user profile display
+ * Matches backend ExerciseAssignmentDto record
  */
-export interface ExerciseAssignmentDto extends ExerciseParticipantDto {
+export interface ExerciseAssignmentDto {
   exerciseId: string;
   exerciseName: string;
-  role: ExerciseRole;
+  exerciseRole: string;
+  assignedAt: string;
 }
 
 export const roleResolutionService = {
@@ -68,9 +70,6 @@ export const roleResolutionService = {
     const response = await apiClient.get<ExerciseAssignmentDto[]>(
       `/users/${userId}/exercise-assignments`,
     )
-    return response.data.map(assignment => ({
-      ...assignment,
-      role: assignment.exerciseRole as ExerciseRole,
-    }))
+    return response.data
   },
 }

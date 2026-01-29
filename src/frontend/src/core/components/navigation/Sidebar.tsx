@@ -111,17 +111,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   /**
    * Check if a menu item is currently active
+   * Uses exact matching only - buildPath handles dynamic segments like :id
    */
   const isActive = (item: MenuItem): boolean => {
     const path = buildPath(item)
-    if (path === '/') {
-      return location.pathname === '/'
-    }
-    // For exercise-scoped routes, check exact match or prefix
-    if (item.requiresExerciseContext && currentExerciseId) {
-      return location.pathname.startsWith(path)
-    }
-    return location.pathname.startsWith(path)
+    return location.pathname === path
   }
 
   /**

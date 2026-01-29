@@ -22,6 +22,7 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
+  Chip,
 } from '@mui/material'
 import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -275,6 +276,21 @@ export const ObservationList = ({
                       <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
                         {observation.content}
                       </Typography>
+
+                      {/* Capability Tags (S05) */}
+                      {observation.capabilities && observation.capabilities.length > 0 && (
+                        <Stack direction="row" flexWrap="wrap" gap={0.5} sx={{ mt: 1 }}>
+                          {observation.capabilities.map(cap => (
+                            <Chip
+                              key={cap.id}
+                              label={cap.name}
+                              size="small"
+                              variant="outlined"
+                              color="primary"
+                            />
+                          ))}
+                        </Stack>
+                      )}
 
                       {/* Recommendation if present */}
                       {observation.recommendation && (

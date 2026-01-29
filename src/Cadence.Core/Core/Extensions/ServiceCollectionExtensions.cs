@@ -1,5 +1,6 @@
 using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
+using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Features.DeliveryMethods.Services;
 using Cadence.Core.Features.ExcelExport.Services;
 using Cadence.Core.Features.ExcelImport.Services;
@@ -51,6 +52,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAssignmentService, AssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IExerciseMetricsService, ExerciseMetricsService>();
+        services.AddScoped<IExerciseCapabilityService, ExerciseCapabilityService>();
+        services.AddScoped<ICapabilityService, CapabilityService>();
+        services.AddSingleton<IPredefinedLibraryProvider, PredefinedLibraryProvider>();
+        services.AddScoped<ICapabilityImportService, CapabilityImportService>();
 
         return services;
     }

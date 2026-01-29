@@ -1,16 +1,26 @@
 /**
  * usePermissions Hook
  *
- * Provides permission checking utilities based on the current user's role.
- * Uses the mock user profile from localStorage for demo/testing purposes.
+ * @deprecated This hook uses mock localStorage profiles for demo/testing only.
+ *
+ * For production, use the appropriate permission hooks:
+ * - `useSystemPermissions()` - System-level permissions (create exercises, admin access)
+ * - `useExerciseRole(exerciseId)` - Exercise-scoped permissions (fire injects, record observations)
+ *
+ * This hook is kept for backwards compatibility with ProfileMenu demo role switching.
  *
  * Usage:
  * ```tsx
+ * // DEPRECATED - Use useSystemPermissions instead
  * const { canEdit, canDelete, canManage, role } = usePermissions();
  *
  * if (canEdit) {
  *   // Show edit button
  * }
+ *
+ * // RECOMMENDED - Use the new hooks
+ * const { canCreateExercise, systemRole } = useSystemPermissions();
+ * const { effectiveRole, can } = useExerciseRole(exerciseId);
  * ```
  */
 

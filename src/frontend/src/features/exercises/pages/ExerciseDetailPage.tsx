@@ -1,5 +1,6 @@
 import { useMemo, useCallback, useState } from 'react'
 import { useParams, useNavigate, useLocation } from 'react-router-dom'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Box,
   Typography,
@@ -27,7 +28,9 @@ import {
   useExerciseStatus,
   useMselSummary,
   useExerciseParticipants,
+  exerciseCapabilityKeys,
 } from '../hooks'
+import { exerciseCapabilityService } from '../services/exerciseCapabilityService'
 import {
   ExerciseForm,
   ExerciseHeader,
@@ -37,6 +40,7 @@ import {
   ArchiveExerciseDialog,
   DeleteExerciseDialog,
   ExerciseSettingsDialog,
+  TargetCapabilitiesDisplay,
 } from '../components'
 import { ObjectiveList } from '../../objectives'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
@@ -52,6 +56,7 @@ import { ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import { EffectiveRoleBadge } from '@/features/auth'
 import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
+import type { UserDto } from '../../users/types'
 
 /**
  * Tab Panel Component
@@ -94,6 +99,7 @@ export const ExerciseDetailPage = () => {
   const location = useLocation()
   const { exercise, loading, error, updateExercise } = useExercise(id)
   const { canManage } = usePermissions()
+  const queryClient = useQueryClient()
 
   // Derive edit state from URL path (ends with /edit)
   const isEditing = location.pathname.endsWith('/edit')
@@ -128,6 +134,20 @@ export const ExerciseDetailPage = () => {
     () => participants.find(p => p.exerciseRole === 'ExerciseDirector'),
     [participants],
   )
+
+  // Convert director participant to UserDto for the form
+  const directorAsUser: UserDto | null = useMemo(() => {
+    if (!director) return null
+    return {
+      id: director.userId,
+      email: director.email,
+      displayName: director.displayName,
+      systemRole: director.systemRole,
+      status: 'Active', // Participants are always active users
+      lastLoginAt: null,
+      createdAt: director.addedAt,
+    }
+  }, [director])
 
   // Set custom breadcrumbs with exercise name (show loading placeholder while fetching)
   useBreadcrumbs([
@@ -208,6 +228,19 @@ export const ExerciseDetailPage = () => {
       }
 
       await updateExercise(request)
+
+      // Update target capabilities if changed (S04)
+      if (values.targetCapabilityIds !== undefined) {
+        await exerciseCapabilityService.setTargetCapabilities(
+          id!,
+          values.targetCapabilityIds,
+        )
+        // Invalidate capabilities cache so detail view reflects updates
+        queryClient.invalidateQueries({
+          queryKey: exerciseCapabilityKeys.targetCapabilities(id!),
+        })
+      }
+
       setIsDirty(false)
       // Navigate back to detail view after successful save
       navigate(`/exercises/${id}`, { replace: true })
@@ -463,6 +496,7 @@ export const ExerciseDetailPage = () => {
             isSubmitting={isSubmitting}
             disabledFields={disabledFields}
             onDirtyChange={handleDirtyChange}
+            director={directorAsUser}
           />
         </Paper>
       ) : (
@@ -717,6 +751,9 @@ export const ExerciseDetailPage = () => {
                   </Grid>
                 )}
               </Grid>
+
+              {/* Target Capabilities (S04) */}
+              <TargetCapabilitiesDisplay exerciseId={id!} />
 
               {/* Bottom row: MSEL Progress */}
               {mselSummary && mselSummary.totalInjects > 0 && (

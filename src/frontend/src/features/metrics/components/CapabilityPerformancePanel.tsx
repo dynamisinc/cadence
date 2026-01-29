@@ -33,7 +33,7 @@ import { useCapabilityPerformance } from '../hooks/useCapabilityPerformance'
 import type {
   CapabilityPerformanceSummaryDto,
   CapabilityPerformanceDto,
-  MissionAreaSummaryDto,
+  CategorySummaryDto,
 } from '../types'
 
 interface CapabilityPerformancePanelProps {
@@ -195,7 +195,7 @@ const CapabilityCard = ({ capability }: { capability: CapabilityPerformanceDto }
 
           <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 1 }}>
             <Chip
-              label={capability.missionArea}
+              label={capability.category}
               size="small"
               variant="outlined"
               sx={{ bgcolor: 'grey.100' }}
@@ -310,16 +310,16 @@ const UnevaluatedTargetsAlert = ({ data }: { data: CapabilityPerformanceSummaryD
 }
 
 /**
- * Mission area accordion
+ * Category accordion
  */
-const MissionAreaAccordion = ({ area }: { area: MissionAreaSummaryDto }) => {
+const CategoryAccordion = ({ area }: { area: CategorySummaryDto }) => {
   const ratingCounts = area.ratingCounts
 
   return (
     <Accordion>
       <AccordionSummary expandIcon={<FontAwesomeIcon icon={faChevronDown} />}>
         <Stack direction="row" spacing={2} alignItems="center" sx={{ flex: 1, mr: 2 }}>
-          <Typography fontWeight="medium">{area.missionArea}</Typography>
+          <Typography fontWeight="medium">{area.category}</Typography>
           <Chip
             label={`${area.capabilitiesEvaluated} capabilities`}
             size="small"
@@ -473,15 +473,15 @@ export const CapabilityPerformancePanel = ({ exerciseId }: CapabilityPerformance
         </Box>
       )}
 
-      {/* By Mission Area */}
-      {data.byMissionArea.length > 0 && (
+      {/* By Category */}
+      {data.byCategory.length > 0 && (
         <Box>
           <Typography variant="subtitle1" fontWeight="bold" sx={{ mb: 2 }}>
             <FontAwesomeIcon icon={faChartLine} style={{ marginRight: 8 }} />
-            By Mission Area
+            By Category
           </Typography>
-          {data.byMissionArea.map((area, idx) => (
-            <MissionAreaAccordion key={idx} area={area} />
+          {data.byCategory.map((area, idx) => (
+            <CategoryAccordion key={idx} area={area} />
           ))}
         </Box>
       )}

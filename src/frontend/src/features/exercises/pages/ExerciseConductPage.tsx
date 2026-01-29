@@ -67,6 +67,8 @@ import {
   useObservations,
   observationsQueryKey,
 } from '../../observations'
+import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
+import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { useObjectiveSummaries } from '../../objectives/hooks'
 import type { ObservationDto } from '../../observations/types'
@@ -112,6 +114,8 @@ export const ExerciseConductPage = () => {
     deleteObservation,
   } = useObservations(exerciseId!)
   const { summaries: _objectives } = useObjectiveSummaries(exerciseId!)
+  const { capabilities } = useCapabilities(false) // Active capabilities only
+  const { targetCapabilities } = useExerciseTargetCapabilities(exerciseId)
 
   // Exercise settings for confirmation dialogs
   const {
@@ -1058,6 +1062,8 @@ export const ExerciseConductPage = () => {
                     <ObservationForm
                       inject={preSelectedInjectId ? injects.find(i => i.id === preSelectedInjectId) : undefined}
                       injects={injects}
+                      capabilities={capabilities}
+                      targetCapabilityIds={targetCapabilities.map(c => c.id)}
                       initialValues={
                         editingObservation
                           ? {
@@ -1065,6 +1071,7 @@ export const ExerciseConductPage = () => {
                             content: editingObservation.content,
                             recommendation: editingObservation.recommendation ?? undefined,
                             injectId: editingObservation.injectId ?? undefined,
+                            capabilityIds: editingObservation.capabilities?.map(c => c.id) ?? [],
                           }
                           : preSelectedInjectId
                             ? { rating: undefined as never, content: '', injectId: preSelectedInjectId }

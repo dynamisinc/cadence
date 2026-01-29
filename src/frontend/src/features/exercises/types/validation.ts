@@ -58,6 +58,7 @@ export const createExerciseSchema = z.object({
     })
     .default(1),
   directorId: z.string().optional().or(z.literal('')),
+  targetCapabilityIds: z.array(z.string()).optional().default([]),
 }).refine(
   data => {
     // If both times are provided, end must be after start

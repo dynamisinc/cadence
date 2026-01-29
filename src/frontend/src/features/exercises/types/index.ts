@@ -47,6 +47,9 @@ export interface ExerciseDto {
   confirmFireInject: boolean
   confirmSkipInject: boolean
   confirmClockControl: boolean
+  // Summary counts (for list views)
+  injectCount: number
+  firedInjectCount: number
 }
 
 /**
@@ -283,6 +286,26 @@ export const CLOCK_MULTIPLIER_PRESETS = [
   { value: 10, label: '10x' },
   { value: 20, label: '20x (Max)' },
 ] as const
+
+// =========================================================================
+// Exercise Capabilities Types (S04)
+// =========================================================================
+
+/**
+ * Request to set target capabilities for an exercise
+ */
+export interface SetExerciseCapabilitiesRequest {
+  capabilityIds: string[]
+}
+
+/**
+ * Exercise capability coverage summary
+ */
+export interface ExerciseCapabilitySummaryDto {
+  targetCount: number
+  evaluatedCount: number
+  coveragePercentage: number | null
+}
 
 // Re-export validation types
 export type { CreateExerciseFormValues, UpdateExerciseFormValues } from './validation'

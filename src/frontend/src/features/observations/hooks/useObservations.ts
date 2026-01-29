@@ -77,6 +77,7 @@ export const useObservations = (exerciseId: string) => {
         createdByName: 'You',
         injectTitle: null,
         injectNumber: null,
+        capabilities: [], // Will be populated on server response
       }
 
       // Apply optimistic update
@@ -259,6 +260,7 @@ export const useObservations = (exerciseId: string) => {
       createdByName: 'You (offline)',
       injectTitle: null,
       injectNumber: null,
+      capabilities: [], // Will be populated when synced
     }
 
     // Queue the action for later sync

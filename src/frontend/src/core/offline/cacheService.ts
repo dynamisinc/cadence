@@ -84,6 +84,9 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
     confirmFireInject: true,
     confirmSkipInject: true,
     confirmClockControl: false,
+    // Summary counts - not tracked in cache, use defaults
+    injectCount: 0,
+    firedInjectCount: 0,
   }
 }
 
@@ -325,6 +328,7 @@ export function cachedObservationToDto(
     createdByName: cached.createdByName ?? null,
     injectTitle: null,
     injectNumber: null,
+    capabilities: [], // Not tracked in cache
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
     pendingSync: cached.pendingSync,

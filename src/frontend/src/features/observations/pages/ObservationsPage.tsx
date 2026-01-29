@@ -43,6 +43,8 @@ import { ObservationList } from '../components/ObservationList'
 import { useObservations, observationsQueryKey } from '../hooks/useObservations'
 import { useInjects } from '../../injects/hooks'
 import { useExerciseSignalR } from '../../../shared/hooks'
+import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
+import { useExerciseTargetCapabilities } from '../../exercises/hooks/useExerciseTargetCapabilities'
 import {
   CobraPrimaryButton,
   CobraLinkButton,
@@ -72,6 +74,8 @@ export const ObservationsPage = () => {
     deleteObservation,
   } = useObservations(exerciseId!)
   const { injects } = useInjects(exerciseId!)
+  const { capabilities } = useCapabilities(false) // Active capabilities only
+  const { targetCapabilities } = useExerciseTargetCapabilities(exerciseId)
 
   // UI state
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -447,6 +451,8 @@ export const ObservationsPage = () => {
           <Box sx={{ pt: 1 }}>
             <ObservationForm
               injects={injects}
+              capabilities={capabilities}
+              targetCapabilityIds={targetCapabilities.map(c => c.id)}
               onSubmit={handleSubmitObservation}
               onCancel={() => setShowCreateDialog(false)}
               isSubmitting={isSubmitting}
@@ -468,11 +474,14 @@ export const ObservationsPage = () => {
             {editingObservation && (
               <ObservationForm
                 injects={injects}
+                capabilities={capabilities}
+                targetCapabilityIds={targetCapabilities.map(c => c.id)}
                 initialValues={{
                   rating: editingObservation.rating!,
                   content: editingObservation.content,
                   recommendation: editingObservation.recommendation ?? undefined,
                   injectId: editingObservation.injectId ?? undefined,
+                  capabilityIds: editingObservation.capabilities.map(c => c.id),
                 }}
                 onSubmit={handleSubmitObservation}
                 onCancel={handleCancelEdit}

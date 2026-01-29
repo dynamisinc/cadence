@@ -84,9 +84,49 @@ jobs:
         working-directory: src/frontend
         continue-on-error: true
 
-      - name: Run tests
-        run: npm run test:run -- --reporter=verbose
+      # =========================================================================
+      # Frontend Tests - Improved reporting & faster feedback
+      # - Bails after 10 failures (faster than running all 2300+ tests)
+      # - GitHub Actions annotations for failed tests
+      # - Clickable test summary in Actions UI
+      # =========================================================================
+      - name: Create test results directory
+        run: mkdir -p test-results
         working-directory: src/frontend
+
+      - name: Run tests
+        id: frontend-tests
+        run: npm run test:ci
+        working-directory: src/frontend
+        continue-on-error: true
+        env:
+          CI: true
+
+      # Publish clickable test summary in GitHub Actions UI
+      - name: Publish Test Summary
+        uses: dorny/test-reporter@v1
+        if: always() && (steps.frontend-tests.outcome == 'success' || steps.frontend-tests.outcome == 'failure')
+        with:
+          name: Frontend Test Results
+          path: src/frontend/test-results/junit.xml
+          reporter: jest-junit
+          fail-on-error: false
+
+      # Upload detailed results as downloadable artifact
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: frontend-test-results
+          path: src/frontend/test-results/
+          retention-days: 7
+
+      # Fail the job if tests failed (after uploading results)
+      - name: Check test results
+        if: steps.frontend-tests.outcome == 'failure'
+        run: |
+          echo "::error::Frontend tests failed. Check the 'Frontend Test Results' summary above for details."
+          exit 1
 
       - name: Build
         run: npm run build

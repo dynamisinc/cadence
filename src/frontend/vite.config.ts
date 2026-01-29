@@ -17,6 +17,9 @@ export default defineConfig(({ mode }) => {
   // Set VITE_PWA_ENABLED=true to enable PWA in development for testing
   const pwaEnabled = mode === 'production' || env.VITE_PWA_ENABLED === 'true'
 
+  // Determine if running in CI environment
+  const isCI = process.env.CI === 'true'
+
   return {
     plugins: [
       react(),
@@ -121,9 +124,40 @@ export default defineConfig(({ mode }) => {
       setupFiles: './src/test/setup.ts',
       include: ['src/**/*.{test,spec}.{ts,tsx}'],
       testTimeout: 10000, // 10 seconds to handle heavy test loads
+      hookTimeout: 10000,
+
+      // =========================================================================
+      // Reporters - Different outputs for CI vs local development
+      // =========================================================================
+      // CI: verbose console + GitHub Actions annotations + JUnit XML for summary
+      // Local: just verbose console output
+      reporters: isCI
+        ? ['verbose', 'github-actions', 'junit']
+        : ['verbose'],
+
+      // JUnit XML output for CI test summary (used by dorny/test-reporter)
+      outputFile: {
+        junit: './test-results/junit.xml',
+      },
+
+      // =========================================================================
+      // Performance
+      // =========================================================================
+      pool: 'threads',
+      poolOptions: {
+        threads: {
+          singleThread: false,
+          isolate: true,
+        },
+      },
+
+      // =========================================================================
+      // Coverage
+      // =========================================================================
       coverage: {
         provider: 'v8',
         reporter: ['text', 'json', 'html'],
+        reportsDirectory: './test-results/coverage',
         exclude: [
           'node_modules/',
           'src/test/',

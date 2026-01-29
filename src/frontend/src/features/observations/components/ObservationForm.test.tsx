@@ -279,4 +279,125 @@ describe('ObservationForm', () => {
       expect(screen.queryByLabelText(/Related Inject/i)).not.toBeInTheDocument()
     })
   })
+
+  describe('Capability Tagging (S05)', () => {
+    const mockCapabilities = [
+      {
+        id: 'cap-1',
+        organizationId: 'org-1',
+        name: 'Mass Care Services',
+        description: 'Provide life-sustaining services',
+        category: 'Response',
+        sortOrder: 1,
+        isActive: true,
+        sourceLibrary: 'FEMA',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+      {
+        id: 'cap-2',
+        organizationId: 'org-1',
+        name: 'Public Health',
+        description: 'Provide health services',
+        category: 'Response',
+        sortOrder: 2,
+        isActive: true,
+        sourceLibrary: 'FEMA',
+        createdAt: '2024-01-01T00:00:00Z',
+        updatedAt: '2024-01-01T00:00:00Z',
+      },
+    ]
+
+    it('shows capability selector when capabilities are provided', () => {
+      render(
+        <ObservationForm
+          capabilities={mockCapabilities}
+          targetCapabilityIds={['cap-1']}
+          onSubmit={vi.fn()}
+          onCancel={vi.fn()}
+        />,
+      )
+
+      expect(screen.getByText(/Capability Tags/i)).toBeInTheDocument()
+      expect(screen.getByText('Mass Care Services')).toBeInTheDocument()
+    })
+
+    it('does not show capability selector when no capabilities provided', () => {
+      render(
+        <ObservationForm
+          capabilities={[]}
+          onSubmit={vi.fn()}
+          onCancel={vi.fn()}
+        />,
+      )
+
+      expect(screen.queryByText(/Capability Tags/i)).not.toBeInTheDocument()
+    })
+
+    it('includes selected capability IDs in submit data', () => {
+      const onSubmit = vi.fn()
+
+      render(
+        <ObservationForm
+          capabilities={mockCapabilities}
+          targetCapabilityIds={['cap-1']}
+          onSubmit={onSubmit}
+          onCancel={vi.fn()}
+        />,
+      )
+
+      // Fill in required fields
+      const textarea = screen.getByLabelText(/Observation/i)
+      fireEvent.change(textarea, { target: { value: 'Test observation' } })
+
+      const ratingSelect = screen.getByLabelText(/Rating/i)
+      fireEvent.mouseDown(ratingSelect)
+      const listbox = within(screen.getByRole('listbox'))
+      fireEvent.click(listbox.getByText('P - Performed'))
+
+      // Select a capability
+      const massCareChip = screen.getByText('Mass Care Services')
+      fireEvent.click(massCareChip)
+
+      // Submit
+      fireEvent.click(screen.getByRole('button', { name: /Save/i }))
+
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({
+          capabilityIds: ['cap-1'],
+        }),
+      )
+    })
+
+    it('omits capabilityIds from submit data when none selected', () => {
+      const onSubmit = vi.fn()
+
+      render(
+        <ObservationForm
+          capabilities={mockCapabilities}
+          targetCapabilityIds={['cap-1']}
+          onSubmit={onSubmit}
+          onCancel={vi.fn()}
+        />,
+      )
+
+      // Fill in required fields
+      const textarea = screen.getByLabelText(/Observation/i)
+      fireEvent.change(textarea, { target: { value: 'Test observation' } })
+
+      const ratingSelect = screen.getByLabelText(/Rating/i)
+      fireEvent.mouseDown(ratingSelect)
+      const listbox = within(screen.getByRole('listbox'))
+      fireEvent.click(listbox.getByText('P - Performed'))
+
+      // Submit without selecting capabilities
+      fireEvent.click(screen.getByRole('button', { name: /Save/i }))
+
+      expect(onSubmit).toHaveBeenCalledWith(
+        expect.not.objectContaining({
+          capabilityIds: expect.anything(),
+        }),
+      )
+    })
+  })
 })

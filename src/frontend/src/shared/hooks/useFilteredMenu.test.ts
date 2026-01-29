@@ -383,7 +383,7 @@ describe('useFilteredMenu', () => {
       it('Control Room has correct disabled tooltip', () => {
         const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
-        expect(result.current.getDisabledTooltip('control-room')).toBe('Enter an exercise first')
+        expect(result.current.getDisabledTooltip('control-room')).toBe('Coming in a future release')
       })
 
       it('Inject Queue is disabled', () => {

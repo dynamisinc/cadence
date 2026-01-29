@@ -1,0 +1,302 @@
+{
+  "libraries": [
+    {
+      "id": "FEMA",
+      "name": "FEMA Core Capabilities",
+      "description": "32 FEMA Core Capabilities organized by 5 mission areas (HSEEP 2020)",
+      "capabilities": [
+        {
+          "name": "Planning",
+          "description": "Conduct a systematic process engaging the whole community as appropriate in the development of executable strategic, operational, and/or tactical-level approaches to meet defined objectives.",
+          "category": "Prevention"
+        },
+        {
+          "name": "Public Information and Warning",
+          "description": "Deliver coordinated, prompt, reliable, and actionable information to the whole community through the use of clear, consistent, accessible, and culturally and linguistically appropriate methods to effectively relay information.",
+          "category": "Prevention"
+        },
+        {
+          "name": "Operational Coordination",
+          "description": "Establish and maintain a unified and coordinated operational structure and process that appropriately integrates all critical stakeholders and supports the execution of core capabilities.",
+          "category": "Prevention"
+        },
+        {
+          "name": "Access Control and Identity Verification",
+          "description": "Apply and support necessary physical, technological, and cyber measures to control admittance to critical locations and systems.",
+          "category": "Protection"
+        },
+        {
+          "name": "Cybersecurity",
+          "description": "Protect (and if needed, restore) electronic communications systems, information, and services from damage, unauthorized use, and exploitation.",
+          "category": "Protection"
+        },
+        {
+          "name": "Intelligence and Information Sharing",
+          "description": "Provide timely, accurate, and actionable information resulting from the planning, direction, collection, exploitation, processing, analysis, production, dissemination, evaluation, and feedback of available information.",
+          "category": "Protection"
+        },
+        {
+          "name": "Interdiction and Disruption",
+          "description": "Delay, divert, intercept, halt, apprehend, or secure threats and/or hazards.",
+          "category": "Protection"
+        },
+        {
+          "name": "Physical Protective Measures",
+          "description": "Implement and maintain risk-informed countermeasures, and policies protecting people, borders, structures, materials, products, and systems associated with key operational activities and critical infrastructure sectors.",
+          "category": "Protection"
+        },
+        {
+          "name": "Risk Management for Protection Programs and Activities",
+          "description": "Identify, assess, and prioritize risks to inform Protection activities, countermeasures, and investments.",
+          "category": "Protection"
+        },
+        {
+          "name": "Screening, Search, and Detection",
+          "description": "Identify, discover, or locate threats and/or hazards through active and passive surveillance and search procedures.",
+          "category": "Protection"
+        },
+        {
+          "name": "Supply Chain Integrity and Security",
+          "description": "Strengthen the security and resilience of the supply chain.",
+          "category": "Protection"
+        },
+        {
+          "name": "Community Resilience",
+          "description": "Enable the recognition, understanding, communication of, and planning for risk and empower individuals and communities to make informed risk management decisions necessary to adapt to, withstand, and quickly recover from future incidents.",
+          "category": "Mitigation"
+        },
+        {
+          "name": "Long-term Vulnerability Reduction",
+          "description": "Build and sustain resilient systems, communities, and critical infrastructure and key resources lifelines so as to reduce their vulnerability to natural, technological, and human-caused threats and hazards.",
+          "category": "Mitigation"
+        },
+        {
+          "name": "Risk and Disaster Resilience Assessment",
+          "description": "Assess risk and disaster resilience so that decision makers, responders, and community members can take informed action to reduce their entity's risk and increase their resilience.",
+          "category": "Mitigation"
+        },
+        {
+          "name": "Threats and Hazards Identification",
+          "description": "Identify the threats and hazards that occur in the geographic area; determine the frequency and magnitude; and incorporate this into analysis and planning processes so as to clearly understand the needs of a community or entity.",
+          "category": "Mitigation"
+        },
+        {
+          "name": "Critical Transportation",
+          "description": "Provide transportation (including infrastructure access and accessible transportation services) for response priority objectives, including the evacuation of people and animals, and the delivery of vital response personnel, equipment, and services into the affected areas.",
+          "category": "Response"
+        },
+        {
+          "name": "Environmental Response/Health and Safety",
+          "description": "Ensure the availability of guidance and resources to address all hazards including hazardous materials, acts of terrorism, and natural disasters in support of the responder operations and the affected communities.",
+          "category": "Response"
+        },
+        {
+          "name": "Fatality Management Services",
+          "description": "Provide fatality management services, including body recovery and victim identification, working with local, state, tribal, territorial, insular area, and federal authorities to provide temporary mortuary solutions, sharing information with mass care services for the purpose of reunifying family members and caregivers with missing persons/remains, and providing counseling to the bereaved.",
+          "category": "Response"
+        },
+        {
+          "name": "Fire Management and Suppression",
+          "description": "Provide structural, wildland, and specialized firefighting capabilities to manage and suppress fires of all types, kinds, and complexities while protecting the lives, property, and the environment in the affected area.",
+          "category": "Response"
+        },
+        {
+          "name": "Infrastructure Systems",
+          "description": "Stabilize critical infrastructure functions, minimize health and safety threats, and efficiently restore and revitalize systems and services to support a viable, resilient community.",
+          "category": "Response"
+        },
+        {
+          "name": "Logistics and Supply Chain Management",
+          "description": "Deliver essential commodities, equipment, and services in support of impacted communities and survivors, to include emergency power and fuel support, as well as the coordination of access to community staples.",
+          "category": "Response"
+        },
+        {
+          "name": "Mass Care Services",
+          "description": "Provide life-sustaining services to the affected population with a focus on hydration, feeding, sheltering, temporary housing, evacuee support, reunification, and distribution of emergency supplies.",
+          "category": "Response"
+        },
+        {
+          "name": "Mass Search and Rescue Operations",
+          "description": "Deliver traditional and atypical search and rescue capabilities, including personnel, services, animals, and assets to survivors in need, with the goal of saving the greatest number of endangered lives in the shortest time possible.",
+          "category": "Response"
+        },
+        {
+          "name": "On-scene Security, Protection, and Law Enforcement",
+          "description": "Ensure a safe and secure environment through law enforcement and related security and protection operations for people and communities located within affected areas and also for response personnel engaged in lifesaving and life-sustaining operations.",
+          "category": "Response"
+        },
+        {
+          "name": "Operational Communications",
+          "description": "Ensure the capacity for timely communications in support of security, situational awareness, and operations by any and all means available, among and between affected communities in the impact area and all response forces.",
+          "category": "Response"
+        },
+        {
+          "name": "Public Health, Healthcare, and Emergency Medical Services",
+          "description": "Provide lifesaving medical treatment via Emergency Medical Services and related operations and avoid additional disease and injury by providing targeted public health, medical, and behavioral health support, and products to all affected populations.",
+          "category": "Response"
+        },
+        {
+          "name": "Situational Assessment",
+          "description": "Provide all decision makers with decision-relevant information regarding the nature and extent of the hazard, any cascading effects, and the status of the response.",
+          "category": "Response"
+        },
+        {
+          "name": "Economic Recovery",
+          "description": "Return economic and business activities (including food and agriculture) to a healthy state and develop new business and employment opportunities that result in an economically viable community.",
+          "category": "Recovery"
+        },
+        {
+          "name": "Health and Social Services",
+          "description": "Restore and improve health and social services capabilities and networks to promote the resilience, independence, health (including behavioral health), and well-being of the whole community.",
+          "category": "Recovery"
+        },
+        {
+          "name": "Housing",
+          "description": "Implement housing solutions that effectively support the needs of the whole community and contribute to its sustainability and resilience.",
+          "category": "Recovery"
+        },
+        {
+          "name": "Natural and Cultural Resources",
+          "description": "Protect natural and cultural resources and historic properties through appropriate planning, mitigation, response, and recovery actions to preserve, conserve, rehabilitate, and restore them consistent with post-disaster community priorities and best practices and in compliance with applicable environmental and historic preservation laws and executive orders.",
+          "category": "Recovery"
+        }
+      ]
+    },
+    {
+      "id": "NATO",
+      "name": "NATO Baseline Requirements",
+      "description": "7 essential capabilities for emergency preparedness and civil protection",
+      "capabilities": [
+        {
+          "name": "Command and Control",
+          "description": "Establish and maintain command structures for effective coordination of emergency response operations.",
+          "category": "Core"
+        },
+        {
+          "name": "Communications and Information Systems",
+          "description": "Ensure interoperable communications systems for information sharing across all agencies and partners.",
+          "category": "Core"
+        },
+        {
+          "name": "Civil-Military Cooperation",
+          "description": "Coordinate civilian and military resources for integrated emergency response.",
+          "category": "Core"
+        },
+        {
+          "name": "Chemical, Biological, Radiological, and Nuclear (CBRN) Defence",
+          "description": "Detect, protect against, and respond to CBRN threats and incidents.",
+          "category": "Specialized"
+        },
+        {
+          "name": "Medical Support",
+          "description": "Provide medical care, casualty evacuation, and public health support during emergencies.",
+          "category": "Core"
+        },
+        {
+          "name": "Logistics and Host Nation Support",
+          "description": "Coordinate logistics, transportation, and host nation support for sustained operations.",
+          "category": "Core"
+        },
+        {
+          "name": "Critical Infrastructure Protection",
+          "description": "Protect and restore critical infrastructure essential for societal functions.",
+          "category": "Core"
+        }
+      ]
+    },
+    {
+      "id": "NIST",
+      "name": "NIST Cybersecurity Framework",
+      "description": "6 core functions for managing cybersecurity risk (CSF 2.0)",
+      "capabilities": [
+        {
+          "name": "Govern",
+          "description": "Establish and monitor the organization's cybersecurity risk management strategy, expectations, and policy.",
+          "category": "Core Functions"
+        },
+        {
+          "name": "Identify",
+          "description": "Develop an organizational understanding to manage cybersecurity risk to systems, people, assets, data, and capabilities.",
+          "category": "Core Functions"
+        },
+        {
+          "name": "Protect",
+          "description": "Develop and implement appropriate safeguards to ensure delivery of critical services.",
+          "category": "Core Functions"
+        },
+        {
+          "name": "Detect",
+          "description": "Develop and implement appropriate activities to identify the occurrence of a cybersecurity event.",
+          "category": "Core Functions"
+        },
+        {
+          "name": "Respond",
+          "description": "Develop and implement appropriate activities to take action regarding a detected cybersecurity incident.",
+          "category": "Core Functions"
+        },
+        {
+          "name": "Recover",
+          "description": "Develop and implement appropriate activities to maintain plans for resilience and to restore capabilities or services impaired due to a cybersecurity incident.",
+          "category": "Core Functions"
+        }
+      ]
+    },
+    {
+      "id": "ISO",
+      "name": "ISO 22301 Business Continuity",
+      "description": "10 key process areas from ISO 22301:2019 Business Continuity Management",
+      "capabilities": [
+        {
+          "name": "Leadership and Commitment",
+          "description": "Demonstrate management commitment and establish business continuity policy and objectives.",
+          "category": "Management System"
+        },
+        {
+          "name": "Business Impact Analysis",
+          "description": "Identify and prioritize critical business functions and their dependencies.",
+          "category": "Planning"
+        },
+        {
+          "name": "Risk Assessment and Treatment",
+          "description": "Identify, analyze, and treat risks that could disrupt critical operations.",
+          "category": "Planning"
+        },
+        {
+          "name": "Business Continuity Strategies",
+          "description": "Develop strategies to maintain and resume critical functions within acceptable timeframes.",
+          "category": "Planning"
+        },
+        {
+          "name": "Incident Response",
+          "description": "Establish procedures for responding to disruptions and initiating business continuity plans.",
+          "category": "Response and Recovery"
+        },
+        {
+          "name": "Emergency Management",
+          "description": "Protect life, property, and the environment during emergencies.",
+          "category": "Response and Recovery"
+        },
+        {
+          "name": "Crisis Communications",
+          "description": "Manage internal and external communications during incidents and crises.",
+          "category": "Response and Recovery"
+        },
+        {
+          "name": "Testing and Exercising",
+          "description": "Validate business continuity plans through regular testing, drills, and exercises.",
+          "category": "Performance Evaluation"
+        },
+        {
+          "name": "Monitoring and Review",
+          "description": "Continuously monitor the business continuity management system and review its performance.",
+          "category": "Performance Evaluation"
+        },
+        {
+          "name": "Continuous Improvement",
+          "description": "Identify and implement improvements to enhance business continuity capability.",
+          "category": "Improvement"
+        }
+      ]
+    }
+  ]
+}

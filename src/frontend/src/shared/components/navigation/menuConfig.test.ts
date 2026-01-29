@@ -195,7 +195,7 @@ describe('menuConfig', () => {
       })
 
       it('has disabled tooltip', () => {
-        expect(item.disabledTooltip).toBe('Enter an exercise first')
+        expect(item.disabledTooltip).toBe('Coming in a future release')
       })
     })
 

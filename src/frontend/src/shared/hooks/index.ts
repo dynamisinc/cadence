@@ -9,6 +9,12 @@ export { useDebounce } from './useDebounce'
 export { useExerciseSignalR } from './useExerciseSignalR'
 export { useInstallPrompt, type UseInstallPromptReturn } from './useInstallPrompt'
 export { usePermissions } from './usePermissions'
+export {
+  useSystemPermissions,
+  getSystemRoleDisplayName,
+  getSystemRoleDescription,
+  type UseSystemPermissionsReturn,
+} from './useSystemPermissions'
 export { useServiceWorker, type UseServiceWorkerReturn } from './useServiceWorker'
 export { useSignalR } from './useSignalR'
 export type { ConnectionState } from './useSignalR'
