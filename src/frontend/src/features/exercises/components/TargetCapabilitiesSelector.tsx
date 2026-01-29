@@ -39,7 +39,7 @@ interface TargetCapabilitiesSelectorProps {
  * - Empty state when no capabilities available
  */
 export const TargetCapabilitiesSelector = ({
-  organizationId,
+  organizationId: _organizationId,
   selectedIds,
   onChange,
   disabled = false,

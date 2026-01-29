@@ -145,8 +145,8 @@ export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({
     }
   }
 
-  const pendingActions = actions.filter((a) => a.status === 'pending' || a.status === 'syncing')
-  const failedActions = actions.filter((a) => a.status === 'failed')
+  const pendingActions = actions.filter(a => a.status === 'pending' || a.status === 'syncing')
+  const failedActions = actions.filter(a => a.status === 'failed')
 
   return (
     <Popover
@@ -203,7 +203,7 @@ export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({
                   {pendingActions.length} pending action{pendingActions.length !== 1 ? 's' : ''}
                 </Typography>
                 <List dense disablePadding>
-                  {pendingActions.map((action) => {
+                  {pendingActions.map(action => {
                     const config = actionConfigs[action.type]
                     return (
                       <ListItem
@@ -254,7 +254,7 @@ export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({
                   {failedActions.length} failed action{failedActions.length !== 1 ? 's' : ''}
                 </Typography>
                 <List dense disablePadding>
-                  {failedActions.map((action) => {
+                  {failedActions.map(action => {
                     const config = actionConfigs[action.type]
                     return (
                       <ListItem

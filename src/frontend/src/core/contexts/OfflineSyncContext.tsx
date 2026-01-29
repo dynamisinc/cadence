@@ -237,7 +237,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
     ) {
       const checkAndSyncStaleChanges = async () => {
         // Small delay to ensure everything is initialized
-        await new Promise((resolve) => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, 1500))
 
         if (!isMountedRef.current) return
 

@@ -97,7 +97,11 @@ export const ExerciseContextWrapper = () => {
 
   // Store exercise data in ref for access inside effects without triggering re-runs
   const exerciseRef = useRef(exercise)
-  exerciseRef.current = exercise
+
+  // Update ref in effect to avoid React Compiler warning about refs during render
+  useEffect(() => {
+    exerciseRef.current = exercise
+  }, [exercise])
 
   // Enter exercise context when data is loaded
   useEffect(() => {

@@ -15,7 +15,6 @@
 import {
   faClipboardList,
   faFolderOpen,
-  faGamepad,
   faListCheck,
   faBinoculars,
   faChartBar,

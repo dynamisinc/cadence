@@ -113,8 +113,8 @@ export const useCapabilities = (includeInactive = false) => {
       queryClient.setQueryData<CapabilityDto[]>(queryKey, (old = []) =>
         includeInactive
           ? old.map(cap =>
-              cap.id === id ? { ...cap, isActive: false } : cap,
-            )
+            cap.id === id ? { ...cap, isActive: false } : cap,
+          )
           : old.filter(cap => cap.id !== id),
       )
 

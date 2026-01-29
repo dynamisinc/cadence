@@ -157,9 +157,9 @@ export const ConnectionStatusIndicator: React.FC<ConnectionStatusIndicatorProps>
             cursor: isClickable ? 'pointer' : 'default',
             '&:hover': isClickable
               ? {
-                  backgroundColor: config.bgColor,
-                  filter: 'brightness(0.95)',
-                }
+                backgroundColor: config.bgColor,
+                filter: 'brightness(0.95)',
+              }
               : {},
           }}
         />

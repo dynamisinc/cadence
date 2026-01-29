@@ -59,7 +59,6 @@ export const CapabilityLibraryPage = () => {
     deleteCapability,
     reactivateCapability,
     isCreating,
-    isUpdating,
     isDeleting,
     isReactivating,
   } = useCapabilities(showInactive)

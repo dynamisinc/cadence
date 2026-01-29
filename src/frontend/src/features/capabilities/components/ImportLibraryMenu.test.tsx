@@ -46,14 +46,14 @@ describe('ImportLibraryMenu', () => {
       isLoading: false,
       isError: false,
       error: null,
-    } as any)
+    } as unknown as ReturnType<typeof importHooks.useAvailableLibraries>)
 
     vi.mocked(importHooks.useImportLibrary).mockReturnValue({
       mutateAsync: vi.fn().mockResolvedValue(mockImportResult),
       isPending: false,
       isError: false,
       error: null,
-    } as any)
+    } as unknown as ReturnType<typeof importHooks.useImportLibrary>)
   })
 
   const renderComponent = () => {
@@ -72,7 +72,7 @@ describe('ImportLibraryMenu', () => {
         isLoading: true,
         isError: false,
         error: null,
-      } as any)
+      } as unknown as ReturnType<typeof importHooks.useAvailableLibraries>)
 
       renderComponent()
       expect(screen.getByRole('button', { name: /import library/i })).toBeDisabled()
@@ -101,7 +101,7 @@ describe('ImportLibraryMenu', () => {
         isLoading: false,
         isError: false,
         error: null,
-      } as any)
+      } as unknown as ReturnType<typeof importHooks.useAvailableLibraries>)
 
       const user = userEvent.setup()
       renderComponent()
@@ -178,7 +178,7 @@ describe('ImportLibraryMenu', () => {
         isPending: false,
         isError: false,
         error: null,
-      } as any)
+      } as unknown as ReturnType<typeof importHooks.useImportLibrary>)
 
       const user = userEvent.setup()
       renderComponent()
@@ -214,7 +214,7 @@ describe('ImportLibraryMenu', () => {
         isPending: true,
         isError: false,
         error: null,
-      } as any)
+      } as unknown as ReturnType<typeof importHooks.useImportLibrary>)
 
       const user = userEvent.setup()
       renderComponent()
@@ -243,7 +243,7 @@ describe('ImportLibraryMenu', () => {
         isPending: false,
         isError: true,
         error: mockError,
-      } as any)
+      } as unknown as ReturnType<typeof importHooks.useImportLibrary>)
 
       const user = userEvent.setup()
       renderComponent()
@@ -271,7 +271,7 @@ describe('ImportLibraryMenu', () => {
         isPending: false,
         isError: false,
         error: null,
-      } as any)
+      } as unknown as ReturnType<typeof importHooks.useImportLibrary>)
 
       const user = userEvent.setup()
       renderComponent()
