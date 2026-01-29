@@ -28,7 +28,7 @@ import {
   CobraTextField,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { usePermissions } from '../../../shared/hooks'
+import { useSystemPermissions } from '../../../shared/hooks'
 import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../types'
 import { ImportWizard } from '../../excel-import/components'
@@ -52,8 +52,12 @@ type SortOrder = 'asc' | 'desc'
 export const ExerciseListPage = () => {
   const navigate = useNavigate()
   const { exercises, loading, isFetching, error } = useExercises()
-  const { canManage } = usePermissions()
+  const { canCreateExercise } = useSystemPermissions()
   const { user } = useAuth()
+
+  // Use canCreateExercise for system-level permissions (create, delete exercises)
+  // This replaces the old usePermissions hook's canManage
+  const canManage = canCreateExercise
 
   const [searchTerm, setSearchTerm] = useState('')
   const [sortField, setSortField] = useState<SortField>('scheduledDate')

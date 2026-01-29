@@ -23,6 +23,7 @@ import {
   faUsers,
   faCog,
   faShieldHalved,
+  faDesktop,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
@@ -102,12 +103,12 @@ export const MENU_ITEMS: MenuItem[] = [
   {
     id: 'control-room',
     label: 'Control Room',
-    icon: faGamepad,
+    icon: faDesktop,
     path: '/exercises/:id/control',
     section: 'conduct',
     allowedRoles: CONTROL_ROLES,
     requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
+    disabledTooltip: 'Coming in a future release',
   },
   {
     id: 'inject-queue',

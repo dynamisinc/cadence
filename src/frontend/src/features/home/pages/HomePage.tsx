@@ -7,40 +7,11 @@ import { useExercises } from '../../exercises'
 import { ExerciseList } from '../components'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { usePermissions } from '../../../shared/hooks'
-import { PermissionRole } from '../../../types'
-
-/**
- * Get a user-friendly role display name
- */
-const getRoleDisplayName = (role: PermissionRole): string => {
-  switch (role) {
-    case PermissionRole.MANAGE:
-      return 'Exercise Director'
-    case PermissionRole.CONTRIBUTOR:
-      return 'Controller'
-    case PermissionRole.READONLY:
-      return 'Observer'
-    default:
-      return 'User'
-  }
-}
-
-/**
- * Get role-specific welcome message
- */
-const getRoleWelcomeMessage = (role: PermissionRole): string => {
-  switch (role) {
-    case PermissionRole.MANAGE:
-      return 'You have full access to create and manage exercises.'
-    case PermissionRole.CONTRIBUTOR:
-      return 'You can view exercises and fire injects during conduct.'
-    case PermissionRole.READONLY:
-      return 'You have read-only access to view exercises.'
-    default:
-      return 'Welcome to the MSEL management platform.'
-  }
-}
+import {
+  useSystemPermissions,
+  getSystemRoleDisplayName,
+  getSystemRoleDescription,
+} from '../../../shared/hooks'
 
 /**
  * Home Page Component
@@ -56,10 +27,10 @@ const getRoleWelcomeMessage = (role: PermissionRole): string => {
 export const HomePage = () => {
   const navigate = useNavigate()
   const { exercises, loading, error } = useExercises()
-  const { role, canManage } = usePermissions()
+  const { systemRole, canCreateExercise } = useSystemPermissions()
 
-  const roleDisplayName = getRoleDisplayName(role)
-  const welcomeMessage = getRoleWelcomeMessage(role)
+  const roleDisplayName = getSystemRoleDisplayName(systemRole)
+  const welcomeMessage = getSystemRoleDescription(systemRole)
 
   const handleCreateExercise = () => {
     navigate('/exercises/new')
@@ -103,7 +74,7 @@ export const HomePage = () => {
 
       {/* Quick Actions */}
       <Stack direction="row" spacing={2} marginBottom={3}>
-        {canManage && (
+        {canCreateExercise && (
           <CobraPrimaryButton
             startIcon={<FontAwesomeIcon icon={faPlus} />}
             onClick={handleCreateExercise}
@@ -136,7 +107,7 @@ export const HomePage = () => {
           exercises={exercises}
           loading={loading}
           error={error}
-          canManage={canManage}
+          canManage={canCreateExercise}
           onCreateClick={handleCreateExercise}
           maxItems={5}
         />
