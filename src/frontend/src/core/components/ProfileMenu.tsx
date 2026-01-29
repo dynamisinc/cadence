@@ -276,16 +276,16 @@ export const ProfileMenu: React.FC = () => {
                       bgcolor: 'grey.50',
                       borderRadius: 1,
                       borderLeft: '3px solid',
-                      borderLeftColor: `${getRoleColor(assignment.role)}.main`,
+                      borderLeftColor: `${getRoleColor(assignment.exerciseRole)}.main`,
                     }}
                   >
                     <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                       {assignment.exerciseName}
                     </Typography>
                     <Chip
-                      label={getRoleDisplayName(assignment.role)}
+                      label={getRoleDisplayName(assignment.exerciseRole)}
                       size="small"
-                      color={getRoleColor(assignment.role)}
+                      color={getRoleColor(assignment.exerciseRole)}
                       sx={{
                         height: 20,
                         fontSize: '0.7rem',
