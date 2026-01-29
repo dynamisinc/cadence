@@ -115,8 +115,10 @@ describe('TargetCapabilitiesSelector', () => {
       { wrapper: createWrapper() },
     )
 
-    expect(screen.getByText('Mass Care Services')).toBeInTheDocument()
-    expect(screen.getByText('Public Information and Warning')).toBeInTheDocument()
+    // Selected capabilities appear both in the "Selected for evaluation" section
+    // and in their category section (as filled/primary chips)
+    expect(screen.getAllByText('Mass Care Services').length).toBeGreaterThanOrEqual(1)
+    expect(screen.getAllByText('Public Information and Warning').length).toBeGreaterThanOrEqual(1)
     expect(screen.getByText(/\(2 selected\)/i)).toBeInTheDocument()
   })
 
@@ -169,11 +171,12 @@ describe('TargetCapabilitiesSelector', () => {
       { wrapper: createWrapper() },
     )
 
-    // Find the delete button on the first selected chip
-    const selectedChips = screen.getAllByRole('button', { name: /Mass Care Services/i })
-    const deleteButton = within(selectedChips[0]).getByTestId('CancelIcon')
+    // Find the delete icon (FontAwesome fa-xmark) on a selected chip in the "Selected for evaluation" section
+    // The delete icon has the MuiChip-deleteIcon class
+    const deleteIcons = document.querySelectorAll('.MuiChip-deleteIcon')
+    expect(deleteIcons.length).toBeGreaterThan(0)
 
-    await user.click(deleteButton)
+    await user.click(deleteIcons[0] as HTMLElement)
 
     expect(onChange).toHaveBeenCalledWith(['cap-3'])
   })
@@ -190,10 +193,17 @@ describe('TargetCapabilitiesSelector', () => {
       { wrapper: createWrapper() },
     )
 
+    // Selected capabilities still appear (in both selected section and category)
+    const chips = screen.getAllByText('Mass Care Services')
+    expect(chips.length).toBeGreaterThanOrEqual(1)
+
+    // Find a chip with the disabled class
+    const disabledChip = chips[0].closest('.MuiChip-root')
+    expect(disabledChip).toHaveClass('MuiChip-root')
+
     // Selected chips should not have delete buttons when disabled
-    const chip = screen.getByText('Mass Care Services').closest('div')
-    expect(chip).toHaveClass('MuiChip-root')
-    // Chip should not be clickable (no onDelete when disabled)
+    const deleteIcons = document.querySelectorAll('.MuiChip-deleteIcon')
+    expect(deleteIcons.length).toBe(0)
   })
 
   it('shows empty state when no capabilities available', () => {

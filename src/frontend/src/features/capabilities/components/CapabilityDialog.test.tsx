@@ -68,7 +68,6 @@ describe('CapabilityDialog', () => {
     }, 20000)
 
     it('validates required name field', async () => {
-      const user = userEvent.setup()
       const onCreate = vi.fn()
 
       render(
@@ -80,11 +79,9 @@ describe('CapabilityDialog', () => {
         />,
       )
 
-      await user.click(screen.getByRole('button', { name: /save/i }))
-
-      await waitFor(() => {
-        expect(screen.getByText(/name is required/i)).toBeInTheDocument()
-      })
+      // Save button should be disabled when name is empty
+      const saveButton = screen.getByRole('button', { name: /save/i })
+      expect(saveButton).toBeDisabled()
       expect(onCreate).not.toHaveBeenCalled()
     })
 
@@ -102,11 +99,10 @@ describe('CapabilityDialog', () => {
       )
 
       await user.type(screen.getByLabelText(/name/i), 'A')
-      await user.click(screen.getByRole('button', { name: /save/i }))
 
-      await waitFor(() => {
-        expect(screen.getByText(/name must be at least 2 characters/i)).toBeInTheDocument()
-      })
+      // Save button should remain disabled when name is too short
+      const saveButton = screen.getByRole('button', { name: /save/i })
+      expect(saveButton).toBeDisabled()
       expect(onCreate).not.toHaveBeenCalled()
     })
   })
