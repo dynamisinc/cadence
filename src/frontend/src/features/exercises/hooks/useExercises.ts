@@ -82,6 +82,9 @@ export const useExercises = () => {
         confirmFireInject: true,
         confirmSkipInject: true,
         confirmClockControl: false,
+        // Summary counts - new exercise has no injects
+        injectCount: 0,
+        firedInjectCount: 0,
       }
 
       queryClient.setQueryData<ExerciseDto[]>(exercisesQueryKey, (old = []) => [

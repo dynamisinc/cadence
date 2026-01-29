@@ -20,8 +20,8 @@ import { useParams, Outlet } from 'react-router-dom'
 import { CircularProgress, Box, Alert } from '@mui/material'
 import { useExercise } from '@/features/exercises/hooks'
 import { useExerciseRole } from '@/features/auth'
-import { useExerciseNavigation } from '@/shared/contexts'
-import { HseepRole } from '@/types'
+import { useExerciseNavigation, type ExerciseNavigationData } from '@/shared/contexts'
+import { HseepRole, ExerciseStatus } from '@/types'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
 import { useNavigate } from 'react-router-dom'
 
@@ -81,7 +81,7 @@ export const ExerciseContextWrapper = () => {
   const prevExerciseIdRef = useRef<string | null>(null)
   // Track the last values we set to prevent unnecessary updates
   const lastSetValuesRef = useRef<{
-    status?: string
+    status?: ExerciseStatus
     name?: string
     userRole?: string
   }>({})
@@ -136,7 +136,7 @@ export const ExerciseContextWrapper = () => {
     } else if (currentExerciseId === exerciseId) {
       // Only update if values actually changed from what's in context
       // AND different from what we last set (prevents cascading updates)
-      const updates: Partial<{ status: string; name: string }> = {}
+      const updates: Partial<ExerciseNavigationData> = {}
 
       if (
         exerciseStatus &&

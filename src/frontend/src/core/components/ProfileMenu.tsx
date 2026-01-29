@@ -27,8 +27,8 @@ import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear } from '@
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
+import type { ExerciseRole, ExerciseAssignmentDto } from '@/features/auth'
 import { useExerciseNavigation } from '@/shared/contexts'
-import type { ExerciseAssignmentDto } from '@/features/auth'
 import { UserSettingsDialog } from '@/features/settings'
 
 /**
@@ -276,16 +276,16 @@ export const ProfileMenu: React.FC = () => {
                       bgcolor: 'grey.50',
                       borderRadius: 1,
                       borderLeft: '3px solid',
-                      borderLeftColor: `${getRoleColor(assignment.exerciseRole)}.main`,
+                      borderLeftColor: `${getRoleColor(assignment.exerciseRole as ExerciseRole)}.main`,
                     }}
                   >
                     <Typography variant="body2" fontWeight={500} sx={{ mb: 0.5 }}>
                       {assignment.exerciseName}
                     </Typography>
                     <Chip
-                      label={getRoleDisplayName(assignment.exerciseRole)}
+                      label={getRoleDisplayName(assignment.exerciseRole as ExerciseRole)}
                       size="small"
-                      color={getRoleColor(assignment.exerciseRole)}
+                      color={getRoleColor(assignment.exerciseRole as ExerciseRole)}
                       sx={{
                         height: 20,
                         fontSize: '0.7rem',
