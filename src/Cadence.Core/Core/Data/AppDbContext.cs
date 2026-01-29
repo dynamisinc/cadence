@@ -824,6 +824,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.Category);
             entity.HasIndex(e => e.IsActive);
 
+            // Covering index for common query: WHERE OrganizationId = @id AND IsActive = true ORDER BY Category, SortOrder, Name
+            entity.HasIndex(e => new { e.OrganizationId, e.IsActive, e.Category, e.SortOrder, e.Name });
+
             // Relationship to Organization
             entity.HasOne(e => e.Organization)
                 .WithMany()

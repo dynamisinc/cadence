@@ -32,13 +32,25 @@ public class CapabilityService : ICapabilityService
             query = query.Where(c => c.IsActive);
         }
 
+        // Use server-side projection for better performance
         var capabilities = await query
             .OrderBy(c => c.Category ?? "zzz") // Null categories sort last
             .ThenBy(c => c.SortOrder)
             .ThenBy(c => c.Name)
+            .Select(c => new CapabilityDto(
+                c.Id,
+                c.OrganizationId,
+                c.Name,
+                c.Description,
+                c.Category,
+                c.SortOrder,
+                c.IsActive,
+                c.SourceLibrary,
+                c.CreatedAt,
+                c.UpdatedAt))
             .ToListAsync();
 
-        return capabilities.Select(c => c.ToDto());
+        return capabilities;
     }
 
     /// <inheritdoc />
