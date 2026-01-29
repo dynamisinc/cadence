@@ -79,56 +79,114 @@ export const ExerciseContextWrapper = () => {
   // Track if we've entered context to avoid re-entering on every render
   const hasEnteredRef = useRef(false)
   const prevExerciseIdRef = useRef<string | null>(null)
+  // Track the last values we set to prevent unnecessary updates
+  const lastSetValuesRef = useRef<{
+    status?: string
+    name?: string
+    userRole?: string
+  }>({})
+
+  // Get stable PRIMITIVE references for comparison - NEVER put objects in dependency arrays
+  const exerciseDataId = exercise?.id
+  const exerciseStatus = exercise?.status
+  const exerciseName = exercise?.name
+  const currentExerciseId = currentExercise?.id
+  const currentExerciseStatus = currentExercise?.status
+  const currentExerciseName = currentExercise?.name
+  const currentExerciseRole = currentExercise?.userRole
+
+  // Store exercise data in ref for access inside effects without triggering re-runs
+  const exerciseRef = useRef(exercise)
+  exerciseRef.current = exercise
 
   // Enter exercise context when data is loaded
   useEffect(() => {
-    if (!exerciseId || !exercise || loading) return
+    // Use primitive checks - exerciseDataId tells us if exercise is loaded
+    if (!exerciseId || !exerciseDataId || loading) return
+
+    const exerciseData = exerciseRef.current
+    if (!exerciseData) return
 
     // Check if we need to enter context
     const needsEntry =
       !hasEnteredRef.current ||
       prevExerciseIdRef.current !== exerciseId ||
-      currentExercise?.id !== exerciseId
+      currentExerciseId !== exerciseId
 
     if (needsEntry) {
+      const roleToSet = mapToHseepRole(effectiveRole)
       enterExercise({
-        id: exercise.id,
-        name: exercise.name,
-        status: exercise.status,
-        userRole: mapToHseepRole(effectiveRole),
+        id: exerciseData.id,
+        name: exerciseData.name,
+        status: exerciseData.status,
+        userRole: roleToSet,
       })
       hasEnteredRef.current = true
       prevExerciseIdRef.current = exerciseId
-    } else if (
-      currentExercise &&
-      (currentExercise.status !== exercise.status ||
-        currentExercise.name !== exercise.name)
-    ) {
-      // Update context if exercise data changed (e.g., status changed)
-      updateExercise({
-        status: exercise.status,
-        name: exercise.name,
-      })
+      // Track what we set to avoid duplicate updates
+      lastSetValuesRef.current = {
+        status: exerciseData.status,
+        name: exerciseData.name,
+        userRole: roleToSet,
+      }
+    } else if (currentExerciseId === exerciseId) {
+      // Only update if values actually changed from what's in context
+      // AND different from what we last set (prevents cascading updates)
+      const updates: Partial<{ status: string; name: string }> = {}
+
+      if (
+        exerciseStatus &&
+        currentExerciseStatus !== exerciseStatus &&
+        lastSetValuesRef.current.status !== exerciseStatus
+      ) {
+        updates.status = exerciseStatus
+      }
+
+      if (
+        exerciseName &&
+        currentExerciseName !== exerciseName &&
+        lastSetValuesRef.current.name !== exerciseName
+      ) {
+        updates.name = exerciseName
+      }
+
+      if (Object.keys(updates).length > 0) {
+        updateExercise(updates)
+        lastSetValuesRef.current = { ...lastSetValuesRef.current, ...updates }
+      }
     }
   }, [
+    // ONLY primitive values - no objects!
     exerciseId,
-    exercise,
+    exerciseDataId, // primitive string, not exercise object
     loading,
     effectiveRole,
     enterExercise,
     updateExercise,
-    currentExercise,
+    currentExerciseId,
+    exerciseStatus,
+    exerciseName,
+    currentExerciseStatus,
+    currentExerciseName,
   ])
 
-  // Update user role if it changes
+  // Update user role if it changes - separate effect for clarity
   useEffect(() => {
-    if (currentExercise && effectiveRole) {
-      const newRole = mapToHseepRole(effectiveRole)
-      if (currentExercise.userRole !== newRole) {
-        updateExercise({ userRole: newRole })
-      }
+    // Only update if we're in the right context and role actually changed
+    if (!currentExerciseId || currentExerciseId !== exerciseId) return
+
+    const newRole = mapToHseepRole(effectiveRole)
+
+    // Check both current context value AND what we last set
+    // This prevents the cascading update loop
+    if (
+      currentExerciseRole !== newRole &&
+      lastSetValuesRef.current.userRole !== newRole
+    ) {
+      updateExercise({ userRole: newRole })
+      lastSetValuesRef.current.userRole = newRole
     }
-  }, [effectiveRole, currentExercise, updateExercise])
+  }, [effectiveRole, currentExerciseId, currentExerciseRole, exerciseId, updateExercise])
 
   // Exit exercise context when navigating away from exercise routes
   useEffect(() => {

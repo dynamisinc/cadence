@@ -76,9 +76,14 @@ export function useExerciseRole(exerciseId: string | null): UseExerciseRoleRetur
     [effectiveRole],
   )
 
+  // Get stable user ID reference to avoid infinite loops
+  // Using user object directly would cause re-fetches on every render
+  // because object references change even when values are the same
+  const userId = user?.id
+
   // Fetch exercise-specific role
   useEffect(() => {
-    if (!exerciseId || !user) {
+    if (!exerciseId || !userId) {
       setIsLoading(false)
       setExerciseRole(null)
       return
@@ -89,7 +94,7 @@ export function useExerciseRole(exerciseId: string | null): UseExerciseRoleRetur
     const fetchExerciseRole = async () => {
       try {
         setIsLoading(true)
-        const role = await roleResolutionService.getUserExerciseRole(exerciseId, user.id)
+        const role = await roleResolutionService.getUserExerciseRole(exerciseId, userId)
 
         if (isMounted) {
           setExerciseRole(role)
@@ -112,7 +117,7 @@ export function useExerciseRole(exerciseId: string | null): UseExerciseRoleRetur
     return () => {
       isMounted = false
     }
-  }, [exerciseId, user])
+  }, [exerciseId, userId])
 
   return {
     effectiveRole,

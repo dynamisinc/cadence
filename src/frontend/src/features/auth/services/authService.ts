@@ -27,7 +27,45 @@ const authApi = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  timeout: 10000, // 10 second timeout for auth requests
 })
+
+// Add request/response logging for auth API
+authApi.interceptors.request.use(
+  config => {
+    console.log(`[authService] Request: ${config.method?.toUpperCase()} ${config.url}`, {
+      withCredentials: config.withCredentials,
+      timeout: config.timeout,
+    })
+    return config
+  },
+  error => {
+    console.error('[authService] Request error:', error)
+    return Promise.reject(error)
+  },
+)
+
+authApi.interceptors.response.use(
+  response => {
+    console.log(`[authService] Response: ${response.status} ${response.config.url}`, {
+      isSuccess: response.data?.isSuccess,
+      hasAccessToken: !!response.data?.accessToken,
+    })
+    return response
+  },
+  error => {
+    const errorInfo = {
+      message: error.message,
+      code: error.code,
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      url: error.config?.url,
+      data: error.response?.data,
+    }
+    console.error('[authService] Response error:', errorInfo)
+    return Promise.reject(error)
+  },
+)
 
 export const authService = {
   /**
@@ -61,7 +99,17 @@ export const authService = {
    * Returns new access token in response body
    */
   refreshToken: async (): Promise<AuthResponse> => {
+    console.log('[authService] refreshToken called - checking cookie presence...')
+    // Log cookie info (we can't read HttpOnly cookies, but we can check if any cookies exist)
+    console.log('[authService] Document cookies available:', document.cookie ? 'yes (non-HttpOnly)' : 'none visible')
+
     const response = await authApi.post<AuthResponse>('/refresh')
+    console.log('[authService] refreshToken response received:', {
+      isSuccess: response.data?.isSuccess,
+      hasAccessToken: !!response.data?.accessToken,
+      userId: response.data?.userId,
+      error: response.data?.error,
+    })
     return response.data
   },
 
