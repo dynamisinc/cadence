@@ -269,6 +269,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Clock state configuration
             entity.Property(e => e.ClockState).HasConversion<string>().HasMaxLength(20);
 
+            // Store ClockElapsedBeforePause as bigint (ticks) to support durations > 24 hours
+            entity.Property(e => e.ClockElapsedBeforePause)
+                .HasConversion(
+                    v => v.HasValue ? v.Value.Ticks : (long?)null,
+                    v => v.HasValue ? TimeSpan.FromTicks(v.Value) : null);
+
             // Timing configuration
             entity.Property(e => e.DeliveryMode).HasConversion<string>().HasMaxLength(20);
             entity.Property(e => e.TimelineMode).HasConversion<string>().HasMaxLength(20);
