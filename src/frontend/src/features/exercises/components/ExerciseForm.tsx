@@ -40,6 +40,8 @@ interface ExerciseFormProps {
   disabledFields?: (keyof CreateExerciseFormValues)[]
   /** Callback when form dirty state changes */
   onDirtyChange?: (isDirty: boolean) => void
+  /** Current Exercise Director (for edit mode) */
+  director?: UserDto | null
 }
 
 const EXERCISE_TYPES: ExerciseType[] = [
@@ -66,9 +68,10 @@ export const ExerciseForm = ({
   isSubmitting = false,
   disabledFields = [],
   onDirtyChange,
+  director,
 }: ExerciseFormProps) => {
   const isEdit = !!exercise
-  const [selectedDirector, setSelectedDirector] = useState<UserDto | null>(null)
+  const [selectedDirector, setSelectedDirector] = useState<UserDto | null>(director ?? null)
 
   // Load target capabilities if editing an existing exercise (S04)
   const { data: targetCapabilities } = useExerciseTargetCapabilities(exercise?.id)
@@ -146,14 +149,13 @@ export const ExerciseForm = ({
         deliveryMode: exercise.deliveryMode,
         timelineMode: exercise.timelineMode,
         clockMultiplier: exercise.clockMultiplier ?? 1,
-        directorId: '', // TODO: Load director user object when exercise.directorId is available
+        directorId: director?.id ?? '',
         targetCapabilityIds: targetCapabilities?.map(c => c.id) ?? [], // S04: Load target capabilities
       })
-      // Note: selectedDirector state would need to be set here if we have directorId in ExerciseDto
-      // For now, leaving as null since backend doesn't return directorId yet
-      setSelectedDirector(null)
+      // Set selected director from prop (loaded from participants by parent component)
+      setSelectedDirector(director ?? null)
     }
-  }, [exercise, targetCapabilities, reset])
+  }, [exercise, targetCapabilities, director, reset])
 
   const isFieldDisabled = (field: keyof CreateExerciseFormValues) =>
     disabledFields.includes(field)

@@ -126,7 +126,7 @@ export const CreateExercisePage = () => {
         Create Exercise
       </Typography>
 
-      <Paper sx={{ p: 3, maxWidth: 600 }}>
+      <Paper sx={{ p: 3 }}>
         <ExerciseForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}

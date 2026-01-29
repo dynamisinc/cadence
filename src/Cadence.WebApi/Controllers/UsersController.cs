@@ -35,12 +35,14 @@ public class UsersController : ControllerBase
 
     /// <summary>
     /// Get paginated list of users with optional filtering.
+    /// Managers can access this to select Exercise Directors.
     /// </summary>
     /// <param name="page">Page number (1-indexed, default 1).</param>
     /// <param name="pageSize">Items per page (default 20, max 100).</param>
     /// <param name="search">Optional search term (filters by name or email).</param>
     /// <param name="role">Optional role filter.</param>
     [HttpGet]
+    [AuthorizeManager] // Override class-level AuthorizeAdmin to allow Managers to list users
     [ProducesResponseType(typeof(UserListResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsers(
         [FromQuery] int page = 1,

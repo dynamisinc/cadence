@@ -134,7 +134,26 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         throw new Error(response.error?.message || 'Token refresh failed')
       }
     } catch (error) {
-      // Refresh failed - clear auth state
+      // Check if this is a network error (API unreachable)
+      // Network errors should NOT clear auth state - allow offline mode to work
+      const isNetworkError =
+        error instanceof Error &&
+        (error.message === 'Network Error' ||
+          error.message.includes('ECONNREFUSED') ||
+          error.message.includes('ERR_NETWORK') ||
+          // Axios network errors
+          (error as { code?: string }).code === 'ERR_NETWORK' ||
+          (error as { code?: string }).code === 'ECONNABORTED')
+
+      if (isNetworkError) {
+        console.warn('[AuthContext] Token refresh failed due to network error - preserving auth state for offline mode')
+        // Don't clear auth state - keep user logged in for offline mode
+        // Re-throw so callers know refresh failed
+        throw error
+      }
+
+      // Auth failure (invalid credentials, expired refresh token) - clear auth state
+      console.log('[AuthContext] Token refresh failed due to auth error - clearing auth state')
       setAccessToken(null)
       setUser(null)
       setTokenExpiry(null)
