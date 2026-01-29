@@ -132,6 +132,28 @@ public class CapabilityService : ICapabilityService
     }
 
     /// <inheritdoc />
+    public async Task<bool> ReactivateCapabilityAsync(Guid organizationId, Guid id)
+    {
+        var capability = await _context.Capabilities
+            .FirstOrDefaultAsync(c => c.Id == id && c.OrganizationId == organizationId);
+
+        if (capability == null)
+        {
+            return false;
+        }
+
+        capability.IsActive = true;
+        capability.UpdatedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Reactivated capability {CapabilityId}: {CapabilityName}",
+            id, capability.Name);
+
+        return true;
+    }
+
+    /// <inheritdoc />
     public async Task<bool> IsNameUniqueAsync(Guid organizationId, string name, Guid? excludeId = null)
     {
         var trimmedName = name.Trim();

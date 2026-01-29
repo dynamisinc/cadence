@@ -135,6 +135,37 @@ export const useCapabilities = (includeInactive = false) => {
     },
   })
 
+  // Mutation for reactivating capabilities
+  const reactivateMutation = useMutation({
+    mutationFn: (id: string) => capabilityService.reactivateCapability(id),
+    onMutate: async id => {
+      await queryClient.cancelQueries({ queryKey })
+      const previousCapabilities = queryClient.getQueryData<CapabilityDto[]>(queryKey)
+
+      // Mark as active in the list
+      queryClient.setQueryData<CapabilityDto[]>(queryKey, (old = []) =>
+        old.map(cap =>
+          cap.id === id ? { ...cap, isActive: true } : cap,
+        ),
+      )
+
+      return { previousCapabilities }
+    },
+    onSuccess: () => {
+      // Invalidate both lists to ensure consistency
+      queryClient.invalidateQueries({ queryKey: capabilityKeys.all })
+      toast.success('Capability reactivated')
+    },
+    onError: (err, _variables, context) => {
+      if (context?.previousCapabilities) {
+        queryClient.setQueryData(queryKey, context.previousCapabilities)
+      }
+      const message =
+        err instanceof Error ? err.message : 'Failed to reactivate capability'
+      toast.error(message)
+    },
+  })
+
   // Wrapper functions
   const createCapability = async (request: CreateCapabilityRequest) => {
     return createMutation.mutateAsync(request)
@@ -146,6 +177,10 @@ export const useCapabilities = (includeInactive = false) => {
 
   const deleteCapability = async (id: string) => {
     return deleteMutation.mutateAsync(id)
+  }
+
+  const reactivateCapability = async (id: string) => {
+    return reactivateMutation.mutateAsync(id)
   }
 
   return {
@@ -160,10 +195,12 @@ export const useCapabilities = (includeInactive = false) => {
     createCapability,
     updateCapability,
     deleteCapability,
+    reactivateCapability,
     // Expose mutation states
     isCreating: createMutation.isPending,
     isUpdating: updateMutation.isPending,
     isDeleting: deleteMutation.isPending,
+    isReactivating: reactivateMutation.isPending,
   }
 }
 

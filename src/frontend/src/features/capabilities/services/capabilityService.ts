@@ -95,6 +95,15 @@ export const capabilityService = {
   },
 
   /**
+   * Reactivate a previously deactivated capability
+   * @param id Capability ID
+   * @param organizationId Organization ID (defaults to system organization)
+   */
+  async reactivateCapability(id: string, organizationId?: string): Promise<void> {
+    await apiClient.post(`${getBaseUrl(organizationId)}/${id}/reactivate`)
+  },
+
+  /**
    * Check if a capability name is available
    * @param name Name to check
    * @param excludeId Optional ID to exclude (for updates)

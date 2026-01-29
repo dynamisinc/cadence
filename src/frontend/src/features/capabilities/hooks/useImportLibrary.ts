@@ -43,8 +43,11 @@ export const useImportLibrary = (organizationId?: string) => {
     mutationFn: (libraryName: string) =>
       capabilityService.importLibrary(libraryName, organizationId),
     onSuccess: (result: ImportLibraryResult) => {
-      // Invalidate all capability queries to refresh the list
-      queryClient.invalidateQueries({ queryKey: capabilityKeys.all })
+      // Invalidate and refetch all capability queries to refresh the list
+      queryClient.invalidateQueries({
+        queryKey: capabilityKeys.all,
+        refetchType: 'all',
+      })
 
       // Show success message with import details
       if (result.skippedDuplicates > 0) {

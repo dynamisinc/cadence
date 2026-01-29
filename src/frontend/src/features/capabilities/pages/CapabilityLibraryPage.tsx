@@ -57,9 +57,11 @@ export const CapabilityLibraryPage = () => {
     createCapability,
     updateCapability,
     deleteCapability,
+    reactivateCapability,
     isCreating,
     isUpdating,
     isDeleting,
+    isReactivating,
   } = useCapabilities(showInactive)
 
   // Get unique categories for the dialog dropdown
@@ -93,6 +95,10 @@ export const CapabilityLibraryPage = () => {
 
   const handleDeactivate = async (id: string) => {
     await deleteCapability(id)
+  }
+
+  const handleReactivate = async (id: string) => {
+    await reactivateCapability(id)
   }
 
   // Loading state
@@ -187,7 +193,9 @@ export const CapabilityLibraryPage = () => {
           capabilities={capabilities}
           onEdit={handleEditClick}
           onDeactivate={handleDeactivate}
+          onReactivate={handleReactivate}
           isDeleting={isDeleting}
+          isReactivating={isReactivating}
         />
       </Paper>
 

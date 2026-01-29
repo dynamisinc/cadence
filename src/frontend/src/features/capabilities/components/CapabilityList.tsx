@@ -29,6 +29,7 @@ import {
   faPen,
   faTrash,
   faCircleInfo,
+  faRotateLeft,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   CobraSecondaryButton,
@@ -44,8 +45,12 @@ interface CapabilityListProps {
   onEdit: (capability: CapabilityDto) => void
   /** Called when deactivate is confirmed */
   onDeactivate: (id: string) => Promise<void>
+  /** Called when reactivate is clicked */
+  onReactivate: (id: string) => Promise<void>
   /** Whether deactivate action is in progress */
   isDeleting?: boolean
+  /** Whether reactivate action is in progress */
+  isReactivating?: boolean
 }
 
 /**
@@ -55,8 +60,10 @@ const CapabilityCard: FC<{
   capability: CapabilityDto
   onEdit: () => void
   onDeactivate: () => void
+  onReactivate: () => void
   isDeleting?: boolean
-}> = ({ capability, onEdit, onDeactivate, isDeleting }) => (
+  isReactivating?: boolean
+}> = ({ capability, onEdit, onDeactivate, onReactivate, isDeleting, isReactivating }) => (
   <Box
     sx={{
       p: 2,
@@ -99,7 +106,7 @@ const CapabilityCard: FC<{
             <FontAwesomeIcon icon={faPen} size="sm" />
           </IconButton>
         </Tooltip>
-        {capability.isActive && (
+        {capability.isActive ? (
           <Tooltip title="Deactivate capability">
             <IconButton
               size="small"
@@ -108,6 +115,17 @@ const CapabilityCard: FC<{
               color="error"
             >
               <FontAwesomeIcon icon={faTrash} size="sm" />
+            </IconButton>
+          </Tooltip>
+        ) : (
+          <Tooltip title="Reactivate capability">
+            <IconButton
+              size="small"
+              onClick={onReactivate}
+              disabled={isReactivating}
+              color="success"
+            >
+              <FontAwesomeIcon icon={faRotateLeft} size="sm" />
             </IconButton>
           </Tooltip>
         )}
@@ -124,9 +142,11 @@ const CategoryAccordion: FC<{
   capabilities: CapabilityDto[]
   onEdit: (capability: CapabilityDto) => void
   onDeactivate: (id: string) => void
+  onReactivate: (id: string) => void
   isDeleting?: boolean
+  isReactivating?: boolean
   defaultExpanded?: boolean
-}> = ({ category, capabilities, onEdit, onDeactivate, isDeleting, defaultExpanded = true }) => {
+}> = ({ category, capabilities, onEdit, onDeactivate, onReactivate, isDeleting, isReactivating, defaultExpanded = true }) => {
   const activeCount = capabilities.filter(c => c.isActive).length
   const totalCount = capabilities.length
 
@@ -151,7 +171,9 @@ const CategoryAccordion: FC<{
               capability={capability}
               onEdit={() => onEdit(capability)}
               onDeactivate={() => onDeactivate(capability.id)}
+              onReactivate={() => onReactivate(capability.id)}
               isDeleting={isDeleting}
+              isReactivating={isReactivating}
             />
           ))}
       </AccordionDetails>
@@ -168,7 +190,9 @@ export const CapabilityList: FC<CapabilityListProps> = ({
   capabilities,
   onEdit,
   onDeactivate,
+  onReactivate,
   isDeleting,
+  isReactivating,
 }) => {
   const [deactivateTarget, setDeactivateTarget] = useState<CapabilityDto | null>(null)
 
@@ -218,7 +242,9 @@ export const CapabilityList: FC<CapabilityListProps> = ({
             capabilities={grouped.get(category) || []}
             onEdit={onEdit}
             onDeactivate={handleDeactivateClick}
+            onReactivate={onReactivate}
             isDeleting={isDeleting}
+            isReactivating={isReactivating}
             defaultExpanded={index < 3} // Expand first 3 categories by default
           />
         ))}

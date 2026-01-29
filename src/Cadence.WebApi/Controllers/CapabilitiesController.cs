@@ -168,6 +168,27 @@ public class CapabilitiesController : ControllerBase
     }
 
     /// <summary>
+    /// Reactivate a previously deactivated capability.
+    /// </summary>
+    /// <param name="organizationId">The organization ID.</param>
+    /// <param name="id">The capability ID.</param>
+    /// <returns>204 No Content on success, 404 if not found.</returns>
+    [HttpPost("{id:guid}/reactivate")]
+    public async Task<IActionResult> ReactivateCapability(Guid organizationId, Guid id)
+    {
+        var reactivated = await _capabilityService.ReactivateCapabilityAsync(organizationId, id);
+
+        if (!reactivated)
+        {
+            return NotFound(new { message = "Capability not found" });
+        }
+
+        _logger.LogInformation("Reactivated capability {CapabilityId}", id);
+
+        return NoContent();
+    }
+
+    /// <summary>
     /// Check if a capability name is available within an organization.
     /// Used for real-time validation in the UI.
     /// </summary>

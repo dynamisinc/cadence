@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Cadence.Core.Data;
 using Cadence.Core.Extensions;
+using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Features.Authentication.Models;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Notifications;
@@ -206,6 +207,11 @@ if (app.Environment.IsDevelopment())
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DevelopmentDataSeeder.SeedAsync(context);
+
+    // Seed FEMA capabilities for demo organization
+    var importService = scope.ServiceProvider.GetRequiredService<ICapabilityImportService>();
+    var seedLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await DevelopmentDataSeeder.SeedCapabilitiesAsync(context, importService, seedLogger);
 }
 
 app.UseHttpsRedirection();

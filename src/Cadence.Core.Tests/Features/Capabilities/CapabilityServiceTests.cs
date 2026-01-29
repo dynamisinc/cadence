@@ -490,6 +490,69 @@ public class CapabilityServiceTests
 
     #endregion
 
+    #region ReactivateCapabilityAsync Tests
+
+    [Fact]
+    public async Task ReactivateCapabilityAsync_InactiveCapability_SetsIsActiveTrue()
+    {
+        var (context, org) = CreateTestContext();
+        var capability = CreateCapability(context, org, "Inactive Capability", isActive: false);
+        var service = CreateService(context);
+
+        var result = await service.ReactivateCapabilityAsync(org.Id, capability.Id);
+
+        result.Should().BeTrue();
+
+        // Verify the capability is reactivated in database
+        var updated = await context.Capabilities.FindAsync(capability.Id);
+        updated!.IsActive.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ReactivateCapabilityAsync_NonExistentCapability_ReturnsFalse()
+    {
+        var (context, org) = CreateTestContext();
+        var service = CreateService(context);
+
+        var result = await service.ReactivateCapabilityAsync(org.Id, Guid.NewGuid());
+
+        result.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ReactivateCapabilityAsync_WrongOrganization_ReturnsFalse()
+    {
+        var (context, org) = CreateTestContext();
+        var capability = CreateCapability(context, org, "Test Capability", isActive: false);
+        var service = CreateService(context);
+
+        var result = await service.ReactivateCapabilityAsync(Guid.NewGuid(), capability.Id);
+
+        result.Should().BeFalse();
+
+        // Verify the capability is still inactive
+        var updated = await context.Capabilities.FindAsync(capability.Id);
+        updated!.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ReactivateCapabilityAsync_AlreadyActiveCapability_StaysActive()
+    {
+        var (context, org) = CreateTestContext();
+        var capability = CreateCapability(context, org, "Active Capability", isActive: true);
+        var service = CreateService(context);
+
+        var result = await service.ReactivateCapabilityAsync(org.Id, capability.Id);
+
+        result.Should().BeTrue();
+
+        // Verify the capability is still active
+        var updated = await context.Capabilities.FindAsync(capability.Id);
+        updated!.IsActive.Should().BeTrue();
+    }
+
+    #endregion
+
     #region IsNameUniqueAsync Tests
 
     [Fact]

@@ -51,6 +51,14 @@ public interface ICapabilityService
     Task<bool> DeactivateCapabilityAsync(Guid organizationId, Guid id);
 
     /// <summary>
+    /// Reactivates a previously deactivated capability.
+    /// </summary>
+    /// <param name="organizationId">The organization ID.</param>
+    /// <param name="id">The capability ID.</param>
+    /// <returns>True if reactivated, false if not found.</returns>
+    Task<bool> ReactivateCapabilityAsync(Guid organizationId, Guid id);
+
+    /// <summary>
     /// Checks if a capability name is unique within an organization.
     /// </summary>
     /// <param name="organizationId">The organization ID.</param>

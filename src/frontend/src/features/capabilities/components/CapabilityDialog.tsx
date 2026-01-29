@@ -72,7 +72,7 @@ export const CapabilityDialog: FC<CapabilityDialogProps> = ({
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Initialize form when capability changes
+  // Initialize form when capability changes or dialog opens
   useEffect(() => {
     if (capability) {
       setName(capability.name)
@@ -90,6 +90,7 @@ export const CapabilityDialog: FC<CapabilityDialogProps> = ({
       setSortOrder(0)
     }
     setError(null)
+    setIsLoading(false)
   }, [capability, open])
 
   const handleSave = async () => {
@@ -150,6 +151,10 @@ export const CapabilityDialog: FC<CapabilityDialogProps> = ({
       setIsLoading(false)
     }
   }
+
+  // Validation state
+  const isNameValid = name.trim().length >= 2 && name.trim().length <= 200
+  const canSave = isNameValid && !isLoading
 
   const handleCategoryChange = (value: string) => {
     if (value === '__new__') {
@@ -247,7 +252,7 @@ export const CapabilityDialog: FC<CapabilityDialogProps> = ({
           <FontAwesomeIcon icon={faXmark} style={{ marginRight: 8 }} />
           Cancel
         </CobraSecondaryButton>
-        <CobraPrimaryButton onClick={handleSave} disabled={isLoading}>
+        <CobraPrimaryButton onClick={handleSave} disabled={!canSave}>
           <FontAwesomeIcon icon={faSave} style={{ marginRight: 8 }} />
           {isLoading ? 'Saving...' : 'Save'}
         </CobraPrimaryButton>
