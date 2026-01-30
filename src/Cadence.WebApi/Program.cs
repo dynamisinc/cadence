@@ -200,13 +200,21 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
+// Seed essential data in ALL environments (idempotent)
+{
+    using var scope = app.Services.CreateScope();
+    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    var seedLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
+    await EssentialDataSeeder.SeedAsync(context, seedLogger);
+}
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
     app.MapScalarApiReference();
 
-    // Seed development data
+    // Seed development/demo data (exercises, injects, etc.)
     using var scope = app.Services.CreateScope();
     var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     await DevelopmentDataSeeder.SeedAsync(context);
