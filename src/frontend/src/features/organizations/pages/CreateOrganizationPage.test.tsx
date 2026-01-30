@@ -9,6 +9,7 @@
  *
  * @module features/organizations/pages
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -456,8 +457,7 @@ describe('CreateOrganizationPage', () => {
       })
     })
 
-    it('shows loading state during submission', async () => {
-      const user = userEvent.setup()
+    it('shows loading state during submission', () => {
       vi.mocked(useCheckSlug).mockReturnValue({
         data: { available: true },
         isLoading: false,

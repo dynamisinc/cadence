@@ -5,6 +5,7 @@
  *
  * @module features/organizations/components
  */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@/test/testUtils'
 import userEvent from '@testing-library/user-event'
