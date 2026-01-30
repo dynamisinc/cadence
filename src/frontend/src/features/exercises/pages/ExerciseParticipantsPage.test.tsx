@@ -10,15 +10,12 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider } from '@mui/material/styles'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
-import { usePermissions } from '../../../shared/hooks'
+import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { cobraTheme } from '../../../theme/cobraTheme'
-import { PermissionRole } from '../../../types'
 import type { ReactNode } from 'react'
 
 vi.mock('../hooks/useExerciseParticipants')
-vi.mock('../../../shared/hooks', () => ({
-  usePermissions: vi.fn(),
-}))
+vi.mock('../../auth/hooks/useExerciseRole')
 vi.mock('../../../contexts/AuthContext', () => ({
   useAuth: vi.fn(() => ({
     user: { id: 'user-1', displayName: 'Test User', email: 'test@example.com', role: 'Admin' },
@@ -92,15 +89,12 @@ describe('ExerciseParticipantsPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(useExerciseParticipants).mockReturnValue(mockHook)
-    vi.mocked(usePermissions).mockReturnValue({
-      canManage: true,
-      canEdit: true,
-      canView: true,
-      canDelete: true,
-      canFireInjects: true,
-      role: PermissionRole.MANAGE,
-      hasRole: vi.fn(() => true),
-      isRole: vi.fn(() => false),
+    vi.mocked(useExerciseRole).mockReturnValue({
+      effectiveRole: 'Administrator',
+      systemRole: 'Admin',
+      exerciseRole: 'Administrator',
+      can: vi.fn(() => true),
+      isLoading: false,
     })
   })
 
@@ -117,16 +111,13 @@ describe('ExerciseParticipantsPage', () => {
     expect(screen.getByText('jane@example.com')).toBeInTheDocument()
   })
 
-  it('shows add button for users with manage permission', () => {
-    vi.mocked(usePermissions).mockReturnValue({
-      canManage: true,
-      canEdit: false,
-      canDelete: false,
-      canFireInjects: false,
-      role: PermissionRole.READONLY,
-      hasRole: vi.fn(() => false),
-      isRole: vi.fn(() => false),
-      canView: true,
+  it('shows add button for users with manage_participants permission', () => {
+    vi.mocked(useExerciseRole).mockReturnValue({
+      effectiveRole: 'ExerciseDirector',
+      systemRole: 'Manager',
+      exerciseRole: 'ExerciseDirector',
+      can: vi.fn((permission: string) => permission === 'manage_participants'),
+      isLoading: false,
     })
 
     render(<ExerciseParticipantsPage />, { wrapper: createWrapper() })
@@ -134,16 +125,13 @@ describe('ExerciseParticipantsPage', () => {
     expect(screen.getByRole('button', { name: /add participant/i })).toBeInTheDocument()
   })
 
-  it('hides add button for users without manage permission', () => {
-    vi.mocked(usePermissions).mockReturnValue({
-      canManage: false,
-      canEdit: true,
-      canDelete: true,
-      canFireInjects: true,
-      role: PermissionRole.MANAGE,
-      hasRole: vi.fn(() => true),
-      isRole: vi.fn(() => false),
-      canView: true,
+  it('hides add button for users without manage_participants permission', () => {
+    vi.mocked(useExerciseRole).mockReturnValue({
+      effectiveRole: 'Observer',
+      systemRole: 'User',
+      exerciseRole: 'Observer',
+      can: vi.fn(() => false),
+      isLoading: false,
     })
 
     render(<ExerciseParticipantsPage />, { wrapper: createWrapper() })

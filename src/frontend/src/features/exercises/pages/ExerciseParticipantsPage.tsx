@@ -19,7 +19,7 @@ import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
 import { useExercise } from '../hooks'
-import { usePermissions } from '../../../shared/hooks'
+import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { useBreadcrumbs } from '../../../core/contexts'
 import CobraStyles from '../../../theme/CobraStyles'
 import type { AddParticipantRequest } from '../types'
@@ -48,7 +48,8 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
   const params = useParams<{ exerciseId?: string; id?: string }>()
   const exerciseId = propExerciseId ?? params.exerciseId ?? params.id
   const isStandalone = !propExerciseId // Only set breadcrumbs when used as standalone page
-  const { canManage } = usePermissions()
+  const { can } = useExerciseRole(exerciseId ?? null)
+  const canManageParticipants = can('manage_participants')
   const [dialogOpen, setDialogOpen] = useState(false)
 
   // Use empty string fallback for hooks - they will handle missing exerciseId gracefully
@@ -146,7 +147,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
       {/* Participant List */}
       <ParticipantList
         participants={participants}
-        canEdit={canManage}
+        canEdit={canManageParticipants}
         loading={isLoading}
         onAdd={handleAddClick}
         onRoleChange={handleRoleChange}
@@ -154,7 +155,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
       />
 
       {/* Add Participant Dialog */}
-      {canManage && (
+      {canManageParticipants && (
         <AddParticipantDialog
           open={dialogOpen}
           onAdd={handleAddParticipant}

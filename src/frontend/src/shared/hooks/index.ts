@@ -8,7 +8,6 @@ export { useConfirmDialog, type ConfirmOptions } from './useConfirmDialog'
 export { useDebounce } from './useDebounce'
 export { useExerciseSignalR } from './useExerciseSignalR'
 export { useInstallPrompt, type UseInstallPromptReturn } from './useInstallPrompt'
-export { usePermissions } from './usePermissions'
 export {
   useSystemPermissions,
   getSystemRoleDisplayName,

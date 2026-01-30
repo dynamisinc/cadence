@@ -38,7 +38,6 @@ vi.mock('../components', async () => {
 })
 
 vi.mock('../../../shared/hooks', () => ({
-  usePermissions: vi.fn(() => ({ canManage: true })),
   useUnsavedChangesWarning: vi.fn(() => ({
     UnsavedChangesDialog: () => null,
   })),
@@ -51,10 +50,13 @@ vi.mock('../../../core/contexts', () => ({
 vi.mock('@/features/auth', () => ({
   EffectiveRoleBadge: () => <div data-testid="role-badge">Controller</div>,
   PermissionGate: ({ children }: { children: React.ReactNode }) => <>{children}</>,
+}))
+
+vi.mock('../../auth/hooks/useExerciseRole', () => ({
   useExerciseRole: vi.fn(() => ({
-    effectiveRole: 'Controller',
-    systemRole: 'User',
-    exerciseRole: 'Controller',
+    effectiveRole: 'Administrator',
+    systemRole: 'Admin',
+    exerciseRole: 'Administrator',
     can: vi.fn(() => true),
     isLoading: false,
   })),
