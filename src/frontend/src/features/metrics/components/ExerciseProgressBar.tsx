@@ -286,7 +286,8 @@ const ExpandedView = ({
               Injects
             </Typography>
             <Typography variant="body2" fontWeight="bold">
-              {data.firedCount + data.skippedCount} / {data.totalInjects} ({data.progressPercentage}%)
+              {data.firedCount + data.skippedCount} / {data.totalInjects}
+              {' '}({data.progressPercentage}%)
             </Typography>
           </Stack>
           <LinearProgress

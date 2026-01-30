@@ -331,7 +331,8 @@ describe('ReportsPage', () => {
     it('shows MSEL summary statistics when available', () => {
       render(<ReportsPage />, { wrapper: createWrapper() })
 
-      expect(screen.getByText(/25 injects \(12 fired, 10 pending, 3 skipped\)/i)).toBeInTheDocument()
+      const summary = /25 injects \(12 fired, 10 pending, 3 skipped\)/i
+      expect(screen.getByText(summary)).toBeInTheDocument()
     })
 
     it('does not show MSEL summary when unavailable', async () => {

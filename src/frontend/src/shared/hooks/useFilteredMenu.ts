@@ -71,7 +71,9 @@ export interface UseFilteredMenuOptions {
  *
  * @example
  * ```tsx
- * const { groupedBySection, visibleSections, isItemDisabled, getDisabledTooltip } = useFilteredMenu({
+ * const {
+ *   groupedBySection, visibleSections, isItemDisabled, getDisabledTooltip
+ * } = useFilteredMenu({
  *   exerciseId: currentExercise?.id
  * });
  *

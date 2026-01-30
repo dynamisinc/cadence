@@ -134,7 +134,10 @@ export const OrgMembersTable: FC<OrgMembersTableProps> = ({
                 </TableCell>
                 <TableCell align="right">
                   <IconButton
-                    onClick={() => handleRemoveClick(member.membershipId, member.displayName || member.email)}
+                    onClick={() => handleRemoveClick(
+                      member.membershipId,
+                      member.displayName || member.email,
+                    )}
                     color="error"
                     size="small"
                     title="Remove member"

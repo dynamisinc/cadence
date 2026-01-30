@@ -204,7 +204,8 @@ export const CreateOrganizationPage: FC = () => {
                 First Administrator
               </Typography>
               <Alert severity="info" sx={{ mb: 2 }}>
-                Every organization needs at least one administrator. Enter the email of the first admin.
+                Every organization needs at least one administrator. Enter the email
+                of the first admin.
                 If this user doesn't exist, they'll be invited to create an account.
               </Alert>
               <CobraTextField

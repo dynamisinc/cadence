@@ -187,7 +187,10 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
   // Delete confirmation dialog state
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [deleteInjectData, setDeleteInjectData] = useState<{ id: string; title: string } | null>(null)
+  const [deleteInjectData, setDeleteInjectData] = useState<{
+    id: string
+    title: string
+  } | null>(null)
 
   // Phase form dialog state
   const [phaseFormOpen, setPhaseFormOpen] = useState(false)

@@ -349,7 +349,7 @@ describe('OrganizationStatusActions', () => {
 
   describe('Button Icons', () => {
     it('shows correct icons for Active status buttons', () => {
-      const { container } = render(
+      render(
         <OrganizationStatusActions
           status="Active"
           isPending={false}

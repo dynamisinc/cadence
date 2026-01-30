@@ -9,7 +9,6 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@/test/testUtils'
 import userEvent from '@testing-library/user-event'
 import { AddMemberDialog } from './AddMemberDialog'
-import type { OrgRole } from '../types'
 
 describe('AddMemberDialog', () => {
   const mockOnClose = vi.fn()

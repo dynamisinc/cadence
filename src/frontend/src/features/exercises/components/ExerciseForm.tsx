@@ -150,7 +150,8 @@ export const ExerciseForm = ({
         timelineMode: exercise.timelineMode,
         clockMultiplier: exercise.clockMultiplier ?? 1,
         directorId: director?.id ?? '',
-        targetCapabilityIds: targetCapabilities?.map(c => c.id) ?? [], // S04: Load target capabilities
+        // S04: Load target capabilities
+        targetCapabilityIds: targetCapabilities?.map(c => c.id) ?? [],
       })
       // Set selected director from prop (loaded from participants by parent component)
       setSelectedDirector(director ?? null)

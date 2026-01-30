@@ -146,7 +146,16 @@ const CategoryAccordion: FC<{
   isDeleting?: boolean
   isReactivating?: boolean
   defaultExpanded?: boolean
-}> = ({ category, capabilities, onEdit, onDeactivate, onReactivate, isDeleting, isReactivating, defaultExpanded = true }) => {
+}> = ({
+  category,
+  capabilities,
+  onEdit,
+  onDeactivate,
+  onReactivate,
+  isDeleting,
+  isReactivating,
+  defaultExpanded = true,
+}) => {
   const activeCount = capabilities.filter(c => c.isActive).length
   const totalCount = capabilities.length
 

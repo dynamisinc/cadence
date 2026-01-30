@@ -482,7 +482,8 @@ const InjectPacingCard = ({ pacing }: { pacing: InjectPacingDto }) => {
             <FontAwesomeIcon icon={faFire} color={theme.palette.warning.main} />
             <Typography variant="body2">
               <strong>Busiest Period:</strong> {pacing.busiestPeriod.injectCount} injects between{' '}
-              {formatTime(pacing.busiestPeriod.startedAt)} and {formatTime(pacing.busiestPeriod.endedAt)}
+              {formatTime(pacing.busiestPeriod.startedAt)} and
+              {formatTime(pacing.busiestPeriod.endedAt)}
             </Typography>
           </Stack>
         </>

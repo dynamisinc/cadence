@@ -171,7 +171,7 @@ describe('TargetCapabilitiesSelector', () => {
       { wrapper: createWrapper() },
     )
 
-    // Find the delete icon (FontAwesome fa-xmark) on a selected chip in the "Selected for evaluation" section
+    // Find delete icon (FontAwesome fa-xmark) on a selected chip in "Selected for evaluation"
     // The delete icon has the MuiChip-deleteIcon class
     const deleteIcons = document.querySelectorAll('.MuiChip-deleteIcon')
     expect(deleteIcons.length).toBeGreaterThan(0)
@@ -273,6 +273,7 @@ describe('TargetCapabilitiesSelector', () => {
       { wrapper: createWrapper() },
     )
 
-    expect(screen.getByText(/HSEEP recommends focusing on 3-5 key capabilities/i)).toBeInTheDocument()
+    const tipText = /HSEEP recommends focusing on 3-5 key capabilities/i
+    expect(screen.getByText(tipText)).toBeInTheDocument()
   })
 })

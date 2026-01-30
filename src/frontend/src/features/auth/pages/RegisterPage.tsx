@@ -147,7 +147,10 @@ export const RegisterPage: FC = () => {
         }
       }
     } catch (err: unknown) {
-      const axiosError = err as { response?: { data?: { message?: string; validationErrors?: Record<string, string[]> } } }
+      type AxiosErrorType = {
+        response?: { data?: { message?: string; validationErrors?: Record<string, string[]> } }
+      }
+      const axiosError = err as AxiosErrorType
       if (axiosError.response?.data) {
         const errorResponse = axiosError.response.data
         setError(errorResponse.message || 'Registration failed')

@@ -174,8 +174,16 @@ const CoverageRate = ({
         <Box>
           <Stack direction="row" spacing={1} alignItems="center">
             <FontAwesomeIcon
-              icon={coverageRate !== null && coverageRate >= 75 ? faCheckCircle : faExclamationCircle}
-              color={coverageRate !== null && coverageRate >= 75 ? theme.palette.success.main : theme.palette.warning.main}
+              icon={
+                coverageRate !== null && coverageRate >= 75
+                  ? faCheckCircle
+                  : faExclamationCircle
+              }
+              color={
+                coverageRate !== null && coverageRate >= 75
+                  ? theme.palette.success.main
+                  : theme.palette.warning.main
+              }
             />
             <Typography variant="h4" fontWeight="bold">
               {coverageRate !== null ? `${coverageRate}%` : '—'}

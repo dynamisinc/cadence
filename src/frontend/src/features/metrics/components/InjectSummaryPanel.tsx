@@ -201,7 +201,9 @@ const TimingPerformance = ({ data }: { data: InjectSummaryDto }) => {
           <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1 }}>
             <FontAwesomeIcon
               icon={data.onTimeRate >= 80 ? faCheck : faExclamationTriangle}
-              color={data.onTimeRate >= 80 ? theme.palette.success.main : theme.palette.warning.main}
+              color={
+                data.onTimeRate >= 80 ? theme.palette.success.main : theme.palette.warning.main
+              }
             />
             <Typography variant="body2">On-Time Rate</Typography>
           </Stack>

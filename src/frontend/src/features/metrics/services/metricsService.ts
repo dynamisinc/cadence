@@ -101,7 +101,9 @@ export const metricsService = {
    * Get core capability performance metrics for AAR (S06).
    * Shows P/S/M/U ratings broken down by FEMA Core Capability.
    */
-  getCapabilityPerformance: async (exerciseId: string): Promise<CapabilityPerformanceSummaryDto> => {
+  getCapabilityPerformance: async (
+    exerciseId: string,
+  ): Promise<CapabilityPerformanceSummaryDto> => {
     const response = await apiClient.get<CapabilityPerformanceSummaryDto>(
       `/exercises/${exerciseId}/metrics/capabilities`,
     )

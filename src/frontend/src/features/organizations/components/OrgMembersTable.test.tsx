@@ -9,7 +9,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor, within } from '@/test/testUtils'
 import userEvent from '@testing-library/user-event'
 import { OrgMembersTable } from './OrgMembersTable'
-import type { OrgMember, OrgRole } from '../types'
+import type { OrgMember } from '../types'
 
 // Mock ConfirmDialog
 vi.mock('@/shared/components/ConfirmDialog', () => ({

@@ -234,7 +234,8 @@ describe('ExerciseConductPage', () => {
  * NOTE ON FULL COMPONENT TESTING:
  *
  * The ExerciseConductPage component is highly complex with:
- * - Multiple child components (ExerciseHeader, ClockDrivenConductView, FacilitatorPacedConductView, etc.)
+ * - Multiple child components (ExerciseHeader, ClockDrivenConductView,
+ *   FacilitatorPacedConductView, etc.)
  * - Real-time SignalR integration
  * - Multiple context providers (Auth, Connectivity, Breadcrumbs)
  * - Complex state management across hooks

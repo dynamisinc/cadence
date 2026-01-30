@@ -230,7 +230,9 @@ export const EditOrganizationPage: FC = () => {
     )
   }
 
-  const isPending = updateOrg.isPending || archiveOrg.isPending || deactivateOrg.isPending || restoreOrg.isPending
+  const isPending =
+    updateOrg.isPending || archiveOrg.isPending ||
+    deactivateOrg.isPending || restoreOrg.isPending
   const status = normalizeStatus(organization.status)
 
   return (

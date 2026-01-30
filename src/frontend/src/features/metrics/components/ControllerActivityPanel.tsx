@@ -277,7 +277,8 @@ export const ControllerActivityPanel = ({ exerciseId }: ControllerActivityPanelP
   if (data.totalControllers === 0) {
     return (
       <Alert severity="info" sx={{ mb: 2 }}>
-        No injects have been fired yet. Controller activity will appear here once injects are delivered.
+        No injects have been fired yet. Controller activity will appear here once
+        injects are delivered.
       </Alert>
     )
   }

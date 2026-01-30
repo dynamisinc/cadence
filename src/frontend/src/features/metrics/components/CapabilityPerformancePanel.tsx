@@ -426,7 +426,9 @@ export const CapabilityPerformancePanel = ({ exerciseId }: CapabilityPerformance
   if (data.totalTaggedObservations === 0) {
     return (
       <Alert severity="info" sx={{ mb: 2 }} icon={<FontAwesomeIcon icon={faShieldAlt} />}>
-        No observations have been tagged with core capabilities yet. Capability performance will appear here once evaluators tag their observations with FEMA Core Capabilities.
+        No observations have been tagged with core capabilities yet. Capability
+        performance will appear here once evaluators tag their observations with
+        FEMA Core Capabilities.
       </Alert>
     )
   }

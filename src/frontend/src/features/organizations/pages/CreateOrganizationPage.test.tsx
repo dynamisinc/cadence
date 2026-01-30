@@ -33,7 +33,6 @@ vi.mock('react-toastify', () => ({
 }))
 
 // Mock styled components to avoid theme provider issues
-const inputIdCounter = 0
 vi.mock('@/theme/styledComponents', () => ({
   CobraPrimaryButton: ({ children, ...props }: any) => <button {...props}>{children}</button>,
   CobraSecondaryButton: ({ children, ...props }: any) => <button {...props}>{children}</button>,

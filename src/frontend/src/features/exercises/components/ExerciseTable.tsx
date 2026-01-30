@@ -191,7 +191,7 @@ export const ExerciseTable = ({
         return sortOrder === 'asc' ? comparison : -comparison
       })
     } else {
-      // Default sort: Status priority (Active first), then by scheduled date ascending (soonest first)
+      // Default sort: Status priority (Active first), then scheduled date asc (soonest first)
       filtered = [...filtered].sort((a, b) => {
         const statusDiff = getStatusPriority(a.status) - getStatusPriority(b.status)
         if (statusDiff !== 0) return statusDiff
