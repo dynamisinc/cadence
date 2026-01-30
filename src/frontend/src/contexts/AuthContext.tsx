@@ -61,6 +61,43 @@ const REFRESH_CONFIG = {
   networkTimeoutMs: 15000,
 }
 
+/** localStorage key for cached user info (offline support) */
+const CACHED_USER_KEY = 'cadence-cached-user'
+
+/**
+ * Cache user info to localStorage for offline support
+ */
+function cacheUserInfo(user: UserInfo | null): void {
+  try {
+    if (user) {
+      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user))
+      console.log('[AuthContext] Cached user info for offline support:', user.email)
+    } else {
+      localStorage.removeItem(CACHED_USER_KEY)
+      console.log('[AuthContext] Cleared cached user info')
+    }
+  } catch (err) {
+    console.warn('[AuthContext] Failed to cache user info:', err)
+  }
+}
+
+/**
+ * Restore cached user info from localStorage (for offline mode)
+ */
+function getCachedUserInfo(): UserInfo | null {
+  try {
+    const cached = localStorage.getItem(CACHED_USER_KEY)
+    if (cached) {
+      const user = JSON.parse(cached) as UserInfo
+      console.log('[AuthContext] Restored cached user info:', user.email)
+      return user
+    }
+  } catch (err) {
+    console.warn('[AuthContext] Failed to restore cached user info:', err)
+  }
+  return null
+}
+
 /**
  * Classify an error to determine if it's a transient/network error
  * that should NOT clear auth state, or an auth error that should.
@@ -358,6 +395,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
               setTokenExpiry(parsed.exp)
               scheduleRefresh(parsed.exp)
               consecutiveFailuresRef.current = 0 // Reset failure counter
+              cacheUserInfo(parsed.user) // Cache for offline support
               logAuthState('After successful refresh')
               return
             } else {
@@ -430,6 +468,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         setAccessToken(null)
         setUser(null)
         setTokenExpiry(null)
+        cacheUserInfo(null) // Clear cached user on confirmed auth failure
       } else {
         console.warn(
           '[AuthContext] First auth failure - preserving state, will clear on next failure',
@@ -451,6 +490,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   /**
    * Initialize: Try to refresh token on mount (S08)
    * This checks if user has a valid refresh token cookie
+   * Falls back to cached user info for offline support
    */
   useEffect(() => {
     const initAuth = async () => {
@@ -461,13 +501,23 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         await refreshAccessToken()
         console.log('[AuthContext] initAuth: refreshAccessToken succeeded')
       } catch (error) {
-        // No valid session - user needs to log in
-        // This is normal for first visit or expired session
+        // Token refresh failed
         const classification = classifyError(error)
         console.log('[AuthContext] initAuth: refreshAccessToken failed:', {
           ...classification,
           browserOnline: navigator.onLine,
         })
+
+        // If network error, try to restore from cache for offline support
+        if (classification.isNetworkError || classification.isTransientError) {
+          const cachedUser = getCachedUserInfo()
+          if (cachedUser) {
+            console.log('[AuthContext] initAuth: Restoring user from cache for offline mode')
+            setUser(cachedUser)
+            // Note: No access token, so API calls will fail, but UI will show user as logged in
+            // When back online, the next API call will trigger a refresh
+          }
+        }
       } finally {
         setIsLoading(false)
         console.log('[AuthContext] initAuth complete, isLoading=false')
@@ -549,6 +599,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         setTokenExpiry(parsed.exp)
         scheduleRefresh(parsed.exp)
         consecutiveFailuresRef.current = 0
+        cacheUserInfo(parsed.user) // Cache for offline support
       }
     } else {
       console.log('[AuthContext] login failed:', response.error)
@@ -574,6 +625,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         setTokenExpiry(parsed.exp)
         scheduleRefresh(parsed.exp)
         consecutiveFailuresRef.current = 0
+        cacheUserInfo(parsed.user) // Cache for offline support
       }
     } else {
       console.log('[AuthContext] registration failed:', response.error)
@@ -603,6 +655,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setAccessToken(null)
     setTokenExpiry(null)
     consecutiveFailuresRef.current = 0
+    cacheUserInfo(null) // Clear cached user
 
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current)

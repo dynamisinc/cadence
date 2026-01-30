@@ -62,10 +62,14 @@ export const ProfileMenu: React.FC = () => {
 
   const open = Boolean(anchorEl)
 
-  // Default to Guest if no user
-  const accountEmail = user?.email || 'guest@cadence.app'
-  const accountFullName = user?.displayName || 'Guest User'
-  const accountRole = user?.role ? formatRole(user.role) : 'No Role Assigned'
+  // Don't render if no user - prevents showing "Guest User" when API is offline
+  if (!user) {
+    return null
+  }
+
+  const accountEmail = user.email
+  const accountFullName = user.displayName
+  const accountRole = formatRole(user.role)
 
   // Current exercise role for display
   const currentExerciseRole = isInExerciseContext && currentExercise?.userRole
