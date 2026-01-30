@@ -13,6 +13,7 @@ using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Cadence.WebApi.Hubs;
 using Cadence.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -21,6 +22,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -139,6 +141,12 @@ builder.Services.AddScoped<ICurrentOrganizationContext, CurrentOrganizationConte
 // Add Background Services
 builder.Services.AddHostedService<InjectReadinessBackgroundService>();
 
+// Add Demo Data Seeder for non-production environments
+if (!builder.Environment.IsProduction())
+{
+    builder.Services.AddDemoSeeder();
+}
+
 // Add Logging
 builder.Services.AddLogging(logging =>
 {
@@ -200,30 +208,25 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// Seed essential data in ALL environments (idempotent)
+// =============================================================================
+// Data Seeding
+// =============================================================================
+
+// Stage 1: Essential data - ALL environments (applies migrations, creates default org)
+await app.SeedEssentialDataAsync();
+
+// Stage 2: Demo data - ALL except Production (demo org, users, exercises, observations)
+if (!app.Environment.IsProduction())
 {
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    var seedLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await EssentialDataSeeder.SeedAsync(context, seedLogger);
+    await app.SeedDemoDataAsync();
 }
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-    app.MapScalarApiReference();
+// =============================================================================
+// Configure HTTP Pipeline
+// =============================================================================
 
-    // Seed development/demo data (exercises, injects, etc.)
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DevelopmentDataSeeder.SeedAsync(context);
-
-    // Seed FEMA capabilities for demo organization
-    var importService = scope.ServiceProvider.GetRequiredService<ICapabilityImportService>();
-    var seedLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await DevelopmentDataSeeder.SeedCapabilitiesAsync(context, importService, seedLogger);
-}
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
 
