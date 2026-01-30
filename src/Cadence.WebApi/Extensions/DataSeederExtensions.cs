@@ -50,8 +50,17 @@ public static class DataSeederExtensions
         {
             var context = services.GetRequiredService<AppDbContext>();
 
-            logger.LogInformation("Applying pending database migrations...");
-            await context.Database.MigrateAsync();
+            // Only run migrations for relational databases (skip for in-memory test databases)
+            if (context.Database.IsRelational())
+            {
+                logger.LogInformation("Applying pending database migrations...");
+                await context.Database.MigrateAsync();
+            }
+            else
+            {
+                logger.LogInformation("Non-relational database detected - skipping migrations");
+                await context.Database.EnsureCreatedAsync();
+            }
 
             await EssentialDataSeeder.SeedAsync(context, logger);
         }

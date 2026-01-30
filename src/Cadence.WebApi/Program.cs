@@ -141,8 +141,8 @@ builder.Services.AddScoped<ICurrentOrganizationContext, CurrentOrganizationConte
 // Add Background Services
 builder.Services.AddHostedService<InjectReadinessBackgroundService>();
 
-// Add Demo Data Seeder for non-production environments
-if (!builder.Environment.IsProduction())
+// Add Demo Data Seeder for non-production, non-testing environments
+if (!builder.Environment.IsProduction() && !builder.Environment.IsEnvironment("Testing"))
 {
     builder.Services.AddDemoSeeder();
 }
@@ -215,8 +215,8 @@ var app = builder.Build();
 // Stage 1: Essential data - ALL environments (applies migrations, creates default org)
 await app.SeedEssentialDataAsync();
 
-// Stage 2: Demo data - ALL except Production (demo org, users, exercises, observations)
-if (!app.Environment.IsProduction())
+// Stage 2: Demo data - ALL except Production and Testing (demo org, users, exercises, observations)
+if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("Testing"))
 {
     await app.SeedDemoDataAsync();
 }
