@@ -34,7 +34,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByText('Organization Status')).toBeInTheDocument()
@@ -48,7 +48,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const statusChip = screen.getByTestId('status-chip')
@@ -63,7 +63,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByText(/current status:/i)).toBeInTheDocument()
@@ -79,7 +79,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /archive organization/i })).toBeInTheDocument()
@@ -94,7 +94,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.queryByRole('button', { name: /restore/i })).not.toBeInTheDocument()
@@ -109,7 +109,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const archiveButton = screen.getByRole('button', { name: /archive organization/i })
@@ -127,7 +127,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const deactivateButton = screen.getByRole('button', { name: /deactivate organization/i })
@@ -144,7 +144,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.queryByText(/users cannot access/i)).not.toBeInTheDocument()
@@ -160,7 +160,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /restore to active/i })).toBeInTheDocument()
@@ -174,7 +174,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.queryByRole('button', { name: /archive organization/i })).not.toBeInTheDocument()
@@ -190,7 +190,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const restoreButton = screen.getByRole('button', { name: /restore to active/i })
@@ -207,7 +207,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByText(/this organization is archived/i)).toBeInTheDocument()
@@ -224,7 +224,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /restore to active/i })).toBeInTheDocument()
@@ -238,7 +238,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.queryByRole('button', { name: /archive organization/i })).not.toBeInTheDocument()
@@ -254,7 +254,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const restoreButton = screen.getByRole('button', { name: /restore to active/i })
@@ -271,7 +271,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByText(/this organization is inactive/i)).toBeInTheDocument()
@@ -288,7 +288,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const archiveButton = screen.getByRole('button', { name: /archive organization/i })
@@ -306,7 +306,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const restoreButton = screen.getByRole('button', { name: /restore to active/i })
@@ -321,7 +321,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const restoreButton = screen.getByRole('button', { name: /restore to active/i })
@@ -336,7 +336,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const archiveButton = screen.getByRole('button', { name: /archive organization/i })
@@ -356,7 +356,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       // FontAwesome icons are rendered with specific class names or SVG elements
@@ -373,7 +373,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /restore to active/i })).toBeInTheDocument()
@@ -389,7 +389,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       let statusChip = screen.getByTestId('status-chip')
@@ -402,7 +402,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       statusChip = screen.getByTestId('status-chip')
@@ -417,7 +417,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /archive organization/i })).toBeInTheDocument()
@@ -429,7 +429,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.queryByRole('button', { name: /archive organization/i })).not.toBeInTheDocument()
@@ -446,7 +446,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('heading', { level: 6, name: /organization status/i })).toBeInTheDocument()
@@ -460,7 +460,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /archive organization/i })).toBeInTheDocument()
@@ -475,7 +475,7 @@ describe('OrganizationStatusActions', () => {
           onArchive={mockOnArchive}
           onDeactivate={mockOnDeactivate}
           onRestore={mockOnRestore}
-        />
+        />,
       )
 
       const alert = screen.getByRole('alert')

@@ -26,7 +26,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       expect(screen.getByText('Add Member to Organization')).toBeInTheDocument()
@@ -41,7 +41,7 @@ describe('AddMemberDialog', () => {
           open={false}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       expect(screen.queryByText('Add Member to Organization')).not.toBeInTheDocument()
@@ -54,7 +54,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       // Click the role select (use combobox role)
@@ -78,7 +78,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       expect(screen.getByText(/user must already have an account/i)).toBeInTheDocument()
@@ -92,7 +92,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const addButton = screen.getByRole('button', { name: /add member/i })
@@ -107,7 +107,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -126,7 +126,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const addButton = screen.getByRole('button', { name: /add member/i })
@@ -140,7 +140,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -157,7 +157,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       // Trigger validation error with invalid email format
@@ -190,7 +190,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -213,7 +213,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -242,7 +242,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -265,7 +265,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -295,7 +295,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -317,7 +317,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -338,7 +338,7 @@ describe('AddMemberDialog', () => {
           onClose={mockOnClose}
           onAdd={mockOnAdd}
           isLoading={true}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /cancel/i })).toBeDisabled()
@@ -352,7 +352,7 @@ describe('AddMemberDialog', () => {
           onClose={mockOnClose}
           onAdd={mockOnAdd}
           isLoading={true}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /adding/i })).toBeInTheDocument()
@@ -367,7 +367,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const cancelButton = screen.getByRole('button', { name: /cancel/i })
@@ -383,7 +383,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       // Fill in form
@@ -400,7 +400,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       // Form should be reset
@@ -415,7 +415,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       // Trigger validation error with invalid email
@@ -443,7 +443,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       const emailInput = screen.getByLabelText(/email address/i)
@@ -459,7 +459,7 @@ describe('AddMemberDialog', () => {
           open={true}
           onClose={mockOnClose}
           onAdd={mockOnAdd}
-        />
+        />,
       )
 
       expect(screen.getByLabelText(/email address/i)).toBeInTheDocument()

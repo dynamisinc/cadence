@@ -68,7 +68,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByText('Admin User')).toBeInTheDocument()
@@ -83,7 +83,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByText('Members (3)')).toBeInTheDocument()
@@ -96,7 +96,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByRole('button', { name: /add member/i })).toBeInTheDocument()
@@ -109,7 +109,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByText(/no members in this organization/i)).toBeInTheDocument()
@@ -122,7 +122,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByRole('columnheader', { name: /name/i })).toBeInTheDocument()
@@ -139,7 +139,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByText('admin@example.com')).toBeInTheDocument()
@@ -154,7 +154,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Join dates should be formatted as locale date strings
@@ -179,7 +179,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Find the cell in the Name column
@@ -199,7 +199,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const addButton = screen.getByRole('button', { name: /add member/i })
@@ -217,7 +217,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Verify role selects are present by checking the Role column values
@@ -236,7 +236,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Find all comboboxes (role selects)
@@ -263,11 +263,11 @@ describe('OrgMembersTable', () => {
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
           isLoading={true}
-        />
+        />,
       )
 
       const roleSelects = screen.getAllByRole('combobox')
-      roleSelects.forEach((select) => {
+      roleSelects.forEach(select => {
         // MUI Select uses aria-disabled instead of disabled attribute
         expect(select).toHaveAttribute('aria-disabled', 'true')
       })
@@ -290,7 +290,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const roleSelects = screen.getAllByRole('combobox')
@@ -312,7 +312,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const roleSelects = screen.getAllByRole('combobox')
@@ -333,7 +333,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const removeButtons = screen.getAllByTitle(/remove member/i)
@@ -348,7 +348,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const removeButtons = screen.getAllByTitle(/remove member/i)
@@ -370,7 +370,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Click remove button
@@ -399,7 +399,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const removeButton = screen.getByTitle(/remove member/i)
@@ -418,7 +418,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Open dialog
@@ -453,7 +453,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Click remove and confirm
@@ -474,11 +474,11 @@ describe('OrgMembersTable', () => {
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
           isLoading={true}
-        />
+        />,
       )
 
       const removeButtons = screen.getAllByTitle(/remove member/i)
-      removeButtons.forEach((button) => {
+      removeButtons.forEach(button => {
         expect(button).toBeDisabled()
       })
     })
@@ -495,7 +495,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       // Trigger error
@@ -526,7 +526,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       expect(screen.getByRole('table')).toBeInTheDocument()
@@ -540,7 +540,7 @@ describe('OrgMembersTable', () => {
           onAddClick={mockOnAddClick}
           onRoleChange={mockOnRoleChange}
           onRemove={mockOnRemove}
-        />
+        />,
       )
 
       const removeButtons = screen.getAllByTitle(/remove member/i)
