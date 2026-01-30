@@ -32,6 +32,8 @@ import {
   faHome,
   faFileImport,
   faFileExport,
+  faPen,
+  faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 
 /** Minimum time to show the saving indicator (ms) */
@@ -60,7 +62,7 @@ import {
 } from '../../../theme/styledComponents'
 import { HighlightedText } from '../../../shared/components/HighlightedText'
 import CobraStyles from '../../../theme/CobraStyles'
-import { usePermissions } from '../../../shared/hooks'
+import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { InjectStatus } from '../../../types'
 import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
@@ -126,8 +128,10 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     error,
     fireInject,
     skipInject,
+    deleteInject,
     isFiring,
     isSkipping,
+    isDeleting,
     fetchInjects,
     reorderInjects,
     isReordering: isReorderingInjects,
@@ -146,7 +150,9 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     isReordering: isReorderingPhase,
   } = usePhases(exerciseId)
   const { summaries: objectives } = useObjectiveSummaries(exerciseId)
-  const { canFireInjects, canManage } = usePermissions()
+  const { can } = useExerciseRole(exerciseId)
+  const canFireInjects = can('fire_inject')
+  const canManage = can('edit_inject')
 
   // Convert phases to the format needed by useInjectOrganization
   const phaseInfo = useMemo(
@@ -178,6 +184,10 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const [skipDialogOpen, setSkipDialogOpen] = useState(false)
   const [skipInjectId, setSkipInjectId] = useState<string | null>(null)
   const [skipReason, setSkipReason] = useState('')
+
+  // Delete confirmation dialog state
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+  const [deleteInjectData, setDeleteInjectData] = useState<{ id: string; title: string } | null>(null)
 
   // Phase form dialog state
   const [phaseFormOpen, setPhaseFormOpen] = useState(false)
@@ -250,6 +260,31 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     setSkipDialogOpen(false)
     setSkipInjectId(null)
     setSkipReason('')
+  }
+
+  // Edit and delete handlers
+  const handleEditClick = (e: React.MouseEvent, injectId: string) => {
+    e.stopPropagation()
+    navigate(`/exercises/${exerciseId}/injects/${injectId}/edit`)
+  }
+
+  const handleDeleteClick = (e: React.MouseEvent, inject: InjectDto) => {
+    e.stopPropagation()
+    setDeleteInjectData({ id: inject.id, title: inject.title })
+    setDeleteDialogOpen(true)
+  }
+
+  const handleDeleteConfirm = async () => {
+    if (deleteInjectData) {
+      await deleteInject(deleteInjectData.id)
+      setDeleteDialogOpen(false)
+      setDeleteInjectData(null)
+    }
+  }
+
+  const handleDeleteCancel = () => {
+    setDeleteDialogOpen(false)
+    setDeleteInjectData(null)
   }
 
   // Phase management handlers
@@ -424,6 +459,8 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onRowClick={handleRowClick}
           onFire={handleFireClick}
           onSkip={handleSkipClick}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
           onReorder={reorderInjects}
           onEditPhase={handleEditPhase}
           onDeletePhase={handleDeletePhase}
@@ -445,6 +482,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           injects={organization.organizedInjects}
           onRowClick={handleRowClick}
           canFireInjects={canFireInjects}
+          canManage={canManage}
           canReorder={
             canManage &&
             !organization.hasActiveFilters &&
@@ -453,6 +491,8 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           }
           onFire={handleFireClick}
           onSkip={handleSkipClick}
+          onEdit={handleEditClick}
+          onDelete={handleDeleteClick}
           onReorder={reorderInjects}
           isFiring={isFiring}
           isSkipping={isSkipping}
@@ -528,6 +568,34 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
             disabled={!skipReason.trim() || isSkipping}
           >
             Skip Inject
+          </CobraPrimaryButton>
+        </DialogActions>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={deleteDialogOpen} onClose={handleDeleteCancel} maxWidth="sm" fullWidth>
+        <DialogTitle>Delete Inject</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary">
+            Are you sure you want to delete this inject?
+          </Typography>
+          {deleteInjectData && (
+            <Typography variant="body1" fontWeight={500} marginTop={1}>
+              "{deleteInjectData.title}"
+            </Typography>
+          )}
+          <Typography variant="body2" color="text.secondary" marginTop={2}>
+            This action cannot be undone.
+          </Typography>
+        </DialogContent>
+        <DialogActions>
+          <CobraSecondaryButton onClick={handleDeleteCancel}>Cancel</CobraSecondaryButton>
+          <CobraPrimaryButton
+            onClick={handleDeleteConfirm}
+            disabled={isDeleting}
+            color="error"
+          >
+            Delete
           </CobraPrimaryButton>
         </DialogActions>
       </Dialog>
@@ -632,6 +700,8 @@ interface GroupedInjectViewProps {
   onRowClick: (id: string) => void
   onFire: (e: React.MouseEvent, id: string) => void
   onSkip: (e: React.MouseEvent, id: string) => void
+  onEdit: (e: React.MouseEvent, id: string) => void
+  onDelete: (e: React.MouseEvent, inject: InjectDto) => void
   onReorder: (injectIds: string[]) => Promise<void>
   onEditPhase: (phase: PhaseDto) => void
   onDeletePhase: (phase: PhaseDto) => Promise<void>
@@ -661,6 +731,8 @@ const GroupedInjectView = ({
   onRowClick,
   onFire,
   onSkip,
+  onEdit,
+  onDelete,
   onReorder,
   onEditPhase,
   onDeletePhase,
@@ -744,7 +816,7 @@ const GroupedInjectView = ({
                   onSort={onSort}
                   width={90}
                 />
-                {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+                {(canFireInjects || canManage) && <TableCell width={140}>Actions</TableCell>}
               </TableRow>
             </TableHead>
             <TableBody>
@@ -759,8 +831,11 @@ const GroupedInjectView = ({
                       inject={inject}
                       onClick={() => onRowClick(inject.id)}
                       canFireInjects={canFireInjects}
+                      canManage={canManage}
                       onFire={e => onFire(e, inject.id)}
                       onSkip={e => onSkip(e, inject.id)}
+                      onEdit={e => onEdit(e, inject.id)}
+                      onDelete={e => onDelete(e, inject)}
                       isFiring={isFiring}
                       isSkipping={isSkipping}
                       searchTerm={searchTerm}
@@ -772,8 +847,11 @@ const GroupedInjectView = ({
                     inject={inject}
                     onClick={() => onRowClick(inject.id)}
                     canFireInjects={canFireInjects}
+                    canManage={canManage}
                     onFire={e => onFire(e, inject.id)}
                     onSkip={e => onSkip(e, inject.id)}
+                    onEdit={e => onEdit(e, inject.id)}
+                    onDelete={e => onDelete(e, inject)}
                     isFiring={isFiring}
                     isSkipping={isSkipping}
                     searchTerm={searchTerm}
@@ -848,9 +926,12 @@ interface FlatInjectListProps {
   injects: InjectDto[]
   onRowClick: (id: string) => void
   canFireInjects: boolean
+  canManage: boolean
   canReorder: boolean
   onFire: (e: React.MouseEvent, id: string) => void
   onSkip: (e: React.MouseEvent, id: string) => void
+  onEdit: (e: React.MouseEvent, id: string) => void
+  onDelete: (e: React.MouseEvent, inject: InjectDto) => void
   onReorder: (injectIds: string[]) => Promise<void>
   isFiring: boolean
   isSkipping: boolean
@@ -866,9 +947,12 @@ const FlatInjectList = ({
   injects,
   onRowClick,
   canFireInjects,
+  canManage,
   canReorder,
   onFire,
   onSkip,
+  onEdit,
+  onDelete,
   onReorder,
   isFiring,
   isSkipping,
@@ -934,7 +1018,7 @@ const FlatInjectList = ({
               onSort={onSort}
               width={120}
             />
-            {canFireInjects && <TableCell width={100}>Actions</TableCell>}
+            {(canFireInjects || canManage) && <TableCell width={140}>Actions</TableCell>}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -949,8 +1033,11 @@ const FlatInjectList = ({
                   inject={inject}
                   onClick={() => onRowClick(inject.id)}
                   canFireInjects={canFireInjects}
+                  canManage={canManage}
                   onFire={e => onFire(e, inject.id)}
                   onSkip={e => onSkip(e, inject.id)}
+                  onEdit={e => onEdit(e, inject.id)}
+                  onDelete={e => onDelete(e, inject)}
                   isFiring={isFiring}
                   isSkipping={isSkipping}
                   searchTerm={searchTerm}
@@ -963,8 +1050,11 @@ const FlatInjectList = ({
                 inject={inject}
                 onClick={() => onRowClick(inject.id)}
                 canFireInjects={canFireInjects}
+                canManage={canManage}
                 onFire={e => onFire(e, inject.id)}
                 onSkip={e => onSkip(e, inject.id)}
+                onEdit={e => onEdit(e, inject.id)}
+                onDelete={e => onDelete(e, inject)}
                 isFiring={isFiring}
                 isSkipping={isSkipping}
                 searchTerm={searchTerm}
@@ -998,8 +1088,11 @@ interface InjectRowCellsProps {
   inject: InjectDto
   onClick: () => void
   canFireInjects: boolean
+  canManage: boolean
   onFire: (e: React.MouseEvent) => void
   onSkip: (e: React.MouseEvent) => void
+  onEdit: (e: React.MouseEvent) => void
+  onDelete: (e: React.MouseEvent) => void
   isFiring: boolean
   isSkipping: boolean
   searchTerm?: string
@@ -1014,8 +1107,11 @@ const InjectRowCells = ({
   inject,
   onClick,
   canFireInjects,
+  canManage,
   onFire,
   onSkip,
+  onEdit,
+  onDelete,
   isFiring,
   isSkipping,
   searchTerm = '',
@@ -1097,32 +1193,56 @@ const InjectRowCells = ({
           </Typography>
         </TableCell>
       )}
-      {canFireInjects && (
+      {(canFireInjects || canManage) && (
         <TableCell>
-          {isPending && (
-            <Stack direction="row" spacing={0.5}>
-              <Tooltip title="Fire inject">
-                <IconButton
-                  size="small"
-                  color="success"
-                  onClick={onFire}
-                  disabled={isFiring || isSkipping}
-                >
-                  <FontAwesomeIcon icon={faPlay} size="sm" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Skip inject">
-                <IconButton
-                  size="small"
-                  color="warning"
-                  onClick={onSkip}
-                  disabled={isFiring || isSkipping}
-                >
-                  <FontAwesomeIcon icon={faForwardStep} size="sm" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          )}
+          <Stack direction="row" spacing={0.5}>
+            {canFireInjects && isPending && (
+              <>
+                <Tooltip title="Fire inject">
+                  <IconButton
+                    size="small"
+                    color="success"
+                    onClick={onFire}
+                    disabled={isFiring || isSkipping}
+                  >
+                    <FontAwesomeIcon icon={faPlay} size="sm" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Skip inject">
+                  <IconButton
+                    size="small"
+                    color="warning"
+                    onClick={onSkip}
+                    disabled={isFiring || isSkipping}
+                  >
+                    <FontAwesomeIcon icon={faForwardStep} size="sm" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+            {canManage && (
+              <>
+                <Tooltip title="Edit inject">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={onEdit}
+                  >
+                    <FontAwesomeIcon icon={faPen} size="sm" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete inject">
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={onDelete}
+                  >
+                    <FontAwesomeIcon icon={faTrash} size="sm" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+          </Stack>
         </TableCell>
       )}
     </>
@@ -1133,8 +1253,11 @@ interface InjectRowProps {
   inject: InjectDto
   onClick: () => void
   canFireInjects: boolean
+  canManage: boolean
   onFire: (e: React.MouseEvent) => void
   onSkip: (e: React.MouseEvent) => void
+  onEdit: (e: React.MouseEvent) => void
+  onDelete: (e: React.MouseEvent) => void
   isFiring: boolean
   isSkipping: boolean
   searchTerm?: string
@@ -1145,8 +1268,11 @@ const InjectRow = ({
   inject,
   onClick,
   canFireInjects,
+  canManage,
   onFire,
   onSkip,
+  onEdit,
+  onDelete,
   isFiring,
   isSkipping,
   searchTerm = '',
@@ -1237,32 +1363,56 @@ const InjectRow = ({
           </Typography>
         </TableCell>
       )}
-      {canFireInjects && (
+      {(canFireInjects || canManage) && (
         <TableCell>
-          {isPending && (
-            <Stack direction="row" spacing={0.5}>
-              <Tooltip title="Fire inject">
-                <IconButton
-                  size="small"
-                  color="success"
-                  onClick={onFire}
-                  disabled={isFiring || isSkipping}
-                >
-                  <FontAwesomeIcon icon={faPlay} size="sm" />
-                </IconButton>
-              </Tooltip>
-              <Tooltip title="Skip inject">
-                <IconButton
-                  size="small"
-                  color="warning"
-                  onClick={onSkip}
-                  disabled={isFiring || isSkipping}
-                >
-                  <FontAwesomeIcon icon={faForwardStep} size="sm" />
-                </IconButton>
-              </Tooltip>
-            </Stack>
-          )}
+          <Stack direction="row" spacing={0.5}>
+            {canFireInjects && isPending && (
+              <>
+                <Tooltip title="Fire inject">
+                  <IconButton
+                    size="small"
+                    color="success"
+                    onClick={onFire}
+                    disabled={isFiring || isSkipping}
+                  >
+                    <FontAwesomeIcon icon={faPlay} size="sm" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Skip inject">
+                  <IconButton
+                    size="small"
+                    color="warning"
+                    onClick={onSkip}
+                    disabled={isFiring || isSkipping}
+                  >
+                    <FontAwesomeIcon icon={faForwardStep} size="sm" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+            {canManage && (
+              <>
+                <Tooltip title="Edit inject">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={onEdit}
+                  >
+                    <FontAwesomeIcon icon={faPen} size="sm" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Delete inject">
+                  <IconButton
+                    size="small"
+                    color="error"
+                    onClick={onDelete}
+                  >
+                    <FontAwesomeIcon icon={faTrash} size="sm" />
+                  </IconButton>
+                </Tooltip>
+              </>
+            )}
+          </Stack>
         </TableCell>
       )}
     </TableRow>
