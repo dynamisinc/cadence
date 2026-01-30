@@ -3,6 +3,14 @@ using Cadence.Core.Features.Authentication.Models.DTOs;
 namespace Cadence.Core.Features.Authentication.Services;
 
 /// <summary>
+/// Result of creating a refresh token.
+/// </summary>
+/// <param name="Token">The unhashed refresh token string (to be sent to client).</param>
+/// <param name="ExpiresIn">Token expiration time in seconds from now.</param>
+/// <param name="RememberMe">Whether RememberMe was used.</param>
+public record RefreshTokenCreateResult(string Token, int ExpiresIn, bool RememberMe);
+
+/// <summary>
 /// Service for refresh token persistence and management.
 /// </summary>
 public interface IRefreshTokenStore
@@ -14,8 +22,8 @@ public interface IRefreshTokenStore
     /// <param name="rememberMe">If true, token expires in 30 days; otherwise 4 hours.</param>
     /// <param name="ipAddress">IP address where token was issued (for audit).</param>
     /// <param name="deviceInfo">Device/user agent string (for audit).</param>
-    /// <returns>The unhashed refresh token string (to be sent to client).</returns>
-    Task<string> CreateAsync(
+    /// <returns>Result containing the unhashed refresh token and expiration info.</returns>
+    Task<RefreshTokenCreateResult> CreateAsync(
         Guid userId,
         bool rememberMe,
         string? ipAddress = null,

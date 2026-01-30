@@ -74,7 +74,8 @@ public class AuthenticationServiceTests : IDisposable
                 It.IsAny<bool>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
-            .ReturnsAsync("test-refresh-token");
+            .ReturnsAsync((Guid _, bool rememberMe, string? _, string? _) =>
+                new RefreshTokenCreateResult("test-refresh-token", rememberMe ? 30 * 24 * 3600 : 4 * 3600, rememberMe));
     }
 
     public void Dispose()
@@ -397,7 +398,7 @@ public class AuthenticationServiceTests : IDisposable
     {
         // Arrange
         var user = CreateTestUser();
-        user.Status = UserStatus.Deactivated;
+        user.Status = UserStatus.Disabled;
         var request = new LoginRequest(user.Email!, "Password123!");
 
         _userManagerMock
@@ -671,7 +672,7 @@ public class AuthenticationServiceTests : IDisposable
     {
         // Arrange
         var user = CreateTestUser();
-        user.Status = UserStatus.Deactivated;
+        user.Status = UserStatus.Disabled;
         var refreshToken = "valid-refresh-token";
         var tokenInfo = CreateRefreshTokenInfo(user.Id, false, DateTime.UtcNow.AddHours(4));
 
@@ -724,17 +725,18 @@ public class AuthenticationServiceTests : IDisposable
     }
 
     [Fact]
-    public async Task RefreshTokenAsync_PreservesRememberMe_BasedOnTokenLifetime()
+    public async Task RefreshTokenAsync_PreservesRememberMe_FromStoredToken()
     {
         // Arrange
         var user = CreateTestUser();
         var refreshToken = "remember-me-token";
-        // Token with 30 day lifetime indicates RememberMe was used
+        // Token info with RememberMe=true stored (Bug #4 fix: use stored value, not inferred)
         var tokenInfo = CreateRefreshTokenInfo(
             user.Id,
             false,
             DateTime.UtcNow.AddDays(30),
-            createdAt: DateTime.UtcNow);
+            createdAt: DateTime.UtcNow,
+            rememberMe: true); // Stored RememberMe value
 
         _tokenServiceMock
             .Setup(x => x.HashToken(refreshToken))
@@ -755,10 +757,10 @@ public class AuthenticationServiceTests : IDisposable
         // Act
         await _sut.RefreshTokenAsync(refreshToken);
 
-        // Assert
+        // Assert - Verify RememberMe is taken from stored token, not inferred from lifetime
         _refreshTokenStoreMock.Verify(x => x.CreateAsync(
             Guid.Parse(user.Id),
-            true, // RememberMe should be preserved as true (>24 hour lifetime)
+            true, // Should use stored RememberMe value (true)
             It.IsAny<string?>(),
             It.IsAny<string?>()), Times.Once);
     }
@@ -949,7 +951,8 @@ public class AuthenticationServiceTests : IDisposable
         string userId,
         bool isRevoked,
         DateTime expiresAt,
-        DateTime? createdAt = null)
+        DateTime? createdAt = null,
+        bool rememberMe = false)
     {
         var created = createdAt ?? DateTime.UtcNow;
         return new RefreshTokenInfo
@@ -959,7 +962,7 @@ public class AuthenticationServiceTests : IDisposable
             TokenHash = "test-hash",
             ExpiresAt = expiresAt,
             IsRevoked = isRevoked,
-            RememberMe = false,
+            RememberMe = rememberMe,
             CreatedAt = created
         };
     }

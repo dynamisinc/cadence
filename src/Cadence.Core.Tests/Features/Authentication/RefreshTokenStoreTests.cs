@@ -81,8 +81,10 @@ public class RefreshTokenStoreTests : IDisposable
 
         var afterCreation = DateTime.UtcNow;
 
-        // Assert
-        result.Should().Be(rawToken);
+        // Assert - result now returns RefreshTokenCreateResult
+        result.Token.Should().Be(rawToken);
+        result.RememberMe.Should().BeFalse();
+        result.ExpiresIn.Should().BeInRange(3 * 60 * 60, 4 * 60 * 60 + 60); // ~4 hours in seconds
 
         var storedToken = await _context.RefreshTokens
             .FirstOrDefaultAsync(t => t.TokenHash == tokenHash);
@@ -119,8 +121,10 @@ public class RefreshTokenStoreTests : IDisposable
 
         var afterCreation = DateTime.UtcNow;
 
-        // Assert
-        result.Should().Be(rawToken);
+        // Assert - result now returns RefreshTokenCreateResult
+        result.Token.Should().Be(rawToken);
+        result.RememberMe.Should().BeTrue();
+        result.ExpiresIn.Should().BeInRange(29 * 24 * 60 * 60, 30 * 24 * 60 * 60 + 3600); // ~30 days in seconds
 
         var storedToken = await _context.RefreshTokens
             .FirstOrDefaultAsync(t => t.TokenHash == tokenHash);

@@ -37,8 +37,8 @@ public class RefreshTokenStore : IRefreshTokenStore
     /// <param name="rememberMe">If true, token expires in 30 days; otherwise 4 hours.</param>
     /// <param name="ipAddress">IP address where token was issued (for audit).</param>
     /// <param name="deviceInfo">Device/user agent string (for audit).</param>
-    /// <returns>The unhashed refresh token string (to be sent to client).</returns>
-    public async Task<string> CreateAsync(
+    /// <returns>Result containing the unhashed refresh token and expiration info.</returns>
+    public async Task<RefreshTokenCreateResult> CreateAsync(
         Guid userId,
         bool rememberMe,
         string? ipAddress = null,
@@ -52,6 +52,9 @@ public class RefreshTokenStore : IRefreshTokenStore
         var expiresAt = rememberMe
             ? DateTime.UtcNow.AddDays(_options.RememberMeDays)
             : DateTime.UtcNow.AddHours(_options.RefreshTokenHours);
+
+        // Calculate expiration in seconds for the response
+        var expiresIn = (int)(expiresAt - DateTime.UtcNow).TotalSeconds;
 
         var refreshToken = new RefreshToken
         {
@@ -74,8 +77,8 @@ public class RefreshTokenStore : IRefreshTokenStore
             rememberMe,
             expiresAt);
 
-        // Return the unhashed token to send to client
-        return rawToken;
+        // Return the result with token and expiration info
+        return new RefreshTokenCreateResult(rawToken, expiresIn, rememberMe);
     }
 
     /// <summary>
