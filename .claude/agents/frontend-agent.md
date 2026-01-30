@@ -30,6 +30,99 @@ All files in `src/frontend/src/features/{module}/`:
 
 Also: `src/frontend/src/shared/` for shared components
 
+## Multi-Tenancy: OrganizationContext
+
+The frontend uses `OrganizationContext` to track the current organization. This is a **core architectural pattern**.
+
+### OrganizationContext Usage
+
+```typescript
+// src/frontend/src/contexts/OrganizationContext.tsx
+interface OrganizationContextValue {
+  currentOrg: CurrentOrganization | null;
+  memberships: UserMembership[];
+  isLoading: boolean;
+  isPending: boolean;  // User has no org membership yet
+  switchOrganization: (orgId: string) => Promise<void>;
+  refreshMemberships: () => void;
+}
+
+// Hook for accessing org context
+export const useOrganization = () => {
+  const context = useContext(OrganizationContext);
+  if (!context) throw new Error('useOrganization must be within OrganizationProvider');
+  return context;
+};
+```
+
+### Using Organization Context in Components
+
+```typescript
+import { useOrganization } from '@/contexts/OrganizationContext';
+
+export const ExerciseList: FC = () => {
+  const { currentOrg, isPending, isLoading } = useOrganization();
+
+  // Handle pending users (no organization yet)
+  if (isPending) {
+    return <PendingUserMessage />;
+  }
+
+  // Handle loading state
+  if (isLoading || !currentOrg) {
+    return <Skeleton />;
+  }
+
+  // Organization context is available
+  return (
+    <Box>
+      <Typography>Exercises for {currentOrg.name}</Typography>
+      {/* Exercise list content */}
+    </Box>
+  );
+};
+```
+
+### OrganizationSwitcher Component
+
+Multi-org users can switch between organizations:
+
+```typescript
+// src/frontend/src/shared/components/OrganizationSwitcher.tsx
+// - Shows current org name
+// - Dropdown for multi-org users
+// - SysAdmins can switch to ANY organization
+// - Shows loading overlay during switch
+```
+
+### Organization-Scoped API Calls
+
+API calls automatically include organization context via JWT:
+
+```typescript
+// The JWT includes org_id claim, so API calls are automatically scoped
+const { data: exercises } = useQuery({
+  queryKey: ['exercises'],  // Cache is per-org due to JWT
+  queryFn: exerciseService.getExercises,
+});
+```
+
+### Handling Org Switches
+
+When organization changes, invalidate org-scoped queries:
+
+```typescript
+const switchOrganization = async (orgId: string) => {
+  await membershipService.setCurrentOrganization(orgId);
+  // Refresh auth to get new JWT with updated org claims
+  await refreshAccessToken();
+  // Invalidate all org-scoped queries
+  queryClient.invalidateQueries();
+  // Reload to ensure clean state
+  window.location.reload();
+};
+```
+
 ## Technology Stack
 
 - **Framework**: React 19 with Vite
@@ -293,7 +386,42 @@ export const exerciseService = {
 };
 ```
 
-## HSEEP Role-Based UI
+## Role-Based UI
+
+Cadence has a three-tier role hierarchy. Use the appropriate context for each:
+
+### Organization Roles (OrgRole)
+
+```tsx
+import { useOrganization } from '@/contexts/OrganizationContext';
+
+const { currentOrg } = useOrganization();
+
+// OrgAdmin-only actions
+{currentOrg?.role === 'OrgAdmin' && (
+  <Button onClick={handleManageMembers}>Manage Members</Button>
+)}
+
+// OrgAdmin or OrgManager actions
+{(currentOrg?.role === 'OrgAdmin' || currentOrg?.role === 'OrgManager') && (
+  <Button onClick={handleCreateExercise}>Create Exercise</Button>
+)}
+```
+
+### System Roles (SystemRole)
+
+```tsx
+import { useAuth } from '@/contexts/AuthContext';
+
+const { user } = useAuth();
+
+// SysAdmin-only UI
+{user?.role === 'Admin' && (
+  <Link to="/admin/organizations">Manage All Organizations</Link>
+)}
+```
+
+### Exercise Roles (ExerciseRole - HSEEP)
 
 ```tsx
 // Use role context for conditional rendering

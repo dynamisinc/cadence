@@ -34,8 +34,28 @@ This project requires Test-Driven Development. The workflow is:
 
 - **Test Framework**: xUnit
 - **Mocking**: Moq
-- **Integration**: WebApplicationFactory
+- **Integration**: WebApplicationFactory (`CadenceWebApplicationFactory`)
 - **Database**: In-memory SQLite for tests
+
+## CRITICAL: Unit Tests vs Integration Tests
+
+**Unit tests bypass DI** - they instantiate services directly and won't catch missing DI registrations:
+
+```csharp
+// Unit test - bypasses DI
+_sut = new ExerciseService(_context, _orgContext, _logger);
+// This works even if ExerciseService is NOT registered in DI!
+```
+
+**Integration tests use the full pipeline** - they catch DI registration issues:
+
+```csharp
+// Integration test - uses CadenceWebApplicationFactory
+var response = await _client.GetAsync("/api/exercises");
+// This fails with 500 if any service in the chain is not registered!
+```
+
+**Rule: For every new controller/service, add integration tests that verify the endpoint doesn't return 500.**
 
 ## Test Naming Conventions
 
@@ -187,6 +207,104 @@ describe("InjectRow", () => {
 });
 ```
 
+## Integration Test Patterns
+
+### CadenceWebApplicationFactory
+
+Use `CadenceWebApplicationFactory` for integration tests:
+
+```csharp
+public class AdminOrganizationsControllerIntegrationTests : IClassFixture<CadenceWebApplicationFactory>
+{
+    private readonly CadenceWebApplicationFactory _factory;
+    private readonly HttpClient _client;
+
+    public AdminOrganizationsControllerIntegrationTests(CadenceWebApplicationFactory factory)
+    {
+        _factory = factory;
+        _client = factory.CreateClient();
+    }
+
+    [Fact]
+    public async Task GET_Organizations_WithAdminToken_DoesNotThrow500()
+    {
+        // Arrange - get authenticated client
+        var (factory, client, _, _) = await GetAuthenticatedAdminClientAsync();
+        using var _ = factory;
+
+        // Act
+        var response = await client.GetAsync("/api/admin/organizations");
+
+        // Assert - 500 indicates DI registration failure
+        response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
+            "500 error indicates DI registration failure - check ServiceCollectionExtensions");
+    }
+}
+```
+
+### Testing Org-Scoped Services (Unit Tests)
+
+Mock `ICurrentOrganizationContext` for unit tests:
+
+```csharp
+public class ExerciseServiceTests
+{
+    private readonly Mock<ICurrentOrganizationContext> _mockOrgContext;
+    private readonly Guid _testOrgId = Guid.NewGuid();
+
+    public ExerciseServiceTests()
+    {
+        _mockOrgContext = new Mock<ICurrentOrganizationContext>();
+        _mockOrgContext.Setup(x => x.OrganizationId).Returns(_testOrgId);
+        _mockOrgContext.Setup(x => x.HasOrganization).Returns(true);
+        _mockOrgContext.Setup(x => x.OrganizationRole).Returns("OrgAdmin");
+
+        _sut = new ExerciseService(_context, _mockOrgContext.Object, _logger);
+    }
+
+    [Fact]
+    public async Task GetExercises_FiltersBy_OrganizationId()
+    {
+        // Arrange - create exercises in different orgs
+        var myOrgExercise = new Exercise { OrganizationId = _testOrgId };
+        var otherOrgExercise = new Exercise { OrganizationId = Guid.NewGuid() };
+
+        // Act
+        var result = await _sut.GetExercisesAsync();
+
+        // Assert - only returns exercises for current org
+        result.Should().Contain(e => e.Id == myOrgExercise.Id);
+        result.Should().NotContain(e => e.Id == otherOrgExercise.Id);
+    }
+
+    [Fact]
+    public async Task CreateExercise_SetsOrganizationId_FromContext()
+    {
+        // Act
+        var result = await _sut.CreateExerciseAsync(userId, request);
+
+        // Assert
+        result.OrganizationId.Should().Be(_testOrgId);
+    }
+}
+```
+
+### Frontend: Mocking OrganizationContext
+
+```typescript
+// Mock the organization context for component tests
+vi.mock('@/contexts/OrganizationContext', () => ({
+  useOrganization: vi.fn().mockReturnValue({
+    currentOrg: { id: '1', name: 'Test Org', role: 'OrgAdmin' },
+    memberships: [],
+    isLoading: false,
+    isPending: false,
+    switchOrganization: vi.fn(),
+    refreshMemberships: vi.fn(),
+  }),
+}));
+```
+
 ## Test Coverage Requirements
 
 | Area | Target | Notes |
@@ -195,6 +313,7 @@ describe("InjectRow", () => {
 | Controllers | 80%+ | Happy path + error handling |
 | Components | 80%+ | Rendering + interactions |
 | Hooks | 80%+ | State changes + side effects |
+| **Integration** | **Key paths** | **DI registration, auth flows** |
 
 ## Running Tests
 

@@ -86,6 +86,110 @@ Backend feature code in `src/Cadence.Core/Features/{Module}/`:
 
 Controllers go in `src/Cadence.WebApi/Controllers/`
 
+## Multi-Tenancy: Organization Context
+
+All org-scoped services MUST use `ICurrentOrganizationContext` to access the current organization.
+
+### ICurrentOrganizationContext Interface
+
+```csharp
+// Defined in Cadence.Core/Hubs/ICurrentOrganizationContext.cs
+public interface ICurrentOrganizationContext
+{
+    Guid? OrganizationId { get; }
+    string? OrganizationRole { get; }  // OrgAdmin, OrgManager, OrgUser
+    bool HasOrganization { get; }
+}
+```
+
+### Org-Scoped Service Pattern
+
+```csharp
+public class ExerciseService : IExerciseService
+{
+    private readonly AppDbContext _context;
+    private readonly ICurrentOrganizationContext _orgContext;
+    private readonly ILogger<ExerciseService> _logger;
+
+    public ExerciseService(
+        AppDbContext context,
+        ICurrentOrganizationContext orgContext,
+        ILogger<ExerciseService> logger)
+    {
+        _context = context;
+        _orgContext = orgContext;
+        _logger = logger;
+    }
+
+    public async Task<IEnumerable<ExerciseDto>> GetExercisesAsync(CancellationToken ct = default)
+    {
+        // ALWAYS filter by organization
+        if (!_orgContext.HasOrganization)
+            throw new UnauthorizedException("Organization context required");
+
+        return await _context.Exercises
+            .AsNoTracking()
+            .Where(e => e.OrganizationId == _orgContext.OrganizationId)
+            .OrderByDescending(e => e.UpdatedAt)
+            .Select(e => e.ToDto())
+            .ToListAsync(ct);
+    }
+
+    public async Task<ExerciseDto> CreateExerciseAsync(
+        Guid userId,
+        CreateExerciseRequest request,
+        CancellationToken ct = default)
+    {
+        if (!_orgContext.HasOrganization)
+            throw new UnauthorizedException("Organization context required");
+
+        var exercise = new Exercise
+        {
+            Id = Guid.NewGuid(),
+            OrganizationId = _orgContext.OrganizationId!.Value,  // Set org from context
+            Name = request.Name,
+            Type = request.Type,
+            CreatedById = userId
+        };
+
+        _context.Exercises.Add(exercise);
+        await _context.SaveChangesAsync(ct);
+
+        return exercise.ToDto();
+    }
+}
+```
+
+### JWT Claims for Organization
+
+Organization context comes from JWT claims:
+
+```csharp
+// Claims added by JwtTokenService
+{
+    "sub": "user-guid",
+    "email": "user@example.com",
+    "role": "User",           // SystemRole
+    "org_id": "org-guid",     // Current organization (nullable)
+    "org_role": "OrgAdmin"    // Role in current org (nullable)
+}
+
+// Extracted in CurrentOrganizationContext (WebApi/Services/)
+public class CurrentOrganizationContext : ICurrentOrganizationContext
+{
+    public Guid? OrganizationId => // from "org_id" claim
+    public string? OrganizationRole => // from "org_role" claim
+}
+```
+
+### Authorization by Org Role
+
+```csharp
+// Check org role for authorization
+if (_orgContext.OrganizationRole != "OrgAdmin" && _orgContext.OrganizationRole != "OrgManager")
+    throw new ForbiddenException("Only org admins and managers can perform this action");
+```
+
 ## HSEEP Domain Context
 
 Cadence is a HSEEP-compliant MSEL management platform. Key domain terms:
@@ -373,12 +477,43 @@ await _hubContext.NotifyInjectStatusChanged(exerciseId, injectId, status);
 Add services in `ServiceCollectionExtensions.cs`:
 
 ```csharp
-public static IServiceCollection AddExerciseServices(this IServiceCollection services)
+public static IServiceCollection AddApplicationServices(this IServiceCollection services)
 {
+    // Organization services (CORE - required for multi-tenancy)
+    services.AddScoped<IOrganizationService, OrganizationService>();
+    services.AddScoped<IMembershipService, MembershipService>();
+
+    // Feature services
     services.AddScoped<IExerciseService, ExerciseService>();
     services.AddScoped<IInjectService, InjectService>();
     services.AddScoped<IMselService, MselService>();
     return services;
+}
+```
+
+**CRITICAL:** Every new service interface MUST be registered in DI. Unit tests bypass DI, so missing registrations only surface in integration tests or production.
+
+### Integration Tests Catch DI Issues
+
+Unit tests instantiate services directly and won't catch missing DI registrations:
+
+```csharp
+// Unit test - bypasses DI (won't catch registration issues)
+_sut = new ExerciseService(_context, _orgContext, _logger);
+```
+
+Integration tests use the full pipeline and WILL catch DI issues:
+
+```csharp
+// Integration test - uses WebApplicationFactory (catches DI issues)
+[Fact]
+public async Task GET_Exercises_DoesNotThrow500()
+{
+    var response = await _client.GetAsync("/api/exercises");
+
+    // 500 error indicates DI registration failure
+    response.StatusCode.Should().NotBe(HttpStatusCode.InternalServerError,
+        "500 error indicates DI registration failure - check ServiceCollectionExtensions");
 }
 ```
 

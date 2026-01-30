@@ -15,6 +15,7 @@ This project has strict database patterns that MUST be followed. All user-create
 2. Use soft delete (never permanent delete from user code)
 3. Have automatic timestamps
 4. Use `datetime2` column type
+5. **Include `OrganizationId` if organization-scoped** (see Multi-Tenancy section)
 
 ## Your Domain
 
@@ -62,6 +63,95 @@ public abstract class BaseEntity : IHasTimestamps, ISoftDeletable
     public Guid? DeletedBy { get; set; }
 }
 ```
+
+## Multi-Tenancy: Organization-Scoped Entities
+
+Cadence uses **Organization** as the primary data isolation boundary. Most domain entities belong to an organization.
+
+### IOrganizationScoped Interface
+
+Entities that belong to an organization MUST implement this interface:
+
+```csharp
+public interface IOrganizationScoped
+{
+    Guid OrganizationId { get; set; }
+    Organization Organization { get; set; }
+}
+```
+
+### Organization-Scoped Entity Pattern
+
+```csharp
+// Example: Exercise belongs to an organization
+public class Exercise : BaseEntity, IOrganizationScoped
+{
+    // Organization scope - REQUIRED for org-scoped entities
+    public Guid OrganizationId { get; set; }
+    public Organization Organization { get; set; } = null!;
+
+    // Entity-specific properties
+    [Required]
+    [MaxLength(200)]
+    public string Name { get; set; } = string.Empty;
+
+    // ... other properties
+}
+```
+
+### Entities That Are NOT Org-Scoped
+
+These entities exist at the platform level:
+
+| Entity | Reason |
+|--------|--------|
+| `ApplicationUser` | Users can belong to multiple organizations |
+| `Organization` | The organization itself |
+| `OrganizationMembership` | Links users to organizations |
+| `OrganizationInvite` | Pending invitations |
+| `Agency` | Reference data shared across orgs |
+
+### Entities That ARE Org-Scoped
+
+| Entity | Scoping |
+|--------|---------|
+| `Exercise` | Direct `OrganizationId` FK |
+| `Msel` | Via `Exercise.OrganizationId` |
+| `Inject` | Via `Msel.Exercise.OrganizationId` |
+| `ExerciseUser` | Via `Exercise.OrganizationId` |
+| `Observation` | Via `Exercise.OrganizationId` |
+
+### OrganizationValidationInterceptor
+
+Write-side protection is enforced by `OrganizationValidationInterceptor`:
+
+```csharp
+// Registered in ServiceCollectionExtensions.AddDatabase()
+services.AddSingleton<OrganizationValidationInterceptor>();
+options.AddInterceptors(orgValidationInterceptor);
+```
+
+This interceptor:
+- Validates `OrganizationId` is set on new org-scoped entities
+- Prevents cross-organization data access on updates
+- Logs violations for security auditing
+
+### DbContext Organization Configuration
+
+```csharp
+// Add index on OrganizationId for org-scoped entities
+modelBuilder.Entity<Exercise>()
+    .HasIndex(e => e.OrganizationId);
+
+// Configure cascade delete behavior
+modelBuilder.Entity<Exercise>()
+    .HasOne(e => e.Organization)
+    .WithMany(o => o.Exercises)
+    .HasForeignKey(e => e.OrganizationId)
+    .OnDelete(DeleteBehavior.Restrict); // Prevent accidental org deletion
+```
+
+---
 
 ## Cadence Domain Entities
 

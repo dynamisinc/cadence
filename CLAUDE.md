@@ -8,20 +8,21 @@
 
 1. [Project Overview](#project-overview)
 2. [Tech Stack & Architecture](#tech-stack--architecture)
-3. [Project Structure](#project-structure)
-4. [TDD Workflow (MANDATORY)](#tdd-workflow-mandatory)
-5. [Agent Routing](#agent-routing)
-6. [HSEEP Domain Reference](#hseep-domain-reference)
-7. [Development Phases](#development-phases)
-8. [User Story Reference](#user-story-reference)
-9. [Database Patterns](#database-patterns)
-10. [Development Environment](#development-environment)
-11. [Code Conventions & Standards](#code-conventions--standards)
-12. [COBRA Styling System](#cobra-styling-system)
-13. [Adding New Features](#adding-new-features)
-14. [Real-Time Events](#real-time-events)
-15. [Azure Deployment](#azure-deployment)
-16. [FAQ for AI Assistants](#faq-for-ai-assistants)
+3. [Multi-Tenancy Architecture](#multi-tenancy-architecture)
+4. [Project Structure](#project-structure)
+5. [TDD Workflow (MANDATORY)](#tdd-workflow-mandatory)
+6. [Agent Routing](#agent-routing)
+7. [HSEEP Domain Reference](#hseep-domain-reference)
+8. [Development Phases](#development-phases)
+9. [User Story Reference](#user-story-reference)
+10. [Database Patterns](#database-patterns)
+11. [Development Environment](#development-environment)
+12. [Code Conventions & Standards](#code-conventions--standards)
+13. [COBRA Styling System](#cobra-styling-system)
+14. [Adding New Features](#adding-new-features)
+15. [Real-Time Events](#real-time-events)
+16. [Azure Deployment](#azure-deployment)
+17. [FAQ for AI Assistants](#faq-for-ai-assistants)
 
 ---
 
@@ -149,6 +150,152 @@ This separation keeps Core testable and follows Dependency Inversion Principle.
 
 ---
 
+## Multi-Tenancy Architecture
+
+Cadence uses **Organization** as the primary security and data isolation boundary. All user data is scoped to organizations.
+
+### Three-Tier Role Hierarchy
+
+| Tier | Role Type | Scope | Examples |
+|------|-----------|-------|----------|
+| **System** | `SystemRole` | Platform-wide | `Admin`, `Manager`, `User` |
+| **Organization** | `OrgRole` | Per-organization | `OrgAdmin`, `OrgManager`, `OrgUser` |
+| **Exercise** | `ExerciseRole` | Per-exercise | `ExerciseDirector`, `Controller`, `Evaluator`, `Observer` |
+
+**SystemRole** (in `ApplicationUser.Role`):
+- `Admin` - Platform administrators (SysAdmins). Can manage all organizations.
+- `Manager` - Can create organizations, manage users across orgs they belong to.
+- `User` - Standard user, must belong to an organization.
+
+**OrgRole** (in `OrganizationMembership.Role`):
+- `OrgAdmin` - Full control of organization settings and members.
+- `OrgManager` - Can manage exercises and invite members.
+- `OrgUser` - Can participate in exercises.
+
+**ExerciseRole** (in `ExerciseUser.Role`):
+- HSEEP roles assigned per-exercise (see HSEEP Domain Reference).
+
+### Organization Context
+
+#### Backend: ICurrentOrganizationContext
+
+All org-scoped services inject `ICurrentOrganizationContext` to access the current organization:
+
+```csharp
+// Interface in Cadence.Core/Hubs/
+public interface ICurrentOrganizationContext
+{
+    Guid? OrganizationId { get; }
+    string? OrganizationRole { get; }
+    bool HasOrganization { get; }
+}
+
+// Usage in services
+public class ExerciseService : IExerciseService
+{
+    private readonly ICurrentOrganizationContext _orgContext;
+
+    public async Task<IEnumerable<ExerciseDto>> GetExercisesAsync()
+    {
+        if (!_orgContext.HasOrganization)
+            throw new UnauthorizedException("Organization context required");
+
+        return await _context.Exercises
+            .Where(e => e.OrganizationId == _orgContext.OrganizationId)
+            .ToListAsync();
+    }
+}
+```
+
+#### Frontend: OrganizationContext
+
+The frontend uses `OrganizationContext` to track the current organization:
+
+```typescript
+// src/frontend/src/contexts/OrganizationContext.tsx
+interface OrganizationContextValue {
+  currentOrg: CurrentOrganization | null;
+  memberships: UserMembership[];
+  isLoading: boolean;
+  isPending: boolean;  // User has no org membership yet
+  switchOrganization: (orgId: string) => Promise<void>;
+  refreshMemberships: () => void;
+}
+
+// Usage in components
+const { currentOrg, switchOrganization } = useOrganization();
+```
+
+### JWT Claims Structure
+
+Organization context is included in JWT tokens:
+
+```json
+{
+  "sub": "user-guid",
+  "email": "user@example.com",
+  "role": "User",           // SystemRole
+  "org_id": "org-guid",     // Current organization (nullable)
+  "org_role": "OrgAdmin"    // Role in current org (nullable)
+}
+```
+
+### Data Isolation Patterns
+
+#### Read-Side: Query Filters
+
+Services filter queries by organization:
+
+```csharp
+// All queries include organization filter
+var exercises = await _context.Exercises
+    .Where(e => e.OrganizationId == _orgContext.OrganizationId)
+    .ToListAsync();
+```
+
+#### Write-Side: Validation Interceptor
+
+`OrganizationValidationInterceptor` ensures entities have correct OrganizationId:
+
+```csharp
+// Registered in ServiceCollectionExtensions.AddDatabase()
+services.AddSingleton<OrganizationValidationInterceptor>();
+options.AddInterceptors(orgValidationInterceptor);
+```
+
+### Organization-Scoped Entities
+
+Entities that belong to an organization implement `IOrganizationScoped`:
+
+```csharp
+public interface IOrganizationScoped
+{
+    Guid OrganizationId { get; set; }
+    Organization Organization { get; set; }
+}
+
+// Example entity
+public class Exercise : BaseEntity, IOrganizationScoped
+{
+    public Guid OrganizationId { get; set; }
+    public Organization Organization { get; set; } = null!;
+    // ... other properties
+}
+```
+
+### Key Files
+
+| Purpose | Backend | Frontend |
+|---------|---------|----------|
+| Context Interface | `Core/Hubs/ICurrentOrganizationContext.cs` | - |
+| Context Implementation | `WebApi/Services/CurrentOrganizationContext.cs` | - |
+| React Context | - | `contexts/OrganizationContext.tsx` |
+| Org Switcher | - | `shared/components/OrganizationSwitcher.tsx` |
+| Services | `Core/Features/Organizations/Services/` | `features/organizations/services/` |
+| Interceptor | `Core/Data/Interceptors/OrganizationValidationInterceptor.cs` | - |
+
+---
+
 ## Project Structure
 
 ```
@@ -203,6 +350,7 @@ cadence/
 │   │   ├── Migrations/
 │   │   │
 │   │   ├── Features/           # Feature modules (backend)
+│   │   │   ├── Organizations/  # Multi-tenancy (CORE)
 │   │   │   ├── Exercises/
 │   │   │   ├── Injects/
 │   │   │   ├── Observations/
@@ -232,6 +380,7 @@ cadence/
 │           │       └── useSignalR.ts
 │           │
 │           ├── features/       # Feature modules (frontend)
+│           │   ├── organizations/  # Multi-tenancy (CORE)
 │           │   ├── exercises/
 │           │   ├── injects/
 │           │   ├── observations/
@@ -239,6 +388,7 @@ cadence/
 │           │
 │           ├── contexts/
 │           │   ├── AuthContext.tsx
+│           │   ├── OrganizationContext.tsx  # Multi-tenancy (CORE)
 │           │   └── ExerciseContext.tsx
 │           │
 │           ├── theme/          # COBRA styling
@@ -450,11 +600,11 @@ All user-created entities inherit from `BaseEntity`:
 public abstract class BaseEntity : IHasTimestamps, ISoftDeletable
 {
     public Guid Id { get; set; }
-    
+
     // IHasTimestamps - Set automatically by DbContext
     public DateTime CreatedAt { get; set; }
     public DateTime UpdatedAt { get; set; }
-    
+
     // ISoftDeletable - Use soft delete for all user data
     public bool IsDeleted { get; set; }
     public DateTime? DeletedAt { get; set; }
@@ -462,16 +612,46 @@ public abstract class BaseEntity : IHasTimestamps, ISoftDeletable
 }
 ```
 
+### MANDATORY: Organization-Scoped Entities
+
+**All domain entities that belong to an organization MUST include OrganizationId:**
+
+```csharp
+// Interface for org-scoped entities
+public interface IOrganizationScoped
+{
+    Guid OrganizationId { get; set; }
+    Organization Organization { get; set; }
+}
+
+// Example: Exercise is org-scoped
+public class Exercise : BaseEntity, IOrganizationScoped
+{
+    public Guid OrganizationId { get; set; }
+    public Organization Organization { get; set; } = null!;
+
+    // ... other properties
+}
+```
+
+**Entities that are NOT org-scoped:**
+- `ApplicationUser` - Users can belong to multiple organizations
+- `Organization` - The organization itself
+- `OrganizationMembership` - Links users to organizations
+- `OrganizationInvite` - Pending invitations
+
 ### Core Entities
 
-| Entity | Purpose |
-|--------|---------|
-| `Exercise` | Main container for an exercise |
-| `Msel` | Master Scenario Events List |
-| `Inject` | Single scenario event |
-| `ExerciseUser` | Role assignment per exercise |
-| `ExercisePhase` | Time segment of exercise |
-| `Observation` | Evaluator notes |
+| Entity | Purpose | Org-Scoped |
+|--------|---------|------------|
+| `Organization` | Tenant container | No |
+| `OrganizationMembership` | User-org relationship | No |
+| `Exercise` | Main container for an exercise | **Yes** |
+| `Msel` | Master Scenario Events List | Via Exercise |
+| `Inject` | Single scenario event | Via Msel |
+| `ExerciseUser` | Role assignment per exercise | Via Exercise |
+| `ExercisePhase` | Time segment of exercise | Via Exercise |
+| `Observation` | Evaluator notes | Via Exercise |
 
 ### DbContext Configuration
 
@@ -480,6 +660,7 @@ The DbContext MUST include:
 1. **Automatic timestamps** via `SaveChanges` override
 2. **Global `datetime2`** column type for all DateTime properties
 3. **Global soft delete** query filters
+4. **Organization validation interceptor** for write-side protection
 
 ---
 
@@ -782,7 +963,22 @@ A: Use Azure SignalR Service. Backend: Inject `IExerciseHubContext` (from Core).
 A: Interface (`IExerciseHubContext`) in `Cadence.Core/Hubs/` - no SignalR dependency. Implementation (`ExerciseHub`, `ExerciseHubContext`) in `Cadence.WebApi/Hubs/`.
 
 **Q: What are the user roles?**
-A: HSEEP roles: Administrator, Exercise Director, Controller, Evaluator, Observer. Roles are assigned per-exercise (except Administrator which is system-wide).
+A: Cadence has a three-tier role hierarchy:
+1. **SystemRole** (platform-wide): Admin, Manager, User
+2. **OrgRole** (per-organization): OrgAdmin, OrgManager, OrgUser
+3. **ExerciseRole** (per-exercise): ExerciseDirector, Controller, Evaluator, Observer
+
+**Q: How does multi-tenancy work?**
+A: Organization is the primary security boundary. All domain entities (Exercise, Inject, etc.) belong to an organization via `OrganizationId`. Backend services use `ICurrentOrganizationContext` to access the current org. Frontend uses `OrganizationContext` and `useOrganization` hook.
+
+**Q: How do I create an org-scoped entity?**
+A: Implement `IOrganizationScoped` interface and add `OrganizationId` FK. The `OrganizationValidationInterceptor` ensures the correct org ID is set on save.
+
+**Q: How is organization context passed to the backend?**
+A: JWT tokens include `org_id` and `org_role` claims. The `CurrentOrganizationContext` service extracts these from the HTTP context. Services inject `ICurrentOrganizationContext` to access them.
+
+**Q: What about users without an organization?**
+A: New users start in "pending" status until added to an organization. The frontend shows a pending state, and org-scoped API calls will fail until they have membership.
 
 **Q: How is time tracked?**
 A: Dual time: Scenario Time (within the exercise story) and Wall Clock (actual delivery time). Both are recorded when an inject is fired.
@@ -799,6 +995,7 @@ A: Use `npm run type-check` or `npm run build:check` instead of `npm run build`.
 
 | Date       | Version | Changes |
 |------------|---------|---------|
+| 2026-01-30 | 1.1.0   | Added Multi-Tenancy Architecture section, org-scoped entity patterns, three-tier role hierarchy |
 | 2025-01-09 | 1.0.0   | Initial Cadence CLAUDE.md - HSEEP MSEL platform |
 
 ---
