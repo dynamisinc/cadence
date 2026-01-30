@@ -45,4 +45,7 @@ public class CurrentOrganizationContext : ICurrentOrganizationContext
             return systemRoleClaim == SystemRole.Admin.ToString();
         }
     }
+
+    /// <inheritdoc />
+    public bool HasContext => _httpContextAccessor.HttpContext != null;
 }

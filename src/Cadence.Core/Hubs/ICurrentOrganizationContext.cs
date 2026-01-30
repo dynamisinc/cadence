@@ -26,4 +26,11 @@ public interface ICurrentOrganizationContext
     /// System admins bypass organization-level restrictions.
     /// </summary>
     bool IsSysAdmin { get; }
+
+    /// <summary>
+    /// Gets whether there is an active request context.
+    /// Returns false during seeding, migrations, or background jobs without user context.
+    /// When false, organization validation should be skipped.
+    /// </summary>
+    bool HasContext { get; }
 }

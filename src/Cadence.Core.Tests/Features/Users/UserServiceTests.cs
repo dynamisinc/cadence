@@ -37,6 +37,7 @@ public class UserServiceTests
 
         // Default: SysAdmin so tests bypass org filtering
         _orgContextMock.Setup(x => x.IsSysAdmin).Returns(true);
+        _orgContextMock.Setup(x => x.HasContext).Returns(true); // Simulate HTTP context exists
     }
 
     private (AppDbContext context, Organization org) CreateTestContext()

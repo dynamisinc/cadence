@@ -80,6 +80,13 @@ public class OrganizationValidationInterceptor : SaveChangesInterceptor
             return;
         }
 
+        // If no HTTP context (seeding, background jobs), skip validation
+        // This allows data seeding to run without user authentication
+        if (!orgContext.HasContext)
+        {
+            return;
+        }
+
         // SysAdmins can modify any organization's data
         if (orgContext.IsSysAdmin)
         {

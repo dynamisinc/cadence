@@ -41,6 +41,7 @@ public class OrganizationIsolationTests : IDisposable
         orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(currentOrgId);
         orgContextMock.Setup(x => x.IsSysAdmin).Returns(isSysAdmin);
         orgContextMock.Setup(x => x.CurrentOrgRole).Returns(currentOrgId.HasValue ? OrgRole.OrgAdmin : null);
+        orgContextMock.Setup(x => x.HasContext).Returns(true); // Simulate HTTP context exists
 
         var options = new DbContextOptionsBuilder<AppDbContext>()
             .UseInMemoryDatabase(_dbName)

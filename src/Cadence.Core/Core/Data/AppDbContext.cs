@@ -58,12 +58,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     /// <summary>
     /// Determines if org filters should be bypassed entirely.
-    /// Returns true when: no org context service (tests/design-time/migrations) or SysAdmin.
+    /// Returns true when: no org context service (tests/design-time/migrations), no HTTP context (seeding), or SysAdmin.
     /// When false, filters by OrgIdForFilter - users without org context see nothing.
     /// </summary>
     private bool BypassOrgFilter =>
-        _orgContext == null ||  // No service (tests, design-time, migrations)
-        _orgContext.IsSysAdmin; // SysAdmin sees all
+        _orgContext == null ||     // No service (tests, design-time, migrations)
+        !_orgContext.HasContext || // No HTTP context (seeding, background jobs)
+        _orgContext.IsSysAdmin;    // SysAdmin sees all
 
     /// <summary>
     /// Gets the organization ID to filter by, or Guid.Empty if user has no org.
