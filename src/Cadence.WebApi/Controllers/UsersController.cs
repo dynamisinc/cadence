@@ -1,6 +1,9 @@
 using System.Security.Claims;
+using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
+using Cadence.Core.Features.Organizations.Models.DTOs;
+using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Models.Entities;
@@ -21,15 +24,24 @@ public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
     private readonly IExerciseParticipantService _exerciseParticipantService;
+    private readonly IMembershipService _membershipService;
+    private readonly IOrganizationService _organizationService;
+    private readonly ITokenService _tokenService;
     private readonly ILogger<UsersController> _logger;
 
     public UsersController(
         IUserService userService,
         IExerciseParticipantService exerciseParticipantService,
+        IMembershipService membershipService,
+        IOrganizationService organizationService,
+        ITokenService tokenService,
         ILogger<UsersController> logger)
     {
         _userService = userService;
         _exerciseParticipantService = exerciseParticipantService;
+        _membershipService = membershipService;
+        _organizationService = organizationService;
+        _tokenService = tokenService;
         _logger = logger;
     }
 
@@ -269,6 +281,97 @@ public class UsersController : ControllerBase
             assignments.Count(), userId);
 
         return Ok(assignments);
+    }
+
+    /// <summary>
+    /// Get the current user's organization memberships.
+    /// Any authenticated user can access their own memberships.
+    /// </summary>
+    [HttpGet("me/organizations")]
+    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
+    [ProducesResponseType(typeof(UserOrganizationsResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> GetMyOrganizations()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var memberships = await _membershipService.GetUserMembershipsAsync(userId);
+        var currentOrgIdClaim = User.FindFirst("org_id")?.Value;
+        Guid? currentOrgId = !string.IsNullOrEmpty(currentOrgIdClaim) && Guid.TryParse(currentOrgIdClaim, out var id)
+            ? id
+            : null;
+
+        _logger.LogInformation(
+            "User {UserId} retrieved {Count} organization memberships",
+            userId, memberships.Count());
+
+        return Ok(new UserOrganizationsResponse(currentOrgId, memberships));
+    }
+
+    /// <summary>
+    /// Switch the current user's organization context.
+    /// Returns a new JWT with updated org_id and org_role claims.
+    /// SysAdmins can switch to any organization (they get OrgAdmin access).
+    /// </summary>
+    [HttpPost("current-organization")]
+    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
+    [ProducesResponseType(typeof(SwitchOrganizationResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> SwitchOrganization([FromBody] SwitchOrganizationRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        // Check if user is a SysAdmin
+        var systemRoleClaim = User.FindFirst("SystemRole")?.Value;
+        var isSysAdmin = systemRoleClaim == SystemRole.Admin.ToString();
+
+        // Verify user has membership in target organization (or is SysAdmin)
+        var role = await _membershipService.GetUserRoleInOrganizationAsync(userId, request.OrganizationId);
+
+        if (role == null && !isSysAdmin)
+        {
+            _logger.LogWarning(
+                "User {UserId} attempted to switch to organization {OrgId} without membership",
+                userId, request.OrganizationId);
+            return Forbid();
+        }
+
+        // SysAdmins without membership get OrgAdmin access
+        var effectiveRole = role ?? OrgRole.OrgAdmin;
+
+        // Get organization details for response
+        var org = await _organizationService.GetByIdAsync(request.OrganizationId);
+        if (org == null)
+        {
+            return NotFound(new { message = "Organization not found" });
+        }
+
+        // Update user's current organization
+        await _userService.UpdateCurrentOrganizationAsync(userId, request.OrganizationId);
+
+        // Generate new token with updated org claims
+        var userInfo = await _userService.GetUserInfoAsync(userId);
+        var (token, _) = _tokenService.GenerateAccessToken(userInfo, request.OrganizationId, effectiveRole.ToString());
+
+        _logger.LogInformation(
+            "User {UserId} switched to organization {OrgId} ({OrgName}) with role {Role} (SysAdmin: {IsSysAdmin})",
+            userId, request.OrganizationId, org.Name, effectiveRole, isSysAdmin);
+
+        return Ok(new SwitchOrganizationResponse(
+            request.OrganizationId,
+            org.Name,
+            effectiveRole.ToString(),
+            token
+        ));
     }
 
     /// <summary>

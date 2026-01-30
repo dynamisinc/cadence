@@ -47,6 +47,13 @@ public class ApplicationUser : IdentityUser
     /// </summary>
     public Guid OrganizationId { get; set; }
 
+    /// <summary>
+    /// Current active organization context for the user.
+    /// Used for multi-organization membership - determines which org's data is visible.
+    /// Null if user has no organization assignments.
+    /// </summary>
+    public Guid? CurrentOrganizationId { get; set; }
+
     // =========================================================================
     // Navigation Properties
     // =========================================================================
@@ -55,6 +62,16 @@ public class ApplicationUser : IdentityUser
     /// The organization this user belongs to.
     /// </summary>
     public Organization Organization { get; set; } = null!;
+
+    /// <summary>
+    /// The current active organization context.
+    /// </summary>
+    public Organization? CurrentOrganization { get; set; }
+
+    /// <summary>
+    /// All organization memberships for this user (supports multi-org access).
+    /// </summary>
+    public ICollection<OrganizationMembership> Memberships { get; set; } = new List<OrganizationMembership>();
 
     /// <summary>
     /// The user who created this account.

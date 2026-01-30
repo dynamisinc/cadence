@@ -13,12 +13,14 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
+import { OrganizationProvider } from './contexts/OrganizationContext'
 import { ExerciseNavigationProvider } from './shared/contexts'
 import { UserPreferencesProvider } from './features/settings'
 import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
+import { PendingUserPage } from './pages/PendingUserPage'
 import {
   ExerciseListPage,
   CreateExercisePage,
@@ -46,6 +48,11 @@ import {
 import { UserListPage } from './features/users'
 import { CapabilityLibraryPage } from './features/capabilities'
 import { MyAssignmentsPage } from './features/assignments'
+import {
+  OrganizationListPage,
+  CreateOrganizationPage,
+  EditOrganizationPage,
+} from './features/organizations'
 import { NotificationToastProvider } from './features/notifications'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
@@ -207,6 +214,9 @@ const router = createBrowserRouter([
         element: <UserSettingsPage />,
       },
 
+      // Pending user page (no organization assigned)
+      { path: 'pending', element: <PendingUserPage /> },
+
       // Exercise list and create (no context needed)
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
@@ -264,6 +274,30 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'admin/organizations',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <OrganizationListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/organizations/new',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <CreateOrganizationPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/organizations/:id',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <EditOrganizationPage />
+          </ProtectedRoute>
+        ),
+      },
 
       // 404 page - explicit route
       { path: 'not-found', element: <NotFoundPage /> },
@@ -290,11 +324,13 @@ function App() {
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
         <AuthProvider>
-          {/* User preferences provider loads after auth */}
-          <UserPreferencesProvider>
-            {/* ThemedApp applies dynamic theme based on user preferences */}
-            <ThemedApp>
-              <ExerciseNavigationProvider>
+          {/* Organization provider loads after auth */}
+          <OrganizationProvider>
+            {/* User preferences provider loads after auth */}
+            <UserPreferencesProvider>
+              {/* ThemedApp applies dynamic theme based on user preferences */}
+              <ThemedApp>
+                <ExerciseNavigationProvider>
                 <ConnectivityProvider>
                   <OfflineSyncProvider>
                     <MobileBlocker>
@@ -312,6 +348,7 @@ function App() {
               </ExerciseNavigationProvider>
             </ThemedApp>
           </UserPreferencesProvider>
+          </OrganizationProvider>
         </AuthProvider>
 
         <ToastContainer

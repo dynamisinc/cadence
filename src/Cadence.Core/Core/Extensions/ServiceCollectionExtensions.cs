@@ -13,6 +13,7 @@ using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
 using FluentValidation;
 
@@ -56,6 +57,8 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICapabilityService, CapabilityService>();
         services.AddSingleton<IPredefinedLibraryProvider, PredefinedLibraryProvider>();
         services.AddScoped<ICapabilityImportService, CapabilityImportService>();
+        services.AddScoped<IOrganizationService, OrganizationService>();
+        services.AddScoped<IMembershipService, MembershipService>();
 
         return services;
     }

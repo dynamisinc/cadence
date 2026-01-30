@@ -2,6 +2,7 @@ namespace Cadence.Core.Models.Entities;
 
 /// <summary>
 /// Organization entity - parent container for users and exercises.
+/// Provides multi-tenancy and data isolation.
 /// </summary>
 public class Organization : BaseEntity
 {
@@ -11,9 +12,25 @@ public class Organization : BaseEntity
     public string Name { get; set; } = string.Empty;
 
     /// <summary>
+    /// URL-safe slug for organization identification.
+    /// Used in URLs and API routes.
+    /// </summary>
+    public string Slug { get; set; } = string.Empty;
+
+    /// <summary>
     /// Organization description.
     /// </summary>
     public string? Description { get; set; }
+
+    /// <summary>
+    /// Contact email for organization administration.
+    /// </summary>
+    public string? ContactEmail { get; set; }
+
+    /// <summary>
+    /// Organization lifecycle status.
+    /// </summary>
+    public OrgStatus Status { get; set; } = OrgStatus.Active;
 
     // =========================================================================
     // Navigation Properties
@@ -28,4 +45,19 @@ public class Organization : BaseEntity
     /// Exercises owned by this organization.
     /// </summary>
     public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();
+
+    /// <summary>
+    /// Memberships - users assigned to this organization with specific roles.
+    /// </summary>
+    public ICollection<OrganizationMembership> Memberships { get; set; } = new List<OrganizationMembership>();
+
+    /// <summary>
+    /// Invites for users to join this organization.
+    /// </summary>
+    public ICollection<OrganizationInvite> Invites { get; set; } = new List<OrganizationInvite>();
+
+    /// <summary>
+    /// Agencies participating in exercises within this organization.
+    /// </summary>
+    public ICollection<Agency> Agencies { get; set; } = new List<Agency>();
 }

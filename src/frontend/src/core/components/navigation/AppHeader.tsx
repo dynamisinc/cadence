@@ -19,6 +19,7 @@ import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { ProfileMenu } from '../ProfileMenu'
 import { ConnectionStatusIndicator } from '../ConnectionStatusIndicator'
 import { NotificationBell } from '@/features/notifications'
+import { OrganizationSwitcher } from '@/shared/components/OrganizationSwitcher'
 
 interface AppHeaderProps {
   onMobileMenuToggle: () => void;
@@ -89,6 +90,11 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         >
           Cadence
         </Typography>
+
+        {/* Organization Switcher */}
+        <Box sx={{ mr: 2 }}>
+          <OrganizationSwitcher />
+        </Box>
 
         {/* Connection Status Indicator */}
         <Box sx={{ mr: 1 }}>

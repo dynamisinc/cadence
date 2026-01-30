@@ -266,11 +266,61 @@ public enum SystemRole
 /// </summary>
 public enum UserStatus
 {
+    /// <summary>Account is pending organization assignment.</summary>
+    Pending = 0,
+
     /// <summary>Account is active and can authenticate.</summary>
     Active = 1,
 
-    /// <summary>Account has been deactivated and cannot authenticate.</summary>
-    Deactivated = 2
+    /// <summary>Account has been disabled and cannot authenticate.</summary>
+    Disabled = 2
+}
+
+// =============================================================================
+// Organization Enums
+// =============================================================================
+
+/// <summary>
+/// Organization-level roles determining permissions within a specific organization.
+/// These are distinct from system-level roles (SystemRole) and exercise-level roles (ExerciseRole).
+/// </summary>
+public enum OrgRole
+{
+    /// <summary>Full organization access - can manage users, settings, and all exercises.</summary>
+    OrgAdmin = 1,
+
+    /// <summary>Can create and manage exercises within the organization.</summary>
+    OrgManager = 2,
+
+    /// <summary>Can participate in assigned exercises within the organization.</summary>
+    OrgUser = 3
+}
+
+/// <summary>
+/// Organization lifecycle status.
+/// </summary>
+public enum OrgStatus
+{
+    /// <summary>Organization is active and operational.</summary>
+    Active = 1,
+
+    /// <summary>Organization is archived - read-only, hidden from non-admins.</summary>
+    Archived = 2,
+
+    /// <summary>Organization is inactive - completely hidden, data preserved.</summary>
+    Inactive = 3
+}
+
+/// <summary>
+/// Organization membership status.
+/// </summary>
+public enum MembershipStatus
+{
+    /// <summary>Membership is active.</summary>
+    Active = 1,
+
+    /// <summary>Membership is inactive.</summary>
+    Inactive = 2
 }
 
 // =============================================================================

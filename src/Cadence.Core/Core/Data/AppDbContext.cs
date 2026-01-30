@@ -19,6 +19,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     // =========================================================================
 
     public DbSet<Organization> Organizations => Set<Organization>();
+    public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
+    public DbSet<OrganizationInvite> OrganizationInvites => Set<OrganizationInvite>();
+    public DbSet<Agency> Agencies => Set<Agency>();
     public DbSet<User> Users => Set<User>();
     public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
@@ -79,6 +82,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // Configure entities
         ConfigureOrganization(modelBuilder);
+        ConfigureOrganizationMembership(modelBuilder);
+        ConfigureOrganizationInvite(modelBuilder);
+        ConfigureAgency(modelBuilder);
         ConfigureUser(modelBuilder);
         ConfigureApplicationUser(modelBuilder);
         ConfigureRefreshToken(modelBuilder);
@@ -120,19 +126,124 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Organization>(entity =>
         {
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Slug).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(4000);
+            entity.Property(e => e.ContactEmail).HasMaxLength(200);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+
+            // Unique index on Slug
+            entity.HasIndex(e => e.Slug).IsUnique();
+
+            // Index for status queries
+            entity.HasIndex(e => e.Status);
 
             // Seed default organization
             entity.HasData(new Organization
             {
                 Id = SystemConstants.DefaultOrganizationId,
                 Name = "Default Organization",
+                Slug = "default",
                 Description = "Default organization for the Cadence system",
+                Status = OrgStatus.Active,
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             });
+        });
+    }
+
+    private static void ConfigureOrganizationMembership(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OrganizationMembership>(entity =>
+        {
+            entity.Property(e => e.UserId).HasMaxLength(450).IsRequired(); // Match AspNetUsers.Id length
+            entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.InvitedById).HasMaxLength(450);
+
+            // Unique constraint: one membership per user per organization
+            entity.HasIndex(e => new { e.UserId, e.OrganizationId }).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => new { e.OrganizationId, e.Status });
+
+            // Relationships
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Memberships)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Organization)
+                .WithMany(o => o.Memberships)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.InvitedBy)
+                .WithMany()
+                .HasForeignKey(e => e.InvitedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureOrganizationInvite(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OrganizationInvite>(entity =>
+        {
+            entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.Code).HasMaxLength(8).IsRequired();
+            entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.UsedById).HasMaxLength(450);
+            entity.Property(e => e.CreatedByUserId).HasMaxLength(450).IsRequired();
+
+            // Unique index on Code
+            entity.HasIndex(e => e.Code).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => new { e.OrganizationId, e.ExpiresAt });
+            entity.HasIndex(e => e.Email);
+
+            // Relationships
+            entity.HasOne(e => e.Organization)
+                .WithMany(o => o.Invites)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.UsedBy)
+                .WithMany()
+                .HasForeignKey(e => e.UsedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureAgency(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Agency>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Abbreviation).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            // Unique constraint: one agency name per organization
+            entity.HasIndex(e => new { e.OrganizationId, e.Name }).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(e => new { e.OrganizationId, e.IsActive, e.SortOrder });
+
+            // Relationship
+            entity.HasOne(e => e.Organization)
+                .WithMany(o => o.Agencies)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 
@@ -177,12 +288,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.SystemRole);
             entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => e.CurrentOrganizationId);
 
             // Relationship to Organization
             entity.HasOne(e => e.Organization)
                 .WithMany()
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship to CurrentOrganization
+            entity.HasOne(e => e.CurrentOrganization)
+                .WithMany()
+                .HasForeignKey(e => e.CurrentOrganizationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Self-referential relationship for tracking who created the user
             entity.HasOne(e => e.CreatedByUser)
