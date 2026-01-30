@@ -60,9 +60,23 @@ public class JwtTokenService : ITokenService
     /// <returns>Tuple of (token string, expiration time in seconds).</returns>
     public (string Token, int ExpiresIn) GenerateAccessToken(UserInfo user)
     {
+        return GenerateAccessToken(user, null, null, null, null);
+    }
+
+    /// <summary>
+    /// Generate a JWT access token for a user with organization context.
+    /// </summary>
+    /// <param name="user">User information to embed in token claims.</param>
+    /// <param name="organizationId">Current organization ID.</param>
+    /// <param name="orgName">Current organization name.</param>
+    /// <param name="orgSlug">Current organization slug.</param>
+    /// <param name="orgRole">Role in current organization.</param>
+    /// <returns>Tuple of (token string, expiration time in seconds).</returns>
+    public (string Token, int ExpiresIn) GenerateAccessToken(UserInfo user, Guid? organizationId, string? orgName, string? orgSlug, string? orgRole)
+    {
         if (user == null) throw new ArgumentNullException(nameof(user));
 
-        var claims = new[]
+        var claimsList = new List<Claim>
         {
             new Claim(JwtRegisteredClaimNames.Sub, user.Id.ToString()),
             new Claim(JwtRegisteredClaimNames.Email, user.Email),
@@ -72,6 +86,29 @@ public class JwtTokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique token ID
             new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
         };
+
+        // Add organization context claims if provided
+        if (organizationId.HasValue)
+        {
+            claimsList.Add(new Claim("org_id", organizationId.Value.ToString()));
+        }
+
+        if (!string.IsNullOrEmpty(orgName))
+        {
+            claimsList.Add(new Claim("org_name", orgName));
+        }
+
+        if (!string.IsNullOrEmpty(orgSlug))
+        {
+            claimsList.Add(new Claim("org_slug", orgSlug));
+        }
+
+        if (!string.IsNullOrEmpty(orgRole))
+        {
+            claimsList.Add(new Claim("org_role", orgRole));
+        }
+
+        var claims = claimsList.ToArray();
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_options.SecretKey));
         var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);

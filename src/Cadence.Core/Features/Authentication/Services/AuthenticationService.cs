@@ -572,7 +572,45 @@ public class AuthenticationService : IAuthenticationService
             LastLoginAt = user.LastLoginAt
         };
 
-        var (accessToken, expiresIn) = _tokenService.GenerateAccessToken(userInfo);
+        // Get organization context if user has a current organization
+        Guid? orgId = null;
+        string? orgName = null;
+        string? orgSlug = null;
+        string? orgRole = null;
+
+        if (user.CurrentOrganizationId.HasValue)
+        {
+            var org = await _context.Set<Organization>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.Id == user.CurrentOrganizationId.Value && !o.IsDeleted);
+
+            if (org != null)
+            {
+                orgId = org.Id;
+                orgName = org.Name;
+                orgSlug = org.Slug;
+
+                // Get user's role in this organization
+                var membership = await _context.Set<OrganizationMembership>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m =>
+                        m.UserId == user.Id &&
+                        m.OrganizationId == org.Id &&
+                        m.Status == MembershipStatus.Active);
+
+                if (membership != null)
+                {
+                    orgRole = membership.Role.ToString();
+                }
+                else if (user.SystemRole == SystemRole.Admin)
+                {
+                    // SysAdmins get OrgAdmin access even without membership
+                    orgRole = OrgRole.OrgAdmin.ToString();
+                }
+            }
+        }
+
+        var (accessToken, expiresIn) = _tokenService.GenerateAccessToken(userInfo, orgId, orgName, orgSlug, orgRole);
         var refreshTokenResult = await _refreshTokenStore.CreateAsync(
             Guid.Parse(user.Id),
             rememberMe,

@@ -1,4 +1,5 @@
 using Cadence.Core.Constants;
+using Cadence.Core.Features.Authentication.Models.DTOs;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Models.Entities;
@@ -279,7 +280,7 @@ public class UserService : IUserService
             throw new KeyNotFoundException($"User {id} not found");
         }
 
-        user.Status = UserStatus.Deactivated;
+        user.Status = UserStatus.Disabled;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -319,5 +320,54 @@ public class UserService : IUserService
             id, reactivatedById);
 
         return user.ToDto();
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateCurrentOrganizationAsync(string userId, Guid organizationId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User {userId} not found");
+        }
+
+        user.CurrentOrganizationId = organizationId;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to update current organization: {errors}");
+        }
+
+        _logger.LogInformation("Updated current organization for user {UserId} to {OrgId}",
+            userId, organizationId);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserInfo> GetUserInfoAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User {userId} not found");
+        }
+
+        return new UserInfo
+        {
+            Id = Guid.Parse(user.Id),
+            Email = user.Email ?? string.Empty,
+            DisplayName = user.DisplayName ?? user.Email ?? string.Empty,
+            Role = user.SystemRole.ToString(),
+            Status = user.Status.ToString(),
+            LastLoginAt = user.LastLoginAt
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<Guid?> GetCurrentOrganizationIdAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        return user?.CurrentOrganizationId;
     }
 }

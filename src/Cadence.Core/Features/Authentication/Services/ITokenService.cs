@@ -15,6 +15,18 @@ public interface ITokenService
     (string Token, int ExpiresIn) GenerateAccessToken(UserInfo user);
 
     /// <summary>
+    /// Generate a JWT access token for a user with organization context.
+    /// Includes org_id, org_name, org_slug, and org_role claims for multi-tenancy support.
+    /// </summary>
+    /// <param name="user">User information to embed in token claims.</param>
+    /// <param name="organizationId">Current organization ID (null for pending users).</param>
+    /// <param name="orgName">Current organization name (null for pending users).</param>
+    /// <param name="orgSlug">Current organization slug (null for pending users).</param>
+    /// <param name="orgRole">Role in current organization (null for pending users or SysAdmins without org context).</param>
+    /// <returns>Tuple of (token string, expiration time in seconds).</returns>
+    (string Token, int ExpiresIn) GenerateAccessToken(UserInfo user, Guid? organizationId, string? orgName, string? orgSlug, string? orgRole);
+
+    /// <summary>
     /// Validate and parse a JWT access token.
     /// </summary>
     /// <param name="token">The JWT token string to validate.</param>

@@ -133,6 +133,9 @@ builder.Services.AddApplicationServices();
 builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();
 builder.Services.AddScoped<INotificationBroadcaster, NotificationBroadcaster>();
 
+// Add Organization Context (reads org claims from JWT)
+builder.Services.AddScoped<ICurrentOrganizationContext, CurrentOrganizationContext>();
+
 // Add Background Services
 builder.Services.AddHostedService<InjectReadinessBackgroundService>();
 

@@ -80,7 +80,15 @@ function parseOrgFromToken(token: string): CurrentOrganization | null {
     const orgSlug = payload.org_slug;
     const orgRole = payload.org_role;
 
+    console.log('[OrganizationContext] parseOrgFromToken - JWT org claims:', {
+      org_id: orgId,
+      org_name: orgName,
+      org_slug: orgSlug,
+      org_role: orgRole,
+    });
+
     if (!orgId || !orgName) {
+      console.log('[OrganizationContext] parseOrgFromToken - Missing org_id or org_name, returning null');
       return null;
     }
 
@@ -133,20 +141,53 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
 
       setMemberships(response.data.memberships);
 
-      // User has no organizations - they're pending assignment
+      // Always try to extract current org from access token first
+      // (SysAdmins may have org claims even without memberships)
+      let orgSet = false;
+      if (accessToken) {
+        const orgFromToken = parseOrgFromToken(accessToken);
+        if (orgFromToken) {
+          console.log('[OrganizationContext] Current org from token:', orgFromToken);
+          setCurrentOrg(orgFromToken);
+          orgSet = true;
+        }
+      }
+
+      // User has no organizations - they're pending assignment (unless org was set from token)
       if (response.data.memberships.length === 0) {
-        console.log('[OrganizationContext] User has no memberships - pending status');
-        setIsPending(true);
-        setCurrentOrg(null);
+        console.log('[OrganizationContext] User has no memberships');
+        if (!orgSet) {
+          // Only mark as pending if we couldn't get org from token
+          setIsPending(true);
+          setCurrentOrg(null);
+        } else {
+          // SysAdmin with org context but no membership
+          setIsPending(false);
+        }
       } else {
         setIsPending(false);
 
-        // Extract current org from access token
-        if (accessToken) {
-          const orgFromToken = parseOrgFromToken(accessToken);
-          if (orgFromToken) {
-            console.log('[OrganizationContext] Current org from token:', orgFromToken);
-            setCurrentOrg(orgFromToken);
+        // Fallback: use membership marked as current (if token parsing failed)
+        if (!orgSet) {
+          const currentMembership = response.data.memberships.find(m => m.isCurrent);
+          if (currentMembership) {
+            console.log('[OrganizationContext] Current org from membership:', currentMembership.organizationName);
+            setCurrentOrg({
+              id: currentMembership.organizationId,
+              name: currentMembership.organizationName,
+              slug: currentMembership.organizationSlug,
+              role: currentMembership.role,
+            });
+          } else if (response.data.memberships.length === 1) {
+            // Single membership - use it as default
+            const membership = response.data.memberships[0];
+            console.log('[OrganizationContext] Single membership, using as default:', membership.organizationName);
+            setCurrentOrg({
+              id: membership.organizationId,
+              name: membership.organizationName,
+              slug: membership.organizationSlug,
+              role: membership.role,
+            });
           }
         }
       }

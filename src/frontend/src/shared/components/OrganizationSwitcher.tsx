@@ -71,7 +71,9 @@ export const OrganizationSwitcher: FC = () => {
   const memberOrgIds = new Set(memberships.map(m => m.organizationId));
   const otherOrgs = allOrgsData?.items.filter(org => !memberOrgIds.has(org.id)) || [];
 
-  const hasMultipleOptions = memberships.length > 1 || (isSysAdmin && otherOrgs.length > 0);
+  // SysAdmins always get the dropdown (they can switch to any org)
+  // Regular users need multiple memberships
+  const hasMultipleOptions = memberships.length > 1 || isSysAdmin;
   const menuOpen = Boolean(anchorEl);
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
@@ -83,7 +85,7 @@ export const OrganizationSwitcher: FC = () => {
   };
 
   const handleSwitchOrg = async (orgId: string) => {
-    if (orgId === currentOrg.id) {
+    if (currentOrg && orgId === currentOrg.id) {
       handleCloseMenu();
       return;
     }
@@ -159,84 +161,80 @@ export const OrganizationSwitcher: FC = () => {
         }}
       >
         {/* User's own memberships */}
-        {memberships.length > 0 && (
-          <>
-            <Box sx={{ px: 2, py: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                Your Organizations
-              </Typography>
-            </Box>
+        {memberships.length > 0 && [
+          <Box key="your-orgs-header" sx={{ px: 2, py: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              Your Organizations
+            </Typography>
+          </Box>,
 
-            {memberships.map((membership) => (
+          ...memberships.map((membership) => (
+            <MenuItem
+              key={membership.id}
+              onClick={() => handleSwitchOrg(membership.organizationId)}
+              selected={membership.isCurrent}
+            >
+              <ListItemIcon>
+                {membership.isCurrent ? (
+                  <FontAwesomeIcon icon={faCheck} />
+                ) : (
+                  <Box sx={{ width: 16 }} />
+                )}
+              </ListItemIcon>
+              <ListItemText
+                primary={membership.organizationName}
+                secondary={formatRole(membership.role)}
+              />
+            </MenuItem>
+          )),
+        ]}
+
+        {/* SysAdmin: All other organizations */}
+        {isSysAdmin && [
+          memberships.length > 0 && otherOrgs.length > 0 && <Divider key="sysadmin-divider" sx={{ my: 1 }} />,
+
+          <Box key="all-orgs-header" sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Typography variant="caption" color="text.secondary">
+              All Organizations
+            </Typography>
+            <Chip
+              label="SysAdmin"
+              size="small"
+              color="error"
+              sx={{ height: 18, fontSize: '0.65rem' }}
+            />
+          </Box>,
+
+          allOrgsLoading ? (
+            <Box key="loading" sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={20} />
+            </Box>
+          ) : otherOrgs.length === 0 ? (
+            <MenuItem key="no-orgs" disabled>
+              <ListItemText secondary="No other organizations" />
+            </MenuItem>
+          ) : (
+            otherOrgs.map((org) => (
               <MenuItem
-                key={membership.id}
-                onClick={() => handleSwitchOrg(membership.organizationId)}
-                selected={membership.isCurrent}
+                key={org.id}
+                onClick={() => handleSwitchOrg(org.id)}
+                selected={currentOrg?.id === org.id}
               >
                 <ListItemIcon>
-                  {membership.isCurrent ? (
+                  {currentOrg?.id === org.id ? (
                     <FontAwesomeIcon icon={faCheck} />
                   ) : (
                     <Box sx={{ width: 16 }} />
                   )}
                 </ListItemIcon>
                 <ListItemText
-                  primary={membership.organizationName}
-                  secondary={formatRole(membership.role)}
+                  primary={org.name}
+                  secondary={`${org.userCount} members`}
                 />
               </MenuItem>
-            ))}
-          </>
-        )}
-
-        {/* SysAdmin: All other organizations */}
-        {isSysAdmin && (
-          <>
-            {memberships.length > 0 && otherOrgs.length > 0 && <Divider sx={{ my: 1 }} />}
-
-            <Box sx={{ px: 2, py: 1, display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Typography variant="caption" color="text.secondary">
-                All Organizations
-              </Typography>
-              <Chip
-                label="SysAdmin"
-                size="small"
-                color="error"
-                sx={{ height: 18, fontSize: '0.65rem' }}
-              />
-            </Box>
-
-            {allOrgsLoading ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
-                <CircularProgress size={20} />
-              </Box>
-            ) : otherOrgs.length === 0 ? (
-              <MenuItem disabled>
-                <ListItemText secondary="No other organizations" />
-              </MenuItem>
-            ) : (
-              otherOrgs.map((org) => (
-                <MenuItem
-                  key={org.id}
-                  onClick={() => handleSwitchOrg(org.id)}
-                  selected={currentOrg?.id === org.id}
-                >
-                  <ListItemIcon>
-                    {currentOrg?.id === org.id ? (
-                      <FontAwesomeIcon icon={faCheck} />
-                    ) : (
-                      <Box sx={{ width: 16 }} />
-                    )}
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={org.name}
-                    secondary={`${org.userCount} members`}
-                  />
-                </MenuItem>
-              ))
-            )}
-          </>
-        )}
+            ))
+          ),
+        ]}
       </Menu>
 
       {/* Loading overlay during switch */}

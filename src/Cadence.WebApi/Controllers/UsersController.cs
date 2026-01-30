@@ -300,16 +300,31 @@ public class UsersController : ControllerBase
         }
 
         var memberships = await _membershipService.GetUserMembershipsAsync(userId);
+
+        // Get current org from JWT claim first, fallback to database
         var currentOrgIdClaim = User.FindFirst("org_id")?.Value;
         Guid? currentOrgId = !string.IsNullOrEmpty(currentOrgIdClaim) && Guid.TryParse(currentOrgIdClaim, out var id)
             ? id
             : null;
 
-        _logger.LogInformation(
-            "User {UserId} retrieved {Count} organization memberships",
-            userId, memberships.Count());
+        // If no current org in JWT, check the database (user may have just switched)
+        if (!currentOrgId.HasValue)
+        {
+            var userCurrentOrgId = await _userService.GetCurrentOrganizationIdAsync(userId);
+            currentOrgId = userCurrentOrgId;
+        }
 
-        return Ok(new UserOrganizationsResponse(currentOrgId, memberships));
+        // Set IsCurrent flag on the membership matching the current org
+        var membershipList = memberships.Select(m => m with
+        {
+            IsCurrent = currentOrgId.HasValue && m.OrganizationId == currentOrgId.Value
+        }).ToList();
+
+        _logger.LogInformation(
+            "User {UserId} retrieved {Count} organization memberships (current org: {CurrentOrgId})",
+            userId, membershipList.Count, currentOrgId);
+
+        return Ok(new UserOrganizationsResponse(currentOrgId, membershipList));
     }
 
     /// <summary>
@@ -360,7 +375,7 @@ public class UsersController : ControllerBase
 
         // Generate new token with updated org claims
         var userInfo = await _userService.GetUserInfoAsync(userId);
-        var (token, _) = _tokenService.GenerateAccessToken(userInfo, request.OrganizationId, effectiveRole.ToString());
+        var (token, _) = _tokenService.GenerateAccessToken(userInfo, request.OrganizationId, org.Name, org.Slug, effectiveRole.ToString());
 
         _logger.LogInformation(
             "User {UserId} switched to organization {OrgId} ({OrgName}) with role {Role} (SysAdmin: {IsSysAdmin})",
