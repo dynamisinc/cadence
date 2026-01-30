@@ -10,7 +10,8 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-02-create-organization.md
  */
-import { FC, useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo } from 'react'
+import type { FC } from 'react'
 import {
   Box,
   Typography,

@@ -7,7 +7,8 @@
  * @module pages
  * @see docs/features/organization-management/OM-06-organization-switcher.md
  */
-import { FC, useState } from 'react'
+import { useState } from 'react'
+import type { FC } from 'react'
 import { Box, Typography, Paper, Alert } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons'

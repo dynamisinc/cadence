@@ -9,7 +9,8 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-03-edit-organization.md
  */
-import { FC, useState, useEffect } from 'react'
+import { useState, useEffect } from 'react'
+import type { FC } from 'react'
 import {
   Box,
   Typography,

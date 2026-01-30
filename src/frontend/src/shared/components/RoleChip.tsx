@@ -5,7 +5,7 @@
  *
  * @module shared/components
  */
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Chip } from '@mui/material'
 import type { OrgRole } from '@/features/organizations/types'
 

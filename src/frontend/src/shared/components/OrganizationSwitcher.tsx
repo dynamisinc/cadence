@@ -15,7 +15,8 @@
  * @module shared/components
  * @see docs/features/organization-management/OM-06-organization-switcher.md
  */
-import { FC, useState } from 'react'
+import { useState } from 'react'
+import type { FC } from 'react'
 import { Box, Typography, Menu, MenuItem, ListItemIcon, ListItemText, Divider, Chip, CircularProgress } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBuilding, faChevronDown, faCheck, faShieldHalved } from '@fortawesome/free-solid-svg-icons'

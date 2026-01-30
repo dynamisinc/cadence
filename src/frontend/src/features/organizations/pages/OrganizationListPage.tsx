@@ -10,7 +10,8 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-01-organization-list.md
  */
-import { FC, useState } from 'react'
+import { useState } from 'react'
+import type { FC } from 'react'
 import {
   Box,
   Typography,

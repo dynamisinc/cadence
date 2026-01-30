@@ -6,7 +6,8 @@
  *
  * @module features/organizations/components
  */
-import { FC, useState } from 'react'
+import { useState } from 'react'
+import type { FC } from 'react'
 import {
   Dialog,
   DialogTitle,
