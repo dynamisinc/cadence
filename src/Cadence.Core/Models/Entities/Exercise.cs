@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// Exercise entity - top-level container for an emergency management exercise.
 /// All other data (MSELs, participants, objectives, observations) belongs to an exercise.
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Exercise : BaseEntity
+public class Exercise : BaseEntity, IOrganizationScoped
 {
     // =========================================================================
     // Core Properties

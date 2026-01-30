@@ -1,4 +1,6 @@
 using Cadence.Core.Data;
+using Cadence.Core.Features.Notifications.Models.DTOs;
+using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Hubs;
@@ -14,11 +16,13 @@ namespace Cadence.Core.Tests.Features.Observations;
 public class ObservationServiceTests
 {
     private readonly Mock<IExerciseHubContext> _hubContextMock;
+    private readonly Mock<INotificationService> _notificationServiceMock;
     private readonly Mock<ILogger<ObservationService>> _loggerMock;
 
     public ObservationServiceTests()
     {
         _hubContextMock = new Mock<IExerciseHubContext>();
+        _notificationServiceMock = new Mock<INotificationService>();
         _loggerMock = new Mock<ILogger<ObservationService>>();
     }
 
@@ -128,7 +132,7 @@ public class ObservationServiceTests
 
     private ObservationService CreateService(AppDbContext context)
     {
-        return new ObservationService(context, _hubContextMock.Object, _loggerMock.Object);
+        return new ObservationService(context, _hubContextMock.Object, _notificationServiceMock.Object, _loggerMock.Object);
     }
 
     #region GetObservationsByExerciseAsync Tests
@@ -1237,6 +1241,148 @@ public class ObservationServiceTests
         result.Should().HaveCount(1);
         result[0].Capabilities.Should().HaveCount(1);
         result[0].Capabilities.Should().ContainSingle(c => c.Id == capability.Id && c.Name == "Public Health");
+    }
+
+    #endregion
+
+    #region Observation Notification Tests
+
+    private ExerciseParticipant CreateExerciseParticipant(AppDbContext context, Exercise exercise, ExerciseRole role, string? userId = null)
+    {
+        var participant = new ExerciseParticipant
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            UserId = userId ?? Guid.NewGuid().ToString(),
+            Role = role,
+            AssignedAt = DateTime.UtcNow
+        };
+        context.ExerciseParticipants.Add(participant);
+        context.SaveChanges();
+
+        return participant;
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_WithExerciseDirectors_SendsNotificationToDirectors()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext();
+        var director1 = CreateExerciseParticipant(context, exercise, ExerciseRole.ExerciseDirector);
+        var director2 = CreateExerciseParticipant(context, exercise, ExerciseRole.ExerciseDirector);
+        var controller = CreateExerciseParticipant(context, exercise, ExerciseRole.Controller);
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+        var userId = Guid.NewGuid();
+
+        // Act
+        await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert - Notification should be sent to Exercise Directors only
+        _notificationServiceMock.Verify(
+            n => n.CreateNotificationsForUsersAsync(
+                It.Is<IEnumerable<string>>(users =>
+                    users.Count() == 2 &&
+                    users.Contains(director1.UserId) &&
+                    users.Contains(director2.UserId) &&
+                    !users.Contains(controller.UserId)),
+                It.Is<CreateNotificationRequest>(req =>
+                    req.Type == NotificationType.ObservationCreated &&
+                    req.Priority == NotificationPriority.Low &&
+                    req.RelatedEntityType == "Observation"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_NoExerciseDirectors_DoesNotSendNotification()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext();
+        // Only add a Controller, no Exercise Directors
+        CreateExerciseParticipant(context, exercise, ExerciseRole.Controller);
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+        var userId = Guid.NewGuid();
+
+        // Act
+        await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert - No notification should be sent
+        _notificationServiceMock.Verify(
+            n => n.CreateNotificationsForUsersAsync(
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CreateNotificationRequest>(),
+                It.IsAny<CancellationToken>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_NotificationIncludesCorrectDetails()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext();
+        var director = CreateExerciseParticipant(context, exercise, ExerciseRole.ExerciseDirector);
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation content" };
+        var userId = Guid.NewGuid();
+
+        CreateNotificationRequest? capturedRequest = null;
+        _notificationServiceMock
+            .Setup(n => n.CreateNotificationsForUsersAsync(
+                It.IsAny<IEnumerable<string>>(),
+                It.IsAny<CreateNotificationRequest>(),
+                It.IsAny<CancellationToken>()))
+            .Callback<IEnumerable<string>, CreateNotificationRequest, CancellationToken>((_, req, _) => capturedRequest = req)
+            .ReturnsAsync(new List<NotificationDto>());
+
+        // Act
+        var result = await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert
+        capturedRequest.Should().NotBeNull();
+        capturedRequest!.Type.Should().Be(NotificationType.ObservationCreated);
+        capturedRequest.Priority.Should().Be(NotificationPriority.Low);
+        capturedRequest.Title.Should().Be("Observation Recorded");
+        capturedRequest.Message.Should().Contain("observation");
+        capturedRequest.ActionUrl.Should().Contain(exercise.Id.ToString());
+        capturedRequest.ActionUrl.Should().Contain("observations");
+        capturedRequest.RelatedEntityType.Should().Be("Observation");
+        capturedRequest.RelatedEntityId.Should().Be(result.Id);
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_ExcludesDeletedExerciseDirectors()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext();
+        var activeDirector = CreateExerciseParticipant(context, exercise, ExerciseRole.ExerciseDirector);
+        var deletedDirector = CreateExerciseParticipant(context, exercise, ExerciseRole.ExerciseDirector);
+
+        // Soft delete one director
+        deletedDirector.IsDeleted = true;
+        deletedDirector.DeletedAt = DateTime.UtcNow;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+        var userId = Guid.NewGuid();
+
+        // Act
+        await service.CreateObservationAsync(exercise.Id, request, userId);
+
+        // Assert - Only active director should receive notification
+        _notificationServiceMock.Verify(
+            n => n.CreateNotificationsForUsersAsync(
+                It.Is<IEnumerable<string>>(users =>
+                    users.Count() == 1 &&
+                    users.Contains(activeDirector.UserId)),
+                It.IsAny<CreateNotificationRequest>(),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     #endregion

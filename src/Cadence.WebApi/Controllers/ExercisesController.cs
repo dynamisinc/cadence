@@ -434,6 +434,7 @@ public class ExercisesController : ControllerBase
                 StartTime = sourcePhase.StartTime,
                 EndTime = sourcePhase.EndTime,
                 ExerciseId = newExercise.Id,
+                OrganizationId = source.OrganizationId, // Data isolation
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
             };
@@ -453,6 +454,7 @@ public class ExercisesController : ControllerBase
                 Name = sourceObjective.Name,
                 Description = sourceObjective.Description,
                 ExerciseId = newExercise.Id,
+                OrganizationId = source.OrganizationId, // Data isolation
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
             };
@@ -474,6 +476,7 @@ public class ExercisesController : ControllerBase
                 Version = 1,
                 IsActive = true,
                 ExerciseId = newExercise.Id,
+                OrganizationId = source.OrganizationId, // Data isolation
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
             };

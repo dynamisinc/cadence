@@ -2,6 +2,7 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Features.Users.Services;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.Core.Tests.Helpers;
 using FluentAssertions;
@@ -21,6 +22,7 @@ public class UserServiceTests
     private readonly Mock<UserManager<ApplicationUser>> _userManagerMock;
     private readonly Mock<IRefreshTokenStore> _refreshTokenStoreMock;
     private readonly Mock<ILogger<UserService>> _loggerMock;
+    private readonly Mock<ICurrentOrganizationContext> _orgContextMock;
 
     public UserServiceTests()
     {
@@ -31,6 +33,10 @@ public class UserServiceTests
 
         _refreshTokenStoreMock = new Mock<IRefreshTokenStore>();
         _loggerMock = new Mock<ILogger<UserService>>();
+        _orgContextMock = new Mock<ICurrentOrganizationContext>();
+
+        // Default: SysAdmin so tests bypass org filtering
+        _orgContextMock.Setup(x => x.IsSysAdmin).Returns(true);
     }
 
     private (AppDbContext context, Organization org) CreateTestContext()
@@ -66,7 +72,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(new[] { user1, user2 }.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.GetUsersAsync();
@@ -89,7 +95,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(new[] { user1, user2 }.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.GetUsersAsync(search: "alice");
@@ -116,7 +122,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(new[] { user1, user2, user3 }.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.GetUsersAsync(role: "Manager");
@@ -138,7 +144,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(users.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.GetUsersAsync(page: 2, pageSize: 10);
@@ -166,7 +172,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync(user);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.GetUserByIdAsync(userId);
@@ -181,11 +187,12 @@ public class UserServiceTests
     public async Task GetUserByIdAsync_NonExistentUser_ReturnsNull()
     {
         // Arrange
+        var (context, _) = CreateTestContext();
         var userId = Guid.NewGuid();
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync((ApplicationUser?)null);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.GetUserByIdAsync(userId);
@@ -207,7 +214,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
             .ReturnsAsync(IdentityResult.Success);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
         var request = new UpdateUserRequest { DisplayName = "Alice Smith" };
 
         // Act
@@ -236,14 +243,14 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
             .ReturnsAsync(IdentityResult.Success);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.DeactivateUserAsync(userId, "Left organization", adminId);
 
         // Assert
-        result.Status.Should().Be("Deactivated");
-        _userManagerMock.Verify(x => x.UpdateAsync(It.Is<ApplicationUser>(u => u.Status == UserStatus.Deactivated)), Times.Once);
+        result.Status.Should().Be("Disabled");
+        _userManagerMock.Verify(x => x.UpdateAsync(It.Is<ApplicationUser>(u => u.Status == UserStatus.Disabled)), Times.Once);
         _refreshTokenStoreMock.Verify(x => x.RevokeAllForUserAsync(userId), Times.Once);
     }
 
@@ -251,13 +258,14 @@ public class UserServiceTests
     public async Task DeactivateUserAsync_NonExistentUser_ThrowsKeyNotFoundException()
     {
         // Arrange
+        var (context, _) = CreateTestContext();
         var userId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
 
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync((ApplicationUser?)null);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act & Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(
@@ -272,14 +280,14 @@ public class UserServiceTests
         var userId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
         var user = CreateUser("bob@example.com", "Bob", ExerciseRole.Observer, org.Id, userId);
-        user.Status = UserStatus.Deactivated;
+        user.Status = UserStatus.Disabled;
 
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync(user);
         _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
             .ReturnsAsync(IdentityResult.Success);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.ReactivateUserAsync(userId, adminId);
@@ -310,7 +318,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(new[] { user, admin }.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.ChangeRoleAsync(userId, "Manager", adminId);
@@ -333,7 +341,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync(user);
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(
@@ -354,7 +362,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(new[] { user }.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
@@ -378,7 +386,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.Users)
             .Returns(new[] { user, admin2 }.AsQueryable());
 
-        var sut = new UserService(_userManagerMock.Object, _refreshTokenStoreMock.Object, _loggerMock.Object);
+        var sut = CreateUserService(context);
 
         // Act
         var result = await sut.ChangeRoleAsync(userId, "Manager", adminId);
@@ -391,6 +399,16 @@ public class UserServiceTests
     #endregion
 
     #region Helper Methods
+
+    private UserService CreateUserService(AppDbContext context)
+    {
+        return new UserService(
+            _userManagerMock.Object,
+            _refreshTokenStoreMock.Object,
+            _loggerMock.Object,
+            context,
+            _orgContextMock.Object);
+    }
 
     private ApplicationUser CreateUser(
         string email,

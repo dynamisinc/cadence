@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// Agency entity - represents a participating agency within an organization.
 /// Used for exercise participant categorization and reporting.
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Agency : BaseEntity
+public class Agency : BaseEntity, IOrganizationScoped
 {
     /// <summary>
     /// Organization ID this agency belongs to.

@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// MSEL (Master Scenario Events List) entity - container for injects.
 /// An exercise can have multiple MSEL versions, but only one can be active at a time.
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Msel : BaseEntity
+public class Msel : BaseEntity, IOrganizationScoped
 {
     /// <summary>
     /// MSEL name/version identifier (e.g., "v1.0", "Final Draft").
@@ -29,6 +30,12 @@ public class Msel : BaseEntity
     // =========================================================================
     // Foreign Keys
     // =========================================================================
+
+    /// <summary>
+    /// The organization this MSEL belongs to. Required for data isolation.
+    /// Denormalized from Exercise for query filter efficiency.
+    /// </summary>
+    public Guid OrganizationId { get; set; }
 
     /// <summary>
     /// Parent exercise.

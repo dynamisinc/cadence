@@ -91,14 +91,14 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           Cadence
         </Typography>
 
-        {/* Organization Switcher */}
-        <Box sx={{ mr: 2 }}>
-          <OrganizationSwitcher />
-        </Box>
-
         {/* Connection Status Indicator */}
         <Box sx={{ mr: 1 }}>
           <ConnectionStatusIndicator compact />
+        </Box>
+
+        {/* Organization Switcher */}
+        <Box sx={{ mr: 2 }}>
+          <OrganizationSwitcher />
         </Box>
 
         {/* Notification Bell */}

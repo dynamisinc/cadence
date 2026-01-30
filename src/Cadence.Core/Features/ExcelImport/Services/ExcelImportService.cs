@@ -478,7 +478,8 @@ public class ExcelImportService : IExcelImportService
                 Description = "Automatically created during import",
                 Version = 1,
                 IsActive = true,
-                ExerciseId = exercise.Id
+                ExerciseId = exercise.Id,
+                OrganizationId = exercise.OrganizationId // Data isolation
             };
             _context.Msels.Add(msel);
 
@@ -569,7 +570,7 @@ public class ExcelImportService : IExcelImportService
 
                 // Map values from row
                 MapRowToInject(inject, row.Values, session.Mappings, phases, deliveryMethods,
-                    request.ExerciseId, request.CreateMissingPhases, ref phasesCreated, warnings);
+                    request.ExerciseId, exercise.OrganizationId, request.CreateMissingPhases, ref phasesCreated, warnings);
 
                 _context.Injects.Add(inject);
                 injectsCreated++;
@@ -1133,6 +1134,7 @@ public class ExcelImportService : IExcelImportService
         Dictionary<string, Phase> phases,
         Dictionary<string, DeliveryMethodLookup> deliveryMethods,
         Guid exerciseId,
+        Guid organizationId,
         bool createMissingPhases,
         ref int phasesCreated,
         List<string> warnings)
@@ -1226,6 +1228,7 @@ public class ExcelImportService : IExcelImportService
                             {
                                 Id = Guid.NewGuid(),
                                 ExerciseId = exerciseId,
+                                OrganizationId = organizationId, // Data isolation
                                 Name = stringValue,
                                 Sequence = phases.Count + 1
                             };

@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// OrganizationInvite entity - represents an invitation to join an organization.
 /// Supports both email-based and code-based invitations.
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class OrganizationInvite : BaseEntity
+public class OrganizationInvite : BaseEntity, IOrganizationScoped
 {
     /// <summary>
     /// Organization ID this invite belongs to.

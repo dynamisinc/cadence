@@ -1,4 +1,6 @@
 using Cadence.Core.Data;
+using Cadence.Core.Features.Notifications.Models.DTOs;
+using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -14,15 +16,18 @@ public class ObservationService : IObservationService
 {
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
+    private readonly INotificationService _notificationService;
     private readonly ILogger<ObservationService> _logger;
 
     public ObservationService(
         AppDbContext context,
         IExerciseHubContext hubContext,
+        INotificationService notificationService,
         ILogger<ObservationService> logger)
     {
         _context = context;
         _hubContext = hubContext;
+        _notificationService = notificationService;
         _logger = logger;
     }
 
@@ -106,6 +111,9 @@ public class ObservationService : IObservationService
 
         var observation = request.ToEntity(exerciseId, createdBy);
 
+        // Set OrganizationId from the parent exercise for data isolation
+        observation.OrganizationId = exercise.OrganizationId;
+
         _context.Observations.Add(observation);
         await _context.SaveChangesAsync();
 
@@ -143,7 +151,45 @@ public class ObservationService : IObservationService
         // Broadcast to all connected clients
         await _hubContext.NotifyObservationAdded(exerciseId, dto);
 
+        // Send notification to Exercise Directors
+        await SendObservationNotificationToDirectorsAsync(exerciseId, dto);
+
         return dto;
+    }
+
+    private async Task SendObservationNotificationToDirectorsAsync(Guid exerciseId, ObservationDto observation)
+    {
+        // Get Exercise Director user IDs for this exercise
+        var exerciseDirectorIds = await _context.ExerciseParticipants
+            .Where(ep => ep.ExerciseId == exerciseId &&
+                         ep.Role == ExerciseRole.ExerciseDirector &&
+                         !ep.IsDeleted)
+            .Select(ep => ep.UserId)
+            .ToListAsync();
+
+        if (!exerciseDirectorIds.Any())
+        {
+            return;
+        }
+
+        var notificationRequest = new CreateNotificationRequest
+        {
+            Type = NotificationType.ObservationCreated,
+            Priority = NotificationPriority.Low,
+            Title = "Observation Recorded",
+            Message = $"A new observation has been recorded in the exercise.",
+            ActionUrl = $"/exercises/{exerciseId}/observations",
+            RelatedEntityType = "Observation",
+            RelatedEntityId = observation.Id
+        };
+
+        await _notificationService.CreateNotificationsForUsersAsync(
+            exerciseDirectorIds,
+            notificationRequest);
+
+        _logger.LogInformation(
+            "Sent observation notification to {DirectorCount} Exercise Directors for exercise {ExerciseId}",
+            exerciseDirectorIds.Count, exerciseId);
     }
 
     /// <inheritdoc />

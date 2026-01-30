@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// OrganizationMembership entity - represents a user's membership in an organization with a specific role.
 /// Enables multi-organization membership for users.
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class OrganizationMembership : BaseEntity
+public class OrganizationMembership : BaseEntity, IOrganizationScoped
 {
     /// <summary>
     /// User ID - references ApplicationUser.Id (string from IdentityUser).

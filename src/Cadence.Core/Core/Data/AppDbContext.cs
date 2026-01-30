@@ -1,4 +1,5 @@
 using Cadence.Core.Constants;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
@@ -7,12 +8,69 @@ namespace Cadence.Core.Data;
 /// <summary>
 /// Entity Framework Core database context for the application.
 /// Extends IdentityDbContext to support ASP.NET Core Identity for authentication.
+///
+/// Implements automatic organization-scoped query filters for data isolation:
+/// - Entities implementing IOrganizationScoped are automatically filtered by the current organization
+/// - SysAdmins bypass organization filters and can see all data
+/// - Use IgnoreQueryFilters() for explicit cross-organization access
 /// </summary>
 public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
+    private readonly ICurrentOrganizationContext? _orgContext;
+
+    /// <summary>
+    /// Creates a new DbContext with organization context for automatic data filtering.
+    /// Use this constructor for normal application operations.
+    /// </summary>
+    /// <param name="options">Database context options</param>
+    /// <param name="orgContext">Current organization context for filtering</param>
+    public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentOrganizationContext orgContext)
+        : base(options)
+    {
+        _orgContext = orgContext;
+    }
+
+    /// <summary>
+    /// Creates a new DbContext without organization context.
+    /// Use this constructor for migrations, design-time operations, and testing.
+    /// WARNING: No organization filtering will be applied!
+    /// </summary>
+    /// <param name="options">Database context options</param>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
+
+    // =========================================================================
+    // Organization Context Properties (for parameterized query filters)
+    // =========================================================================
+
+    /// <summary>
+    /// Gets whether the current user is a SysAdmin (bypasses org filters).
+    /// Used by parameterized query filters at query execution time.
+    /// </summary>
+    private bool IsSysAdmin => _orgContext?.IsSysAdmin ?? false;
+
+    /// <summary>
+    /// Gets the current organization ID for filtering.
+    /// Used by parameterized query filters at query execution time.
+    /// </summary>
+    private Guid? CurrentOrganizationId => _orgContext?.CurrentOrganizationId;
+
+    /// <summary>
+    /// Determines if org filters should be bypassed entirely.
+    /// Returns true when: no org context service (tests/design-time/migrations) or SysAdmin.
+    /// When false, filters by OrgIdForFilter - users without org context see nothing.
+    /// </summary>
+    private bool BypassOrgFilter =>
+        _orgContext == null ||  // No service (tests, design-time, migrations)
+        _orgContext.IsSysAdmin; // SysAdmin sees all
+
+    /// <summary>
+    /// Gets the organization ID to filter by, or Guid.Empty if user has no org.
+    /// When OrgIdForFilter is Guid.Empty and BypassOrgFilter is false,
+    /// the filter matches nothing (pending users see no data), which is secure.
+    /// </summary>
+    private Guid OrgIdForFilter => _orgContext?.CurrentOrganizationId ?? Guid.Empty;
 
     // =========================================================================
     // DbSets
@@ -68,15 +126,37 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 }
             }
 
-            // Configure global soft delete query filter for ISoftDeletable entities
-            if (typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType))
+            // Determine which interfaces this entity implements
+            var isSoftDeletable = typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType);
+            var isOrgScoped = typeof(IOrganizationScoped).IsAssignableFrom(entityType.ClrType);
+
+            // Apply combined query filter based on implemented interfaces
+            if (isSoftDeletable && isOrgScoped)
             {
+                // Entity has both soft delete AND organization scoping
+                var method = typeof(AppDbContext)
+                    .GetMethod(nameof(ConfigureCombinedFilter),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { modelBuilder });
+            }
+            else if (isSoftDeletable)
+            {
+                // Entity only has soft delete (no org scoping)
                 var method = typeof(AppDbContext)
                     .GetMethod(nameof(ConfigureSoftDeleteFilter),
                         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?
                     .MakeGenericMethod(entityType.ClrType);
-
                 method?.Invoke(null, new object[] { modelBuilder });
+            }
+            else if (isOrgScoped)
+            {
+                // Entity only has organization scoping (no soft delete)
+                var method = typeof(AppDbContext)
+                    .GetMethod(nameof(ConfigureOrganizationFilter),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { modelBuilder });
             }
         }
 
@@ -111,10 +191,51 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     /// <summary>
     /// Configures a global query filter to exclude soft-deleted entities.
+    /// Used for entities that implement ISoftDeletable but NOT IOrganizationScoped.
     /// </summary>
     private static void ConfigureSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeletable
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
+    }
+
+    /// <summary>
+    /// Configures a global query filter for organization scoping only.
+    /// Used for entities that implement IOrganizationScoped but NOT ISoftDeletable.
+    ///
+    /// Filter logic:
+    /// - If no org context service (tests/design-time): no filtering (see all)
+    /// - SysAdmins: see all organizations
+    /// - Users with org context: see only their organization's data
+    /// - Users without org context (pending): see nothing (OrgIdForFilter = Guid.Empty)
+    /// </summary>
+    private void ConfigureOrganizationFilter<T>(ModelBuilder modelBuilder)
+        where T : class, IOrganizationScoped
+    {
+        // BypassOrgFilter is true for tests/design-time or SysAdmin
+        // When bypassed: show all data
+        // When not bypassed: filter by org (pending users have OrgIdForFilter = Guid.Empty, so see nothing)
+        modelBuilder.Entity<T>().HasQueryFilter(e =>
+            BypassOrgFilter || e.OrganizationId == OrgIdForFilter
+        );
+    }
+
+    /// <summary>
+    /// Configures a combined query filter for both soft delete AND organization scoping.
+    /// Used for entities that implement both ISoftDeletable AND IOrganizationScoped.
+    ///
+    /// Combined filter logic:
+    /// - Entity must NOT be soft-deleted
+    /// - AND organization filter applies (see ConfigureOrganizationFilter)
+    /// </summary>
+    private void ConfigureCombinedFilter<T>(ModelBuilder modelBuilder)
+        where T : class, ISoftDeletable, IOrganizationScoped
+    {
+        // Combine soft delete and org filters
+        // BypassOrgFilter is true for tests/design-time or SysAdmin
+        modelBuilder.Entity<T>().HasQueryFilter(e =>
+            !e.IsDeleted &&
+            (BypassOrgFilter || e.OrganizationId == OrgIdForFilter)
+        );
     }
 
     // =========================================================================

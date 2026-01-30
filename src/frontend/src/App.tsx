@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
+import { MobileBlocker, ProtectedRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -128,15 +128,18 @@ const NotFoundPage = () => {
  *
  * Wraps all routes with the AppLayout shell and BreadcrumbProvider.
  * All routes under this layout require authentication.
+ * PendingUserGuard redirects users without organization to /pending page.
  */
 const RootLayout = () => {
   return (
     <ProtectedRoute>
-      <BreadcrumbProvider>
-        <AppLayout>
-          <Outlet />
-        </AppLayout>
-      </BreadcrumbProvider>
+      <PendingUserGuard>
+        <BreadcrumbProvider>
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        </BreadcrumbProvider>
+      </PendingUserGuard>
     </ProtectedRoute>
   )
 }

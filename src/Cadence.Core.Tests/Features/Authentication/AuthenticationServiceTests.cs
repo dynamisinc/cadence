@@ -64,6 +64,16 @@ public class AuthenticationServiceTests : IDisposable
             .Setup(x => x.GenerateAccessToken(It.IsAny<UserInfo>()))
             .Returns(("test-access-token", 900));
 
+        // Setup overload with organization context (used by GenerateAuthResponseAsync)
+        _tokenServiceMock
+            .Setup(x => x.GenerateAccessToken(
+                It.IsAny<UserInfo>(),
+                It.IsAny<Guid?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>(),
+                It.IsAny<string?>()))
+            .Returns(("test-access-token", 900));
+
         _tokenServiceMock
             .Setup(x => x.HashToken(It.IsAny<string>()))
             .Returns((string t) => $"hashed-{t}");

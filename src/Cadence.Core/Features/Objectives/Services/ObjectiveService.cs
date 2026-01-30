@@ -90,6 +90,9 @@ public class ObjectiveService : IObjectiveService
 
         var objective = request.ToEntity(exerciseId, objectiveNumber, createdBy);
 
+        // Set OrganizationId from the parent exercise for data isolation
+        objective.OrganizationId = exercise.OrganizationId;
+
         _context.Objectives.Add(objective);
         await _context.SaveChangesAsync();
 
