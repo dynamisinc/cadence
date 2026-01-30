@@ -81,7 +81,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
     public DbSet<OrganizationInvite> OrganizationInvites => Set<OrganizationInvite>();
     public DbSet<Agency> Agencies => Set<Agency>();
-    public DbSet<User> Users => Set<User>();
+    public new DbSet<User> Users => Set<User>();
     public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
