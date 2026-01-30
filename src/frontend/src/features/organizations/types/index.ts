@@ -27,9 +27,9 @@ export interface OrganizationListItem {
   createdAt: string;
 }
 
-export type OrgStatus = 'Active' | 'Archived' | 'Inactive';
+export type OrgStatus = 'Active' | 'Archived' | 'Inactive'
 
-export type OrgRole = 'OrgAdmin' | 'OrgManager' | 'OrgUser';
+export type OrgRole = 'OrgAdmin' | 'OrgManager' | 'OrgUser'
 
 export interface OrganizationMembership {
   id: string;

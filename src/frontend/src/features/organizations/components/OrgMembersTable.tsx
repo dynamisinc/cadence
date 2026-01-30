@@ -5,7 +5,7 @@
  *
  * @module features/organizations/components
  */
-import { FC, useState } from 'react';
+import { FC, useState } from 'react'
 import {
   Box,
   Table,
@@ -16,15 +16,14 @@ import {
   IconButton,
   Select,
   MenuItem,
-  Chip,
   Typography,
   Alert,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faTrash, faUserPlus } from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton } from '@/theme/styledComponents';
-import { ConfirmDialog } from '@/shared/components/ConfirmDialog';
-import type { OrgMember, OrgRole } from '../types';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faTrash, faUserPlus } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
+import type { OrgMember, OrgRole } from '../types'
 
 interface OrgMembersTableProps {
   members: OrgMember[];
@@ -34,30 +33,6 @@ interface OrgMembersTableProps {
   onRemove: (membershipId: string, memberName: string) => Promise<void>;
 }
 
-const formatRole = (role: string): string => {
-  switch (role) {
-    case 'OrgAdmin':
-      return 'Admin';
-    case 'OrgManager':
-      return 'Manager';
-    case 'OrgUser':
-      return 'User';
-    default:
-      return role;
-  }
-};
-
-const getRoleColor = (role: string): 'error' | 'warning' | 'default' => {
-  switch (role) {
-    case 'OrgAdmin':
-      return 'error';
-    case 'OrgManager':
-      return 'warning';
-    default:
-      return 'default';
-  }
-};
-
 export const OrgMembersTable: FC<OrgMembersTableProps> = ({
   members,
   isLoading = false,
@@ -65,38 +40,38 @@ export const OrgMembersTable: FC<OrgMembersTableProps> = ({
   onRoleChange,
   onRemove,
 }) => {
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     membershipId: string;
     memberName: string;
-  }>({ open: false, membershipId: '', memberName: '' });
+  }>({ open: false, membershipId: '', memberName: '' })
 
   const handleRoleChange = async (membershipId: string, newRole: OrgRole) => {
-    setError(null);
+    setError(null)
     try {
-      await onRoleChange(membershipId, newRole);
+      await onRoleChange(membershipId, newRole)
     } catch (err) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'Failed to update role');
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      setError(axiosError.response?.data?.message || 'Failed to update role')
     }
-  };
+  }
 
   const handleRemoveClick = (membershipId: string, memberName: string) => {
-    setConfirmDialog({ open: true, membershipId, memberName });
-  };
+    setConfirmDialog({ open: true, membershipId, memberName })
+  }
 
   const handleConfirmRemove = async () => {
-    setError(null);
+    setError(null)
     try {
-      await onRemove(confirmDialog.membershipId, confirmDialog.memberName);
-      setConfirmDialog({ open: false, membershipId: '', memberName: '' });
+      await onRemove(confirmDialog.membershipId, confirmDialog.memberName)
+      setConfirmDialog({ open: false, membershipId: '', memberName: '' })
     } catch (err) {
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'Failed to remove member');
-      setConfirmDialog({ open: false, membershipId: '', memberName: '' });
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      setError(axiosError.response?.data?.message || 'Failed to remove member')
+      setConfirmDialog({ open: false, membershipId: '', memberName: '' })
     }
-  };
+  }
 
   return (
     <Box>
@@ -136,14 +111,14 @@ export const OrgMembersTable: FC<OrgMembersTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {members.map((member) => (
+            {members.map(member => (
               <TableRow key={member.membershipId}>
                 <TableCell>{member.displayName || '-'}</TableCell>
                 <TableCell>{member.email}</TableCell>
                 <TableCell>
                   <Select
                     value={member.role}
-                    onChange={(e) => handleRoleChange(member.membershipId, e.target.value as OrgRole)}
+                    onChange={e => handleRoleChange(member.membershipId, e.target.value as OrgRole)}
                     size="small"
                     disabled={isLoading}
                     sx={{ minWidth: 120 }}
@@ -184,7 +159,7 @@ export const OrgMembersTable: FC<OrgMembersTableProps> = ({
         onCancel={() => setConfirmDialog({ open: false, membershipId: '', memberName: '' })}
       />
     </Box>
-  );
-};
+  )
+}
 
-export default OrgMembersTable;
+export default OrgMembersTable

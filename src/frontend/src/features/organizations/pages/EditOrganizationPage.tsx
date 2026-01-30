@@ -9,7 +9,7 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-03-edit-organization.md
  */
-import { FC, useState, useEffect } from 'react';
+import { FC, useState, useEffect } from 'react'
 import {
   Box,
   Typography,
@@ -18,8 +18,8 @@ import {
   Alert,
   CircularProgress,
   Divider,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
   faSave,
@@ -28,103 +28,103 @@ import {
   faRotateLeft,
   faUsers,
   faClipboard,
-} from '@fortawesome/free-solid-svg-icons';
-import { useNavigate, useParams } from 'react-router-dom';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+} from '@fortawesome/free-solid-svg-icons'
+import { useNavigate, useParams } from 'react-router-dom'
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
   CobraDeleteButton,
-} from '@/theme/styledComponents';
+} from '@/theme/styledComponents'
 import {
   useOrganization,
   useUpdateOrganization,
   useArchiveOrganization,
   useDeactivateOrganization,
   useRestoreOrganization,
-} from '../hooks/useOrganizations';
-import { StatusChip } from '@/shared/components';
-import { toast } from 'react-toastify';
-import type { OrgStatus, OrgRole } from '../types';
-import { organizationService } from '../services/organizationService';
-import { AddMemberDialog, OrgMembersTable } from '../components';
+} from '../hooks/useOrganizations'
+import { StatusChip } from '@/shared/components'
+import { toast } from 'react-toastify'
+import type { OrgStatus, OrgRole } from '../types'
+import { organizationService } from '../services/organizationService'
+import { AddMemberDialog, OrgMembersTable } from '../components'
 
 /** Valid status values */
-const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive'];
+const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive']
 
 /**
  * Normalize status value - handles invalid/numeric values from API
  */
 function normalizeStatus(status: OrgStatus | string | number): OrgStatus {
   if (VALID_STATUSES.includes(status as OrgStatus)) {
-    return status as OrgStatus;
+    return status as OrgStatus
   }
   // Default invalid values to 'Inactive' so restore button appears
-  return 'Inactive';
+  return 'Inactive'
 }
 
 export const EditOrganizationPage: FC = () => {
-  const navigate = useNavigate();
-  const { id } = useParams<{ id: string }>();
-  const queryClient = useQueryClient();
-  const { data: organization, isLoading, error } = useOrganization(id || '');
-  const updateOrg = useUpdateOrganization();
-  const archiveOrg = useArchiveOrganization();
-  const deactivateOrg = useDeactivateOrganization();
-  const restoreOrg = useRestoreOrganization();
+  const navigate = useNavigate()
+  const { id } = useParams<{ id: string }>()
+  const queryClient = useQueryClient()
+  const { data: organization, isLoading, error } = useOrganization(id || '')
+  const updateOrg = useUpdateOrganization()
+  const archiveOrg = useArchiveOrganization()
+  const deactivateOrg = useDeactivateOrganization()
+  const restoreOrg = useRestoreOrganization()
 
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [hasChanges, setHasChanges] = useState(false);
-  const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false);
+  const [name, setName] = useState('')
+  const [description, setDescription] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [hasChanges, setHasChanges] = useState(false)
+  const [addMemberDialogOpen, setAddMemberDialogOpen] = useState(false)
 
   // Fetch organization members
   const { data: members = [], isLoading: membersLoading } = useQuery({
     queryKey: ['organization-members', id],
     queryFn: () => organizationService.getMembers(id!),
     enabled: !!id,
-  });
+  })
 
   // Add member mutation
   const addMember = useMutation({
     mutationFn: ({ email, role }: { email: string; role: OrgRole }) =>
       organizationService.addMember(id!, { email, role }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-members', id] });
-      toast.success('Member added successfully');
+      queryClient.invalidateQueries({ queryKey: ['organization-members', id] })
+      toast.success('Member added successfully')
     },
-  });
+  })
 
   // Update member role mutation
   const updateMemberRole = useMutation({
     mutationFn: ({ membershipId, role }: { membershipId: string; role: OrgRole }) =>
       organizationService.updateMemberRole(id!, membershipId, { role }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-members', id] });
-      toast.success('Member role updated');
+      queryClient.invalidateQueries({ queryKey: ['organization-members', id] })
+      toast.success('Member role updated')
     },
-  });
+  })
 
   // Remove member mutation
   const removeMember = useMutation({
     mutationFn: (membershipId: string) =>
       organizationService.removeMember(id!, membershipId),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['organization-members', id] });
-      toast.success('Member removed');
+      queryClient.invalidateQueries({ queryKey: ['organization-members', id] })
+      toast.success('Member removed')
     },
-  });
+  })
 
   // Populate form when org data loads
   useEffect(() => {
     if (organization) {
-      setName(organization.name);
-      setDescription(organization.description || '');
-      setContactEmail(organization.contactEmail || '');
-      setHasChanges(false);
+      setName(organization.name)
+      setDescription(organization.description || '')
+      setContactEmail(organization.contactEmail || '')
+      setHasChanges(false)
     }
-  }, [organization]);
+  }, [organization])
 
   // Track changes
   useEffect(() => {
@@ -132,17 +132,17 @@ export const EditOrganizationPage: FC = () => {
       const changed =
         name !== organization.name ||
         description !== (organization.description || '') ||
-        contactEmail !== (organization.contactEmail || '');
-      setHasChanges(changed);
+        contactEmail !== (organization.contactEmail || '')
+      setHasChanges(changed)
     }
-  }, [name, description, contactEmail, organization]);
+  }, [name, description, contactEmail, organization])
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!id || !name.trim()) {
-      toast.error('Organization name is required');
-      return;
+      toast.error('Organization name is required')
+      return
     }
 
     try {
@@ -153,67 +153,67 @@ export const EditOrganizationPage: FC = () => {
           description: description.trim() || undefined,
           contactEmail: contactEmail.trim() || undefined,
         },
-      });
-      toast.success('Organization updated successfully');
-      setHasChanges(false);
+      })
+      toast.success('Organization updated successfully')
+      setHasChanges(false)
     } catch (error: unknown) {
-      console.error('[EditOrganizationPage] Failed to update:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to update organization';
-      toast.error(errorMessage);
+      console.error('[EditOrganizationPage] Failed to update:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update organization'
+      toast.error(errorMessage)
     }
-  };
+  }
 
   const handleArchive = async () => {
-    if (!id) return;
+    if (!id) return
     if (!confirm('Are you sure you want to archive this organization? Users will lose access.')) {
-      return;
+      return
     }
 
     try {
-      await archiveOrg.mutateAsync(id);
-      toast.success('Organization archived');
+      await archiveOrg.mutateAsync(id)
+      toast.success('Organization archived')
     } catch (error: unknown) {
-      console.error('[EditOrganizationPage] Failed to archive:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to archive organization';
-      toast.error(errorMessage);
+      console.error('[EditOrganizationPage] Failed to archive:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to archive organization'
+      toast.error(errorMessage)
     }
-  };
+  }
 
   const handleDeactivate = async () => {
-    if (!id) return;
+    if (!id) return
     if (!confirm('Are you sure you want to deactivate this organization? Users will lose access.')) {
-      return;
+      return
     }
 
     try {
-      await deactivateOrg.mutateAsync(id);
-      toast.success('Organization deactivated');
+      await deactivateOrg.mutateAsync(id)
+      toast.success('Organization deactivated')
     } catch (error: unknown) {
-      console.error('[EditOrganizationPage] Failed to deactivate:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to deactivate organization';
-      toast.error(errorMessage);
+      console.error('[EditOrganizationPage] Failed to deactivate:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to deactivate organization'
+      toast.error(errorMessage)
     }
-  };
+  }
 
   const handleRestore = async () => {
-    if (!id) return;
+    if (!id) return
 
     try {
-      await restoreOrg.mutateAsync(id);
-      toast.success('Organization restored to active');
+      await restoreOrg.mutateAsync(id)
+      toast.success('Organization restored to active')
     } catch (error: unknown) {
-      console.error('[EditOrganizationPage] Failed to restore:', error);
-      const errorMessage = error instanceof Error ? error.message : 'Failed to restore organization';
-      toast.error(errorMessage);
+      console.error('[EditOrganizationPage] Failed to restore:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to restore organization'
+      toast.error(errorMessage)
     }
-  };
+  }
 
   if (isLoading) {
     return (
       <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
         <CircularProgress />
       </Box>
-    );
+    )
   }
 
   if (error || !organization) {
@@ -231,11 +231,11 @@ export const EditOrganizationPage: FC = () => {
           </CobraSecondaryButton>
         </Box>
       </Box>
-    );
+    )
   }
 
-  const isPending = updateOrg.isPending || archiveOrg.isPending || deactivateOrg.isPending || restoreOrg.isPending;
-  const status = normalizeStatus(organization.status);
+  const isPending = updateOrg.isPending || archiveOrg.isPending || deactivateOrg.isPending || restoreOrg.isPending
+  const status = normalizeStatus(organization.status)
 
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
@@ -290,7 +290,7 @@ export const EditOrganizationPage: FC = () => {
             <TextField
               label="Organization Name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               required
               fullWidth
               placeholder="e.g., CISA Region 4"
@@ -301,7 +301,7 @@ export const EditOrganizationPage: FC = () => {
             <TextField
               label="Description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               fullWidth
               multiline
               rows={3}
@@ -313,7 +313,7 @@ export const EditOrganizationPage: FC = () => {
               label="Contact Email"
               type="email"
               value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
+              onChange={e => setContactEmail(e.target.value)}
               fullWidth
               placeholder="admin@organization.gov"
               helperText="Organization contact email (optional)"
@@ -413,10 +413,10 @@ export const EditOrganizationPage: FC = () => {
             isLoading={addMember.isPending || updateMemberRole.isPending || removeMember.isPending}
             onAddClick={() => setAddMemberDialogOpen(true)}
             onRoleChange={async (membershipId, newRole) => {
-              await updateMemberRole.mutateAsync({ membershipId, role: newRole });
+              await updateMemberRole.mutateAsync({ membershipId, role: newRole })
             }}
-            onRemove={async (membershipId) => {
-              await removeMember.mutateAsync(membershipId);
+            onRemove={async membershipId => {
+              await removeMember.mutateAsync(membershipId)
             }}
           />
         )}
@@ -427,12 +427,12 @@ export const EditOrganizationPage: FC = () => {
         open={addMemberDialogOpen}
         onClose={() => setAddMemberDialogOpen(false)}
         onAdd={async (email, role) => {
-          await addMember.mutateAsync({ email, role });
+          await addMember.mutateAsync({ email, role })
         }}
         isLoading={addMember.isPending}
       />
     </Box>
-  );
-};
+  )
+}
 
-export default EditOrganizationPage;
+export default EditOrganizationPage

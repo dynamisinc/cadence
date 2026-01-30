@@ -10,7 +10,7 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-01-organization-list.md
  */
-import { FC, useState, useMemo } from 'react';
+import { FC, useState } from 'react'
 import {
   Box,
   Typography,
@@ -29,52 +29,52 @@ import {
   Select,
   MenuItem,
   Skeleton,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faPlus, faSearch, faBuilding } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
-import { CobraPrimaryButton } from '@/theme/styledComponents';
-import { useOrganizations } from '../hooks/useOrganizations';
-import { StatusChip } from '@/shared/components/StatusChip';
-import type { OrgStatus } from '../types';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faPlus, faSearch, faBuilding } from '@fortawesome/free-solid-svg-icons'
+import { useNavigate } from 'react-router-dom'
+import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { useOrganizations } from '../hooks/useOrganizations'
+import { StatusChip } from '@/shared/components/StatusChip'
+import type { OrgStatus } from '../types'
 
-type SortField = 'name' | 'slug' | 'status' | 'userCount' | 'exerciseCount' | 'createdAt';
-type SortDirection = 'asc' | 'desc';
+type SortField = 'name' | 'slug' | 'status' | 'userCount' | 'exerciseCount' | 'createdAt'
+type SortDirection = 'asc' | 'desc'
 
 export const OrganizationListPage: FC = () => {
-  const navigate = useNavigate();
-  const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<OrgStatus | ''>('');
-  const [sortField, setSortField] = useState<SortField>('name');
-  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const navigate = useNavigate()
+  const [search, setSearch] = useState('')
+  const [statusFilter, setStatusFilter] = useState<OrgStatus | ''>('')
+  const [sortField, setSortField] = useState<SortField>('name')
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc')
 
   const { data, isLoading, error } = useOrganizations({
     search: search || undefined,
     status: statusFilter || undefined,
     sortBy: sortField,
     sortDir: sortDirection,
-  });
+  })
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
-      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
+      setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc')
     } else {
-      setSortField(field);
-      setSortDirection('asc');
+      setSortField(field)
+      setSortDirection('asc')
     }
-  };
+  }
 
   const handleRowClick = (id: string) => {
-    navigate(`/admin/organizations/${id}`);
-  };
+    navigate(`/admin/organizations/${id}`)
+  }
 
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       month: 'short',
       day: 'numeric',
       year: 'numeric',
-    });
-  };
+    })
+  }
 
   if (error) {
     return (
@@ -83,7 +83,7 @@ export const OrganizationListPage: FC = () => {
           Failed to load organizations. Please try again.
         </Typography>
       </Box>
-    );
+    )
   }
 
   return (
@@ -107,7 +107,7 @@ export const OrganizationListPage: FC = () => {
         <TextField
           placeholder="Search organizations..."
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={e => setSearch(e.target.value)}
           size="small"
           sx={{ minWidth: 300 }}
           InputProps={{
@@ -123,7 +123,7 @@ export const OrganizationListPage: FC = () => {
           <Select
             value={statusFilter}
             label="Status"
-            onChange={(e) => setStatusFilter(e.target.value as OrgStatus | '')}
+            onChange={e => setStatusFilter(e.target.value as OrgStatus | '')}
           >
             <MenuItem value="">All</MenuItem>
             <MenuItem value="Active">Active</MenuItem>
@@ -227,7 +227,7 @@ export const OrganizationListPage: FC = () => {
                 </TableCell>
               </TableRow>
             ) : (
-              data?.items.map((org) => (
+              data?.items.map(org => (
                 <TableRow
                   key={org.id}
                   hover
@@ -265,7 +265,7 @@ export const OrganizationListPage: FC = () => {
         </Typography>
       )}
     </Box>
-  );
-};
+  )
+}
 
-export default OrganizationListPage;
+export default OrganizationListPage

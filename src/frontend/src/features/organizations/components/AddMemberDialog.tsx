@@ -6,7 +6,7 @@
  *
  * @module features/organizations/components
  */
-import { FC, useState } from 'react';
+import { FC, useState } from 'react'
 import {
   Dialog,
   DialogTitle,
@@ -18,9 +18,9 @@ import {
   MenuItem,
   Alert,
   Box,
-} from '@mui/material';
-import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents';
-import type { OrgRole } from '../types';
+} from '@mui/material'
+import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
+import type { OrgRole } from '../types'
 
 interface AddMemberDialogProps {
   open: boolean;
@@ -33,7 +33,7 @@ const ORG_ROLES: { value: OrgRole; label: string; description: string }[] = [
   { value: 'OrgAdmin', label: 'Admin', description: 'Full organization management access' },
   { value: 'OrgManager', label: 'Manager', description: 'Can manage exercises and users' },
   { value: 'OrgUser', label: 'User', description: 'Standard access to organization exercises' },
-];
+]
 
 export const AddMemberDialog: FC<AddMemberDialogProps> = ({
   open,
@@ -41,43 +41,43 @@ export const AddMemberDialog: FC<AddMemberDialogProps> = ({
   onAdd,
   isLoading = false,
 }) => {
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<OrgRole>('OrgUser');
-  const [error, setError] = useState<string | null>(null);
+  const [email, setEmail] = useState('')
+  const [role, setRole] = useState<OrgRole>('OrgUser')
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async () => {
-    setError(null);
+    setError(null)
 
     // Basic email validation
     if (!email.trim()) {
-      setError('Email is required');
-      return;
+      setError('Email is required')
+      return
     }
 
     if (!email.includes('@')) {
-      setError('Please enter a valid email address');
-      return;
+      setError('Please enter a valid email address')
+      return
     }
 
     try {
-      await onAdd(email.trim(), role);
+      await onAdd(email.trim(), role)
       // Reset form on success
-      setEmail('');
-      setRole('OrgUser');
-      onClose();
+      setEmail('')
+      setRole('OrgUser')
+      onClose()
     } catch (err) {
       // Error handling is done in parent, but we can show generic error
-      const axiosError = err as { response?: { data?: { message?: string } } };
-      setError(axiosError.response?.data?.message || 'Failed to add member');
+      const axiosError = err as { response?: { data?: { message?: string } } }
+      setError(axiosError.response?.data?.message || 'Failed to add member')
     }
-  };
+  }
 
   const handleClose = () => {
-    setEmail('');
-    setRole('OrgUser');
-    setError(null);
-    onClose();
-  };
+    setEmail('')
+    setRole('OrgUser')
+    setError(null)
+    onClose()
+  }
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -94,7 +94,7 @@ export const AddMemberDialog: FC<AddMemberDialogProps> = ({
             label="Email Address"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={e => setEmail(e.target.value)}
             placeholder="user@example.com"
             fullWidth
             autoFocus
@@ -106,9 +106,9 @@ export const AddMemberDialog: FC<AddMemberDialogProps> = ({
             <Select
               value={role}
               label="Role"
-              onChange={(e) => setRole(e.target.value as OrgRole)}
+              onChange={e => setRole(e.target.value as OrgRole)}
             >
-              {ORG_ROLES.map((r) => (
+              {ORG_ROLES.map(r => (
                 <MenuItem key={r.value} value={r.value}>
                   <Box>
                     <Box component="span" fontWeight="bold">
@@ -133,7 +133,7 @@ export const AddMemberDialog: FC<AddMemberDialogProps> = ({
         </CobraPrimaryButton>
       </DialogActions>
     </Dialog>
-  );
-};
+  )
+}
 
-export default AddMemberDialog;
+export default AddMemberDialog

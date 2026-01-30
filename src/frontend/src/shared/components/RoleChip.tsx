@@ -5,9 +5,9 @@
  *
  * @module shared/components
  */
-import { FC } from 'react';
-import { Chip } from '@mui/material';
-import type { OrgRole } from '@/features/organizations/types';
+import { FC } from 'react'
+import { Chip } from '@mui/material'
+import type { OrgRole } from '@/features/organizations/types'
 
 interface RoleChipProps {
   /** Organization role */
@@ -22,13 +22,13 @@ interface RoleChipProps {
 function getRoleLabel(role: OrgRole): string {
   switch (role) {
     case 'OrgAdmin':
-      return 'Admin';
+      return 'Admin'
     case 'OrgManager':
-      return 'Manager';
+      return 'Manager'
     case 'OrgUser':
-      return 'User';
+      return 'User'
     default:
-      return role;
+      return role
   }
 }
 
@@ -44,5 +44,5 @@ export const RoleChip: FC<RoleChipProps> = ({ role, size = 'small' }) => {
       size={size}
       sx={{ fontWeight: 500 }}
     />
-  );
-};
+  )
+}

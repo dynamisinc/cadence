@@ -7,33 +7,33 @@
  * @module pages
  * @see docs/features/organization-management/OM-06-organization-switcher.md
  */
-import { FC, useState } from 'react';
-import { Box, Typography, Paper, Alert } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents';
-import CobraStyles from '@/theme/CobraStyles';
+import { FC, useState } from 'react'
+import { Box, Typography, Paper, Alert } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
+import CobraStyles from '@/theme/CobraStyles'
 
 /**
  * PendingUserPage component
  */
 export const PendingUserPage: FC = () => {
-  const [orgCode, setOrgCode] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orgCode, setOrgCode] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleJoinOrganization = async () => {
-    if (!orgCode.trim()) return;
+    if (!orgCode.trim()) return
 
-    setIsSubmitting(true);
+    setIsSubmitting(true)
 
     // TODO: Implement organization code redemption API call
     // This will be part of P1 stories (OM-08)
-    console.log('Joining organization with code:', orgCode);
+    console.log('Joining organization with code:', orgCode)
 
     // For now, just show a message
-    alert('Organization code redemption will be implemented in a future release.');
-    setIsSubmitting(false);
-  };
+    alert('Organization code redemption will be implemented in a future release.')
+    setIsSubmitting(false)
+  }
 
   return (
     <Box
@@ -79,7 +79,7 @@ export const PendingUserPage: FC = () => {
           <CobraTextField
             label="Organization Code"
             value={orgCode}
-            onChange={(e) => setOrgCode(e.target.value.toUpperCase())}
+            onChange={e => setOrgCode(e.target.value.toUpperCase())}
             placeholder="Enter 8-character code"
             fullWidth
             inputProps={{
@@ -104,5 +104,5 @@ export const PendingUserPage: FC = () => {
         </Typography>
       </Paper>
     </Box>
-  );
-};
+  )
+}

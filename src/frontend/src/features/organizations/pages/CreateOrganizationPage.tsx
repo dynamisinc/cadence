@@ -10,7 +10,7 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-02-create-organization.md
  */
-import { FC, useState, useEffect, useCallback } from 'react';
+import { FC, useState, useEffect, useMemo } from 'react'
 import {
   Box,
   Typography,
@@ -19,14 +19,14 @@ import {
   Alert,
   InputAdornment,
   CircularProgress,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCheck, faTimes, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
-import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents';
-import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations';
-import { toast } from 'react-toastify';
-import { debounce } from 'lodash';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCheck, faTimes, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons'
+import { useNavigate } from 'react-router-dom'
+import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
+import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations'
+import { toast } from 'react-toastify'
+import { debounce } from 'lodash'
 
 /**
  * Generate URL-safe slug from name
@@ -38,63 +38,64 @@ function generateSlug(name: string): string {
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')
     .replace(/-+/g, '-')
-    .substring(0, 50);
+    .substring(0, 50)
 }
 
 export const CreateOrganizationPage: FC = () => {
-  const navigate = useNavigate();
-  const createOrg = useCreateOrganization();
+  const navigate = useNavigate()
+  const createOrg = useCreateOrganization()
 
-  const [name, setName] = useState('');
-  const [slug, setSlug] = useState('');
-  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false);
-  const [description, setDescription] = useState('');
-  const [contactEmail, setContactEmail] = useState('');
-  const [firstAdminEmail, setFirstAdminEmail] = useState('');
-  const [slugToCheck, setSlugToCheck] = useState('');
+  const [name, setName] = useState('')
+  const [slug, setSlug] = useState('')
+  const [slugManuallyEdited, setSlugManuallyEdited] = useState(false)
+  const [description, setDescription] = useState('')
+  const [contactEmail, setContactEmail] = useState('')
+  const [firstAdminEmail, setFirstAdminEmail] = useState('')
+  const [slugToCheck, setSlugToCheck] = useState('')
 
-  const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlug(slugToCheck);
+  const { data: slugCheck, isLoading: isCheckingSlug } = useCheckSlug(slugToCheck)
 
   // Auto-generate slug from name (unless manually edited)
   useEffect(() => {
     if (!slugManuallyEdited && name) {
-      setSlug(generateSlug(name));
+      setSlug(generateSlug(name))
     }
-  }, [name, slugManuallyEdited]);
+  }, [name, slugManuallyEdited])
 
   // Debounced slug check
-  const debouncedSlugCheck = useCallback(
-    debounce((value: string) => {
-      if (value.length >= 3) {
-        setSlugToCheck(value);
-      }
-    }, 500),
-    []
-  );
+  const debouncedSlugCheck = useMemo(
+    () =>
+      debounce((value: string) => {
+        if (value.length >= 3) {
+          setSlugToCheck(value)
+        }
+      }, 500),
+    [],
+  )
 
   useEffect(() => {
     if (slug) {
-      debouncedSlugCheck(slug);
+      debouncedSlugCheck(slug)
     }
-    return () => debouncedSlugCheck.cancel();
-  }, [slug, debouncedSlugCheck]);
+    return () => debouncedSlugCheck.cancel()
+  }, [slug, debouncedSlugCheck])
 
   const handleSlugChange = (value: string) => {
-    setSlugManuallyEdited(true);
-    setSlug(generateSlug(value));
-  };
+    setSlugManuallyEdited(true)
+    setSlug(generateSlug(value))
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+    e.preventDefault()
 
     if (!name.trim() || !slug.trim() || !firstAdminEmail.trim()) {
-      toast.error('Please fill in all required fields');
-      return;
+      toast.error('Please fill in all required fields')
+      return
     }
 
     if (slugCheck && !slugCheck.available) {
-      toast.error('Please choose a different slug');
-      return;
+      toast.error('Please choose a different slug')
+      return
     }
 
     try {
@@ -104,17 +105,18 @@ export const CreateOrganizationPage: FC = () => {
         description: description.trim() || undefined,
         contactEmail: contactEmail.trim() || undefined,
         firstAdminEmail: firstAdminEmail.trim(),
-      });
-      toast.success('Organization created successfully');
-      navigate('/admin/organizations');
-    } catch (error: any) {
-      console.error('[CreateOrganizationPage] Failed to create:', error);
-      toast.error(error.response?.data?.message || 'Failed to create organization');
+      })
+      toast.success('Organization created successfully')
+      navigate('/admin/organizations')
+    } catch (error: unknown) {
+      console.error('[CreateOrganizationPage] Failed to create:', error)
+      const axiosError = error as { response?: { data?: { message?: string } } }
+      toast.error(axiosError.response?.data?.message || 'Failed to create organization')
     }
-  };
+  }
 
-  const isSlugValid = slug.length >= 3 && (!slugCheck || slugCheck.available);
-  const canSubmit = name.trim() && slug.trim() && firstAdminEmail.trim() && isSlugValid;
+  const isSlugValid = slug.length >= 3 && (!slugCheck || slugCheck.available)
+  const canSubmit = name.trim() && slug.trim() && firstAdminEmail.trim() && isSlugValid
 
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
@@ -138,7 +140,7 @@ export const CreateOrganizationPage: FC = () => {
             <TextField
               label="Organization Name"
               value={name}
-              onChange={(e) => setName(e.target.value)}
+              onChange={e => setName(e.target.value)}
               required
               fullWidth
               placeholder="e.g., CISA Region 4"
@@ -149,7 +151,7 @@ export const CreateOrganizationPage: FC = () => {
             <TextField
               label="Slug"
               value={slug}
-              onChange={(e) => handleSlugChange(e.target.value)}
+              onChange={e => handleSlugChange(e.target.value)}
               required
               fullWidth
               placeholder="e.g., cisa-r4"
@@ -178,7 +180,7 @@ export const CreateOrganizationPage: FC = () => {
             <TextField
               label="Description"
               value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              onChange={e => setDescription(e.target.value)}
               fullWidth
               multiline
               rows={3}
@@ -190,7 +192,7 @@ export const CreateOrganizationPage: FC = () => {
               label="Contact Email"
               type="email"
               value={contactEmail}
-              onChange={(e) => setContactEmail(e.target.value)}
+              onChange={e => setContactEmail(e.target.value)}
               fullWidth
               placeholder="admin@organization.gov"
               helperText="Organization contact email (optional)"
@@ -209,7 +211,7 @@ export const CreateOrganizationPage: FC = () => {
                 label="Admin Email"
                 type="email"
                 value={firstAdminEmail}
-                onChange={(e) => setFirstAdminEmail(e.target.value)}
+                onChange={e => setFirstAdminEmail(e.target.value)}
                 required
                 fullWidth
                 placeholder="admin@example.com"
@@ -239,7 +241,7 @@ export const CreateOrganizationPage: FC = () => {
         </form>
       </Paper>
     </Box>
-  );
-};
+  )
+}
 
-export default CreateOrganizationPage;
+export default CreateOrganizationPage

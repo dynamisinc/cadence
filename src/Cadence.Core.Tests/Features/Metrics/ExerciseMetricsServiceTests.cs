@@ -16,8 +16,8 @@ public class ExerciseMetricsServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            
-            
+
+
         };
         context.Organizations.Add(org);
         context.SaveChanges();
@@ -43,8 +43,8 @@ public class ExerciseMetricsServiceTests
             ClockMultiplier = clockMultiplier,
             ClockState = ExerciseClockState.Stopped,
             ActivatedAt = DateTime.UtcNow.AddHours(-1),
-            
-            
+
+
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -387,8 +387,8 @@ public class ExerciseMetricsServiceTests
             Category = "All Areas",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         context.Capabilities.AddRange(capability1, capability2);
 
@@ -402,8 +402,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Performed,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         var obs2 = new Observation
         {
@@ -413,8 +413,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Satisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.AddRange(obs1, obs2);
 
@@ -460,8 +460,8 @@ public class ExerciseMetricsServiceTests
             Category = "Response",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         context.Capabilities.Add(capability);
 
@@ -482,8 +482,8 @@ public class ExerciseMetricsServiceTests
             Rating = rating,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         }).ToList();
 
         context.Observations.AddRange(observations);
@@ -532,8 +532,8 @@ public class ExerciseMetricsServiceTests
             Category = "Response",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         var nonTargetCapability = new Capability
         {
@@ -542,8 +542,8 @@ public class ExerciseMetricsServiceTests
             Category = "All Areas",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         context.Capabilities.AddRange(targetCapability, nonTargetCapability);
 
@@ -552,8 +552,8 @@ public class ExerciseMetricsServiceTests
         {
             ExerciseId = exercise.Id,
             CapabilityId = targetCapability.Id,
-            
-            
+
+
         };
         context.Set<ExerciseTargetCapability>().Add(exerciseTarget);
 
@@ -567,8 +567,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Performed,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         var obs2 = new Observation
         {
@@ -578,8 +578,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Satisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.AddRange(obs1, obs2);
 
@@ -622,8 +622,8 @@ public class ExerciseMetricsServiceTests
             Category = "Response",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         var unevaluatedCapability = new Capability
         {
@@ -632,8 +632,8 @@ public class ExerciseMetricsServiceTests
             Category = "Prevention",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         context.Capabilities.AddRange(evaluatedCapability, unevaluatedCapability);
 
@@ -643,15 +643,15 @@ public class ExerciseMetricsServiceTests
             {
                 ExerciseId = exercise.Id,
                 CapabilityId = evaluatedCapability.Id,
-                
-                
+
+
             },
             new ExerciseTargetCapability
             {
                 ExerciseId = exercise.Id,
                 CapabilityId = unevaluatedCapability.Id,
-                
-                
+
+
             }
         );
 
@@ -665,8 +665,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Satisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.Add(obs);
         context.Set<ObservationCapability>().Add(new ObservationCapability
@@ -719,8 +719,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Performed,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.Add(obsGood);
         context.Set<ObservationCapability>().Add(new ObservationCapability
@@ -738,8 +738,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Unsatisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.Add(obsBad);
         context.Set<ObservationCapability>().Add(new ObservationCapability
@@ -757,8 +757,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Satisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.Add(obsMedium);
         context.Set<ObservationCapability>().Add(new ObservationCapability
@@ -800,8 +800,8 @@ public class ExerciseMetricsServiceTests
             Category = "Response",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         var preventionCapability = new Capability
         {
@@ -810,8 +810,8 @@ public class ExerciseMetricsServiceTests
             Category = "Prevention",
             IsActive = true,
             OrganizationId = org.Id,
-            
-            
+
+
         };
         context.Capabilities.AddRange(responseCapability, preventionCapability);
 
@@ -825,8 +825,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Performed,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         var obsResp2 = new Observation
         {
@@ -836,8 +836,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Satisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.AddRange(obsResp1, obsResp2);
         context.Set<ObservationCapability>().AddRange(
@@ -854,8 +854,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Marginal,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.Add(obsPrev);
         context.Set<ObservationCapability>().Add(new ObservationCapability
@@ -904,8 +904,8 @@ public class ExerciseMetricsServiceTests
             Rating = ObservationRating.Satisfactory,
             ObservedAt = DateTime.UtcNow,
             CreatedByUserId = userId,
-            
-            
+
+
         };
         context.Observations.Add(obs);
         context.SaveChanges();

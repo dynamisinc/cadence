@@ -6,9 +6,9 @@
  *
  * @module shared/components
  */
-import type { FC } from 'react';
-import { Chip, type ChipProps } from '@mui/material';
-import type { OrgStatus } from '@/features/organizations/types';
+import type { FC } from 'react'
+import { Chip, type ChipProps } from '@mui/material'
+import type { OrgStatus } from '@/features/organizations/types'
 
 interface StatusChipProps {
   /** Organization status */
@@ -18,17 +18,17 @@ interface StatusChipProps {
 }
 
 /** Valid status values */
-const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive'];
+const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive']
 
 /**
  * Normalize status value - handles invalid/numeric values
  */
 function normalizeStatus(status: OrgStatus | string | number): OrgStatus {
   if (VALID_STATUSES.includes(status as OrgStatus)) {
-    return status as OrgStatus;
+    return status as OrgStatus
   }
   // Default invalid values to 'Inactive' so restore button appears
-  return 'Inactive';
+  return 'Inactive'
 }
 
 /**
@@ -37,13 +37,13 @@ function normalizeStatus(status: OrgStatus | string | number): OrgStatus {
 function getStatusColor(status: OrgStatus): ChipProps['color'] {
   switch (status) {
     case 'Active':
-      return 'success';
+      return 'success'
     case 'Archived':
-      return 'warning';
+      return 'warning'
     case 'Inactive':
-      return 'error';
+      return 'error'
     default:
-      return 'default';
+      return 'default'
   }
 }
 
@@ -51,7 +51,7 @@ function getStatusColor(status: OrgStatus): ChipProps['color'] {
  * StatusChip component
  */
 export const StatusChip: FC<StatusChipProps> = ({ status, size = 'small' }) => {
-  const normalizedStatus = normalizeStatus(status);
+  const normalizedStatus = normalizeStatus(status)
   return (
     <Chip
       label={normalizedStatus}
@@ -59,5 +59,5 @@ export const StatusChip: FC<StatusChipProps> = ({ status, size = 'small' }) => {
       size={size}
       sx={{ fontWeight: 500 }}
     />
-  );
-};
+  )
+}

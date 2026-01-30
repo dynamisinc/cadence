@@ -6,6 +6,6 @@
  * @module features/organizations/pages
  */
 
-export { OrganizationListPage } from './OrganizationListPage';
-export { CreateOrganizationPage } from './CreateOrganizationPage';
-export { EditOrganizationPage } from './EditOrganizationPage';
+export { OrganizationListPage } from './OrganizationListPage'
+export { CreateOrganizationPage } from './CreateOrganizationPage'
+export { EditOrganizationPage } from './EditOrganizationPage'

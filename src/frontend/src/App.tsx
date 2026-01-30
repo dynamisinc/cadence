@@ -334,23 +334,23 @@ function App() {
               {/* ThemedApp applies dynamic theme based on user preferences */}
               <ThemedApp>
                 <ExerciseNavigationProvider>
-                <ConnectivityProvider>
-                  <OfflineSyncProvider>
-                    <MobileBlocker>
-                      <FeatureFlagsProvider>
-                        <NotificationToastProvider>
-                          <RouterProvider router={router} />
-                        </NotificationToastProvider>
-                        <GlobalSyncStatus />
-                        <UpdatePrompt />
-                        <InstallBanner />
-                      </FeatureFlagsProvider>
-                    </MobileBlocker>
-                  </OfflineSyncProvider>
-                </ConnectivityProvider>
-              </ExerciseNavigationProvider>
-            </ThemedApp>
-          </UserPreferencesProvider>
+                  <ConnectivityProvider>
+                    <OfflineSyncProvider>
+                      <MobileBlocker>
+                        <FeatureFlagsProvider>
+                          <NotificationToastProvider>
+                            <RouterProvider router={router} />
+                          </NotificationToastProvider>
+                          <GlobalSyncStatus />
+                          <UpdatePrompt />
+                          <InstallBanner />
+                        </FeatureFlagsProvider>
+                      </MobileBlocker>
+                    </OfflineSyncProvider>
+                  </ConnectivityProvider>
+                </ExerciseNavigationProvider>
+              </ThemedApp>
+            </UserPreferencesProvider>
           </OrganizationProvider>
         </AuthProvider>
 

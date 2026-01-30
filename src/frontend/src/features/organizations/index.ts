@@ -14,10 +14,10 @@ export type {
   CreateOrganizationRequest,
   UpdateOrganizationRequest,
   SlugCheckResponse,
-} from './types';
+} from './types'
 
 // Services
-export { organizationService } from './services/organizationService';
+export { organizationService } from './services/organizationService'
 
 // Hooks
 export {
@@ -32,11 +32,11 @@ export {
   useRestoreOrganization,
   useCheckSlug,
   organizationKeys,
-} from './hooks/useOrganizations';
+} from './hooks/useOrganizations'
 
 // Pages
 export {
   OrganizationListPage,
   CreateOrganizationPage,
   EditOrganizationPage,
-} from './pages';
+} from './pages'

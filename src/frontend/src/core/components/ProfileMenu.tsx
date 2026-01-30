@@ -62,20 +62,6 @@ export const ProfileMenu: React.FC = () => {
 
   const open = Boolean(anchorEl)
 
-  // Don't render if no user - prevents showing "Guest User" when API is offline
-  if (!user) {
-    return null
-  }
-
-  const accountEmail = user.email
-  const accountFullName = user.displayName
-  const accountRole = formatRole(user.role)
-
-  // Current exercise role for display
-  const currentExerciseRole = isInExerciseContext && currentExercise?.userRole
-    ? getRoleDisplayName(currentExercise.userRole)
-    : null
-
   // Fetch exercise assignments when menu opens
   useEffect(() => {
     if (!open || !user) {
@@ -97,6 +83,20 @@ export const ProfileMenu: React.FC = () => {
 
     fetchAssignments()
   }, [open, user])
+
+  // Don't render if no user - prevents showing "Guest User" when API is offline
+  if (!user) {
+    return null
+  }
+
+  const accountEmail = user.email
+  const accountFullName = user.displayName
+  const accountRole = formatRole(user.role)
+
+  // Current exercise role for display
+  const currentExerciseRole = isInExerciseContext && currentExercise?.userRole
+    ? getRoleDisplayName(currentExercise.userRole)
+    : null
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)

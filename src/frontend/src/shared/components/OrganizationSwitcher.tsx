@@ -15,16 +15,16 @@
  * @module shared/components
  * @see docs/features/organization-management/OM-06-organization-switcher.md
  */
-import { FC, useState } from 'react';
-import { Box, Typography, Menu, MenuItem, ListItemIcon, ListItemText, Divider, Chip, CircularProgress } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faBuilding, faChevronDown, faCheck, faShieldHalved } from '@fortawesome/free-solid-svg-icons';
-import { useQuery } from '@tanstack/react-query';
-import { CobraPrimaryButton } from '@/theme/styledComponents';
-import { useOrganization } from '@/contexts/OrganizationContext';
-import { useAuth } from '@/contexts/AuthContext';
-import { organizationService } from '@/features/organizations/services/organizationService';
-import { toast } from 'react-toastify';
+import { FC, useState } from 'react'
+import { Box, Typography, Menu, MenuItem, ListItemIcon, ListItemText, Divider, Chip, CircularProgress } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faBuilding, faChevronDown, faCheck, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
+import { useQuery } from '@tanstack/react-query'
+import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { useOrganization } from '@/contexts/OrganizationContext'
+import { useAuth } from '@/contexts/AuthContext'
+import { organizationService } from '@/features/organizations/services/organizationService'
+import { toast } from 'react-toastify'
 
 /**
  * Display role label in user-friendly format
@@ -32,13 +32,13 @@ import { toast } from 'react-toastify';
 function formatRole(role: string): string {
   switch (role) {
     case 'OrgAdmin':
-      return 'Admin';
+      return 'Admin'
     case 'OrgManager':
-      return 'Manager';
+      return 'Manager'
     case 'OrgUser':
-      return 'User';
+      return 'User'
     default:
-      return role;
+      return role
   }
 }
 
@@ -46,13 +46,13 @@ function formatRole(role: string): string {
  * OrganizationSwitcher component
  */
 export const OrganizationSwitcher: FC = () => {
-  const { currentOrg, memberships, isLoading, isPending, switchOrganization } = useOrganization();
-  const { user } = useAuth();
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null);
-  const [isSwitching, setIsSwitching] = useState(false);
+  const { currentOrg, memberships, isLoading, isPending, switchOrganization } = useOrganization()
+  const { user } = useAuth()
+  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [isSwitching, setIsSwitching] = useState(false)
 
   // Check if user is SysAdmin
-  const isSysAdmin = user?.role === 'Admin';
+  const isSysAdmin = user?.role === 'Admin'
 
   // Fetch all organizations for SysAdmins
   const { data: allOrgsData, isLoading: allOrgsLoading } = useQuery({
@@ -60,48 +60,48 @@ export const OrganizationSwitcher: FC = () => {
     queryFn: () => organizationService.getAll({ status: 'Active', sortBy: 'name' }),
     enabled: isSysAdmin && Boolean(anchorEl), // Only fetch when dropdown is open for SysAdmins
     staleTime: 30000, // Cache for 30 seconds
-  });
+  })
 
   // Don't render while loading or if user is pending (and not a SysAdmin)
   if (isLoading || (isPending && !isSysAdmin) || (!currentOrg && !isSysAdmin)) {
-    return null;
+    return null
   }
 
   // Get orgs that user doesn't have membership in (for SysAdmin view)
-  const memberOrgIds = new Set(memberships.map(m => m.organizationId));
-  const otherOrgs = allOrgsData?.items.filter(org => !memberOrgIds.has(org.id)) || [];
+  const memberOrgIds = new Set(memberships.map(m => m.organizationId))
+  const otherOrgs = allOrgsData?.items.filter(org => !memberOrgIds.has(org.id)) || []
 
   // SysAdmins always get the dropdown (they can switch to any org)
   // Regular users need multiple memberships
-  const hasMultipleOptions = memberships.length > 1 || isSysAdmin;
-  const menuOpen = Boolean(anchorEl);
+  const hasMultipleOptions = memberships.length > 1 || isSysAdmin
+  const menuOpen = Boolean(anchorEl)
 
   const handleOpenMenu = (event: React.MouseEvent<HTMLButtonElement>) => {
-    setAnchorEl(event.currentTarget);
-  };
+    setAnchorEl(event.currentTarget)
+  }
 
   const handleCloseMenu = () => {
-    setAnchorEl(null);
-  };
+    setAnchorEl(null)
+  }
 
   const handleSwitchOrg = async (orgId: string) => {
     if (currentOrg && orgId === currentOrg.id) {
-      handleCloseMenu();
-      return;
+      handleCloseMenu()
+      return
     }
 
-    setIsSwitching(true);
-    handleCloseMenu();
+    setIsSwitching(true)
+    handleCloseMenu()
 
     try {
-      await switchOrganization(orgId);
+      await switchOrganization(orgId)
       // Page will reload after successful switch
     } catch (error) {
-      console.error('[OrganizationSwitcher] Failed to switch organization:', error);
-      toast.error('Failed to switch organization. Please try again.');
-      setIsSwitching(false);
+      console.error('[OrganizationSwitcher] Failed to switch organization:', error)
+      toast.error('Failed to switch organization. Please try again.')
+      setIsSwitching(false)
     }
-  };
+  }
 
   // Single org and not SysAdmin - just display the name
   if (!hasMultipleOptions) {
@@ -119,7 +119,7 @@ export const OrganizationSwitcher: FC = () => {
           {currentOrg?.name || 'No Organization'}
         </Typography>
       </Box>
-    );
+    )
   }
 
   // Multi-org or SysAdmin - show dropdown button
@@ -168,7 +168,7 @@ export const OrganizationSwitcher: FC = () => {
             </Typography>
           </Box>,
 
-          ...memberships.map((membership) => (
+          ...memberships.map(membership => (
             <MenuItem
               key={membership.id}
               onClick={() => handleSwitchOrg(membership.organizationId)}
@@ -214,7 +214,7 @@ export const OrganizationSwitcher: FC = () => {
               <ListItemText secondary="No other organizations" />
             </MenuItem>
           ) : (
-            otherOrgs.map((org) => (
+            otherOrgs.map(org => (
               <MenuItem
                 key={org.id}
                 onClick={() => handleSwitchOrg(org.id)}
@@ -266,5 +266,5 @@ export const OrganizationSwitcher: FC = () => {
         </Box>
       )}
     </>
-  );
-};
+  )
+}
