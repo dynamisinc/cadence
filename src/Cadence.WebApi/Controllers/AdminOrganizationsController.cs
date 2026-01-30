@@ -334,7 +334,8 @@ public class AdminOrganizationsController : ControllerBase
     {
         try
         {
-            var result = await _membershipService.RemoveMembershipAsync(membershipId);
+            var currentUserId = GetCurrentUserId();
+            var result = await _membershipService.RemoveMembershipAsync(membershipId, currentUserId);
 
             _logger.LogInformation(
                 "SysAdmin {AdminId} removed membership {MembershipId} from organization {OrgId}",

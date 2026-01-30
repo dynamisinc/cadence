@@ -23,7 +23,6 @@ import {
   TableRow,
   TableSortLabel,
   Paper,
-  TextField,
   InputAdornment,
   FormControl,
   InputLabel,
@@ -34,7 +33,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faSearch, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
-import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
 import { useOrganizations } from '../hooks/useOrganizations'
 import { StatusChip } from '@/shared/components/StatusChip'
 import type { OrgStatus } from '../types'
@@ -105,7 +104,7 @@ export const OrganizationListPage: FC = () => {
 
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <TextField
+        <CobraTextField
           placeholder="Search organizations..."
           value={search}
           onChange={e => setSearch(e.target.value)}

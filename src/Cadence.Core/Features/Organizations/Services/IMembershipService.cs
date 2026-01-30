@@ -56,11 +56,12 @@ public interface IMembershipService
     /// If this is the user's last organization, their status changes from Active to Pending.
     /// </summary>
     /// <param name="membershipId">Membership ID to remove.</param>
+    /// <param name="deletedBy">ID of user performing the deletion.</param>
     /// <param name="ct">Cancellation token.</param>
     /// <returns>Response indicating if user status changed.</returns>
     /// <exception cref="BusinessRuleException">If removing last OrgAdmin from organization.</exception>
     /// <exception cref="NotFoundException">If membership not found.</exception>
-    Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, CancellationToken ct = default);
+    Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, Guid deletedBy, CancellationToken ct = default);
 
     /// <summary>
     /// Check if a user has membership in a specific organization.

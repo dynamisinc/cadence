@@ -14,19 +14,14 @@ import type { FC } from 'react'
 import {
   Box,
   Typography,
-  TextField,
   Paper,
   Alert,
   CircularProgress,
-  Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
   faSave,
-  faArchive,
-  faBan,
-  faRotateLeft,
   faUsers,
   faClipboard,
 } from '@fortawesome/free-solid-svg-icons'
@@ -35,7 +30,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
-  CobraDeleteButton,
+  CobraTextField,
 } from '@/theme/styledComponents'
 import {
   useOrganization,
@@ -48,7 +43,7 @@ import { StatusChip } from '@/shared/components'
 import { toast } from 'react-toastify'
 import type { OrgStatus, OrgRole } from '../types'
 import { organizationService } from '../services/organizationService'
-import { AddMemberDialog, OrgMembersTable } from '../components'
+import { AddMemberDialog, OrgMembersTable, OrganizationStatusActions } from '../components'
 
 /** Valid status values */
 const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive']
@@ -288,7 +283,7 @@ export const EditOrganizationPage: FC = () => {
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Organization Name */}
-            <TextField
+            <CobraTextField
               label="Organization Name"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -299,7 +294,7 @@ export const EditOrganizationPage: FC = () => {
             />
 
             {/* Description */}
-            <TextField
+            <CobraTextField
               label="Description"
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -310,7 +305,7 @@ export const EditOrganizationPage: FC = () => {
             />
 
             {/* Contact Email */}
-            <TextField
+            <CobraTextField
               label="Contact Email"
               type="email"
               value={contactEmail}
@@ -344,63 +339,13 @@ export const EditOrganizationPage: FC = () => {
       </Paper>
 
       {/* Status Actions */}
-      <Paper sx={{ p: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Organization Status
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          Current status: <StatusChip status={status} />
-        </Typography>
-
-        <Divider sx={{ my: 2 }} />
-
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          {status === 'Active' && (
-            <>
-              <CobraSecondaryButton
-                startIcon={<FontAwesomeIcon icon={faArchive} />}
-                onClick={handleArchive}
-                disabled={isPending}
-              >
-                Archive Organization
-              </CobraSecondaryButton>
-              <CobraDeleteButton
-                startIcon={<FontAwesomeIcon icon={faBan} />}
-                onClick={handleDeactivate}
-                disabled={isPending}
-              >
-                Deactivate Organization
-              </CobraDeleteButton>
-            </>
-          )}
-
-          {status === 'Archived' && (
-            <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faRotateLeft} />}
-              onClick={handleRestore}
-              disabled={isPending}
-            >
-              Restore to Active
-            </CobraPrimaryButton>
-          )}
-
-          {status === 'Inactive' && (
-            <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faRotateLeft} />}
-              onClick={handleRestore}
-              disabled={isPending}
-            >
-              Restore to Active
-            </CobraPrimaryButton>
-          )}
-        </Box>
-
-        {status !== 'Active' && (
-          <Alert severity="warning" sx={{ mt: 2 }}>
-            This organization is {status.toLowerCase()}. Users cannot access it until it is restored.
-          </Alert>
-        )}
-      </Paper>
+      <OrganizationStatusActions
+        status={status}
+        isPending={isPending}
+        onArchive={handleArchive}
+        onDeactivate={handleDeactivate}
+        onRestore={handleRestore}
+      />
 
       {/* Members Section */}
       <Paper sx={{ p: 3, mt: 3 }}>

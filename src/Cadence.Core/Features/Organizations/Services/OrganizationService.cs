@@ -138,12 +138,16 @@ public class OrganizationService : IOrganizationService
             if (user == null)
             {
                 // Create new pending user
+                // Extract display name from email - use part before @ or full email if no @
+                var atIndex = request.FirstAdminEmail.IndexOf('@');
+                var displayName = atIndex > 0 ? request.FirstAdminEmail[..atIndex] : request.FirstAdminEmail;
+
                 user = new ApplicationUser
                 {
                     Id = Guid.NewGuid().ToString(), // Identity uses string IDs
                     Email = request.FirstAdminEmail,
                     UserName = request.FirstAdminEmail, // Identity requires UserName
-                    DisplayName = request.FirstAdminEmail.Split('@')[0], // Default display name from email
+                    DisplayName = displayName, // Default display name from email
                     OrganizationId = organization.Id,
                     CurrentOrganizationId = organization.Id,
                     Status = UserStatus.Pending,

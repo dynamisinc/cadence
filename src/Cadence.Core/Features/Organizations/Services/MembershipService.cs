@@ -193,7 +193,7 @@ public class MembershipService : IMembershipService
     }
 
     /// <inheritdoc />
-    public async Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, CancellationToken ct = default)
+    public async Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, Guid deletedBy, CancellationToken ct = default)
     {
         var membership = await _context.OrganizationMemberships
             .FirstOrDefaultAsync(m => m.Id == membershipId, ct);
@@ -224,6 +224,7 @@ public class MembershipService : IMembershipService
         // Soft delete the membership
         membership.IsDeleted = true;
         membership.DeletedAt = DateTime.UtcNow;
+        membership.DeletedBy = deletedBy;
 
         _logger.LogInformation(
             "Removed membership {MembershipId} for user {UserId} from organization {OrgId}",

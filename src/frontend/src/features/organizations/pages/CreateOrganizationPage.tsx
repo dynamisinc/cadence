@@ -15,7 +15,6 @@ import type { FC } from 'react'
 import {
   Box,
   Typography,
-  TextField,
   Paper,
   Alert,
   InputAdornment,
@@ -24,7 +23,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faTimes, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
-import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
+import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
 import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations'
 import { toast } from 'react-toastify'
 import { debounce } from 'lodash'
@@ -138,7 +137,7 @@ export const CreateOrganizationPage: FC = () => {
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Organization Name */}
-            <TextField
+            <CobraTextField
               label="Organization Name"
               value={name}
               onChange={e => setName(e.target.value)}
@@ -149,7 +148,7 @@ export const CreateOrganizationPage: FC = () => {
             />
 
             {/* Slug */}
-            <TextField
+            <CobraTextField
               label="Slug"
               value={slug}
               onChange={e => handleSlugChange(e.target.value)}
@@ -178,7 +177,7 @@ export const CreateOrganizationPage: FC = () => {
             />
 
             {/* Description */}
-            <TextField
+            <CobraTextField
               label="Description"
               value={description}
               onChange={e => setDescription(e.target.value)}
@@ -189,7 +188,7 @@ export const CreateOrganizationPage: FC = () => {
             />
 
             {/* Contact Email */}
-            <TextField
+            <CobraTextField
               label="Contact Email"
               type="email"
               value={contactEmail}
@@ -208,7 +207,7 @@ export const CreateOrganizationPage: FC = () => {
                 Every organization needs at least one administrator. Enter the email of the first admin.
                 If this user doesn't exist, they'll be invited to create an account.
               </Alert>
-              <TextField
+              <CobraTextField
                 label="Admin Email"
                 type="email"
                 value={firstAdminEmail}
