@@ -2,7 +2,7 @@
 
 > **Last Updated:** January 2026  
 > **Location:** `src/Cadence.Core/Data/`
-3w
+> 
 ## Overview
 
 Cadence uses a two-stage data seeding architecture:
