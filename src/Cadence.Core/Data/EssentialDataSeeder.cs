@@ -33,6 +33,7 @@ public static class EssentialDataSeeder
                 {
                     Id = SystemConstants.DefaultOrganizationId,
                     Name = "Default Organization",
+                    Slug = "default",
                     Description = "Default organization for Cadence users",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,

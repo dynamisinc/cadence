@@ -264,6 +264,7 @@ public static class DemoDataSeeder
         {
             Id = DemoOrganizationId,
             Name = "Metro County Emergency Management Agency",
+            Slug = "metro-county-ema",
             Description = "County-level emergency management agency responsible for coordinating disaster " +
                           "preparedness, response, recovery, and mitigation operations for Metro County " +
                           "and its 12 municipalities. Serving a population of 1.2 million residents across " +
