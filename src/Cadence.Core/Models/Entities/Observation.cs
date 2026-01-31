@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// Observation entity - an evaluator's documented assessment of player performance
 /// during exercise conduct. Observations feed into the After-Action Report (AAR).
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Observation : BaseEntity
+public class Observation : BaseEntity, IOrganizationScoped
 {
     // =========================================================================
     // Core Properties
@@ -43,6 +44,12 @@ public class Observation : BaseEntity
     // =========================================================================
     // Foreign Keys
     // =========================================================================
+
+    /// <summary>
+    /// The organization this observation belongs to. Required for data isolation.
+    /// Denormalized from Exercise for query filter efficiency.
+    /// </summary>
+    public Guid OrganizationId { get; set; }
 
     /// <summary>
     /// The exercise this observation belongs to. Required.

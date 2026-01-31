@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
+import { MobileBlocker, ProtectedRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -13,12 +13,14 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { AppLayout } from './core/components/navigation'
 import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider, useBreadcrumbs } from './core/contexts'
 import { AuthProvider } from './contexts/AuthContext'
+import { OrganizationProvider } from './contexts/OrganizationContext'
 import { ExerciseNavigationProvider } from './shared/contexts'
 import { UserPreferencesProvider } from './features/settings'
 import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
+import { PendingUserPage } from './pages/PendingUserPage'
 import {
   ExerciseListPage,
   CreateExercisePage,
@@ -46,7 +48,13 @@ import {
 import { UserListPage } from './features/users'
 import { CapabilityLibraryPage } from './features/capabilities'
 import { MyAssignmentsPage } from './features/assignments'
+import {
+  OrganizationListPage,
+  CreateOrganizationPage,
+  EditOrganizationPage,
+} from './features/organizations'
 import { NotificationToastProvider } from './features/notifications'
+import { AboutPage, WhatsNewProvider } from './features/version'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
 
@@ -121,15 +129,18 @@ const NotFoundPage = () => {
  *
  * Wraps all routes with the AppLayout shell and BreadcrumbProvider.
  * All routes under this layout require authentication.
+ * PendingUserGuard redirects users without organization to /pending page.
  */
 const RootLayout = () => {
   return (
     <ProtectedRoute>
-      <BreadcrumbProvider>
-        <AppLayout>
-          <Outlet />
-        </AppLayout>
-      </BreadcrumbProvider>
+      <PendingUserGuard>
+        <BreadcrumbProvider>
+          <AppLayout>
+            <Outlet />
+          </AppLayout>
+        </BreadcrumbProvider>
+      </PendingUserGuard>
     </ProtectedRoute>
   )
 }
@@ -207,6 +218,15 @@ const router = createBrowserRouter([
         element: <UserSettingsPage />,
       },
 
+      // About page (version info and release notes)
+      {
+        path: 'about',
+        element: <AboutPage />,
+      },
+
+      // Pending user page (no organization assigned)
+      { path: 'pending', element: <PendingUserPage /> },
+
       // Exercise list and create (no context needed)
       { path: 'exercises', element: <ExerciseListPage /> },
       { path: 'exercises/new', element: <CreateExercisePage /> },
@@ -264,6 +284,30 @@ const router = createBrowserRouter([
           </ProtectedRoute>
         ),
       },
+      {
+        path: 'admin/organizations',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <OrganizationListPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/organizations/new',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <CreateOrganizationPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/organizations/:id',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <EditOrganizationPage />
+          </ProtectedRoute>
+        ),
+      },
 
       // 404 page - explicit route
       { path: 'not-found', element: <NotFoundPage /> },
@@ -290,28 +334,33 @@ function App() {
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
         <AuthProvider>
-          {/* User preferences provider loads after auth */}
-          <UserPreferencesProvider>
-            {/* ThemedApp applies dynamic theme based on user preferences */}
-            <ThemedApp>
-              <ExerciseNavigationProvider>
-                <ConnectivityProvider>
-                  <OfflineSyncProvider>
-                    <MobileBlocker>
-                      <FeatureFlagsProvider>
-                        <NotificationToastProvider>
-                          <RouterProvider router={router} />
-                        </NotificationToastProvider>
-                        <GlobalSyncStatus />
-                        <UpdatePrompt />
-                        <InstallBanner />
-                      </FeatureFlagsProvider>
-                    </MobileBlocker>
-                  </OfflineSyncProvider>
-                </ConnectivityProvider>
-              </ExerciseNavigationProvider>
-            </ThemedApp>
-          </UserPreferencesProvider>
+          {/* Organization provider loads after auth */}
+          <OrganizationProvider>
+            {/* User preferences provider loads after auth */}
+            <UserPreferencesProvider>
+              {/* ThemedApp applies dynamic theme based on user preferences */}
+              <ThemedApp>
+                <ExerciseNavigationProvider>
+                  <ConnectivityProvider>
+                    <OfflineSyncProvider>
+                      <MobileBlocker>
+                        <FeatureFlagsProvider>
+                          <NotificationToastProvider>
+                            <WhatsNewProvider>
+                              <RouterProvider router={router} />
+                            </WhatsNewProvider>
+                          </NotificationToastProvider>
+                          <GlobalSyncStatus />
+                          <UpdatePrompt />
+                          <InstallBanner />
+                        </FeatureFlagsProvider>
+                      </MobileBlocker>
+                    </OfflineSyncProvider>
+                  </ConnectivityProvider>
+                </ExerciseNavigationProvider>
+              </ThemedApp>
+            </UserPreferencesProvider>
+          </OrganizationProvider>
         </AuthProvider>
 
         <ToastContainer

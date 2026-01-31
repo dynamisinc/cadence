@@ -48,7 +48,7 @@ import {
   CobraTextField,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { usePermissions } from '../../../shared/hooks'
+import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { InjectStatus, DeliveryMethod } from '../../../types'
 import {
   formatScenarioTime,
@@ -77,7 +77,9 @@ export const InjectDetailPage = () => {
   const { fireInject, skipInject, deleteInject, isFiring, isSkipping, isDeleting } =
     useInjects(exerciseId || '')
   const { summaries: objectives } = useObjectiveSummaries(exerciseId || '')
-  const { canFireInjects, canDelete } = usePermissions()
+  const { can } = useExerciseRole(exerciseId || null)
+  const canFireInjects = can('fire_inject')
+  const canDelete = can('edit_inject')
 
   // Set custom breadcrumbs with exercise name, MSEL, and inject number
   useBreadcrumbs(

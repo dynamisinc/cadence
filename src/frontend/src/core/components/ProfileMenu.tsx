@@ -23,13 +23,14 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
 import type { ExerciseRole, ExerciseAssignmentDto } from '@/features/auth'
 import { useExerciseNavigation } from '@/shared/contexts'
 import { UserSettingsDialog } from '@/features/settings'
+import { useNavigate } from 'react-router-dom'
 
 /**
  * Get user initials from full name
@@ -55,22 +56,13 @@ const formatRole = (role: string): string => {
 export const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth()
   const { currentExercise, isInExerciseContext } = useExerciseNavigation()
+  const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
 
   const open = Boolean(anchorEl)
-
-  // Default to Guest if no user
-  const accountEmail = user?.email || 'guest@cadence.app'
-  const accountFullName = user?.displayName || 'Guest User'
-  const accountRole = user?.role ? formatRole(user.role) : 'No Role Assigned'
-
-  // Current exercise role for display
-  const currentExerciseRole = isInExerciseContext && currentExercise?.userRole
-    ? getRoleDisplayName(currentExercise.userRole)
-    : null
 
   // Fetch exercise assignments when menu opens
   useEffect(() => {
@@ -93,6 +85,20 @@ export const ProfileMenu: React.FC = () => {
 
     fetchAssignments()
   }, [open, user])
+
+  // Don't render if no user - prevents showing "Guest User" when API is offline
+  if (!user) {
+    return null
+  }
+
+  const accountEmail = user.email
+  const accountFullName = user.displayName
+  const accountRole = formatRole(user.role)
+
+  // Current exercise role for display
+  const currentExerciseRole = isInExerciseContext && currentExercise?.userRole
+    ? getRoleDisplayName(currentExercise.userRole)
+    : null
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -308,6 +314,22 @@ export const ProfileMenu: React.FC = () => {
               <FontAwesomeIcon icon={faGear} />
             </ListItemIcon>
             <ListItemText>Settings</ListItemText>
+          </MenuItem>
+        )}
+
+        {/* About */}
+        {user && (
+          <MenuItem
+            onClick={() => {
+              handleClose()
+              navigate('/about')
+            }}
+            data-testid="about-button"
+          >
+            <ListItemIcon>
+              <FontAwesomeIcon icon={faCircleInfo} />
+            </ListItemIcon>
+            <ListItemText>About</ListItemText>
           </MenuItem>
         )}
 

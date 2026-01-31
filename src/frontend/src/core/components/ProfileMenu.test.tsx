@@ -192,29 +192,12 @@ describe('ProfileMenu', () => {
       })
     })
 
-    it('displays guest user info', () => {
-      render(<ProfileMenu />)
+    it('renders nothing when user is not authenticated', () => {
+      const { container } = render(<ProfileMenu />)
 
-      expect(screen.getByText('Guest User')).toBeInTheDocument()
-      expect(screen.getByText('No Role Assigned')).toBeInTheDocument()
-    })
-
-    it('shows guest initials', () => {
-      render(<ProfileMenu />)
-
-      // "Guest User" -> "GU"
-      expect(screen.getByText('GU')).toBeInTheDocument()
-    })
-
-    it('does not show logout button when not authenticated', async () => {
-      render(<ProfileMenu />)
-
-      const button = screen.getByTestId('profile-menu-button')
-      fireEvent.click(button)
-
-      await waitFor(() => {
-        expect(screen.queryByTestId('logout-button')).not.toBeInTheDocument()
-      })
+      // Component should return null - nothing rendered
+      expect(container.firstChild).toBeNull()
+      expect(screen.queryByTestId('profile-menu-button')).not.toBeInTheDocument()
     })
   })
 

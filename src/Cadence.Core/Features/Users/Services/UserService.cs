@@ -1,6 +1,9 @@
 using Cadence.Core.Constants;
+using Cadence.Core.Data;
+using Cadence.Core.Features.Authentication.Models.DTOs;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Users.Models.DTOs;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -11,12 +14,15 @@ namespace Cadence.Core.Features.Users.Services;
 /// <summary>
 /// Service for user management operations.
 /// Implements administrative user management: viewing, editing, deactivating, and role assignment.
+/// Organization-scoped: OrgAdmins can only see/manage users within their organization.
 /// </summary>
 public class UserService : IUserService
 {
     private readonly UserManager<ApplicationUser> _userManager;
     private readonly IRefreshTokenStore _refreshTokenStore;
     private readonly ILogger<UserService> _logger;
+    private readonly AppDbContext _context;
+    private readonly ICurrentOrganizationContext _orgContext;
 
     private static readonly string[] ValidSystemRoles = new[]
     {
@@ -28,11 +34,15 @@ public class UserService : IUserService
     public UserService(
         UserManager<ApplicationUser> userManager,
         IRefreshTokenStore refreshTokenStore,
-        ILogger<UserService> logger)
+        ILogger<UserService> logger,
+        AppDbContext context,
+        ICurrentOrganizationContext orgContext)
     {
         _userManager = userManager;
         _refreshTokenStore = refreshTokenStore;
         _logger = logger;
+        _context = context;
+        _orgContext = orgContext;
     }
 
     /// <inheritdoc />
@@ -48,6 +58,35 @@ public class UserService : IUserService
 
         // Start with all users
         var query = _userManager.Users.AsQueryable();
+
+        // Organization filtering: Non-SysAdmins can only see users in their organization
+        if (!_orgContext.IsSysAdmin && _orgContext.CurrentOrganizationId.HasValue)
+        {
+            var currentOrgId = _orgContext.CurrentOrganizationId.Value;
+
+            // Get user IDs who are members of the current organization
+            var orgMemberUserIds = _context.OrganizationMemberships
+                .Where(m => m.OrganizationId == currentOrgId && m.Status == MembershipStatus.Active)
+                .Select(m => m.UserId);
+
+            query = query.Where(u => orgMemberUserIds.Contains(u.Id));
+        }
+        else if (!_orgContext.IsSysAdmin && !_orgContext.CurrentOrganizationId.HasValue)
+        {
+            // User without org context can only see themselves (edge case)
+            // Return empty list for safety
+            return new UserListResponse
+            {
+                Users = new List<UserDto>(),
+                Pagination = new PaginationInfo
+                {
+                    Page = page,
+                    PageSize = pageSize,
+                    TotalCount = 0,
+                    TotalPages = 0
+                }
+            };
+        }
 
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(search))
@@ -279,7 +318,7 @@ public class UserService : IUserService
             throw new KeyNotFoundException($"User {id} not found");
         }
 
-        user.Status = UserStatus.Deactivated;
+        user.Status = UserStatus.Disabled;
 
         var result = await _userManager.UpdateAsync(user);
         if (!result.Succeeded)
@@ -319,5 +358,54 @@ public class UserService : IUserService
             id, reactivatedById);
 
         return user.ToDto();
+    }
+
+    /// <inheritdoc />
+    public async Task UpdateCurrentOrganizationAsync(string userId, Guid organizationId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User {userId} not found");
+        }
+
+        user.CurrentOrganizationId = organizationId;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to update current organization: {errors}");
+        }
+
+        _logger.LogInformation("Updated current organization for user {UserId} to {OrgId}",
+            userId, organizationId);
+    }
+
+    /// <inheritdoc />
+    public async Task<UserInfo> GetUserInfoAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User {userId} not found");
+        }
+
+        return new UserInfo
+        {
+            Id = Guid.Parse(user.Id),
+            Email = user.Email ?? string.Empty,
+            DisplayName = user.DisplayName ?? user.Email ?? string.Empty,
+            Role = user.SystemRole.ToString(),
+            Status = user.Status.ToString(),
+            LastLoginAt = user.LastLoginAt
+        };
+    }
+
+    /// <inheritdoc />
+    public async Task<Guid?> GetCurrentOrganizationIdAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        return user?.CurrentOrganizationId;
     }
 }

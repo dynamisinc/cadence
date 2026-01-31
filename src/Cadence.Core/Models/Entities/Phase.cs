@@ -3,8 +3,9 @@ namespace Cadence.Core.Models.Entities;
 /// <summary>
 /// Phase entity - represents a time segment within an exercise.
 /// Phases help organize injects into logical groupings.
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Phase : BaseEntity
+public class Phase : BaseEntity, IOrganizationScoped
 {
     /// <summary>
     /// Phase name (e.g., "Initial Response", "Recovery").
@@ -34,6 +35,12 @@ public class Phase : BaseEntity
     // =========================================================================
     // Foreign Keys
     // =========================================================================
+
+    /// <summary>
+    /// The organization this phase belongs to. Required for data isolation.
+    /// Denormalized from Exercise for query filter efficiency.
+    /// </summary>
+    public Guid OrganizationId { get; set; }
 
     /// <summary>
     /// Parent exercise.

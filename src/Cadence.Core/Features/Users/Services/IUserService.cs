@@ -1,3 +1,4 @@
+using Cadence.Core.Features.Authentication.Models.DTOs;
 using Cadence.Core.Features.Users.Models.DTOs;
 
 namespace Cadence.Core.Features.Users.Services;
@@ -83,4 +84,27 @@ public interface IUserService
     /// <returns>Updated user DTO.</returns>
     /// <exception cref="KeyNotFoundException">User not found.</exception>
     Task<UserDto> ReactivateUserAsync(Guid id, Guid reactivatedById);
+
+    /// <summary>
+    /// Update a user's current organization context.
+    /// </summary>
+    /// <param name="userId">User ID (string for Identity compatibility).</param>
+    /// <param name="organizationId">New current organization ID.</param>
+    /// <exception cref="KeyNotFoundException">User not found.</exception>
+    Task UpdateCurrentOrganizationAsync(string userId, Guid organizationId);
+
+    /// <summary>
+    /// Get user information for token generation.
+    /// </summary>
+    /// <param name="userId">User ID (string for Identity compatibility).</param>
+    /// <returns>User information for JWT claims.</returns>
+    /// <exception cref="KeyNotFoundException">User not found.</exception>
+    Task<UserInfo> GetUserInfoAsync(string userId);
+
+    /// <summary>
+    /// Get user's current organization ID from the database.
+    /// </summary>
+    /// <param name="userId">User ID (string for Identity compatibility).</param>
+    /// <returns>Current organization ID, or null if not set.</returns>
+    Task<Guid?> GetCurrentOrganizationIdAsync(string userId);
 }

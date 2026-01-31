@@ -1060,7 +1060,11 @@ export const ExerciseConductPage = () => {
                 {observationsExpanded && showObservationForm && (
                   <Box sx={{ mb: 2, flexShrink: 0 }}>
                     <ObservationForm
-                      inject={preSelectedInjectId ? injects.find(i => i.id === preSelectedInjectId) : undefined}
+                      inject={
+                        preSelectedInjectId
+                          ? injects.find(i => i.id === preSelectedInjectId)
+                          : undefined
+                      }
                       injects={injects}
                       capabilities={capabilities}
                       targetCapabilityIds={targetCapabilities.map(c => c.id)}

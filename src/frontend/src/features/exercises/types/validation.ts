@@ -53,9 +53,12 @@ export const createExerciseSchema = z.object({
   }),
   clockMultiplier: z
     .number()
-    .refine(val => VALID_CLOCK_MULTIPLIERS.includes(val as typeof VALID_CLOCK_MULTIPLIERS[number]), {
-      message: 'Clock multiplier must be 1x, 2x, 5x, 10x, or 20x',
-    })
+    .refine(
+      val => VALID_CLOCK_MULTIPLIERS.includes(val as typeof VALID_CLOCK_MULTIPLIERS[number]),
+      {
+        message: 'Clock multiplier must be 1x, 2x, 5x, 10x, or 20x',
+      },
+    )
     .default(1),
   directorId: z.string().optional().or(z.literal('')),
   targetCapabilityIds: z.array(z.string()).optional().default([]),

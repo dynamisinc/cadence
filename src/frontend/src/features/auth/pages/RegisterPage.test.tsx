@@ -165,7 +165,8 @@ describe('RegisterPage', () => {
 
   it('disables submit button when submitting', async () => {
     // Mock a slow register response
-    vi.mocked(authService.register).mockImplementation(() => new Promise(() => {})) // Never resolves
+    // Never resolves - simulates slow response
+    vi.mocked(authService.register).mockImplementation(() => new Promise(() => {}))
 
     render(<RegisterPage />)
 

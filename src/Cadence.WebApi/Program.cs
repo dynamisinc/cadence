@@ -6,14 +6,15 @@ using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
 using Cadence.Core.Data;
 using Cadence.Core.Extensions;
-using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Features.Authentication.Models;
 using Cadence.Core.Features.Authentication.Services;
+using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Features.Notifications;
 using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Cadence.WebApi.Hubs;
 using Cadence.WebApi.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -22,6 +23,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.IdentityModel.Tokens;
 using Scalar.AspNetCore;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -134,8 +136,17 @@ builder.Services.AddApplicationServices();
 builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();
 builder.Services.AddScoped<INotificationBroadcaster, NotificationBroadcaster>();
 
+// Add Organization Context (reads org claims from JWT)
+builder.Services.AddScoped<ICurrentOrganizationContext, CurrentOrganizationContext>();
+
 // Add Background Services
 builder.Services.AddHostedService<InjectReadinessBackgroundService>();
+
+// Add Demo Data Seeder for non-production, non-testing environments
+if (!builder.Environment.IsProduction() && !builder.Environment.IsEnvironment("Testing"))
+{
+    builder.Services.AddDemoSeeder();
+}
 
 // Add Logging
 builder.Services.AddLogging(logging =>
@@ -198,22 +209,25 @@ builder.Services.AddRateLimiter(options =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
+// =============================================================================
+// Data Seeding
+// =============================================================================
+
+// Stage 1: Essential data - ALL environments (applies migrations, creates default org)
+await app.SeedEssentialDataAsync();
+
+// Stage 2: Demo data - ALL except Production and Testing (demo org, users, exercises, observations)
+if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("Testing"))
 {
-    app.MapOpenApi();
-    app.MapScalarApiReference();
-
-    // Seed development data
-    using var scope = app.Services.CreateScope();
-    var context = scope.ServiceProvider.GetRequiredService<AppDbContext>();
-    await DevelopmentDataSeeder.SeedAsync(context);
-
-    // Seed FEMA capabilities for demo organization
-    var importService = scope.ServiceProvider.GetRequiredService<ICapabilityImportService>();
-    var seedLogger = scope.ServiceProvider.GetRequiredService<ILogger<Program>>();
-    await DevelopmentDataSeeder.SeedCapabilitiesAsync(context, importService, seedLogger);
+    await app.SeedDemoDataAsync();
 }
+
+// =============================================================================
+// Configure HTTP Pipeline
+// =============================================================================
+
+app.MapOpenApi();
+app.MapScalarApiReference();
 
 app.UseHttpsRedirection();
 

@@ -55,8 +55,8 @@ public class AuthController : ControllerBase
             return BadRequest(result.Error);
         }
 
-        // Set refresh token in HttpOnly cookie
-        SetRefreshTokenCookie(result.RefreshToken!);
+        // Set refresh token in HttpOnly cookie (cookie expiration matches token expiration)
+        SetRefreshTokenCookie(result.RefreshToken!, result.RefreshTokenExpiresIn);
 
         _logger.LogInformation(
             "User registered successfully: {UserId}, Email: {Email}, IsFirstUser: {IsFirstUser}",
@@ -114,11 +114,12 @@ public class AuthController : ControllerBase
             return Unauthorized(result.Error);
         }
 
-        SetRefreshTokenCookie(result.RefreshToken!);
+        // Set refresh token in HttpOnly cookie (cookie expiration matches token expiration)
+        SetRefreshTokenCookie(result.RefreshToken!, result.RefreshTokenExpiresIn);
 
         _logger.LogInformation(
-            "User logged in successfully: {UserId}, Email: {Email}",
-            result.UserId, result.Email);
+            "User logged in successfully: {UserId}, Email: {Email}, RememberMe: {RememberMe}",
+            result.UserId, result.Email, result.RememberMe);
 
         // Return response without refresh token in body
         return Ok(new AuthResponse
@@ -165,9 +166,12 @@ public class AuthController : ControllerBase
             return Unauthorized(result.Error);
         }
 
-        SetRefreshTokenCookie(result.RefreshToken!);
+        // Set refresh token in HttpOnly cookie (preserves original RememberMe preference)
+        SetRefreshTokenCookie(result.RefreshToken!, result.RefreshTokenExpiresIn);
 
-        _logger.LogInformation("Token refreshed successfully: {UserId}", result.UserId);
+        _logger.LogInformation(
+            "Token refreshed successfully: {UserId}, RememberMe: {RememberMe}",
+            result.UserId, result.RememberMe);
 
         return Ok(new AuthResponse
         {
@@ -274,8 +278,8 @@ public class AuthController : ControllerBase
             return BadRequest(result.Error);
         }
 
-        // Set refresh token in HttpOnly cookie
-        SetRefreshTokenCookie(result.RefreshToken!);
+        // Set refresh token in HttpOnly cookie (password reset uses default session length)
+        SetRefreshTokenCookie(result.RefreshToken!, result.RefreshTokenExpiresIn);
 
         _logger.LogInformation("Password reset completed for user: {UserId}", result.UserId);
 
@@ -304,7 +308,8 @@ public class AuthController : ControllerBase
     /// - Production: Secure=true, SameSite configured via appsettings (Strict, Lax, or None for cross-origin)
     /// </summary>
     /// <param name="refreshToken">The refresh token to store.</param>
-    private void SetRefreshTokenCookie(string refreshToken)
+    /// <param name="expiresInSeconds">Token expiration in seconds (cookie expiration matches token expiration).</param>
+    private void SetRefreshTokenCookie(string refreshToken, int expiresInSeconds)
     {
         var isDevelopment = _environment.IsDevelopment();
 
@@ -325,10 +330,17 @@ public class AuthController : ControllerBase
             HttpOnly = true,
             Secure = !isDevelopment || sameSiteMode == SameSiteMode.None, // SameSite=None requires Secure
             SameSite = sameSiteMode,
-            Expires = DateTimeOffset.UtcNow.AddDays(30) // Max possible expiration
+            // Cookie expiration now matches actual token expiration
+            Expires = DateTimeOffset.UtcNow.AddSeconds(expiresInSeconds)
         };
 
         Response.Cookies.Append("refreshToken", refreshToken, cookieOptions);
+
+        _logger.LogDebug(
+            "Set refresh token cookie, SameSite={SameSite}, Secure={Secure}, ExpiresIn={ExpiresIn}s",
+            sameSiteMode,
+            cookieOptions.Secure,
+            expiresInSeconds);
     }
 
     /// <summary>

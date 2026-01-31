@@ -23,6 +23,7 @@ import {
   faCog,
   faShieldHalved,
   faDesktop,
+  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
@@ -74,10 +75,10 @@ const ADMIN_ROLES: HseepRole[] = [
 /**
  * Complete menu configuration
  *
- * 9 menu items across 3 sections:
+ * 10 menu items across 3 sections:
  * - CONDUCT (4): My Assignments, Exercises, Control Room, Inject Queue
  * - ANALYSIS (2): Observations, Reports
- * - SYSTEM (3): Templates, Users, Settings
+ * - SYSTEM (4): Admin, Templates, Users, Organizations, Settings
  */
 export const MENU_ITEMS: MenuItem[] = [
   // ============================================================================
@@ -168,6 +169,15 @@ export const MENU_ITEMS: MenuItem[] = [
     label: 'Users',
     icon: faUsers,
     path: '/admin/users',
+    section: 'system',
+    allowedRoles: ADMIN_ROLES,
+    allowedSystemRoles: [SystemRole.Admin],
+  },
+  {
+    id: 'organizations',
+    label: 'Organizations',
+    icon: faBuilding,
+    path: '/admin/organizations',
     section: 'system',
     allowedRoles: ADMIN_ROLES,
     allowedSystemRoles: [SystemRole.Admin],

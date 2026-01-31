@@ -131,6 +131,18 @@ public class AuthResponse
     public string? Status { get; init; }
 
     /// <summary>
+    /// Whether "Remember Me" was selected during login.
+    /// Used by controller to set appropriate cookie expiration.
+    /// </summary>
+    public bool RememberMe { get; init; }
+
+    /// <summary>
+    /// Refresh token expiration time in seconds (from now).
+    /// Used by controller to set cookie expiration to match token expiration.
+    /// </summary>
+    public int RefreshTokenExpiresIn { get; init; }
+
+    /// <summary>
     /// Creates a successful authentication response.
     /// </summary>
     public static AuthResponse Success(
@@ -143,7 +155,9 @@ public class AuthResponse
         int expiresIn,
         string status = "Active",
         bool isNewAccount = false,
-        bool isFirstUser = false)
+        bool isFirstUser = false,
+        bool rememberMe = false,
+        int refreshTokenExpiresIn = 0)
         => new()
         {
             IsSuccess = true,
@@ -156,7 +170,9 @@ public class AuthResponse
             ExpiresIn = expiresIn,
             Status = status,
             IsNewAccount = isNewAccount,
-            IsFirstUser = isFirstUser
+            IsFirstUser = isFirstUser,
+            RememberMe = rememberMe,
+            RefreshTokenExpiresIn = refreshTokenExpiresIn
         };
 
     /// <summary>

@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 10 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(10)
+    it('has exactly 11 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(11)
     })
 
     it('all items have required properties', () => {
@@ -80,9 +80,9 @@ describe('menuConfig', () => {
       expect(analysisItems).toHaveLength(2)
     })
 
-    it('SYSTEM section has 4 items', () => {
+    it('SYSTEM section has 5 items', () => {
       const systemItems = MENU_ITEMS.filter(item => item.section === 'system')
-      expect(systemItems).toHaveLength(4)
+      expect(systemItems).toHaveLength(5)
     })
 
     it('CONDUCT section contains correct items', () => {
@@ -107,6 +107,7 @@ describe('menuConfig', () => {
       expect(ids).toContain('admin')
       expect(ids).toContain('templates')
       expect(ids).toContain('users')
+      expect(ids).toContain('organizations')
       expect(ids).toContain('settings')
     })
   })
@@ -370,6 +371,35 @@ describe('menuConfig', () => {
       })
     })
 
+    describe('Organizations', () => {
+      const item = MENU_ITEMS.find(i => i.id === 'organizations')!
+
+      it('exists', () => {
+        expect(item).toBeDefined()
+      })
+
+      it('has correct path', () => {
+        expect(item.path).toBe('/admin/organizations')
+      })
+
+      it('is in SYSTEM section', () => {
+        expect(item.section).toBe('system')
+      })
+
+      it('is visible to Admin only', () => {
+        expect(item.allowedRoles).toContain(HseepRole.Administrator)
+        expect(item.allowedRoles).toHaveLength(1)
+      })
+
+      it('requires Admin system role', () => {
+        expect(item.allowedSystemRoles).toContain(SystemRole.Admin)
+      })
+
+      it('does not require exercise context', () => {
+        expect(item.requiresExerciseContext).toBeFalsy()
+      })
+    })
+
     describe('Settings', () => {
       const item = MENU_ITEMS.find(i => i.id === 'settings')!
 
@@ -400,11 +430,11 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 10 items', () => {
+      it('can see all 11 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(10)
+        expect(visibleItems).toHaveLength(11)
       })
     })
 
@@ -592,7 +622,7 @@ describe('menuConfig', () => {
 
       it('returns correct items for SYSTEM section', () => {
         const items = getMenuItemsBySection('system')
-        expect(items).toHaveLength(4)
+        expect(items).toHaveLength(5)
         items.forEach(item => {
           expect(item.section).toBe('system')
         })
@@ -636,7 +666,8 @@ describe('menuConfig', () => {
       expect(MENU_ITEMS[6].id).toBe('admin')
       expect(MENU_ITEMS[7].id).toBe('templates')
       expect(MENU_ITEMS[8].id).toBe('users')
-      expect(MENU_ITEMS[9].id).toBe('settings')
+      expect(MENU_ITEMS[9].id).toBe('organizations')
+      expect(MENU_ITEMS[10].id).toBe('settings')
     })
   })
 })

@@ -1,4 +1,5 @@
 using Cadence.Core.Constants;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
@@ -7,19 +8,80 @@ namespace Cadence.Core.Data;
 /// <summary>
 /// Entity Framework Core database context for the application.
 /// Extends IdentityDbContext to support ASP.NET Core Identity for authentication.
+///
+/// Implements automatic organization-scoped query filters for data isolation:
+/// - Entities implementing IOrganizationScoped are automatically filtered by the current organization
+/// - SysAdmins bypass organization filters and can see all data
+/// - Use IgnoreQueryFilters() for explicit cross-organization access
 /// </summary>
 public class AppDbContext : IdentityDbContext<ApplicationUser>
 {
+    private readonly ICurrentOrganizationContext? _orgContext;
+
+    /// <summary>
+    /// Creates a new DbContext with organization context for automatic data filtering.
+    /// Use this constructor for normal application operations.
+    /// </summary>
+    /// <param name="options">Database context options</param>
+    /// <param name="orgContext">Current organization context for filtering</param>
+    public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentOrganizationContext orgContext)
+        : base(options)
+    {
+        _orgContext = orgContext;
+    }
+
+    /// <summary>
+    /// Creates a new DbContext without organization context.
+    /// Use this constructor for migrations, design-time operations, and testing.
+    /// WARNING: No organization filtering will be applied!
+    /// </summary>
+    /// <param name="options">Database context options</param>
     public AppDbContext(DbContextOptions<AppDbContext> options) : base(options)
     {
     }
+
+    // =========================================================================
+    // Organization Context Properties (for parameterized query filters)
+    // =========================================================================
+
+    /// <summary>
+    /// Gets whether the current user is a SysAdmin (bypasses org filters).
+    /// Used by parameterized query filters at query execution time.
+    /// </summary>
+    private bool IsSysAdmin => _orgContext?.IsSysAdmin ?? false;
+
+    /// <summary>
+    /// Gets the current organization ID for filtering.
+    /// Used by parameterized query filters at query execution time.
+    /// </summary>
+    private Guid? CurrentOrganizationId => _orgContext?.CurrentOrganizationId;
+
+    /// <summary>
+    /// Determines if org filters should be bypassed entirely.
+    /// Returns true when: no org context service (tests/design-time/migrations), no HTTP context (seeding), or SysAdmin.
+    /// When false, filters by OrgIdForFilter - users without org context see nothing.
+    /// </summary>
+    private bool BypassOrgFilter =>
+        _orgContext == null ||     // No service (tests, design-time, migrations)
+        !_orgContext.HasContext || // No HTTP context (seeding, background jobs)
+        _orgContext.IsSysAdmin;    // SysAdmin sees all
+
+    /// <summary>
+    /// Gets the organization ID to filter by, or Guid.Empty if user has no org.
+    /// When OrgIdForFilter is Guid.Empty and BypassOrgFilter is false,
+    /// the filter matches nothing (pending users see no data), which is secure.
+    /// </summary>
+    private Guid OrgIdForFilter => _orgContext?.CurrentOrganizationId ?? Guid.Empty;
 
     // =========================================================================
     // DbSets
     // =========================================================================
 
     public DbSet<Organization> Organizations => Set<Organization>();
-    public DbSet<User> Users => Set<User>();
+    public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
+    public DbSet<OrganizationInvite> OrganizationInvites => Set<OrganizationInvite>();
+    public DbSet<Agency> Agencies => Set<Agency>();
+    public new DbSet<User> Users => Set<User>();
     public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
@@ -65,20 +127,45 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 }
             }
 
-            // Configure global soft delete query filter for ISoftDeletable entities
-            if (typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType))
+            // Determine which interfaces this entity implements
+            var isSoftDeletable = typeof(ISoftDeletable).IsAssignableFrom(entityType.ClrType);
+            var isOrgScoped = typeof(IOrganizationScoped).IsAssignableFrom(entityType.ClrType);
+
+            // Apply combined query filter based on implemented interfaces
+            if (isSoftDeletable && isOrgScoped)
             {
+                // Entity has both soft delete AND organization scoping
+                var method = typeof(AppDbContext)
+                    .GetMethod(nameof(ConfigureCombinedFilter),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { modelBuilder });
+            }
+            else if (isSoftDeletable)
+            {
+                // Entity only has soft delete (no org scoping)
                 var method = typeof(AppDbContext)
                     .GetMethod(nameof(ConfigureSoftDeleteFilter),
                         System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)?
                     .MakeGenericMethod(entityType.ClrType);
-
                 method?.Invoke(null, new object[] { modelBuilder });
+            }
+            else if (isOrgScoped)
+            {
+                // Entity only has organization scoping (no soft delete)
+                var method = typeof(AppDbContext)
+                    .GetMethod(nameof(ConfigureOrganizationFilter),
+                        System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)?
+                    .MakeGenericMethod(entityType.ClrType);
+                method?.Invoke(this, new object[] { modelBuilder });
             }
         }
 
         // Configure entities
         ConfigureOrganization(modelBuilder);
+        ConfigureOrganizationMembership(modelBuilder);
+        ConfigureOrganizationInvite(modelBuilder);
+        ConfigureAgency(modelBuilder);
         ConfigureUser(modelBuilder);
         ConfigureApplicationUser(modelBuilder);
         ConfigureRefreshToken(modelBuilder);
@@ -105,10 +192,51 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     /// <summary>
     /// Configures a global query filter to exclude soft-deleted entities.
+    /// Used for entities that implement ISoftDeletable but NOT IOrganizationScoped.
     /// </summary>
     private static void ConfigureSoftDeleteFilter<T>(ModelBuilder modelBuilder) where T : class, ISoftDeletable
     {
         modelBuilder.Entity<T>().HasQueryFilter(e => !e.IsDeleted);
+    }
+
+    /// <summary>
+    /// Configures a global query filter for organization scoping only.
+    /// Used for entities that implement IOrganizationScoped but NOT ISoftDeletable.
+    ///
+    /// Filter logic:
+    /// - If no org context service (tests/design-time): no filtering (see all)
+    /// - SysAdmins: see all organizations
+    /// - Users with org context: see only their organization's data
+    /// - Users without org context (pending): see nothing (OrgIdForFilter = Guid.Empty)
+    /// </summary>
+    private void ConfigureOrganizationFilter<T>(ModelBuilder modelBuilder)
+        where T : class, IOrganizationScoped
+    {
+        // BypassOrgFilter is true for tests/design-time or SysAdmin
+        // When bypassed: show all data
+        // When not bypassed: filter by org (pending users have OrgIdForFilter = Guid.Empty, so see nothing)
+        modelBuilder.Entity<T>().HasQueryFilter(e =>
+            BypassOrgFilter || e.OrganizationId == OrgIdForFilter
+        );
+    }
+
+    /// <summary>
+    /// Configures a combined query filter for both soft delete AND organization scoping.
+    /// Used for entities that implement both ISoftDeletable AND IOrganizationScoped.
+    ///
+    /// Combined filter logic:
+    /// - Entity must NOT be soft-deleted
+    /// - AND organization filter applies (see ConfigureOrganizationFilter)
+    /// </summary>
+    private void ConfigureCombinedFilter<T>(ModelBuilder modelBuilder)
+        where T : class, ISoftDeletable, IOrganizationScoped
+    {
+        // Combine soft delete and org filters
+        // BypassOrgFilter is true for tests/design-time or SysAdmin
+        modelBuilder.Entity<T>().HasQueryFilter(e =>
+            !e.IsDeleted &&
+            (BypassOrgFilter || e.OrganizationId == OrgIdForFilter)
+        );
     }
 
     // =========================================================================
@@ -120,19 +248,124 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         modelBuilder.Entity<Organization>(entity =>
         {
             entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Slug).HasMaxLength(50).IsRequired();
             entity.Property(e => e.Description).HasMaxLength(4000);
+            entity.Property(e => e.ContactEmail).HasMaxLength(200);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+
+            // Unique index on Slug
+            entity.HasIndex(e => e.Slug).IsUnique();
+
+            // Index for status queries
+            entity.HasIndex(e => e.Status);
 
             // Seed default organization
             entity.HasData(new Organization
             {
                 Id = SystemConstants.DefaultOrganizationId,
                 Name = "Default Organization",
+                Slug = "default",
                 Description = "Default organization for the Cadence system",
+                Status = OrgStatus.Active,
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             });
+        });
+    }
+
+    private static void ConfigureOrganizationMembership(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OrganizationMembership>(entity =>
+        {
+            entity.Property(e => e.UserId).HasMaxLength(450).IsRequired(); // Match AspNetUsers.Id length
+            entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.InvitedById).HasMaxLength(450);
+
+            // Unique constraint: one membership per user per organization
+            entity.HasIndex(e => new { e.UserId, e.OrganizationId }).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => new { e.OrganizationId, e.Status });
+
+            // Relationships
+            entity.HasOne(e => e.User)
+                .WithMany(u => u.Memberships)
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Organization)
+                .WithMany(o => o.Memberships)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.InvitedBy)
+                .WithMany()
+                .HasForeignKey(e => e.InvitedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureOrganizationInvite(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OrganizationInvite>(entity =>
+        {
+            entity.Property(e => e.Email).HasMaxLength(200);
+            entity.Property(e => e.Code).HasMaxLength(8).IsRequired();
+            entity.Property(e => e.Role).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.UsedById).HasMaxLength(450);
+            entity.Property(e => e.CreatedByUserId).HasMaxLength(450).IsRequired();
+
+            // Unique index on Code
+            entity.HasIndex(e => e.Code).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => new { e.OrganizationId, e.ExpiresAt });
+            entity.HasIndex(e => e.Email);
+
+            // Relationships
+            entity.HasOne(e => e.Organization)
+                .WithMany(o => o.Invites)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.UsedBy)
+                .WithMany()
+                .HasForeignKey(e => e.UsedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.CreatedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CreatedByUserId)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureAgency(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<Agency>(entity =>
+        {
+            entity.Property(e => e.Name).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Abbreviation).HasMaxLength(20);
+            entity.Property(e => e.Description).HasMaxLength(500);
+
+            // Unique constraint: one agency name per organization
+            entity.HasIndex(e => new { e.OrganizationId, e.Name }).IsUnique();
+
+            // Indexes for common queries
+            entity.HasIndex(e => new { e.OrganizationId, e.IsActive, e.SortOrder });
+
+            // Relationship
+            entity.HasOne(e => e.Organization)
+                .WithMany(o => o.Agencies)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 
@@ -177,12 +410,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.Status);
             entity.HasIndex(e => e.SystemRole);
             entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => e.CurrentOrganizationId);
 
             // Relationship to Organization
             entity.HasOne(e => e.Organization)
                 .WithMany()
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship to CurrentOrganization
+            entity.HasOne(e => e.CurrentOrganization)
+                .WithMany()
+                .HasForeignKey(e => e.CurrentOrganizationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
 
             // Self-referential relationship for tracking who created the user
             entity.HasOne(e => e.CreatedByUser)

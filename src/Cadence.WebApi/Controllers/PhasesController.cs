@@ -116,6 +116,9 @@ public class PhasesController : ControllerBase
         var createdBy = SystemConstants.SystemUserId;
         var phase = request.ToEntity(exerciseId, maxSequence + 1, createdBy);
 
+        // Set OrganizationId from the parent exercise for data isolation
+        phase.OrganizationId = exercise.OrganizationId;
+
         _context.Phases.Add(phase);
         await _context.SaveChangesAsync();
 

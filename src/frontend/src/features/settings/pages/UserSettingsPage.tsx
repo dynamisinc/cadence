@@ -40,6 +40,7 @@ import CobraStyles from '@/theme/CobraStyles'
 import { useUserPreferences } from '../contexts/UserPreferencesContext'
 import { getCurrentTimeFormatted } from '../utils/timeFormat'
 import { useBreadcrumbs } from '@/core/contexts'
+import { VersionInfoCard } from '@/features/version'
 import type { ThemePreference, DisplayDensity, TimeFormat } from '../types'
 
 /**
@@ -361,6 +362,11 @@ export const UserSettingsPage = () => {
               </CobraLinkButton>
             </Box>
           </Paper>
+        </Grid>
+
+        {/* Version Information */}
+        <Grid size={12}>
+          <VersionInfoCard />
         </Grid>
       </Grid>
     </Box>

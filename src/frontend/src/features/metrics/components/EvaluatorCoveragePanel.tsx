@@ -578,7 +578,8 @@ export const EvaluatorCoveragePanel = ({ exerciseId }: EvaluatorCoveragePanelPro
   if (data.totalEvaluators === 0) {
     return (
       <Alert severity="info" sx={{ mb: 2 }}>
-        No observations have been recorded yet. Evaluator coverage will appear here once observations are added.
+        No observations have been recorded yet. Evaluator coverage will appear
+        here once observations are added.
       </Alert>
     )
   }

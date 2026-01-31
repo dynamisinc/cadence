@@ -3,6 +3,12 @@ import { loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
 import { VitePWA } from 'vite-plugin-pwa'
 import path from 'path'
+import { readFileSync } from 'fs'
+
+// Read version from package.json for build-time injection
+const packageJson = JSON.parse(
+  readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
+)
 
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
@@ -21,6 +27,11 @@ export default defineConfig(({ mode }) => {
   const isCI = process.env.CI === 'true'
 
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(packageJson.version),
+      __BUILD_DATE__: JSON.stringify(new Date().toISOString()),
+      __COMMIT_SHA__: JSON.stringify(process.env.GITHUB_SHA?.slice(0, 7) ?? 'local'),
+    },
     plugins: [
       react(),
       VitePWA({

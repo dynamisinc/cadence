@@ -1,0 +1,25 @@
+name: Release Please
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  release-please:
+    runs-on: ubuntu-latest
+    outputs:
+      api-release-created: ${{ steps.release.outputs['src/Cadence.Core--release_created'] }}
+      api-version: ${{ steps.release.outputs['src/Cadence.Core--version'] }}
+      frontend-release-created: ${{ steps.release.outputs['src/frontend--release_created'] }}
+      frontend-version: ${{ steps.release.outputs['src/frontend--version'] }}
+    steps:
+      - uses: googleapis/release-please-action@v4
+        id: release
+        with:
+          config-file: release-please-config.json
+          manifest-file: .release-please-manifest.json

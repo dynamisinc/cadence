@@ -50,7 +50,8 @@ import {
   CobraIconButton,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { usePermissions, useUnsavedChangesWarning } from '../../../shared/hooks'
+import { useUnsavedChangesWarning } from '../../../shared/hooks'
+import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
@@ -98,7 +99,7 @@ export const ExerciseDetailPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { exercise, loading, error, updateExercise } = useExercise(id)
-  const { canManage } = usePermissions()
+  const { can } = useExerciseRole(id ?? null)
   const queryClient = useQueryClient()
 
   // Derive edit state from URL path (ends with /edit)
@@ -190,12 +191,12 @@ export const ExerciseDetailPage = () => {
   }, [exercise])
 
   const canEdit = useMemo(() => {
-    if (!exercise || !canManage) return false
+    if (!exercise || !can('edit_exercise')) return false
     return (
       exercise.status !== ExerciseStatus.Completed &&
       exercise.status !== ExerciseStatus.Archived
     )
-  }, [exercise, canManage])
+  }, [exercise, can])
 
   const handleEdit = () => {
     if (
@@ -282,15 +283,15 @@ export const ExerciseDetailPage = () => {
 
   // Determine if exercise can be deleted (never published OR already archived)
   const canDelete = useMemo(() => {
-    if (!exercise || !canManage) return false
+    if (!exercise || !can('delete_exercise')) return false
     return !exercise.hasBeenPublished || exercise.status === ExerciseStatus.Archived
-  }, [exercise, canManage])
+  }, [exercise, can])
 
-  // Can archive if not already archived and user can manage
+  // Can archive if not already archived and user can edit
   const canArchive = useMemo(() => {
-    if (!exercise || !canManage) return false
+    if (!exercise || !can('edit_exercise')) return false
     return exercise.status !== ExerciseStatus.Archived
-  }, [exercise, canManage])
+  }, [exercise, can])
 
   const formatDate = (dateStr: string) => {
     try {
@@ -389,7 +390,7 @@ export const ExerciseDetailPage = () => {
               />
             )}
             {/* More menu for lifecycle actions */}
-            {!isEditing && canManage && (
+            {!isEditing && can('edit_exercise') && (
               <>
                 <CobraIconButton
                   onClick={handleMoreMenuOpen}

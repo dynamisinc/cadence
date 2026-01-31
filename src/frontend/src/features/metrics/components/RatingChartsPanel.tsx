@@ -64,7 +64,17 @@ type ViewMode = 'overall' | 'byPhase'
 /**
  * Custom tooltip for donut chart
  */
-const DonutTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{ payload: { name: string; value: number; percentage: number } }> }) => {
+interface DonutPayload {
+  payload: { name: string; value: number; percentage: number }
+}
+
+const DonutTooltip = ({
+  active,
+  payload,
+}: {
+  active?: boolean
+  payload?: Array<DonutPayload>
+}) => {
   if (active && payload && payload.length) {
     const data = payload[0].payload
     return (
@@ -87,7 +97,21 @@ const DonutTooltip = ({ active, payload }: { active?: boolean; payload?: Array<{
 /**
  * Custom tooltip for bar chart
  */
-const BarTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ name: string; value: number; fill: string }>; label?: string }) => {
+interface BarPayload {
+  name: string
+  value: number
+  fill: string
+}
+
+const BarTooltip = ({
+  active,
+  payload,
+  label,
+}: {
+  active?: boolean
+  payload?: Array<BarPayload>
+  label?: string
+}) => {
   if (active && payload && payload.length) {
     const total = payload.reduce((sum, p) => sum + (p.value || 0), 0)
     return (
@@ -101,7 +125,8 @@ const BarTooltip = ({ active, payload, label }: { active?: boolean; payload?: Ar
             variant="body2"
             sx={{ color: entry.fill }}
           >
-            {entry.name}: {entry.value} ({total > 0 ? ((entry.value / total) * 100).toFixed(0) : 0}%)
+            {entry.name}: {entry.value} (
+            {total > 0 ? ((entry.value / total) * 100).toFixed(0) : 0}%)
           </Typography>
         ))}
         <Typography variant="body2" sx={{ mt: 0.5, pt: 0.5, borderTop: '1px solid #eee' }}>
@@ -403,7 +428,8 @@ export const RatingChartsPanel = ({ exerciseId }: RatingChartsPanelProps) => {
       <Paper ref={chartRef} elevation={1} sx={{ p: 3 }}>
         {!hasObservations ? (
           <Alert severity="info" icon={<FontAwesomeIcon icon={faChartPie} />}>
-            No observations have been recorded yet. Charts will appear here once observations are added.
+            No observations have been recorded yet. Charts will appear here once
+            observations are added.
           </Alert>
         ) : viewMode === 'overall' ? (
           <OverallDonutChart distribution={data.ratingDistribution} />

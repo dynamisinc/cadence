@@ -10,8 +10,10 @@ namespace Cadence.Core.Models.Entities;
 /// - Specific, measurable, achievable, relevant, and time-bound (SMART)
 /// - Based on capability targets from the Threat and Hazard Identification and Risk Assessment (THIRA)
 /// - Limited to 3-5 objectives per exercise
+///
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Objective : BaseEntity
+public class Objective : BaseEntity, IOrganizationScoped
 {
     /// <summary>
     /// Objective number for display ordering (e.g., "1", "2", "3").
@@ -34,6 +36,12 @@ public class Objective : BaseEntity
     // =========================================================================
     // Foreign Keys
     // =========================================================================
+
+    /// <summary>
+    /// The organization this objective belongs to. Required for data isolation.
+    /// Denormalized from Exercise for query filter efficiency.
+    /// </summary>
+    public Guid OrganizationId { get; set; }
 
     /// <summary>
     /// The exercise this objective belongs to.

@@ -73,7 +73,12 @@
       "\\tmp",
       "c:\\Code\\dynamis\\cadence\\src\\Cadence.WebApi\\Controllers",
       "c:\\Code\\dynamis\\cadence",
-      "c:\\Code\\dynamis\\cadence\\src\\frontend\\public"
+      "c:\\Code\\dynamis\\cadence\\src\\frontend\\public",
+      "c:\\Code\\dynamis\\cadence\\src\\frontend\\src\\shared\\components",
+      "c:\\Code\\dynamis\\cadence\\src\\pages",
+      "C:\\Code\\dynamis\\cadence\\src\\Cadence.WebApi\\Controllers",
+      "C:\\Code\\dynamis\\cadence\\src\\Cadence.Core\\Core\\Data",
+      "C:\\Code\\dynamis\\cadence"
     ]
   }
 }

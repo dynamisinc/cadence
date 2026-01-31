@@ -61,7 +61,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Check if deactivated
-        if (user.Status == UserStatus.Deactivated)
+        if (user.Status == UserStatus.Disabled)
         {
             _logger.LogWarning("Login attempt for deactivated user: {UserId}", user.Id);
             return AuthResponse.Failure(AuthError.AccountDeactivated);
@@ -303,7 +303,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Check if user is deactivated
-        if (user.Status == UserStatus.Deactivated)
+        if (user.Status == UserStatus.Disabled)
         {
             _logger.LogWarning("Refresh token used for deactivated user: {UserId}", user.Id);
             return AuthResponse.Failure(AuthError.AccountDeactivated);
@@ -314,9 +314,9 @@ public class AuthenticationService : IAuthenticationService
 
         _logger.LogInformation("Refresh token used: {UserId}", user.Id);
 
-        // Determine RememberMe based on token expiration (if > 1 day, assume RememberMe was true)
-        var tokenLifetimeHours = (storedToken.ExpiresAt - storedToken.CreatedAt).TotalHours;
-        var rememberMe = tokenLifetimeHours > 24; // More than 24 hours means RememberMe was used
+        // Use the stored RememberMe value from the original login
+        // This preserves the user's original preference across token rotations
+        var rememberMe = storedToken.RememberMe;
 
         // Generate new tokens
         return await GenerateAuthResponseAsync(
@@ -431,7 +431,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Check if user is deactivated
-        if (user.Status == UserStatus.Deactivated)
+        if (user.Status == UserStatus.Disabled)
         {
             _logger.LogWarning("Password reset requested for deactivated user: {UserId}", user.Id);
             return true; // Still return success to prevent enumeration
@@ -500,7 +500,7 @@ public class AuthenticationService : IAuthenticationService
         }
 
         // Check if user is deactivated
-        if (user.Status == UserStatus.Deactivated)
+        if (user.Status == UserStatus.Disabled)
         {
             _logger.LogWarning("Password reset attempted for deactivated user: {UserId}", user.Id);
             return AuthResponse.Failure(AuthError.AccountDeactivated);
@@ -572,8 +572,46 @@ public class AuthenticationService : IAuthenticationService
             LastLoginAt = user.LastLoginAt
         };
 
-        var (accessToken, expiresIn) = _tokenService.GenerateAccessToken(userInfo);
-        var refreshToken = await _refreshTokenStore.CreateAsync(
+        // Get organization context if user has a current organization
+        Guid? orgId = null;
+        string? orgName = null;
+        string? orgSlug = null;
+        string? orgRole = null;
+
+        if (user.CurrentOrganizationId.HasValue)
+        {
+            var org = await _context.Set<Organization>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(o => o.Id == user.CurrentOrganizationId.Value && !o.IsDeleted);
+
+            if (org != null)
+            {
+                orgId = org.Id;
+                orgName = org.Name;
+                orgSlug = org.Slug;
+
+                // Get user's role in this organization
+                var membership = await _context.Set<OrganizationMembership>()
+                    .AsNoTracking()
+                    .FirstOrDefaultAsync(m =>
+                        m.UserId == user.Id &&
+                        m.OrganizationId == org.Id &&
+                        m.Status == MembershipStatus.Active);
+
+                if (membership != null)
+                {
+                    orgRole = membership.Role.ToString();
+                }
+                else if (user.SystemRole == SystemRole.Admin)
+                {
+                    // SysAdmins get OrgAdmin access even without membership
+                    orgRole = OrgRole.OrgAdmin.ToString();
+                }
+            }
+        }
+
+        var (accessToken, expiresIn) = _tokenService.GenerateAccessToken(userInfo, orgId, orgName, orgSlug, orgRole);
+        var refreshTokenResult = await _refreshTokenStore.CreateAsync(
             Guid.Parse(user.Id),
             rememberMe,
             ipAddress,
@@ -585,11 +623,13 @@ public class AuthenticationService : IAuthenticationService
             email: user.Email!,
             role: user.SystemRole.ToString(),
             accessToken: accessToken,
-            refreshToken: refreshToken,
+            refreshToken: refreshTokenResult.Token,
             expiresIn: expiresIn,
             status: user.Status.ToString(),
             isNewAccount: isNewAccount,
-            isFirstUser: isFirstUser);
+            isFirstUser: isFirstUser,
+            rememberMe: refreshTokenResult.RememberMe,
+            refreshTokenExpiresIn: refreshTokenResult.ExpiresIn);
     }
 
     /// <summary>

@@ -28,14 +28,81 @@ You are the ONLY agent that runs in Phase 0. Your outputs become contracts for a
 □ 3. Create/update all entities in DbContext
 □ 4. Configure DbContext (timestamps, soft delete, datetime2)
 □ 5. Create initial migration
-□ 6. Create AuthContext.tsx and ExerciseContext.tsx
-□ 7. Create SignalR scaffolds:
+□ 6. Create core contexts:
+     - AuthContext.tsx (authentication)
+     - OrganizationContext.tsx (multi-tenancy - CRITICAL)
+     - ExerciseContext.tsx (exercise state)
+□ 7. Create organization infrastructure:
+     - ICurrentOrganizationContext interface in Cadence.Core/Hubs/
+     - CurrentOrganizationContext in Cadence.WebApi/Services/
+     - OrganizationValidationInterceptor in Cadence.Core/Data/Interceptors/
+□ 8. Create SignalR scaffolds:
      - IExerciseHubContext interface in Cadence.Core/Hubs/
      - ExerciseHub + ExerciseHubContext in Cadence.WebApi/Hubs/
-□ 8. Create TypeScript types for all modules
-□ 9. Create placeholder folders for each feature
-□ 10. Write tests for core stories
-□ 11. Update README files
+□ 9. Create TypeScript types for all modules
+□ 10. Create placeholder folders for each feature
+□ 11. Write tests for core stories
+□ 12. Update README files
+```
+
+### Organization Context Architecture (CRITICAL)
+
+Organization context is the foundation of multi-tenancy. These interfaces and implementations are REQUIRED:
+
+```
+Cadence.Core/Hubs/
+├── ICurrentOrganizationContext.cs   # Interface - NO web dependency
+
+Cadence.WebApi/Services/
+├── CurrentOrganizationContext.cs    # Implementation - extracts from JWT
+
+Cadence.Core/Data/Interceptors/
+├── OrganizationValidationInterceptor.cs  # Write-side protection
+```
+
+**ICurrentOrganizationContext.cs** (Core - interface only):
+```csharp
+namespace Cadence.Core.Hubs;
+
+public interface ICurrentOrganizationContext
+{
+    Guid? OrganizationId { get; }
+    string? OrganizationRole { get; }
+    bool HasOrganization { get; }
+}
+```
+
+**CurrentOrganizationContext.cs** (WebApi - implementation):
+```csharp
+namespace Cadence.WebApi.Services;
+
+public class CurrentOrganizationContext : ICurrentOrganizationContext
+{
+    private readonly IHttpContextAccessor _httpContextAccessor;
+
+    public CurrentOrganizationContext(IHttpContextAccessor httpContextAccessor)
+        => _httpContextAccessor = httpContextAccessor;
+
+    public Guid? OrganizationId
+    {
+        get
+        {
+            var claim = _httpContextAccessor.HttpContext?.User?.FindFirst("org_id");
+            return claim != null && Guid.TryParse(claim.Value, out var id) ? id : null;
+        }
+    }
+
+    public string? OrganizationRole
+        => _httpContextAccessor.HttpContext?.User?.FindFirst("org_role")?.Value;
+
+    public bool HasOrganization => OrganizationId.HasValue;
+}
+```
+
+**DI Registration** (Program.cs):
+```csharp
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentOrganizationContext, CurrentOrganizationContext>();
 ```
 
 ### SignalR Architecture (IMPORTANT)
@@ -288,6 +355,44 @@ export type InjectStatus = 'Pending' | 'Delivered' | 'Skipped' | 'Deferred';
 
 ### Context Providers
 
+**OrganizationContext.tsx** (CRITICAL for multi-tenancy):
+```typescript
+// src/frontend/src/contexts/OrganizationContext.tsx
+interface CurrentOrganization {
+  id: string;
+  name: string;
+  slug: string;
+  role: OrgRole;  // User's role in this org
+}
+
+interface UserMembership {
+  id: string;
+  organizationId: string;
+  organizationName: string;
+  organizationSlug: string;
+  role: OrgRole;
+  isCurrent: boolean;
+}
+
+interface OrganizationContextValue {
+  currentOrg: CurrentOrganization | null;
+  memberships: UserMembership[];
+  isLoading: boolean;
+  isPending: boolean;  // User has no org yet
+  switchOrganization: (orgId: string) => Promise<void>;
+  refreshMemberships: () => void;
+}
+
+export const OrganizationContext = createContext<OrganizationContextValue | undefined>(undefined);
+
+export const useOrganization = () => {
+  const context = useContext(OrganizationContext);
+  if (!context) throw new Error('useOrganization must be within OrganizationProvider');
+  return context;
+};
+```
+
+**ExerciseContext.tsx**:
 ```typescript
 // src/frontend/src/contexts/ExerciseContext.tsx
 interface ExerciseContextValue {

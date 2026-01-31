@@ -7,6 +7,7 @@ import { cobraTheme } from '../theme/cobraTheme'
 import { FeatureFlagsProvider } from '../admin'
 import { ConnectivityProvider, OfflineSyncProvider } from '../core/contexts'
 import { AuthProvider } from '../contexts/AuthContext'
+import { OrganizationProvider } from '../contexts/OrganizationContext'
 import { ExerciseNavigationProvider } from '../shared/contexts'
 import { UserPreferencesProvider } from '../features/settings/contexts/UserPreferencesContext'
 
@@ -36,13 +37,15 @@ const AllProviders = ({ children }: WrapperProps) => {
           <OfflineSyncProvider>
             <FeatureFlagsProvider>
               <AuthProvider>
-                <UserPreferencesProvider>
-                  <BrowserRouter>
-                    <ExerciseNavigationProvider>
-                      {children}
-                    </ExerciseNavigationProvider>
-                  </BrowserRouter>
-                </UserPreferencesProvider>
+                <OrganizationProvider>
+                  <UserPreferencesProvider>
+                    <BrowserRouter>
+                      <ExerciseNavigationProvider>
+                        {children}
+                      </ExerciseNavigationProvider>
+                    </BrowserRouter>
+                  </UserPreferencesProvider>
+                </OrganizationProvider>
               </AuthProvider>
             </FeatureFlagsProvider>
           </OfflineSyncProvider>

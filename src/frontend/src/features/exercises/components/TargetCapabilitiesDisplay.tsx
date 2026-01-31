@@ -60,7 +60,8 @@ export const TargetCapabilitiesDisplay = ({
         </Stack>
         <Alert severity="info" icon={<FontAwesomeIcon icon={faInfoCircle} />}>
           <Typography variant="body2">
-            No target capabilities selected. Edit this exercise to specify which capabilities will be evaluated.
+            No target capabilities selected. Edit this exercise to specify which
+            capabilities will be evaluated.
           </Typography>
         </Alert>
       </Box>

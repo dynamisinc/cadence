@@ -5,6 +5,7 @@ using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Msel.Models.DTOs;
 using Cadence.Core.Features.Msel.Services;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
@@ -28,6 +29,7 @@ public class ExercisesController : ControllerBase
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
     private readonly IExerciseParticipantService _participantService;
+    private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<ExercisesController> _logger;
 
     public ExercisesController(
@@ -36,6 +38,7 @@ public class ExercisesController : ControllerBase
         IMselService mselService,
         ISetupProgressService setupProgressService,
         IExerciseParticipantService participantService,
+        ICurrentOrganizationContext orgContext,
         ILogger<ExercisesController> logger)
     {
         _context = context;
@@ -43,6 +46,7 @@ public class ExercisesController : ControllerBase
         _mselService = mselService;
         _setupProgressService = setupProgressService;
         _participantService = participantService;
+        _orgContext = orgContext;
         _logger = logger;
     }
 
@@ -62,6 +66,22 @@ public class ExercisesController : ControllerBase
         [FromQuery] bool archivedOnly = false)
     {
         var query = _context.Exercises.AsQueryable();
+
+        // Filter by organization context (SysAdmins see all, others see only their org)
+        if (!_orgContext.IsSysAdmin && _orgContext.CurrentOrganizationId.HasValue)
+        {
+            query = query.Where(e => e.OrganizationId == _orgContext.CurrentOrganizationId.Value);
+        }
+        else if (!_orgContext.IsSysAdmin && !_orgContext.CurrentOrganizationId.HasValue)
+        {
+            // Non-SysAdmin with no org context sees nothing
+            return Ok(Array.Empty<ExerciseDto>());
+        }
+        // SysAdmins with org context filter to that org for consistency
+        else if (_orgContext.IsSysAdmin && _orgContext.CurrentOrganizationId.HasValue)
+        {
+            query = query.Where(e => e.OrganizationId == _orgContext.CurrentOrganizationId.Value);
+        }
 
         // Apply archive filter
         if (archivedOnly)
@@ -124,12 +144,13 @@ public class ExercisesController : ControllerBase
             return BadRequest(new { message = "Name must be 200 characters or less" });
         }
 
-        // Use default organization (seeded in database)
-        var organization = await _context.Organizations.FirstOrDefaultAsync();
-        if (organization == null)
+        // Require organization context to create exercises
+        if (!_orgContext.CurrentOrganizationId.HasValue)
         {
-            return StatusCode(500, new { message = "Default organization not found. Please run database migrations." });
+            return BadRequest(new { message = "Organization context required. Please select an organization." });
         }
+
+        var organizationId = _orgContext.CurrentOrganizationId.Value;
 
         // Get current user ID from claims (ApplicationUser.Id is string)
         var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
@@ -140,7 +161,7 @@ public class ExercisesController : ControllerBase
 
         // For audit trail, use Guid.Empty until we update BaseEntity to use string
         var createdBy = SystemConstants.SystemUserId;
-        var exercise = request.ToEntity(organization.Id, createdBy);
+        var exercise = request.ToEntity(organizationId, createdBy);
 
         _context.Exercises.Add(exercise);
         await _context.SaveChangesAsync();
@@ -413,6 +434,7 @@ public class ExercisesController : ControllerBase
                 StartTime = sourcePhase.StartTime,
                 EndTime = sourcePhase.EndTime,
                 ExerciseId = newExercise.Id,
+                OrganizationId = source.OrganizationId, // Data isolation
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
             };
@@ -432,6 +454,7 @@ public class ExercisesController : ControllerBase
                 Name = sourceObjective.Name,
                 Description = sourceObjective.Description,
                 ExerciseId = newExercise.Id,
+                OrganizationId = source.OrganizationId, // Data isolation
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
             };
@@ -453,6 +476,7 @@ public class ExercisesController : ControllerBase
                 Version = 1,
                 IsActive = true,
                 ExerciseId = newExercise.Id,
+                OrganizationId = source.OrganizationId, // Data isolation
                 CreatedBy = SystemConstants.SystemUserId,
                 ModifiedBy = SystemConstants.SystemUserId,
             };

@@ -6,8 +6,9 @@ namespace Cadence.Core.Models.Entities;
 /// Capability entity - represents an organizational capability that can be evaluated during exercises.
 /// Capabilities are scoped to organizations and support multiple frameworks
 /// (FEMA Core Capabilities, NATO Baseline Requirements, NIST CSF, ISO 22301, custom).
+/// Implements IOrganizationScoped for automatic organization-based data isolation.
 /// </summary>
-public class Capability : IHasTimestamps
+public class Capability : IHasTimestamps, IOrganizationScoped
 {
     /// <summary>
     /// Unique identifier for this capability.

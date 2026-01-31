@@ -11,6 +11,43 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '../../../test/testUtils'
 import { AppHeader } from './AppHeader'
 
+// Mock useAuth to provide a user (ProfileMenu returns null without user)
+vi.mock('../../../contexts/AuthContext', async importOriginal => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return {
+    ...actual,
+    useAuth: () => ({
+      user: {
+        id: 'test-user-1',
+        email: 'test@example.com',
+        displayName: 'Test User',
+        role: 'Administrator',
+        status: 'Active',
+      },
+      isAuthenticated: true,
+      isLoading: false,
+      accessToken: 'mock-token',
+      login: vi.fn(),
+      register: vi.fn(),
+      logout: vi.fn(),
+      refreshAccessToken: vi.fn(),
+    }),
+  }
+})
+
+// Mock roleResolutionService used by ProfileMenu
+vi.mock('@/features/auth', async importOriginal => {
+  const actual = await importOriginal() as Record<string, unknown>
+  return {
+    ...actual,
+    roleResolutionService: {
+      getUserExerciseAssignments: vi.fn().mockResolvedValue([]),
+    },
+    getRoleColor: vi.fn().mockReturnValue('primary'),
+    getRoleDisplayName: vi.fn().mockReturnValue('Controller'),
+  }
+})
+
 describe('AppHeader', () => {
   const mockLocalStorage: Record<string, string> = {}
 

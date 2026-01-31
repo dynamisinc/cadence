@@ -1,3 +1,4 @@
+using Cadence.Core.Data.Interceptors;
 using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
 using Cadence.Core.Features.Capabilities.Services;
@@ -13,6 +14,7 @@ using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
 using FluentValidation;
 
@@ -56,12 +58,15 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICapabilityService, CapabilityService>();
         services.AddSingleton<IPredefinedLibraryProvider, PredefinedLibraryProvider>();
         services.AddScoped<ICapabilityImportService, CapabilityImportService>();
+        services.AddScoped<IOrganizationService, OrganizationService>();
+        services.AddScoped<IMembershipService, MembershipService>();
 
         return services;
     }
 
     /// <summary>
     /// Adds database context with SQL Server configuration.
+    /// Includes organization validation interceptor for write-side data isolation.
     /// </summary>
     public static IServiceCollection AddDatabase(
         this IServiceCollection services,
@@ -72,7 +77,11 @@ public static class ServiceCollectionExtensions
             ?? throw new InvalidOperationException(
                 "Database connection string not found. Set 'ConnectionStrings:DefaultConnection' or 'SqlConnectionString'.");
 
-        services.AddDbContext<AppDbContext>(options =>
+        // Register the organization validation interceptor as a singleton
+        // (interceptors must be singletons, but it resolves ICurrentOrganizationContext from a scope internally)
+        services.AddSingleton<OrganizationValidationInterceptor>();
+
+        services.AddDbContext<AppDbContext>((serviceProvider, options) =>
         {
             options.UseSqlServer(connectionString, sqlOptions =>
             {
@@ -83,6 +92,10 @@ public static class ServiceCollectionExtensions
 
                 sqlOptions.CommandTimeout(30);
             });
+
+            // Add organization validation interceptor for write-side protection
+            var orgValidationInterceptor = serviceProvider.GetRequiredService<OrganizationValidationInterceptor>();
+            options.AddInterceptors(orgValidationInterceptor);
 
             // Enable detailed errors in development
 #if DEBUG

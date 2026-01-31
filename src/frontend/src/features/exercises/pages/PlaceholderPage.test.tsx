@@ -350,7 +350,8 @@ describe('PlaceholderPage', () => {
       )
 
       expect(screen.getByRole('heading', { name: /observations/i })).toBeInTheDocument()
-      expect(screen.getByText(/view and record evaluator observations during exercise conduct/i)).toBeInTheDocument()
+      const text = /view and record evaluator observations during exercise conduct/i
+      expect(screen.getByText(text)).toBeInTheDocument()
     })
 
     it('ParticipantsPlaceholderPage renders with correct feature name and description', () => {
@@ -361,7 +362,8 @@ describe('PlaceholderPage', () => {
       )
 
       expect(screen.getByRole('heading', { name: /participants/i })).toBeInTheDocument()
-      expect(screen.getByText(/manage exercise participants and role assignments/i)).toBeInTheDocument()
+      const desc = /manage exercise participants and role assignments/i
+      expect(screen.getByText(desc)).toBeInTheDocument()
     })
 
     it('MetricsPlaceholderPage renders with correct feature name and description', () => {
@@ -372,7 +374,8 @@ describe('PlaceholderPage', () => {
       )
 
       expect(screen.getByRole('heading', { name: /metrics/i })).toBeInTheDocument()
-      expect(screen.getByText(/view exercise performance metrics and analytics/i)).toBeInTheDocument()
+      const desc = /view exercise performance metrics and analytics/i
+      expect(screen.getByText(desc)).toBeInTheDocument()
     })
 
     it('SettingsPlaceholderPage renders with correct feature name and description', () => {
@@ -394,7 +397,8 @@ describe('PlaceholderPage', () => {
       )
 
       expect(screen.getByRole('heading', { name: /reports/i })).toBeInTheDocument()
-      expect(screen.getByText(/generate and view exercise reports and after-action documentation/i)).toBeInTheDocument()
+      const desc = /generate and view exercise reports and after-action documentation/i
+      expect(screen.getByText(desc)).toBeInTheDocument()
     })
 
     it('TemplatesPlaceholderPage renders with correct feature name and description', () => {
@@ -405,7 +409,8 @@ describe('PlaceholderPage', () => {
       )
 
       expect(screen.getByRole('heading', { name: /templates/i })).toBeInTheDocument()
-      expect(screen.getByText(/manage inject templates and exercise blueprints/i)).toBeInTheDocument()
+      const desc = /manage inject templates and exercise blueprints/i
+      expect(screen.getByText(desc)).toBeInTheDocument()
     })
   })
 
