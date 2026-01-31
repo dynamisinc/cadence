@@ -1,6 +1,6 @@
-import { useCallback } from 'react';
-import { WhatsNewModal } from './WhatsNewModal';
-import { useVersionCheck } from '../hooks/useVersionCheck';
+import { useCallback } from 'react'
+import { WhatsNewModal } from './WhatsNewModal'
+import { useVersionCheck } from '../hooks/useVersionCheck'
 
 interface WhatsNewProviderProps {
   children: React.ReactNode;
@@ -16,12 +16,12 @@ interface WhatsNewProviderProps {
  * </WhatsNewProvider>
  */
 export function WhatsNewProvider({ children }: WhatsNewProviderProps) {
-  const { showWhatsNew, dismissWhatsNew } = useVersionCheck();
+  const { showWhatsNew, dismissWhatsNew } = useVersionCheck()
 
   const handleViewAllNotes = useCallback(() => {
     // Use window.location since we're outside Router context
-    window.location.href = '/about';
-  }, []);
+    window.location.href = '/about'
+  }, [])
 
   return (
     <>
@@ -34,5 +34,5 @@ export function WhatsNewProvider({ children }: WhatsNewProviderProps) {
         />
       )}
     </>
-  );
+  )
 }

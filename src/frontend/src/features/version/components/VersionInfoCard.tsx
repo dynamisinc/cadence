@@ -1,17 +1,17 @@
-import { Box, Paper, Typography, Chip, Skeleton, Button } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faCircle, faArrowRight } from '@fortawesome/free-solid-svg-icons';
-import { useNavigate } from 'react-router-dom';
-import { appVersion } from '@/config/version';
-import { useApiVersion } from '../hooks/useApiVersion';
+import { Box, Paper, Typography, Chip, Skeleton, Button } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faCircle, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import { useNavigate } from 'react-router-dom'
+import { appVersion } from '@/config/version'
+import { useApiVersion } from '../hooks/useApiVersion'
 
 /**
  * Compact version info card for embedding in Settings page.
  * Shows current versions with link to full About page.
  */
 export function VersionInfoCard() {
-  const navigate = useNavigate();
-  const { apiVersion, isConnected, isLoading } = useApiVersion();
+  const navigate = useNavigate()
+  const { apiVersion, isConnected, isLoading } = useApiVersion()
 
   return (
     <Paper variant="outlined" sx={{ p: 2 }}>
@@ -86,5 +86,5 @@ export function VersionInfoCard() {
         View release notes
       </Button>
     </Paper>
-  );
+  )
 }

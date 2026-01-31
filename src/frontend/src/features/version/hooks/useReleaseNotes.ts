@@ -1,6 +1,6 @@
-import { useState } from 'react';
-import type { ReleaseNote } from '../types';
-import releaseNotesData from '../data/release-notes.json';
+import { useState } from 'react'
+import type { ReleaseNote } from '../types'
+import releaseNotesData from '../data/release-notes.json'
 
 interface UseReleaseNotesResult {
   releaseNotes: ReleaseNote[];
@@ -9,18 +9,18 @@ interface UseReleaseNotesResult {
 }
 
 // Release notes parsed from CHANGELOG.md at build time
-const BUNDLED_RELEASE_NOTES: ReleaseNote[] = releaseNotesData;
+const BUNDLED_RELEASE_NOTES: ReleaseNote[] = releaseNotesData
 
 /**
  * Hook to access release notes.
  * Returns bundled release notes for offline support.
  */
 export function useReleaseNotes(): UseReleaseNotesResult {
-  const [releaseNotes] = useState<ReleaseNote[]>(BUNDLED_RELEASE_NOTES);
-  const [isLoading] = useState(false);
-  const [error] = useState<Error | null>(null);
+  const [releaseNotes] = useState<ReleaseNote[]>(BUNDLED_RELEASE_NOTES)
+  const [isLoading] = useState(false)
+  const [error] = useState<Error | null>(null)
 
-  return { releaseNotes, isLoading, error };
+  return { releaseNotes, isLoading, error }
 }
 
 /**
@@ -28,7 +28,7 @@ export function useReleaseNotes(): UseReleaseNotesResult {
  */
 export function getReleaseNotesForVersion(
   releaseNotes: ReleaseNote[],
-  version: string
+  version: string,
 ): ReleaseNote | undefined {
-  return releaseNotes.find((note) => note.version === version);
+  return releaseNotes.find(note => note.version === version)
 }

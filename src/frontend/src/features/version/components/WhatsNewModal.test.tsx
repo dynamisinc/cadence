@@ -1,6 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/react';
-import { describe, it, expect, vi } from 'vitest';
-import { WhatsNewModal } from './WhatsNewModal';
+import { render, screen, fireEvent } from '@testing-library/react'
+import { describe, it, expect, vi } from 'vitest'
+import { WhatsNewModal } from './WhatsNewModal'
 
 // Mock the version module
 vi.mock('@/config/version', () => ({
@@ -9,53 +9,53 @@ vi.mock('@/config/version', () => ({
     buildDate: '2026-01-30T00:00:00.000Z',
     commitSha: 'abc1234',
   },
-}));
+}))
 
 const renderModal = (props = {}) => {
   const defaultProps = {
     open: true,
     onDismiss: vi.fn(),
-  };
+  }
 
-  return render(<WhatsNewModal {...defaultProps} {...props} />);
-};
+  return render(<WhatsNewModal {...defaultProps} {...props} />)
+}
 
 describe('WhatsNewModal', () => {
   it('renders version number', () => {
-    renderModal();
+    renderModal()
 
-    expect(screen.getByText(/Version 1.0.0/)).toBeInTheDocument();
-  });
+    expect(screen.getByText(/Version 1.0.0/)).toBeInTheDocument()
+  })
 
   it('renders What\'s New title', () => {
-    renderModal();
+    renderModal()
 
-    expect(screen.getByText(/What's New in Cadence/)).toBeInTheDocument();
-  });
+    expect(screen.getByText(/What's New in Cadence/)).toBeInTheDocument()
+  })
 
   it('calls onDismiss when Got it button is clicked', () => {
-    const onDismiss = vi.fn();
-    renderModal({ onDismiss });
+    const onDismiss = vi.fn()
+    renderModal({ onDismiss })
 
-    fireEvent.click(screen.getByText('Got it'));
+    fireEvent.click(screen.getByText('Got it'))
 
-    expect(onDismiss).toHaveBeenCalledTimes(1);
-  });
+    expect(onDismiss).toHaveBeenCalledTimes(1)
+  })
 
   it('calls onViewAllNotes when View all release notes is clicked', () => {
-    const onDismiss = vi.fn();
-    const onViewAllNotes = vi.fn();
-    renderModal({ onDismiss, onViewAllNotes });
+    const onDismiss = vi.fn()
+    const onViewAllNotes = vi.fn()
+    renderModal({ onDismiss, onViewAllNotes })
 
-    fireEvent.click(screen.getByText('View all release notes'));
+    fireEvent.click(screen.getByText('View all release notes'))
 
-    expect(onDismiss).toHaveBeenCalled();
-    expect(onViewAllNotes).toHaveBeenCalled();
-  });
+    expect(onDismiss).toHaveBeenCalled()
+    expect(onViewAllNotes).toHaveBeenCalled()
+  })
 
   it('does not render when open is false', () => {
-    renderModal({ open: false });
+    renderModal({ open: false })
 
-    expect(screen.queryByText(/What's New in Cadence/)).not.toBeInTheDocument();
-  });
-});
+    expect(screen.queryByText(/What's New in Cadence/)).not.toBeInTheDocument()
+  })
+})

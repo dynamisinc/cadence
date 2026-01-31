@@ -12,12 +12,12 @@ export const appVersion = {
   buildDate: __BUILD_DATE__,
   /** Abbreviated git commit SHA (7 chars) */
   commitSha: __COMMIT_SHA__,
-} as const;
+} as const
 
 // Log version on app initialization (helps with support/debugging)
 if (import.meta.env.DEV) {
   console.log(
     `%c🎯 Cadence v${appVersion.version} (${appVersion.commitSha})`,
-    'color: #1976d2; font-weight: bold;'
-  );
+    'color: #1976d2; font-weight: bold;',
+  )
 }

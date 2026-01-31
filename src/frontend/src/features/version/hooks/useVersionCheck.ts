@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
-import { appVersion } from '@/config/version';
+import { useEffect, useState } from 'react'
+import { appVersion } from '@/config/version'
 
-const LAST_SEEN_VERSION_KEY = 'cadence_last_seen_version';
+const LAST_SEEN_VERSION_KEY = 'cadence_last_seen_version'
 
 interface VersionCheckResult {
   /** Whether to show the What's New modal */
@@ -26,35 +26,35 @@ interface VersionCheckResult {
  * }
  */
 export function useVersionCheck(): VersionCheckResult {
-  const [showWhatsNew, setShowWhatsNew] = useState(false);
-  const [previousVersion, setPreviousVersion] = useState<string | null>(null);
+  const [showWhatsNew, setShowWhatsNew] = useState(false)
+  const [previousVersion, setPreviousVersion] = useState<string | null>(null)
 
   useEffect(() => {
-    const lastSeen = localStorage.getItem(LAST_SEEN_VERSION_KEY);
-    setPreviousVersion(lastSeen);
+    const lastSeen = localStorage.getItem(LAST_SEEN_VERSION_KEY)
+    setPreviousVersion(lastSeen)
 
     // Show modal only if:
     // 1. User has visited before (lastSeen exists)
     // 2. Version has changed
     if (lastSeen && lastSeen !== appVersion.version) {
-      setShowWhatsNew(true);
+      setShowWhatsNew(true)
     }
 
     // If first visit, store current version (no modal shown)
     if (!lastSeen) {
-      localStorage.setItem(LAST_SEEN_VERSION_KEY, appVersion.version);
+      localStorage.setItem(LAST_SEEN_VERSION_KEY, appVersion.version)
     }
-  }, []);
+  }, [])
 
   const dismissWhatsNew = () => {
-    localStorage.setItem(LAST_SEEN_VERSION_KEY, appVersion.version);
-    setShowWhatsNew(false);
-  };
+    localStorage.setItem(LAST_SEEN_VERSION_KEY, appVersion.version)
+    setShowWhatsNew(false)
+  }
 
   return {
     showWhatsNew,
     currentVersion: appVersion.version,
     previousVersion,
     dismissWhatsNew,
-  };
+  }
 }

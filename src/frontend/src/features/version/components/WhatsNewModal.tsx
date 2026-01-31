@@ -11,11 +11,11 @@ import {
   ListItemText,
   Box,
   Divider,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faStar, faBug, faRocket } from '@fortawesome/free-solid-svg-icons';
-import { appVersion } from '@/config/version';
-import { useReleaseNotes, getReleaseNotesForVersion } from '../hooks/useReleaseNotes';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faStar, faBug, faRocket } from '@fortawesome/free-solid-svg-icons'
+import { appVersion } from '@/config/version'
+import { useReleaseNotes, getReleaseNotesForVersion } from '../hooks/useReleaseNotes'
 
 interface WhatsNewModalProps {
   open: boolean;
@@ -28,13 +28,13 @@ interface WhatsNewModalProps {
  * Shows features and fixes for the current version.
  */
 export function WhatsNewModal({ open, onDismiss, onViewAllNotes }: WhatsNewModalProps) {
-  const { releaseNotes } = useReleaseNotes();
-  const currentNotes = getReleaseNotesForVersion(releaseNotes, appVersion.version);
+  const { releaseNotes } = useReleaseNotes()
+  const currentNotes = getReleaseNotesForVersion(releaseNotes, appVersion.version)
 
   const handleViewAllNotes = () => {
-    onDismiss();
-    onViewAllNotes?.();
-  };
+    onDismiss()
+    onViewAllNotes?.()
+  }
 
   return (
     <Dialog
@@ -115,5 +115,5 @@ export function WhatsNewModal({ open, onDismiss, onViewAllNotes }: WhatsNewModal
         </Button>
       </DialogActions>
     </Dialog>
-  );
+  )
 }

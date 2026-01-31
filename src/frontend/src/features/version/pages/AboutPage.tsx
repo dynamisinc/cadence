@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -14,8 +14,8 @@ import {
   Skeleton,
   Alert,
   Stack,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCircle,
   faStar,
@@ -25,36 +25,36 @@ import {
   faChevronUp,
   faHome,
   faCircleInfo,
-} from '@fortawesome/free-solid-svg-icons';
-import { appVersion } from '@/config/version';
-import { useReleaseNotes } from '../hooks/useReleaseNotes';
-import { useApiVersion } from '../hooks/useApiVersion';
-import { useBreadcrumbs } from '@/core/contexts';
-import CobraStyles from '@/theme/CobraStyles';
-import type { ReleaseNote } from '../types';
+} from '@fortawesome/free-solid-svg-icons'
+import { appVersion } from '@/config/version'
+import { useReleaseNotes } from '../hooks/useReleaseNotes'
+import { useApiVersion } from '../hooks/useApiVersion'
+import { useBreadcrumbs } from '@/core/contexts'
+import CobraStyles from '@/theme/CobraStyles'
+import type { ReleaseNote } from '../types'
 
-const INITIAL_RELEASES_SHOWN = 5;
+const INITIAL_RELEASES_SHOWN = 5
 
 /**
  * About page displaying version information and release history.
  * Accessible from profile menu and Settings page.
  */
 export function AboutPage() {
-  const { releaseNotes, isLoading: notesLoading } = useReleaseNotes();
-  const { apiVersion, isConnected, isLoading: apiLoading } = useApiVersion();
-  const [showAllReleases, setShowAllReleases] = useState(false);
+  const { releaseNotes, isLoading: notesLoading } = useReleaseNotes()
+  const { apiVersion, isConnected, isLoading: apiLoading } = useApiVersion()
+  const [showAllReleases, setShowAllReleases] = useState(false)
 
   // Set breadcrumbs
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
     { label: 'About' },
-  ]);
+  ])
 
   const displayedReleases = showAllReleases
     ? releaseNotes
-    : releaseNotes.slice(0, INITIAL_RELEASES_SHOWN);
+    : releaseNotes.slice(0, INITIAL_RELEASES_SHOWN)
 
-  const hasMoreReleases = releaseNotes.length > INITIAL_RELEASES_SHOWN;
+  const hasMoreReleases = releaseNotes.length > INITIAL_RELEASES_SHOWN
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
@@ -80,7 +80,7 @@ export function AboutPage() {
       </Stack>
 
       {/* Version info card */}
-      <Paper sx={{ p: 3, mb: 4, maxWidth: 800 }} variant="outlined">
+      <Paper sx={{ p: 3, mb: 4 }} variant="outlined">
         <Box sx={{ display: 'grid', gap: 2 }}>
           <VersionRow
             label="App Version"
@@ -122,14 +122,14 @@ export function AboutPage() {
       </Paper>
 
       {/* Release history */}
-      <Box sx={{ maxWidth: 800 }}>
+      <Box>
         <Typography variant="h6" component="h2" gutterBottom>
           Release History
         </Typography>
 
         {notesLoading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3].map(i => (
               <Skeleton key={i} variant="rounded" height={120} />
             ))}
           </Box>
@@ -138,7 +138,7 @@ export function AboutPage() {
         ) : (
           <>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {displayedReleases.map((release) => (
+              {displayedReleases.map(release => (
                 <ReleaseCard key={release.version} release={release} />
               ))}
             </Box>
@@ -163,7 +163,7 @@ export function AboutPage() {
       </Box>
 
       {/* Footer */}
-      <Box sx={{ mt: 6, pt: 3, borderTop: 1, borderColor: 'divider', maxWidth: 800 }}>
+      <Box sx={{ mt: 6, pt: 3, borderTop: 1, borderColor: 'divider' }}>
         <Typography variant="body2" color="text.secondary">
           Cadence is a HSEEP-compliant MSEL management platform for emergency
           management exercises.
@@ -173,7 +173,7 @@ export function AboutPage() {
         </Typography>
       </Box>
     </Box>
-  );
+  )
 }
 
 // --- Helper Components ---
@@ -204,7 +204,7 @@ function VersionRow({ label, value, status, mono }: VersionRowProps) {
       </Typography>
       {status}
     </Box>
-  );
+  )
 }
 
 interface ReleaseCardProps {
@@ -292,7 +292,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
         )}
       </CardContent>
     </Card>
-  );
+  )
 }
 
 // --- Utilities ---
@@ -303,9 +303,9 @@ function formatBuildDate(isoDate: string): string {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    });
+    })
   } catch {
-    return isoDate;
+    return isoDate
   }
 }
 
@@ -315,8 +315,8 @@ function formatReleaseDate(date: string): string {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
-    });
+    })
   } catch {
-    return date;
+    return date
   }
 }

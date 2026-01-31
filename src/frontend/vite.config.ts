@@ -7,7 +7,7 @@ import { readFileSync } from 'fs'
 
 // Read version from package.json for build-time injection
 const packageJson = JSON.parse(
-  readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8')
+  readFileSync(path.resolve(__dirname, 'package.json'), 'utf-8'),
 )
 
 // https://vite.dev/config/
