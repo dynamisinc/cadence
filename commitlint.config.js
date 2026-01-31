@@ -13,6 +13,11 @@ module.exports = {
         'docs',
         'ci',
         'deps',
+        // Project areas
+        'frontend',
+        'backend',
+        'tests',
+        'seeding',
         // Feature modules
         'exercises',
         'injects',
