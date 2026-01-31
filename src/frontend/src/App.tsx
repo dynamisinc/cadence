@@ -54,6 +54,7 @@ import {
   EditOrganizationPage,
 } from './features/organizations'
 import { NotificationToastProvider } from './features/notifications'
+import { AboutPage, WhatsNewProvider } from './features/version'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
 
@@ -217,6 +218,12 @@ const router = createBrowserRouter([
         element: <UserSettingsPage />,
       },
 
+      // About page (version info and release notes)
+      {
+        path: 'about',
+        element: <AboutPage />,
+      },
+
       // Pending user page (no organization assigned)
       { path: 'pending', element: <PendingUserPage /> },
 
@@ -339,7 +346,9 @@ function App() {
                       <MobileBlocker>
                         <FeatureFlagsProvider>
                           <NotificationToastProvider>
-                            <RouterProvider router={router} />
+                            <WhatsNewProvider>
+                              <RouterProvider router={router} />
+                            </WhatsNewProvider>
                           </NotificationToastProvider>
                           <GlobalSyncStatus />
                           <UpdatePrompt />

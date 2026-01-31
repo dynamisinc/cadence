@@ -23,13 +23,14 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
 import type { ExerciseRole, ExerciseAssignmentDto } from '@/features/auth'
 import { useExerciseNavigation } from '@/shared/contexts'
 import { UserSettingsDialog } from '@/features/settings'
+import { useNavigate } from 'react-router-dom'
 
 /**
  * Get user initials from full name
@@ -55,6 +56,7 @@ const formatRole = (role: string): string => {
 export const ProfileMenu: React.FC = () => {
   const { user, logout } = useAuth()
   const { currentExercise, isInExerciseContext } = useExerciseNavigation()
+  const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
@@ -312,6 +314,22 @@ export const ProfileMenu: React.FC = () => {
               <FontAwesomeIcon icon={faGear} />
             </ListItemIcon>
             <ListItemText>Settings</ListItemText>
+          </MenuItem>
+        )}
+
+        {/* About */}
+        {user && (
+          <MenuItem
+            onClick={() => {
+              handleClose()
+              navigate('/about')
+            }}
+            data-testid="about-button"
+          >
+            <ListItemIcon>
+              <FontAwesomeIcon icon={faCircleInfo} />
+            </ListItemIcon>
+            <ListItemText>About</ListItemText>
           </MenuItem>
         )}
 
