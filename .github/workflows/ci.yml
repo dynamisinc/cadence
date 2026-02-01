@@ -36,16 +36,19 @@ jobs:
             ${{ runner.os }}-nuget-
 
       - name: Restore dependencies
-        run: dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
+        run: |
+          dotnet restore src/Cadence.WebApi/Cadence.WebApi.csproj
+          dotnet restore src/Cadence.Core.Tests/Cadence.Core.Tests.csproj
+          dotnet restore src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj
 
       - name: Build
         run: dotnet build src/Cadence.WebApi/Cadence.WebApi.csproj --no-restore --configuration Release
 
       - name: Run Core tests
-        run: dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=core-test-results.trx"
+        run: dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj --no-restore --configuration Release --verbosity normal --logger "trx;LogFileName=core-test-results.trx"
 
       - name: Run WebApi tests
-        run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --configuration Release --verbosity normal --logger "trx;LogFileName=webapi-test-results.trx"
+        run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --no-restore --configuration Release --verbosity normal --logger "trx;LogFileName=webapi-test-results.trx"
 
       - name: Upload test results
         uses: actions/upload-artifact@v4
