@@ -169,8 +169,12 @@ public class UserService : IUserService
             throw new InvalidOperationException("A user with this email already exists");
         }
 
-        // Non-admins can only create users with User (Observer) role
+        // Determine system role: Admins can set any role, non-admins default to User
         var systemRole = SystemRole.User;
+        if (isCreatorAdmin && request.SystemRole.HasValue)
+        {
+            systemRole = request.SystemRole.Value;
+        }
 
         var user = new ApplicationUser
         {
