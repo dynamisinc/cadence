@@ -356,13 +356,13 @@ public class AdminOrganizationsController : ControllerBase
     /// <summary>
     /// Get current authenticated user's ID from JWT claims.
     /// </summary>
-    private Guid GetCurrentUserId()
+    private string GetCurrentUserId()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
         {
             throw new UnauthorizedAccessException("User not authenticated");
         }
-        return Guid.Parse(userIdClaim);
+        return userIdClaim;
     }
 }

@@ -57,7 +57,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> ActivateAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> ActivateAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
@@ -80,7 +80,7 @@ public class ExerciseStatusService : IExerciseStatusService
         // Perform transition
         exercise.Status = ExerciseStatus.Active;
         exercise.ActivatedAt = DateTime.UtcNow;
-        exercise.ActivatedBy = userId.ToString();
+        exercise.ActivatedBy = userId;
         exercise.ModifiedBy = userId;
 
         // Mark as published - once true, never set back to false
@@ -99,7 +99,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> PauseAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> PauseAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
@@ -136,7 +136,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> ResumeAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> ResumeAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
@@ -150,7 +150,7 @@ public class ExerciseStatusService : IExerciseStatusService
         // Resume the clock
         exercise.ClockState = ExerciseClockState.Running;
         exercise.ClockStartedAt = DateTime.UtcNow;
-        exercise.ClockStartedBy = userId.ToString();
+        exercise.ClockStartedBy = userId;
 
         // Perform transition
         exercise.Status = ExerciseStatus.Active;
@@ -169,7 +169,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> CompleteAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> CompleteAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
@@ -194,7 +194,7 @@ public class ExerciseStatusService : IExerciseStatusService
         // Perform transition
         exercise.Status = ExerciseStatus.Completed;
         exercise.CompletedAt = DateTime.UtcNow;
-        exercise.CompletedBy = userId.ToString();
+        exercise.CompletedBy = userId;
         exercise.ModifiedBy = userId;
 
         await _context.SaveChangesAsync();
@@ -210,7 +210,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> ArchiveAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> ArchiveAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
@@ -237,7 +237,7 @@ public class ExerciseStatusService : IExerciseStatusService
         exercise.PreviousStatus = previousStatus;
         exercise.Status = ExerciseStatus.Archived;
         exercise.ArchivedAt = DateTime.UtcNow;
-        exercise.ArchivedBy = userId.ToString();
+        exercise.ArchivedBy = userId;
         exercise.ModifiedBy = userId;
 
         await _context.SaveChangesAsync();
@@ -253,7 +253,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> UnarchiveAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> UnarchiveAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)
@@ -287,7 +287,7 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
-    public async Task<StatusTransitionResult> RevertToDraftAsync(Guid exerciseId, Guid userId)
+    public async Task<StatusTransitionResult> RevertToDraftAsync(Guid exerciseId, string userId)
     {
         var exercise = await GetExerciseAsync(exerciseId);
         if (exercise == null)

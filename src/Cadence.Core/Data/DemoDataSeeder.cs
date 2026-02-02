@@ -272,8 +272,8 @@ public static class DemoDataSeeder
                           "Compact with mutual aid agreements with 6 neighboring counties.",
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
     }
 
@@ -317,8 +317,8 @@ public static class DemoDataSeeder
                 ActivatedBy = Director1UserId,
                 CreatedAt = now.AddDays(-30),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -347,8 +347,8 @@ public static class DemoDataSeeder
                 TimelineMode = TimelineMode.RealTime,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-2),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -381,8 +381,8 @@ public static class DemoDataSeeder
                 CompletedBy = Director2UserId,
                 CreatedAt = now.AddDays(-60),
                 UpdatedAt = now.AddDays(-44),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -417,8 +417,8 @@ public static class DemoDataSeeder
                 ArchivedBy = AdminUserId,
                 CreatedAt = now.AddMonths(-8),
                 UpdatedAt = now.AddMonths(-5),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -445,8 +445,8 @@ public static class DemoDataSeeder
                 TimelineMode = TimelineMode.StoryOnly,
                 CreatedAt = now.AddDays(-3),
                 UpdatedAt = now.AddDays(-1),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         };
     }
@@ -471,8 +471,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-2),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Msel
             {
@@ -485,8 +485,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-50),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Msel
             {
@@ -500,8 +500,8 @@ public static class DemoDataSeeder
                 ExerciseId = EarthquakeFEId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-9),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-7),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Msel
             {
@@ -513,8 +513,8 @@ public static class DemoDataSeeder
                 ExerciseId = FloodTrainingId,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 UpdatedAt = DateTime.UtcNow.AddDays(-3),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         };
     }
@@ -542,8 +542,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Phase
             {
@@ -557,8 +557,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Phase
             {
@@ -572,8 +572,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Phase
             {
@@ -587,8 +587,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         });
 
@@ -607,8 +607,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Phase
             {
@@ -622,8 +622,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Phase
             {
@@ -637,8 +637,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         });
 
@@ -657,8 +657,8 @@ public static class DemoDataSeeder
                 ExerciseId = EarthquakeFEId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-9),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-9),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Phase
             {
@@ -672,8 +672,8 @@ public static class DemoDataSeeder
                 ExerciseId = EarthquakeFEId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-9),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-9),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         });
 
@@ -702,8 +702,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -716,8 +716,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -730,8 +730,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -744,8 +744,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -758,8 +758,8 @@ public static class DemoDataSeeder
                 ExerciseId = HurricaneTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         });
 
@@ -777,8 +777,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -791,8 +791,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -804,8 +804,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -818,8 +818,8 @@ public static class DemoDataSeeder
                 ExerciseId = CyberIncidentTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-65),
                 UpdatedAt = DateTime.UtcNow.AddDays(-65),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         });
 
@@ -836,8 +836,8 @@ public static class DemoDataSeeder
                 ExerciseId = EarthquakeFEId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-9),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-9),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -849,8 +849,8 @@ public static class DemoDataSeeder
                 ExerciseId = EarthquakeFEId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-9),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-9),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Objective
             {
@@ -862,8 +862,8 @@ public static class DemoDataSeeder
                 ExerciseId = EarthquakeFEId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-9),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-9),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         });
 
@@ -951,8 +951,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase1Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 2 - FIRED
@@ -995,8 +995,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase1Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 3 - FIRED
@@ -1039,8 +1039,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase1Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 4 - FIRED
@@ -1083,8 +1083,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase1Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 5 - FIRED
@@ -1129,8 +1129,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase1Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -1179,8 +1179,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase2Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 7 - PENDING
@@ -1227,8 +1227,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase2Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 8 - PENDING (Contingency)
@@ -1272,8 +1272,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase2Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 9 - PENDING
@@ -1317,8 +1317,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase2Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 10 - PENDING
@@ -1364,8 +1364,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase2Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 11 - PENDING (Adaptive)
@@ -1411,8 +1411,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase2Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -1465,8 +1465,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase3Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 13 - PENDING
@@ -1514,8 +1514,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase3Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 14 - PENDING (Complexity)
@@ -1564,8 +1564,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase3Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 15 - SKIPPED (Example of skipped inject)
@@ -1605,8 +1605,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase3Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 16 - PENDING
@@ -1653,8 +1653,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase3Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 17 - PENDING
@@ -1699,8 +1699,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase3Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // =====================================================================
@@ -1751,8 +1751,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase4Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 19 - PENDING
@@ -1798,8 +1798,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase4Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
 
             // Inject 20 - PENDING (ENDEX)
@@ -1842,8 +1842,8 @@ public static class DemoDataSeeder
                 PhaseId = HurricanePhase4Id,
                 CreatedAt = now.AddDays(-14),
                 UpdatedAt = now.AddDays(-14),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         };
     }
@@ -1875,8 +1875,8 @@ public static class DemoDataSeeder
                 PhaseId = CyberPhase1Id,
                 CreatedAt = now.AddDays(-65),
                 UpdatedAt = now.AddDays(-45),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -1897,8 +1897,8 @@ public static class DemoDataSeeder
                 PhaseId = CyberPhase1Id,
                 CreatedAt = now.AddDays(-65),
                 UpdatedAt = now.AddDays(-45),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -1919,8 +1919,8 @@ public static class DemoDataSeeder
                 PhaseId = CyberPhase2Id,
                 CreatedAt = now.AddDays(-65),
                 UpdatedAt = now.AddDays(-45),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -1941,8 +1941,8 @@ public static class DemoDataSeeder
                 PhaseId = CyberPhase2Id,
                 CreatedAt = now.AddDays(-65),
                 UpdatedAt = now.AddDays(-45),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -1963,8 +1963,8 @@ public static class DemoDataSeeder
                 PhaseId = CyberPhase3Id,
                 CreatedAt = now.AddDays(-65),
                 UpdatedAt = now.AddDays(-45),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -1985,8 +1985,8 @@ public static class DemoDataSeeder
                 PhaseId = CyberPhase3Id,
                 CreatedAt = now.AddDays(-65),
                 UpdatedAt = now.AddDays(-45),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         };
     }
@@ -2017,8 +2017,8 @@ public static class DemoDataSeeder
                 PhaseId = EarthquakePhase1Id,
                 CreatedAt = now.AddMonths(-9),
                 UpdatedAt = now.AddMonths(-6),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2039,8 +2039,8 @@ public static class DemoDataSeeder
                 PhaseId = EarthquakePhase1Id,
                 CreatedAt = now.AddMonths(-9),
                 UpdatedAt = now.AddMonths(-6),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2061,8 +2061,8 @@ public static class DemoDataSeeder
                 PhaseId = EarthquakePhase1Id,
                 CreatedAt = now.AddMonths(-9),
                 UpdatedAt = now.AddMonths(-6),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2083,8 +2083,8 @@ public static class DemoDataSeeder
                 PhaseId = EarthquakePhase1Id,
                 CreatedAt = now.AddMonths(-9),
                 UpdatedAt = now.AddMonths(-6),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2105,8 +2105,8 @@ public static class DemoDataSeeder
                 PhaseId = EarthquakePhase2Id,
                 CreatedAt = now.AddMonths(-9),
                 UpdatedAt = now.AddMonths(-6),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2127,8 +2127,8 @@ public static class DemoDataSeeder
                 PhaseId = EarthquakePhase2Id,
                 CreatedAt = now.AddMonths(-9),
                 UpdatedAt = now.AddMonths(-6),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         };
     }
@@ -2157,8 +2157,8 @@ public static class DemoDataSeeder
                 MselId = FloodMselId,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 UpdatedAt = DateTime.UtcNow.AddDays(-3),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2178,8 +2178,8 @@ public static class DemoDataSeeder
                 MselId = FloodMselId,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 UpdatedAt = DateTime.UtcNow.AddDays(-3),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             },
             new Inject
             {
@@ -2199,8 +2199,8 @@ public static class DemoDataSeeder
                 MselId = FloodMselId,
                 CreatedAt = DateTime.UtcNow.AddDays(-3),
                 UpdatedAt = DateTime.UtcNow.AddDays(-3),
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString
             }
         };
     }

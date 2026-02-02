@@ -34,8 +34,8 @@ public class ExerciseClockServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
 
@@ -49,8 +49,8 @@ public class ExerciseClockServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -163,7 +163,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.StartClockAsync(Guid.NewGuid(), userId.ToString());
@@ -179,7 +179,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext(status: ExerciseStatus.Completed);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.StartClockAsync(exercise.Id, userId.ToString());
@@ -195,7 +195,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext(status: ExerciseStatus.Archived);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.StartClockAsync(exercise.Id, userId.ToString());
@@ -216,7 +216,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.StartClockAsync(exercise.Id, userId.ToString());
@@ -232,7 +232,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext(status: ExerciseStatus.Draft);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StartClockAsync(exercise.Id, userId.ToString());
@@ -249,7 +249,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext(status: ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StartClockAsync(exercise.Id, userId.ToString());
@@ -266,7 +266,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
         var beforeStart = DateTime.UtcNow;
 
         // Act
@@ -285,7 +285,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StartClockAsync(exercise.Id, userId.ToString());
@@ -301,7 +301,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.StartClockAsync(exercise.Id, userId.ToString());
@@ -325,7 +325,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StartClockAsync(exercise.Id, userId.ToString());
@@ -348,7 +348,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.PauseClockAsync(Guid.NewGuid(), userId);
@@ -366,7 +366,7 @@ public class ExerciseClockServiceTests
             status: ExerciseStatus.Active,
             clockState: ExerciseClockState.Stopped);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.PauseClockAsync(exercise.Id, userId);
@@ -384,7 +384,7 @@ public class ExerciseClockServiceTests
             status: ExerciseStatus.Active,
             clockState: ExerciseClockState.Paused);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.PauseClockAsync(exercise.Id, userId);
@@ -406,7 +406,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.PauseClockAsync(exercise.Id, userId);
@@ -428,7 +428,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.PauseClockAsync(exercise.Id, userId);
@@ -449,7 +449,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.PauseClockAsync(exercise.Id, userId);
@@ -471,7 +471,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.PauseClockAsync(exercise.Id, userId);
@@ -494,7 +494,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.StopClockAsync(Guid.NewGuid(), userId);
@@ -512,7 +512,7 @@ public class ExerciseClockServiceTests
             status: ExerciseStatus.Active,
             clockState: ExerciseClockState.Stopped);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.StopClockAsync(exercise.Id, userId);
@@ -534,7 +534,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StopClockAsync(exercise.Id, userId);
@@ -556,7 +556,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StopClockAsync(exercise.Id, userId);
@@ -576,7 +576,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.StopClockAsync(exercise.Id, userId);
@@ -597,7 +597,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.StopClockAsync(exercise.Id, userId);
@@ -619,7 +619,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.StopClockAsync(exercise.Id, userId);
@@ -640,7 +640,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.StopClockAsync(exercise.Id, userId);
@@ -663,7 +663,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.ResetClockAsync(Guid.NewGuid(), userId);
@@ -684,7 +684,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.ResetClockAsync(exercise.Id, userId);
@@ -705,7 +705,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.ResetClockAsync(exercise.Id, userId);
@@ -724,7 +724,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.ResetClockAsync(exercise.Id, userId);
@@ -746,7 +746,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.ResetClockAsync(exercise.Id, userId);
@@ -767,7 +767,7 @@ public class ExerciseClockServiceTests
         await context.SaveChangesAsync();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.ResetClockAsync(exercise.Id, userId);
@@ -786,7 +786,7 @@ public class ExerciseClockServiceTests
         // Arrange
         var (context, _, exercise) = CreateTestContext(status: ExerciseStatus.Draft);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.ResetClockAsync(exercise.Id, userId);

@@ -20,25 +20,25 @@ public interface IExpectedOutcomeService
     /// <summary>
     /// Creates a new expected outcome for an inject.
     /// </summary>
-    Task<ExpectedOutcomeDto> CreateAsync(Guid injectId, CreateExpectedOutcomeRequest request, Guid userId);
+    Task<ExpectedOutcomeDto> CreateAsync(Guid injectId, CreateExpectedOutcomeRequest request, string userId);
 
     /// <summary>
     /// Updates an expected outcome's description.
     /// </summary>
-    Task<ExpectedOutcomeDto?> UpdateAsync(Guid id, UpdateExpectedOutcomeRequest request, Guid userId);
+    Task<ExpectedOutcomeDto?> UpdateAsync(Guid id, UpdateExpectedOutcomeRequest request, string userId);
 
     /// <summary>
     /// Evaluates an expected outcome (sets WasAchieved and EvaluatorNotes).
     /// </summary>
-    Task<ExpectedOutcomeDto?> EvaluateAsync(Guid id, EvaluateExpectedOutcomeRequest request, Guid userId);
+    Task<ExpectedOutcomeDto?> EvaluateAsync(Guid id, EvaluateExpectedOutcomeRequest request, string userId);
 
     /// <summary>
     /// Reorders expected outcomes for an inject.
     /// </summary>
-    Task<bool> ReorderAsync(Guid injectId, ReorderExpectedOutcomesRequest request, Guid userId);
+    Task<bool> ReorderAsync(Guid injectId, ReorderExpectedOutcomesRequest request, string userId);
 
     /// <summary>
     /// Deletes an expected outcome.
     /// </summary>
-    Task<bool> DeleteAsync(Guid id, Guid userId);
+    Task<bool> DeleteAsync(Guid id, string userId);
 }

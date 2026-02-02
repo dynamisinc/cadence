@@ -77,7 +77,7 @@ public class ObjectivesController : ControllerBase
         try
         {
             // System user until auth is implemented
-            var createdBy = SystemConstants.SystemUserId;
+            var createdBy = SystemConstants.SystemUserIdString;
 
             var objective = await _objectiveService.CreateObjectiveAsync(exerciseId, request, createdBy);
 
@@ -112,7 +112,7 @@ public class ObjectivesController : ControllerBase
         try
         {
             // System user until auth is implemented
-            var modifiedBy = SystemConstants.SystemUserId;
+            var modifiedBy = SystemConstants.SystemUserIdString;
 
             var objective = await _objectiveService.UpdateObjectiveAsync(exerciseId, id, request, modifiedBy);
 
@@ -141,7 +141,7 @@ public class ObjectivesController : ControllerBase
         try
         {
             // System user until auth is implemented
-            var deletedBy = SystemConstants.SystemUserId;
+            var deletedBy = SystemConstants.SystemUserIdString;
 
             var deleted = await _objectiveService.DeleteObjectiveAsync(exerciseId, id, deletedBy);
 

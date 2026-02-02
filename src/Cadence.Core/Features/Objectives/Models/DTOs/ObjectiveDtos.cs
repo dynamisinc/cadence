@@ -93,7 +93,7 @@ public static class ObjectiveMapper
         entity.Description
     );
 
-    public static Objective ToEntity(this CreateObjectiveRequest request, Guid exerciseId, string objectiveNumber, Guid createdBy) => new()
+    public static Objective ToEntity(this CreateObjectiveRequest request, Guid exerciseId, string objectiveNumber, string createdBy) => new()
     {
         Id = Guid.NewGuid(),
         ExerciseId = exerciseId,
@@ -104,7 +104,7 @@ public static class ObjectiveMapper
         ModifiedBy = createdBy
     };
 
-    public static void UpdateFromRequest(this Objective entity, UpdateObjectiveRequest request, Guid modifiedBy)
+    public static void UpdateFromRequest(this Objective entity, UpdateObjectiveRequest request, string modifiedBy)
     {
         entity.ObjectiveNumber = request.ObjectiveNumber;
         entity.Name = request.Name;

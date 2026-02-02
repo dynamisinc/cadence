@@ -32,8 +32,8 @@ public class ExcelExportServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
 
@@ -46,8 +46,8 @@ public class ExcelExportServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
 
@@ -58,8 +58,8 @@ public class ExcelExportServiceTests
             Version = 1,
             IsActive = true,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -82,8 +82,8 @@ public class ExcelExportServiceTests
             Status = InjectStatus.Pending,
             Sequence = injectNumber,
             MselId = msel.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Injects.Add(inject);
         context.SaveChanges();
@@ -100,8 +100,8 @@ public class ExcelExportServiceTests
             Name = name,
             Description = $"Description for {name}",
             Sequence = sequence,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         context.SaveChanges();
@@ -118,8 +118,8 @@ public class ExcelExportServiceTests
             ObjectiveNumber = objectiveNumber,
             Name = name,
             Description = $"Description for {name}",
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Objectives.Add(objective);
         context.SaveChanges();
@@ -184,8 +184,8 @@ public class ExcelExportServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Org",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
 
@@ -198,8 +198,8 @@ public class ExcelExportServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();

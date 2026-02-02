@@ -390,15 +390,41 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
+    /// Get a specific user's organization memberships.
+    /// Admin-only endpoint for user management page.
+    /// </summary>
+    /// <param name="userId">User ID to get memberships for.</param>
+    [HttpGet("{userId:guid}/memberships")]
+    [ProducesResponseType(typeof(IEnumerable<MembershipDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserMemberships(Guid userId)
+    {
+        // Verify user exists
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound(new { message = $"User {userId} not found" });
+        }
+
+        var memberships = await _membershipService.GetUserMembershipsAsync(userId.ToString());
+
+        _logger.LogInformation(
+            "Admin retrieved {Count} memberships for user {UserId}",
+            memberships.Count(), userId);
+
+        return Ok(memberships);
+    }
+
+    /// <summary>
     /// Get current authenticated user's ID from JWT claims.
     /// </summary>
-    private Guid GetCurrentUserId()
+    private string GetCurrentUserId()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
         {
             throw new UnauthorizedAccessException("User not authenticated");
         }
-        return Guid.Parse(userIdClaim);
+        return userIdClaim;
     }
 }

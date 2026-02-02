@@ -24,7 +24,7 @@ public interface IRefreshTokenStore
     /// <param name="deviceInfo">Device/user agent string (for audit).</param>
     /// <returns>Result containing the unhashed refresh token and expiration info.</returns>
     Task<RefreshTokenCreateResult> CreateAsync(
-        Guid userId,
+        string userId,
         bool rememberMe,
         string? ipAddress = null,
         string? deviceInfo = null);
@@ -46,7 +46,7 @@ public interface IRefreshTokenStore
     /// Revoke all refresh tokens for a user (logout from all devices).
     /// </summary>
     /// <param name="userId">User whose tokens should be revoked.</param>
-    Task RevokeAllForUserAsync(Guid userId);
+    Task RevokeAllForUserAsync(string userId);
 
     /// <summary>
     /// Clean up expired or revoked tokens (called by maintenance job).

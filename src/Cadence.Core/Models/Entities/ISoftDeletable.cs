@@ -18,8 +18,8 @@ public interface ISoftDeletable
     DateTime? DeletedAt { get; set; }
 
     /// <summary>
-    /// The ID of the user who deleted this entity.
+    /// The ID of the ApplicationUser who deleted this entity.
     /// Null if not deleted.
     /// </summary>
-    Guid? DeletedBy { get; set; }
+    string? DeletedBy { get; set; }
 }

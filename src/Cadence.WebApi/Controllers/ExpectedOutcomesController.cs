@@ -97,7 +97,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var outcome = await _service.CreateAsync(injectId, request, SystemConstants.SystemUserId);
+            var outcome = await _service.CreateAsync(injectId, request, SystemConstants.SystemUserIdString);
 
             _logger.LogInformation("Created expected outcome {OutcomeId} for inject {InjectId}",
                 outcome.Id, injectId);
@@ -146,7 +146,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var outcome = await _service.UpdateAsync(id, request, SystemConstants.SystemUserId);
+            var outcome = await _service.UpdateAsync(id, request, SystemConstants.SystemUserIdString);
 
             _logger.LogInformation("Updated expected outcome {OutcomeId}", id);
 
@@ -185,7 +185,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var outcome = await _service.EvaluateAsync(id, request, SystemConstants.SystemUserId);
+            var outcome = await _service.EvaluateAsync(id, request, SystemConstants.SystemUserIdString);
 
             _logger.LogInformation("Evaluated expected outcome {OutcomeId}: WasAchieved={WasAchieved}",
                 id, request.WasAchieved);
@@ -223,7 +223,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var success = await _service.ReorderAsync(injectId, request, SystemConstants.SystemUserId);
+            var success = await _service.ReorderAsync(injectId, request, SystemConstants.SystemUserIdString);
             if (!success)
             {
                 return NotFound(new { message = "Inject not found" });
@@ -269,7 +269,7 @@ public class ExpectedOutcomesController : ControllerBase
             return NotFound(new { message = "Expected outcome not found" });
         }
 
-        var success = await _service.DeleteAsync(id, SystemConstants.SystemUserId);
+        var success = await _service.DeleteAsync(id, SystemConstants.SystemUserIdString);
         if (!success)
         {
             return NotFound(new { message = "Expected outcome not found" });

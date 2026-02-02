@@ -61,7 +61,7 @@ public interface IMembershipService
     /// <returns>Response indicating if user status changed.</returns>
     /// <exception cref="BusinessRuleException">If removing last OrgAdmin from organization.</exception>
     /// <exception cref="NotFoundException">If membership not found.</exception>
-    Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, Guid deletedBy, CancellationToken ct = default);
+    Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, string deletedBy, CancellationToken ct = default);
 
     /// <summary>
     /// Check if a user has membership in a specific organization.

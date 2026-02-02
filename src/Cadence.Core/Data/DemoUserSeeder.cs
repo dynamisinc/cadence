@@ -433,8 +433,8 @@ public class DemoUserSeeder
             AssignedById = assignedById,
             CreatedAt = assignedAt,
             UpdatedAt = assignedAt,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
     }
 

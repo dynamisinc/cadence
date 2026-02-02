@@ -76,8 +76,8 @@ public class OrganizationIsolationTests : IDisposable
             Name = "Organization A",
             Slug = "org-a",
             Status = OrgStatus.Active,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
 
         var orgB = new Organization
@@ -86,8 +86,8 @@ public class OrganizationIsolationTests : IDisposable
             Name = "Organization B",
             Slug = "org-b",
             Status = OrgStatus.Active,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
 
         context.Organizations.AddRange(orgA, orgB);
@@ -102,8 +102,8 @@ public class OrganizationIsolationTests : IDisposable
                 OrganizationId = _orgAId,
                 Status = ExerciseStatus.Draft,
                 ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(i)),
-                CreatedBy = Guid.NewGuid(),
-                ModifiedBy = Guid.NewGuid()
+                CreatedBy = Guid.NewGuid().ToString(),
+                ModifiedBy = Guid.NewGuid().ToString()
             });
         }
 
@@ -117,8 +117,8 @@ public class OrganizationIsolationTests : IDisposable
                 OrganizationId = _orgBId,
                 Status = ExerciseStatus.Draft,
                 ScheduledDate = DateOnly.FromDateTime(DateTime.Today.AddDays(i)),
-                CreatedBy = Guid.NewGuid(),
-                ModifiedBy = Guid.NewGuid()
+                CreatedBy = Guid.NewGuid().ToString(),
+                ModifiedBy = Guid.NewGuid().ToString()
             });
         }
 
@@ -299,8 +299,8 @@ public class OrganizationIsolationTests : IDisposable
                     Name = "Org A",
                     Slug = "org-a",
                     Status = OrgStatus.Active,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 },
                 new Organization
                 {
@@ -308,8 +308,8 @@ public class OrganizationIsolationTests : IDisposable
                     Name = "Org B",
                     Slug = "org-b",
                     Status = OrgStatus.Active,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 });
 
             await seedContext.Agencies.AddRangeAsync(
@@ -318,24 +318,24 @@ public class OrganizationIsolationTests : IDisposable
                     Id = Guid.NewGuid(),
                     Name = "Fire Department",
                     OrganizationId = _orgAId,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 },
                 new Agency
                 {
                     Id = Guid.NewGuid(),
                     Name = "Police Department",
                     OrganizationId = _orgAId,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 },
                 new Agency
                 {
                     Id = Guid.NewGuid(),
                     Name = "EMS",
                     OrganizationId = _orgBId,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 });
 
             await seedContext.SaveChangesAsync();
@@ -367,8 +367,8 @@ public class OrganizationIsolationTests : IDisposable
                     Name = "Org A",
                     Slug = "org-a",
                     Status = OrgStatus.Active,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 },
                 new Organization
                 {
@@ -376,8 +376,8 @@ public class OrganizationIsolationTests : IDisposable
                     Name = "Org B",
                     Slug = "org-b",
                     Status = OrgStatus.Active,
-                    CreatedBy = Guid.NewGuid(),
-                    ModifiedBy = Guid.NewGuid()
+                    CreatedBy = Guid.NewGuid().ToString(),
+                    ModifiedBy = Guid.NewGuid().ToString()
                 });
 
             await seedContext.Capabilities.AddRangeAsync(

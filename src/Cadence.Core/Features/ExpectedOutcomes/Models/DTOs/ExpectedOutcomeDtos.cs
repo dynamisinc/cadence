@@ -86,7 +86,7 @@ public static class ExpectedOutcomeMapper
         entity.UpdatedAt
     );
 
-    public static ExpectedOutcome ToEntity(this CreateExpectedOutcomeRequest request, Guid injectId, int sortOrder, Guid createdBy) => new()
+    public static ExpectedOutcome ToEntity(this CreateExpectedOutcomeRequest request, Guid injectId, int sortOrder, string createdBy) => new()
     {
         Id = Guid.NewGuid(),
         InjectId = injectId,
@@ -96,13 +96,13 @@ public static class ExpectedOutcomeMapper
         ModifiedBy = createdBy
     };
 
-    public static void UpdateFromRequest(this ExpectedOutcome entity, UpdateExpectedOutcomeRequest request, Guid modifiedBy)
+    public static void UpdateFromRequest(this ExpectedOutcome entity, UpdateExpectedOutcomeRequest request, string modifiedBy)
     {
         entity.Description = request.Description;
         entity.ModifiedBy = modifiedBy;
     }
 
-    public static void EvaluateFromRequest(this ExpectedOutcome entity, EvaluateExpectedOutcomeRequest request, Guid modifiedBy)
+    public static void EvaluateFromRequest(this ExpectedOutcome entity, EvaluateExpectedOutcomeRequest request, string modifiedBy)
     {
         entity.WasAchieved = request.WasAchieved;
         entity.EvaluatorNotes = request.EvaluatorNotes;

@@ -44,7 +44,7 @@ public interface IOrganizationService
     /// <returns>Created organization DTO</returns>
     Task<OrganizationDto> CreateAsync(
         CreateOrganizationRequest request,
-        Guid createdByUserId,
+        string createdByUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -90,7 +90,7 @@ public interface IOrganizationService
     /// <returns>Updated organization DTO</returns>
     Task<OrganizationDto?> ArchiveAsync(
         Guid id,
-        Guid archivedByUserId,
+        string archivedByUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -103,7 +103,7 @@ public interface IOrganizationService
     /// <returns>Updated organization DTO</returns>
     Task<OrganizationDto?> DeactivateAsync(
         Guid id,
-        Guid deactivatedByUserId,
+        string deactivatedByUserId,
         CancellationToken cancellationToken = default);
 
     /// <summary>
@@ -116,6 +116,6 @@ public interface IOrganizationService
     /// <returns>Updated organization DTO</returns>
     Task<OrganizationDto?> RestoreAsync(
         Guid id,
-        Guid restoredByUserId,
+        string restoredByUserId,
         CancellationToken cancellationToken = default);
 }

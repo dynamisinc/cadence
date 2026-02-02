@@ -160,7 +160,7 @@ public class ExercisesController : ControllerBase
         }
 
         // For audit trail, use Guid.Empty until we update BaseEntity to use string
-        var createdBy = SystemConstants.SystemUserId;
+        var createdBy = SystemConstants.SystemUserIdString;
         var exercise = request.ToEntity(organizationId, createdBy);
 
         _context.Exercises.Add(exercise);
@@ -279,7 +279,7 @@ public class ExercisesController : ControllerBase
         exercise.IsPracticeMode = request.IsPracticeMode;
 
         // System user until auth is implemented
-        exercise.ModifiedBy = SystemConstants.SystemUserId;
+        exercise.ModifiedBy = SystemConstants.SystemUserIdString;
 
         await _context.SaveChangesAsync();
 
@@ -409,8 +409,8 @@ public class ExercisesController : ControllerBase
             ClockStartedAt = null,
             ClockElapsedBeforePause = null,
             ClockStartedBy = null,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId,
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString,
         };
 
         _context.Exercises.Add(newExercise);
@@ -435,8 +435,8 @@ public class ExercisesController : ControllerBase
                 EndTime = sourcePhase.EndTime,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId, // Data isolation
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
             };
             _context.Phases.Add(newPhase);
         }
@@ -455,8 +455,8 @@ public class ExercisesController : ControllerBase
                 Description = sourceObjective.Description,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId, // Data isolation
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
             };
             _context.Objectives.Add(newObjective);
         }
@@ -477,8 +477,8 @@ public class ExercisesController : ControllerBase
                 IsActive = true,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId, // Data isolation
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
             };
             _context.Msels.Add(newMsel);
 
@@ -516,8 +516,8 @@ public class ExercisesController : ControllerBase
                     PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
                         ? phaseIdMap[sourceInject.PhaseId.Value]
                         : null,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                 };
                 _context.Injects.Add(newInject);
 
@@ -644,7 +644,7 @@ public class ExercisesController : ControllerBase
     [HttpGet("{id:guid}/delete-summary")]
     public async Task<ActionResult<DeleteSummaryResponse>> GetDeleteSummary(Guid id)
     {
-        var userId = SystemConstants.SystemUserId;
+        var userId = SystemConstants.SystemUserIdString;
         var isAdmin = true;
 
         var summary = await _deleteService.GetDeleteSummaryAsync(id, userId, isAdmin);
@@ -664,7 +664,7 @@ public class ExercisesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteExercise(Guid id)
     {
-        var userId = SystemConstants.SystemUserId;
+        var userId = SystemConstants.SystemUserIdString;
         var isAdmin = true;
 
         var result = await _deleteService.DeleteExerciseAsync(id, userId, isAdmin);

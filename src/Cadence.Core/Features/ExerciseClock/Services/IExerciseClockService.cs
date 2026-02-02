@@ -22,17 +22,17 @@ public interface IExerciseClockService
     /// Pause the exercise clock.
     /// Clock must be currently Running.
     /// </summary>
-    Task<ClockStateDto> PauseClockAsync(Guid exerciseId, Guid pausedBy);
+    Task<ClockStateDto> PauseClockAsync(Guid exerciseId, string pausedBy);
 
     /// <summary>
     /// Stop the exercise clock and complete the exercise.
     /// Clock must be Running or Paused.
     /// </summary>
-    Task<ClockStateDto> StopClockAsync(Guid exerciseId, Guid stoppedBy);
+    Task<ClockStateDto> StopClockAsync(Guid exerciseId, string stoppedBy);
 
     /// <summary>
     /// Reset the exercise clock to zero.
     /// Only allowed when exercise is in Draft status or clock is Stopped.
     /// </summary>
-    Task<ClockStateDto> ResetClockAsync(Guid exerciseId, Guid resetBy);
+    Task<ClockStateDto> ResetClockAsync(Guid exerciseId, string resetBy);
 }

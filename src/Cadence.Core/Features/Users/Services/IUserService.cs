@@ -63,7 +63,7 @@ public interface IUserService
     /// <exception cref="KeyNotFoundException">User not found.</exception>
     /// <exception cref="ArgumentException">Invalid role.</exception>
     /// <exception cref="InvalidOperationException">Cannot remove last administrator.</exception>
-    Task<UserDto> ChangeRoleAsync(Guid id, string newRole, Guid changedById);
+    Task<UserDto> ChangeRoleAsync(Guid id, string newRole, string changedById);
 
     /// <summary>
     /// Deactivate a user account.
@@ -74,7 +74,7 @@ public interface IUserService
     /// <param name="deactivatedById">Administrator performing deactivation.</param>
     /// <returns>Updated user DTO.</returns>
     /// <exception cref="KeyNotFoundException">User not found.</exception>
-    Task<UserDto> DeactivateUserAsync(Guid id, string? reason, Guid deactivatedById);
+    Task<UserDto> DeactivateUserAsync(Guid id, string? reason, string deactivatedById);
 
     /// <summary>
     /// Reactivate a deactivated user account.
@@ -83,7 +83,7 @@ public interface IUserService
     /// <param name="reactivatedById">Administrator performing reactivation.</param>
     /// <returns>Updated user DTO.</returns>
     /// <exception cref="KeyNotFoundException">User not found.</exception>
-    Task<UserDto> ReactivateUserAsync(Guid id, Guid reactivatedById);
+    Task<UserDto> ReactivateUserAsync(Guid id, string reactivatedById);
 
     /// <summary>
     /// Update a user's current organization context.

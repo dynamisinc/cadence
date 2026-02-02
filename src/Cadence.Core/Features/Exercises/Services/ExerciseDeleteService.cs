@@ -24,7 +24,7 @@ public class ExerciseDeleteService : IExerciseDeleteService
     }
 
     /// <inheritdoc />
-    public async Task<DeleteSummaryResponse?> GetDeleteSummaryAsync(Guid exerciseId, Guid userId, bool isAdmin)
+    public async Task<DeleteSummaryResponse?> GetDeleteSummaryAsync(Guid exerciseId, string userId, bool isAdmin)
     {
         var exercise = await _context.Exercises
             .IgnoreQueryFilters() // Include soft-deleted for counts
@@ -52,7 +52,7 @@ public class ExerciseDeleteService : IExerciseDeleteService
     }
 
     /// <inheritdoc />
-    public async Task<DeleteExerciseResult> DeleteExerciseAsync(Guid exerciseId, Guid userId, bool isAdmin)
+    public async Task<DeleteExerciseResult> DeleteExerciseAsync(Guid exerciseId, string userId, bool isAdmin)
     {
         var exercise = await _context.Exercises
             .FirstOrDefaultAsync(e => e.Id == exerciseId && !e.IsDeleted);
@@ -209,7 +209,7 @@ public class ExerciseDeleteService : IExerciseDeleteService
     /// Determines if an exercise can be deleted based on its status and user permissions.
     /// </summary>
     private static (bool canDelete, DeleteEligibilityReason? deleteReason, CannotDeleteReason? cannotDeleteReason)
-        GetDeleteEligibility(Exercise exercise, Guid userId, bool isAdmin)
+        GetDeleteEligibility(Exercise exercise, string userId, bool isAdmin)
     {
         // Rule 1: Archived exercises can only be deleted by admins
         if (exercise.Status == ExerciseStatus.Archived)

@@ -96,7 +96,7 @@ public class ExerciseClockService : IExerciseClockService
     }
 
     /// <inheritdoc />
-    public async Task<ClockStateDto> PauseClockAsync(Guid exerciseId, Guid pausedBy)
+    public async Task<ClockStateDto> PauseClockAsync(Guid exerciseId, string pausedBy)
     {
         var exercise = await _context.Exercises
                         .FirstOrDefaultAsync(e => e.Id == exerciseId);
@@ -140,7 +140,7 @@ public class ExerciseClockService : IExerciseClockService
     }
 
     /// <inheritdoc />
-    public async Task<ClockStateDto> StopClockAsync(Guid exerciseId, Guid stoppedBy)
+    public async Task<ClockStateDto> StopClockAsync(Guid exerciseId, string stoppedBy)
     {
         var exercise = await _context.Exercises
                         .FirstOrDefaultAsync(e => e.Id == exerciseId);
@@ -186,7 +186,7 @@ public class ExerciseClockService : IExerciseClockService
     }
 
     /// <inheritdoc />
-    public async Task<ClockStateDto> ResetClockAsync(Guid exerciseId, Guid resetBy)
+    public async Task<ClockStateDto> ResetClockAsync(Guid exerciseId, string resetBy)
     {
         var exercise = await _context.Exercises
                         .FirstOrDefaultAsync(e => e.Id == exerciseId);

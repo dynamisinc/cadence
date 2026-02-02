@@ -6,11 +6,11 @@ namespace Cadence.Core.Constants;
 public static class SystemConstants
 {
     /// <summary>
-    /// Well-known ID for the system user. Used for operations
-    /// performed before authentication is implemented or for
-    /// automated system actions.
+    /// Well-known string ID for the system ApplicationUser.
+    /// Used for audit fields (CreatedBy, ModifiedBy, DeletedBy) when
+    /// no authenticated user context is available (seeding, background jobs).
     /// </summary>
-    public static readonly Guid SystemUserId = new("00000000-0000-0000-0000-000000000001");
+    public const string SystemUserIdString = "SYSTEM";
 
     /// <summary>
     /// Well-known ID for the default organization.

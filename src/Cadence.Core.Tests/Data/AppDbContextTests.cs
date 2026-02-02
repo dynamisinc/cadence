@@ -17,8 +17,8 @@ public class AppDbContextTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
 
         // Act
@@ -43,8 +43,8 @@ public class AppDbContextTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(organization);
         await context.SaveChangesAsync();
@@ -80,8 +80,8 @@ public class AppDbContextTests
             Id = Guid.NewGuid(),
             Name = "Active Organization",
             IsDeleted = false,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         var deletedOrg = new Organization
         {
@@ -89,8 +89,8 @@ public class AppDbContextTests
             Name = "Deleted Organization",
             IsDeleted = true,
             DeletedAt = DateTime.UtcNow,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
 
         context.Organizations.AddRange(activeOrg, deletedOrg);
@@ -114,8 +114,8 @@ public class AppDbContextTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(organization);
         await context.SaveChangesAsync();
@@ -129,8 +129,8 @@ public class AppDbContextTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = organization.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
 
         // Act
@@ -156,8 +156,8 @@ public class AppDbContextTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(organization);
 
@@ -171,8 +171,8 @@ public class AppDbContextTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = organization.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
 
@@ -183,8 +183,8 @@ public class AppDbContextTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Msels.Add(msel);
         await context.SaveChangesAsync();
@@ -201,8 +201,8 @@ public class AppDbContextTests
             Status = InjectStatus.Pending,
             Sequence = 1,
             MselId = msel.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
 
         // Act

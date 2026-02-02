@@ -321,8 +321,8 @@ public class ExerciseAssignmentServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(30)),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);

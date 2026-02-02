@@ -213,7 +213,7 @@ public class MembershipServiceTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.RemoveMembershipAsync(membership.Id, Guid.Parse(_testAdmin.Id));
+        var result = await _sut.RemoveMembershipAsync(membership.Id, _testAdmin.Id);
 
         // Assert
         result.Removed.Should().BeTrue();
@@ -256,7 +256,7 @@ public class MembershipServiceTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act
-        var result = await _sut.RemoveMembershipAsync(membership1.Id, Guid.Parse(_testAdmin.Id));
+        var result = await _sut.RemoveMembershipAsync(membership1.Id, _testAdmin.Id);
 
         // Assert
         result.Removed.Should().BeTrue();
@@ -282,7 +282,7 @@ public class MembershipServiceTests : IDisposable
         await _context.SaveChangesAsync();
 
         // Act & Assert
-        await _sut.Invoking(s => s.RemoveMembershipAsync(membership.Id, Guid.Parse(_testAdmin.Id)))
+        await _sut.Invoking(s => s.RemoveMembershipAsync(membership.Id, _testAdmin.Id))
             .Should().ThrowAsync<BusinessRuleException>()
             .WithMessage("*Cannot remove the last administrator*");
     }
@@ -294,7 +294,7 @@ public class MembershipServiceTests : IDisposable
         var nonExistentId = Guid.NewGuid();
 
         // Act & Assert
-        await _sut.Invoking(s => s.RemoveMembershipAsync(nonExistentId, Guid.Parse(_testAdmin.Id)))
+        await _sut.Invoking(s => s.RemoveMembershipAsync(nonExistentId, _testAdmin.Id))
             .Should().ThrowAsync<NotFoundException>()
             .WithMessage("*Membership*not found*");
     }

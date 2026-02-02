@@ -39,7 +39,7 @@ public class RefreshTokenStore : IRefreshTokenStore
     /// <param name="deviceInfo">Device/user agent string (for audit).</param>
     /// <returns>Result containing the unhashed refresh token and expiration info.</returns>
     public async Task<RefreshTokenCreateResult> CreateAsync(
-        Guid userId,
+        string userId,
         bool rememberMe,
         string? ipAddress = null,
         string? deviceInfo = null)
@@ -59,7 +59,7 @@ public class RefreshTokenStore : IRefreshTokenStore
         var refreshToken = new RefreshToken
         {
             Id = Guid.NewGuid(),
-            UserId = userId.ToString(),
+            UserId = userId,
             TokenHash = tokenHash,
             ExpiresAt = expiresAt,
             RememberMe = rememberMe,
@@ -154,9 +154,9 @@ public class RefreshTokenStore : IRefreshTokenStore
     /// Revoke all refresh tokens for a user (logout from all devices).
     /// </summary>
     /// <param name="userId">User whose tokens should be revoked.</param>
-    public async Task RevokeAllForUserAsync(Guid userId)
+    public async Task RevokeAllForUserAsync(string userId)
     {
-        var userIdString = userId.ToString();
+        var userIdString = userId;
         var tokens = await _context.RefreshTokens
             .Where(t => t.UserId == userIdString && !t.IsRevoked)
             .ToListAsync();

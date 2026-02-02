@@ -193,7 +193,7 @@ public class MembershipService : IMembershipService
     }
 
     /// <inheritdoc />
-    public async Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, Guid deletedBy, CancellationToken ct = default)
+    public async Task<RemoveMembershipResponse> RemoveMembershipAsync(Guid membershipId, string deletedBy, CancellationToken ct = default)
     {
         var membership = await _context.OrganizationMemberships
             .FirstOrDefaultAsync(m => m.Id == membershipId, ct);

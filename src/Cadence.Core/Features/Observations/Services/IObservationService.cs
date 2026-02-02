@@ -25,15 +25,15 @@ public interface IObservationService
     /// <summary>
     /// Create a new observation.
     /// </summary>
-    Task<ObservationDto> CreateObservationAsync(Guid exerciseId, CreateObservationRequest request, Guid createdBy);
+    Task<ObservationDto> CreateObservationAsync(Guid exerciseId, CreateObservationRequest request, string createdBy);
 
     /// <summary>
     /// Update an existing observation.
     /// </summary>
-    Task<ObservationDto?> UpdateObservationAsync(Guid id, UpdateObservationRequest request, Guid modifiedBy);
+    Task<ObservationDto?> UpdateObservationAsync(Guid id, UpdateObservationRequest request, string modifiedBy);
 
     /// <summary>
     /// Soft delete an observation.
     /// </summary>
-    Task<bool> DeleteObservationAsync(Guid id, Guid deletedBy);
+    Task<bool> DeleteObservationAsync(Guid id, string deletedBy);
 }

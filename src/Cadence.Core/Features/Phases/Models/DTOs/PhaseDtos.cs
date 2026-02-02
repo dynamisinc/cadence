@@ -99,7 +99,7 @@ public static class PhaseMapper
         entity.UpdatedAt
     );
 
-    public static Phase ToEntity(this CreatePhaseRequest request, Guid exerciseId, int sequence, Guid createdBy) => new()
+    public static Phase ToEntity(this CreatePhaseRequest request, Guid exerciseId, int sequence, string createdBy) => new()
     {
         Id = Guid.NewGuid(),
         Name = request.Name,
@@ -112,7 +112,7 @@ public static class PhaseMapper
         ModifiedBy = createdBy
     };
 
-    public static void UpdateFromRequest(this Phase entity, UpdatePhaseRequest request, Guid modifiedBy)
+    public static void UpdateFromRequest(this Phase entity, UpdatePhaseRequest request, string modifiedBy)
     {
         entity.Name = request.Name;
         entity.Description = request.Description;

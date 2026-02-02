@@ -250,7 +250,7 @@ public class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto> ChangeRoleAsync(Guid id, string newRole, Guid changedById)
+    public async Task<UserDto> ChangeRoleAsync(Guid id, string newRole, string changedById)
     {
         // Validate and parse role
         if (!Enum.TryParse<SystemRole>(newRole, out var systemRole))
@@ -305,7 +305,7 @@ public class UserService : IUserService
         }
 
         // Revoke all tokens to force re-authentication with new role
-        await _refreshTokenStore.RevokeAllForUserAsync(id);
+        await _refreshTokenStore.RevokeAllForUserAsync(id.ToString());
 
         _logger.LogInformation("Changed system role for user {UserId} from {OldRole} to {NewRole} by admin {AdminId}",
             id, oldRole, newRole, changedById);
@@ -314,7 +314,7 @@ public class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto> DeactivateUserAsync(Guid id, string? reason, Guid deactivatedById)
+    public async Task<UserDto> DeactivateUserAsync(Guid id, string? reason, string deactivatedById)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
@@ -332,7 +332,7 @@ public class UserService : IUserService
         }
 
         // Revoke all refresh tokens so user can't use existing sessions
-        await _refreshTokenStore.RevokeAllForUserAsync(id);
+        await _refreshTokenStore.RevokeAllForUserAsync(id.ToString());
 
         _logger.LogInformation("Deactivated user {UserId} by admin {AdminId}. Reason: {Reason}",
             id, deactivatedById, reason ?? "Not specified");
@@ -341,7 +341,7 @@ public class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto> ReactivateUserAsync(Guid id, Guid reactivatedById)
+    public async Task<UserDto> ReactivateUserAsync(Guid id, string reactivatedById)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)

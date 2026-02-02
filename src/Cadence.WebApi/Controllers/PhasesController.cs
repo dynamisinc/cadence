@@ -113,7 +113,7 @@ public class PhasesController : ControllerBase
             .MaxAsync(p => (int?)p.Sequence) ?? 0;
 
         // Create phase (system user until auth is implemented)
-        var createdBy = SystemConstants.SystemUserId;
+        var createdBy = SystemConstants.SystemUserIdString;
         var phase = request.ToEntity(exerciseId, maxSequence + 1, createdBy);
 
         // Set OrganizationId from the parent exercise for data isolation
@@ -166,7 +166,7 @@ public class PhasesController : ControllerBase
         }
 
         // Update phase (system user until auth is implemented)
-        phase.UpdateFromRequest(request, SystemConstants.SystemUserId);
+        phase.UpdateFromRequest(request, SystemConstants.SystemUserIdString);
         await _context.SaveChangesAsync();
 
         var injectCount = await _context.Injects
@@ -262,7 +262,7 @@ public class PhasesController : ControllerBase
         {
             var phase = phaseDict[request.PhaseIds[i]];
             phase.Sequence = i + 1;
-            phase.ModifiedBy = SystemConstants.SystemUserId;
+            phase.ModifiedBy = SystemConstants.SystemUserIdString;
         }
 
         await _context.SaveChangesAsync();

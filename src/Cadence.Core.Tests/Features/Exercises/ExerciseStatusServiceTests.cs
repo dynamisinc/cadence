@@ -29,8 +29,8 @@ public class ExerciseStatusServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
         context.SaveChanges();
@@ -54,8 +54,8 @@ public class ExerciseStatusServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -71,8 +71,8 @@ public class ExerciseStatusServiceTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -90,8 +90,8 @@ public class ExerciseStatusServiceTests
             Status = InjectStatus.Pending,
             Sequence = 1,
             MselId = msel.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Injects.Add(inject);
         context.SaveChanges();
@@ -232,7 +232,7 @@ public class ExerciseStatusServiceTests
     {
         var (context, _) = CreateTestContext();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ActivateAsync(Guid.NewGuid(), userId);
 
@@ -246,7 +246,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ActivateAsync(exercise.Id, userId);
 
@@ -260,7 +260,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ActivateAsync(exercise.Id, userId);
 
@@ -275,7 +275,7 @@ public class ExerciseStatusServiceTests
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
         CreateInject(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ActivateAsync(exercise.Id, userId);
 
@@ -290,7 +290,7 @@ public class ExerciseStatusServiceTests
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false);
         CreateInject(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.ActivateAsync(exercise.Id, userId);
 
@@ -305,7 +305,7 @@ public class ExerciseStatusServiceTests
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
         CreateInject(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
         var beforeActivation = DateTime.UtcNow;
 
         await service.ActivateAsync(exercise.Id, userId);
@@ -326,7 +326,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.PauseAsync(exercise.Id, userId);
 
@@ -340,7 +340,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.PauseAsync(exercise.Id, userId);
 
@@ -358,7 +358,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.PauseAsync(exercise.Id, userId);
 
@@ -379,7 +379,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Paused);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ResumeAsync(exercise.Id, userId);
 
@@ -397,7 +397,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.ResumeAsync(exercise.Id, userId);
 
@@ -417,7 +417,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.CompleteAsync(exercise.Id, userId);
 
@@ -431,7 +431,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Paused);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.CompleteAsync(exercise.Id, userId);
 
@@ -445,7 +445,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.CompleteAsync(exercise.Id, userId);
 
@@ -458,7 +458,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
         var beforeCompletion = DateTime.UtcNow;
 
         await service.CompleteAsync(exercise.Id, userId);
@@ -479,7 +479,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.CompleteAsync(exercise.Id, userId);
 
@@ -498,7 +498,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Completed);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ArchiveAsync(exercise.Id, userId);
 
@@ -512,7 +512,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ArchiveAsync(exercise.Id, userId);
 
@@ -526,7 +526,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ArchiveAsync(exercise.Id, userId);
 
@@ -540,7 +540,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Archived);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.ArchiveAsync(exercise.Id, userId);
 
@@ -554,7 +554,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.ArchiveAsync(exercise.Id, userId);
 
@@ -568,7 +568,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Completed);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
         var beforeArchive = DateTime.UtcNow;
 
         await service.ArchiveAsync(exercise.Id, userId);
@@ -592,7 +592,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.UnarchiveAsync(exercise.Id, userId);
 
@@ -606,7 +606,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.UnarchiveAsync(exercise.Id, userId);
 
@@ -623,7 +623,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.UnarchiveAsync(exercise.Id, userId);
 
@@ -642,7 +642,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.UnarchiveAsync(exercise.Id, userId);
 
@@ -662,7 +662,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Paused);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.RevertToDraftAsync(exercise.Id, userId);
 
@@ -676,7 +676,7 @@ public class ExerciseStatusServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var result = await service.RevertToDraftAsync(exercise.Id, userId);
 
@@ -697,7 +697,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.RevertToDraftAsync(exercise.Id, userId);
 
@@ -718,14 +718,14 @@ public class ExerciseStatusServiceTests
             Id = Guid.NewGuid(),
             ExerciseId = exercise.Id,
             Content = "Test observation",
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Observations.Add(observation);
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.RevertToDraftAsync(exercise.Id, userId);
 
@@ -750,7 +750,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.RevertToDraftAsync(exercise.Id, userId);
 
@@ -770,7 +770,7 @@ public class ExerciseStatusServiceTests
         context.SaveChanges();
 
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         await service.RevertToDraftAsync(exercise.Id, userId);
 
