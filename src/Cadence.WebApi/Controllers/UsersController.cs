@@ -53,6 +53,8 @@ public class UsersController : ControllerBase
     /// <param name="pageSize">Items per page (default 20, max 100).</param>
     /// <param name="search">Optional search term (filters by name or email).</param>
     /// <param name="role">Optional role filter.</param>
+    /// <param name="status">Optional status filter (Active, Inactive, Pending).</param>
+    /// <param name="organizationId">Optional filter by organization membership (Admin only).</param>
     [HttpGet]
     [AuthorizeManager] // Override class-level AuthorizeAdmin to allow Managers to list users
     [ProducesResponseType(typeof(UserListResponse), StatusCodes.Status200OK)]
@@ -60,9 +62,11 @@ public class UsersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null,
-        [FromQuery] string? role = null)
+        [FromQuery] string? role = null,
+        [FromQuery] string? status = null,
+        [FromQuery] Guid? organizationId = null)
     {
-        var result = await _userService.GetUsersAsync(page, pageSize, search, role);
+        var result = await _userService.GetUsersAsync(page, pageSize, search, role, status, organizationId);
         return Ok(result);
     }
 

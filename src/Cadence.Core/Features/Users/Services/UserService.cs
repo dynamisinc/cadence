@@ -50,7 +50,9 @@ public class UserService : IUserService
         int page = 1,
         int pageSize = 20,
         string? search = null,
-        string? role = null)
+        string? role = null,
+        string? status = null,
+        Guid? organizationId = null)
     {
         // Enforce pagination limits
         page = Math.Max(1, page);
@@ -110,6 +112,25 @@ public class UserService : IUserService
             {
                 query = query.Where(u => validRoles.Contains(u.SystemRole));
             }
+        }
+
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (Enum.TryParse<UserStatus>(status, ignoreCase: true, out var userStatus))
+            {
+                query = query.Where(u => u.Status == userStatus);
+            }
+        }
+
+        // Apply organization membership filter (SysAdmin only feature)
+        if (organizationId.HasValue && _orgContext.IsSysAdmin)
+        {
+            var orgMemberUserIds = _context.OrganizationMemberships
+                .Where(m => m.OrganizationId == organizationId.Value && m.Status == MembershipStatus.Active)
+                .Select(m => m.UserId);
+
+            query = query.Where(u => orgMemberUserIds.Contains(u.Id));
         }
 
         // Get total count

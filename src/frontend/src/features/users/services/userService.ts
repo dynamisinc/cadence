@@ -27,8 +27,12 @@ export interface UserListParams {
   pageSize?: number;
   /** Search query (name or email) */
   search?: string;
-  /** Filter by role */
+  /** Filter by system role */
   role?: string;
+  /** Filter by status (Active, Inactive, Pending) */
+  status?: string;
+  /** Filter by organization membership (Admin only) */
+  organizationId?: string;
 }
 
 /**

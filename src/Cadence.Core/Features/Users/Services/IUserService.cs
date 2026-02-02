@@ -16,12 +16,16 @@ public interface IUserService
     /// <param name="pageSize">Number of users per page (default 20, max 100).</param>
     /// <param name="search">Optional search term (filters by name or email).</param>
     /// <param name="role">Optional role filter.</param>
+    /// <param name="status">Optional status filter (Active, Inactive, Pending).</param>
+    /// <param name="organizationId">Optional filter by organization membership.</param>
     /// <returns>Paginated user list with metadata.</returns>
     Task<UserListResponse> GetUsersAsync(
         int page = 1,
         int pageSize = 20,
         string? search = null,
-        string? role = null);
+        string? role = null,
+        string? status = null,
+        Guid? organizationId = null);
 
     /// <summary>
     /// Get a single user by ID.

@@ -102,6 +102,8 @@ export const UserListPage: FC = () => {
   })
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
+  const [statusFilter, setStatusFilter] = useState('')
+  const [orgFilter, setOrgFilter] = useState('')
   const [isLoading, setIsLoading] = useState(true)
   const [editingUser, setEditingUser] = useState<UserDto | null>(null)
   const [errorMessage, setErrorMessage] = useState<string | null>(null)
@@ -133,6 +135,8 @@ export const UserListPage: FC = () => {
         pageSize: pagination.pageSize,
         search: search || undefined,
         role: roleFilter || undefined,
+        status: statusFilter || undefined,
+        organizationId: orgFilter || undefined,
       })
       setUsers(response.users)
       setPagination(prev => ({
@@ -150,7 +154,7 @@ export const UserListPage: FC = () => {
   // Load users when filters or pagination change
   useEffect(() => {
     loadUsers()
-  }, [pagination.page, pagination.pageSize, search, roleFilter])
+  }, [pagination.page, pagination.pageSize, search, roleFilter, statusFilter, orgFilter])
 
   // Pre-load memberships for all visible users
   useEffect(() => {
@@ -369,7 +373,7 @@ export const UserListPage: FC = () => {
       )}
 
       {/* Compact Filters */}
-      <Stack direction="row" spacing={1.5} sx={{ mb: 2 }}>
+      <Stack direction="row" spacing={1.5} sx={{ mb: 2 }} flexWrap="wrap" useFlexGap>
         <CobraTextField
           placeholder="Search name or email..."
           value={search}
@@ -395,6 +399,32 @@ export const UserListPage: FC = () => {
           {USER_ROLES.map(role => (
             <MenuItem key={role} value={role}>
               {role}
+            </MenuItem>
+          ))}
+        </Select>
+        <Select
+          value={statusFilter}
+          onChange={e => setStatusFilter(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ minWidth: 110 }}
+        >
+          <MenuItem value="">All Status</MenuItem>
+          <MenuItem value="Active">Active</MenuItem>
+          <MenuItem value="Disabled">Inactive</MenuItem>
+          <MenuItem value="Pending">Pending</MenuItem>
+        </Select>
+        <Select
+          value={orgFilter}
+          onChange={e => setOrgFilter(e.target.value)}
+          displayEmpty
+          size="small"
+          sx={{ minWidth: 160 }}
+        >
+          <MenuItem value="">All Organizations</MenuItem>
+          {organizations.map(org => (
+            <MenuItem key={org.id} value={org.id}>
+              {org.name}
             </MenuItem>
           ))}
         </Select>
