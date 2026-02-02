@@ -14,6 +14,7 @@ import type {
   UpdateUserRequest,
   ChangeRoleRequest,
   CreateUserRequest,
+  UserMembershipDto,
 } from '../types'
 
 /**
@@ -106,6 +107,16 @@ export const userService = {
    */
   async reactivateUser(id: string): Promise<UserDto> {
     const response = await apiClient.post<UserDto>(`/users/${id}/reactivate`)
+    return response.data
+  },
+
+  /**
+   * Get a user's organization memberships (admin only)
+   * @param id User ID
+   * @returns List of organization memberships
+   */
+  async getUserMemberships(id: string): Promise<UserMembershipDto[]> {
+    const response = await apiClient.get<UserMembershipDto[]>(`/users/${id}/memberships`)
     return response.data
   },
 }
