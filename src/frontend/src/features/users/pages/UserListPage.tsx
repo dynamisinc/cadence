@@ -167,10 +167,10 @@ export const UserListPage: FC = () => {
 
       try {
         const results = await Promise.all(
-          usersToLoad.map(async (user) => {
+          usersToLoad.map(async user => {
             const memberships = await userService.getUserMemberships(user.id)
             return { userId: user.id, memberships }
-          })
+          }),
         )
         setUserMemberships(prev => {
           const newState = { ...prev }
@@ -339,7 +339,7 @@ export const UserListPage: FC = () => {
       await organizationService.updateMemberRole(
         membership.organizationId,
         membership.id,
-        { role: newRole as OrgRole }
+        { role: newRole as OrgRole },
       )
       // Refresh memberships for this user
       const updatedMemberships = await userService.getUserMemberships(membership.userId)
@@ -593,7 +593,10 @@ export const UserListPage: FC = () => {
 
                   {/* Expanded row for org management */}
                   <TableRow key={`${user.id}-expanded`}>
-                    <TableCell colSpan={7} sx={{ py: 0, borderBottom: expandedUserId === user.id ? 1 : 0 }}>
+                    <TableCell
+                      colSpan={7}
+                      sx={{ py: 0, borderBottom: expandedUserId === user.id ? 1 : 0 }}
+                    >
                       <Collapse in={expandedUserId === user.id} timeout="auto" unmountOnExit>
                         <Box sx={{ py: 2, px: 4, bgcolor: 'grey.50' }}>
                           <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
@@ -645,7 +648,9 @@ export const UserListPage: FC = () => {
                                     <TableCell>
                                       <Select
                                         value={membership.role}
-                                        onChange={e => handleOrgRoleChange(membership, e.target.value)}
+                                        onChange={e =>
+                                          handleOrgRoleChange(membership, e.target.value)
+                                        }
                                         size="small"
                                         sx={{ minWidth: 120, fontSize: '0.875rem' }}
                                       >
@@ -662,7 +667,9 @@ export const UserListPage: FC = () => {
                                     <TableCell align="right">
                                       <Tooltip title="Remove from organization">
                                         <CobraIconButton
-                                          onClick={() => handleRemoveFromOrg(membership, user.displayName)}
+                                          onClick={() =>
+                                            handleRemoveFromOrg(membership, user.displayName)
+                                          }
                                           sx={{ ...compactIconButtonSx, color: 'error.main' }}
                                         >
                                           <FontAwesomeIcon icon={faTrash} />

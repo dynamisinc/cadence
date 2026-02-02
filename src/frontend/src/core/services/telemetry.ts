@@ -10,26 +10,26 @@
  *
  * Respects user privacy - no PII is collected by default.
  */
-import { ApplicationInsights } from '@microsoft/applicationinsights-web';
-import type { ITelemetryItem } from '@microsoft/applicationinsights-web';
-import { ReactPlugin } from '@microsoft/applicationinsights-react-js';
+import { ApplicationInsights } from '@microsoft/applicationinsights-web'
+import type { ITelemetryItem } from '@microsoft/applicationinsights-web'
+import { ReactPlugin } from '@microsoft/applicationinsights-react-js'
 
 // React plugin for automatic component tracking
-export const reactPlugin = new ReactPlugin();
+export const reactPlugin = new ReactPlugin()
 
 // Application Insights instance
-let appInsights: ApplicationInsights | null = null;
+let appInsights: ApplicationInsights | null = null
 
 /**
  * Initialize Application Insights telemetry.
  * Call this once at app startup (in main.tsx).
  */
 export function initializeTelemetry(): ApplicationInsights | null {
-  const connectionString = import.meta.env.VITE_APPINSIGHTS_CONNECTION_STRING;
+  const connectionString = import.meta.env.VITE_APPINSIGHTS_CONNECTION_STRING
 
   if (!connectionString) {
-    console.debug('[Telemetry] App Insights not configured - skipping initialization');
-    return null;
+    console.debug('[Telemetry] App Insights not configured - skipping initialization')
+    return null
   }
 
   try {
@@ -59,43 +59,43 @@ export function initializeTelemetry(): ApplicationInsights | null {
         maxBatchInterval: 15000, // Send telemetry every 15 seconds
         maxBatchSizeInBytes: 102400, // 100KB max batch size
       },
-    });
+    })
 
-    appInsights.loadAppInsights();
+    appInsights.loadAppInsights()
 
     // Add telemetry initializer to enrich all telemetry items
     appInsights.addTelemetryInitializer((item: ITelemetryItem) => {
       // Add custom properties to all telemetry
-      item.data = item.data || {};
+      item.data = item.data || {}
 
       // Add app version if available
-      const appVersion = import.meta.env.VITE_APP_VERSION;
+      const appVersion = import.meta.env.VITE_APP_VERSION
       if (appVersion) {
-        item.data['app_version'] = appVersion;
+        item.data['app_version'] = appVersion
       }
 
       // Add environment
-      item.data['environment'] = import.meta.env.MODE;
+      item.data['environment'] = import.meta.env.MODE
 
       // Sanitize - remove any accidentally captured sensitive data
       if (item.baseData) {
         // Redact tokens from URLs
         if (item.baseData.uri) {
-          item.baseData.uri = sanitizeUrl(item.baseData.uri);
+          item.baseData.uri = sanitizeUrl(item.baseData.uri)
         }
         if (item.baseData.refUri) {
-          item.baseData.refUri = sanitizeUrl(item.baseData.refUri);
+          item.baseData.refUri = sanitizeUrl(item.baseData.refUri)
         }
       }
 
-      return true; // Include this telemetry item
-    });
+      return true // Include this telemetry item
+    })
 
-    console.debug('[Telemetry] App Insights initialized successfully');
-    return appInsights;
+    console.debug('[Telemetry] App Insights initialized successfully')
+    return appInsights
   } catch (error) {
-    console.error('[Telemetry] Failed to initialize App Insights:', error);
-    return null;
+    console.error('[Telemetry] Failed to initialize App Insights:', error)
+    return null
   }
 }
 
@@ -104,7 +104,7 @@ export function initializeTelemetry(): ApplicationInsights | null {
  * Returns null if not initialized.
  */
 export function getAppInsights(): ApplicationInsights | null {
-  return appInsights;
+  return appInsights
 }
 
 /**
@@ -113,15 +113,15 @@ export function getAppInsights(): ApplicationInsights | null {
 export function trackEvent(
   name: string,
   properties?: Record<string, string>,
-  measurements?: Record<string, number>
+  measurements?: Record<string, number>,
 ): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
   appInsights.trackEvent({
     name,
     properties,
     measurements,
-  });
+  })
 }
 
 /**
@@ -129,14 +129,14 @@ export function trackEvent(
  */
 export function trackException(
   error: Error,
-  properties?: Record<string, string>
+  properties?: Record<string, string>,
 ): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
   appInsights.trackException({
     exception: error,
     properties,
-  });
+  })
 }
 
 /**
@@ -145,15 +145,15 @@ export function trackException(
 export function trackPageView(
   name: string,
   uri?: string,
-  properties?: Record<string, string>
+  properties?: Record<string, string>,
 ): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
   appInsights.trackPageView({
     name,
     uri,
     properties,
-  });
+  })
 }
 
 /**
@@ -162,15 +162,15 @@ export function trackPageView(
 export function trackMetric(
   name: string,
   average: number,
-  properties?: Record<string, string>
+  properties?: Record<string, string>,
 ): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
   appInsights.trackMetric({
     name,
     average,
     properties,
-  });
+  })
 }
 
 /**
@@ -181,9 +181,9 @@ export function trackDependency(
   url: string,
   durationMs: number,
   success: boolean,
-  resultCode?: number
+  resultCode?: number,
 ): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
   appInsights.trackDependencyData({
     id: crypto.randomUUID(),
@@ -194,7 +194,7 @@ export function trackDependency(
     success,
     responseCode: resultCode ?? 0,
     data: sanitizeUrl(url),
-  });
+  })
 }
 
 /**
@@ -203,13 +203,14 @@ export function trackDependency(
  */
 export function setAuthenticatedUser(
   userId: string,
-  accountId?: string
+  accountId?: string,
 ): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
   // Use a hash of the user ID for privacy (don't send actual user ID)
-  const hashedUserId = hashString(userId);
-  appInsights.setAuthenticatedUserContext(hashedUserId, accountId ? hashString(accountId) : undefined, true);
+  const hashedUserId = hashString(userId)
+  const hashedAccountId = accountId ? hashString(accountId) : undefined
+  appInsights.setAuthenticatedUserContext(hashedUserId, hashedAccountId, true)
 }
 
 /**
@@ -217,18 +218,18 @@ export function setAuthenticatedUser(
  * Call this after user logs out
  */
 export function clearAuthenticatedUser(): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
-  appInsights.clearAuthenticatedUserContext();
+  appInsights.clearAuthenticatedUserContext()
 }
 
 /**
  * Flush any pending telemetry (call before app unload if needed)
  */
 export function flushTelemetry(): void {
-  if (!appInsights) return;
+  if (!appInsights) return
 
-  appInsights.flush();
+  appInsights.flush()
 }
 
 // === Helper functions ===
@@ -237,13 +238,13 @@ export function flushTelemetry(): void {
  * Simple hash function for privacy (not cryptographic)
  */
 function hashString(str: string): string {
-  let hash = 0;
+  let hash = 0
   for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash = hash & hash; // Convert to 32bit integer
+    const char = str.charCodeAt(i)
+    hash = (hash << 5) - hash + char
+    hash = hash & hash // Convert to 32bit integer
   }
-  return Math.abs(hash).toString(16);
+  return Math.abs(hash).toString(16)
 }
 
 /**
@@ -251,18 +252,18 @@ function hashString(str: string): string {
  */
 function sanitizeUrl(url: string): string {
   try {
-    const parsed = new URL(url, window.location.origin);
-    const sensitiveParams = ['token', 'access_token', 'refresh_token', 'code', 'password', 'secret'];
+    const parsed = new URL(url, window.location.origin)
+    const sensitiveParams = ['token', 'access_token', 'refresh_token', 'code', 'password', 'secret']
 
-    sensitiveParams.forEach((param) => {
+    sensitiveParams.forEach(param => {
       if (parsed.searchParams.has(param)) {
-        parsed.searchParams.set(param, '[REDACTED]');
+        parsed.searchParams.set(param, '[REDACTED]')
       }
-    });
+    })
 
-    return parsed.toString();
+    return parsed.toString()
   } catch {
     // If URL parsing fails, return as-is
-    return url;
+    return url
   }
 }
