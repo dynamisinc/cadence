@@ -16,7 +16,9 @@ using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
 using Cadence.WebApi.Extensions;
 using Cadence.WebApi.Hubs;
+using Cadence.WebApi.Middleware;
 using Cadence.WebApi.Services;
+using Microsoft.ApplicationInsights.Extensibility;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -38,6 +40,32 @@ builder.Services.AddControllers()
     });
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddOpenApi();
+
+// Add Application Insights telemetry
+// Check both custom config and Azure's standard environment variable
+var appInsightsConnectionString = builder.Configuration["ApplicationInsights:ConnectionString"];
+if (string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    // Azure App Service sets this env var automatically when App Insights is enabled
+    appInsightsConnectionString = Environment.GetEnvironmentVariable("APPLICATIONINSIGHTS_CONNECTION_STRING");
+}
+
+if (!string.IsNullOrEmpty(appInsightsConnectionString))
+{
+    builder.Services.AddApplicationInsightsTelemetry(options =>
+    {
+        options.ConnectionString = appInsightsConnectionString;
+    });
+
+    // Configure adaptive sampling to reduce telemetry volume while keeping errors
+    builder.Services.Configure<TelemetryConfiguration>(config =>
+    {
+        var telemetryBuilder = config.DefaultTelemetrySink.TelemetryProcessorChainBuilder;
+        // Keep all failed requests (4xx, 5xx)
+        telemetryBuilder.UseAdaptiveSampling(excludedTypes: "Exception;Request");
+        telemetryBuilder.Build();
+    });
+}
 
 // Add SignalR - conditionally use Azure SignalR Service for production
 var useAzureSignalR = builder.Configuration.GetValue<bool>("Azure:SignalR:Enabled");
@@ -234,6 +262,9 @@ app.UseHttpsRedirection();
 app.UseCors();
 
 app.UseRateLimiter();
+
+// Add request/response logging for failed requests (captures 4xx/5xx with body details)
+app.UseRequestResponseLogging();
 
 app.UseAuthentication();
 app.UseAuthorization();

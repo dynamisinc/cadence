@@ -133,27 +133,37 @@ public class ExercisesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ExerciseDto>> CreateExercise(CreateExerciseRequest request)
     {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         // Validation
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            return BadRequest(new { message = "Name is required" });
+            _logger.LogWarning(
+                "CreateExercise validation failed: Name is required. User: {UserId}, Request: {@Request}",
+                currentUserId, new { request.Name, request.ExerciseType, request.DirectorId });
+            return BadRequest(new { message = "Name is required", field = "name" });
         }
 
         if (request.Name.Length > 200)
         {
-            return BadRequest(new { message = "Name must be 200 characters or less" });
+            _logger.LogWarning(
+                "CreateExercise validation failed: Name too long ({Length} chars). User: {UserId}",
+                request.Name.Length, currentUserId);
+            return BadRequest(new { message = "Name must be 200 characters or less", field = "name" });
         }
 
         // Require organization context to create exercises
         if (!_orgContext.CurrentOrganizationId.HasValue)
         {
-            return BadRequest(new { message = "Organization context required. Please select an organization." });
+            _logger.LogWarning(
+                "CreateExercise validation failed: No organization context. User: {UserId}, IsSysAdmin: {IsSysAdmin}",
+                currentUserId, _orgContext.IsSysAdmin);
+            return BadRequest(new { message = "Organization context required. Please select an organization.", field = "organization" });
         }
 
         var organizationId = _orgContext.CurrentOrganizationId.Value;
 
-        // Get current user ID from claims (ApplicationUser.Id is string)
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Validate user is authenticated (currentUserId was retrieved at method start for logging)
         if (string.IsNullOrEmpty(currentUserId))
         {
             return Unauthorized(new { message = "User not authenticated" });
