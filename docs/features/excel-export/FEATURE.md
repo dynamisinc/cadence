@@ -1,10 +1,15 @@
 # Feature: Excel Export
 
-**Parent Epic:** MSEL Authoring (E4)
+**Phase:** MVP
+**Status:** Not Started
 
-## Description
+## Overview
 
-Organizations need to share MSELs with stakeholders who may not have Cadence access, create backups, or use Excel for final formatting. This feature allows users to export the MSEL to Excel format, preserving data structure and optionally applying formatting for readability.
+Users can export MSEL data to Excel format for sharing with stakeholders, creating backups, or final formatting outside Cadence.
+
+## Problem Statement
+
+Organizations need to share MSELs with stakeholders who may not have Cadence access, create backups for records retention, or use Excel for final formatting and printing. Without export capability, users would need to manually recreate MSEL data in Excel, leading to errors and wasted time.
 
 ## User Stories
 
@@ -16,32 +21,39 @@ Organizations need to share MSELs with stakeholders who may not have Cadence acc
 ## User Personas
 
 | Persona | Interaction |
-|---------|------------|
+|---------|-------------|
 | Administrator | Full export access |
 | Exercise Director | Export exercises they manage |
 | Controller | Export MSELs they have access to |
 | Evaluator | Export MSELs (read-only data) |
 | Observer | No export access (or limited) |
 
-## Export Formats
+## Key Concepts
 
-| Format | Extension | Use Case |
-|--------|-----------|----------|
-| Excel Workbook | .xlsx | Full-featured export with formatting |
-| CSV | .csv | Simple data export for other tools |
+| Term | Definition |
+|------|------------|
+| Export Format | File format for exported data (.xlsx, .csv) |
+| Round-Trip | Ability to export and re-import without data loss |
+| Metadata Sheet | Additional worksheet with exercise information |
 
 ## Dependencies
 
-- inject-crud/S01: Create Inject (injects to export)
-- excel-import/S02: Map Columns (export should match import structure)
+- inject-crud/S01 - Create Inject (injects to export)
+- excel-import/S02 - Map Columns (export should match import structure)
 
 ## Acceptance Criteria (Feature-Level)
 
-- [ ] Users can export MSEL data to Excel format
-- [ ] Export includes all inject fields
-- [ ] Export preserves column order matching import template
+- [ ] Users can export MSEL data to Excel format (.xlsx)
+- [ ] Export includes all inject fields in consistent column order
+- [ ] Export preserves column order matching import template for round-trip compatibility
 - [ ] Users can download a blank template for data entry
-- [ ] Exported files can be re-imported (round-trip)
+- [ ] Exported files can be re-imported without data loss
+
+## Notes
+
+- Export should match import column structure for round-trip compatibility
+- Consider including metadata sheet with exercise info
+- Large exports (1000+ injects) may need background processing
 
 ## Wireframes/Mockups
 

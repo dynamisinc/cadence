@@ -1,10 +1,15 @@
 # Feature: Exercise Objectives Management
 
-**Parent Epic:** Exercise Setup (E3)
+**Phase:** Standard
+**Status:** Not Started
 
-## Description
+## Overview
 
-HSEEP-compliant exercises are built around core objectives that define what the exercise aims to achieve or test. This feature allows exercise planners to define objectives, link them to injects, and track which objectives are being exercised during conduct. Objectives provide the framework for evaluation and after-action reporting.
+Exercise planners can define HSEEP-compliant objectives, link them to injects, and track objective coverage during exercise conduct to support evaluation and after-action reporting.
+
+## Problem Statement
+
+HSEEP-compliant exercises must be built around core objectives that define what the exercise aims to achieve or test. Without a structured objective management system, planners struggle to ensure all objectives are adequately exercised, and evaluators lack context for performance assessment. This feature provides the framework for objective-based exercise design and evaluation.
 
 ## User Stories
 
@@ -17,39 +22,46 @@ HSEEP-compliant exercises are built around core objectives that define what the 
 ## User Personas
 
 | Persona | Interaction |
-|---------|------------|
+|---------|-------------|
 | Administrator | Full CRUD access to objectives |
 | Exercise Director | Creates, edits, and manages objectives for their exercises |
 | Controller | Views objectives linked to their assigned injects |
 | Evaluator | Views objectives for evaluation focus areas |
 | Observer | Views objectives (read-only) |
 
-## HSEEP Context
+## Key Concepts
 
-Per HSEEP doctrine, exercise objectives should be:
-- **Linked to Core Capabilities**: Align with national preparedness goals
-- **Specific**: Clearly define what will be demonstrated
-- **Measurable**: Allow for evaluation of performance
-- **Achievable**: Realistic within exercise scope
-- **Relevant**: Address identified gaps or priorities
-- **Time-bound**: Achievable within exercise timeframe
-
-Cadence focuses on objective *tracking* during exercise conduct rather than the full objective development lifecycle covered by planning tools like EXIS.
+| Term | Definition |
+|------|------------|
+| Exercise Objective | HSEEP-defined goal that the exercise aims to achieve or test |
+| Core Capability | FEMA-defined capability area (e.g., Mass Care, Emergency Operations Coordination) |
+| Objective Linkage | Association between an objective and one or more injects |
+| Objective Coverage | Tracking which objectives are addressed by the MSEL |
+| SMART Objectives | Specific, Measurable, Achievable, Relevant, Time-bound objective criteria |
 
 ## Dependencies
 
-- exercise-crud/S01: Create Exercise (objectives belong to exercises)
-- inject-crud/S01: Create Inject (injects can be linked to objectives)
-- Evaluation module (future: objectives guide evaluation criteria)
+- exercise-crud/S01 - Create Exercise (objectives belong to exercises)
+- inject-crud/S01 - Create Inject (injects can be linked to objectives)
+- Evaluation module (future) - Objectives guide evaluation criteria
 
 ## Acceptance Criteria (Feature-Level)
 
 - [ ] Users can create exercise objectives with name and description
 - [ ] Users can edit and delete objectives before conduct begins
-- [ ] Users can link multiple objectives to a single inject
-- [ ] Users can link a single objective to multiple injects
+- [ ] Users can link multiple objectives to a single inject (many-to-many)
+- [ ] Users can link a single objective to multiple injects (many-to-many)
 - [ ] Objectives are visible during inject delivery for Controller context
 - [ ] Objectives can be filtered/grouped in the MSEL view
+- [ ] Objective coverage is visible (which objectives have linked injects)
+
+## Notes
+
+- Cadence focuses on objective tracking during exercise conduct, not the full objective development lifecycle
+- Per HSEEP doctrine, objectives should be SMART: Specific, Measurable, Achievable, Relevant, Time-bound
+- Objectives imported from Excel should map to this structure
+- Consider future integration with FEMA Core Capabilities list
+- Objective tracking feeds into after-action report generation (Advanced phase)
 
 ## Wireframes/Mockups
 

@@ -1,28 +1,35 @@
 # Feature: Exercise Observations
 
-**Parent Epic:** Exercise Evaluation (E6)
+**Phase:** MVP
+**Status:** Complete
 
-## Description
+## Overview
 
-Evaluators capture observations during exercise conduct to document player performance against objectives. Observations are the foundation of the After-Action Review (AAR) and support HSEEP evaluation requirements. Each observation can be linked to specific injects, objectives, and rated using the HSEEP P/S/M/U scale.
+Evaluators capture real-time observations during exercise conduct to document player performance, supporting HSEEP evaluation requirements and After-Action Review (AAR) preparation.
 
-## Business Value
+## Problem Statement
 
-- **HSEEP Compliance**: Structured observation capture per HSEEP evaluation doctrine
-- **AAR Support**: Provides data for After-Action Report generation
-- **Real-time Documentation**: Capture observations as they happen, not from memory
-- **Objective Tracking**: Link observations to exercise objectives for coverage analysis
-- **Performance Rating**: P/S/M/U ratings enable consistent evaluation across evaluators
+HSEEP evaluation requires structured documentation of player performance during exercise conduct. Without a real-time observation capture system, evaluators must rely on memory and paper notes, leading to incomplete or lost data. This feature enables evaluators to document observations as they happen, link them to objectives and injects, and apply standardized HSEEP performance ratings for consistent evaluation across exercises.
 
 ## User Personas
 
 | Persona | Interaction |
 |---------|-------------|
-| **Evaluator** | Primary user - creates, edits observations during conduct |
-| **Exercise Director** | Reviews observations, ensures coverage, prepares AAR |
-| **Controller** | May view observations for situational awareness |
-| **Administrator** | Full access to all observations |
-| **Observer** | View-only access to observations (if permitted) |
+| Evaluator | Primary user - creates, edits observations during conduct |
+| Exercise Director | Reviews observations, ensures coverage, prepares AAR |
+| Controller | May view observations for situational awareness |
+| Administrator | Full access to all observations |
+| Observer | View-only access to observations (if permitted) |
+
+## Key Concepts
+
+| Term | Definition |
+|------|------------|
+| Observation | Documented note of player performance during exercise conduct |
+| P/S/M/U Rating | HSEEP performance rating scale (Performed, Some challenges, Major challenges, Unable) |
+| Observation Type | Classification as Strength, Area for Improvement, or Neutral |
+| Observation Linking | Association of observations with injects and/or objectives |
+| Exercise Time | Timestamp context (when observed vs when recorded) |
 
 ## User Stories
 
@@ -37,43 +44,43 @@ Evaluators capture observations during exercise conduct to document player perfo
 | [S07](./S07-view-observations-list.md) | View Observations List | P0 | 📋 Ready |
 | [S08](./S08-filter-observations.md) | Filter Observations | P2 | 📋 Ready |
 
-## HSEEP Context
-
-### P/S/M/U Rating Scale
-
-Per HSEEP doctrine, observations can be rated using the Performance Rating scale:
-
-| Rating | Name | Definition |
-|--------|------|------------|
-| **P** | Performed without Challenges | The targets and critical tasks were completed in a manner that achieved the objective(s) |
-| **S** | Performed with Some Challenges | The targets and critical tasks were completed in a manner that achieved the objective(s), with some challenges |
-| **M** | Performed with Major Challenges | The targets and critical tasks were not completed in a manner that achieved the objective(s) |
-| **U** | Unable to be Performed | The targets and critical tasks were not performed in a manner that achieved the objective(s) |
-
-### Observation Types
-
-| Type | Description | Use Case |
-|------|-------------|----------|
-| **Strength** | Positive performance observation | Document what went well |
-| **Area for Improvement** | Performance gap identified | Document what needs work |
-| **Neutral** | Factual observation without judgment | Document events/actions |
 
 ## Dependencies
 
-- exercise-crud/S01: Create Exercise (observations belong to exercises)
-- inject-crud/S01: Create Inject (observations can link to injects)
-- exercise-objectives/S01: Create Objective (observations can link to objectives)
-- authentication: Role-based access (Evaluator+ can create)
+- exercise-crud/S01 - Create Exercise (observations belong to exercises)
+- inject-crud/S01 - Create Inject (observations can link to injects)
+- exercise-objectives/S01 - Create Objective (observations can link to objectives)
+- Authentication - Role-based access (Evaluator+ can create)
 
 ## Acceptance Criteria (Feature-Level)
 
 - [ ] Evaluators can create observations during exercise conduct
-- [ ] Observations capture: text, timestamp, evaluator, optional P/S/M/U rating
-- [ ] Observations can be linked to one or more injects
-- [ ] Observations can be linked to one or more objectives
+- [ ] Observations capture: text, type, timestamp, evaluator, optional P/S/M/U rating
+- [ ] Observations can be linked to one or more injects (many-to-many)
+- [ ] Observations can be linked to one or more objectives (many-to-many)
 - [ ] Observations persist through offline periods and sync when connected
 - [ ] Observations are read-only after exercise is Completed (except by Admin)
 - [ ] Observations visible in Review Mode for AAR preparation
+
+## Notes
+
+HSEEP P/S/M/U Rating Scale:
+- **P**: Performed without Challenges - Tasks achieved objective(s)
+- **S**: Performed with Some Challenges - Tasks achieved objective(s) with challenges
+- **M**: Performed with Major Challenges - Tasks did not achieve objective(s)
+- **U**: Unable to be Performed - Tasks were not performed
+
+Observation Types:
+- **Strength**: Positive performance observation
+- **Area for Improvement**: Performance gap identified
+- **Neutral**: Factual observation without judgment
+
+Additional considerations:
+- Observations should be quick to enter during fast-paced conduct
+- Consider floating/docked observation panel for continuous entry
+- Offline support critical - evaluators may be in poor connectivity areas
+- Observation timestamps use exercise time context (not wall clock)
+- Review Mode provides different view optimized for AAR preparation
 
 ## Data Model
 

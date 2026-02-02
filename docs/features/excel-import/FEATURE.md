@@ -1,10 +1,15 @@
 # Feature: Excel Import
 
-**Parent Epic:** MSEL Authoring (E4)
+**Phase:** MVP
+**Status:** Not Started
 
-## Description
+## Overview
 
-Many organizations develop their MSELs in Excel before exercise conduct. This feature allows users to import inject data from Excel files, mapping spreadsheet columns to Cadence inject fields. The goal is to preserve existing workflows while bringing MSEL management into a system designed for exercise conduct.
+Users can import inject data from Excel files into Cadence, mapping spreadsheet columns to inject fields to preserve existing MSEL authoring workflows.
+
+## Problem Statement
+
+Many organizations develop their MSELs in Excel before exercise conduct. Without import capability, users would need to manually re-enter hundreds of injects, leading to errors and wasted time. This feature allows users to import existing Excel MSELs directly, preserving their established workflows while gaining the benefits of Cadence for exercise conduct.
 
 ## User Stories
 
@@ -18,48 +23,44 @@ Many organizations develop their MSELs in Excel before exercise conduct. This fe
 ## User Personas
 
 | Persona | Interaction |
-|---------|------------|
+|---------|-------------|
 | Administrator | Full import access |
 | Exercise Director | Import for their exercises |
 | Controller | May import if granted permission |
 | Evaluator | No import access |
 | Observer | No import access |
 
-## Supported Formats
+## Key Concepts
 
-| Format | Extension | Support |
-|--------|-----------|---------|
-| Excel Workbook | .xlsx | ✅ Full support |
-| Excel 97-2003 | .xls | ✅ Full support |
-| CSV | .csv | ✅ Basic support |
-
-## Import Workflow
-
-```
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Upload  │ -> │  Map    │ -> │Validate │ -> │ Import  │
-│  File   │    │ Columns │    │  Data   │    │  Data   │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │
-     │              │              │              │
-  Select        Configure      Review         Create
-  .xlsx         mapping        errors         injects
-```
+| Term | Definition |
+|------|------------|
+| Column Mapping | Associating Excel columns with Cadence inject fields |
+| Validation | Pre-import data quality checks (required fields, data types) |
+| Import Wizard | Step-by-step process: Upload → Map → Validate → Import |
+| Synonym Matching | Automatic recognition of common delivery method variations |
+| Update vs Create | Import can create new injects or update existing by inject number |
 
 ## Dependencies
 
-- exercise-crud/S01: Create Exercise (import into existing exercise)
-- inject-crud/S01: Create Inject (import creates injects)
+- exercise-crud/S01 - Create Exercise (import into existing exercise)
+- inject-crud/S01 - Create Inject (import creates injects)
 - Core entity definitions (inject field mapping)
 
 ## Acceptance Criteria (Feature-Level)
 
 - [ ] Users can upload Excel files (.xlsx, .xls) or CSV files
 - [ ] Users can map Excel columns to Cadence inject fields
-- [ ] System validates data before import
-- [ ] Users can review and fix validation errors
+- [ ] System validates data before import (required fields, data types)
+- [ ] Users can review and fix validation errors before finalizing import
 - [ ] Import creates injects in the MSEL
-- [ ] Import can update existing injects (by inject number)
+- [ ] Import can update existing injects (matched by inject number)
+
+## Notes
+
+- Import should preserve Excel formatting notes in a log
+- Consider providing a Cadence Excel template for download
+- Large files (1000+ rows) may need background processing
+- Import history should be logged for audit purposes
 
 ## Wireframes/Mockups
 

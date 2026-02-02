@@ -1,28 +1,15 @@
 # Feature: Navigation Shell
 
-**Parent Epic:** Application Navigation & User Experience
-**Phase:** Post-MVP (Navigation Enhancement)
+**Phase:** Post-MVP
+**Status:** Ready
 
-## Description
+## Overview
 
 The navigation shell provides the primary UI structure for Cadence, including the sidebar menu, role-based visibility, and contextual transformation when entering/exiting exercises. This feature establishes consistent navigation patterns across all application states.
 
-## Business Value
+## Problem Statement
 
-- **Role Clarity**: Users see only navigation options relevant to their permissions
-- **Context Awareness**: UI adapts when working within a specific exercise
-- **Efficiency**: Quick access to role-appropriate features reduces clicks
-- **Discoverability**: Organized menu structure helps users find capabilities
-
-## User Personas
-
-| Persona | Navigation Needs |
-|---------|------------------|
-| **Administrator** | Full access to all menu items including system settings |
-| **Exercise Director** | Exercise management, reports, participant management |
-| **Controller** | Inject queue, control room, MSEL access |
-| **Evaluator** | Observations, exercise hub |
-| **Observer** | Read-only exercise access |
+Users with different roles need navigation tailored to their permissions and current context. A one-size-fits-all menu shows irrelevant options, creates confusion, and slows down exercise conduct. Users need context-aware navigation that adapts when working within a specific exercise versus managing exercises at the organization level.
 
 ## User Stories
 
@@ -33,7 +20,34 @@ The navigation shell provides the primary UI structure for Cadence, including th
 | [S03](./S03-in-exercise-context-navigation.md) | In-Exercise Context Navigation | P0 | 📋 Ready |
 | [S04](./S04-exercise-header-with-clock.md) | Exercise Header with Clock | P0 | 📋 Ready |
 
-## Feature-Level Acceptance Criteria
+## User Personas
+
+| Persona | Interaction |
+|---------|-------------|
+| Administrator | Full access to all menu items including system settings |
+| Exercise Director | Exercise management, reports, participant management |
+| Controller | Inject queue, control room, MSEL access |
+| Evaluator | Observations, exercise hub |
+| Observer | Read-only exercise access |
+
+## Key Concepts
+
+| Term | Definition |
+|------|------------|
+| Navigation Shell | The persistent UI framework including sidebar, header, and layout |
+| Global Navigation | Menu structure when not in an exercise context |
+| In-Exercise Navigation | Menu structure when working within a specific exercise |
+| Context Transformation | UI adaptation when entering/exiting exercise scope |
+| Role-Based Visibility | Showing/hiding menu items based on user permissions |
+
+## Dependencies
+
+- Authentication system (provides user role)
+- Exercise context (provides exercise-scoped role)
+- Exercise clock feature (CLK stories - ✅ Complete)
+- React Router (route-based active states)
+
+## Acceptance Criteria (Feature-Level)
 
 - [ ] Sidebar displays organized menu sections (CONDUCT, ANALYSIS, SYSTEM)
 - [ ] Menu items filtered based on user's system role
@@ -42,9 +56,18 @@ The navigation shell provides the primary UI structure for Cadence, including th
 - [ ] Navigation state persists across page refreshes
 - [ ] Mobile-responsive drawer behavior maintained
 
-## Menu Structure
+## Notes
 
-### Global Navigation (Outside Exercise)
+### Business Value
+
+- **Role Clarity**: Users see only navigation options relevant to their permissions
+- **Context Awareness**: UI adapts when working within a specific exercise
+- **Efficiency**: Quick access to role-appropriate features reduces clicks
+- **Discoverability**: Organized menu structure helps users find capabilities
+
+### Menu Structure
+
+#### Global Navigation (Outside Exercise)
 ```
 CONDUCT
 ├── My Assignments        [All roles]
@@ -62,7 +85,7 @@ SYSTEM
 └── Settings             [All roles]
 ```
 
-### In-Exercise Navigation (Inside Exercise)
+#### In-Exercise Navigation (Inside Exercise)
 ```
 [← Back to Exercises]
 [Exercise Name]
@@ -77,21 +100,14 @@ SYSTEM
 └── Settings             [Director, Admin]
 ```
 
-## Dependencies
-
-- Authentication system (provides user role)
-- Exercise context (provides exercise-scoped role)
-- Exercise clock feature (CLK stories - ✅ Complete)
-- React Router (route-based active states)
-
-## Technical Notes
+### Technical Notes
 
 - Use React Context for exercise navigation state
 - Persist context in sessionStorage for refresh survival
 - Reuse existing ClockDisplay component from CLK-06
 - Follow COBRA styling patterns
 
-## Related Documentation
+### Related Documentation
 
 - [Exercise Clock Modes](../exercise-config/exercise-clock-modes-requirements.md)
 - [CLK-06 Implementation](../exercise-config/CLK-06-IMPLEMENTATION.md)

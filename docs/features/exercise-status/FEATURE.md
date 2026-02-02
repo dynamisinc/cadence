@@ -1,20 +1,13 @@
 # Feature: Exercise Status Workflow
 
-> **Epic:** Exercise Conduct
-> **Phase:** M.2 - Exercise Configuration & Status Management
-> **Priority:** P1 - Required for Exercise Conduct
-
----
+**Phase:** MVP
+**Status:** Not Started
 
 ## Overview
 
 Exercise status workflow provides HSEEP-compliant lifecycle management for exercises from initial planning through completion and archival. The workflow supports both planned transitions (Draft → Active → Completed) and real-world scenarios requiring pause and resume capabilities.
 
----
-
-## Business Value
-
-### Problem Statement
+## Problem Statement
 
 Emergency management exercises have distinct lifecycle phases with different access controls, capabilities, and data integrity requirements. Exercise Directors and Controllers need clear, enforceable status transitions that prevent accidental data loss and ensure exercises progress through proper phases.
 
@@ -23,16 +16,6 @@ Emergency management exercises have distinct lifecycle phases with different acc
 - Status transitions lack confirmation dialogs (accidental transitions possible)
 - Missing audit trail of who activated/completed exercises
 - No clear path to revert exercises that were started prematurely
-
-### Solution
-
-A state machine-based status workflow with:
-- Five distinct statuses (Draft, Active, Paused, Completed, Archived)
-- Permission-based transition controls (Exercise Director+ only)
-- Confirmation dialogs for destructive transitions
-- Full audit trail of status changes with timestamps and user IDs
-
----
 
 ## User Personas
 
@@ -44,9 +27,20 @@ A state machine-based status workflow with:
 | **Evaluator** | View status to understand data collection phase |
 | **Observer** | View status only |
 
----
+## User Stories
 
-## Status Definitions
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| [S01](./S01-view-status.md) | View Exercise Status | P0 | 📋 Ready |
+| [S02](./S02-activate-exercise.md) | Activate Exercise (Draft → Active) | P0 | 📋 Ready |
+| [S03](./S03-pause-exercise.md) | Pause Exercise (Active → Paused) | P1 | 📋 Ready |
+| [S04](./S04-complete-exercise.md) | Complete Exercise (Active/Paused → Completed) | P0 | 📋 Ready |
+| [S05](./S05-revert-to-draft.md) | Revert to Draft (Paused → Draft) | P1 | 📋 Ready |
+| [S06](./S06-archive-exercise.md) | Archive Exercise (Completed → Archived) | P0 | 📋 Ready |
+
+## Key Concepts
+
+### Status Definitions
 
 | Status | Description | Editable? | Clock State |
 |--------|-------------|-----------|-------------|
@@ -56,9 +50,7 @@ A state machine-based status workflow with:
 | **Completed** | Conduct finished. AAR phase. | No (read-only except observations) | Stopped |
 | **Archived** | Historical record. Hidden from default views. | No (read-only) | Stopped |
 
----
-
-## Status Transition Rules
+### Status Transition Rules
 
 ```mermaid
 stateDiagram-v2
@@ -86,9 +78,7 @@ stateDiagram-v2
 | Completed | Archived | "Archive Exercise" | None | Yes |
 | Archived | Completed | "Unarchive Exercise" | None | No |
 
----
-
-## Permission Matrix
+### Permission Matrix
 
 | Role | Can Transition? |
 |------|----------------|
@@ -98,22 +88,21 @@ stateDiagram-v2
 | Evaluator | ❌ View only |
 | Observer | ❌ View only |
 
----
+## Dependencies
 
-## User Stories
+- `exercise-crud/S01`: Create Exercise (must exist to transition)
+- `inject-crud/S01`: Create Inject (must have ≥1 inject to activate)
+- `exercise-clock/S01`: Start Exercise Clock (coupled with activation)
+- `_cross-cutting/S01`: Session Management (role-based permissions)
 
-| Story | Title | Priority |
-|-------|-------|----------|
-| S01 | View Exercise Status | P0 |
-| S02 | Activate Exercise (Draft → Active) | P0 |
-| S03 | Pause Exercise (Active → Paused) | P1 |
-| S04 | Complete Exercise (Active/Paused → Completed) | P0 |
-| S05 | Revert to Draft (Paused → Draft) | P1 |
-| S06 | Archive Exercise (Completed → Archived) | P0 |
+## Acceptance Criteria (Feature-Level)
 
-**Note:** S06 references existing `exercise-crud/S04-archive-exercise.md` to avoid duplication.
-
----
+- [ ] All HSEEP roles can view current exercise status
+- [ ] Exercise Directors can transition exercises through all lifecycle states
+- [ ] Status transitions enforce validation rules (e.g., cannot activate without injects)
+- [ ] Destructive transitions require confirmation dialogs
+- [ ] All status changes are audited with timestamp and user ID
+- [ ] Exercise status controls data editability and available actions
 
 ## Data Model Changes
 
@@ -152,8 +141,6 @@ public enum ExerciseStatus
     Archived
 }
 ```
-
----
 
 ## Clock State vs Exercise Status (IMPORTANT)
 
@@ -213,8 +200,6 @@ The Exercise Clock State and Exercise Status are related but **operate independe
   Hurricane Response 2025 | Status: Active ● | Clock: Paused ⏸ 02:45:30
   ```
 
----
-
 ## Edge Cases & Business Rules
 
 ### 1. Empty MSEL Protection
@@ -240,9 +225,7 @@ The Exercise Clock State and Exercise Status are related but **operate independe
 - **Result:** Returns exercise to Completed status
 - **Does NOT:** Revert to Active or Draft (one-way from Archived → Completed only)
 
----
-
-## Out of Scope (Future Enhancements)
+## Notes
 
 - Auto-complete when all injects fired (requires configuration setting)
 - Scheduled activation (activate at specific future time)
@@ -250,17 +233,6 @@ The Exercise Clock State and Exercise Status are related but **operate independe
 - Status-based email notifications
 - Bulk status changes (archive multiple exercises)
 - Custom status labels per organization
-
----
-
-## Dependencies
-
-- `exercise-crud/S01`: Create Exercise (must exist to transition)
-- `inject-crud/S01`: Create Inject (must have ≥1 inject to activate)
-- `exercise-clock/S01`: Start Exercise Clock (coupled with activation)
-- `_cross-cutting/S01`: Session Management (role-based permissions)
-
----
 
 ## Testing Considerations
 
@@ -292,8 +264,6 @@ The Exercise Clock State and Exercise Status are related but **operate independe
    - Cannot pause a Completed exercise
    - Cannot activate an Archived exercise
 
----
-
 ## Audit & Compliance
 
 All status transitions MUST be logged with:
@@ -304,8 +274,6 @@ All status transitions MUST be logged with:
 - **IP Address:** (optional) For security auditing
 
 This audit trail supports HSEEP compliance requirements for exercise documentation and after-action review.
-
----
 
 ## UI/UX Principles
 
@@ -325,11 +293,3 @@ This audit trail supports HSEEP compliance requirements for exercise documentati
 - Hide "Fire Inject" buttons when status is Completed/Archived
 - Show read-only indicators on forms when status is not Draft
 - Display status badge prominently in exercise list and detail views
-
----
-
-## Change Log
-
-| Date | Version | Changes |
-|------|---------|---------|
-| Jan 2026 | 1.0 | Initial feature specification for Phase M.2 |

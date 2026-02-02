@@ -1,12 +1,17 @@
 # Feature: MSEL Version Management
 
-**Parent Epic:** Exercise Setup (E3)
+**Phase:** MVP
+**Status:** Ready
 
-## Description
+## Overview
 
 The Master Scenario Events List (MSEL) is the collection of injects for an exercise. As exercises evolve during planning, multiple versions of the MSEL may be created. This feature allows exercise planners to manage MSEL versions, select the active version for conduct, and duplicate MSELs for reuse.
 
 In Cadence's MVP, version management is simplified: each exercise has one MSEL, but the MSEL can be duplicated to create new exercises or archived for historical reference.
+
+## Problem Statement
+
+Exercise planners need to reuse inject content across recurring or similar exercises without rebuilding the MSEL from scratch. Organizations run periodic exercises (annual hurricane drills, quarterly tabletops) that benefit from duplicating and modifying existing MSELs rather than starting from zero each time.
 
 ## User Stories
 
@@ -18,12 +23,22 @@ In Cadence's MVP, version management is simplified: each exercise has one MSEL, 
 ## User Personas
 
 | Persona | Interaction |
-|---------|------------|
+|---------|-------------|
 | Administrator | Full access to MSEL management |
 | Exercise Director | Manages MSEL versions for their exercises |
 | Controller | Views active MSEL during conduct |
 | Evaluator | Views active MSEL |
 | Observer | Views active MSEL (read-only) |
+
+## Key Concepts
+
+| Term | Definition |
+|------|------------|
+| MSEL | Master Scenario Events List - the collection of injects for an exercise |
+| Active MSEL | The MSEL used during exercise conduct (in MVP, the only MSEL for each exercise) |
+| Duplication | Creating a complete copy of an exercise and its MSEL for reuse |
+| Source Exercise | The original exercise being duplicated |
+| Target Exercise | The new exercise created by duplication |
 
 ## MVP Simplification
 
@@ -52,9 +67,11 @@ Future versions may add:
 - [ ] MSEL state is preserved when exercise is archived
 - [ ] Conduct uses the exercise's single MSEL
 
-## Wireframes/Mockups
+## Notes
 
-### Exercise Actions Menu
+### Wireframes/Mockups
+
+#### Exercise Actions Menu
 
 ```
 ┌─────────────────────────────────────────────────────────────────────┐
@@ -74,7 +91,7 @@ Future versions may add:
 └─────────────────────────────────────────────────────────────────────┘
 ```
 
-## Notes
+### Additional Context
 
 - MSEL duplication is a common workflow for recurring exercises
 - Consider adding "duplicate as template" in future versions

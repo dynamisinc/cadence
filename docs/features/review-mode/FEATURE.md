@@ -1,56 +1,36 @@
 # Feature: Exercise Review & AAR Mode
 
-**Epic:** E6 - Exercise Evaluation  
-**Feature ID:** E6-F5
+**Phase:** Standard
+**Status:** Not Started
 
-## Description
+## Overview
 
 A dedicated view for reviewing exercise execution after conduct, supporting After-Action Review (AAR) discussions and report preparation. Unlike the real-time Conduct view (time-sorted), Review Mode organizes information by phase and outcome to facilitate analysis.
 
-## Business Value
+## Problem Statement
 
-- Supports HSEEP-required After-Action Review process
-- Provides structured data for AAR report writing
-- Enables Exercise Directors to assess exercise effectiveness
-- Allows stakeholders to review exercise without attending live
+After exercise conduct, Exercise Directors and Evaluators need to analyze what happened, identify strengths and improvement areas, and prepare AAR reports. The real-time Conduct view is optimized for action, not analysis. Teams need a post-exercise view that groups events by phase, highlights outcomes, and surfaces observation patterns to support structured AAR discussions and HSEEP-compliant reporting.
+
+## User Stories
+
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| [S20](./S20-access-review-mode.md) | Access Review Mode | P1 | 📋 Ready |
+| [S21](./S21-phase-grouped-timeline.md) | Phase-Grouped Timeline | P1 | 📋 Ready |
+| [S22](./S22-inject-outcome-summary.md) | Inject Outcome Summary | P1 | 📋 Ready |
+| [S23](./S23-observation-review-panel.md) | Observation Review Panel | P2 | 📋 Ready |
+| [S24](./S24-exercise-statistics-dashboard.md) | Exercise Statistics Dashboard | P2 | 📋 Ready |
+| [S25](./S25-export-review-data.md) | Export Review Data | P2 | 📋 Ready |
 
 ## User Personas
 
-| Persona | Need |
-|---------|------|
-| **James (Exercise Director)** | Review exercise flow, identify issues, prepare AAR briefing |
-| **Robert (Evaluator)** | Review observations in context, verify coverage of objectives |
-| **Patricia (Observer)** | Understand what happened if joined late or reviewing after |
+| Persona | Interaction |
+|---------|-------------|
+| **Exercise Director (James)** | Reviews exercise flow, identifies issues, prepares AAR briefing |
+| **Evaluator (Robert)** | Reviews observations in context, verifies coverage of objectives |
+| **Observer (Patricia)** | Understands what happened if joined late or reviewing after |
 
-## Stories
-
-| ID | Name | Priority | Status |
-|----|------|----------|--------|
-| E6-S20 | Access Review Mode | P1 | 📋 |
-| E6-S21 | Phase-Grouped Timeline | P1 | 📋 |
-| E6-S22 | Inject Outcome Summary | P1 | 📋 |
-| E6-S23 | Observation Review Panel | P2 | 📋 |
-| E6-S24 | Exercise Statistics Dashboard | P2 | 📋 |
-| E6-S25 | Export Review Data | P2 | 📋 |
-
-## Dependencies
-
-**Requires:**
-- Phase D complete (Clock, Fire functionality)
-- Phase E complete (Observations)
-- Fired/Skipped inject data with timestamps
-
-**Required By:**
-- AAR Report Generation (Future)
-
-## Out of Scope (This Feature)
-
-- Automated AAR report generation
-- Video/audio playback integration
-- Comparison across multiple exercises
-- AI-generated insights
-
-## Domain Terms
+## Key Concepts
 
 | Term | Definition |
 |------|------------|
@@ -60,7 +40,29 @@ A dedicated view for reviewing exercise execution after conduct, supporting Afte
 | **Coverage Gap** | Objective with no linked observations |
 | **P/S/M/U** | HSEEP rating scale: Performed, Some Difficulty, Major Difficulty, Unable to Perform |
 
-## Technical Notes
+## Dependencies
+
+- Phase D complete (Clock, Fire functionality)
+- Phase E complete (Observations)
+- Fired/Skipped inject data with timestamps
+
+## Acceptance Criteria (Feature-Level)
+
+- [ ] Users can access Review Mode after exercise conduct
+- [ ] Injects are grouped by phase with outcome summaries
+- [ ] Time variance between scheduled and actual delivery is visible
+- [ ] Observations are linked to their associated injects and objectives
+- [ ] Exercise statistics (fire rate, timing accuracy) are calculated
+- [ ] Review data can be exported for AAR report preparation
+
+## Out of Scope
+
+- Automated AAR report generation
+- Video/audio playback integration
+- Comparison across multiple exercises
+- AI-generated insights
+
+## Notes
 
 - Review Mode is read-only — uses same data as Conduct Mode
 - Consider caching statistics calculations for large exercises

@@ -1,27 +1,15 @@
 # Feature: Notifications
 
-**Parent Epic:** Application Navigation & User Experience
-**Phase:** Post-MVP (Navigation Enhancement)
+**Phase:** Post-MVP
+**Status:** Ready
 
-## Description
+## Overview
 
 The Notifications feature provides real-time alerts to users about important events across the platform. This includes a notification bell in the header with unread count, a dropdown showing recent notifications, and toast messages for immediate alerts.
 
-## Business Value
+## Problem Statement
 
-- **Awareness**: Users stay informed of important events without constant page monitoring
-- **Responsiveness**: Controllers see inject-ready alerts immediately
-- **Collaboration**: Multi-user exercises benefit from real-time status updates
-- **Engagement**: Persistent notifications prevent missed information
-
-## User Personas
-
-| Persona | Notification Needs |
-|---------|-------------------|
-| **Controller** | Inject ready alerts, clock started/paused, assignment updates |
-| **Evaluator** | Inject fired alerts (to capture observations), exercise started |
-| **Exercise Director** | All exercise events, participant joins, exercise completion |
-| **Observer** | Exercise started, major milestones |
+During exercise conduct, users need immediate awareness of critical events without constantly monitoring multiple pages. Controllers need to know when injects are ready to fire, evaluators need alerts when injects are delivered, and directors need visibility into exercise milestones. Without real-time notifications, users risk missing time-sensitive actions that impact exercise quality.
 
 ## User Stories
 
@@ -29,9 +17,33 @@ The Notifications feature provides real-time alerts to users about important eve
 |-------|-------|----------|--------|
 | [S01](./S01-notification-bell.md) | Notification Bell & Dropdown | P0 | 📋 Ready |
 | [S02](./S02-notification-toasts.md) | Notification Toasts | P0 | 📋 Ready |
-| [S03](./S03-notification-preferences.md) | Notification Preferences | P2 | 📋 Future |
 
-## Feature-Level Acceptance Criteria
+## User Personas
+
+| Persona | Interaction |
+|---------|-------------|
+| Controller | Inject ready alerts, clock started/paused, assignment updates |
+| Evaluator | Inject fired alerts (to capture observations), exercise started |
+| Exercise Director | All exercise events, participant joins, exercise completion |
+| Observer | Exercise started, major milestones |
+
+## Key Concepts
+
+| Term | Definition |
+|------|------------|
+| Notification | A system-generated alert about an event relevant to a user |
+| Toast Message | Temporary on-screen popup for immediate alerts |
+| Notification Bell | Header icon showing unread notification count |
+| Notification Priority | High (requires action), Medium (awareness), Low (informational) |
+| Unread Count | Number of notifications not yet marked as read |
+
+## Dependencies
+
+- Navigation Shell (P0-01) for header integration
+- SignalR infrastructure (already exists for clock/injects)
+- User authentication context
+
+## Acceptance Criteria (Feature-Level)
 
 - [ ] Bell icon visible in header with unread count badge
 - [ ] Dropdown shows recent notifications with timestamps
@@ -40,7 +52,16 @@ The Notifications feature provides real-time alerts to users about important eve
 - [ ] Mark as read functionality (individual and bulk)
 - [ ] Notifications persist across sessions (database-backed)
 
-## Notification Types
+## Notes
+
+### Business Value
+
+- **Awareness**: Users stay informed of important events without constant page monitoring
+- **Responsiveness**: Controllers see inject-ready alerts immediately
+- **Collaboration**: Multi-user exercises benefit from real-time status updates
+- **Engagement**: Persistent notifications prevent missed information
+
+### Notification Types
 
 | Type | Priority | Toast? | Description |
 |------|----------|--------|-------------|
@@ -52,9 +73,9 @@ The Notifications feature provides real-time alerts to users about important eve
 | `AssignmentCreated` | Low | No | User assigned to exercise |
 | `ObservationCreated` | Low | No | New observation recorded |
 
-## Data Requirements
+### Data Requirements
 
-### Notification Entity
+#### Notification Entity
 ```
 Notification:
   - Id (GUID)
@@ -71,7 +92,7 @@ Notification:
   - ReadAt (DateTime, optional)
 ```
 
-### API Endpoints
+#### API Endpoints
 ```
 GET /api/notifications              # List notifications (paginated)
 GET /api/notifications/unread-count # Get unread count
@@ -82,13 +103,7 @@ POST /api/notifications/read-all    # Mark all as read
 NotificationCreated(notification)   # Push new notification to client
 ```
 
-## Dependencies
-
-- Navigation Shell (P0-01) for header integration
-- SignalR infrastructure (already exists for clock/injects)
-- User authentication context
-
-## Technical Notes
+### Technical Notes
 
 - Leverage existing SignalR hub for real-time delivery
 - Consider notification batching for high-frequency events
@@ -96,7 +111,7 @@ NotificationCreated(notification)   # Push new notification to client
 - Maximum 3 toasts visible at once
 - Notifications older than 30 days can be archived/deleted
 
-## Related Documentation
+### Related Documentation
 
 - [Navigation Shell Feature](../navigation-shell/FEATURE.md)
 - [SignalR Implementation](../connectivity/FEATURE.md)

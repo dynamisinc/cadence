@@ -1,4 +1,7 @@
-# Connectivity Feature
+# Feature: Connectivity
+
+**Phase:** MVP
+**Status:** Complete
 
 ## Overview
 
@@ -17,12 +20,44 @@ Emergency management exercises often occur in locations with poor or unreliable 
 
 | Story | Title | Priority | Status |
 |-------|-------|----------|--------|
-| S01 | Real-Time Data Sync | P0 | Complete |
-| S02 | Offline Detection & Indicators | P0 | Complete |
-| S03 | Local Data Cache | P0 | Complete |
-| S04 | Offline Action Queue | P0 | Complete |
-| S05 | Sync on Reconnect | P0 | Complete |
-| S06 | Conflict Resolution | P1 | Complete |
+| [S01](./S01-realtime-data-sync.md) | Real-Time Data Sync | P0 | Complete |
+| [S02](./S02-offline-detection.md) | Offline Detection & Indicators | P0 | Complete |
+| [S03](./S03-local-data-cache.md) | Local Data Cache | P0 | Complete |
+| [S04](./S04-offline-action-queue.md) | Offline Action Queue | P0 | Complete |
+| [S05](./S05-sync-on-reconnect.md) | Sync on Reconnect | P0 | Complete |
+| [S06](./S06-conflict-resolution.md) | Conflict Resolution | P1 | Complete |
+
+## User Personas
+
+| Persona | Interaction |
+|---------|-------------|
+| Controller | Primary user - needs offline capability to fire injects in poor connectivity environments |
+| Evaluator | Records observations offline during field exercises |
+| Exercise Director | Monitors exercise status, needs real-time updates when connected |
+| All Users | Benefit from real-time sync and offline resilience |
+
+## Key Concepts
+
+| Term | Definition |
+|------|------------|
+| Real-Time Sync | Automatic data synchronization across connected users via SignalR |
+| Offline Mode | Local-only operation when network connectivity is lost |
+| Action Queue | FIFO queue of operations performed offline, synced on reconnect |
+| Conflict Resolution | Strategy for handling concurrent edits (last-write-wins or first-write-wins) |
+| Optimistic UI | Immediate UI feedback before server confirmation |
+
+## Dependencies
+
+- SignalR infrastructure (Azure SignalR Service)
+- Exercise conduct features (inject firing, observations)
+- IndexedDB browser support
+
+## Acceptance Criteria (Feature-Level)
+
+- [ ] Real-time updates within 1 second across connected users
+- [ ] Zero data loss during offline periods
+- [ ] Clear user feedback on connection state
+- [ ] Graceful conflict resolution with user notification
 
 ## Technical Architecture
 

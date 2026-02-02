@@ -1,16 +1,15 @@
 # Feature: Home Page / Dashboard
 
-**Parent Epic:** Core Platform (E1)
+**Phase:** MVP
+**Status:** Complete
 
-## Description
+## Overview
 
-The Home Page serves as the primary landing page and dashboard for Cadence users. It provides a role-aware welcome experience, quick actions based on user permissions, and immediate access to recent exercises. The homepage is designed to evolve as the platform matures, eventually incorporating metrics dashboards, exercise clock widgets, observation queues, and other role-specific widgets.
+The Home Page serves as the primary landing page and dashboard for Cadence users. It provides a role-aware welcome experience, quick actions based on user permissions, and immediate access to recent exercises.
 
-In the MVP phase, the homepage focuses on:
-- **Orientation**: Role-aware welcome messaging to help users understand their capabilities
-- **Navigation**: Quick access to create exercises (for managers) and view all exercises
-- **Recent Activity**: Display up to 5 recent exercises with key metadata
-- **Empty States**: Contextual messaging based on role when no exercises exist
+## Problem Statement
+
+When users first log in to Cadence, they need immediate orientation to their role capabilities and quick access to their exercises. Without a role-aware landing experience, users waste time searching for appropriate actions and don't understand what they can do in the system. Exercise Directors need quick access to create new exercises, while Controllers and Evaluators need to find their assigned exercises efficiently.
 
 ## User Stories
 

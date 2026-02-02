@@ -1,15 +1,15 @@
 # Feature: Exercise Phase Management
 
-**Parent Epic:** Exercise Setup (E3)
+**Phase:** MVP
+**Status:** Not Started
 
-## Description
+## Overview
 
 Exercises are typically organized into phases that represent distinct time periods or operational stages. Phases help structure the MSEL, guide exercise flow, and provide natural breakpoints for Controller coordination. This feature allows planners to define phases and assign injects to them.
 
-Common phase patterns include:
-- **Time-based**: Phase 1 (Morning), Phase 2 (Afternoon)
-- **Operational**: Initial Response, Sustained Operations, Recovery
-- **Scenario-based**: Pre-Event, Event Onset, Escalation, Stabilization
+## Problem Statement
+
+Large MSELs can contain dozens or hundreds of injects spanning multiple days and operational periods. Without clear phase boundaries, Controllers struggle to coordinate transitions, Evaluators have difficulty understanding evaluation context, and planners cannot organize injects into logical groupings. Exercise Directors need a way to structure exercises into distinct phases that reflect operational reality (Initial Response, Sustained Operations, Recovery) or time periods (Day 1, Day 2).
 
 ## User Stories
 
@@ -41,6 +41,19 @@ Common phase patterns include:
 - [ ] Users can assign injects to phases
 - [ ] MSEL can be grouped by phase
 - [ ] Phases display in exercise timeline views
+
+## Key Concepts
+
+**Phase Patterns:**
+- **Time-based**: Phase 1 (Morning), Phase 2 (Afternoon)
+- **Operational**: Initial Response, Sustained Operations, Recovery
+- **Scenario-based**: Pre-Event, Event Onset, Escalation, Stabilization
+
+**Phase Properties:**
+- Name and description
+- Scenario time start
+- Inject count
+- Reorderable sequence
 
 ## Wireframes/Mockups
 
