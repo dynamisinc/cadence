@@ -35,6 +35,8 @@ module.exports = {
         'db',
         'signalr',
         'pwa',
+        'telemetry',
+        'database',
       ],
     ],
     'scope-empty': [1, 'never'],
