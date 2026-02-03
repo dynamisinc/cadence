@@ -50,7 +50,9 @@ public class UserService : IUserService
         int page = 1,
         int pageSize = 20,
         string? search = null,
-        string? role = null)
+        string? role = null,
+        string? status = null,
+        Guid? organizationId = null)
     {
         // Enforce pagination limits
         page = Math.Max(1, page);
@@ -112,6 +114,25 @@ public class UserService : IUserService
             }
         }
 
+        // Apply status filter
+        if (!string.IsNullOrWhiteSpace(status))
+        {
+            if (Enum.TryParse<UserStatus>(status, ignoreCase: true, out var userStatus))
+            {
+                query = query.Where(u => u.Status == userStatus);
+            }
+        }
+
+        // Apply organization membership filter (SysAdmin only feature)
+        if (organizationId.HasValue && _orgContext.IsSysAdmin)
+        {
+            var orgMemberUserIds = _context.OrganizationMemberships
+                .Where(m => m.OrganizationId == organizationId.Value && m.Status == MembershipStatus.Active)
+                .Select(m => m.UserId);
+
+            query = query.Where(u => orgMemberUserIds.Contains(u.Id));
+        }
+
         // Get total count
         var totalCount = await query.CountAsync();
         var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
@@ -169,8 +190,12 @@ public class UserService : IUserService
             throw new InvalidOperationException("A user with this email already exists");
         }
 
-        // Non-admins can only create users with User (Observer) role
+        // Determine system role: Admins can set any role, non-admins default to User
         var systemRole = SystemRole.User;
+        if (isCreatorAdmin && request.SystemRole.HasValue)
+        {
+            systemRole = request.SystemRole.Value;
+        }
 
         var user = new ApplicationUser
         {
@@ -246,7 +271,7 @@ public class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto> ChangeRoleAsync(Guid id, string newRole, Guid changedById)
+    public async Task<UserDto> ChangeRoleAsync(Guid id, string newRole, string changedById)
     {
         // Validate and parse role
         if (!Enum.TryParse<SystemRole>(newRole, out var systemRole))
@@ -301,7 +326,7 @@ public class UserService : IUserService
         }
 
         // Revoke all tokens to force re-authentication with new role
-        await _refreshTokenStore.RevokeAllForUserAsync(id);
+        await _refreshTokenStore.RevokeAllForUserAsync(id.ToString());
 
         _logger.LogInformation("Changed system role for user {UserId} from {OldRole} to {NewRole} by admin {AdminId}",
             id, oldRole, newRole, changedById);
@@ -310,7 +335,7 @@ public class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto> DeactivateUserAsync(Guid id, string? reason, Guid deactivatedById)
+    public async Task<UserDto> DeactivateUserAsync(Guid id, string? reason, string deactivatedById)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)
@@ -328,7 +353,7 @@ public class UserService : IUserService
         }
 
         // Revoke all refresh tokens so user can't use existing sessions
-        await _refreshTokenStore.RevokeAllForUserAsync(id);
+        await _refreshTokenStore.RevokeAllForUserAsync(id.ToString());
 
         _logger.LogInformation("Deactivated user {UserId} by admin {AdminId}. Reason: {Reason}",
             id, deactivatedById, reason ?? "Not specified");
@@ -337,7 +362,7 @@ public class UserService : IUserService
     }
 
     /// <inheritdoc />
-    public async Task<UserDto> ReactivateUserAsync(Guid id, Guid reactivatedById)
+    public async Task<UserDto> ReactivateUserAsync(Guid id, string reactivatedById)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user == null)

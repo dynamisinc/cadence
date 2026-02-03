@@ -21,12 +21,12 @@ public class InjectServiceTests
         _hubContextMock = new Mock<IExerciseHubContext>();
     }
 
-    private (AppDbContext context, Organization org, Exercise exercise, Msel msel, Guid userId) CreateTestContext(
+    private (AppDbContext context, Organization org, Exercise exercise, Msel msel, string userId) CreateTestContext(
         ExerciseStatus status = ExerciseStatus.Active,
         DeliveryMode deliveryMode = DeliveryMode.FacilitatorPaced)
     {
         var context = TestDbContextFactory.Create();
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         var org = new Organization
         {
@@ -81,9 +81,9 @@ public class InjectServiceTests
         Guid mselId,
         int injectNumber,
         InjectStatus status = InjectStatus.Pending,
-        Guid? userId = null)
+        string? userId = null)
     {
-        var actualUserId = userId ?? Guid.NewGuid();
+        var actualUserId = userId ?? Guid.NewGuid().ToString();
         return new Inject
         {
             Id = Guid.NewGuid(),
@@ -114,7 +114,7 @@ public class InjectServiceTests
         var service = CreateService(context);
 
         // Act
-        var result = await service.FireInjectAsync(exercise.Id, inject.Id, userId);
+        var result = await service.FireInjectAsync(exercise.Id, inject.Id, userId.ToString());
 
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
@@ -143,7 +143,7 @@ public class InjectServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.FireInjectAsync(exercise.Id, inject.Id, userId));
+            () => service.FireInjectAsync(exercise.Id, inject.Id, userId.ToString()));
     }
 
     [Fact]
@@ -159,7 +159,7 @@ public class InjectServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => service.FireInjectAsync(exercise.Id, inject.Id, userId));
+            () => service.FireInjectAsync(exercise.Id, inject.Id, userId.ToString()));
     }
 
     #endregion
@@ -354,22 +354,22 @@ public class InjectServiceTests
         var service = CreateService(context);
 
         // Act & Assert - Fire by controller
-        await service.FireInjectAsync(exercise.Id, inject.Id, controllerUserId);
+        await service.FireInjectAsync(exercise.Id, inject.Id, controllerUserId.ToString());
         var afterFire = await context.Injects.AsNoTracking().FirstAsync(i => i.Id == inject.Id);
         afterFire.FiredByUserId.Should().Be(controllerUserId.ToString());
-        afterFire.ModifiedBy.Should().Be(controllerUserId, "Controller should be tracked as modifier when firing");
+        afterFire.ModifiedBy.Should().Be(controllerUserId.ToString(), "Controller should be tracked as modifier when firing");
 
         // Act & Assert - Reset by supervisor
-        await service.ResetInjectAsync(exercise.Id, inject.Id, supervisorUserId);
+        await service.ResetInjectAsync(exercise.Id, inject.Id, supervisorUserId.ToString());
         var afterReset = await context.Injects.AsNoTracking().FirstAsync(i => i.Id == inject.Id);
-        afterReset.ModifiedBy.Should().Be(supervisorUserId, "Supervisor should be tracked as modifier when resetting");
+        afterReset.ModifiedBy.Should().Be(supervisorUserId.ToString(), "Supervisor should be tracked as modifier when resetting");
         afterReset.FiredByUserId.Should().BeNull("FiredBy should be cleared on reset");
 
         // Act & Assert - Skip by controller
-        await service.SkipInjectAsync(exercise.Id, inject.Id, controllerUserId);
+        await service.SkipInjectAsync(exercise.Id, inject.Id, controllerUserId.ToString());
         var afterSkip = await context.Injects.AsNoTracking().FirstAsync(i => i.Id == inject.Id);
         afterSkip.SkippedByUserId.Should().Be(controllerUserId.ToString());
-        afterSkip.ModifiedBy.Should().Be(controllerUserId, "Controller should be tracked as modifier when skipping");
+        afterSkip.ModifiedBy.Should().Be(controllerUserId.ToString(), "Controller should be tracked as modifier when skipping");
     }
 
     #endregion

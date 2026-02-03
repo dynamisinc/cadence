@@ -30,8 +30,8 @@ public class PhasesControllerTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
 
@@ -44,8 +44,8 @@ public class PhasesControllerTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -97,8 +97,8 @@ public class PhasesControllerTests
             Name = "Phase 2",
             Sequence = 2,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         var phase2 = new Phase
         {
@@ -106,8 +106,8 @@ public class PhasesControllerTests
             Name = "Phase 1",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.AddRange(phase1, phase2);
         await context.SaveChangesAsync();
@@ -137,8 +137,8 @@ public class PhasesControllerTests
             Name = "Phase with injects",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
 
@@ -148,8 +148,8 @@ public class PhasesControllerTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -169,8 +169,8 @@ public class PhasesControllerTests
                 Sequence = i + 1,
                 MselId = msel.Id,
                 PhaseId = phase.Id,
-                CreatedBy = Guid.Empty,
-                ModifiedBy = Guid.Empty
+                CreatedBy = Guid.Empty.ToString(),
+                ModifiedBy = Guid.Empty.ToString()
             });
         }
         await context.SaveChangesAsync();
@@ -232,8 +232,8 @@ public class PhasesControllerTests
             Description = "Test Description",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         await context.SaveChangesAsync();
@@ -365,8 +365,8 @@ public class PhasesControllerTests
             Name = "Existing Phase",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         });
         await context.SaveChangesAsync();
 
@@ -447,8 +447,8 @@ public class PhasesControllerTests
             Name = "Original",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         await context.SaveChangesAsync();
@@ -474,8 +474,8 @@ public class PhasesControllerTests
             Name = "Original",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         exercise.Status = ExerciseStatus.Archived;
@@ -503,8 +503,8 @@ public class PhasesControllerTests
             Description = "Original Desc",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         await context.SaveChangesAsync();
@@ -569,8 +569,8 @@ public class PhasesControllerTests
             Name = "Phase",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         exercise.Status = ExerciseStatus.Archived;
@@ -596,8 +596,8 @@ public class PhasesControllerTests
             Name = "Phase with injects",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
 
@@ -607,8 +607,8 @@ public class PhasesControllerTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -625,8 +625,8 @@ public class PhasesControllerTests
             Sequence = 1,
             MselId = msel.Id,
             PhaseId = phase.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         });
         await context.SaveChangesAsync();
 
@@ -651,8 +651,8 @@ public class PhasesControllerTests
             Name = "Phase to delete",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         await context.SaveChangesAsync();
@@ -734,8 +734,8 @@ public class PhasesControllerTests
             Name = "Phase 1",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
         await context.SaveChangesAsync();
@@ -763,8 +763,8 @@ public class PhasesControllerTests
             Name = "Phase 1",
             Sequence = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         var phase2 = new Phase
         {
@@ -772,8 +772,8 @@ public class PhasesControllerTests
             Name = "Phase 2",
             Sequence = 2,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         var phase3 = new Phase
         {
@@ -781,8 +781,8 @@ public class PhasesControllerTests
             Name = "Phase 3",
             Sequence = 3,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.AddRange(phase1, phase2, phase3);
         await context.SaveChangesAsync();
@@ -890,7 +890,7 @@ public class PhasesControllerTestHelper
             .Where(p => p.ExerciseId == exerciseId)
             .MaxAsync(p => (int?)p.Sequence) ?? 0;
 
-        var phase = request.ToEntity(exerciseId, maxSequence + 1, Guid.Empty);
+        var phase = request.ToEntity(exerciseId, maxSequence + 1, Guid.Empty.ToString());
         _context.Phases.Add(phase);
         await _context.SaveChangesAsync();
 
@@ -924,7 +924,7 @@ public class PhasesControllerTestHelper
             return new BadRequestObjectResult(new { message = "Archived exercises cannot be modified" });
         }
 
-        phase.UpdateFromRequest(request, Guid.Empty);
+        phase.UpdateFromRequest(request, Guid.Empty.ToString());
         await _context.SaveChangesAsync();
 
         var injectCount = await _context.Injects.CountAsync(i => i.PhaseId == id);
@@ -999,7 +999,7 @@ public class PhasesControllerTestHelper
         {
             var phase = phaseDict[request.PhaseIds[i]];
             phase.Sequence = i + 1;
-            phase.ModifiedBy = Guid.Empty;
+            phase.ModifiedBy = Guid.Empty.ToString();
         }
 
         await _context.SaveChangesAsync();

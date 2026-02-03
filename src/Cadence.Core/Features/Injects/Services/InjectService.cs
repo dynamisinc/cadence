@@ -21,7 +21,7 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, Guid? userId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, string? userId, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
@@ -52,8 +52,8 @@ public class InjectService : IInjectService
         inject.Status = InjectStatus.Fired;
         inject.FiredAt = DateTime.UtcNow;
         // FiredByUserId is null for system auto-fire, otherwise store the user's ID
-        inject.FiredByUserId = userId?.ToString();
-        inject.ModifiedBy = userId ?? Guid.Empty;
+        inject.FiredByUserId = userId;
+        inject.ModifiedBy = userId ?? Constants.SystemConstants.SystemUserIdString;
         inject.SkippedAt = null;
         inject.SkippedByUserId = null;
 
@@ -66,7 +66,7 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, string userId, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
@@ -84,7 +84,7 @@ public class InjectService : IInjectService
 
         inject.Status = InjectStatus.Skipped;
         inject.SkippedAt = DateTime.UtcNow;
-        inject.SkippedByUserId = userId.ToString();
+        inject.SkippedByUserId = userId;
         inject.ModifiedBy = userId;
         inject.FiredAt = null;
         inject.FiredByUserId = null;
@@ -98,7 +98,7 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, Guid userId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> ResetInjectAsync(Guid exerciseId, Guid injectId, string userId, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 

@@ -34,8 +34,8 @@ public class ObservationServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
 
@@ -48,8 +48,8 @@ public class ObservationServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -65,8 +65,8 @@ public class ObservationServiceTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -82,8 +82,8 @@ public class ObservationServiceTests
             Status = InjectStatus.Pending,
             Sequence = 1,
             MselId = msel.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Injects.Add(inject);
         context.SaveChanges();
@@ -100,8 +100,8 @@ public class ObservationServiceTests
             ObjectiveNumber = "1",
             Name = "Test Objective",
             Description = "Test objective description",
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Objectives.Add(objective);
         context.SaveChanges();
@@ -121,8 +121,8 @@ public class ObservationServiceTests
             Recommendation = "Test recommendation",
             ObservedAt = DateTime.UtcNow,
             Location = "Test location",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Observations.Add(observation);
         context.SaveChanges();
@@ -180,8 +180,8 @@ public class ObservationServiceTests
             ExerciseId = exercise.Id,
             Content = "First",
             ObservedAt = DateTime.UtcNow.AddHours(-2),
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         var obs2 = new Observation
         {
@@ -189,8 +189,8 @@ public class ObservationServiceTests
             ExerciseId = exercise.Id,
             Content = "Second",
             ObservedAt = DateTime.UtcNow.AddHours(-1),
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         var obs3 = new Observation
         {
@@ -198,8 +198,8 @@ public class ObservationServiceTests
             ExerciseId = exercise.Id,
             Content = "Third",
             ObservedAt = DateTime.UtcNow,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Observations.AddRange(obs1, obs2, obs3);
         await context.SaveChangesAsync();
@@ -230,8 +230,8 @@ public class ObservationServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Exercises.Add(exercise2);
         await context.SaveChangesAsync();
@@ -299,8 +299,8 @@ public class ObservationServiceTests
             InjectId = inject.Id,
             Content = "First",
             ObservedAt = DateTime.UtcNow.AddHours(-1),
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         var obs2 = new Observation
         {
@@ -309,8 +309,8 @@ public class ObservationServiceTests
             InjectId = inject.Id,
             Content = "Second",
             ObservedAt = DateTime.UtcNow,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Observations.AddRange(obs1, obs2);
         await context.SaveChangesAsync();
@@ -344,8 +344,8 @@ public class ObservationServiceTests
             Status = InjectStatus.Pending,
             Sequence = 2,
             MselId = msel.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Injects.Add(inject2);
         await context.SaveChangesAsync();
@@ -428,7 +428,7 @@ public class ObservationServiceTests
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.CreateObservationAsync(Guid.NewGuid(), request, userId);
@@ -449,7 +449,7 @@ public class ObservationServiceTests
             Content = "Test content",
             InjectId = Guid.NewGuid()
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.CreateObservationAsync(exercise.Id, request, userId);
@@ -470,7 +470,7 @@ public class ObservationServiceTests
             Content = "Test content",
             ObjectiveId = Guid.NewGuid()
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.CreateObservationAsync(exercise.Id, request, userId);
@@ -493,7 +493,7 @@ public class ObservationServiceTests
             Recommendation = "Test recommendation",
             Location = "EOC"
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -514,7 +514,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -535,7 +535,7 @@ public class ObservationServiceTests
             Content = "Test content",
             InjectId = inject.Id
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -557,7 +557,7 @@ public class ObservationServiceTests
             Content = "Test content",
             ObjectiveId = objective.Id
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -574,7 +574,7 @@ public class ObservationServiceTests
         var service = CreateService(context);
         var beforeCreate = DateTime.UtcNow;
         var request = new CreateObservationRequest { Content = "Test content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -596,7 +596,7 @@ public class ObservationServiceTests
             Content = "Test content",
             ObservedAt = specifiedTime
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -612,7 +612,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -632,7 +632,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Persisted observation" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -654,7 +654,7 @@ public class ObservationServiceTests
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
         var request = new UpdateObservationRequest { Content = "Updated content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(Guid.NewGuid(), request, userId);
@@ -675,7 +675,7 @@ public class ObservationServiceTests
             Content = "Updated content",
             InjectId = Guid.NewGuid()
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.UpdateObservationAsync(observation.Id, request, userId);
@@ -697,7 +697,7 @@ public class ObservationServiceTests
             Content = "Updated content",
             ObjectiveId = Guid.NewGuid()
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = () => service.UpdateObservationAsync(observation.Id, request, userId);
@@ -721,7 +721,7 @@ public class ObservationServiceTests
             Recommendation = "Updated recommendation",
             Location = "Updated location"
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -742,7 +742,7 @@ public class ObservationServiceTests
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
         var request = new UpdateObservationRequest { Content = "Updated content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -765,7 +765,7 @@ public class ObservationServiceTests
             Content = "Updated content",
             ObservedAt = newTime
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -787,7 +787,7 @@ public class ObservationServiceTests
             Content = "Updated content",
             InjectId = inject.Id
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -804,7 +804,7 @@ public class ObservationServiceTests
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
         var request = new UpdateObservationRequest { Content = "Updated content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -826,7 +826,7 @@ public class ObservationServiceTests
         var originalCreatedBy = observation.CreatedBy;
         var service = CreateService(context);
         var request = new UpdateObservationRequest { Content = "Updated content" };
-        var differentUserId = Guid.NewGuid();
+        var differentUserId = Guid.NewGuid().ToString();
 
         // Act
         await service.UpdateObservationAsync(observation.Id, request, differentUserId);
@@ -846,7 +846,7 @@ public class ObservationServiceTests
         // Arrange
         var context = TestDbContextFactory.Create();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.DeleteObservationAsync(Guid.NewGuid(), userId);
@@ -862,7 +862,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.DeleteObservationAsync(observation.Id, userId);
@@ -878,7 +878,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.DeleteObservationAsync(observation.Id, userId);
@@ -898,7 +898,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
         var beforeDelete = DateTime.UtcNow;
 
         // Act
@@ -920,7 +920,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.DeleteObservationAsync(observation.Id, userId);
@@ -938,7 +938,7 @@ public class ObservationServiceTests
         var (context, _, exercise) = CreateTestContext();
         var observation = CreateObservation(context, exercise);
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.DeleteObservationAsync(observation.Id, userId);
@@ -985,7 +985,7 @@ public class ObservationServiceTests
             Content = "Test observation",
             CapabilityIds = new List<Guid> { capability1.Id, capability2.Id }
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -1008,7 +1008,7 @@ public class ObservationServiceTests
             Content = "Test observation",
             CapabilityIds = null
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -1029,7 +1029,7 @@ public class ObservationServiceTests
             Content = "Test observation",
             CapabilityIds = new List<Guid>()
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -1064,7 +1064,7 @@ public class ObservationServiceTests
             Content = "Updated observation",
             CapabilityIds = new List<Guid> { capability2.Id, capability3.Id }
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -1100,7 +1100,7 @@ public class ObservationServiceTests
             Content = "Updated observation",
             CapabilityIds = new List<Guid>() // Empty list should clear all capabilities
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -1139,7 +1139,7 @@ public class ObservationServiceTests
             Content = "Updated observation",
             CapabilityIds = null // Null should not change capabilities
         };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.UpdateObservationAsync(observation.Id, request, userId);
@@ -1274,7 +1274,7 @@ public class ObservationServiceTests
 
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test observation" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -1305,7 +1305,7 @@ public class ObservationServiceTests
 
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test observation" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.CreateObservationAsync(exercise.Id, request, userId);
@@ -1328,7 +1328,7 @@ public class ObservationServiceTests
 
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test observation content" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         CreateNotificationRequest? capturedRequest = null;
         _notificationServiceMock
@@ -1369,7 +1369,7 @@ public class ObservationServiceTests
 
         var service = CreateService(context);
         var request = new CreateObservationRequest { Content = "Test observation" };
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await service.CreateObservationAsync(exercise.Id, request, userId);

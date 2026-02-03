@@ -1,32 +1,35 @@
 # Feature: Inject CRUD Operations
 
-**Parent Epic:** MSEL Authoring (E4)
+**Phase:** MVP
+**Status:** In Progress
 
-## Description
+## Overview
 
 Injects are the core content of a MSEL - they are the events, messages, and scenarios delivered during exercise conduct. This feature covers the basic create, read, update, and delete operations for injects, including Cadence's dual-time tracking capability.
 
-Each inject represents something that happens during the exercise: a phone call, an email, a simulated news report, a resource request, etc. Controllers deliver injects to exercise players at scheduled times.
+## Problem Statement
+
+Exercise planners need to build Master Scenario Events Lists (MSELs) containing dozens or hundreds of injects - the phone calls, emails, news reports, and resource requests that drive the exercise scenario. They need to create injects with scheduling details, edit inject content as planning evolves, view inject details for review and delivery, and remove or reorganize injects as scenarios change. Cadence's dual-time tracking (scheduled delivery time vs. scenario story time) allows multi-day scenarios to be compressed into shorter exercise windows.
 
 ## User Stories
 
 | Story | Title | Priority | Status |
 |-------|-------|----------|--------|
-| [S01](./S01-create-inject.md) | Create Inject | P0 | 📋 Ready |
-| [S02](./S02-edit-inject.md) | Edit Inject | P0 | 📋 Ready |
-| [S03](./S03-view-inject-detail.md) | View Inject Detail | P0 | 📋 Ready |
+| [S01](./S01-create-inject.md) | Create Inject | P0 | ✅ Complete |
+| [S02](./S02-edit-inject.md) | Edit Inject | P0 | ✅ Complete |
+| [S03](./S03-view-inject-detail.md) | View Inject Detail | P0 | ✅ Complete |
 | [S04](./S04-delete-inject.md) | Delete Inject | P1 | 📋 Ready |
-| [S05](./S05-dual-time-tracking.md) | Dual Time Tracking | P0 | 📋 Ready |
+| [S05](./S05-dual-time-tracking.md) | Dual Time Tracking | P0 | ✅ Complete |
 
 ## User Personas
 
 | Persona | Interaction |
-|---------|------------|
-| Administrator | Full CRUD access to all injects |
-| Exercise Director | Full CRUD access to injects in their exercises |
-| Controller | Create, edit, view injects; limited delete |
-| Evaluator | View injects only |
-| Observer | View injects only |
+|---------|-------------|
+| **Administrator** | Full CRUD access to all injects |
+| **Exercise Director** | Full CRUD access to injects in their exercises |
+| **Controller** | Create, edit, view injects; limited delete |
+| **Evaluator** | View injects only |
+| **Observer** | View injects only |
 
 ## Key Concepts
 
@@ -60,76 +63,21 @@ This allows exercises to compress multi-day scenarios into shorter conduct perio
 ## Dependencies
 
 - exercise-crud/S01: Create Exercise (injects belong to exercises)
-- exercise-objectives/S03: Link Objective to Inject (objectives can be linked)
-- exercise-phases/S02: Assign Inject to Phase (phases can be assigned)
+- exercise-objectives (if linking objectives to injects)
+- exercise-phases (if assigning injects to phases)
 
 ## Acceptance Criteria (Feature-Level)
 
 - [ ] Users can create injects with required and optional fields
 - [ ] Users can view inject details including all time information
 - [ ] Users can edit inject content before and during conduct
-- [ ] Users can delete injects (with confirmation)
+- [ ] Users can delete injects with confirmation
 - [ ] Dual time (Scheduled + Scenario) is supported on all injects
-
-## Wireframes/Mockups
-
-### MSEL List View
-
-```
-┌──────────────────────────────────────────────────────────────────────────────┐
-│  MSEL - Hurricane Response 2025                    [+ New Inject] [Import]   │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  [Filter ▼]  [Group ▼]  [Search injects...]                                 │
-├──────────────────────────────────────────────────────────────────────────────┤
-│  #  │ Scheduled  │ Scenario   │ Title                      │ Status │       │
-│ ────┼────────────┼────────────┼────────────────────────────┼────────┼────── │
-│  1  │ 09:00 AM   │ D1 08:00   │ Hurricane warning issued   │ Pending│ •••  │
-│  2  │ 09:15 AM   │ D1 10:00   │ EOC activation ordered     │ Pending│ •••  │
-│  3  │ 09:30 AM   │ D1 14:00   │ Evacuation order issued    │ Pending│ •••  │
-│  4  │ 09:45 AM   │ D2 08:00   │ Landfall + 6 hours        │ Pending│ •••  │
-│  5  │ 10:00 AM   │ D2 14:00   │ Shelter capacity exceeded  │ Pending│ •••  │
-└──────────────────────────────────────────────────────────────────────────────┘
-
-D1, D2 = Scenario Day 1, Day 2
-```
-
-### Inject Detail View
-
-```
-┌─────────────────────────────────────────────────────────────────────────┐
-│  INJ-003: Evacuation order issued                    [Edit] [Delete]    │
-├─────────────────────────────────────────────────────────────────────────┤
-│                                                                         │
-│  TIME                                                                   │
-│  Scheduled: 09:30 AM EST (Jan 15, 2025)                                │
-│  Scenario:  Day 1, 14:00                                               │
-│                                                                         │
-│  TARGETING                                                              │
-│  From:    County Emergency Manager                                     │
-│  To:      All Municipalities                                           │
-│  Method:  Phone Call                                                    │
-│                                                                         │
-│  CONTENT                                                                │
-│  The County Emergency Manager contacts all municipal coordinators to   │
-│  issue a mandatory evacuation order for Zones A and B, effective       │
-│  immediately. Transportation resources should be activated.             │
-│                                                                         │
-│  EXPECTED ACTION                                                        │
-│  • Acknowledge evacuation order                                        │
-│  • Activate transportation plan                                        │
-│  • Begin shelter notifications                                         │
-│                                                                         │
-│  OBJECTIVES                                                             │
-│  1. Demonstrate EOC activation    2. Test multi-agency communication   │
-│                                                                         │
-│  Phase: Initial Response                                               │
-│  Status: Pending                                                        │
-│                                                                         │
-└─────────────────────────────────────────────────────────────────────────┘
-```
+- [ ] Inject numbering is automatic and sequential within MSEL
 
 ## Notes
 
 - Inject numbering is automatic and sequential within the MSEL
-- Consider soft delete to allow recovery
-- During conduct, some fields may become read-only
+- Soft delete is used to allow recovery of accidentally deleted injects
+- During conduct, some fields may become read-only to preserve audit trail
+- Scenario time is optional - not all exercises use compressed timelines

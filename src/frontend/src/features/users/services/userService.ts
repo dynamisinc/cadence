@@ -14,6 +14,7 @@ import type {
   UpdateUserRequest,
   ChangeRoleRequest,
   CreateUserRequest,
+  UserMembershipDto,
 } from '../types'
 
 /**
@@ -26,8 +27,12 @@ export interface UserListParams {
   pageSize?: number;
   /** Search query (name or email) */
   search?: string;
-  /** Filter by role */
+  /** Filter by system role */
   role?: string;
+  /** Filter by status (Active, Inactive, Pending) */
+  status?: string;
+  /** Filter by organization membership (Admin only) */
+  organizationId?: string;
 }
 
 /**
@@ -106,6 +111,16 @@ export const userService = {
    */
   async reactivateUser(id: string): Promise<UserDto> {
     const response = await apiClient.post<UserDto>(`/users/${id}/reactivate`)
+    return response.data
+  },
+
+  /**
+   * Get a user's organization memberships (admin only)
+   * @param id User ID
+   * @returns List of organization memberships
+   */
+  async getUserMemberships(id: string): Promise<UserMembershipDto[]> {
+    const response = await apiClient.get<UserMembershipDto[]>(`/users/${id}/memberships`)
     return response.data
   },
 }

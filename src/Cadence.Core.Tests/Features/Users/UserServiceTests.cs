@@ -48,8 +48,8 @@ public class UserServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
         context.SaveChanges();
@@ -247,12 +247,12 @@ public class UserServiceTests
         var sut = CreateUserService(context);
 
         // Act
-        var result = await sut.DeactivateUserAsync(userId, "Left organization", adminId);
+        var result = await sut.DeactivateUserAsync(userId, "Left organization", adminId.ToString());
 
         // Assert
         result.Status.Should().Be("Disabled");
         _userManagerMock.Verify(x => x.UpdateAsync(It.Is<ApplicationUser>(u => u.Status == UserStatus.Disabled)), Times.Once);
-        _refreshTokenStoreMock.Verify(x => x.RevokeAllForUserAsync(userId), Times.Once);
+        _refreshTokenStoreMock.Verify(x => x.RevokeAllForUserAsync(userId.ToString()), Times.Once);
     }
 
     [Fact]
@@ -270,7 +270,7 @@ public class UserServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<KeyNotFoundException>(
-            () => sut.DeactivateUserAsync(userId, null, adminId));
+            () => sut.DeactivateUserAsync(userId, null, adminId.ToString()));
     }
 
     [Fact]
@@ -291,7 +291,7 @@ public class UserServiceTests
         var sut = CreateUserService(context);
 
         // Act
-        var result = await sut.ReactivateUserAsync(userId, adminId);
+        var result = await sut.ReactivateUserAsync(userId, adminId.ToString());
 
         // Assert
         result.Status.Should().Be("Active");
@@ -322,12 +322,12 @@ public class UserServiceTests
         var sut = CreateUserService(context);
 
         // Act
-        var result = await sut.ChangeRoleAsync(userId, "Manager", adminId);
+        var result = await sut.ChangeRoleAsync(userId, "Manager", adminId.ToString());
 
         // Assert
         result.SystemRole.Should().Be("Manager");
         _userManagerMock.Verify(x => x.UpdateAsync(It.Is<ApplicationUser>(u => u.SystemRole == SystemRole.Manager)), Times.Once);
-        _refreshTokenStoreMock.Verify(x => x.RevokeAllForUserAsync(userId), Times.Once);
+        _refreshTokenStoreMock.Verify(x => x.RevokeAllForUserAsync(userId.ToString()), Times.Once);
     }
 
     [Fact]
@@ -346,7 +346,7 @@ public class UserServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<ArgumentException>(
-            () => sut.ChangeRoleAsync(userId, "InvalidRole", adminId));
+            () => sut.ChangeRoleAsync(userId, "InvalidRole", adminId.ToString()));
     }
 
     [Fact(Skip = "Requires integration test with real UserManager")]
@@ -367,7 +367,7 @@ public class UserServiceTests
 
         // Act & Assert
         await Assert.ThrowsAsync<InvalidOperationException>(
-            () => sut.ChangeRoleAsync(userId, "User", adminId));
+            () => sut.ChangeRoleAsync(userId, "User", adminId.ToString()));
     }
 
     [Fact(Skip = "Requires integration test with real UserManager")]
@@ -390,7 +390,7 @@ public class UserServiceTests
         var sut = CreateUserService(context);
 
         // Act
-        var result = await sut.ChangeRoleAsync(userId, "Manager", adminId);
+        var result = await sut.ChangeRoleAsync(userId, "Manager", adminId.ToString());
 
         // Assert
         result.SystemRole.Should().Be("Manager");

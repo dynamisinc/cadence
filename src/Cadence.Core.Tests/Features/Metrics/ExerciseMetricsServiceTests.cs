@@ -43,8 +43,8 @@ public class ExerciseMetricsServiceTests
             ClockMultiplier = clockMultiplier,
             ClockState = ExerciseClockState.Stopped,
             ActivatedAt = DateTime.UtcNow.AddHours(-1),
-
-
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -64,8 +64,8 @@ public class ExerciseMetricsServiceTests
             Version = 1,
             IsActive = true,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -87,8 +87,8 @@ public class ExerciseMetricsServiceTests
                 Status = InjectStatus.Pending,
                 Sequence = i,
                 MselId = msel.Id,
-                CreatedBy = Guid.Empty,
-                ModifiedBy = Guid.Empty
+                CreatedBy = Guid.Empty.ToString(),
+                ModifiedBy = Guid.Empty.ToString()
             };
             injects.Add(inject);
             context.Injects.Add(inject);

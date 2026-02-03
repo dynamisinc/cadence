@@ -37,8 +37,8 @@ public static class EssentialDataSeeder
                     Description = "Default organization for Cadence users",
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString
                 };
 
                 context.Organizations.Add(defaultOrg);

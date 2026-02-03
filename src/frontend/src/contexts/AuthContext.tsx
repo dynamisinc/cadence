@@ -25,6 +25,7 @@ import type {
 } from '../features/auth/types'
 import { authService } from '../features/auth/services/authService'
 import { setAuthInterceptors } from '../core/services/api'
+import { setAuthenticatedUser, clearAuthenticatedUser, trackEvent } from '../core/services/telemetry'
 
 interface AuthContextType {
   /** Currently authenticated user (null if not logged in) */
@@ -344,7 +345,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         }
       }, refreshIn)
     }
-  }, [])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // refreshAccessToken is defined below but stable
 
   /**
    * Refresh access token using refresh token cookie (S07)
@@ -600,9 +602,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         scheduleRefresh(parsed.exp)
         consecutiveFailuresRef.current = 0
         cacheUserInfo(parsed.user) // Cache for offline support
+
+        // Set telemetry user context (hashed for privacy)
+        setAuthenticatedUser(parsed.user.id)
+        trackEvent('Login', { method: 'password' })
       }
     } else {
       console.log('[AuthContext] login failed:', response.error)
+      trackEvent('LoginFailed', { error: response.error?.code || 'unknown' })
     }
 
     return response
@@ -626,9 +633,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         scheduleRefresh(parsed.exp)
         consecutiveFailuresRef.current = 0
         cacheUserInfo(parsed.user) // Cache for offline support
+
+        // Set telemetry user context (hashed for privacy)
+        setAuthenticatedUser(parsed.user.id)
+        trackEvent('Registration')
       }
     } else {
       console.log('[AuthContext] registration failed:', response.error)
+      trackEvent('RegistrationFailed', { error: response.error?.code || 'unknown' })
     }
 
     return response
@@ -656,6 +668,10 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     setTokenExpiry(null)
     consecutiveFailuresRef.current = 0
     cacheUserInfo(null) // Clear cached user
+
+    // Clear telemetry user context
+    trackEvent('Logout')
+    clearAuthenticatedUser()
 
     if (refreshTimerRef.current) {
       clearTimeout(refreshTimerRef.current)

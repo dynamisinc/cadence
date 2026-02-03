@@ -408,7 +408,7 @@ public static class InjectMapper
         entity.Track
     );
 
-    public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, Guid createdBy) => new()
+    public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, string createdBy) => new()
     {
         Id = Guid.NewGuid(),
         InjectNumber = injectNumber,
@@ -444,7 +444,7 @@ public static class InjectMapper
         ModifiedBy = createdBy
     };
 
-    public static void UpdateFromRequest(this Inject entity, UpdateInjectRequest request, Guid modifiedBy)
+    public static void UpdateFromRequest(this Inject entity, UpdateInjectRequest request, string modifiedBy)
     {
         entity.Title = request.Title;
         entity.Description = request.Description;

@@ -40,8 +40,8 @@ public class OrganizationServiceTests
             Name = name,
             Slug = slug,
             Status = status,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
         context.SaveChanges();
@@ -213,8 +213,8 @@ public class OrganizationServiceTests
             Name = "Exercise 1",
             ExerciseType = ExerciseType.TTX,
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         });
         context.Exercises.Add(new Exercise
         {
@@ -222,8 +222,8 @@ public class OrganizationServiceTests
             Name = "Exercise 2",
             ExerciseType = ExerciseType.FE,
             OrganizationId = org.Id,
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         });
         context.SaveChanges();
 
@@ -283,7 +283,7 @@ public class OrganizationServiceTests
         );
         var createdBy = Guid.NewGuid();
 
-        var result = await service.CreateAsync(request, createdBy);
+        var result = await service.CreateAsync(request, createdBy.ToString());
 
         result.Should().NotBeNull();
         result.Name.Should().Be("New Org");
@@ -312,7 +312,7 @@ public class OrganizationServiceTests
         );
         var createdBy = Guid.NewGuid();
 
-        var result = await service.CreateAsync(request, createdBy);
+        var result = await service.CreateAsync(request, createdBy.ToString());
 
         // Verify user was activated
         var updatedUser = await context.ApplicationUsers.FindAsync(pendingUser.Id);
@@ -333,7 +333,7 @@ public class OrganizationServiceTests
         );
         var createdBy = Guid.NewGuid();
 
-        var result = await service.CreateAsync(request, createdBy);
+        var result = await service.CreateAsync(request, createdBy.ToString());
 
         // Verify new user was created
         var newUser = context.ApplicationUsers.FirstOrDefault(u => u.Email == "newuser@test.com");
@@ -361,7 +361,7 @@ public class OrganizationServiceTests
         );
         var createdBy = Guid.NewGuid();
 
-        var act = async () => await service.CreateAsync(request, createdBy);
+        var act = async () => await service.CreateAsync(request, createdBy.ToString());
 
         await act.Should().ThrowAsync<InvalidOperationException>()
             .WithMessage("*slug*already*");
@@ -416,7 +416,7 @@ public class OrganizationServiceTests
         var service = CreateService(context);
         var archivedBy = Guid.NewGuid();
 
-        var result = await service.ArchiveAsync(org.Id, archivedBy);
+        var result = await service.ArchiveAsync(org.Id, archivedBy.ToString());
 
         result.Should().NotBeNull();
         result!.Status.Should().Be(OrgStatus.Archived.ToString());
@@ -428,7 +428,7 @@ public class OrganizationServiceTests
         var context = CreateTestContext();
         var service = CreateService(context);
 
-        var result = await service.ArchiveAsync(Guid.NewGuid(), Guid.NewGuid());
+        var result = await service.ArchiveAsync(Guid.NewGuid(), Guid.NewGuid().ToString());
 
         result.Should().BeNull();
     }
@@ -445,7 +445,7 @@ public class OrganizationServiceTests
         var service = CreateService(context);
         var deactivatedBy = Guid.NewGuid();
 
-        var result = await service.DeactivateAsync(org.Id, deactivatedBy);
+        var result = await service.DeactivateAsync(org.Id, deactivatedBy.ToString());
 
         result.Should().NotBeNull();
         result!.Status.Should().Be(OrgStatus.Inactive.ToString());
@@ -457,7 +457,7 @@ public class OrganizationServiceTests
         var context = CreateTestContext();
         var service = CreateService(context);
 
-        var result = await service.DeactivateAsync(Guid.NewGuid(), Guid.NewGuid());
+        var result = await service.DeactivateAsync(Guid.NewGuid(), Guid.NewGuid().ToString());
 
         result.Should().BeNull();
     }
@@ -472,7 +472,7 @@ public class OrganizationServiceTests
         var context = CreateTestContext();
         var org = CreateOrganization(context, "Archived Org", "archived", OrgStatus.Archived);
         var service = CreateService(context);
-        var restoredBy = Guid.NewGuid();
+        var restoredBy = Guid.NewGuid().ToString();
 
         var result = await service.RestoreAsync(org.Id, restoredBy);
 
@@ -486,7 +486,7 @@ public class OrganizationServiceTests
         var context = CreateTestContext();
         var org = CreateOrganization(context, "Inactive Org", "inactive", OrgStatus.Inactive);
         var service = CreateService(context);
-        var restoredBy = Guid.NewGuid();
+        var restoredBy = Guid.NewGuid().ToString();
 
         var result = await service.RestoreAsync(org.Id, restoredBy);
 
@@ -500,7 +500,7 @@ public class OrganizationServiceTests
         var context = CreateTestContext();
         var service = CreateService(context);
 
-        var result = await service.RestoreAsync(Guid.NewGuid(), Guid.NewGuid());
+        var result = await service.RestoreAsync(Guid.NewGuid(), Guid.NewGuid().ToString());
 
         result.Should().BeNull();
     }

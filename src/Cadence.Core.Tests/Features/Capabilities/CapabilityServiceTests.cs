@@ -26,8 +26,8 @@ public class CapabilityServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
         context.SaveChanges();
@@ -271,8 +271,8 @@ public class CapabilityServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Second Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org2);
         context.SaveChanges();
@@ -626,8 +626,8 @@ public class CapabilityServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Second Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org2);
         context.SaveChanges();

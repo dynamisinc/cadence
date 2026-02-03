@@ -218,8 +218,8 @@ public static class DataSeederExtensions
                 ObservedAt = now.AddMinutes(-40),
                 Location = "Emergency Operations Center - Main Floor",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = now.AddMinutes(-40),
                 UpdatedAt = now.AddMinutes(-40)
             },
@@ -241,8 +241,8 @@ public static class DataSeederExtensions
                 ObservedAt = now.AddMinutes(-30),
                 Location = "JIC/PIO Workspace",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = now.AddMinutes(-30),
                 UpdatedAt = now.AddMinutes(-30)
             },
@@ -264,8 +264,8 @@ public static class DataSeederExtensions
                 ObservedAt = now.AddMinutes(-25),
                 Location = "EOC Operations Floor",
                 CreatedByUserId = DemoDataSeeder.Evaluator2UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = now.AddMinutes(-25),
                 UpdatedAt = now.AddMinutes(-25)
             },
@@ -288,8 +288,8 @@ public static class DataSeederExtensions
                 ObservedAt = now.AddMinutes(-20),
                 Location = "EOC - Schools/Mass Care Section",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = now.AddMinutes(-20),
                 UpdatedAt = now.AddMinutes(-20)
             },
@@ -311,8 +311,8 @@ public static class DataSeederExtensions
                 ObservedAt = now.AddMinutes(-15),
                 Location = "EOC - Medical Branch",
                 CreatedByUserId = DemoDataSeeder.Evaluator2UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = now.AddMinutes(-15),
                 UpdatedAt = now.AddMinutes(-15)
             },
@@ -333,8 +333,8 @@ public static class DataSeederExtensions
                 ObservedAt = now.AddMinutes(-5),
                 Location = "EOC - Command Section",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = now.AddMinutes(-5),
                 UpdatedAt = now.AddMinutes(-5)
             }
@@ -363,8 +363,8 @@ public static class DataSeederExtensions
                 ObservedAt = exerciseDate.AddMinutes(30),
                 Location = "IT Operations Center",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = exerciseDate.AddMinutes(30),
                 UpdatedAt = exerciseDate.AddMinutes(30)
             },
@@ -385,8 +385,8 @@ public static class DataSeederExtensions
                 ObservedAt = exerciseDate.AddMinutes(90),
                 Location = "911 Communications Center",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = exerciseDate.AddMinutes(90),
                 UpdatedAt = exerciseDate.AddMinutes(90)
             },
@@ -408,8 +408,8 @@ public static class DataSeederExtensions
                 ObservedAt = exerciseDate.AddMinutes(150),
                 Location = "PIO Office",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = exerciseDate.AddMinutes(150),
                 UpdatedAt = exerciseDate.AddMinutes(150)
             }
@@ -438,8 +438,8 @@ public static class DataSeederExtensions
                 ObservedAt = exerciseDate.AddHours(4),
                 Location = "Field Operations",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = exerciseDate.AddHours(4),
                 UpdatedAt = exerciseDate.AddHours(4)
             },
@@ -460,8 +460,8 @@ public static class DataSeederExtensions
                 ObservedAt = exerciseDate.AddHours(5),
                 Location = "EOC - Logistics Section",
                 CreatedByUserId = DemoDataSeeder.Evaluator2UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = exerciseDate.AddHours(5),
                 UpdatedAt = exerciseDate.AddHours(5)
             },
@@ -482,8 +482,8 @@ public static class DataSeederExtensions
                 ObservedAt = exerciseDate.AddHours(7),
                 Location = "Incident Command Post - Alpha",
                 CreatedByUserId = DemoDataSeeder.Evaluator1UserId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = exerciseDate.AddHours(7),
                 UpdatedAt = exerciseDate.AddHours(7)
             }

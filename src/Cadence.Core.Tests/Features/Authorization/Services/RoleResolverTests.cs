@@ -108,8 +108,8 @@ public class RoleResolverTests : IDisposable
             ExerciseType = ExerciseType.TTX,
             Status = ExerciseStatus.Draft,
             OrganizationId = _organizationId,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };
@@ -124,8 +124,8 @@ public class RoleResolverTests : IDisposable
             UserId = userId,
             Role = role,
             AssignedAt = DateTime.UtcNow,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString(),
             CreatedAt = DateTime.UtcNow,
             UpdatedAt = DateTime.UtcNow
         };

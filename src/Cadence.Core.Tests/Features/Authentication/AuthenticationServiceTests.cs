@@ -80,11 +80,11 @@ public class AuthenticationServiceTests : IDisposable
 
         _refreshTokenStoreMock
             .Setup(x => x.CreateAsync(
-                It.IsAny<Guid>(),
+                It.IsAny<string>(),
                 It.IsAny<bool>(),
                 It.IsAny<string?>(),
                 It.IsAny<string?>()))
-            .ReturnsAsync((Guid _, bool rememberMe, string? _, string? _) =>
+            .ReturnsAsync((string _, bool rememberMe, string? _, string? _) =>
                 new RefreshTokenCreateResult("test-refresh-token", rememberMe ? 30 * 24 * 3600 : 4 * 3600, rememberMe));
     }
 
@@ -557,7 +557,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         _refreshTokenStoreMock.Verify(x => x.CreateAsync(
-            Guid.Parse(user.Id),
+            user.Id,
             true, // rememberMe should be true
             It.IsAny<string?>(),
             It.IsAny<string?>()), Times.Once);
@@ -769,7 +769,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert - Verify RememberMe is taken from stored token, not inferred from lifetime
         _refreshTokenStoreMock.Verify(x => x.CreateAsync(
-            Guid.Parse(user.Id),
+            user.Id,
             true, // Should use stored RememberMe value (true)
             It.IsAny<string?>(),
             It.IsAny<string?>()), Times.Once);
@@ -804,7 +804,7 @@ public class AuthenticationServiceTests : IDisposable
     public async Task RevokeTokensAsync_RevokesAllUserTokens()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         await _sut.RevokeTokensAsync(userId);
@@ -864,7 +864,7 @@ public class AuthenticationServiceTests : IDisposable
     {
         // Arrange
         var user = CreateTestUser();
-        var userId = Guid.Parse(user.Id);
+        var userId = user.Id;
 
         _userManagerMock
             .Setup(x => x.FindByIdAsync(user.Id))
@@ -875,7 +875,7 @@ public class AuthenticationServiceTests : IDisposable
 
         // Assert
         result.Should().NotBeNull();
-        result!.Id.Should().Be(userId);
+        result!.Id.Should().Be(Guid.Parse(userId));
         result.Email.Should().Be(user.Email);
         result.DisplayName.Should().Be(user.DisplayName);
         result.Role.Should().Be(user.SystemRole.ToString());
@@ -885,10 +885,10 @@ public class AuthenticationServiceTests : IDisposable
     public async Task GetUserAsync_NonExistentUser_ReturnsNull()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         _userManagerMock
-            .Setup(x => x.FindByIdAsync(userId.ToString()))
+            .Setup(x => x.FindByIdAsync(userId))
             .ReturnsAsync((ApplicationUser?)null);
 
         // Act

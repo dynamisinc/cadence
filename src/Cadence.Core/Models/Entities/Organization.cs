@@ -37,11 +37,6 @@ public class Organization : BaseEntity
     // =========================================================================
 
     /// <summary>
-    /// Users belonging to this organization.
-    /// </summary>
-    public ICollection<User> Users { get; set; } = new List<User>();
-
-    /// <summary>
     /// Exercises owned by this organization.
     /// </summary>
     public ICollection<Exercise> Exercises { get; set; } = new List<Exercise>();

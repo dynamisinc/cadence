@@ -140,10 +140,10 @@ export default defineConfig(({ mode }) => {
       // =========================================================================
       // Reporters - Different outputs for CI vs local development
       // =========================================================================
-      // CI: verbose console + GitHub Actions annotations + JUnit XML for summary
-      // Local: just verbose console output
+      // CI: default (minimal) + GitHub Actions annotations + JUnit XML for summary
+      // Local: verbose console output
       reporters: isCI
-        ? ['verbose', 'github-actions', 'junit']
+        ? ['default', 'github-actions', 'junit']
         : ['verbose'],
 
       // JUnit XML output for CI test summary (used by dorny/test-reporter)
@@ -152,15 +152,21 @@ export default defineConfig(({ mode }) => {
       },
 
       // =========================================================================
-      // Performance
+      // Performance - Optimized for CI
       // =========================================================================
-      pool: 'threads',
+      // Use forks for better isolation with heavy jsdom/React tests
+      pool: 'forks',
       poolOptions: {
-        threads: {
-          singleThread: false,
-          isolate: true,
+        forks: {
+          // Don't isolate - tests don't share global state (faster)
+          isolate: false,
+          // Use more workers in CI (GitHub runners have 2-4 cores)
+          minForks: isCI ? 2 : 1,
+          maxForks: isCI ? 4 : undefined,
         },
       },
+      // Faster file resolution
+      fileParallelism: true,
 
       // =========================================================================
       // Coverage

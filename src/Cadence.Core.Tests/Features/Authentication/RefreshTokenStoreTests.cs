@@ -74,7 +74,7 @@ public class RefreshTokenStoreTests : IDisposable
 
         // Act
         var result = await _sut.CreateAsync(
-            Guid.Parse(_testUserId),
+            _testUserId,
             rememberMe: false,
             ipAddress: "127.0.0.1",
             deviceInfo: "Mozilla/5.0");
@@ -114,7 +114,7 @@ public class RefreshTokenStoreTests : IDisposable
 
         // Act
         var result = await _sut.CreateAsync(
-            Guid.Parse(_testUserId),
+            _testUserId,
             rememberMe: true,
             ipAddress: "192.168.1.1",
             deviceInfo: "Chrome");
@@ -147,7 +147,7 @@ public class RefreshTokenStoreTests : IDisposable
         _tokenServiceMock.Setup(x => x.HashToken(rawToken)).Returns(tokenHash);
 
         // Act
-        await _sut.CreateAsync(Guid.Parse(_testUserId), rememberMe: false);
+        await _sut.CreateAsync(_testUserId, rememberMe: false);
 
         // Assert
         var storedToken = await _context.RefreshTokens
@@ -316,7 +316,7 @@ public class RefreshTokenStoreTests : IDisposable
     public async Task RevokeAllForUserAsync_MultipleTokens_RevokesAllUserTokens()
     {
         // Arrange
-        var userId = Guid.Parse(_testUserId);
+        var userId = _testUserId;
         var token1Id = Guid.NewGuid();
         var token2Id = Guid.NewGuid();
 
@@ -357,7 +357,7 @@ public class RefreshTokenStoreTests : IDisposable
     public async Task RevokeAllForUserAsync_NoTokens_DoesNotThrow()
     {
         // Arrange
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var act = async () => await _sut.RevokeAllForUserAsync(userId);
@@ -370,7 +370,7 @@ public class RefreshTokenStoreTests : IDisposable
     public async Task RevokeAllForUserAsync_DoesNotRevokeOtherUsersTokens()
     {
         // Arrange
-        var userId = Guid.Parse(_testUserId);
+        var userId = _testUserId;
         var otherUserId = Guid.NewGuid().ToString();
 
         _context.ApplicationUsers.Add(new ApplicationUser

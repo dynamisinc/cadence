@@ -53,6 +53,8 @@ public class UsersController : ControllerBase
     /// <param name="pageSize">Items per page (default 20, max 100).</param>
     /// <param name="search">Optional search term (filters by name or email).</param>
     /// <param name="role">Optional role filter.</param>
+    /// <param name="status">Optional status filter (Active, Inactive, Pending).</param>
+    /// <param name="organizationId">Optional filter by organization membership (Admin only).</param>
     [HttpGet]
     [AuthorizeManager] // Override class-level AuthorizeAdmin to allow Managers to list users
     [ProducesResponseType(typeof(UserListResponse), StatusCodes.Status200OK)]
@@ -60,9 +62,11 @@ public class UsersController : ControllerBase
         [FromQuery] int page = 1,
         [FromQuery] int pageSize = 20,
         [FromQuery] string? search = null,
-        [FromQuery] string? role = null)
+        [FromQuery] string? role = null,
+        [FromQuery] string? status = null,
+        [FromQuery] Guid? organizationId = null)
     {
-        var result = await _userService.GetUsersAsync(page, pageSize, search, role);
+        var result = await _userService.GetUsersAsync(page, pageSize, search, role, status, organizationId);
         return Ok(result);
     }
 
@@ -390,15 +394,41 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
+    /// Get a specific user's organization memberships.
+    /// Admin-only endpoint for user management page.
+    /// </summary>
+    /// <param name="userId">User ID to get memberships for.</param>
+    [HttpGet("{userId:guid}/memberships")]
+    [ProducesResponseType(typeof(IEnumerable<MembershipDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetUserMemberships(Guid userId)
+    {
+        // Verify user exists
+        var user = await _userService.GetUserByIdAsync(userId);
+        if (user == null)
+        {
+            return NotFound(new { message = $"User {userId} not found" });
+        }
+
+        var memberships = await _membershipService.GetUserMembershipsAsync(userId.ToString());
+
+        _logger.LogInformation(
+            "Admin retrieved {Count} memberships for user {UserId}",
+            memberships.Count(), userId);
+
+        return Ok(memberships);
+    }
+
+    /// <summary>
     /// Get current authenticated user's ID from JWT claims.
     /// </summary>
-    private Guid GetCurrentUserId()
+    private string GetCurrentUserId()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
         {
             throw new UnauthorizedAccessException("User not authenticated");
         }
-        return Guid.Parse(userIdClaim);
+        return userIdClaim;
     }
 }

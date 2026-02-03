@@ -35,7 +35,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     }
 
     /// <inheritdoc />
-    public async Task<ExpectedOutcomeDto> CreateAsync(Guid injectId, CreateExpectedOutcomeRequest request, Guid userId)
+    public async Task<ExpectedOutcomeDto> CreateAsync(Guid injectId, CreateExpectedOutcomeRequest request, string userId)
     {
         // Validate inject exists
         var inject = await _context.Injects.FindAsync(injectId)
@@ -63,7 +63,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     }
 
     /// <inheritdoc />
-    public async Task<ExpectedOutcomeDto?> UpdateAsync(Guid id, UpdateExpectedOutcomeRequest request, Guid userId)
+    public async Task<ExpectedOutcomeDto?> UpdateAsync(Guid id, UpdateExpectedOutcomeRequest request, string userId)
     {
         var outcome = await _context.ExpectedOutcomes.FindAsync(id);
         if (outcome == null) return null;
@@ -86,7 +86,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     }
 
     /// <inheritdoc />
-    public async Task<ExpectedOutcomeDto?> EvaluateAsync(Guid id, EvaluateExpectedOutcomeRequest request, Guid userId)
+    public async Task<ExpectedOutcomeDto?> EvaluateAsync(Guid id, EvaluateExpectedOutcomeRequest request, string userId)
     {
         var outcome = await _context.ExpectedOutcomes.FindAsync(id);
         if (outcome == null) return null;
@@ -104,7 +104,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     }
 
     /// <inheritdoc />
-    public async Task<bool> ReorderAsync(Guid injectId, ReorderExpectedOutcomesRequest request, Guid userId)
+    public async Task<bool> ReorderAsync(Guid injectId, ReorderExpectedOutcomesRequest request, string userId)
     {
         // Validate inject exists
         var inject = await _context.Injects.FindAsync(injectId);
@@ -140,7 +140,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteAsync(Guid id, Guid userId)
+    public async Task<bool> DeleteAsync(Guid id, string userId)
     {
         var outcome = await _context.ExpectedOutcomes.FindAsync(id);
         if (outcome == null) return false;

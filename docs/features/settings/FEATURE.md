@@ -1,73 +1,61 @@
 # Feature: Settings
 
-**Parent Epic**: E7 - Configuration & Personalization
+**Phase:** MVP (P0-P1), Standard (P1-P2)
+**Status:** Not Started
 
-## Description
+## Overview
 
-Cadence supports a three-tier settings model that mirrors how emergency management organizations operate: user-level preferences that follow individuals across exercises, exercise-level settings configured by Directors for specific events, and organization-level defaults managed by Administrators. This layered approach ensures flexibility while maintaining consistency.
+Cadence supports a three-tier settings model that mirrors how emergency management organizations operate: user-level preferences that follow individuals across exercises, exercise-level settings configured by Directors for specific events, and organization-level defaults managed by Administrators.
 
-## Business Value
+## Problem Statement
 
-- **Personalization**: Users can customize their experience (time format, display density, notifications) without affecting others
-- **Exercise Control**: Directors can configure exercise-specific behaviors (clock mode, auto-fire, confirmation requirements)
-- **Organizational Consistency**: Administrators establish defaults and guardrails for all exercises
-- **Reduced Friction**: Settings persist across sessions, eliminating repetitive configuration
+Emergency management professionals work across multiple exercises with different teams, configurations, and operational tempos. Users need personal preferences (time format, display density) that persist across exercises. Exercise Directors need exercise-specific controls (clock mode, auto-fire behavior) that don't affect other exercises. Administrators need organization-wide defaults to ensure consistency while allowing flexibility. Without this layered approach, users face repetitive configuration and inconsistent experiences.
 
-## User Personas
-
-| Persona | Settings Access | Key Needs |
-|---------|-----------------|-----------|
-| **Administrator** | All tiers | Org defaults, session policies, branding |
-| **Exercise Director** | User + Exercise | Clock behavior, auto-fire, confirmation dialogs |
-| **Controller** | User only | Time format, display density, notifications |
-| **Evaluator** | User only | Observation form defaults, rating display |
-| **Observer** | User only | Read-only display preferences |
-
-## Features by Phase
+## User Stories
 
 ### MVP (P0) — 5 Stories
 
-Essential settings for basic exercise conduct. Must be complete before initial deployment.
-
-| Story | File | Description | Est. Points |
-|-------|------|-------------|-------------|
-| S01 | `S01-user-display-preferences.md` | Theme (Light/Dark/System) and density settings | 2-3 |
-| S02 | `S02-user-time-format.md` | 12-hour vs 24-hour (military) time display | 2 |
-| S03 | `S03-exercise-clock-mode.md` | Real-time vs accelerated clock (1x, 2x, 5x, 10x) | 3-5 |
-| S04 | `S04-exercise-auto-fire.md` | Enable/disable automatic inject firing | 5 |
-| S05 | `S05-exercise-confirmation-dialogs.md` | Configure confirmations for fire/skip/clock actions | 3 |
-
-**MVP Total: ~15-18 story points**
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| [S01](./S01-user-display-preferences.md) | User Display Preferences | P0 | 📋 Ready |
+| [S02](./S02-user-time-format.md) | User Time Format | P0 | 📋 Ready |
+| [S03](./S03-exercise-clock-mode.md) | Exercise Clock Mode | P0 | 📋 Ready |
+| [S04](./S04-exercise-auto-fire.md) | Exercise Auto-Fire | P0 | 📋 Ready |
+| [S05](./S05-exercise-confirmation-dialogs.md) | Exercise Confirmation Dialogs | P0 | 📋 Ready |
 
 ### Standard Implementation (P1) — 7 Stories
 
-Enhanced settings for production use. Addresses SME feedback (EXIS pain points).
-
-| Story | File | Description | Est. Points |
-|-------|------|-------------|-------------|
-| S06 | `S06-user-notification-preferences.md` | Control which toast notifications appear | 3 |
-| S07 | `S07-user-keyboard-shortcuts.md` | Enable shortcuts for fast operations (addresses "too many clicks") | 5 |
-| S08 | `S08-exercise-skip-reason-requirement.md` | Require explanation when skipping injects | 3 |
-| S09 | `S09-exercise-observation-required-fields.md` | Configure which observation fields are mandatory | 3 |
-| S10 | `S10-org-default-exercise-template.md` | Organization-level defaults for new exercises | 5 |
-| S11 | `S11-org-session-timeout.md` | Configurable session timeout (addresses EXIS timeout complaints) | 5 |
-| S12 | `S12-org-auto-save-interval.md` | Configurable auto-save frequency | 5 |
-
-**P1 Total: ~29 story points**
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| [S06](./S06-user-notification-preferences.md) | User Notification Preferences | P1 | 📋 Ready |
+| [S07](./S07-user-keyboard-shortcuts.md) | User Keyboard Shortcuts | P1 | 📋 Ready |
+| [S08](./S08-exercise-skip-reason-requirement.md) | Exercise Skip Reason Requirement | P1 | 📋 Ready |
+| [S09](./S09-exercise-observation-required-fields.md) | Exercise Observation Required Fields | P1 | 📋 Ready |
+| [S10](./S10-org-default-exercise-template.md) | Org Default Exercise Template | P1 | 📋 Ready |
+| [S11](./S11-org-session-timeout.md) | Org Session Timeout | P1 | 📋 Ready |
+| [S12](./S12-org-auto-save-interval.md) | Org Auto-Save Interval | P1 | 📋 Ready |
 
 ### Future Enhancement (P2) — 3 Stories
 
-Nice-to-have features for mature deployments.
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| [S13](./S13-org-branding.md) | Org Branding | P2 | 📋 Ready |
+| [S14](./S14-org-core-capability-list.md) | Org Core Capability List | P2 | 📋 Ready |
+| [S15](./S15-user-default-msel-view.md) | User Default MSEL View | P2 | 📋 Ready |
 
-| Story | File | Description | Est. Points |
-|-------|------|-------------|-------------|
-| S13 | `S13-org-branding.md` | Organization logo and colors | 3 |
-| S14 | `S14-org-core-capability-list.md` | Customize available Core Capabilities | 5 |
-| S15 | `S15-user-default-msel-view.md` | Set preferred MSEL organization/grouping | 3 |
+## User Personas
 
-**P2 Total: ~11 story points**
+| Persona | Interaction |
+|---------|-------------|
+| **Administrator** | Manages organization-level defaults, session policies, branding |
+| **Exercise Director** | Configures exercise-specific clock behavior, auto-fire, confirmation dialogs |
+| **Controller** | Sets personal time format, display density, notification preferences |
+| **Evaluator** | Customizes observation form defaults, rating display preferences |
+| **Observer** | Adjusts read-only display preferences |
 
-## Settings Inheritance Model
+## Key Concepts
+
+### Settings Inheritance Model
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -85,28 +73,47 @@ Nice-to-have features for mature deployments.
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## UI/UX Notes
+## Dependencies
+
+- User authentication and authorization
+- Exercise permissions (to control who can modify exercise settings)
+- Organization management (multi-tenant architecture)
+
+## Acceptance Criteria (Feature-Level)
+
+- [ ] Users can set personal preferences that persist across exercises
+- [ ] Exercise Directors can configure exercise-specific settings
+- [ ] Administrators can set organization-wide defaults
+- [ ] Settings auto-save on change (no explicit save button)
+- [ ] Each setting includes a reset-to-default option
+- [ ] Exercise settings inherit from organization defaults when appropriate
+
+## Out of Scope
+
+- Settings import/export
+- Settings audit log (beyond standard entity audit fields)
+- Multi-organization comparison of settings
+
+## Notes
+
+### UI/UX Notes
 
 - **User Settings**: Accessed via profile menu (avatar dropdown), always available
 - **Exercise Settings**: Gear icon in exercise header, visible to Director+ only
 - **Organization Settings**: Admin panel, Admin role only
 - Settings should auto-save on change (no explicit save button)
-- Include reset-to-default option for each setting
 
-## Dependencies
-
-- Authentication system (to identify user role)
-- Exercise permissions (to control who can modify exercise settings)
-- Organization entity (if not already exists)
-
-## Out of Scope
-
-- Multi-organization support (single org for MVP)
-- Settings import/export
-- Settings audit log
-
-## Open Questions
+### Open Questions
 
 - [ ] Should exercise settings be locked once exercise starts?
 - [ ] Do we need a "copy settings from previous exercise" feature?
 - [ ] Should some settings require exercise pause to change?
+
+### EXIS Pain Points Addressed
+
+| EXIS Pain Point | Cadence Solution |
+|-----------------|------------------|
+| Short session timeout (30 min) causing data loss | Configurable timeout with org defaults (S11) |
+| No keyboard shortcuts, excessive clicking | Comprehensive keyboard navigation (S07) |
+| Inconsistent time format across pages | User-level time format preference (S02) |
+| No control over notification noise | User notification preferences (S06) |

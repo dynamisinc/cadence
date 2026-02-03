@@ -143,19 +143,22 @@ export const ExerciseConductPage = () => {
   const [pendingSkipInjectId, setPendingSkipInjectId] = useState<string | null>(null)
 
   // User-level "don't ask again" flags with localStorage persistence (per-exercise)
-  const getStorageKey = (type: string) => `cadence:skipConfirmation:${exerciseId}:${type}`
+  const getStorageKey = useCallback(
+    (type: string) => `cadence:skipConfirmation:${exerciseId}:${type}`,
+    [exerciseId],
+  )
 
   const [skipFireConfirmation, setSkipFireConfirmation] = useState(() => {
     if (!exerciseId) return false
-    return localStorage.getItem(getStorageKey('fire')) === 'true'
+    return localStorage.getItem(`cadence:skipConfirmation:${exerciseId}:fire`) === 'true'
   })
   const [skipSkipConfirmation, setSkipSkipConfirmation] = useState(() => {
     if (!exerciseId) return false
-    return localStorage.getItem(getStorageKey('skip')) === 'true'
+    return localStorage.getItem(`cadence:skipConfirmation:${exerciseId}:skip`) === 'true'
   })
   const [skipClockConfirmation, setSkipClockConfirmation] = useState(() => {
     if (!exerciseId) return false
-    return localStorage.getItem(getStorageKey('clock')) === 'true'
+    return localStorage.getItem(`cadence:skipConfirmation:${exerciseId}:clock`) === 'true'
   })
 
   // Persist "don't ask again" choices to localStorage
@@ -164,21 +167,21 @@ export const ExerciseConductPage = () => {
     if (exerciseId) {
       localStorage.setItem(getStorageKey('fire'), 'true')
     }
-  }, [exerciseId])
+  }, [exerciseId, getStorageKey])
 
   const handleSkipSkipConfirmation = useCallback(() => {
     setSkipSkipConfirmation(true)
     if (exerciseId) {
       localStorage.setItem(getStorageKey('skip'), 'true')
     }
-  }, [exerciseId])
+  }, [exerciseId, getStorageKey])
 
   const handleSkipClockConfirmation = useCallback(() => {
     setSkipClockConfirmation(true)
     if (exerciseId) {
       localStorage.setItem(getStorageKey('clock'), 'true')
     }
-  }, [exerciseId])
+  }, [exerciseId, getStorageKey])
 
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'controller' | 'narrative'>(() => {

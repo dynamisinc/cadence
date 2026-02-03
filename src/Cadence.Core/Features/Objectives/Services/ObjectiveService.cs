@@ -56,7 +56,7 @@ public class ObjectiveService : IObjectiveService
     }
 
     /// <inheritdoc />
-    public async Task<ObjectiveDto> CreateObjectiveAsync(Guid exerciseId, CreateObjectiveRequest request, Guid createdBy)
+    public async Task<ObjectiveDto> CreateObjectiveAsync(Guid exerciseId, CreateObjectiveRequest request, string createdBy)
     {
         // Validate exercise exists
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -104,7 +104,7 @@ public class ObjectiveService : IObjectiveService
     }
 
     /// <inheritdoc />
-    public async Task<ObjectiveDto?> UpdateObjectiveAsync(Guid exerciseId, Guid id, UpdateObjectiveRequest request, Guid modifiedBy)
+    public async Task<ObjectiveDto?> UpdateObjectiveAsync(Guid exerciseId, Guid id, UpdateObjectiveRequest request, string modifiedBy)
     {
         var objective = await _context.Objectives
             .Include(o => o.InjectObjectives)
@@ -140,7 +140,7 @@ public class ObjectiveService : IObjectiveService
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteObjectiveAsync(Guid exerciseId, Guid id, Guid deletedBy)
+    public async Task<bool> DeleteObjectiveAsync(Guid exerciseId, Guid id, string deletedBy)
     {
         var objective = await _context.Objectives
             .Include(o => o.InjectObjectives)

@@ -142,7 +142,7 @@ public record ExerciseDto(
     Guid? ActiveMselId,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    Guid CreatedBy,
+    string CreatedBy,
     // Status transition audit fields
     DateTime? ActivatedAt,
     string? ActivatedBy,
@@ -219,7 +219,7 @@ public static class ExerciseMapper
         firedInjectCount
     );
 
-    public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, Guid createdBy) => new()
+    public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, string createdBy) => new()
     {
         Id = Guid.NewGuid(),
         Name = request.Name,

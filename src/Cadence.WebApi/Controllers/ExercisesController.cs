@@ -133,34 +133,44 @@ public class ExercisesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ExerciseDto>> CreateExercise(CreateExerciseRequest request)
     {
+        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+
         // Validation
         if (string.IsNullOrWhiteSpace(request.Name))
         {
-            return BadRequest(new { message = "Name is required" });
+            _logger.LogWarning(
+                "CreateExercise validation failed: Name is required. User: {UserId}, Request: {@Request}",
+                currentUserId, new { request.Name, request.ExerciseType, request.DirectorId });
+            return BadRequest(new { message = "Name is required", field = "name" });
         }
 
         if (request.Name.Length > 200)
         {
-            return BadRequest(new { message = "Name must be 200 characters or less" });
+            _logger.LogWarning(
+                "CreateExercise validation failed: Name too long ({Length} chars). User: {UserId}",
+                request.Name.Length, currentUserId);
+            return BadRequest(new { message = "Name must be 200 characters or less", field = "name" });
         }
 
         // Require organization context to create exercises
         if (!_orgContext.CurrentOrganizationId.HasValue)
         {
-            return BadRequest(new { message = "Organization context required. Please select an organization." });
+            _logger.LogWarning(
+                "CreateExercise validation failed: No organization context. User: {UserId}, IsSysAdmin: {IsSysAdmin}",
+                currentUserId, _orgContext.IsSysAdmin);
+            return BadRequest(new { message = "Organization context required. Please select an organization.", field = "organization" });
         }
 
         var organizationId = _orgContext.CurrentOrganizationId.Value;
 
-        // Get current user ID from claims (ApplicationUser.Id is string)
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        // Validate user is authenticated (currentUserId was retrieved at method start for logging)
         if (string.IsNullOrEmpty(currentUserId))
         {
             return Unauthorized(new { message = "User not authenticated" });
         }
 
         // For audit trail, use Guid.Empty until we update BaseEntity to use string
-        var createdBy = SystemConstants.SystemUserId;
+        var createdBy = SystemConstants.SystemUserIdString;
         var exercise = request.ToEntity(organizationId, createdBy);
 
         _context.Exercises.Add(exercise);
@@ -279,7 +289,7 @@ public class ExercisesController : ControllerBase
         exercise.IsPracticeMode = request.IsPracticeMode;
 
         // System user until auth is implemented
-        exercise.ModifiedBy = SystemConstants.SystemUserId;
+        exercise.ModifiedBy = SystemConstants.SystemUserIdString;
 
         await _context.SaveChangesAsync();
 
@@ -409,8 +419,8 @@ public class ExercisesController : ControllerBase
             ClockStartedAt = null,
             ClockElapsedBeforePause = null,
             ClockStartedBy = null,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId,
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString,
         };
 
         _context.Exercises.Add(newExercise);
@@ -435,8 +445,8 @@ public class ExercisesController : ControllerBase
                 EndTime = sourcePhase.EndTime,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId, // Data isolation
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
             };
             _context.Phases.Add(newPhase);
         }
@@ -455,8 +465,8 @@ public class ExercisesController : ControllerBase
                 Description = sourceObjective.Description,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId, // Data isolation
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
             };
             _context.Objectives.Add(newObjective);
         }
@@ -477,8 +487,8 @@ public class ExercisesController : ControllerBase
                 IsActive = true,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId, // Data isolation
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
             };
             _context.Msels.Add(newMsel);
 
@@ -516,8 +526,8 @@ public class ExercisesController : ControllerBase
                     PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
                         ? phaseIdMap[sourceInject.PhaseId.Value]
                         : null,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                 };
                 _context.Injects.Add(newInject);
 
@@ -644,7 +654,7 @@ public class ExercisesController : ControllerBase
     [HttpGet("{id:guid}/delete-summary")]
     public async Task<ActionResult<DeleteSummaryResponse>> GetDeleteSummary(Guid id)
     {
-        var userId = SystemConstants.SystemUserId;
+        var userId = SystemConstants.SystemUserIdString;
         var isAdmin = true;
 
         var summary = await _deleteService.GetDeleteSummaryAsync(id, userId, isAdmin);
@@ -664,7 +674,7 @@ public class ExercisesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteExercise(Guid id)
     {
-        var userId = SystemConstants.SystemUserId;
+        var userId = SystemConstants.SystemUserIdString;
         var isAdmin = true;
 
         var result = await _deleteService.DeleteExerciseAsync(id, userId, isAdmin);

@@ -1,10 +1,15 @@
 # Feature: Setup Progress Dashboard
 
-**Parent Epic:** Exercise Setup (E3)
+**Phase:** MVP
+**Status:** Ready
 
-## Description
+## Overview
 
 Setting up an exercise involves multiple configuration steps: creating the exercise, configuring roles, adding participants, defining objectives, setting up phases, and populating the MSEL. This feature provides a visual progress dashboard that guides users through the setup process and shows completion status for each area.
+
+## Problem Statement
+
+Exercise planners need guidance through the multi-step exercise setup process. Without visibility into what's complete and what's missing, users waste time searching for uncompleted tasks, risk launching exercises with incomplete configuration, and lack confidence that their exercise is ready for conduct.
 
 ## User Stories
 
@@ -15,24 +20,22 @@ Setting up an exercise involves multiple configuration steps: creating the exerc
 ## User Personas
 
 | Persona | Interaction |
-|---------|------------|
+|---------|-------------|
 | Administrator | Views progress for all exercises |
 | Exercise Director | Views progress for their exercises |
 | Controller | Views progress (read-only) |
 | Evaluator | Views progress (read-only) |
 | Observer | Limited visibility |
 
-## Progress Areas
+## Key Concepts
 
-| Area | Completion Criteria |
-|------|---------------------|
-| **Basic Info** | Exercise has name, type, date |
-| **Roles** | At least Administrator and Exercise Director configured |
-| **Participants** | At least one participant per enabled role |
-| **Objectives** | At least one objective defined |
-| **Phases** | Optional - at least one phase if used |
-| **MSEL** | At least one inject created |
-| **Time Zone** | Exercise time zone set |
+| Term | Definition |
+|------|------------|
+| Setup Progress | Completion status of exercise configuration areas |
+| Progress Area | A specific configuration domain (Basic Info, Roles, MSEL, etc.) |
+| Completion Criteria | Requirements for marking a progress area as complete |
+| Minimum Viable Setup | Minimum configuration needed to conduct an exercise |
+| Recommended Setup | Full configuration for optimal exercise conduct |
 
 ## Dependencies
 
@@ -50,9 +53,23 @@ Setting up an exercise involves multiple configuration steps: creating the exerc
 - [ ] Clicking an incomplete area navigates to that configuration
 - [ ] Progress updates in real-time as setup is completed
 
-## Wireframes/Mockups
+## Notes
 
-### Exercise Overview with Progress
+### Progress Areas
+
+| Area | Completion Criteria |
+|------|---------------------|
+| Basic Info | Exercise has name, type, date |
+| Roles | At least Administrator and Exercise Director configured |
+| Participants | At least one participant per enabled role |
+| Objectives | At least one objective defined |
+| Phases | Optional - at least one phase if used |
+| MSEL | At least one inject created |
+| Time Zone | Exercise time zone set |
+
+### Wireframes/Mockups
+
+#### Exercise Overview with Progress
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
@@ -77,7 +94,7 @@ Setting up an exercise involves multiple configuration steps: creating the exerc
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Notes
+### Additional Context
 
 - Progress dashboard is guidance, not enforcement - exercises can be run without 100% completion
 - Consider adding "minimum viable" vs "recommended" completion levels

@@ -3,6 +3,7 @@ using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization.Handlers;
 using Cadence.WebApi.Authorization.Requirements;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Policy;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace Cadence.WebApi.Authorization;
@@ -20,6 +21,9 @@ public static class AuthorizationExtensions
         // Register authorization handlers
         services.AddScoped<IAuthorizationHandler, ExerciseAccessHandler>();
         services.AddScoped<IAuthorizationHandler, ExerciseRoleHandler>();
+
+        // Register authorization logging handler (logs 401/403 failures to App Insights)
+        services.AddSingleton<IAuthorizationMiddlewareResultHandler, AuthorizationLoggingHandler>();
 
         // Register role resolver
         services.AddScoped<IRoleResolver, RoleResolver>();

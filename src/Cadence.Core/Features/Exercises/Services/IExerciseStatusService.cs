@@ -16,7 +16,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> ActivateAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> ActivateAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Pauses an exercise (Active → Paused).
@@ -25,7 +25,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> PauseAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> PauseAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Resumes a paused exercise (Paused → Active).
@@ -33,7 +33,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> ResumeAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> ResumeAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Completes an exercise (Active/Paused → Completed).
@@ -42,7 +42,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> CompleteAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> CompleteAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Archives a completed exercise (Completed → Archived).
@@ -51,7 +51,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> ArchiveAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> ArchiveAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Unarchives an exercise (Archived → Completed).
@@ -60,7 +60,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> UnarchiveAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> UnarchiveAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Reverts a paused exercise to draft (Paused → Draft).
@@ -69,7 +69,7 @@ public interface IExerciseStatusService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="userId">The user performing the action</param>
     /// <returns>Status transition result</returns>
-    Task<StatusTransitionResult> RevertToDraftAsync(Guid exerciseId, Guid userId);
+    Task<StatusTransitionResult> RevertToDraftAsync(Guid exerciseId, string userId);
 
     /// <summary>
     /// Checks if a status transition is valid.

@@ -1,10 +1,15 @@
 # Feature: Metrics
 
-**Parent Epic**: E8 - Reporting & Analytics
+**Phase:** Standard
+**Status:** Not Started
 
-## Description
+## Overview
 
 Cadence provides metrics at two levels: exercise-level metrics that show performance during and after a specific exercise, and organization-level metrics that track trends across multiple exercises. These metrics support HSEEP after-action review (AAR) requirements and help organizations demonstrate improvement over time.
+
+## Problem Statement
+
+Exercise Directors and Controllers need real-time situational awareness during exercise conduct to understand progress and identify issues. After exercises, teams need comprehensive metrics for after-action review (AAR) to identify strengths and areas for improvement. Organizations need trend analysis across multiple exercises to demonstrate capability development and justify training investments. Without quantifiable metrics, teams cannot effectively evaluate exercise performance or track improvement over time.
 
 ## Business Value
 
@@ -23,6 +28,25 @@ Cadence provides metrics at two levels: exercise-level metrics that show perform
 | **Controller**        | Exercise metrics             | Real-time progress, inject status overview     |
 | **Evaluator**         | Exercise metrics             | Observation coverage, rating distribution      |
 | **Observer**          | Exercise metrics (read-only) | Follow along with exercise progress            |
+
+## User Stories
+
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| [S01](./S01-exercise-progress-dashboard.md) | Exercise Progress Dashboard | P0 | 📋 Ready |
+| [S02](./S02-exercise-inject-summary.md) | Exercise Inject Summary | P0 | 📋 Ready |
+| [S03](./S03-exercise-observation-summary.md) | Exercise Observation Summary | P0 | 📋 Ready |
+| [S04](./S04-exercise-timeline-summary.md) | Exercise Timeline Summary | P0 | 📋 Ready |
+| [S05](./S05-psmu-distribution-chart.md) | P/S/M/U Distribution Chart | P1 | 📋 Ready |
+| [S06](./S06-core-capability-performance.md) | Core Capability Performance | P1 | 📋 Ready |
+| [S07](./S07-controller-activity-metrics.md) | Controller Activity Metrics | P1 | 📋 Ready |
+| [S08](./S08-evaluator-coverage-metrics.md) | Evaluator Coverage Metrics | P1 | 📋 Ready |
+| [S09](./S09-org-exercise-history.md) | Organization Exercise History | P1 | 📋 Ready |
+| [S10](./S10-org-performance-trends.md) | Organization Performance Trends | P1 | 📋 Ready |
+| [S11](./S11-metrics-export.md) | Metrics Export | P1 | 📋 Ready |
+| [S12](./S12-comparative-analysis.md) | Comparative Analysis | P2 | 📋 Ready |
+| [S13](./S13-benchmark-comparison.md) | Benchmark Comparison | P2 | 📋 Ready |
+| [S14](./S14-custom-metrics-dashboard.md) | Custom Metrics Dashboard | P2 | 📋 Ready |
 
 ## Features by Phase
 

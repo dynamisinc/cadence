@@ -82,8 +82,8 @@ public class ExerciseDirectorSelectionTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);
@@ -117,8 +117,8 @@ public class ExerciseDirectorSelectionTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);
@@ -152,8 +152,8 @@ public class ExerciseDirectorSelectionTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);
@@ -187,8 +187,8 @@ public class ExerciseDirectorSelectionTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);
@@ -221,8 +221,8 @@ public class ExerciseDirectorSelectionTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);
@@ -253,8 +253,8 @@ public class ExerciseDirectorSelectionTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow),
             Status = ExerciseStatus.Draft,
             OrganizationId = _organization.Id,
-            CreatedBy = SystemConstants.SystemUserId,
-            ModifiedBy = SystemConstants.SystemUserId
+            CreatedBy = SystemConstants.SystemUserIdString,
+            ModifiedBy = SystemConstants.SystemUserIdString
         };
 
         _context.Exercises.Add(exercise);

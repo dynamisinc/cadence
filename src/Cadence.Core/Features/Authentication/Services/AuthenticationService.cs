@@ -331,7 +331,7 @@ public class AuthenticationService : IAuthenticationService
     /// <summary>
     /// Revoke all tokens for a user (logout from all devices).
     /// </summary>
-    public async Task RevokeTokensAsync(Guid userId)
+    public async Task RevokeTokensAsync(string userId)
     {
         await _refreshTokenStore.RevokeAllForUserAsync(userId);
         _logger.LogInformation("All tokens revoked for user: {UserId}", userId);
@@ -350,9 +350,9 @@ public class AuthenticationService : IAuthenticationService
     /// <summary>
     /// Get user information by ID.
     /// </summary>
-    public async Task<UserInfo?> GetUserAsync(Guid userId)
+    public async Task<UserInfo?> GetUserAsync(string userId)
     {
-        var user = await _userManager.FindByIdAsync(userId.ToString());
+        var user = await _userManager.FindByIdAsync(userId);
         if (user == null)
         {
             return null;
@@ -612,7 +612,7 @@ public class AuthenticationService : IAuthenticationService
 
         var (accessToken, expiresIn) = _tokenService.GenerateAccessToken(userInfo, orgId, orgName, orgSlug, orgRole);
         var refreshTokenResult = await _refreshTokenStore.CreateAsync(
-            Guid.Parse(user.Id),
+            user.Id,
             rememberMe,
             ipAddress,
             deviceInfo);

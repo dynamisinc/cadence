@@ -16,7 +16,7 @@ public interface IExerciseDeleteService
     /// <param name="userId">The user requesting the deletion</param>
     /// <param name="isAdmin">Whether the user is an administrator</param>
     /// <returns>Delete summary response with eligibility and data counts</returns>
-    Task<DeleteSummaryResponse?> GetDeleteSummaryAsync(Guid exerciseId, Guid userId, bool isAdmin);
+    Task<DeleteSummaryResponse?> GetDeleteSummaryAsync(Guid exerciseId, string userId, bool isAdmin);
 
     /// <summary>
     /// Permanently deletes an exercise and all related data.
@@ -31,5 +31,5 @@ public interface IExerciseDeleteService
     /// <param name="userId">The user performing the deletion</param>
     /// <param name="isAdmin">Whether the user is an administrator</param>
     /// <returns>Delete result with success/failure and reason</returns>
-    Task<DeleteExerciseResult> DeleteExerciseAsync(Guid exerciseId, Guid userId, bool isAdmin);
+    Task<DeleteExerciseResult> DeleteExerciseAsync(Guid exerciseId, string userId, bool isAdmin);
 }

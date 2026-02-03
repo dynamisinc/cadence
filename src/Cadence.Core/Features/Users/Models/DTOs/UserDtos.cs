@@ -146,6 +146,13 @@ public record CreateUserRequest
     /// Must meet password policy requirements.
     /// </summary>
     public string Password { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Optional system role for the new user.
+    /// Only honored when creator is an Admin; otherwise defaults to User.
+    /// Valid values: Admin, Manager, User.
+    /// </summary>
+    public SystemRole? SystemRole { get; init; }
 }
 
 /// <summary>

@@ -1,10 +1,15 @@
 # Feature: Inject Organization
 
-**Parent Epic:** MSEL Authoring (E4)
+**Phase:** Standard
+**Status:** Not Started
 
-## Description
+## Overview
 
-As MSELs grow, users need ways to organize and navigate large numbers of injects. This feature provides sorting, grouping, and manual reordering capabilities that help users manage complex exercise scenarios efficiently.
+This feature provides sorting, grouping, and manual reordering capabilities that help users manage complex exercise scenarios efficiently.
+
+## Problem Statement
+
+As MSELs grow to dozens or hundreds of injects, the default chronological view becomes difficult to navigate and manage. Exercise Directors need to view injects organized by phase to coordinate phase transitions. Controllers need to see all pending injects together regardless of time. Evaluators need injects grouped by objective to ensure evaluation coverage. Without flexible organization options, users cannot efficiently manage large MSELs.
 
 ## User Stories
 

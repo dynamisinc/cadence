@@ -36,10 +36,16 @@ export const RoleSelect: FC<RoleSelectProps> = ({ value, onChange, disabled }) =
       onChange={handleChange}
       size="small"
       disabled={disabled}
-      sx={{ minWidth: 150 }}
+      sx={{
+        minWidth: 100,
+        fontSize: '0.875rem',
+        '& .MuiSelect-select': {
+          py: 0.5,
+        },
+      }}
     >
       {USER_ROLES.map(role => (
-        <MenuItem key={role} value={role}>
+        <MenuItem key={role} value={role} sx={{ fontSize: '0.875rem' }}>
           {role}
         </MenuItem>
       ))}

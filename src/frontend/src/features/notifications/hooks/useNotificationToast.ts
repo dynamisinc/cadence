@@ -47,9 +47,10 @@ export function useNotificationToast() {
 
   // Clean up timers on unmount
   useEffect(() => {
+    const timers = timerRefs.current
     return () => {
-      timerRefs.current.forEach(timer => clearTimeout(timer))
-      timerRefs.current.clear()
+      timers.forEach(timer => clearTimeout(timer))
+      timers.clear()
     }
   }, [])
 

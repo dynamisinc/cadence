@@ -87,3 +87,25 @@ export const USER_ROLES = [
 ] as const
 
 export type UserRole = typeof USER_ROLES[number]
+
+/**
+ * User membership in an organization
+ */
+export interface UserMembershipDto {
+  /** Membership ID */
+  id: string;
+  /** User ID */
+  userId: string;
+  /** Organization ID */
+  organizationId: string;
+  /** Organization name */
+  organizationName: string;
+  /** Organization slug */
+  organizationSlug: string;
+  /** User's role in the organization */
+  role: string;
+  /** When the user joined */
+  joinedAt: string;
+  /** Whether this is the user's current org */
+  isCurrent: boolean;
+}

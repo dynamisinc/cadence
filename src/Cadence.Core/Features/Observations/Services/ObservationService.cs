@@ -75,7 +75,7 @@ public class ObservationService : IObservationService
     }
 
     /// <inheritdoc />
-    public async Task<ObservationDto> CreateObservationAsync(Guid exerciseId, CreateObservationRequest request, Guid createdBy)
+    public async Task<ObservationDto> CreateObservationAsync(Guid exerciseId, CreateObservationRequest request, string createdBy)
     {
         // Validate exercise exists and is active
         var exercise = await _context.Exercises.FindAsync(exerciseId);
@@ -193,7 +193,7 @@ public class ObservationService : IObservationService
     }
 
     /// <inheritdoc />
-    public async Task<ObservationDto?> UpdateObservationAsync(Guid id, UpdateObservationRequest request, Guid modifiedBy)
+    public async Task<ObservationDto?> UpdateObservationAsync(Guid id, UpdateObservationRequest request, string modifiedBy)
     {
         var observation = await _context.Observations
             .Include(o => o.CreatedByUser)
@@ -293,7 +293,7 @@ public class ObservationService : IObservationService
     }
 
     /// <inheritdoc />
-    public async Task<bool> DeleteObservationAsync(Guid id, Guid deletedBy)
+    public async Task<bool> DeleteObservationAsync(Guid id, string deletedBy)
     {
         var observation = await _context.Observations.FindAsync(id);
 

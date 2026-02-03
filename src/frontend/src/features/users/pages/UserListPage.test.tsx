@@ -8,8 +8,22 @@ import { UserListPage } from './UserListPage'
 import { userService } from '../services/userService'
 import type { UserListResponse } from '../types'
 
-// Mock the user service
+// Mock the services
 vi.mock('../services/userService')
+vi.mock('../../organizations/services/organizationService', () => ({
+  organizationService: {
+    getAll: vi.fn().mockResolvedValue({
+      items: [
+        { id: 'org-1', name: 'Acme Corp', slug: 'acme-corp' },
+        { id: 'org-2', name: 'Test Org', slug: 'test-org' },
+      ],
+      totalCount: 2,
+    }),
+    addMember: vi.fn(),
+    removeMember: vi.fn(),
+    updateMemberRole: vi.fn(),
+  },
+}))
 
 const mockUserList: UserListResponse = {
   users: [
@@ -53,6 +67,7 @@ describe('UserListPage', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     vi.mocked(userService.getUsers).mockResolvedValue(mockUserList)
+    vi.mocked(userService.getUserMemberships).mockResolvedValue([])
   })
 
   it('loads and displays user list', async () => {
@@ -86,7 +101,7 @@ describe('UserListPage', () => {
     })
 
     // Search for "jane"
-    const searchInput = screen.getByPlaceholderText(/search by name or email/i)
+    const searchInput = screen.getByPlaceholderText(/search name or email/i)
     await user.type(searchInput, 'jane')
 
     await waitFor(() => {
@@ -115,6 +130,52 @@ describe('UserListPage', () => {
     await waitFor(() => {
       expect(userService.getUsers).toHaveBeenCalledWith(
         expect.objectContaining({ role: 'Manager' }),
+      )
+    })
+  })
+
+  it('filters users by status', async () => {
+    const user = userEvent.setup()
+    render(<UserListPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Admin User')).toBeInTheDocument()
+    })
+
+    // Find the status filter dropdown (it shows "All Status" initially)
+    const statusFilter = screen.getByText('All Status').closest('[role="combobox"]') as HTMLElement
+    await user.click(statusFilter)
+
+    // Click Active option
+    const activeOption = await screen.findByRole('option', { name: 'Active' })
+    await user.click(activeOption)
+
+    await waitFor(() => {
+      expect(userService.getUsers).toHaveBeenCalledWith(
+        expect.objectContaining({ status: 'Active' }),
+      )
+    })
+  })
+
+  it('filters users by organization', async () => {
+    const user = userEvent.setup()
+    render(<UserListPage />)
+
+    await waitFor(() => {
+      expect(screen.getByText('Admin User')).toBeInTheDocument()
+    })
+
+    // Find the organization filter dropdown (it shows "All Organizations" initially)
+    const orgFilter = screen.getByText('All Organizations').closest('[role="combobox"]') as HTMLElement
+    await user.click(orgFilter)
+
+    // Click Acme Corp option
+    const acmeOption = await screen.findByRole('option', { name: 'Acme Corp' })
+    await user.click(acmeOption)
+
+    await waitFor(() => {
+      expect(userService.getUsers).toHaveBeenCalledWith(
+        expect.objectContaining({ organizationId: 'org-1' }),
       )
     })
   })
@@ -171,7 +232,7 @@ describe('UserListPage', () => {
     await user.click(deactivateButtons[1])
 
     // Confirm in dialog - wait for the confirm button to appear and be enabled
-    const confirmButton = await screen.findByRole('button', { name: /deactivate/i })
+    const confirmButton = await screen.findByRole('button', { name: /confirm/i })
     expect(confirmButton).toBeInTheDocument()
 
     await user.click(confirmButton)

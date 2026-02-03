@@ -27,8 +27,8 @@ public class ExerciseDeleteServiceTests
         {
             Id = Guid.NewGuid(),
             Name = "Test Organization",
-            CreatedBy = Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Organizations.Add(org);
         context.SaveChanges();
@@ -41,7 +41,7 @@ public class ExerciseDeleteServiceTests
         Organization org,
         ExerciseStatus status = ExerciseStatus.Draft,
         bool hasBeenPublished = false,
-        Guid? createdBy = null)
+        string? createdBy = null)
     {
         var exercise = new Exercise
         {
@@ -53,8 +53,8 @@ public class ExerciseDeleteServiceTests
             ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
             TimeZoneId = "UTC",
             OrganizationId = org.Id,
-            CreatedBy = createdBy ?? Guid.NewGuid(),
-            ModifiedBy = Guid.NewGuid()
+            CreatedBy = createdBy ?? Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
         };
         context.Exercises.Add(exercise);
         context.SaveChanges();
@@ -75,7 +75,7 @@ public class ExerciseDeleteServiceTests
         // Arrange
         var (context, _) = CreateTestContext();
         var service = CreateService(context);
-        var userId = Guid.NewGuid();
+        var userId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.GetDeleteSummaryAsync(Guid.NewGuid(), userId, isAdmin: false);
@@ -89,7 +89,7 @@ public class ExerciseDeleteServiceTests
     {
         // Arrange
         var (context, org) = CreateTestContext();
-        var creatorId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid().ToString();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false, createdBy: creatorId);
         var service = CreateService(context);
 
@@ -110,7 +110,7 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false);
         var service = CreateService(context);
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.GetDeleteSummaryAsync(exercise.Id, adminId, isAdmin: true);
@@ -128,10 +128,10 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false);
         var service = CreateService(context);
-        var otherUserId = Guid.NewGuid();
+        var otherUserId = Guid.NewGuid().ToString();
 
         // Act
-        var result = await service.GetDeleteSummaryAsync(exercise.Id, otherUserId, isAdmin: false);
+        var result = await service.GetDeleteSummaryAsync(exercise.Id, otherUserId.ToString(), isAdmin: false);
 
         // Assert
         result.Should().NotBeNull();
@@ -146,7 +146,7 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Archived, hasBeenPublished: true);
         var service = CreateService(context);
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.GetDeleteSummaryAsync(exercise.Id, adminId, isAdmin: true);
@@ -167,7 +167,7 @@ public class ExerciseDeleteServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.GetDeleteSummaryAsync(exercise.Id, userId, isAdmin: false);
+        var result = await service.GetDeleteSummaryAsync(exercise.Id, userId.ToString(), isAdmin: false);
 
         // Assert
         result.Should().NotBeNull();
@@ -182,7 +182,7 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active, hasBeenPublished: true);
         var service = CreateService(context);
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.GetDeleteSummaryAsync(exercise.Id, adminId, isAdmin: true);
@@ -200,7 +200,7 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Completed, hasBeenPublished: true);
         var service = CreateService(context);
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.GetDeleteSummaryAsync(exercise.Id, adminId, isAdmin: true);
@@ -216,7 +216,7 @@ public class ExerciseDeleteServiceTests
     {
         // Arrange
         var (context, org) = CreateTestContext();
-        var creatorId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid().ToString();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false, createdBy: creatorId);
 
         // Add related data
@@ -226,8 +226,8 @@ public class ExerciseDeleteServiceTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -243,8 +243,8 @@ public class ExerciseDeleteServiceTests
             Status = InjectStatus.Pending,
             Sequence = 1,
             MselId = msel.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Injects.Add(inject);
 
@@ -254,8 +254,8 @@ public class ExerciseDeleteServiceTests
             ExerciseId = exercise.Id,
             Name = "Phase 1",
             Sequence = 1,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
 
@@ -264,8 +264,8 @@ public class ExerciseDeleteServiceTests
             Id = Guid.NewGuid(),
             ExerciseId = exercise.Id,
             Content = "Test observation",
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Observations.Add(observation);
 
@@ -297,7 +297,7 @@ public class ExerciseDeleteServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.DeleteExerciseAsync(Guid.NewGuid(), userId, isAdmin: false);
+        var result = await service.DeleteExerciseAsync(Guid.NewGuid(), userId.ToString(), isAdmin: false);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -314,7 +314,7 @@ public class ExerciseDeleteServiceTests
     {
         // Arrange
         var (context, org) = CreateTestContext();
-        var creatorId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid().ToString();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false, createdBy: creatorId);
         var service = CreateService(context);
 
@@ -336,7 +336,7 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Archived, hasBeenPublished: true);
         var service = CreateService(context);
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.DeleteExerciseAsync(exercise.Id, adminId, isAdmin: true);
@@ -359,7 +359,7 @@ public class ExerciseDeleteServiceTests
         var userId = Guid.NewGuid();
 
         // Act
-        var result = await service.DeleteExerciseAsync(exercise.Id, userId, isAdmin: false);
+        var result = await service.DeleteExerciseAsync(exercise.Id, userId.ToString(), isAdmin: false);
 
         // Assert
         result.Success.Should().BeFalse();
@@ -377,7 +377,7 @@ public class ExerciseDeleteServiceTests
         var (context, org) = CreateTestContext();
         var exercise = CreateExercise(context, org, ExerciseStatus.Active, hasBeenPublished: true);
         var service = CreateService(context);
-        var adminId = Guid.NewGuid();
+        var adminId = Guid.NewGuid().ToString();
 
         // Act
         var result = await service.DeleteExerciseAsync(exercise.Id, adminId, isAdmin: true);
@@ -396,7 +396,7 @@ public class ExerciseDeleteServiceTests
     {
         // Arrange
         var (context, org) = CreateTestContext();
-        var creatorId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid().ToString();
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: false, createdBy: creatorId);
 
         // Add related data
@@ -406,8 +406,8 @@ public class ExerciseDeleteServiceTests
             Name = "Test MSEL",
             Version = 1,
             ExerciseId = exercise.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Msels.Add(msel);
 
@@ -426,8 +426,8 @@ public class ExerciseDeleteServiceTests
             Status = InjectStatus.Pending,
             Sequence = 1,
             MselId = msel.Id,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Injects.Add(inject);
 
@@ -437,8 +437,8 @@ public class ExerciseDeleteServiceTests
             ExerciseId = exercise.Id,
             Name = "Phase 1",
             Sequence = 1,
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Phases.Add(phase);
 
@@ -447,8 +447,8 @@ public class ExerciseDeleteServiceTests
             Id = Guid.NewGuid(),
             ExerciseId = exercise.Id,
             Content = "Test observation",
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Observations.Add(observation);
 
@@ -459,8 +459,8 @@ public class ExerciseDeleteServiceTests
             ObjectiveNumber = "1",
             Name = "Test Objective",
             Description = "Description",
-            CreatedBy = Guid.Empty,
-            ModifiedBy = Guid.Empty
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
         };
         context.Objectives.Add(objective);
 
@@ -488,7 +488,7 @@ public class ExerciseDeleteServiceTests
     {
         // Arrange
         var (context, org) = CreateTestContext();
-        var creatorId = Guid.NewGuid();
+        var creatorId = Guid.NewGuid().ToString();
         // Draft but was previously published (HasBeenPublished = true)
         var exercise = CreateExercise(context, org, ExerciseStatus.Draft, hasBeenPublished: true, createdBy: creatorId);
         var service = CreateService(context);

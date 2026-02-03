@@ -1,10 +1,15 @@
 # Feature: Inject Filtering and Search
 
-**Parent Epic:** MSEL Authoring (E4)
+**Phase:** Standard
+**Status:** Not Started
 
-## Description
+## Overview
 
-MSELs can contain dozens or hundreds of injects. This feature provides filtering and search capabilities to help users find specific injects quickly. Filters can be combined and saved, while search provides instant text matching across inject fields.
+This feature provides filtering and search capabilities to help users find specific injects quickly in large MSELs. Filters can be combined and saved, while search provides instant text matching across inject fields.
+
+## Problem Statement
+
+MSELs can contain dozens or hundreds of injects spanning multiple phases, objectives, and delivery methods. During exercise planning and conduct, Controllers need to quickly find specific injects without scrolling through the entire list. Without filtering and search capabilities, users waste valuable time during time-sensitive operations trying to locate the inject they need to fire or review.
 
 ## User Stories
 

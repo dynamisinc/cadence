@@ -16,12 +16,16 @@ public interface IUserService
     /// <param name="pageSize">Number of users per page (default 20, max 100).</param>
     /// <param name="search">Optional search term (filters by name or email).</param>
     /// <param name="role">Optional role filter.</param>
+    /// <param name="status">Optional status filter (Active, Inactive, Pending).</param>
+    /// <param name="organizationId">Optional filter by organization membership.</param>
     /// <returns>Paginated user list with metadata.</returns>
     Task<UserListResponse> GetUsersAsync(
         int page = 1,
         int pageSize = 20,
         string? search = null,
-        string? role = null);
+        string? role = null,
+        string? status = null,
+        Guid? organizationId = null);
 
     /// <summary>
     /// Get a single user by ID.
@@ -63,7 +67,7 @@ public interface IUserService
     /// <exception cref="KeyNotFoundException">User not found.</exception>
     /// <exception cref="ArgumentException">Invalid role.</exception>
     /// <exception cref="InvalidOperationException">Cannot remove last administrator.</exception>
-    Task<UserDto> ChangeRoleAsync(Guid id, string newRole, Guid changedById);
+    Task<UserDto> ChangeRoleAsync(Guid id, string newRole, string changedById);
 
     /// <summary>
     /// Deactivate a user account.
@@ -74,7 +78,7 @@ public interface IUserService
     /// <param name="deactivatedById">Administrator performing deactivation.</param>
     /// <returns>Updated user DTO.</returns>
     /// <exception cref="KeyNotFoundException">User not found.</exception>
-    Task<UserDto> DeactivateUserAsync(Guid id, string? reason, Guid deactivatedById);
+    Task<UserDto> DeactivateUserAsync(Guid id, string? reason, string deactivatedById);
 
     /// <summary>
     /// Reactivate a deactivated user account.
@@ -83,7 +87,7 @@ public interface IUserService
     /// <param name="reactivatedById">Administrator performing reactivation.</param>
     /// <returns>Updated user DTO.</returns>
     /// <exception cref="KeyNotFoundException">User not found.</exception>
-    Task<UserDto> ReactivateUserAsync(Guid id, Guid reactivatedById);
+    Task<UserDto> ReactivateUserAsync(Guid id, string reactivatedById);
 
     /// <summary>
     /// Update a user's current organization context.

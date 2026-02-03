@@ -63,7 +63,7 @@ public interface IAuthenticationService
     /// Revoke all tokens for a user (logout from all devices).
     /// </summary>
     /// <param name="userId">User whose tokens should be revoked.</param>
-    Task RevokeTokensAsync(Guid userId);
+    Task RevokeTokensAsync(string userId);
 
     /// <summary>
     /// Revoke a specific refresh token (single device logout).
@@ -76,7 +76,7 @@ public interface IAuthenticationService
     /// </summary>
     /// <param name="userId">User's unique identifier.</param>
     /// <returns>User information or null if not found.</returns>
-    Task<UserInfo?> GetUserAsync(Guid userId);
+    Task<UserInfo?> GetUserAsync(string userId);
 
     /// <summary>
     /// Get all enabled authentication methods.

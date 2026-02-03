@@ -136,6 +136,7 @@ export const InjectOrganizationProvider = ({
       groupBy,
       expandedGroupIds: Array.from(expandedGroups),
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [exerciseId, searchTerm, filters, sort, groupBy, expandedGroupsKey])
 
   // Reset expanded groups when groupBy ACTUALLY changes (not on initial mount)

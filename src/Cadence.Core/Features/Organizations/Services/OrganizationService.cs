@@ -99,7 +99,7 @@ public class OrganizationService : IOrganizationService
     /// <inheritdoc />
     public async Task<OrganizationDto> CreateAsync(
         CreateOrganizationRequest request,
-        Guid createdByUserId,
+        string createdByUserId,
         CancellationToken cancellationToken = default)
     {
         // Validate slug uniqueness
@@ -152,7 +152,7 @@ public class OrganizationService : IOrganizationService
                     CurrentOrganizationId = organization.Id,
                     Status = UserStatus.Pending,
                     SystemRole = SystemRole.User,
-                    CreatedById = createdByUserId.ToString(),
+                    CreatedById = createdByUserId,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -180,7 +180,7 @@ public class OrganizationService : IOrganizationService
                 Role = OrgRole.OrgAdmin,
                 Status = MembershipStatus.Active,
                 JoinedAt = DateTime.UtcNow,
-                InvitedById = createdByUserId.ToString()
+                InvitedById = createdByUserId
             };
 
             _context.OrganizationMemberships.Add(membership);
@@ -300,7 +300,7 @@ public class OrganizationService : IOrganizationService
     /// <inheritdoc />
     public async Task<OrganizationDto?> ArchiveAsync(
         Guid id,
-        Guid archivedByUserId,
+        string archivedByUserId,
         CancellationToken cancellationToken = default)
     {
         var organization = await _context.Organizations
@@ -326,7 +326,7 @@ public class OrganizationService : IOrganizationService
     /// <inheritdoc />
     public async Task<OrganizationDto?> DeactivateAsync(
         Guid id,
-        Guid deactivatedByUserId,
+        string deactivatedByUserId,
         CancellationToken cancellationToken = default)
     {
         var organization = await _context.Organizations
@@ -352,7 +352,7 @@ public class OrganizationService : IOrganizationService
     /// <inheritdoc />
     public async Task<OrganizationDto?> RestoreAsync(
         Guid id,
-        Guid restoredByUserId,
+        string restoredByUserId,
         CancellationToken cancellationToken = default)
     {
         var organization = await _context.Organizations

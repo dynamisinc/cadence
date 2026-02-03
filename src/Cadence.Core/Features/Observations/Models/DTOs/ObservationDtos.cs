@@ -111,7 +111,7 @@ public record ObservationDto(
     string? Location,
     DateTime CreatedAt,
     DateTime UpdatedAt,
-    Guid? CreatedBy,
+    string? CreatedBy,
     string? CreatedByName,
     string? InjectTitle,
     int? InjectNumber,
@@ -156,7 +156,7 @@ public static class ObservationMapper
             .ToList()
     );
 
-    public static Observation ToEntity(this CreateObservationRequest request, Guid exerciseId, Guid createdBy) => new()
+    public static Observation ToEntity(this CreateObservationRequest request, Guid exerciseId, string createdBy) => new()
     {
         Id = Guid.NewGuid(),
         ExerciseId = exerciseId,
@@ -167,8 +167,8 @@ public static class ObservationMapper
         Recommendation = request.Recommendation,
         ObservedAt = request.ObservedAt ?? DateTime.UtcNow,
         Location = request.Location,
-        // Set both the string FK for ApplicationUser and the Guid for BaseEntity audit
-        CreatedByUserId = createdBy.ToString(),
+        // Set both the string FK for ApplicationUser and the string for BaseEntity audit
+        CreatedByUserId = createdBy,
         CreatedBy = createdBy,
         ModifiedBy = createdBy
     };

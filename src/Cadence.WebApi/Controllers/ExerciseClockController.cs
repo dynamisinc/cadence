@@ -143,14 +143,14 @@ public class ExerciseClockController : ControllerBase
     // Private Helpers
     // =========================================================================
 
-    private Guid GetCurrentUserId()
+    private string GetCurrentUserId()
     {
         var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
         if (string.IsNullOrEmpty(userIdClaim))
         {
             throw new UnauthorizedAccessException("User not authenticated");
         }
-        return Guid.Parse(userIdClaim);
+        return userIdClaim;
     }
 
     private string GetCurrentUserIdString()

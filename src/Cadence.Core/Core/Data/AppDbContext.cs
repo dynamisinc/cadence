@@ -81,7 +81,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<OrganizationMembership> OrganizationMemberships => Set<OrganizationMembership>();
     public DbSet<OrganizationInvite> OrganizationInvites => Set<OrganizationInvite>();
     public DbSet<Agency> Agencies => Set<Agency>();
-    public new DbSet<User> Users => Set<User>();
     public DbSet<ApplicationUser> ApplicationUsers => Set<ApplicationUser>();
     public DbSet<RefreshToken> RefreshTokens => Set<RefreshToken>();
     public DbSet<PasswordResetToken> PasswordResetTokens => Set<PasswordResetToken>();
@@ -119,11 +118,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
             // Configure global datetime2 for all DateTime properties
+            // Configure audit columns (CreatedBy, ModifiedBy, DeletedBy) to nvarchar(450)
             foreach (var property in entityType.GetProperties())
             {
                 if (property.ClrType == typeof(DateTime) || property.ClrType == typeof(DateTime?))
                 {
                     property.SetColumnType("datetime2");
+                }
+
+                // Set audit columns to nvarchar(450) to match ASP.NET Identity and enable indexing
+                if (property.Name is "CreatedBy" or "ModifiedBy" or "DeletedBy" &&
+                    property.ClrType == typeof(string))
+                {
+                    property.SetMaxLength(450);
                 }
             }
 
@@ -166,7 +173,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureOrganizationMembership(modelBuilder);
         ConfigureOrganizationInvite(modelBuilder);
         ConfigureAgency(modelBuilder);
-        ConfigureUser(modelBuilder);
         ConfigureApplicationUser(modelBuilder);
         ConfigureRefreshToken(modelBuilder);
         ConfigurePasswordResetToken(modelBuilder);
@@ -267,8 +273,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 Slug = "default",
                 Description = "Default organization for the Cadence system",
                 Status = OrgStatus.Active,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
+                CreatedBy = SystemConstants.SystemUserIdString,
+                ModifiedBy = SystemConstants.SystemUserIdString,
                 CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                 UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
             });
@@ -366,35 +372,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(o => o.Agencies)
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Cascade);
-        });
-    }
-
-    private static void ConfigureUser(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<User>(entity =>
-        {
-            entity.Property(e => e.Email).HasMaxLength(256).IsRequired();
-            entity.Property(e => e.DisplayName).HasMaxLength(200).IsRequired();
-
-            entity.HasIndex(e => e.Email).IsUnique();
-
-            entity.HasOne(e => e.Organization)
-                .WithMany(o => o.Users)
-                .HasForeignKey(e => e.OrganizationId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            // Seed system user
-            entity.HasData(new User
-            {
-                Id = SystemConstants.SystemUserId,
-                Email = "system@cadence.local",
-                DisplayName = "System",
-                OrganizationId = SystemConstants.DefaultOrganizationId,
-                CreatedBy = SystemConstants.SystemUserId,
-                ModifiedBy = SystemConstants.SystemUserId,
-                CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
-                UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
-            });
         });
     }
 
@@ -880,8 +857,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 1,
                     IsOther = false,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -893,8 +870,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 2,
                     IsOther = false,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -906,8 +883,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 3,
                     IsOther = false,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -919,8 +896,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 4,
                     IsOther = false,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -932,8 +909,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 5,
                     IsOther = false,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -945,8 +922,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 6,
                     IsOther = false,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 },
@@ -958,8 +935,8 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                     IsActive = true,
                     SortOrder = 99,
                     IsOther = true,
-                    CreatedBy = SystemConstants.SystemUserId,
-                    ModifiedBy = SystemConstants.SystemUserId,
+                    CreatedBy = SystemConstants.SystemUserIdString,
+                    ModifiedBy = SystemConstants.SystemUserIdString,
                     CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc),
                     UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
                 }
