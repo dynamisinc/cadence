@@ -106,13 +106,14 @@ jobs:
           CI: true
 
       # Publish clickable test summary in GitHub Actions UI
+      # Note: vitest produces standard JUnit XML, not Jest's variant, so use java-junit
       - name: Publish Test Summary
         uses: dorny/test-reporter@v1
         if: always() && (steps.frontend-tests.outcome == 'success' || steps.frontend-tests.outcome == 'failure')
         with:
           name: Frontend Test Results
           path: src/frontend/test-results/junit.xml
-          reporter: jest-junit
+          reporter: java-junit
           fail-on-error: false
 
       # Upload detailed results as downloadable artifact
