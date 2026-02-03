@@ -131,23 +131,36 @@ Parallel paths:
 
 ## Permission Matrix
 
+Approval permissions are **configurable per organization** (see S11). Default settings shown below:
+
 | Action | Admin | Director | Controller | Evaluator | Observer |
 |--------|:-----:|:--------:|:----------:|:---------:|:--------:|
 | Configure org approval policy | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Configure approval permissions | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Override org policy for exercise | ✅ | ❌ | ❌ | ❌ | ❌ |
 | Configure exercise approval | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Create inject (Draft) | ✅ | ✅ | ✅ | ❌ | ❌ |
 | Edit Draft inject | ✅ | ✅ | Own | ❌ | ❌ |
 | Submit for approval | ✅ | ✅ | ✅ | ❌ | ❌ |
-| Approve inject | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Reject inject | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Approve own inject | ❌ | ❌ | ❌ | ❌ | ❌ |
-| Batch approve | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Approve inject | ✅ | ✅* | ⚙️* | ⚙️* | ❌ |
+| Reject inject | ✅ | ✅* | ⚙️* | ⚙️* | ❌ |
+| Approve own inject | ⚙️ | ⚙️ | ⚙️ | ⚙️ | ❌ |
+| Batch approve | ✅ | ✅* | ⚙️* | ⚙️* | ❌ |
 | Revert approval | ✅ | ✅ | ❌ | ❌ | ❌ |
 | Publish exercise | ✅ | ✅ | ❌ | ❌ | ❌ |
 | View approval queue | ✅ | ✅ | ✅ | ✅ | ✅ |
 
-**Key Rule:** Users cannot approve their own submissions (separation of duties).
+**Legend:**
+- ✅ Always permitted
+- ❌ Never permitted
+- ✅* Default permitted, can be disabled by Admin
+- ⚙️* Configurable by Admin (default: disabled)
+- ⚙️ Configurable via Self-Approval Policy (default: never allowed)
+
+**Self-Approval Policy Options:**
+- Never allowed (default) - Users cannot approve their own submissions
+- Allowed with warning - Users can self-approve with confirmation dialog
+- Always allowed - No restrictions
 
 ## User Stories
 
@@ -158,13 +171,14 @@ Parallel paths:
 | S02 | Exercise Approval Configuration | P1 | 3 | S01 |
 | S03 | Submit Inject for Approval | P0 | 3 | S00 |
 | S04 | Approve or Reject Inject | P0 | 5 | S03 |
-| S05 | Batch Approval Actions | P1 | 5 | S04 |
+| S05 | Batch Approval Actions | P1 | 5 | S04, S11 |
 | S06 | Approval Queue View | P1 | 3 | S03 |
 | S07 | Exercise Go-Live Gate | P0 | 3 | S04 |
 | S08 | Approval Notifications | P2 | 5 | S04, S05 |
 | S09 | Revert Approval Status | P1 | 2 | S04 |
 | S10 | Configurable Status Workflow | P2 | 8 | S00, S01 |
-| **Total** | | | **43** | |
+| S11 | Configurable Approval Permissions | P1 | 5 | S01, S04 |
+| **Total** | | | **48** | |
 
 ## Data Model Changes
 
@@ -430,7 +444,7 @@ Update demo data to include:
 ## Files in This Feature
 
 ```
-docs/features/inject-approval/
+docs/features/inject-approval-workflow/
 ├── FEATURE.md              # This file
 ├── S00-hseep-status-enum.md
 ├── S01-org-approval-config.md
@@ -442,5 +456,6 @@ docs/features/inject-approval/
 ├── S07-exercise-golive-gate.md
 ├── S08-approval-notifications.md
 ├── S09-revert-approval.md
-└── S10-configurable-status-workflow.md
+├── S10-configurable-status-workflow.md
+└── S11-configurable-approval-permissions.md
 ```
