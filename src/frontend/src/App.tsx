@@ -156,6 +156,23 @@ const AuthLayout = () => {
 }
 
 /**
+ * Public Layout Component
+ *
+ * Layout for public pages that don't require authentication but
+ * benefit from the app shell (header, navigation).
+ * Examples: About page, release notes
+ */
+const PublicLayout = () => {
+  return (
+    <BreadcrumbProvider>
+      <AppLayout>
+        <Outlet />
+      </AppLayout>
+    </BreadcrumbProvider>
+  )
+}
+
+/**
  * Router configuration using createBrowserRouter (Data Mode)
  *
  * This enables modern React Router features including:
@@ -176,6 +193,15 @@ const router = createBrowserRouter([
       { path: 'register', element: <RegisterPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+    ],
+  },
+
+  // Public routes with app shell (no auth required)
+  {
+    element: <PublicLayout />,
+    children: [
+      // About page (version info and release notes) - publicly accessible
+      { path: 'about', element: <AboutPage /> },
     ],
   },
 
@@ -216,12 +242,6 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <UserSettingsPage />,
-      },
-
-      // About page (version info and release notes)
-      {
-        path: 'about',
-        element: <AboutPage />,
       },
 
       // Pending user page (no organization assigned)

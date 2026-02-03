@@ -64,11 +64,14 @@ export const LoginPage: FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      const returnUrl = sessionStorage.getItem('returnUrl') || '/'
+      // Check for return URL in location state (set by ProtectedRoute)
+      const stateReturnUrl = (location.state as { from?: { pathname?: string } })?.from?.pathname
+      // Fall back to sessionStorage (for external OAuth returns) or home
+      const returnUrl = stateReturnUrl || sessionStorage.getItem('returnUrl') || '/'
       sessionStorage.removeItem('returnUrl')
       navigate(returnUrl, { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, location.state])
 
   // Load available auth methods on mount
   useEffect(() => {
@@ -177,6 +180,13 @@ export const LoginPage: FC = () => {
     if (isOffline) {
       setError('External sign-in requires internet connection')
       return
+    }
+
+    // Save return URL to sessionStorage before external redirect
+    // (location.state is lost during external OAuth flow)
+    const stateReturnUrl = (location.state as { from?: { pathname?: string } })?.from?.pathname
+    if (stateReturnUrl) {
+      sessionStorage.setItem('returnUrl', stateReturnUrl)
     }
 
     // Phase 3: Redirect to external provider OAuth flow
