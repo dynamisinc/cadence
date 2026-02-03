@@ -64,10 +64,10 @@ const createMockInject = (
 })
 
 describe('groupInjectsForClockDriven', () => {
-  it('puts Ready status injects in ready array', () => {
+  it('puts Synchronized status injects in ready array', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Ready, '00:30:00'),
-      createMockInject('2', InjectStatus.Ready, '00:45:00'),
+      createMockInject('1', InjectStatus.Synchronized, '00:30:00'),
+      createMockInject('2', InjectStatus.Synchronized, '00:45:00'),
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000) // 40 minutes elapsed
@@ -79,11 +79,11 @@ describe('groupInjectsForClockDriven', () => {
     expect(result.completed).toHaveLength(0)
   })
 
-  it('puts Pending injects within 30 min in upcoming array', () => {
+  it('puts Draft injects within 30 min in upcoming array', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Pending, '00:50:00'), // 10 min away
-      createMockInject('2', InjectStatus.Pending, '01:00:00'), // 20 min away
-      createMockInject('3', InjectStatus.Pending, '01:10:00'), // 30 min away
+      createMockInject('1', InjectStatus.Draft, '00:50:00'), // 10 min away
+      createMockInject('2', InjectStatus.Draft, '01:00:00'), // 20 min away
+      createMockInject('3', InjectStatus.Draft, '01:10:00'), // 30 min away
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000) // 40 minutes elapsed
@@ -96,11 +96,11 @@ describe('groupInjectsForClockDriven', () => {
     expect(result.completed).toHaveLength(0)
   })
 
-  it('excludes Pending injects beyond 30 min from upcoming', () => {
+  it('excludes Draft injects beyond 30 min from upcoming', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Pending, '00:50:00'), // 10 min away - included
-      createMockInject('2', InjectStatus.Pending, '01:15:00'), // 35 min away - excluded
-      createMockInject('3', InjectStatus.Pending, '02:00:00'), // 80 min away - excluded
+      createMockInject('1', InjectStatus.Draft, '00:50:00'), // 10 min away - included
+      createMockInject('2', InjectStatus.Draft, '01:15:00'), // 35 min away - excluded
+      createMockInject('3', InjectStatus.Draft, '02:00:00'), // 80 min away - excluded
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000) // 40 minutes elapsed
@@ -109,11 +109,11 @@ describe('groupInjectsForClockDriven', () => {
     expect(result.upcoming[0].id).toBe('1')
   })
 
-  it('puts Fired and Skipped injects in completed array', () => {
+  it('puts Released and Deferred injects in completed array', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Fired, '00:30:00'),
-      createMockInject('2', InjectStatus.Skipped, '00:45:00'),
-      createMockInject('3', InjectStatus.Fired, '01:00:00'),
+      createMockInject('1', InjectStatus.Released, '00:30:00'),
+      createMockInject('2', InjectStatus.Deferred, '00:45:00'),
+      createMockInject('3', InjectStatus.Released, '01:00:00'),
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000)
@@ -128,9 +128,9 @@ describe('groupInjectsForClockDriven', () => {
 
   it('sorts upcoming by DeliveryTime ascending', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Pending, '01:00:00', 1),
-      createMockInject('2', InjectStatus.Pending, '00:50:00', 2),
-      createMockInject('3', InjectStatus.Pending, '00:45:00', 3),
+      createMockInject('1', InjectStatus.Draft, '01:00:00', 1),
+      createMockInject('2', InjectStatus.Draft, '00:50:00', 2),
+      createMockInject('3', InjectStatus.Draft, '00:45:00', 3),
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000) // 40 minutes elapsed
@@ -143,15 +143,15 @@ describe('groupInjectsForClockDriven', () => {
 
   it('handles injects with null deliveryTime', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Pending, null),
-      createMockInject('2', InjectStatus.Ready, null),
+      createMockInject('1', InjectStatus.Draft, null),
+      createMockInject('2', InjectStatus.Synchronized, null),
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000)
 
     // Injects without deliveryTime should not be in upcoming
     expect(result.upcoming).toHaveLength(0)
-    // Ready status still goes to ready regardless of deliveryTime
+    // Synchronized status still goes to ready regardless of deliveryTime
     expect(result.ready).toHaveLength(1)
     expect(result.ready[0].id).toBe('2')
   })
@@ -164,16 +164,16 @@ describe('groupInjectsForClockDriven', () => {
     expect(result.completed).toHaveLength(0)
   })
 
-  it('handles Pending injects that have passed their delivery time', () => {
+  it('handles Draft injects that have passed their delivery time', () => {
     const injects: InjectDto[] = [
-      // This inject's delivery time has passed but it's still Pending (not auto-readied yet)
-      createMockInject('1', InjectStatus.Pending, '00:30:00'),
+      // This inject's delivery time has passed but it's still Draft (not auto-synchronized yet)
+      createMockInject('1', InjectStatus.Draft, '00:30:00'),
     ]
 
     const result = groupInjectsForClockDriven(injects, 40 * 60 * 1000) // 40 minutes elapsed
 
-    // Pending injects that have passed their time should not appear in any section
-    // (They should have been auto-readied by CLK-05, but if not, we don't show them)
+    // Draft injects that have passed their time should not appear in any section
+    // (They should have been auto-synchronized by CLK-05, but if not, we don't show them)
     expect(result.upcoming).toHaveLength(0)
     expect(result.ready).toHaveLength(0)
   })

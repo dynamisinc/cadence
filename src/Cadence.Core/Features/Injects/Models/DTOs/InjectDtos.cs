@@ -424,7 +424,7 @@ public static class InjectMapper
         DeliveryMethodId = request.DeliveryMethodId,
         DeliveryMethodOther = request.DeliveryMethodOther,
         InjectType = request.InjectType,
-        Status = InjectStatus.Pending,
+        Status = InjectStatus.Draft,
         Sequence = sequence,
         ParentInjectId = request.ParentInjectId,
         FireCondition = request.TriggerCondition,

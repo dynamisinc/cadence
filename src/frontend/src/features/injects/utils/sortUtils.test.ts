@@ -30,7 +30,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -205,37 +205,37 @@ describe('sortInjects', () => {
   })
 
   describe('Sort by Status', () => {
-    it('sorts in order: Pending → Fired → Skipped', () => {
+    it('sorts in order: Draft → Released → Deferred', () => {
       const injects = [
-        createInject({ id: '1', status: InjectStatus.Skipped }),
-        createInject({ id: '2', status: InjectStatus.Pending }),
-        createInject({ id: '3', status: InjectStatus.Fired }),
+        createInject({ id: '1', status: InjectStatus.Deferred }),
+        createInject({ id: '2', status: InjectStatus.Draft }),
+        createInject({ id: '3', status: InjectStatus.Released }),
       ]
       const config: SortConfig = { column: 'status', direction: 'asc' }
 
       const result = sortInjects(injects, config)
 
       expect(result.map(i => i.status)).toEqual([
-        InjectStatus.Pending,
-        InjectStatus.Fired,
-        InjectStatus.Skipped,
+        InjectStatus.Draft,
+        InjectStatus.Released,
+        InjectStatus.Deferred,
       ])
     })
 
-    it('sorts descending: Skipped → Fired → Pending', () => {
+    it('sorts descending: Deferred → Released → Draft', () => {
       const injects = [
-        createInject({ id: '1', status: InjectStatus.Pending }),
-        createInject({ id: '2', status: InjectStatus.Skipped }),
-        createInject({ id: '3', status: InjectStatus.Fired }),
+        createInject({ id: '1', status: InjectStatus.Draft }),
+        createInject({ id: '2', status: InjectStatus.Deferred }),
+        createInject({ id: '3', status: InjectStatus.Released }),
       ]
       const config: SortConfig = { column: 'status', direction: 'desc' }
 
       const result = sortInjects(injects, config)
 
       expect(result.map(i => i.status)).toEqual([
-        InjectStatus.Skipped,
-        InjectStatus.Fired,
-        InjectStatus.Pending,
+        InjectStatus.Deferred,
+        InjectStatus.Released,
+        InjectStatus.Draft,
       ])
     })
   })
@@ -280,9 +280,9 @@ describe('sortInjects', () => {
   describe('Stable Sort', () => {
     it('maintains original order for equal values', () => {
       const injects = [
-        createInject({ id: '1', status: InjectStatus.Pending, injectNumber: 1 }),
-        createInject({ id: '2', status: InjectStatus.Pending, injectNumber: 2 }),
-        createInject({ id: '3', status: InjectStatus.Pending, injectNumber: 3 }),
+        createInject({ id: '1', status: InjectStatus.Draft, injectNumber: 1 }),
+        createInject({ id: '2', status: InjectStatus.Draft, injectNumber: 2 }),
+        createInject({ id: '3', status: InjectStatus.Draft, injectNumber: 3 }),
       ]
       const config: SortConfig = { column: 'status', direction: 'asc' }
 

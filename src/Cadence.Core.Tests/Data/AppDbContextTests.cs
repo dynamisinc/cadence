@@ -198,7 +198,7 @@ public class AppDbContextTests
             ScheduledTime = new TimeOnly(9, 0),
             Target = "Test Target",
             InjectType = InjectType.Standard,
-            Status = InjectStatus.Pending,
+            Status = InjectStatus.Draft,
             Sequence = 1,
             MselId = msel.Id,
             CreatedBy = Guid.NewGuid().ToString(),
@@ -214,6 +214,6 @@ public class AppDbContextTests
         saved.Should().NotBeNull();
         saved!.Title.Should().Be("Test Inject");
         saved.Target.Should().Be("Test Target");
-        saved.Status.Should().Be(InjectStatus.Pending);
+        saved.Status.Should().Be(InjectStatus.Draft);
     }
 }

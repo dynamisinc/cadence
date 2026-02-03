@@ -336,15 +336,15 @@ public class InjectsController : ControllerBase
         }
 
         // Apply edit restrictions based on inject status
-        if (inject.Status == InjectStatus.Fired)
+        if (inject.Status == InjectStatus.Released)
         {
-            // Only Notes can be edited on fired injects
+            // Only Notes can be edited on released injects
             inject.ControllerNotes = request.ControllerNotes;
             inject.ModifiedBy = GetCurrentUserId();
         }
         else
         {
-            // Full edit allowed for Pending/Skipped injects
+            // Full edit allowed for Draft/Deferred injects
             inject.UpdateFromRequest(request, GetCurrentUserId());
 
             // Update objective links if provided (only for non-fired injects)
@@ -405,25 +405,25 @@ public class InjectsController : ControllerBase
         }
 
         // Validate inject can be fired based on delivery mode
-        // In clock-driven mode, inject must be Ready
-        // In facilitator-paced mode, inject can be Pending or Ready
+        // In clock-driven mode, inject must be Synchronized
+        // In facilitator-paced mode, inject can be Draft or Synchronized
         if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
         {
-            if (inject.Status != InjectStatus.Ready)
+            if (inject.Status != InjectStatus.Synchronized)
             {
-                return BadRequest(new { message = $"Inject must be Ready to fire in clock-driven mode. Current status: {inject.Status}" });
+                return BadRequest(new { message = $"Inject must be Synchronized to fire in clock-driven mode. Current status: {inject.Status}" });
             }
         }
         else // FacilitatorPaced
         {
-            if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+            if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
             {
-                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Pending or Ready injects can be fired." });
+                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Draft or Synchronized injects can be fired." });
             }
         }
 
         // Fire the inject
-        inject.Status = InjectStatus.Fired;
+        inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
         inject.FiredByUserId = GetCurrentUserIdString();
         inject.ModifiedBy = GetCurrentUserId();
@@ -477,10 +477,10 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Injects can be skipped from Pending or Ready status
-        if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+        // Injects can be skipped from Draft or Synchronized status
+        if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
         {
-            return BadRequest(new { message = $"Only Pending or Ready injects can be skipped. Current status: {inject.Status}" });
+            return BadRequest(new { message = $"Only Draft or Synchronized injects can be skipped. Current status: {inject.Status}" });
         }
 
         // Validate skip reason
@@ -495,7 +495,7 @@ public class InjectsController : ControllerBase
         }
 
         // Skip the inject
-        inject.Status = InjectStatus.Skipped;
+        inject.Status = InjectStatus.Deferred;
         inject.SkippedAt = DateTime.UtcNow;
         inject.SkippedByUserId = GetCurrentUserIdString();
         inject.SkipReason = request.Reason;
@@ -542,14 +542,14 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Only fired or skipped injects can be reset
-        if (inject.Status == InjectStatus.Pending)
+        // Only released or deferred injects can be reset
+        if (inject.Status == InjectStatus.Draft)
         {
-            return BadRequest(new { message = "Inject is already pending" });
+            return BadRequest(new { message = "Inject is already in draft" });
         }
 
         // Reset the inject
-        inject.Status = InjectStatus.Pending;
+        inject.Status = InjectStatus.Draft;
         inject.FiredAt = null;
         inject.FiredByUserId = null;
         inject.SkippedAt = null;

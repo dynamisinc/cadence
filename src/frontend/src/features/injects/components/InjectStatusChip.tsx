@@ -1,64 +1,136 @@
 import { Chip } from '@mui/material'
-import { cobraTheme } from '../../../theme/cobraTheme'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import {
+  faPencil,
+  faClock,
+  faCheck,
+  faCalendarCheck,
+  faPaperPlane,
+  faCircleCheck,
+  faBan,
+  faArchive,
+} from '@fortawesome/free-solid-svg-icons'
+import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
 import type { InjectStatus } from '../../../types'
 
 interface InjectStatusChipProps {
   status: InjectStatus
+  size?: 'small' | 'medium'
 }
 
 /**
- * Get inject status chip colors
- *
- * Per MSEL requirements:
- * - Pending: Gray/neutral (waiting to be delivered)
- * - Fired: Green/success (delivered to players)
- * - Skipped: Orange/warning (intentionally not delivered)
+ * HSEEP-compliant status chip configuration.
+ * Colors and icons per FEMA PrepToolkit visual standards.
  */
-const getInjectStatusChipColor = (
-  status: string,
-): { bg: string; text: string } => {
-  const statusLower = status.toLowerCase()
+interface StatusConfig {
+  label: string
+  bgColor: string
+  textColor: string
+  icon: IconDefinition
+}
 
-  switch (statusLower) {
-    case 'fired':
-      return {
-        bg: cobraTheme.palette.notifications.success,
-        text: cobraTheme.palette.notifications.successText,
-      }
-    case 'skipped':
-      return {
-        bg: cobraTheme.palette.notifications.warning,
-        text: cobraTheme.palette.notifications.warningText,
-      }
-    case 'pending':
-    default:
-      return {
-        bg: cobraTheme.palette.statusChart.grey,
-        text: cobraTheme.palette.text.primary,
-      }
-  }
+const statusConfig: Record<string, StatusConfig> = {
+  Draft: {
+    label: 'Draft',
+    bgColor: '#E0E0E0',
+    textColor: '#616161',
+    icon: faPencil,
+  },
+  Submitted: {
+    label: 'Submitted',
+    bgColor: '#FFE0B2',
+    textColor: '#F57C00',
+    icon: faClock,
+  },
+  Approved: {
+    label: 'Approved',
+    bgColor: '#C8E6C9',
+    textColor: '#388E3C',
+    icon: faCheck,
+  },
+  Synchronized: {
+    label: 'Synchronized',
+    bgColor: '#BBDEFB',
+    textColor: '#1976D2',
+    icon: faCalendarCheck,
+  },
+  Released: {
+    label: 'Released',
+    bgColor: '#E1BEE7',
+    textColor: '#7B1FA2',
+    icon: faPaperPlane,
+  },
+  Complete: {
+    label: 'Complete',
+    bgColor: '#A5D6A7',
+    textColor: '#1B5E20',
+    icon: faCircleCheck,
+  },
+  Deferred: {
+    label: 'Deferred',
+    bgColor: '#FFCC80',
+    textColor: '#E65100',
+    icon: faBan,
+  },
+  Obsolete: {
+    label: 'Obsolete',
+    bgColor: '#F5F5F5',
+    textColor: '#9E9E9E',
+    icon: faArchive,
+  },
 }
 
 /**
- * Status chip for injects with COBRA-compliant colors
- *
- * Per MSEL requirements:
- * - Pending: Gray styling (not yet delivered)
- * - Fired: Green styling (delivered to players)
- * - Skipped: Orange/warning styling (intentionally not delivered)
+ * Get inject status chip configuration
  */
-export const InjectStatusChip = ({ status }: InjectStatusChipProps) => {
-  const colors = getInjectStatusChipColor(status)
+const getStatusConfig = (status: string): StatusConfig => {
+  return (
+    statusConfig[status] || {
+      label: status,
+      bgColor: '#E0E0E0',
+      textColor: '#616161',
+      icon: faPencil,
+    }
+  )
+}
+
+/**
+ * HSEEP-compliant status chip for injects.
+ *
+ * Status colors per FEMA PrepToolkit visual standards:
+ * - Draft: Gray (initial authoring)
+ * - Submitted: Amber (awaiting approval)
+ * - Approved: Green (director approved)
+ * - Synchronized: Blue (scheduled)
+ * - Released: Purple (delivered to players)
+ * - Complete: Dark Green (delivery confirmed)
+ * - Deferred: Orange (cancelled)
+ * - Obsolete: Light Gray (audit trail)
+ */
+export const InjectStatusChip = ({
+  status,
+  size = 'small',
+}: InjectStatusChipProps) => {
+  const config = getStatusConfig(status)
 
   return (
     <Chip
-      label={status}
-      size="small"
+      label={config.label}
+      size={size}
+      icon={
+        <FontAwesomeIcon
+          icon={config.icon}
+          style={{ color: config.textColor, marginLeft: 8 }}
+        />
+      }
       sx={{
-        backgroundColor: colors.bg,
-        color: colors.text,
+        backgroundColor: config.bgColor,
+        color: config.textColor,
         fontWeight: 500,
-        minWidth: 70,
+        minWidth: 90,
+        '& .MuiChip-icon': {
+          color: config.textColor,
+        },
       }}
     />
   )

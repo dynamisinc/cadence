@@ -87,7 +87,7 @@ public class ExerciseStatusServiceTests
             ScheduledTime = new TimeOnly(9, 0),
             Target = "Target",
             InjectType = InjectType.Standard,
-            Status = InjectStatus.Pending,
+            Status = InjectStatus.Draft,
             Sequence = 1,
             MselId = msel.Id,
             CreatedBy = Guid.Empty.ToString(),
@@ -691,7 +691,7 @@ public class ExerciseStatusServiceTests
         var exercise = CreateExercise(context, org, ExerciseStatus.Paused);
         var (_, inject) = CreateInject(context, exercise);
 
-        inject.Status = InjectStatus.Fired;
+        inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
         inject.FiredByUserId = Guid.NewGuid().ToString();
         context.SaveChanges();
@@ -702,7 +702,7 @@ public class ExerciseStatusServiceTests
         await service.RevertToDraftAsync(exercise.Id, userId);
 
         var updatedInject = await context.Injects.FindAsync(inject.Id);
-        updatedInject!.Status.Should().Be(InjectStatus.Pending);
+        updatedInject!.Status.Should().Be(InjectStatus.Draft);
         updatedInject.FiredAt.Should().BeNull();
         updatedInject.FiredByUserId.Should().BeNull();
     }

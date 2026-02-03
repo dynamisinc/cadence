@@ -103,9 +103,9 @@ export const InjectRow = ({
   onReset,
   onClick,
 }: InjectRowProps) => {
-  const isPending = inject.status === InjectStatus.Pending
-  const isFired = inject.status === InjectStatus.Fired
-  const isSkipped = inject.status === InjectStatus.Skipped
+  const isPending = inject.status === InjectStatus.Draft
+  const isFired = inject.status === InjectStatus.Released
+  const isSkipped = inject.status === InjectStatus.Deferred
 
   // Calculate time remaining until this inject is due
   const timeRemainingMs = offsetMs - elapsedTimeMs
@@ -358,7 +358,7 @@ export const InjectRow = ({
               </Tooltip>
             )}
             {(isFired || isSkipped) && (
-              <Tooltip title="Reset to pending">
+              <Tooltip title="Reset to draft">
                 <IconButton
                   size="small"
                   onClick={handleReset}

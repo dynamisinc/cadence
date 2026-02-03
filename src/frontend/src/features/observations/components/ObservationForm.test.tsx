@@ -30,7 +30,7 @@ const createMockInject = (
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -62,34 +62,34 @@ const createMockInject = (
 
 describe('ObservationForm', () => {
   describe('Inject Dropdown Sorting', () => {
-    it('sorts recently fired injects first', async () => {
+    it('sorts recently released injects first', async () => {
       const injects = [
         createMockInject({
           id: 'pending-1',
           injectNumber: 1,
-          title: 'Pending Inject',
-          status: InjectStatus.Pending,
+          title: 'Draft Inject',
+          status: InjectStatus.Draft,
           firedAt: null,
         }),
         createMockInject({
           id: 'fired-early',
           injectNumber: 2,
-          title: 'Early Fired',
-          status: InjectStatus.Fired,
+          title: 'Early Released',
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T09:00:00Z',
         }),
         createMockInject({
           id: 'fired-late',
           injectNumber: 3,
-          title: 'Recent Fired',
-          status: InjectStatus.Fired,
+          title: 'Recent Released',
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z', // Most recent
         }),
         createMockInject({
           id: 'pending-2',
           injectNumber: 4,
-          title: 'Another Pending',
-          status: InjectStatus.Pending,
+          title: 'Another Draft',
+          status: InjectStatus.Draft,
           firedAt: null,
         }),
       ]
@@ -129,20 +129,20 @@ describe('ObservationForm', () => {
           id: 'fired-1',
           injectNumber: 1,
           title: 'Fired Inject',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
         }),
         createMockInject({
           id: 'pending-1',
           injectNumber: 2,
           title: 'Pending Inject',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
         }),
         createMockInject({
           id: 'skipped-1',
           injectNumber: 3,
           title: 'Skipped Inject',
-          status: InjectStatus.Skipped,
+          status: InjectStatus.Deferred,
           skippedAt: '2025-01-01T10:05:00Z',
         }),
       ]
@@ -173,7 +173,7 @@ describe('ObservationForm', () => {
           injectNumber: 1,
           title: 'Media Inquiry',
           description: 'This is a very long description that would normally be truncated',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
         }),
       ]

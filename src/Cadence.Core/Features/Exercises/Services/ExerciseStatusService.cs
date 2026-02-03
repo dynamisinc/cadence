@@ -306,7 +306,7 @@ public class ExerciseStatusService : IExerciseStatusService
 
         foreach (var inject in injects)
         {
-            inject.Status = InjectStatus.Pending;
+            inject.Status = InjectStatus.Draft;
             inject.FiredAt = null;
             inject.FiredByUserId = null;
             inject.SkippedAt = null;

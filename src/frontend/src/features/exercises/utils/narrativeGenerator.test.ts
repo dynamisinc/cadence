@@ -30,7 +30,7 @@ const createMockInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: 'Standard',
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -62,10 +62,10 @@ const createMockInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
 
 describe('narrativeGenerator', () => {
   describe('generateStorySoFar', () => {
-    it('returns empty array when no fired injects', () => {
+    it('returns empty array when no released injects', () => {
       const injects = [
-        createMockInject({ status: InjectStatus.Pending }),
-        createMockInject({ status: InjectStatus.Pending }),
+        createMockInject({ status: InjectStatus.Draft }),
+        createMockInject({ status: InjectStatus.Draft }),
       ]
 
       const result = generateStorySoFar(injects)
@@ -73,17 +73,17 @@ describe('narrativeGenerator', () => {
       expect(result).toEqual([])
     })
 
-    it('returns descriptions of fired injects', () => {
+    it('returns descriptions of released injects', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T09:00:00Z',
           description: 'Hurricane watch issued.',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           description: 'This should not appear.',
         }),
       ]
@@ -94,17 +94,17 @@ describe('narrativeGenerator', () => {
       expect(result[0]).toContain('Hurricane watch issued.')
     })
 
-    it('sorts fired injects by firedAt ascending (oldest first)', () => {
+    it('sorts released injects by firedAt ascending (oldest first)', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
           description: 'Second event.',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T09:00:00Z',
           description: 'First event.',
         }),
@@ -116,26 +116,26 @@ describe('narrativeGenerator', () => {
       expect(result[1]).toContain('Second event.')
     })
 
-    it('excludes skipped injects', () => {
+    it('excludes deferred injects', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T09:00:00Z',
-          description: 'Fired inject.',
+          description: 'Released inject.',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Skipped,
+          status: InjectStatus.Deferred,
           skippedAt: '2025-01-01T09:30:00Z',
-          description: 'This was skipped.',
+          description: 'This was deferred.',
         }),
       ]
 
       const result = generateStorySoFar(injects)
 
       expect(result).toHaveLength(1)
-      expect(result.join('')).not.toContain('skipped')
+      expect(result.join('')).not.toContain('deferred')
     })
   })
 

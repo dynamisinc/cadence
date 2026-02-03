@@ -132,7 +132,7 @@ export const useInjects = (exerciseId: string) => {
           inject.id === id
             ? {
               ...inject,
-              status: InjectStatus.Fired,
+              status: InjectStatus.Released,
               firedAt: new Date().toISOString(),
               updatedAt: new Date().toISOString(),
             }
@@ -178,7 +178,7 @@ export const useInjects = (exerciseId: string) => {
           inject.id === id
             ? {
               ...inject,
-              status: InjectStatus.Skipped,
+              status: InjectStatus.Deferred,
               skippedAt: new Date().toISOString(),
               skipReason: request.reason,
               updatedAt: new Date().toISOString(),
@@ -224,7 +224,7 @@ export const useInjects = (exerciseId: string) => {
           inject.id === id
             ? {
               ...inject,
-              status: InjectStatus.Pending,
+              status: InjectStatus.Draft,
               firedAt: null,
               firedBy: null,
               firedByName: null,
@@ -250,7 +250,7 @@ export const useInjects = (exerciseId: string) => {
         injectKeys.detail(exerciseId, resetInject.id),
         resetInject,
       )
-      toast.success('Inject reset to pending')
+      toast.success('Inject reset to draft')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -388,7 +388,7 @@ export const useInjects = (exerciseId: string) => {
 
     const optimisticInject: InjectDto = {
       ...existingInject,
-      status: InjectStatus.Fired,
+      status: InjectStatus.Released,
       firedAt,
       firedByName: 'You (offline)',
       updatedAt: firedAt,
@@ -438,7 +438,7 @@ export const useInjects = (exerciseId: string) => {
 
     const optimisticInject: InjectDto = {
       ...existingInject,
-      status: InjectStatus.Skipped,
+      status: InjectStatus.Deferred,
       skippedAt,
       skipReason: request.reason ?? null,
       skippedByName: 'You (offline)',
@@ -488,7 +488,7 @@ export const useInjects = (exerciseId: string) => {
 
     const optimisticInject: InjectDto = {
       ...existingInject,
-      status: InjectStatus.Pending,
+      status: InjectStatus.Draft,
       firedAt: null,
       firedBy: null,
       firedByName: null,

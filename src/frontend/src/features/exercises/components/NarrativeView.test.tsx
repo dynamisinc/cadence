@@ -30,7 +30,7 @@ const createMockInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: 'Standard',
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -143,7 +143,7 @@ describe('NarrativeView', () => {
     it('renders current phase name', () => {
       const injects = [
         createMockInject({
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
           phaseName: 'Evacuation Phase',
         }),
@@ -182,7 +182,7 @@ describe('NarrativeView', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T09:00:00Z',
           description: 'Hurricane Maria strengthened to Category 2.',
         }),
@@ -205,7 +205,7 @@ describe('NarrativeView', () => {
       render(
         <NarrativeView
           exercise={createMockExercise()}
-          injects={[createMockInject({ status: InjectStatus.Pending })]}
+          injects={[createMockInject({ status: InjectStatus.Draft })]}
           observations={[]}
           displayTime="00:15:20"
           elapsedTimeMs={920000}
@@ -235,7 +235,7 @@ describe('NarrativeView', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           sequence: 1,
           target: 'EOC Director',
           source: 'NWS',
@@ -276,14 +276,14 @@ describe('NarrativeView', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           sequence: 1,
           title: 'Media Inquiry',
           target: 'PIO',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           sequence: 2,
           title: 'Shelter Capacity',
           target: 'Shelter Manager',
@@ -344,7 +344,7 @@ describe('NarrativeView', () => {
 
   describe('Read-Only Nature', () => {
     it('does not render fire buttons', () => {
-      const injects = [createMockInject({ status: InjectStatus.Pending })]
+      const injects = [createMockInject({ status: InjectStatus.Draft })]
 
       render(
         <NarrativeView
@@ -360,7 +360,7 @@ describe('NarrativeView', () => {
     })
 
     it('does not render skip buttons', () => {
-      const injects = [createMockInject({ status: InjectStatus.Pending })]
+      const injects = [createMockInject({ status: InjectStatus.Draft })]
 
       render(
         <NarrativeView

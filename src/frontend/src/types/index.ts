@@ -245,20 +245,50 @@ export const InjectType = {
 export type InjectType = (typeof InjectType)[keyof typeof InjectType]
 
 /**
- * Inject delivery status during exercise conduct
+ * HSEEP-compliant inject status values per FEMA PrepToolkit.
+ * These statuses align with standard exercise management terminology
+ * to ensure consistency with federal guidance and training materials.
  */
 export const InjectStatus = {
-  /** Inject is waiting; delivery time not yet reached */
-  Pending: 'Pending',
-  /** Inject is ready to fire; delivery time reached (clock-driven mode) */
-  Ready: 'Ready',
-  /** Inject has been delivered to players */
-  Fired: 'Fired',
-  /** Inject was intentionally not delivered */
-  Skipped: 'Skipped',
+  /** Initial status during design and development phase. Inject is being authored. */
+  Draft: 'Draft',
+  /** Event has been sent for review by Exercise Director. Awaiting approval. */
+  Submitted: 'Submitted',
+  /** Event has been approved for use. Director has signed off on the content. */
+  Approved: 'Approved',
+  /** Approved event is ready and scheduled for a specific time. */
+  Synchronized: 'Synchronized',
+  /** Event has been delivered to players in real time. Controller has "fired" the inject. */
+  Released: 'Released',
+  /** Event delivery confirmed, exercise has moved past this inject. */
+  Complete: 'Complete',
+  /** A synchronized event that was cancelled before delivery. */
+  Deferred: 'Deferred',
+  /** Event should be ignored but remains in MSEL for audit trail. */
+  Obsolete: 'Obsolete',
 } as const
 
 export type InjectStatus = (typeof InjectStatus)[keyof typeof InjectStatus]
+
+/**
+ * Statuses that indicate an inject is "active" (not terminal).
+ */
+export const ACTIVE_INJECT_STATUSES: InjectStatus[] = [
+  InjectStatus.Draft,
+  InjectStatus.Submitted,
+  InjectStatus.Approved,
+  InjectStatus.Synchronized,
+]
+
+/**
+ * Statuses that indicate an inject is "terminal" (conduct complete).
+ */
+export const TERMINAL_INJECT_STATUSES: InjectStatus[] = [
+  InjectStatus.Released,
+  InjectStatus.Complete,
+  InjectStatus.Deferred,
+  InjectStatus.Obsolete,
+]
 
 /**
  * Methods for delivering injects to players

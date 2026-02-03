@@ -28,7 +28,7 @@ describe('FireConfirmationDialog', () => {
     deliveryMethodName: 'Email',
     deliveryMethodOther: null,
     injectType: InjectType.Standard,
-    status: InjectStatus.Pending,
+    status: InjectStatus.Draft,
     sequence: 3,
     parentInjectId: null,
     triggerCondition: null,

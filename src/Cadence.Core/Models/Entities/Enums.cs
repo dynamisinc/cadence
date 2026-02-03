@@ -69,21 +69,68 @@ public enum InjectType
 }
 
 /// <summary>
-/// Inject delivery status during exercise conduct.
+/// HSEEP-compliant inject status values per FEMA PrepToolkit.
+/// These statuses align with standard exercise management terminology
+/// to ensure consistency with federal guidance and training materials.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
 public enum InjectStatus
 {
-    /// <summary>Inject is waiting; delivery time not yet reached.</summary>
-    Pending = 0,
+    /// <summary>
+    /// Initial status during design and development phase.
+    /// Inject is being authored and is not ready for review or use.
+    /// </summary>
+    Draft = 0,
 
-    /// <summary>Inject is ready to fire; delivery time reached (clock-driven mode).</summary>
-    Ready = 1,
+    /// <summary>
+    /// Event has been sent for review by Exercise Director.
+    /// Awaiting approval before it can be scheduled for delivery.
+    /// Only used when approval workflow is enabled.
+    /// </summary>
+    Submitted = 1,
 
-    /// <summary>Inject has been delivered to players.</summary>
-    Fired = 2,
+    /// <summary>
+    /// Event has been approved for use in the exercise.
+    /// Director has reviewed and signed off on the content.
+    /// Ready to be scheduled with a specific delivery time.
+    /// </summary>
+    Approved = 2,
 
-    /// <summary>Inject was intentionally not delivered.</summary>
-    Skipped = 3
+    /// <summary>
+    /// Approved event is ready and scheduled for a specific time.
+    /// The inject has a scheduled delivery time and will appear
+    /// in the Controller's queue when that time approaches.
+    /// </summary>
+    Synchronized = 3,
+
+    /// <summary>
+    /// Event has been delivered to players in real time.
+    /// Controller has "fired" the inject - delivered the message
+    /// via the specified delivery method (phone, email, radio, etc.).
+    /// </summary>
+    Released = 4,
+
+    /// <summary>
+    /// Event delivery confirmed, exercise has moved past this inject.
+    /// The inject has been delivered and any expected player actions
+    /// have occurred or the time window has passed.
+    /// </summary>
+    Complete = 5,
+
+    /// <summary>
+    /// A synchronized event that was cancelled before delivery.
+    /// The inject was scheduled but was skipped during conduct,
+    /// typically due to time constraints or scenario changes.
+    /// Requires a reason to be recorded for after-action review.
+    /// </summary>
+    Deferred = 6,
+
+    /// <summary>
+    /// Event should be ignored but remains in MSEL for audit trail.
+    /// Used for injects that were removed during planning but need
+    /// to be retained for historical record. Soft-delete pattern.
+    /// </summary>
+    Obsolete = 7
 }
 
 /// <summary>

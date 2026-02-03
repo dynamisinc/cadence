@@ -97,36 +97,36 @@ describe('GroupHeader', () => {
   })
 
   describe('Status-based styling', () => {
-    it('applies success badge color for Fired status', () => {
+    it('applies success badge color for Released status', () => {
       const { container } = renderWithTheme(
         <GroupHeader
           {...defaultProps}
           groupBy="status"
-          statusValue={InjectStatus.Fired}
+          statusValue={InjectStatus.Released}
         />,
       )
       const badge = container.querySelector('.MuiBadge-colorSuccess')
       expect(badge).toBeInTheDocument()
     })
 
-    it('applies warning badge color for Skipped status', () => {
+    it('applies warning badge color for Deferred status', () => {
       const { container } = renderWithTheme(
         <GroupHeader
           {...defaultProps}
           groupBy="status"
-          statusValue={InjectStatus.Skipped}
+          statusValue={InjectStatus.Deferred}
         />,
       )
       const badge = container.querySelector('.MuiBadge-colorWarning')
       expect(badge).toBeInTheDocument()
     })
 
-    it('applies default badge color for Pending status', () => {
+    it('applies default badge color for Draft status', () => {
       const { container } = renderWithTheme(
         <GroupHeader
           {...defaultProps}
           groupBy="status"
-          statusValue={InjectStatus.Pending}
+          statusValue={InjectStatus.Draft}
         />,
       )
       // Default color in MUI v7 uses standard variant

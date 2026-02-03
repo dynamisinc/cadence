@@ -71,7 +71,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: overrides.sequence || 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -124,10 +124,10 @@ describe('FacilitatorPacedConductView', () => {
   it('shows progress indicator', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Released }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Draft }),
     ]
 
     render(
@@ -146,7 +146,7 @@ describe('FacilitatorPacedConductView', () => {
   it('shows current inject panel', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending, title: 'First Pending Inject' }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft, title: 'First Pending Inject' }),
     ]
 
     render(
@@ -167,8 +167,8 @@ describe('FacilitatorPacedConductView', () => {
   it('shows up next section with upcoming injects', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending, title: 'Next Inject' }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft, title: 'Next Inject' }),
     ]
 
     render(
@@ -188,8 +188,8 @@ describe('FacilitatorPacedConductView', () => {
   it('shows completed section with fired and skipped injects', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
     ]
 
     render(
@@ -208,8 +208,8 @@ describe('FacilitatorPacedConductView', () => {
   it('advances to next inject after firing', async () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending, title: 'First Inject' }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending, title: 'Second Inject' }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft, title: 'First Inject' }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft, title: 'Second Inject' }),
     ]
     const onFire = vi.fn()
 
@@ -232,8 +232,8 @@ describe('FacilitatorPacedConductView', () => {
 
     // Simulate inject being fired (status change)
     const updatedInjects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired, title: 'First Inject' }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending, title: 'Second Inject' }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released, title: 'First Inject' }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft, title: 'Second Inject' }),
     ]
 
     rerender(
@@ -253,9 +253,9 @@ describe('FacilitatorPacedConductView', () => {
   it('opens jump confirmation dialog when Jump clicked', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
     ]
 
     render(
@@ -280,9 +280,9 @@ describe('FacilitatorPacedConductView', () => {
   it('calls onJumpTo when jump confirmed', async () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
     ]
     const onJumpTo = vi.fn()
 
@@ -311,8 +311,8 @@ describe('FacilitatorPacedConductView', () => {
   it('shows Exercise Complete when all injects done', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Fired }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Released }),
     ]
 
     render(
@@ -331,7 +331,7 @@ describe('FacilitatorPacedConductView', () => {
   it('respects canControl prop', () => {
     const exercise = createExercise()
     const injects = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
     ]
 
     render(

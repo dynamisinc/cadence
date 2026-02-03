@@ -92,12 +92,12 @@ export const ObservationForm = ({
     return () => clearTimeout(timer)
   }, [])
 
-  // Sort injects: recently fired first, then by sequence
+  // Sort injects: recently released first, then by sequence
   const sortedInjects = useMemo(() => {
     return [...injects].sort((a, b) => {
-      // Fired injects first, sorted by firedAt descending (most recent first)
-      const aIsFired = a.status === InjectStatus.Fired
-      const bIsFired = b.status === InjectStatus.Fired
+      // Released injects first, sorted by firedAt descending (most recent first)
+      const aIsFired = a.status === InjectStatus.Released
+      const bIsFired = b.status === InjectStatus.Released
       const aIsSkipped = a.status === InjectStatus.Skipped
 
       if (aIsFired && !bIsFired) return -1

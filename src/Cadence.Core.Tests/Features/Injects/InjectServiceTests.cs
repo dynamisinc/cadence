@@ -80,7 +80,7 @@ public class InjectServiceTests
     private Inject CreateInject(
         Guid mselId,
         int injectNumber,
-        InjectStatus status = InjectStatus.Pending,
+        InjectStatus status = InjectStatus.Draft,
         string? userId = null)
     {
         var actualUserId = userId ?? Guid.NewGuid().ToString();
@@ -107,7 +107,7 @@ public class InjectServiceTests
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext();
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -119,7 +119,7 @@ public class InjectServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Fired);
+        updated!.Status.Should().Be(InjectStatus.Released);
         updated.FiredByUserId.Should().Be(userId.ToString());
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when firing an inject");
         updated.FiredAt.Should().NotBeNull();
@@ -135,7 +135,7 @@ public class InjectServiceTests
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext(status: ExerciseStatus.Draft);
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -147,11 +147,11 @@ public class InjectServiceTests
     }
 
     [Fact]
-    public async Task FireInject_ClockDriven_RequiresReadyStatus()
+    public async Task FireInject_ClockDriven_RequiresSynchronizedStatus()
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext(deliveryMode: DeliveryMode.ClockDriven);
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -171,7 +171,7 @@ public class InjectServiceTests
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext();
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -183,7 +183,7 @@ public class InjectServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Skipped);
+        updated!.Status.Should().Be(InjectStatus.Deferred);
         updated.SkippedByUserId.Should().Be(userId.ToString());
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when skipping an inject");
         updated.SkippedAt.Should().NotBeNull();
@@ -199,7 +199,7 @@ public class InjectServiceTests
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext(status: ExerciseStatus.Draft);
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -211,11 +211,11 @@ public class InjectServiceTests
     }
 
     [Fact]
-    public async Task SkipInject_AlreadyFired_ThrowsInvalidOperationException()
+    public async Task SkipInject_AlreadyReleased_ThrowsInvalidOperationException()
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext();
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Released, userId);
         inject.FiredAt = DateTime.UtcNow;
         inject.FiredByUserId = userId.ToString();
         context.Injects.Add(inject);
@@ -233,11 +233,11 @@ public class InjectServiceTests
     #region ResetInjectAsync Tests
 
     [Fact]
-    public async Task ResetInject_FiredInject_SetsModifiedBy()
+    public async Task ResetInject_ReleasedInject_SetsModifiedBy()
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext();
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Released, userId);
         inject.FiredAt = DateTime.UtcNow.AddMinutes(-5);
         inject.FiredByUserId = userId.ToString();
         context.Injects.Add(inject);
@@ -251,7 +251,7 @@ public class InjectServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.FiredAt.Should().BeNull();
         updated.FiredByUserId.Should().BeNull();
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when resetting an inject");
@@ -262,11 +262,11 @@ public class InjectServiceTests
     }
 
     [Fact]
-    public async Task ResetInject_SkippedInject_SetsModifiedBy()
+    public async Task ResetInject_DeferredInject_SetsModifiedBy()
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext();
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Skipped, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Deferred, userId);
         inject.SkippedAt = DateTime.UtcNow.AddMinutes(-5);
         inject.SkippedByUserId = userId.ToString();
         context.Injects.Add(inject);
@@ -280,7 +280,7 @@ public class InjectServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.SkippedAt.Should().BeNull();
         updated.SkippedByUserId.Should().BeNull();
         updated.ModifiedBy.Should().Be(userId, "ModifiedBy should be set when resetting an inject");
@@ -291,11 +291,11 @@ public class InjectServiceTests
     }
 
     [Fact]
-    public async Task ResetInject_ReadyInject_ClearsReadyAt()
+    public async Task ResetInject_SynchronizedInject_ClearsReadyAt()
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext();
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Ready, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Synchronized, userId);
         inject.ReadyAt = DateTime.UtcNow.AddMinutes(-2);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
@@ -308,7 +308,7 @@ public class InjectServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.ReadyAt.Should().BeNull();
         updated.ModifiedBy.Should().Be(userId);
 
@@ -322,7 +322,7 @@ public class InjectServiceTests
     {
         // Arrange
         var (context, _, exercise, msel, userId) = CreateTestContext(status: ExerciseStatus.Draft);
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, userId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Released, userId);
         inject.FiredAt = DateTime.UtcNow.AddMinutes(-5);
         inject.FiredByUserId = userId.ToString();
         context.Injects.Add(inject);
@@ -347,7 +347,7 @@ public class InjectServiceTests
         var controllerUserId = Guid.NewGuid();
         var supervisorUserId = Guid.NewGuid();
 
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, creatorUserId);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, creatorUserId);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 

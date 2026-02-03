@@ -95,9 +95,9 @@ const mockExercise: ExerciseDto = {
 describe('ClockDrivenConductView', () => {
   it('renders sections when DeliveryMode is ClockDriven', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Ready, '00:30:00', 1),
-      createMockInject('2', InjectStatus.Pending, '00:50:00', 2),
-      createMockInject('3', InjectStatus.Fired, '00:20:00', 3),
+      createMockInject('1', InjectStatus.Synchronized, '00:30:00', 1),
+      createMockInject('2', InjectStatus.Draft, '00:50:00', 2),
+      createMockInject('3', InjectStatus.Released, '00:20:00', 3),
     ]
 
     render(
@@ -116,10 +116,10 @@ describe('ClockDrivenConductView', () => {
     expect(screen.getByText(/COMPLETED/i)).toBeInTheDocument()
   })
 
-  it('shows Ready injects in Ready to Fire section', () => {
+  it('shows Synchronized injects in Ready to Fire section', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Ready, '00:30:00', 1),
-      createMockInject('2', InjectStatus.Ready, '00:45:00', 2),
+      createMockInject('1', InjectStatus.Synchronized, '00:30:00', 1),
+      createMockInject('2', InjectStatus.Synchronized, '00:45:00', 2),
     ]
 
     render(
@@ -142,7 +142,7 @@ describe('ClockDrivenConductView', () => {
 
   it('shows countdown for upcoming injects', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Pending, '00:50:00', 1), // 10 min away
+      createMockInject('1', InjectStatus.Draft, '00:50:00', 1), // 10 min away
     ]
 
     render(
@@ -161,7 +161,7 @@ describe('ClockDrivenConductView', () => {
 
   it('collapses Completed section by default', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Fired, '00:30:00', 1),
+      createMockInject('1', InjectStatus.Released, '00:30:00', 1),
     ]
 
     render(
@@ -181,9 +181,9 @@ describe('ClockDrivenConductView', () => {
     // Note: This depends on implementation - the section might use Collapse component
   })
 
-  it('shows "No injects ready" message when 0 Ready injects', () => {
+  it('shows "No injects ready" message when 0 Synchronized injects', () => {
     const injects: InjectDto[] = [
-      createMockInject('1', InjectStatus.Pending, '01:00:00', 1),
+      createMockInject('1', InjectStatus.Draft, '01:00:00', 1),
     ]
 
     render(

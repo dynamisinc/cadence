@@ -130,9 +130,9 @@ export const InjectDetailDrawer = ({
 }: InjectDetailDrawerProps) => {
   if (!inject) return null
 
-  const isPending = inject.status === InjectStatus.Pending
-  const isFired = inject.status === InjectStatus.Fired
-  const isSkipped = inject.status === InjectStatus.Skipped
+  const isPending = inject.status === InjectStatus.Draft
+  const isFired = inject.status === InjectStatus.Released
+  const isSkipped = inject.status === InjectStatus.Deferred
 
   const handleFire = () => {
     if (onFire) onFire(inject.id)
@@ -629,7 +629,7 @@ export const InjectDetailDrawer = ({
                     onClick={handleReset}
                     disabled={isSubmitting}
                   >
-                    Reset to Pending
+                    Reset to Draft
                   </CobraDeleteButton>
                 )}
               </Stack>

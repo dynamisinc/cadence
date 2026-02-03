@@ -33,7 +33,7 @@ const createInject = (overrides: Partial<InjectDto>): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: overrides.sequence || 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -64,11 +64,11 @@ const createInject = (overrides: Partial<InjectDto>): InjectDto => ({
 })
 
 describe('getCurrentInject', () => {
-  it('returns first pending inject by sequence', () => {
+  it('returns first draft inject by sequence', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
     ]
 
     const result = getCurrentInject(injects)
@@ -78,10 +78,10 @@ describe('getCurrentInject', () => {
     expect(result?.sequence).toBe(1)
   })
 
-  it('returns null when no pending injects', () => {
+  it('returns null when no draft injects', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Skipped }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Deferred }),
     ]
 
     const result = getCurrentInject(injects)
@@ -89,10 +89,10 @@ describe('getCurrentInject', () => {
     expect(result).toBeNull()
   })
 
-  it('ignores fired injects', () => {
+  it('ignores released injects', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
     ]
 
     const result = getCurrentInject(injects)
@@ -101,10 +101,10 @@ describe('getCurrentInject', () => {
     expect(result?.id).toBe('inject-2')
   })
 
-  it('ignores skipped injects', () => {
+  it('ignores deferred injects', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Skipped }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Deferred }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
     ]
 
     const result = getCurrentInject(injects)
@@ -121,12 +121,12 @@ describe('getCurrentInject', () => {
 })
 
 describe('getUpNextInjects', () => {
-  it('returns next N pending injects after current sequence', () => {
+  it('returns next N draft injects after current sequence', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Draft }),
     ]
 
     const result = getUpNextInjects(injects, 1, 2)
@@ -138,11 +138,11 @@ describe('getUpNextInjects', () => {
 
   it('defaults to 3 injects when count not specified', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Draft }),
     ]
 
     const result = getUpNextInjects(injects, 1)
@@ -153,13 +153,13 @@ describe('getUpNextInjects', () => {
     expect(result[2].id).toBe('inject-4')
   })
 
-  it('ignores fired and skipped injects', () => {
+  it('ignores released and deferred injects', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Skipped }),
-      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Released }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Deferred }),
+      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Draft }),
     ]
 
     const result = getUpNextInjects(injects, 1, 3)
@@ -171,7 +171,7 @@ describe('getUpNextInjects', () => {
 
   it('returns empty array when no injects after current', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
     ]
 
     const result = getUpNextInjects(injects, 5)
@@ -181,8 +181,8 @@ describe('getUpNextInjects', () => {
 
   it('returns fewer injects if not enough available', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Released }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
     ]
 
     const result = getUpNextInjects(injects, 1, 5)
@@ -193,10 +193,10 @@ describe('getUpNextInjects', () => {
 
   it('sorts by sequence ascending', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
     ]
 
     const result = getUpNextInjects(injects, 1, 3)
@@ -209,12 +209,12 @@ describe('getUpNextInjects', () => {
 })
 
 describe('getInjectsToSkip', () => {
-  it('returns pending injects between current and target', () => {
+  it('returns draft injects between current and target', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Draft }),
     ]
 
     const result = getInjectsToSkip(injects, 1, 4)
@@ -228,8 +228,8 @@ describe('getInjectsToSkip', () => {
 
   it('excludes target inject', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
     ]
 
     const result = getInjectsToSkip(injects, 1, 2)
@@ -238,17 +238,17 @@ describe('getInjectsToSkip', () => {
     expect(result[0].id).toBe('inject-1')
   })
 
-  it('only includes pending injects', () => {
+  it('only includes draft injects', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Fired }),
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Released }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-4', sequence: 4, status: InjectStatus.Draft }),
     ]
 
     const result = getInjectsToSkip(injects, 1, 4)
 
-    // Should only include pending injects 1 and 3, not fired inject 2
+    // Should only include draft injects 1 and 3, not released inject 2
     expect(result).toHaveLength(2)
     expect(result[0].id).toBe('inject-1')
     expect(result[1].id).toBe('inject-3')
@@ -256,7 +256,7 @@ describe('getInjectsToSkip', () => {
 
   it('returns empty array when current equals target', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
     ]
 
     const result = getInjectsToSkip(injects, 1, 1)
@@ -266,8 +266,8 @@ describe('getInjectsToSkip', () => {
 
   it('returns empty array when no injects between current and target', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
     ]
 
     const result = getInjectsToSkip(injects, 1, 2)
@@ -279,10 +279,10 @@ describe('getInjectsToSkip', () => {
 
   it('sorts by sequence ascending', () => {
     const injects: InjectDto[] = [
-      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Pending }),
-      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Pending }),
+      createInject({ id: 'inject-3', sequence: 3, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-1', sequence: 1, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-2', sequence: 2, status: InjectStatus.Draft }),
+      createInject({ id: 'inject-5', sequence: 5, status: InjectStatus.Draft }),
     ]
 
     const result = getInjectsToSkip(injects, 1, 5)

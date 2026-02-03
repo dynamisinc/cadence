@@ -147,8 +147,8 @@ public class AssignmentService : IAssignmentService
             CompletedAt = exercise.CompletedAt,
             AssignedAt = participant.AssignedAt,
             TotalInjects = injects.Count(i => !i.IsDeleted),
-            FiredInjects = injects.Count(i => !i.IsDeleted && i.Status == InjectStatus.Fired),
-            ReadyInjects = injects.Count(i => !i.IsDeleted && i.Status == InjectStatus.Ready),
+            FiredInjects = injects.Count(i => !i.IsDeleted && i.Status == InjectStatus.Released),
+            ReadyInjects = injects.Count(i => !i.IsDeleted && i.Status == InjectStatus.Synchronized),
             Location = exercise.Location,
             TimeZoneId = exercise.TimeZoneId
         };

@@ -38,10 +38,10 @@ public class ProgressMetricsService : IProgressMetricsService
 
         // Calculate inject counts
         var totalInjects = injects.Count;
-        var firedCount = injects.Count(i => i.Status == InjectStatus.Fired);
-        var skippedCount = injects.Count(i => i.Status == InjectStatus.Skipped);
-        var readyCount = injects.Count(i => i.Status == InjectStatus.Ready);
-        var pendingCount = injects.Count(i => i.Status == InjectStatus.Pending || i.Status == InjectStatus.Ready);
+        var firedCount = injects.Count(i => i.Status == InjectStatus.Released);
+        var skippedCount = injects.Count(i => i.Status == InjectStatus.Deferred);
+        var readyCount = injects.Count(i => i.Status == InjectStatus.Synchronized);
+        var pendingCount = injects.Count(i => i.Status == InjectStatus.Draft || i.Status == InjectStatus.Synchronized);
 
         var progressPercentage = totalInjects > 0
             ? Math.Round((decimal)(firedCount + skippedCount) / totalInjects * 100, 1)
@@ -68,7 +68,7 @@ public class ProgressMetricsService : IProgressMetricsService
 
         // Get next 3 upcoming injects (pending or ready, ordered by sequence)
         var nextInjects = injects
-            .Where(i => i.Status == InjectStatus.Pending || i.Status == InjectStatus.Ready)
+            .Where(i => i.Status == InjectStatus.Draft || i.Status == InjectStatus.Synchronized)
             .OrderBy(i => i.Sequence)
             .Take(3)
             .Select(i => new UpcomingInjectDto
@@ -116,7 +116,7 @@ public class ProgressMetricsService : IProgressMetricsService
 
         // Find most recently fired inject
         var lastFired = injects
-            .Where(i => i.Status == InjectStatus.Fired && i.FiredAt.HasValue)
+            .Where(i => i.Status == InjectStatus.Released && i.FiredAt.HasValue)
             .OrderByDescending(i => i.FiredAt)
             .FirstOrDefault();
 
@@ -125,7 +125,7 @@ public class ProgressMetricsService : IProgressMetricsService
 
         // Fall back to first pending inject's phase
         var firstPending = injects
-            .Where(i => i.Status == InjectStatus.Pending || i.Status == InjectStatus.Ready)
+            .Where(i => i.Status == InjectStatus.Draft || i.Status == InjectStatus.Synchronized)
             .OrderBy(i => i.Sequence)
             .FirstOrDefault();
 

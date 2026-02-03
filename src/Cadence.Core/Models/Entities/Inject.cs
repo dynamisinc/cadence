@@ -93,9 +93,9 @@ public class Inject : BaseEntity
     public InjectType InjectType { get; set; } = InjectType.Standard;
 
     /// <summary>
-    /// Current status (Pending, Fired, Skipped).
+    /// Current status (Draft, Synchronized, Released, Deferred).
     /// </summary>
-    public InjectStatus Status { get; set; } = InjectStatus.Pending;
+    public InjectStatus Status { get; set; } = InjectStatus.Draft;
 
     /// <summary>
     /// Display order within the MSEL.

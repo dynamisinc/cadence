@@ -83,9 +83,9 @@ public class MselService : IMselService
     {
         var injects = msel.Injects.ToList();
         var totalInjects = injects.Count;
-        var pendingCount = injects.Count(i => i.Status == InjectStatus.Pending);
-        var firedCount = injects.Count(i => i.Status == InjectStatus.Fired);
-        var skippedCount = injects.Count(i => i.Status == InjectStatus.Skipped);
+        var pendingCount = injects.Count(i => i.Status == InjectStatus.Draft);
+        var firedCount = injects.Count(i => i.Status == InjectStatus.Released);
+        var skippedCount = injects.Count(i => i.Status == InjectStatus.Deferred);
 
         // Calculate completion percentage
         var completionPercentage = totalInjects > 0

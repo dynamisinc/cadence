@@ -31,7 +31,7 @@ const mockInject: InjectDto = {
   deliveryMethodId: null,
   deliveryMethodName: null,
   deliveryMethodOther: null,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   scheduledTime: '10:00:00',
   deliveryTime: null,
   scenarioDay: 1,

@@ -44,7 +44,7 @@ const createMockInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: 'Standard',
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -209,37 +209,37 @@ describe('InjectRow', () => {
       expect(screen.getByText('Hurricane Warning Upgraded')).toBeInTheDocument()
     })
 
-    it('renders pending status chip', () => {
-      const inject = createMockInject({ status: InjectStatus.Pending })
+    it('renders draft status chip', () => {
+      const inject = createMockInject({ status: InjectStatus.Draft })
 
       renderInjectRow({ inject, offsetMs: 0 })
 
-      expect(screen.getByText('Pending')).toBeInTheDocument()
+      expect(screen.getByText('Draft')).toBeInTheDocument()
     })
 
-    it('renders fired status chip', () => {
+    it('renders released status chip', () => {
       const inject = createMockInject({
-        status: InjectStatus.Fired,
+        status: InjectStatus.Released,
         firedAt: '2025-01-01T10:00:00Z',
       })
 
       renderInjectRow({ inject, offsetMs: 0 })
 
-      expect(screen.getByText('Fired')).toBeInTheDocument()
+      expect(screen.getByText('Released')).toBeInTheDocument()
     })
   })
 
   describe('Action Buttons', () => {
-    it('shows fire button for pending inject when canControl is true', () => {
-      const inject = createMockInject({ status: InjectStatus.Pending })
+    it('shows fire button for draft inject when canControl is true', () => {
+      const inject = createMockInject({ status: InjectStatus.Draft })
 
       renderInjectRow({ inject, offsetMs: 0, canControl: true, showFireButton: true })
 
       expect(screen.getByRole('button', { name: /Fire inject/i })).toBeInTheDocument()
     })
 
-    it('shows skip button for pending inject when canControl is true', () => {
-      const inject = createMockInject({ status: InjectStatus.Pending })
+    it('shows skip button for draft inject when canControl is true', () => {
+      const inject = createMockInject({ status: InjectStatus.Draft })
 
       renderInjectRow({ inject, offsetMs: 0, canControl: true })
 
@@ -247,7 +247,7 @@ describe('InjectRow', () => {
     })
 
     it('hides action buttons when canControl is false', () => {
-      const inject = createMockInject({ status: InjectStatus.Pending })
+      const inject = createMockInject({ status: InjectStatus.Draft })
 
       renderInjectRow({ inject, offsetMs: 0, canControl: false })
 
@@ -257,7 +257,7 @@ describe('InjectRow', () => {
 
     it('calls onFire when fire button clicked', () => {
       const onFire = vi.fn()
-      const inject = createMockInject({ id: 'inject-123', status: InjectStatus.Pending })
+      const inject = createMockInject({ id: 'inject-123', status: InjectStatus.Draft })
 
       renderInjectRow({ inject, offsetMs: 0, canControl: true, showFireButton: true, onFire })
 

@@ -103,7 +103,7 @@ public class ExercisesController : ControllerBase
                     ? _context.Injects.Count(i => i.MselId == e.ActiveMselId)
                     : 0,
                 FiredInjectCount = e.ActiveMselId != null
-                    ? _context.Injects.Count(i => i.MselId == e.ActiveMselId && i.Status == InjectStatus.Fired)
+                    ? _context.Injects.Count(i => i.MselId == e.ActiveMselId && i.Status == InjectStatus.Released)
                     : 0
             })
             .ToListAsync();
@@ -510,7 +510,7 @@ public class ExercisesController : ControllerBase
                     Source = sourceInject.Source,
                     DeliveryMethod = sourceInject.DeliveryMethod,
                     InjectType = sourceInject.InjectType,
-                    Status = InjectStatus.Pending, // Always reset to Pending
+                    Status = InjectStatus.Draft, // Always reset to Draft
                     Sequence = sourceInject.Sequence,
                     ParentInjectId = null,
                     FireCondition = sourceInject.FireCondition,

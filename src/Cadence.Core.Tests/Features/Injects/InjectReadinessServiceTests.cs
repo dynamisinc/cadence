@@ -87,7 +87,7 @@ public class InjectReadinessServiceTests
     private Inject CreateInject(
         Guid mselId,
         int injectNumber,
-        InjectStatus status = InjectStatus.Pending,
+        InjectStatus status = InjectStatus.Draft,
         TimeSpan? deliveryTime = null)
     {
         return new Inject
@@ -110,14 +110,14 @@ public class InjectReadinessServiceTests
     #region EvaluateExerciseAsync Tests
 
     [Fact]
-    public async Task EvaluateExercise_ClockDriven_TransitionsPendingToReady()
+    public async Task EvaluateExercise_ClockDriven_TransitionsDraftToSynchronized()
     {
         // Arrange - Exercise running for 30 minutes
         var (context, _, exercise, msel) = CreateTestContext(
             clockStartedAt: DateTime.UtcNow.AddMinutes(-30));
 
         // Inject due at 15 minutes (past due)
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -129,7 +129,7 @@ public class InjectReadinessServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Ready);
+        updated!.Status.Should().Be(InjectStatus.Synchronized);
         updated.ReadyAt.Should().NotBeNull();
         updated.ReadyAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
 
@@ -146,7 +146,7 @@ public class InjectReadinessServiceTests
             deliveryMode: DeliveryMode.FacilitatorPaced,
             clockStartedAt: DateTime.UtcNow.AddMinutes(-30));
 
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -158,7 +158,7 @@ public class InjectReadinessServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.ReadyAt.Should().BeNull();
 
         _hubContextMock.Verify(
@@ -175,7 +175,7 @@ public class InjectReadinessServiceTests
             clockStartedAt: null,
             clockElapsedBeforePause: TimeSpan.FromMinutes(30));
 
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -187,7 +187,7 @@ public class InjectReadinessServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.ReadyAt.Should().BeNull();
 
         _hubContextMock.Verify(
@@ -202,9 +202,9 @@ public class InjectReadinessServiceTests
         var (context, _, exercise, msel) = CreateTestContext(
             clockStartedAt: DateTime.UtcNow.AddMinutes(-60));
 
-        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
-        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Pending, TimeSpan.FromMinutes(30));
-        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Pending, TimeSpan.FromMinutes(45));
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Draft, TimeSpan.FromMinutes(30));
+        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Draft, TimeSpan.FromMinutes(45));
         context.Injects.AddRange(inject1, inject2, inject3);
         await context.SaveChangesAsync();
 
@@ -218,9 +218,9 @@ public class InjectReadinessServiceTests
         var updated2 = await context.Injects.FindAsync(inject2.Id);
         var updated3 = await context.Injects.FindAsync(inject3.Id);
 
-        updated1!.Status.Should().Be(InjectStatus.Ready);
-        updated2!.Status.Should().Be(InjectStatus.Ready);
-        updated3!.Status.Should().Be(InjectStatus.Ready);
+        updated1!.Status.Should().Be(InjectStatus.Synchronized);
+        updated2!.Status.Should().Be(InjectStatus.Synchronized);
+        updated3!.Status.Should().Be(InjectStatus.Synchronized);
 
         _hubContextMock.Verify(
             h => h.NotifyInjectReadyToFire(exercise.Id, It.IsAny<Cadence.Core.Features.Injects.Models.DTOs.InjectDto>()),
@@ -228,13 +228,13 @@ public class InjectReadinessServiceTests
     }
 
     [Fact]
-    public async Task EvaluateExercise_AlreadyFired_NoChange()
+    public async Task EvaluateExercise_AlreadyReleased_NoChange()
     {
         // Arrange - Exercise running for 30 minutes
         var (context, _, exercise, msel) = CreateTestContext(
             clockStartedAt: DateTime.UtcNow.AddMinutes(-30));
 
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Fired, TimeSpan.FromMinutes(15));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Released, TimeSpan.FromMinutes(15));
         inject.FiredAt = DateTime.UtcNow.AddMinutes(-10);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
@@ -247,7 +247,7 @@ public class InjectReadinessServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Fired);
+        updated!.Status.Should().Be(InjectStatus.Released);
         updated.ReadyAt.Should().BeNull();
 
         _hubContextMock.Verify(
@@ -262,7 +262,7 @@ public class InjectReadinessServiceTests
         var (context, _, exercise, msel) = CreateTestContext(
             clockStartedAt: DateTime.UtcNow.AddMinutes(-30));
 
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, deliveryTime: null);
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, deliveryTime: null);
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -274,7 +274,7 @@ public class InjectReadinessServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.ReadyAt.Should().BeNull();
 
         _hubContextMock.Verify(
@@ -290,7 +290,7 @@ public class InjectReadinessServiceTests
             clockStartedAt: DateTime.UtcNow.AddMinutes(-30));
 
         // Inject due at 60 minutes (not yet reached)
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(60));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(60));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -302,7 +302,7 @@ public class InjectReadinessServiceTests
         // Assert
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Pending);
+        updated!.Status.Should().Be(InjectStatus.Draft);
         updated.ReadyAt.Should().BeNull();
 
         _hubContextMock.Verify(
@@ -354,7 +354,7 @@ public class InjectReadinessServiceTests
             clockElapsedBeforePause: TimeSpan.FromMinutes(20));
 
         // Inject due at 25 minutes (20 before pause + 5 after resume = 25 total)
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(25));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(25));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -366,7 +366,7 @@ public class InjectReadinessServiceTests
         // Assert - Should be ready (30 minutes total: 20 before pause + 10 after resume)
         var updated = await context.Injects.FindAsync(inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Ready);
+        updated!.Status.Should().Be(InjectStatus.Synchronized);
         updated.ReadyAt.Should().NotBeNull();
 
         _hubContextMock.Verify(
@@ -455,8 +455,8 @@ public class InjectReadinessServiceTests
         context.Msels.AddRange(msel1, msel2);
 
         // Add injects to both MSELs
-        var inject1 = CreateInject(msel1.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
-        var inject2 = CreateInject(msel2.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(20));
+        var inject1 = CreateInject(msel1.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
+        var inject2 = CreateInject(msel2.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(20));
         context.Injects.AddRange(inject1, inject2);
 
         await context.SaveChangesAsync();
@@ -470,8 +470,8 @@ public class InjectReadinessServiceTests
         var updated1 = await context.Injects.FindAsync(inject1.Id);
         var updated2 = await context.Injects.FindAsync(inject2.Id);
 
-        updated1!.Status.Should().Be(InjectStatus.Ready);
-        updated2!.Status.Should().Be(InjectStatus.Ready);
+        updated1!.Status.Should().Be(InjectStatus.Synchronized);
+        updated2!.Status.Should().Be(InjectStatus.Synchronized);
 
         _hubContextMock.Verify(
             h => h.NotifyInjectReadyToFire(It.IsAny<Guid>(), It.IsAny<Cadence.Core.Features.Injects.Models.DTOs.InjectDto>()),
@@ -600,7 +600,7 @@ public class InjectReadinessServiceTests
     #region Concurrency Tests
 
     [Fact]
-    public async Task EvaluateExercise_InjectFiredConcurrently_DoesNotOverwriteFiredStatus()
+    public async Task EvaluateExercise_InjectReleasedConcurrently_DoesNotOverwriteReleasedStatus()
     {
         // Arrange - Use a named database so we can create a second context
         var dbName = Guid.NewGuid().ToString();
@@ -648,7 +648,7 @@ public class InjectReadinessServiceTests
         context.Msels.Add(msel);
 
         // Inject due at 15 minutes (past due, should become Ready)
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -658,7 +658,7 @@ public class InjectReadinessServiceTests
         // Create a second context sharing the same in-memory database
         using var concurrentContext = TestDbContextFactory.Create(dbName);
         var injectToFire = await concurrentContext.Injects.FindAsync(inject.Id);
-        injectToFire!.Status = InjectStatus.Fired;
+        injectToFire!.Status = InjectStatus.Released;
         injectToFire.FiredAt = DateTime.UtcNow;
         injectToFire.FiredByUserId = Guid.NewGuid().ToString();
         await concurrentContext.SaveChangesAsync();
@@ -669,7 +669,7 @@ public class InjectReadinessServiceTests
         // Assert - Should NOT overwrite Fired status
         var updated = await context.Injects.AsNoTracking().FirstOrDefaultAsync(i => i.Id == inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Fired, "fired status should not be overwritten by background service");
+        updated!.Status.Should().Be(InjectStatus.Released, "fired status should not be overwritten by background service");
         updated.FiredAt.Should().NotBeNull("FiredAt should not be cleared");
         updated.FiredByUserId.Should().NotBeNull("FiredBy should not be cleared");
         updated.ReadyAt.Should().BeNull("ReadyAt should not be set if inject was already fired");
@@ -681,7 +681,7 @@ public class InjectReadinessServiceTests
     }
 
     [Fact]
-    public async Task EvaluateExercise_InjectSkippedConcurrently_DoesNotOverwriteSkippedStatus()
+    public async Task EvaluateExercise_InjectDeferredConcurrently_DoesNotOverwriteDeferredStatus()
     {
         // Arrange - Use a named database so we can create a second context
         var dbName = Guid.NewGuid().ToString();
@@ -728,7 +728,7 @@ public class InjectReadinessServiceTests
         context.Exercises.Add(exercise);
         context.Msels.Add(msel);
 
-        var inject = CreateInject(msel.Id, 1, InjectStatus.Pending, TimeSpan.FromMinutes(15));
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, TimeSpan.FromMinutes(15));
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
@@ -737,7 +737,7 @@ public class InjectReadinessServiceTests
         // Simulate concurrent skip - Create a second context sharing the same in-memory database
         using var concurrentContext = TestDbContextFactory.Create(dbName);
         var injectToSkip = await concurrentContext.Injects.FindAsync(inject.Id);
-        injectToSkip!.Status = InjectStatus.Skipped;
+        injectToSkip!.Status = InjectStatus.Deferred;
         injectToSkip.SkippedAt = DateTime.UtcNow;
         injectToSkip.SkippedByUserId = Guid.NewGuid().ToString();
         injectToSkip.SkipReason = "No longer relevant";
@@ -749,7 +749,7 @@ public class InjectReadinessServiceTests
         // Assert - Should NOT overwrite Skipped status
         var updated = await context.Injects.AsNoTracking().FirstOrDefaultAsync(i => i.Id == inject.Id);
         updated.Should().NotBeNull();
-        updated!.Status.Should().Be(InjectStatus.Skipped);
+        updated!.Status.Should().Be(InjectStatus.Deferred);
         updated.SkippedAt.Should().NotBeNull();
         updated.SkippedByUserId.Should().NotBeNull();
         updated.ReadyAt.Should().BeNull();

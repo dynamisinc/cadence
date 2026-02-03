@@ -95,7 +95,7 @@ const createMockInject = (
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -402,21 +402,21 @@ describe('StickyClockHeader', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-14T10:00:00Z',
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-14T10:30:00Z',
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
         createMockInject({
           id: '3',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
@@ -431,13 +431,13 @@ describe('StickyClockHeader', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
@@ -452,7 +452,7 @@ describe('StickyClockHeader', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: null,
           phaseName: null,
         }),
@@ -482,9 +482,9 @@ describe('StickyClockHeader', () => {
 
     it('shows correct progress count with pending injects', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Pending }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Draft }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
 
       renderWithTheme(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -494,9 +494,9 @@ describe('StickyClockHeader', () => {
 
     it('counts fired injects in progress', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-14T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Fired, firedAt: '2025-01-14T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-14T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Released, firedAt: '2025-01-14T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
 
       renderWithTheme(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -506,9 +506,9 @@ describe('StickyClockHeader', () => {
 
     it('counts skipped injects in progress', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-14T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-14T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-14T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-14T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
 
       renderWithTheme(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -518,9 +518,9 @@ describe('StickyClockHeader', () => {
 
     it('shows 100% progress when all injects completed', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-14T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-14T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Fired, firedAt: '2025-01-14T10:10:00Z' }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-14T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-14T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Released, firedAt: '2025-01-14T10:10:00Z' }),
       ]
 
       renderWithTheme(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -530,10 +530,10 @@ describe('StickyClockHeader', () => {
 
     it('renders progress bar with correct percentage', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-14T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
-        createMockInject({ id: '4', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-14T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
+        createMockInject({ id: '4', status: InjectStatus.Draft }),
       ]
 
       const { container } = render(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -546,8 +546,8 @@ describe('StickyClockHeader', () => {
 
     it('renders 0% progress bar when no injects completed', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Pending }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Draft }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
       ]
 
       const { container } = render(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -558,8 +558,8 @@ describe('StickyClockHeader', () => {
 
     it('renders 100% progress bar when all injects completed', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-14T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-14T10:05:00Z' }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-14T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-14T10:05:00Z' }),
       ]
 
       const { container } = render(<StickyClockHeader {...defaultProps} injects={injects} />)
@@ -613,7 +613,7 @@ describe('StickyClockHeader', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),

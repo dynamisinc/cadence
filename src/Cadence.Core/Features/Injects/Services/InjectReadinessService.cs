@@ -73,7 +73,7 @@ public class InjectReadinessService : IInjectReadinessService
     {
         var exercise = await _context.Exercises
             .Include(e => e.ActiveMsel)
-                .ThenInclude(m => m!.Injects.Where(i => i.Status == InjectStatus.Pending && i.DeliveryTime != null))
+                .ThenInclude(m => m!.Injects.Where(i => i.Status == InjectStatus.Draft && i.DeliveryTime != null))
             .FirstOrDefaultAsync(e => e.Id == exerciseId, ct);
 
         if (exercise == null)
@@ -112,7 +112,7 @@ public class InjectReadinessService : IInjectReadinessService
 
         // Find injects that should be ready
         var candidateInjects = exercise.ActiveMsel.Injects
-            .Where(i => i.Status == InjectStatus.Pending)
+            .Where(i => i.Status == InjectStatus.Draft)
             .Where(i => i.DeliveryTime.HasValue)
             .Where(i => i.DeliveryTime!.Value <= elapsedTime)
             .ToList();
@@ -129,25 +129,25 @@ public class InjectReadinessService : IInjectReadinessService
         // This ensures we work with the most current data
         var injectsToUpdate = await _context.Injects
             .Where(i => injectIds.Contains(i.Id))
-            .Where(i => i.Status == InjectStatus.Pending) // Only get injects still Pending
+            .Where(i => i.Status == InjectStatus.Draft) // Only get injects still Draft
             .ToListAsync(ct);
 
         if (injectsToUpdate.Count == 0)
         {
             _logger.LogDebug(
-                "No injects transitioned to Ready for exercise {ExerciseId} (all candidates were modified concurrently)",
+                "No injects transitioned to Synchronized for exercise {ExerciseId} (all candidates were modified concurrently)",
                 exerciseId);
             return;
         }
 
-        // Update the injects that are still Pending
+        // Update the injects that are still Draft
         foreach (var inject in injectsToUpdate)
         {
-            inject.Status = InjectStatus.Ready;
+            inject.Status = InjectStatus.Synchronized;
             inject.ReadyAt = readyAt;
 
             _logger.LogInformation(
-                "Inject {InjectId} (#{InjectNumber}) transitioned to Ready in exercise {ExerciseId} " +
+                "Inject {InjectId} (#{InjectNumber}) transitioned to Synchronized in exercise {ExerciseId} " +
                 "(DeliveryTime: {DeliveryTime}, Elapsed: {Elapsed})",
                 inject.Id,
                 inject.InjectNumber,
@@ -156,15 +156,15 @@ public class InjectReadinessService : IInjectReadinessService
                 elapsedTime);
         }
 
-        // Save changes - this will only update injects that were still Pending when we queried
+        // Save changes - this will only update injects that were still Draft when we queried
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation(
-            "Transitioned {Count} injects to Ready for exercise {ExerciseId}",
+            "Transitioned {Count} injects to Synchronized for exercise {ExerciseId}",
             injectsToUpdate.Count,
             exerciseId);
 
-        // Broadcast each Ready transition
+        // Broadcast each Synchronized transition
         foreach (var inject in injectsToUpdate)
         {
             try

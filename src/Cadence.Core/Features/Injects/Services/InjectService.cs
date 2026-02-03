@@ -32,24 +32,24 @@ public class InjectService : IInjectService
         }
 
         // Validate inject can be fired based on delivery mode
-        // In clock-driven mode, inject must be Ready
-        // In facilitator-paced mode, inject can be Pending or Ready
+        // In clock-driven mode, inject must be Synchronized
+        // In facilitator-paced mode, inject can be Draft or Synchronized
         if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
         {
-            if (inject.Status != InjectStatus.Ready)
+            if (inject.Status != InjectStatus.Synchronized)
             {
-                throw new InvalidOperationException($"Inject must be Ready to fire in clock-driven mode. Current status: {inject.Status}");
+                throw new InvalidOperationException($"Inject must be Synchronized to fire in clock-driven mode. Current status: {inject.Status}");
             }
         }
         else // FacilitatorPaced
         {
-            if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+            if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
             {
-                throw new InvalidOperationException($"Inject is already {inject.Status}. Only Pending or Ready injects can be fired.");
+                throw new InvalidOperationException($"Inject is already {inject.Status}. Only Draft or Synchronized injects can be fired.");
             }
         }
 
-        inject.Status = InjectStatus.Fired;
+        inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
         // FiredByUserId is null for system auto-fire, otherwise store the user's ID
         inject.FiredByUserId = userId;
@@ -76,13 +76,13 @@ public class InjectService : IInjectService
             throw new InvalidOperationException($"Cannot skip inject. Exercise is {exercise.Status}. Injects can only be skipped during an active exercise.");
         }
 
-        // Injects can be skipped from Pending or Ready status
-        if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+        // Injects can be skipped from Draft or Synchronized status
+        if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
         {
-            throw new InvalidOperationException($"Inject is already {inject.Status}. Only Pending or Ready injects can be skipped.");
+            throw new InvalidOperationException($"Inject is already {inject.Status}. Only Draft or Synchronized injects can be skipped.");
         }
 
-        inject.Status = InjectStatus.Skipped;
+        inject.Status = InjectStatus.Deferred;
         inject.SkippedAt = DateTime.UtcNow;
         inject.SkippedByUserId = userId;
         inject.ModifiedBy = userId;
@@ -108,7 +108,7 @@ public class InjectService : IInjectService
             throw new InvalidOperationException($"Cannot reset inject. Exercise is {exercise.Status}. Injects can only be reset during an active exercise.");
         }
 
-        inject.Status = InjectStatus.Pending;
+        inject.Status = InjectStatus.Draft;
         inject.ReadyAt = null;
         inject.FiredAt = null;
         inject.FiredByUserId = null;

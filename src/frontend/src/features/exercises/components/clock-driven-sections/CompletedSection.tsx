@@ -1,7 +1,7 @@
 /**
  * CompletedSection
  *
- * Displays fired and skipped injects in a collapsible section.
+ * Displays released and deferred injects in a collapsible section.
  * Collapsed by default to keep focus on upcoming work.
  *
  * @module features/exercises
@@ -36,7 +36,7 @@ import { InjectStatus } from '../../../../types'
 import { formatDeliveryTime, parseDeliveryTime, formatScenarioTime } from '../../../injects/types'
 
 interface CompletedSectionProps {
-  /** Fired and skipped injects */
+  /** Released and deferred injects */
   injects: InjectDto[]
   /** Whether section is expanded */
   expanded: boolean
@@ -57,8 +57,8 @@ export const CompletedSection = ({
     return null
   }
 
-  const firedCount = injects.filter(i => i.status === InjectStatus.Fired).length
-  const skippedCount = injects.filter(i => i.status === InjectStatus.Skipped).length
+  const firedCount = injects.filter(i => i.status === InjectStatus.Released).length
+  const skippedCount = injects.filter(i => i.status === InjectStatus.Deferred).length
 
   return (
     <Paper variant="outlined">
@@ -88,7 +88,7 @@ export const CompletedSection = ({
         <Stack direction="row" spacing={1}>
           {firedCount > 0 && (
             <Chip
-              label={`${firedCount} fired`}
+              label={`${firedCount} released`}
               size="small"
               color="success"
               variant="outlined"
@@ -96,7 +96,7 @@ export const CompletedSection = ({
           )}
           {skippedCount > 0 && (
             <Chip
-              label={`${skippedCount} skipped`}
+              label={`${skippedCount} deferred`}
               size="small"
               color="warning"
               variant="outlined"
@@ -115,8 +115,8 @@ export const CompletedSection = ({
           <Table size="small">
             <TableBody>
               {injects.map(inject => {
-                const isFired = inject.status === InjectStatus.Fired
-                const isSkipped = inject.status === InjectStatus.Skipped
+                const isFired = inject.status === InjectStatus.Released
+                const isSkipped = inject.status === InjectStatus.Deferred
                 const actionTime = isFired ? inject.firedAt : inject.skippedAt
                 const actionBy = isFired ? inject.firedByName : inject.skippedByName
                 const deliveryTimeMs = parseDeliveryTime(inject.deliveryTime)

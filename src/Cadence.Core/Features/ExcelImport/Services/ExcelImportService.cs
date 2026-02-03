@@ -564,7 +564,7 @@ public class ExcelImportService : IExcelImportService
                     MselId = msel.Id,
                     InjectNumber = currentMaxInjectNumber,
                     Sequence = currentMaxSequence,
-                    Status = InjectStatus.Pending,
+                    Status = InjectStatus.Draft,
                     TriggerType = TriggerType.Manual
                 };
 
