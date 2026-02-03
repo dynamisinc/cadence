@@ -567,6 +567,76 @@ public class InjectService : IInjectService
         return result;
     }
 
+    /// <inheritdoc />
+    public async Task<InjectDto> RevertApprovalAsync(Guid exerciseId, Guid injectId, string userId, string reason, CancellationToken cancellationToken = default)
+    {
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate approval workflow is enabled
+        if (!exercise.RequireInjectApproval)
+        {
+            throw new InvalidOperationException(
+                "Cannot revert approval - approval workflow is not enabled for this exercise.");
+        }
+
+        // Validate current status - only Approved injects can be reverted
+        if (inject.Status != InjectStatus.Approved)
+        {
+            throw new InvalidOperationException(
+                $"Only Approved injects can be reverted. Current status: {inject.Status}");
+        }
+
+        // Validate reason is provided and has minimum length
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidOperationException("Revert reason is required.");
+        }
+        if (reason.Length < 10)
+        {
+            throw new InvalidOperationException("Revert reason must be at least 10 characters.");
+        }
+
+        // Record who reverted and why
+        inject.RevertedByUserId = userId;
+        inject.RevertedAt = DateTime.UtcNow;
+        inject.RevertReason = reason;
+
+        // Clear approval info
+        inject.ApprovedByUserId = null;
+        inject.ApprovedAt = null;
+        inject.ApproverNotes = null;
+
+        // Return to Submitted status
+        inject.Status = InjectStatus.Submitted;
+
+        // Re-set submission timestamp (keep original submitter)
+        inject.SubmittedAt = DateTime.UtcNow;
+
+        inject.ModifiedBy = userId;
+
+        // Record status history
+        var history = new InjectStatusHistory
+        {
+            Id = Guid.NewGuid(),
+            InjectId = inject.Id,
+            FromStatus = InjectStatus.Approved,
+            ToStatus = InjectStatus.Submitted,
+            ChangedByUserId = userId,
+            ChangedAt = DateTime.UtcNow,
+            Notes = $"Approval reverted: {reason}",
+            CreatedBy = userId,
+            ModifiedBy = userId
+        };
+        _context.InjectStatusHistories.Add(history);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var dto = inject.ToDto();
+        await _hubContext.NotifyInjectReverted(exerciseId, dto);
+
+        return dto;
+    }
+
     private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)
     {
         var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)

@@ -80,4 +80,14 @@ public interface IInjectService
     /// <param name="userId">The user who is rejecting (must be Director or Admin)</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task<BatchApprovalResult> BatchRejectAsync(Guid exerciseId, IEnumerable<Guid> injectIds, string reason, string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Revert an approved inject back to Submitted status for re-review.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectId">The inject ID</param>
+    /// <param name="userId">The user who is reverting (must be Director or Admin)</param>
+    /// <param name="reason">Required revert reason</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<InjectDto> RevertApprovalAsync(Guid exerciseId, Guid injectId, string userId, string reason, CancellationToken cancellationToken = default);
 }

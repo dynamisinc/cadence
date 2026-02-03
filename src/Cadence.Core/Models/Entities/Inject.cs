@@ -261,6 +261,24 @@ public class Inject : BaseEntity
     /// </summary>
     public string? RejectionReason { get; set; }
 
+    /// <summary>
+    /// ApplicationUser ID who reverted an approved inject back to submitted.
+    /// Set when inject transitions from Approved back to Submitted.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
+    /// </summary>
+    public string? RevertedByUserId { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when the inject approval was reverted.
+    /// </summary>
+    public DateTime? RevertedAt { get; set; }
+
+    /// <summary>
+    /// Reason for reverting the approval. Max 1000 characters.
+    /// Visible to the inject author and approver.
+    /// </summary>
+    public string? RevertReason { get; set; }
+
     // =========================================================================
     // Foreign Keys
     // =========================================================================
@@ -353,6 +371,13 @@ public class Inject : BaseEntity
     /// May be null if inject not rejected or if the user has been deactivated.
     /// </summary>
     public ApplicationUser? RejectedByUser { get; set; }
+
+    /// <summary>
+    /// The user who reverted this inject's approval.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if inject approval not reverted or if the user has been deactivated.
+    /// </summary>
+    public ApplicationUser? RevertedByUser { get; set; }
 
     /// <summary>
     /// Status change history for audit trail.

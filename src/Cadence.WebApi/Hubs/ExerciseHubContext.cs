@@ -148,6 +148,22 @@ public class ExerciseHubContext : IExerciseHubContext
     }
 
     /// <inheritdoc />
+    public async Task NotifyInjectReverted(Guid exerciseId, InjectDto inject)
+    {
+        var group = _hubContext.Clients.Group(GetGroupName(exerciseId));
+
+        // Send both specific and generic events
+        await Task.WhenAll(
+            group.SendAsync("InjectReverted", inject),
+            group.SendAsync("InjectStatusChanged", inject)
+        );
+
+        _logger.LogDebug(
+            "Broadcast InjectReverted for inject {InjectId} to exercise {ExerciseId}",
+            inject.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
     public async Task NotifyClockStarted(Guid exerciseId, ClockStateDto clockState)
     {
         var group = _hubContext.Clients.Group(GetGroupName(exerciseId));

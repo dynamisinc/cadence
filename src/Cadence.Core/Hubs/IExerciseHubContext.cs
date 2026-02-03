@@ -61,6 +61,12 @@ public interface IExerciseHubContext
     Task NotifyInjectRejected(Guid exerciseId, InjectDto inject);
 
     /// <summary>
+    /// Notify clients that an approved inject was reverted back to Submitted status.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
+    /// </summary>
+    Task NotifyInjectReverted(Guid exerciseId, InjectDto inject);
+
+    /// <summary>
     /// Notify clients that the exercise clock was started.
     /// </summary>
     Task NotifyClockStarted(Guid exerciseId, ClockStateDto clockState);

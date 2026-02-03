@@ -103,6 +103,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<ObservationCapability> ObservationCapabilities => Set<ObservationCapability>();
     public DbSet<ExerciseTargetCapability> ExerciseTargetCapabilities => Set<ExerciseTargetCapability>();
     public DbSet<InjectStatusHistory> InjectStatusHistories => Set<InjectStatusHistory>();
+    public DbSet<ApprovalNotification> ApprovalNotifications => Set<ApprovalNotification>();
 
     // =========================================================================
     // Model Configuration
@@ -196,6 +197,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureObservationCapability(modelBuilder);
         ConfigureExerciseTargetCapability(modelBuilder);
         ConfigureInjectStatusHistory(modelBuilder);
+        ConfigureApprovalNotification(modelBuilder);
     }
 
     /// <summary>
@@ -608,6 +610,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Approval workflow properties
             entity.Property(e => e.ApproverNotes).HasMaxLength(1000);
             entity.Property(e => e.RejectionReason).HasMaxLength(1000);
+            entity.Property(e => e.RevertReason).HasMaxLength(1000);
 
             // Indexes
             entity.HasIndex(e => new { e.MselId, e.InjectNumber }).IsUnique();
@@ -622,6 +625,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.SubmittedByUserId);
             entity.HasIndex(e => e.ApprovedByUserId);
             entity.HasIndex(e => e.RejectedByUserId);
+            entity.HasIndex(e => e.RevertedByUserId);
 
             entity.HasOne(e => e.Msel)
                 .WithMany(m => m.Injects)
@@ -673,6 +677,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.RejectedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.RejectedByUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            entity.HasOne(e => e.RevertedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.RevertedByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
         });
@@ -1177,6 +1187,57 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasOne(e => e.ChangedByUser)
                 .WithMany()
                 .HasForeignKey(e => e.ChangedByUserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureApprovalNotification(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ApprovalNotification>(entity =>
+        {
+            // String properties
+            entity.Property(e => e.UserId).HasMaxLength(450).IsRequired(); // Match AspNetUsers.Id length
+            entity.Property(e => e.Title).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Message).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.Metadata).HasColumnType("nvarchar(max)");
+            entity.Property(e => e.TriggeredByUserId).HasMaxLength(450);
+
+            // Enum stored as string for readability
+            entity.Property(e => e.Type).HasConversion<string>().HasMaxLength(30);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => new { e.UserId, e.IsRead }); // Unread count query
+            entity.HasIndex(e => new { e.UserId, e.CreatedAt }); // Notification list
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => e.OrganizationId); // Organization filter
+
+            // Relationships
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Exercise)
+                .WithMany()
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Inject)
+                .WithMany()
+                .HasForeignKey(e => e.InjectId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.TriggeredByUser)
+                .WithMany()
+                .HasForeignKey(e => e.TriggeredByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
         });

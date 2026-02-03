@@ -60,6 +60,10 @@ public record InjectDto(
     string? RejectedByUserId,
     DateTime? RejectedAt,
     string? RejectionReason,
+    // Revert approval fields
+    string? RevertedByUserId,
+    DateTime? RevertedAt,
+    string? RevertReason,
     string? ModifiedBy
 );
 
@@ -425,6 +429,18 @@ public class BatchRejectRequest
 }
 
 /// <summary>
+/// DTO for reverting an approved inject back to Submitted status.
+/// </summary>
+public class RevertApprovalRequest
+{
+    /// <summary>
+    /// Required revert reason (min 10 chars, max 1000 characters).
+    /// Explains why the approval is being reverted and what needs to change.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+}
+
+/// <summary>
 /// Result of a batch approval or rejection operation.
 /// </summary>
 public class BatchApprovalResult
@@ -514,6 +530,10 @@ public static class InjectMapper
         entity.RejectedByUserId,
         entity.RejectedAt,
         entity.RejectionReason,
+        // Revert approval fields
+        entity.RevertedByUserId,
+        entity.RevertedAt,
+        entity.RevertReason,
         entity.ModifiedBy
     );
 

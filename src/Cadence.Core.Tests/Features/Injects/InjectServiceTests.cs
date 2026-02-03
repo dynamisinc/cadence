@@ -1220,4 +1220,277 @@ public class InjectServiceTests
     }
 
     #endregion
+
+    #region RevertApprovalAsync Tests
+
+    [Fact]
+    public async Task RevertApproval_ApprovedInject_ReturnsToSubmitted()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Approved, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.ApprovedByUserId = approverId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-10);
+        inject.ApproverNotes = "Looks good";
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.RevertApprovalAsync(exercise.Id, inject.Id, directorId,
+            "Need to add secondary contact phone number for media inquiries");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Submitted);
+        updated.RevertedByUserId.Should().Be(directorId);
+        updated.RevertedAt.Should().NotBeNull();
+        updated.RevertedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        updated.RevertReason.Should().Be("Need to add secondary contact phone number for media inquiries");
+        updated.ModifiedBy.Should().Be(directorId);
+    }
+
+    [Fact]
+    public async Task RevertApproval_ClearsApprovalInfo()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Approved, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.ApprovedByUserId = approverId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-10);
+        inject.ApproverNotes = "Approved with minor edits";
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, "Needs revision after SME review");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.ApprovedByUserId.Should().BeNull();
+        updated.ApprovedAt.Should().BeNull();
+        updated.ApproverNotes.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RevertApproval_ResetSubmissionTracking()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Approved, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.ApprovedByUserId = approverId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, "Revert for changes");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.SubmittedByUserId.Should().Be(submitterId, "submitter should be preserved");
+        updated.SubmittedAt.Should().NotBeNull("submission timestamp should be reset");
+        updated.SubmittedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task RevertApproval_NotApproved_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, "Some reason"));
+
+        ex.Message.Should().Contain("Only Approved injects can be reverted");
+    }
+
+    [Fact]
+    public async Task RevertApproval_ShortReason_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Approved, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.ApprovedByUserId = approverId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, "Short"));
+
+        ex.Message.Should().Contain("at least 10 characters");
+    }
+
+    [Fact]
+    public async Task RevertApproval_EmptyReason_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Approved, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.ApprovedByUserId = approverId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, ""));
+
+        ex.Message.Should().Contain("Revert reason is required");
+    }
+
+    [Fact]
+    public async Task RevertApproval_CreatesStatusHistory()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Approved, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.ApprovedByUserId = approverId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.RevertApprovalAsync(exercise.Id, inject.Id, directorId,
+            "After reviewing related injects, this needs to include the secondary contact phone number");
+
+        // Assert
+        var history = await context.InjectStatusHistories
+            .Where(h => h.InjectId == inject.Id)
+            .OrderByDescending(h => h.ChangedAt)
+            .FirstOrDefaultAsync();
+
+        history.Should().NotBeNull();
+        history!.FromStatus.Should().Be(InjectStatus.Approved);
+        history.ToStatus.Should().Be(InjectStatus.Submitted);
+        history.ChangedByUserId.Should().Be(directorId);
+        history.Notes.Should().Contain("Approval reverted");
+        history.Notes.Should().Contain("After reviewing related injects, this needs to include the secondary contact phone number");
+    }
+
+    [Fact]
+    public async Task RevertApproval_SynchronizedStatus_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Synchronized, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-30);
+        inject.ApprovedByUserId = directorId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-20);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, "Cannot revert synchronized inject"));
+
+        ex.Message.Should().Contain("Only Approved injects can be reverted");
+    }
+
+    [Fact]
+    public async Task RevertApproval_ReleasedStatus_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var directorId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Released, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-40);
+        inject.ApprovedByUserId = directorId;
+        inject.ApprovedAt = DateTime.UtcNow.AddMinutes(-30);
+        inject.FiredAt = DateTime.UtcNow.AddMinutes(-10);
+        inject.FiredByUserId = directorId;
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RevertApprovalAsync(exercise.Id, inject.Id, directorId, "Cannot revert released inject"));
+
+        ex.Message.Should().Contain("Only Approved injects can be reverted");
+    }
+
+    #endregion
 }

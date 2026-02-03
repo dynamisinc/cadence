@@ -143,6 +143,9 @@ public class InjectsController : ControllerBase
                 i.RejectedByUserId,
                 i.RejectedAt,
                 i.RejectionReason,
+                i.RevertedByUserId,
+                i.RevertedAt,
+                i.RevertReason,
                 i.ModifiedBy
             });
 
@@ -213,6 +216,9 @@ public class InjectsController : ControllerBase
             i.RejectedByUserId,
             i.RejectedAt,
             i.RejectionReason,
+            i.RevertedByUserId,
+            i.RevertedAt,
+            i.RevertReason,
             i.ModifiedBy
         )).ToList();
 
@@ -817,6 +823,48 @@ public class InjectsController : ControllerBase
 
             _logger.LogInformation("Batch rejected {Count} injects in exercise {ExerciseId} by user {UserId}: {Reason}",
                 result.RejectedCount, exerciseId, userId, request.Reason);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Revert an approved inject back to Submitted status for re-review.
+    /// Only Exercise Directors or Administrators can revert approvals.
+    /// Revert reason is required (min 10 characters) to explain why re-review is needed.
+    /// </summary>
+    [HttpPost("{id:guid}/revert")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<InjectDto>> RevertApproval(
+        Guid exerciseId,
+        Guid id,
+        [FromBody] RevertApprovalRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new { message = "Revert reason is required" });
+            }
+
+            if (request.Reason.Length < 10)
+            {
+                return BadRequest(new { message = "Revert reason must be at least 10 characters" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.RevertApprovalAsync(exerciseId, id, userId, request.Reason);
+
+            _logger.LogInformation("Reverted inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
+                id, exerciseId, userId, request.Reason);
 
             return Ok(result);
         }
