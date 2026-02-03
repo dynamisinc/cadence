@@ -112,7 +112,7 @@ jobs:
         with:
           name: Frontend Test Results
           path: src/frontend/test-results/junit.xml
-          reporter: jest-junit
+          reporter: java-junit
           fail-on-error: false
 
       # Upload detailed results as downloadable artifact
