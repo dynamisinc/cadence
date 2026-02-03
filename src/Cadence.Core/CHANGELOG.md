@@ -2,6 +2,27 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [2.0.0](https://github.com/dynamisinc/cadence/compare/api-v1.1.0...api-v2.0.0) (2026-02-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **db:** All audit fields now use string type instead of Guid
+
+### Features
+
+* **frontend:** add status and organization filters to user management ([175ad58](https://github.com/dynamisinc/cadence/commit/175ad58f7c27faaad0e585140802f4dbb840cb83))
+
+
+### Bug Fixes
+
+* **backend:** allow admins to set SystemRole when creating users ([6eb46a7](https://github.com/dynamisinc/cadence/commit/6eb46a7f3106990ad61e9fbb25b7a81bfbe7e8ae))
+
+
+### Miscellaneous Chores
+
+* **db:** deprecate legacy User table and standardize audit columns ([2c44dc4](https://github.com/dynamisinc/cadence/commit/2c44dc4f3e1571759181de90d036e89a7bfafad3))
+
 ## [1.1.0](https://github.com/dynamisinc/cadence/compare/api-v1.0.0...api-v1.1.0) (2026-02-01)
 
 

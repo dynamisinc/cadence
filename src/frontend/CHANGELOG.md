@@ -5,6 +5,30 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0](https://github.com/dynamisinc/cadence/compare/frontend-v1.1.0...frontend-v1.2.0) (2026-02-03)
+
+
+### Features
+
+* **frontend:** add status and organization filters to user management ([175ad58](https://github.com/dynamisinc/cadence/commit/175ad58f7c27faaad0e585140802f4dbb840cb83))
+* **frontend:** improve user management admin page UX ([fb0978d](https://github.com/dynamisinc/cadence/commit/fb0978d45de5d28531a0d90ac483f29774386d5f))
+* **telemetry:** add Application Insights integration for API and frontend ([295f617](https://github.com/dynamisinc/cadence/commit/295f61770d27f30055d25f1781f4850f45b37c81))
+* **version:** improve release notification UX and public about page ([e17807b](https://github.com/dynamisinc/cadence/commit/e17807bda10a35af1115ee30c367c51e5486b6f3))
+
+
+### Bug Fixes
+
+* **frontend:** fix refreshAccessToken circular dependency in AuthContext ([e48954e](https://github.com/dynamisinc/cadence/commit/e48954e6bffc62a078a925dc8a8520e80dcc9aba))
+* **frontend:** remove unused _hasMoreChanges variable ([d0e3aef](https://github.com/dynamisinc/cadence/commit/d0e3aef8ff4c78d26a780529adc02b96339b9b6f))
+* **frontend:** resolve ESLint linting errors ([e3d2148](https://github.com/dynamisinc/cadence/commit/e3d2148ba92babae52ce61d7c766f73f9ea93016))
+* **frontend:** resolve ESLint linting errors and warnings ([5852166](https://github.com/dynamisinc/cadence/commit/5852166ee854b4251e095234f5f64ccb99251df7))
+* **tests:** update useReleaseNotes test to not require features array ([6c3aaef](https://github.com/dynamisinc/cadence/commit/6c3aaefcbce2083b0315aae9854ad5c761304439))
+
+
+### Performance Improvements
+
+* **tests:** optimize vitest config for faster CI runs ([1a1f049](https://github.com/dynamisinc/cadence/commit/1a1f0495adbc685bf154269f5c83b3e0bae8d91f))
+
 ## [1.1.0](https://github.com/dynamisinc/cadence/compare/frontend-v1.0.0...frontend-v1.1.0) (2026-02-01)
 
 
