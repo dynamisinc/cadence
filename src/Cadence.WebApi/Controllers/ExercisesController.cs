@@ -29,6 +29,7 @@ public class ExercisesController : ControllerBase
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
     private readonly IExerciseParticipantService _participantService;
+    private readonly IExerciseApprovalSettingsService _approvalSettingsService;
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<ExercisesController> _logger;
 
@@ -38,6 +39,7 @@ public class ExercisesController : ControllerBase
         IMselService mselService,
         ISetupProgressService setupProgressService,
         IExerciseParticipantService participantService,
+        IExerciseApprovalSettingsService approvalSettingsService,
         ICurrentOrganizationContext orgContext,
         ILogger<ExercisesController> logger)
     {
@@ -46,6 +48,7 @@ public class ExercisesController : ControllerBase
         _mselService = mselService;
         _setupProgressService = setupProgressService;
         _participantService = participantService;
+        _approvalSettingsService = approvalSettingsService;
         _orgContext = orgContext;
         _logger = logger;
     }
@@ -800,5 +803,73 @@ public class ExercisesController : ControllerBase
             exercise.ConfirmSkipInject,
             exercise.ConfirmClockControl
         ));
+    }
+
+    // =========================================================================
+    // Approval Settings Endpoints (S02: Exercise Approval Configuration)
+    // =========================================================================
+
+    /// <summary>
+    /// Get exercise approval settings.
+    /// Returns approval configuration and organization policy context.
+    /// </summary>
+    [HttpGet("{id:guid}/approval-settings")]
+    [AuthorizeExerciseAccess]
+    [ProducesResponseType(typeof(ApprovalSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApprovalSettingsDto>> GetApprovalSettings(Guid id)
+    {
+        try
+        {
+            var settings = await _approvalSettingsService.GetApprovalSettingsAsync(id);
+            return Ok(settings);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Update exercise approval settings.
+    /// Only Directors+ can modify settings.
+    /// Admins can override Required organization policy.
+    /// </summary>
+    [HttpPut("{id:guid}/approval-settings")]
+    [AuthorizeExerciseDirector]
+    [ProducesResponseType(typeof(ApprovalSettingsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApprovalSettingsDto>> UpdateApprovalSettings(
+        Guid id,
+        [FromBody] UpdateApprovalSettingsRequest request)
+    {
+        try
+        {
+            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
+                ?? throw new UnauthorizedAccessException("User not authenticated");
+
+            var settings = await _approvalSettingsService.UpdateApprovalSettingsAsync(
+                id,
+                request,
+                userId);
+
+            _logger.LogInformation(
+                "Updated approval settings for exercise {ExerciseId}: RequireApproval={RequireApproval}",
+                id, request.RequireInjectApproval);
+
+            return Ok(settings);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex,
+                "Invalid approval settings update for exercise {ExerciseId}",
+                id);
+            return BadRequest(new { message = ex.Message });
+        }
     }
 }

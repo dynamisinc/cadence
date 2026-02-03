@@ -327,3 +327,29 @@ public record ExerciseAssignmentDto(
     string ExerciseRole,
     DateTime AssignedAt
 );
+
+// =========================================================================
+// Approval Settings DTOs (Inject Approval Workflow)
+// =========================================================================
+
+/// <summary>
+/// Request DTO for updating exercise approval settings.
+/// </summary>
+public record UpdateApprovalSettingsRequest(
+    bool RequireInjectApproval,
+    bool IsOverride = false,
+    string? OverrideReason = null
+);
+
+/// <summary>
+/// Response DTO for exercise approval settings.
+/// Includes organization policy context for UI rendering.
+/// </summary>
+public record ApprovalSettingsDto(
+    bool RequireInjectApproval,
+    bool ApprovalPolicyOverridden,
+    string? ApprovalOverrideReason,
+    string? ApprovalOverriddenById,
+    DateTime? ApprovalOverriddenAt,
+    ApprovalPolicy OrganizationPolicy
+);

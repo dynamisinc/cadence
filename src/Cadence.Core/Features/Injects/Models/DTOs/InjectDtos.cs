@@ -50,7 +50,17 @@ public record InjectDto(
     string? ResponsibleController,
     string? LocationName,
     string? LocationType,
-    string? Track
+    string? Track,
+    // Approval workflow fields
+    string? SubmittedByUserId,
+    DateTime? SubmittedAt,
+    string? ApprovedByUserId,
+    DateTime? ApprovedAt,
+    string? ApproverNotes,
+    string? RejectedByUserId,
+    DateTime? RejectedAt,
+    string? RejectionReason,
+    string? ModifiedBy
 );
 
 /// <summary>
@@ -357,6 +367,30 @@ public class ReorderInjectsRequest
 }
 
 /// <summary>
+/// DTO for approving an inject.
+/// </summary>
+public class ApproveInjectRequest
+{
+    /// <summary>
+    /// Optional notes from the approver (max 1000 characters).
+    /// Provides guidance or feedback to the Controller.
+    /// </summary>
+    public string? Notes { get; init; }
+}
+
+/// <summary>
+/// DTO for rejecting an inject.
+/// </summary>
+public class RejectInjectRequest
+{
+    /// <summary>
+    /// Required rejection reason (min 10 chars, max 1000 characters).
+    /// Explains what needs to be changed or improved.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+}
+
+/// <summary>
 /// Extension methods for mapping between Inject entity and DTOs.
 /// </summary>
 public static class InjectMapper
@@ -405,7 +439,17 @@ public static class InjectMapper
         entity.ResponsibleController,
         entity.LocationName,
         entity.LocationType,
-        entity.Track
+        entity.Track,
+        // Approval workflow fields
+        entity.SubmittedByUserId,
+        entity.SubmittedAt,
+        entity.ApprovedByUserId,
+        entity.ApprovedAt,
+        entity.ApproverNotes,
+        entity.RejectedByUserId,
+        entity.RejectedAt,
+        entity.RejectionReason,
+        entity.ModifiedBy
     );
 
     public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, string createdBy) => new()

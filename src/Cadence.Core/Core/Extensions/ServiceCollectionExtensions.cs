@@ -42,6 +42,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExerciseStatusService, ExerciseStatusService>();
         services.AddScoped<IExerciseDeleteService, ExerciseDeleteService>();
         services.AddScoped<IExerciseParticipantService, ExerciseParticipantService>();
+        services.AddScoped<IExerciseApprovalSettingsService, ExerciseApprovalSettingsService>();
         services.AddScoped<IMselService, MselService>();
         services.AddScoped<ISetupProgressService, SetupProgressService>();
         services.AddScoped<IExpectedOutcomeService, ExpectedOutcomeService>();

@@ -354,6 +354,43 @@ public class AdminOrganizationsController : ControllerBase
     }
 
     /// <summary>
+    /// Update organization approval policy.
+    /// Only administrators can configure the inject approval workflow policy.
+    /// </summary>
+    /// <param name="id">Organization ID</param>
+    /// <param name="request">Approval policy update request</param>
+    [HttpPut("{id:guid}/settings/approval-policy")]
+    [ProducesResponseType(typeof(OrganizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateApprovalPolicy(
+        Guid id,
+        [FromBody] UpdateApprovalPolicyRequest request)
+    {
+        try
+        {
+            var organization = await _organizationService.UpdateApprovalPolicyAsync(
+                id,
+                request.InjectApprovalPolicy);
+
+            if (organization == null)
+            {
+                return NotFound(new { message = $"Organization {id} not found" });
+            }
+
+            _logger.LogInformation(
+                "SysAdmin {AdminId} updated organization {OrgId} approval policy to {Policy}",
+                GetCurrentUserId(), id, request.InjectApprovalPolicy);
+
+            return Ok(organization);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = "validation_error", message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Get current authenticated user's ID from JWT claims.
     /// </summary>
     private string GetCurrentUserId()

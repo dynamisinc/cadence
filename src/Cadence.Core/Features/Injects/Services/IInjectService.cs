@@ -30,4 +30,33 @@ public interface IInjectService
     /// Reorder injects by updating their sequence values.
     /// </summary>
     Task<IEnumerable<InjectDto>> ReorderInjectsAsync(Guid exerciseId, IEnumerable<Guid> injectIds, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Submit an inject for approval, changing status from Draft to Submitted.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectId">The inject ID</param>
+    /// <param name="userId">The user who is submitting</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<InjectDto> SubmitForApprovalAsync(Guid exerciseId, Guid injectId, string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Approve a submitted inject.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectId">The inject ID</param>
+    /// <param name="userId">The user who is approving (must be Director or Admin)</param>
+    /// <param name="notes">Optional approver notes</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<InjectDto> ApproveInjectAsync(Guid exerciseId, Guid injectId, string userId, string? notes, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Reject a submitted inject, returning it to Draft status.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectId">The inject ID</param>
+    /// <param name="userId">The user who is rejecting (must be Director or Admin)</param>
+    /// <param name="reason">Required rejection reason</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<InjectDto> RejectInjectAsync(Guid exerciseId, Guid injectId, string userId, string reason, CancellationToken cancellationToken = default);
 }

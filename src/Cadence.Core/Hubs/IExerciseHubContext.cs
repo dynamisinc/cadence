@@ -43,6 +43,24 @@ public interface IExerciseHubContext
     Task NotifyInjectStatusChanged(Guid exerciseId, InjectDto inject);
 
     /// <summary>
+    /// Notify clients that an inject was submitted for approval.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
+    /// </summary>
+    Task NotifyInjectSubmitted(Guid exerciseId, InjectDto inject);
+
+    /// <summary>
+    /// Notify clients that an inject was approved.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
+    /// </summary>
+    Task NotifyInjectApproved(Guid exerciseId, InjectDto inject);
+
+    /// <summary>
+    /// Notify clients that an inject was rejected and returned to Draft.
+    /// Also broadcasts InjectStatusChanged for generic status listeners.
+    /// </summary>
+    Task NotifyInjectRejected(Guid exerciseId, InjectDto inject);
+
+    /// <summary>
     /// Notify clients that the exercise clock was started.
     /// </summary>
     Task NotifyClockStarted(Guid exerciseId, ClockStateDto clockState);

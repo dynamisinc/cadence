@@ -374,4 +374,30 @@ public class OrganizationService : IOrganizationService
 
         return organization.ToDto();
     }
+
+    /// <inheritdoc />
+    public async Task<OrganizationDto?> UpdateApprovalPolicyAsync(
+        Guid id,
+        ApprovalPolicy policy,
+        CancellationToken cancellationToken = default)
+    {
+        var organization = await _context.Organizations
+            .FirstOrDefaultAsync(o => o.Id == id && !o.IsDeleted, cancellationToken);
+
+        if (organization == null)
+        {
+            return null;
+        }
+
+        var oldPolicy = organization.InjectApprovalPolicy;
+        organization.InjectApprovalPolicy = policy;
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        _logger.LogInformation(
+            "Updated organization {OrgId} inject approval policy from {OldPolicy} to {NewPolicy}",
+            id, oldPolicy, policy);
+
+        return organization.ToDto();
+    }
 }

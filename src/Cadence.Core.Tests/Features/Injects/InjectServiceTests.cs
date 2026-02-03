@@ -373,4 +373,458 @@ public class InjectServiceTests
     }
 
     #endregion
+
+    #region SubmitForApprovalAsync Tests
+
+    [Fact]
+    public async Task SubmitForApproval_DraftInjectWithApprovalEnabled_ChangesToSubmitted()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.SubmitForApprovalAsync(exercise.Id, inject.Id, userId);
+
+        // Assert
+        result.Status.Should().Be(InjectStatus.Submitted);
+        result.SubmittedByUserId.Should().Be(userId);
+        result.SubmittedAt.Should().NotBeNull();
+        result.SubmittedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        result.ModifiedBy.Should().Be(userId);
+    }
+
+    [Fact]
+    public async Task SubmitForApproval_ApprovalDisabled_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = false; // Approval disabled
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.SubmitForApprovalAsync(exercise.Id, inject.Id, userId));
+
+        exception.Message.Should().Contain("approval workflow is not enabled");
+    }
+
+    [Fact]
+    public async Task SubmitForApproval_NotDraftStatus_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, userId); // Already submitted
+        inject.SubmittedByUserId = userId;
+        inject.SubmittedAt = DateTime.UtcNow.AddHours(-1);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var exception = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.SubmitForApprovalAsync(exercise.Id, inject.Id, userId));
+
+        exception.Message.Should().Contain("Only Draft injects can be submitted");
+    }
+
+    [Fact]
+    public async Task SubmitForApproval_ClearsPreviousRejection()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        var approverUserId = Guid.NewGuid().ToString();
+        exercise.RequireInjectApproval = true;
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
+        inject.RejectedByUserId = approverUserId;
+        inject.RejectedAt = DateTime.UtcNow.AddDays(-1);
+        inject.RejectionReason = "Missing details";
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.SubmitForApprovalAsync(exercise.Id, inject.Id, userId);
+
+        // Assert
+        result.Status.Should().Be(InjectStatus.Submitted);
+        result.RejectedByUserId.Should().BeNull();
+        result.RejectedAt.Should().BeNull();
+        result.RejectionReason.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task SubmitForApproval_RecordsStatusHistory()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.SubmitForApprovalAsync(exercise.Id, inject.Id, userId);
+
+        // Assert
+        var history = await context.InjectStatusHistories
+            .Where(h => h.InjectId == inject.Id)
+            .OrderByDescending(h => h.CreatedAt)
+            .FirstOrDefaultAsync();
+
+        history.Should().NotBeNull();
+        history!.FromStatus.Should().Be(InjectStatus.Draft);
+        history.ToStatus.Should().Be(InjectStatus.Submitted);
+        history.ChangedByUserId.Should().Be(userId);
+        history.ChangedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public async Task SubmitForApproval_InjectNotFound_ThrowsKeyNotFoundException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var nonExistentInjectId = Guid.NewGuid();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => service.SubmitForApprovalAsync(exercise.Id, nonExistentInjectId, userId));
+    }
+
+    #endregion
+
+    #region ApproveInjectAsync Tests
+
+    [Fact]
+    public async Task ApproveInject_SubmittedInject_ChangesToApproved()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true; // Enable approval workflow
+        await context.SaveChangesAsync(); // Save the exercise changes
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ApproveInjectAsync(exercise.Id, inject.Id, approverId, "Looks good!");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Approved);
+        updated.ApprovedByUserId.Should().Be(approverId);
+        updated.ApprovedAt.Should().NotBeNull();
+        updated.ApprovedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        updated.ApproverNotes.Should().Be("Looks good!");
+        updated.ModifiedBy.Should().Be(approverId);
+    }
+
+    [Fact]
+    public async Task ApproveInject_WithoutNotes_Succeeds()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ApproveInjectAsync(exercise.Id, inject.Id, approverId, null);
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Approved);
+        updated.ApproverNotes.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task ApproveInject_SelfSubmission_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, userId);
+        inject.SubmittedByUserId = userId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.ApproveInjectAsync(exercise.Id, inject.Id, userId, null));
+
+        ex.Message.Should().Contain("Cannot approve your own submission");
+    }
+
+    [Fact]
+    public async Task ApproveInject_DraftInject_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.ApproveInjectAsync(exercise.Id, inject.Id, approverId, null));
+
+        ex.Message.Should().Contain("Only Submitted injects can be approved");
+    }
+
+    [Fact]
+    public async Task ApproveInject_CreatesStatusHistory()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.ApproveInjectAsync(exercise.Id, inject.Id, approverId, "Approved!");
+
+        // Assert
+        var history = await context.InjectStatusHistories
+            .Where(h => h.InjectId == inject.Id)
+            .OrderByDescending(h => h.ChangedAt)
+            .FirstOrDefaultAsync();
+
+        history.Should().NotBeNull();
+        history!.FromStatus.Should().Be(InjectStatus.Submitted);
+        history.ToStatus.Should().Be(InjectStatus.Approved);
+        history.ChangedByUserId.Should().Be(approverId);
+        history.Notes.Should().Be("Approved!");
+    }
+
+    [Fact]
+    public async Task ApproveInject_ClearsPreviousRejection()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        // Previously rejected
+        inject.RejectedByUserId = rejecterId;
+        inject.RejectedAt = DateTime.UtcNow.AddMinutes(-20);
+        inject.RejectionReason = "Needs more detail";
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.ApproveInjectAsync(exercise.Id, inject.Id, approverId, "Fixed now");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Approved);
+        updated.RejectedByUserId.Should().BeNull();
+        updated.RejectedAt.Should().BeNull();
+        updated.RejectionReason.Should().BeNull();
+    }
+
+    #endregion
+
+    #region RejectInjectAsync Tests
+
+    [Fact]
+    public async Task RejectInject_SubmittedInject_ReturnsToDraft()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.RejectInjectAsync(exercise.Id, inject.Id, rejecterId,
+            "Needs more detail on expected actions");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.Status.Should().Be(InjectStatus.Draft);
+        updated.RejectedByUserId.Should().Be(rejecterId);
+        updated.RejectedAt.Should().NotBeNull();
+        updated.RejectedAt.Should().BeCloseTo(DateTime.UtcNow, TimeSpan.FromSeconds(5));
+        updated.RejectionReason.Should().Be("Needs more detail on expected actions");
+        updated.ModifiedBy.Should().Be(rejecterId);
+    }
+
+    [Fact]
+    public async Task RejectInject_ClearsSubmissionTracking()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.RejectInjectAsync(exercise.Id, inject.Id, rejecterId, "Please revise");
+
+        // Assert
+        var updated = await context.Injects.FindAsync(inject.Id);
+        updated.Should().NotBeNull();
+        updated!.SubmittedByUserId.Should().BeNull();
+        updated.SubmittedAt.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task RejectInject_ShortReason_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RejectInjectAsync(exercise.Id, inject.Id, rejecterId, "No"));
+
+        ex.Message.Should().Contain("at least 10 characters");
+    }
+
+    [Fact]
+    public async Task RejectInject_DraftInject_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Draft, userId);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.RejectInjectAsync(exercise.Id, inject.Id, rejecterId, "Valid rejection reason"));
+
+        ex.Message.Should().Contain("Only Submitted injects can be rejected");
+    }
+
+    [Fact]
+    public async Task RejectInject_CreatesStatusHistory()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act
+        await service.RejectInjectAsync(exercise.Id, inject.Id, rejecterId,
+            "Needs revision per S04 requirements");
+
+        // Assert
+        var history = await context.InjectStatusHistories
+            .Where(h => h.InjectId == inject.Id)
+            .OrderByDescending(h => h.ChangedAt)
+            .FirstOrDefaultAsync();
+
+        history.Should().NotBeNull();
+        history!.FromStatus.Should().Be(InjectStatus.Submitted);
+        history.ToStatus.Should().Be(InjectStatus.Draft);
+        history.ChangedByUserId.Should().Be(rejecterId);
+        history.Notes.Should().Be("Needs revision per S04 requirements");
+    }
+
+    #endregion
 }

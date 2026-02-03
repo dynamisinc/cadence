@@ -608,4 +608,84 @@ public class OrganizationServiceTests
     }
 
     #endregion
+
+    #region UpdateApprovalPolicyAsync Tests
+
+    [Fact]
+    public async Task UpdateApprovalPolicyAsync_WithValidPolicy_UpdatesPolicy()
+    {
+        var context = CreateTestContext();
+        var org = CreateOrganization(context, "Test Org", "test-org");
+        org.InjectApprovalPolicy = ApprovalPolicy.Optional;
+        context.SaveChanges();
+        var service = CreateService(context);
+
+        var result = await service.UpdateApprovalPolicyAsync(org.Id, ApprovalPolicy.Required);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(org.Id);
+
+        // Verify the policy was updated in the database
+        var updatedOrg = await context.Organizations.FindAsync(org.Id);
+        updatedOrg!.InjectApprovalPolicy.Should().Be(ApprovalPolicy.Required);
+    }
+
+    [Fact]
+    public async Task UpdateApprovalPolicyAsync_PolicyChangesFromOptionalToDisabled_UpdatesSuccessfully()
+    {
+        var context = CreateTestContext();
+        var org = CreateOrganization(context, "Test Org", "test-org");
+        org.InjectApprovalPolicy = ApprovalPolicy.Optional;
+        context.SaveChanges();
+        var service = CreateService(context);
+
+        var result = await service.UpdateApprovalPolicyAsync(org.Id, ApprovalPolicy.Disabled);
+
+        result.Should().NotBeNull();
+        var updatedOrg = await context.Organizations.FindAsync(org.Id);
+        updatedOrg!.InjectApprovalPolicy.Should().Be(ApprovalPolicy.Disabled);
+    }
+
+    [Fact]
+    public async Task UpdateApprovalPolicyAsync_PolicyChangesFromDisabledToRequired_UpdatesSuccessfully()
+    {
+        var context = CreateTestContext();
+        var org = CreateOrganization(context, "Test Org", "test-org");
+        org.InjectApprovalPolicy = ApprovalPolicy.Disabled;
+        context.SaveChanges();
+        var service = CreateService(context);
+
+        var result = await service.UpdateApprovalPolicyAsync(org.Id, ApprovalPolicy.Required);
+
+        result.Should().NotBeNull();
+        var updatedOrg = await context.Organizations.FindAsync(org.Id);
+        updatedOrg!.InjectApprovalPolicy.Should().Be(ApprovalPolicy.Required);
+    }
+
+    [Fact]
+    public async Task UpdateApprovalPolicyAsync_NonExistentId_ReturnsNull()
+    {
+        var context = CreateTestContext();
+        var service = CreateService(context);
+
+        var result = await service.UpdateApprovalPolicyAsync(Guid.NewGuid(), ApprovalPolicy.Required);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task UpdateApprovalPolicyAsync_DeletedOrganization_ReturnsNull()
+    {
+        var context = CreateTestContext();
+        var org = CreateOrganization(context, "Test Org", "test-org");
+        org.IsDeleted = true;
+        context.SaveChanges();
+        var service = CreateService(context);
+
+        var result = await service.UpdateApprovalPolicyAsync(org.Id, ApprovalPolicy.Required);
+
+        result.Should().BeNull();
+    }
+
+    #endregion
 }

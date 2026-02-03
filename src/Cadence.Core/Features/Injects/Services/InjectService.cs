@@ -182,6 +182,182 @@ public class InjectService : IInjectService
         return injectIdsList.Select(id => injectDict[id].ToDto());
     }
 
+    /// <inheritdoc />
+    public async Task<InjectDto> SubmitForApprovalAsync(Guid exerciseId, Guid injectId, string userId, CancellationToken cancellationToken = default)
+    {
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate approval workflow is enabled
+        if (!exercise.RequireInjectApproval)
+        {
+            throw new InvalidOperationException(
+                "Cannot submit for approval - approval workflow is not enabled for this exercise.");
+        }
+
+        // Validate current status
+        if (inject.Status != InjectStatus.Draft)
+        {
+            throw new InvalidOperationException(
+                $"Only Draft injects can be submitted. Current status: {inject.Status}");
+        }
+
+        // Update status
+        inject.Status = InjectStatus.Submitted;
+        inject.SubmittedByUserId = userId;
+        inject.SubmittedAt = DateTime.UtcNow;
+        inject.ModifiedBy = userId;
+
+        // Clear any previous rejection
+        inject.RejectionReason = null;
+        inject.RejectedByUserId = null;
+        inject.RejectedAt = null;
+
+        // Record status history
+        var history = new InjectStatusHistory
+        {
+            Id = Guid.NewGuid(),
+            InjectId = inject.Id,
+            FromStatus = InjectStatus.Draft,
+            ToStatus = InjectStatus.Submitted,
+            ChangedByUserId = userId,
+            ChangedAt = DateTime.UtcNow,
+            CreatedBy = userId,
+            ModifiedBy = userId
+        };
+        _context.InjectStatusHistories.Add(history);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var dto = inject.ToDto();
+        await _hubContext.NotifyInjectSubmitted(exerciseId, dto);
+
+        return dto;
+    }
+
+    /// <inheritdoc />
+    public async Task<InjectDto> ApproveInjectAsync(Guid exerciseId, Guid injectId, string userId, string? notes, CancellationToken cancellationToken = default)
+    {
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate approval workflow is enabled
+        if (!exercise.RequireInjectApproval)
+        {
+            throw new InvalidOperationException(
+                "Cannot approve inject - approval workflow is not enabled for this exercise.");
+        }
+
+        // Validate current status
+        if (inject.Status != InjectStatus.Submitted)
+        {
+            throw new InvalidOperationException(
+                $"Only Submitted injects can be approved. Current status: {inject.Status}");
+        }
+
+        // Prevent self-approval (separation of duties)
+        if (inject.SubmittedByUserId == userId)
+        {
+            throw new InvalidOperationException(
+                "Cannot approve your own submission. Another Director or Administrator must approve.");
+        }
+
+        // Update status
+        inject.Status = InjectStatus.Approved;
+        inject.ApprovedByUserId = userId;
+        inject.ApprovedAt = DateTime.UtcNow;
+        inject.ApproverNotes = notes;
+        inject.ModifiedBy = userId;
+
+        // Clear any previous rejection
+        inject.RejectionReason = null;
+        inject.RejectedByUserId = null;
+        inject.RejectedAt = null;
+
+        // Record status history
+        var history = new InjectStatusHistory
+        {
+            Id = Guid.NewGuid(),
+            InjectId = inject.Id,
+            FromStatus = InjectStatus.Submitted,
+            ToStatus = InjectStatus.Approved,
+            ChangedByUserId = userId,
+            ChangedAt = DateTime.UtcNow,
+            Notes = notes,
+            CreatedBy = userId,
+            ModifiedBy = userId
+        };
+        _context.InjectStatusHistories.Add(history);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var dto = inject.ToDto();
+        await _hubContext.NotifyInjectApproved(exerciseId, dto);
+
+        return dto;
+    }
+
+    /// <inheritdoc />
+    public async Task<InjectDto> RejectInjectAsync(Guid exerciseId, Guid injectId, string userId, string reason, CancellationToken cancellationToken = default)
+    {
+        var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
+
+        // Validate approval workflow is enabled
+        if (!exercise.RequireInjectApproval)
+        {
+            throw new InvalidOperationException(
+                "Cannot reject inject - approval workflow is not enabled for this exercise.");
+        }
+
+        // Validate current status
+        if (inject.Status != InjectStatus.Submitted)
+        {
+            throw new InvalidOperationException(
+                $"Only Submitted injects can be rejected. Current status: {inject.Status}");
+        }
+
+        // Validate reason is provided and has minimum length
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidOperationException("Rejection reason is required.");
+        }
+        if (reason.Length < 10)
+        {
+            throw new InvalidOperationException("Rejection reason must be at least 10 characters.");
+        }
+
+        // Update status - return to Draft
+        inject.Status = InjectStatus.Draft;
+        inject.RejectedByUserId = userId;
+        inject.RejectedAt = DateTime.UtcNow;
+        inject.RejectionReason = reason;
+        inject.ModifiedBy = userId;
+
+        // Clear submission tracking (will be re-set on resubmit)
+        inject.SubmittedByUserId = null;
+        inject.SubmittedAt = null;
+
+        // Record status history
+        var history = new InjectStatusHistory
+        {
+            Id = Guid.NewGuid(),
+            InjectId = inject.Id,
+            FromStatus = InjectStatus.Submitted,
+            ToStatus = InjectStatus.Draft,
+            ChangedByUserId = userId,
+            ChangedAt = DateTime.UtcNow,
+            Notes = reason,
+            CreatedBy = userId,
+            ModifiedBy = userId
+        };
+        _context.InjectStatusHistories.Add(history);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        var dto = inject.ToDto();
+        await _hubContext.NotifyInjectRejected(exerciseId, dto);
+
+        return dto;
+    }
+
     private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)
     {
         var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)

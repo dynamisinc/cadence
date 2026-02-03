@@ -379,6 +379,96 @@ public class AdminOrganizationsControllerIntegrationTests : IClassFixture<Cadenc
     #endregion
 
     // =========================================================================
+    // Approval Policy Tests
+    // =========================================================================
+
+    #region Approval Policy Tests
+
+    [Fact]
+    public async Task PUT_UpdateApprovalPolicy_ValidRequest_Returns200()
+    {
+        var (factory, client, _, adminEmail) = await GetAuthenticatedAdminClientAsync();
+        using var _ = factory;
+
+        // Create org
+        var createOrgResponse = await client.PostAsJsonAsync("/api/admin/organizations",
+            new CreateOrganizationRequest($"Approval Policy Test {Guid.NewGuid():N}"[..40], UniqueSlug(), null, null, adminEmail));
+
+        var org = await createOrgResponse.Content.ReadFromJsonAsync<OrganizationDto>();
+        org.Should().NotBeNull();
+        org!.InjectApprovalPolicy.Should().Be("Optional"); // Default value
+
+        // Act - update approval policy to Required
+        var response = await client.PutAsJsonAsync(
+            $"/api/admin/organizations/{org.Id}/settings/approval-policy",
+            new { InjectApprovalPolicy = "Required" });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var updated = await response.Content.ReadFromJsonAsync<OrganizationDto>();
+        updated.Should().NotBeNull();
+        updated!.InjectApprovalPolicy.Should().Be("Required");
+    }
+
+    [Fact]
+    public async Task PUT_UpdateApprovalPolicy_ToDisabled_Returns200()
+    {
+        var (factory, client, _, adminEmail) = await GetAuthenticatedAdminClientAsync();
+        using var _ = factory;
+
+        // Create org
+        var createOrgResponse = await client.PostAsJsonAsync("/api/admin/organizations",
+            new CreateOrganizationRequest($"Policy Disabled Test {Guid.NewGuid():N}"[..40], UniqueSlug(), null, null, adminEmail));
+
+        var org = await createOrgResponse.Content.ReadFromJsonAsync<OrganizationDto>();
+
+        // Act - update approval policy to Disabled
+        var response = await client.PutAsJsonAsync(
+            $"/api/admin/organizations/{org!.Id}/settings/approval-policy",
+            new { InjectApprovalPolicy = "Disabled" });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var updated = await response.Content.ReadFromJsonAsync<OrganizationDto>();
+        updated.Should().NotBeNull();
+        updated!.InjectApprovalPolicy.Should().Be("Disabled");
+    }
+
+    [Fact]
+    public async Task PUT_UpdateApprovalPolicy_NonExistentOrg_Returns404()
+    {
+        var (factory, client, _, _) = await GetAuthenticatedAdminClientAsync();
+        using var _ = factory;
+
+        // Act - try to update policy for non-existent org
+        var response = await client.PutAsJsonAsync(
+            $"/api/admin/organizations/{Guid.NewGuid()}/settings/approval-policy",
+            new { InjectApprovalPolicy = "Required" });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.NotFound);
+    }
+
+    [Fact]
+    public async Task PUT_UpdateApprovalPolicy_WithoutToken_Returns401()
+    {
+        // Arrange - client without auth
+        var client = _factory.CreateClient();
+
+        // Act
+        var response = await client.PutAsJsonAsync(
+            $"/api/admin/organizations/{Guid.NewGuid()}/settings/approval-policy",
+            new { InjectApprovalPolicy = "Required" });
+
+        // Assert
+        response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
+    }
+
+    #endregion
+
+    // =========================================================================
     // Helper DTOs for deserialization
     // =========================================================================
 

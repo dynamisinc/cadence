@@ -118,4 +118,17 @@ public interface IOrganizationService
         Guid id,
         string restoredByUserId,
         CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Updates the inject approval policy for an organization.
+    /// Only administrators can update this setting.
+    /// </summary>
+    /// <param name="id">Organization ID</param>
+    /// <param name="policy">New approval policy</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    /// <returns>Updated organization DTO or null if not found</returns>
+    Task<OrganizationDto?> UpdateApprovalPolicyAsync(
+        Guid id,
+        ApprovalPolicy policy,
+        CancellationToken cancellationToken = default);
 }

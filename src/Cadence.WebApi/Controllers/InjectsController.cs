@@ -105,7 +105,16 @@ public class InjectsController : ControllerBase
                 i.ResponsibleController,
                 i.LocationName,
                 i.LocationType,
-                i.Track
+                i.Track,
+                i.SubmittedByUserId,
+                i.SubmittedAt,
+                i.ApprovedByUserId,
+                i.ApprovedAt,
+                i.ApproverNotes,
+                i.RejectedByUserId,
+                i.RejectedAt,
+                i.RejectionReason,
+                i.ModifiedBy
             });
 
         var injectsData = await injectsQuery.ToListAsync();
@@ -166,7 +175,16 @@ public class InjectsController : ControllerBase
             i.ResponsibleController,
             i.LocationName,
             i.LocationType,
-            i.Track
+            i.Track,
+            i.SubmittedByUserId,
+            i.SubmittedAt,
+            i.ApprovedByUserId,
+            i.ApprovedAt,
+            i.ApproverNotes,
+            i.RejectedByUserId,
+            i.RejectedAt,
+            i.RejectionReason,
+            i.ModifiedBy
         )).ToList();
 
         return Ok(injects);
@@ -602,6 +620,100 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = ex.Message });
         }
         catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Submit an inject for approval.
+    /// </summary>
+    [HttpPost("{id:guid}/submit")]
+    [AuthorizeExerciseController]
+    public async Task<ActionResult<InjectDto>> SubmitForApproval(Guid exerciseId, Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.SubmitForApprovalAsync(exerciseId, id, userId);
+
+            _logger.LogInformation("Inject {InjectId} submitted for approval by {UserId}", id, userId);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Approve a submitted inject.
+    /// Only Exercise Directors or Administrators can approve injects.
+    /// Users cannot approve their own submissions (separation of duties).
+    /// </summary>
+    [HttpPost("{id:guid}/approve")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<InjectDto>> ApproveInject(Guid exerciseId, Guid id, [FromBody] ApproveInjectRequest? request = null)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.ApproveInjectAsync(exerciseId, id, userId, request?.Notes);
+
+            _logger.LogInformation("Approved inject {InjectId} in exercise {ExerciseId} by user {UserId}",
+                id, exerciseId, userId);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Reject a submitted inject, returning it to Draft status.
+    /// Only Exercise Directors or Administrators can reject injects.
+    /// Rejection reason is required (min 10 characters) to provide feedback to the author.
+    /// </summary>
+    [HttpPost("{id:guid}/reject")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<InjectDto>> RejectInject(Guid exerciseId, Guid id, [FromBody] RejectInjectRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new { message = "Rejection reason is required" });
+            }
+
+            if (request.Reason.Length < 10)
+            {
+                return BadRequest(new { message = "Rejection reason must be at least 10 characters" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.RejectInjectAsync(exerciseId, id, userId, request.Reason);
+
+            _logger.LogInformation("Rejected inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
+                id, exerciseId, userId, request.Reason);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
         }
