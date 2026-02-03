@@ -345,7 +345,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         }
       }, refreshIn)
     }
-  }, [])
+  }, [refreshAccessToken])
 
   /**
    * Refresh access token using refresh token cookie (S07)

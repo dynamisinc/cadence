@@ -157,7 +157,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
         clearInterval(healthCheckIntervalRef.current)
       }
     }
-  }, []) // Only run on mount - performHealthCheck is stable via useCallback
+  }, [performHealthCheck, startHealthCheckInterval])
 
   // Adjust health check interval based on connectivity state
   useEffect(() => {

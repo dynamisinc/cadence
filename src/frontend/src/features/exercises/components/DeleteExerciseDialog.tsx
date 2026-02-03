@@ -88,6 +88,7 @@ export const DeleteExerciseDialog = ({
       setSummary(null)
       setIsLoadingSummary(false)
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, exercise])
 
   const fetchDeleteSummary = async () => {

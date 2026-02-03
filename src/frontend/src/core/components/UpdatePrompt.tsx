@@ -15,7 +15,7 @@
 import { useState } from 'react'
 import { Snackbar, Alert, Button, Box, Typography, Collapse, List, ListItem, ListItemIcon, ListItemText, Link } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowsRotate, faCheck, faXmark, faChevronDown, faChevronUp, faStar, faBug } from '@fortawesome/free-solid-svg-icons'
+import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faStar, faBug } from '@fortawesome/free-solid-svg-icons'
 import { useServiceWorker } from '../../shared/hooks'
 import { useReleaseNotes } from '../../features/version/hooks/useReleaseNotes'
 
@@ -28,17 +28,18 @@ export function UpdatePrompt() {
 
   // Get the latest release notes (most recent version)
   const latestRelease = releaseNotes[0]
-  const hasChanges = latestRelease && (latestRelease.features.length > 0 || latestRelease.fixes.length > 0)
+  const hasChanges =
+    latestRelease && (latestRelease.features.length > 0 || latestRelease.fixes.length > 0)
 
   // Combine features and fixes for display, limited to MAX_ITEMS_TO_SHOW
   const allChanges = latestRelease
     ? [
-        ...latestRelease.features.map(f => ({ type: 'feature' as const, text: f })),
-        ...latestRelease.fixes.map(f => ({ type: 'fix' as const, text: f })),
-      ]
+      ...latestRelease.features.map(f => ({ type: 'feature' as const, text: f })),
+      ...latestRelease.fixes.map(f => ({ type: 'fix' as const, text: f })),
+    ]
     : []
   const displayChanges = allChanges.slice(0, MAX_ITEMS_TO_SHOW)
-  const hasMoreChanges = allChanges.length > MAX_ITEMS_TO_SHOW
+  const _hasMoreChanges = allChanges.length > MAX_ITEMS_TO_SHOW
 
   // Show "offline ready" notification
   if (offlineReady) {

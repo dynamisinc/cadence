@@ -154,6 +154,7 @@ export const UserListPage: FC = () => {
   // Load users when filters or pagination change
   useEffect(() => {
     loadUsers()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pagination.page, pagination.pageSize, search, roleFilter, statusFilter, orgFilter])
 
   // Pre-load memberships for all visible users
@@ -184,6 +185,7 @@ export const UserListPage: FC = () => {
       }
     }
     loadAllMemberships()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [users])
 
   // Load organizations for add-to-org dialog
