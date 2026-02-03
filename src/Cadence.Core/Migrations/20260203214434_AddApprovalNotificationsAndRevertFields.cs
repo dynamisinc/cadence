@@ -79,7 +79,7 @@ namespace Cadence.Core.Migrations
                         column: x => x.InjectId,
                         principalTable: "Injects",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.NoAction);
                     table.ForeignKey(
                         name: "FK_ApprovalNotifications_Organizations_OrganizationId",
                         column: x => x.OrganizationId,

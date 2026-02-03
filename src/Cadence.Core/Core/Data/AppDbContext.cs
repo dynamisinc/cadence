@@ -1233,7 +1233,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(e => e.InjectId)
                 .IsRequired(false)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.NoAction); // NoAction to avoid cascade cycle with Exercise
 
             entity.HasOne(e => e.TriggeredByUser)
                 .WithMany()

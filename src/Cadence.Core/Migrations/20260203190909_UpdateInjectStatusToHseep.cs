@@ -7,58 +7,56 @@ namespace Cadence.Core.Migrations
     /// <summary>
     /// Migration to update InjectStatus values from legacy to HSEEP-compliant values.
     ///
-    /// Old values:
-    ///   Pending = 0, Ready = 1, Fired = 2, Skipped = 3
-    ///
-    /// New HSEEP values:
-    ///   Draft = 0, Submitted = 1, Approved = 2, Synchronized = 3,
-    ///   Released = 4, Complete = 5, Deferred = 6, Obsolete = 7
+    /// Old string values: Pending, Ready, Fired, Skipped
+    /// New HSEEP string values: Draft, Submitted, Approved, Synchronized, Released, Complete, Deferred, Obsolete
     ///
     /// Migration mapping:
-    ///   Pending (0) → Draft (0)         [no change - same value]
-    ///   Ready (1)   → Synchronized (3)  [needs migration]
-    ///   Fired (2)   → Released (4)      [needs migration]
-    ///   Skipped (3) → Deferred (6)      [needs migration]
+    ///   Pending  → Draft        (initial status)
+    ///   Ready    → Synchronized (scheduled for delivery)
+    ///   Fired    → Released     (delivered to players)
+    ///   Skipped  → Deferred     (cancelled before delivery)
     /// </summary>
     public partial class UpdateInjectStatusToHseep : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            // IMPORTANT: Order matters! Process in reverse value order to avoid collisions.
-            // We must not overwrite values that haven't been migrated yet.
+            // Status is stored as nvarchar (string), so use string values
+            // Update old terminology to new HSEEP terminology
 
-            // Step 1: Skipped (3) → Deferred (6)
-            // Must be done first since 3 will be used for Synchronized
-            migrationBuilder.Sql("UPDATE Injects SET Status = 6 WHERE Status = 3");
+            // Pending → Draft (initial authoring status)
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Draft' WHERE Status = 'Pending'");
 
-            // Step 2: Fired (2) → Released (4)
-            migrationBuilder.Sql("UPDATE Injects SET Status = 4 WHERE Status = 2");
+            // Ready → Synchronized (scheduled for a specific time)
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Synchronized' WHERE Status = 'Ready'");
 
-            // Step 3: Ready (1) → Synchronized (3)
-            // Now safe since 3 has been migrated to 6
-            migrationBuilder.Sql("UPDATE Injects SET Status = 3 WHERE Status = 1");
+            // Fired → Released (delivered to players)
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Released' WHERE Status = 'Fired'");
 
-            // Note: Pending (0) → Draft (0) requires no change
+            // Skipped → Deferred (cancelled before delivery)
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Deferred' WHERE Status = 'Skipped'");
         }
 
         /// <inheritdoc />
         protected override void Down(MigrationBuilder migrationBuilder)
         {
-            // Reverse the migration - process in forward order
+            // Reverse the migration - convert HSEEP terms back to legacy terms
 
-            // Step 1: Synchronized (3) → Ready (1)
-            migrationBuilder.Sql("UPDATE Injects SET Status = 1 WHERE Status = 3");
+            // Draft → Pending
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Pending' WHERE Status = 'Draft'");
 
-            // Step 2: Released (4) → Fired (2)
-            migrationBuilder.Sql("UPDATE Injects SET Status = 2 WHERE Status = 4");
+            // Synchronized → Ready
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Ready' WHERE Status = 'Synchronized'");
 
-            // Step 3: Deferred (6) → Skipped (3)
-            migrationBuilder.Sql("UPDATE Injects SET Status = 3 WHERE Status = 6");
+            // Released → Fired
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Fired' WHERE Status = 'Released'");
 
-            // Note: Any new HSEEP-only statuses (Submitted=1, Approved=2, Complete=5, Obsolete=7)
-            // would need to be handled. For simplicity, reset them to Draft (0).
-            migrationBuilder.Sql("UPDATE Injects SET Status = 0 WHERE Status IN (1, 2, 5, 7)");
+            // Deferred → Skipped
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Skipped' WHERE Status = 'Deferred'");
+
+            // Note: Any new HSEEP-only statuses (Submitted, Approved, Complete, Obsolete)
+            // would need to be handled. Reset them to Pending for safety.
+            migrationBuilder.Sql("UPDATE Injects SET Status = 'Pending' WHERE Status IN ('Submitted', 'Approved', 'Complete', 'Obsolete')");
         }
     }
 }
