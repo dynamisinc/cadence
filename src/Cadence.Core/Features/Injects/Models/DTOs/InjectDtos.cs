@@ -391,6 +391,71 @@ public class RejectInjectRequest
 }
 
 /// <summary>
+/// DTO for batch approving multiple injects.
+/// </summary>
+public class BatchApproveRequest
+{
+    /// <summary>
+    /// List of inject IDs to approve. Required, at least 1 inject.
+    /// </summary>
+    public List<Guid> InjectIds { get; init; } = new();
+
+    /// <summary>
+    /// Optional notes from the approver (max 1000 characters).
+    /// Applied to all approved injects.
+    /// </summary>
+    public string? Notes { get; init; }
+}
+
+/// <summary>
+/// DTO for batch rejecting multiple injects.
+/// </summary>
+public class BatchRejectRequest
+{
+    /// <summary>
+    /// List of inject IDs to reject. Required, at least 1 inject.
+    /// </summary>
+    public List<Guid> InjectIds { get; init; } = new();
+
+    /// <summary>
+    /// Required rejection reason (min 10 chars, max 1000 characters).
+    /// Applied to all rejected injects.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Result of a batch approval or rejection operation.
+/// </summary>
+public class BatchApprovalResult
+{
+    /// <summary>
+    /// Number of injects successfully approved.
+    /// </summary>
+    public int ApprovedCount { get; set; }
+
+    /// <summary>
+    /// Number of injects successfully rejected.
+    /// </summary>
+    public int RejectedCount { get; set; }
+
+    /// <summary>
+    /// Number of injects skipped (wrong status or self-submission).
+    /// </summary>
+    public int SkippedCount { get; set; }
+
+    /// <summary>
+    /// Reasons why injects were skipped.
+    /// </summary>
+    public List<string> SkippedReasons { get; set; } = new();
+
+    /// <summary>
+    /// List of processed injects (approved or rejected).
+    /// </summary>
+    public List<InjectDto> ProcessedInjects { get; set; } = new();
+}
+
+/// <summary>
 /// Extension methods for mapping between Inject entity and DTOs.
 /// </summary>
 public static class InjectMapper

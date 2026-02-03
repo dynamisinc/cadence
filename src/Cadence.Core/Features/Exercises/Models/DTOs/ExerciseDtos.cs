@@ -353,3 +353,58 @@ public record ApprovalSettingsDto(
     DateTime? ApprovalOverriddenAt,
     ApprovalPolicy OrganizationPolicy
 );
+
+/// <summary>
+/// Response DTO for exercise approval status summary (S06: Approval Queue View).
+/// Shows counts of injects by approval status for queue management.
+/// </summary>
+public record ApprovalStatusDto(
+    int TotalInjects,
+    int ApprovedCount,
+    int PendingApprovalCount,
+    int DraftCount,
+    decimal ApprovalPercentage,
+    bool AllApproved
+);
+
+// =========================================================================
+// Exercise Publish Validation DTOs (Go-Live Gate - S07)
+// =========================================================================
+
+/// <summary>
+/// Result of validating whether an exercise can be published.
+/// When approval is enabled, blocks publish if any injects are unapproved (Draft or Submitted).
+/// </summary>
+public class PublishValidationResult
+{
+    /// <summary>
+    /// Whether the exercise can be published.
+    /// False if approval is enabled and unapproved injects exist.
+    /// </summary>
+    public bool CanPublish { get; set; }
+
+    /// <summary>
+    /// Count of injects in Draft status.
+    /// </summary>
+    public int DraftCount { get; set; }
+
+    /// <summary>
+    /// Count of injects in Submitted status (awaiting approval).
+    /// </summary>
+    public int SubmittedCount { get; set; }
+
+    /// <summary>
+    /// Total count of unapproved injects (Draft + Submitted).
+    /// </summary>
+    public int TotalUnapprovedCount => DraftCount + SubmittedCount;
+
+    /// <summary>
+    /// Warning messages that don't block publish (e.g., no injects, all deferred).
+    /// </summary>
+    public List<string> Warnings { get; set; } = new();
+
+    /// <summary>
+    /// Error messages that block publish (unapproved injects when approval enabled).
+    /// </summary>
+    public List<string> Errors { get; set; } = new();
+}

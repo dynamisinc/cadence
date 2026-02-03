@@ -780,4 +780,303 @@ public class ExerciseStatusServiceTests
     }
 
     #endregion
+
+    #region ValidatePublishAsync Tests (S07: Go-Live Gate)
+
+    [Fact]
+    public async Task ValidatePublishAsync_WithUnapprovedInjects_ReturnsCannotPublish()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = true;
+        context.SaveChanges();
+
+        var (msel, _) = CreateInject(context, exercise);
+
+        // Create multiple injects with different statuses
+        var inject2 = new Inject
+        {
+            Id = Guid.NewGuid(),
+            InjectNumber = 2,
+            Title = "Draft Inject",
+            Description = "Description",
+            ScheduledTime = new TimeOnly(10, 0),
+            Target = "Target",
+            InjectType = InjectType.Standard,
+            Status = InjectStatus.Draft, // Unapproved
+            Sequence = 2,
+            MselId = msel.Id,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
+        };
+        context.Injects.Add(inject2);
+
+        var inject3 = new Inject
+        {
+            Id = Guid.NewGuid(),
+            InjectNumber = 3,
+            Title = "Submitted Inject",
+            Description = "Description",
+            ScheduledTime = new TimeOnly(11, 0),
+            Target = "Target",
+            InjectType = InjectType.Standard,
+            Status = InjectStatus.Submitted, // Unapproved
+            Sequence = 3,
+            MselId = msel.Id,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
+        };
+        context.Injects.Add(inject3);
+
+        var inject4 = new Inject
+        {
+            Id = Guid.NewGuid(),
+            InjectNumber = 4,
+            Title = "Approved Inject",
+            Description = "Description",
+            ScheduledTime = new TimeOnly(12, 0),
+            Target = "Target",
+            InjectType = InjectType.Standard,
+            Status = InjectStatus.Approved, // Approved
+            Sequence = 4,
+            MselId = msel.Id,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
+        };
+        context.Injects.Add(inject4);
+
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ValidatePublishAsync(exercise.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.CanPublish.Should().BeFalse();
+        result.DraftCount.Should().Be(2); // inject1 (from CreateInject) and inject2
+        result.SubmittedCount.Should().Be(1); // inject3
+        result.TotalUnapprovedCount.Should().Be(3);
+        result.Errors.Should().HaveCount(1);
+        result.Errors[0].Should().Contain("3 injects require approval");
+    }
+
+    [Fact]
+    public async Task ValidatePublishAsync_AllApproved_ReturnsCanPublish()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = true;
+        context.SaveChanges();
+
+        var (msel, inject1) = CreateInject(context, exercise);
+        inject1.Status = InjectStatus.Approved;
+
+        var inject2 = new Inject
+        {
+            Id = Guid.NewGuid(),
+            InjectNumber = 2,
+            Title = "Synchronized Inject",
+            Description = "Description",
+            ScheduledTime = new TimeOnly(10, 0),
+            Target = "Target",
+            InjectType = InjectType.Standard,
+            Status = InjectStatus.Synchronized,
+            Sequence = 2,
+            MselId = msel.Id,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
+        };
+        context.Injects.Add(inject2);
+
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ValidatePublishAsync(exercise.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.CanPublish.Should().BeTrue();
+        result.DraftCount.Should().Be(0);
+        result.SubmittedCount.Should().Be(0);
+        result.TotalUnapprovedCount.Should().Be(0);
+        result.Errors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidatePublishAsync_ApprovalDisabled_IgnoresUnapproved()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = false; // Approval disabled
+        context.SaveChanges();
+
+        var (msel, inject1) = CreateInject(context, exercise);
+        inject1.Status = InjectStatus.Draft; // Unapproved but should be ignored
+
+        var inject2 = new Inject
+        {
+            Id = Guid.NewGuid(),
+            InjectNumber = 2,
+            Title = "Submitted Inject",
+            Description = "Description",
+            ScheduledTime = new TimeOnly(10, 0),
+            Target = "Target",
+            InjectType = InjectType.Standard,
+            Status = InjectStatus.Submitted,
+            Sequence = 2,
+            MselId = msel.Id,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
+        };
+        context.Injects.Add(inject2);
+
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ValidatePublishAsync(exercise.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.CanPublish.Should().BeTrue(); // Can publish despite Draft injects
+        result.Errors.Should().BeEmpty();
+    }
+
+    [Fact]
+    public async Task ValidatePublishAsync_NoInjects_ReturnsWarningButCanPublish()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = true;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ValidatePublishAsync(exercise.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.CanPublish.Should().BeTrue();
+        result.DraftCount.Should().Be(0);
+        result.SubmittedCount.Should().Be(0);
+        result.Warnings.Should().HaveCount(1);
+        result.Warnings[0].Should().Contain("Exercise has no injects");
+    }
+
+    [Fact]
+    public async Task ValidatePublishAsync_AllDeferred_ReturnsWarningButCanPublish()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = true;
+        context.SaveChanges();
+
+        var (msel, inject1) = CreateInject(context, exercise);
+        inject1.Status = InjectStatus.Deferred;
+
+        var inject2 = new Inject
+        {
+            Id = Guid.NewGuid(),
+            InjectNumber = 2,
+            Title = "Obsolete Inject",
+            Description = "Description",
+            ScheduledTime = new TimeOnly(10, 0),
+            Target = "Target",
+            InjectType = InjectType.Standard,
+            Status = InjectStatus.Obsolete,
+            Sequence = 2,
+            MselId = msel.Id,
+            CreatedBy = Guid.Empty.ToString(),
+            ModifiedBy = Guid.Empty.ToString()
+        };
+        context.Injects.Add(inject2);
+
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.ValidatePublishAsync(exercise.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.CanPublish.Should().BeTrue();
+        result.Warnings.Should().HaveCount(1);
+        result.Warnings[0].Should().Contain("All injects are Deferred or Obsolete");
+    }
+
+    [Fact]
+    public async Task ValidatePublishAsync_ExerciseNotFound_ThrowsException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var service = CreateService(context);
+        var nonExistentId = Guid.NewGuid();
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            async () => await service.ValidatePublishAsync(nonExistentId));
+    }
+
+    [Fact]
+    public async Task ActivateAsync_WithApprovalEnabled_EnforcesValidation()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = true;
+        context.SaveChanges();
+
+        var (msel, inject) = CreateInject(context, exercise);
+        inject.Status = InjectStatus.Draft; // Unapproved
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var result = await service.ActivateAsync(exercise.Id, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeFalse();
+        result.ErrorMessage.Should().Contain("injects require approval");
+    }
+
+    [Fact]
+    public async Task ActivateAsync_WithApprovalEnabledAllApproved_Succeeds()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org, ExerciseStatus.Draft);
+        exercise.RequireInjectApproval = true;
+        context.SaveChanges();
+
+        var (msel, inject) = CreateInject(context, exercise);
+        inject.Status = InjectStatus.Approved;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var result = await service.ActivateAsync(exercise.Id, userId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Success.Should().BeTrue();
+        result.NewStatus.Should().Be(ExerciseStatus.Active);
+    }
+
+    #endregion
 }

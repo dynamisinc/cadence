@@ -77,6 +77,14 @@ public class ExerciseStatusService : IExerciseStatusService
                 "Cannot activate exercise without at least one inject in the MSEL.",
                 exercise.Status);
 
+        // Validate publish readiness (approval gate check)
+        var validation = await ValidatePublishAsync(exerciseId);
+        if (!validation.CanPublish)
+        {
+            var errorMessage = string.Join("; ", validation.Errors);
+            return StatusTransitionResult.Failed(errorMessage, exercise.Status);
+        }
+
         // Perform transition
         exercise.Status = ExerciseStatus.Active;
         exercise.ActivatedAt = DateTime.UtcNow;
@@ -354,6 +362,59 @@ public class ExerciseStatusService : IExerciseStatusService
         await _hubContext.NotifyExerciseStatusChanged(exerciseId, dto);
 
         return StatusTransitionResult.Succeeded(dto);
+    }
+
+    /// <inheritdoc />
+    public async Task<PublishValidationResult> ValidatePublishAsync(Guid exerciseId)
+    {
+        var exercise = await _context.Exercises
+            .Include(e => e.Msels)
+            .FirstOrDefaultAsync(e => e.Id == exerciseId && !e.IsDeleted);
+
+        if (exercise == null)
+            throw new KeyNotFoundException($"Exercise {exerciseId} not found");
+
+        var result = new PublishValidationResult { CanPublish = true };
+
+        // Get all injects from all MSELs
+        var injects = await _context.Injects
+            .Where(i => i.Msel!.ExerciseId == exerciseId && !i.IsDeleted)
+            .ToListAsync();
+
+        // Check for no injects
+        if (!injects.Any())
+        {
+            result.Warnings.Add("Exercise has no injects");
+            // Can still publish, just warning
+            return result;
+        }
+
+        // Check for all deferred/obsolete
+        var activeInjects = injects.Where(i =>
+            i.Status != InjectStatus.Deferred &&
+            i.Status != InjectStatus.Obsolete).ToList();
+
+        if (injects.Any() && !activeInjects.Any())
+        {
+            result.Warnings.Add("All injects are Deferred or Obsolete");
+            // Can still publish, just warning
+        }
+
+        // Check approval status (only if approval enabled)
+        if (exercise.RequireInjectApproval)
+        {
+            result.DraftCount = injects.Count(i => i.Status == InjectStatus.Draft);
+            result.SubmittedCount = injects.Count(i => i.Status == InjectStatus.Submitted);
+
+            if (result.TotalUnapprovedCount > 0)
+            {
+                result.CanPublish = false;
+                result.Errors.Add(
+                    $"{result.TotalUnapprovedCount} injects require approval before publishing");
+            }
+        }
+
+        return result;
     }
 
     private async Task<Exercise?> GetExerciseAsync(Guid exerciseId)

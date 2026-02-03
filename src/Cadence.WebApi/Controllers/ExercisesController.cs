@@ -30,6 +30,7 @@ public class ExercisesController : ControllerBase
     private readonly ISetupProgressService _setupProgressService;
     private readonly IExerciseParticipantService _participantService;
     private readonly IExerciseApprovalSettingsService _approvalSettingsService;
+    private readonly IExerciseApprovalQueueService _approvalQueueService;
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<ExercisesController> _logger;
 
@@ -40,6 +41,7 @@ public class ExercisesController : ControllerBase
         ISetupProgressService setupProgressService,
         IExerciseParticipantService participantService,
         IExerciseApprovalSettingsService approvalSettingsService,
+        IExerciseApprovalQueueService approvalQueueService,
         ICurrentOrganizationContext orgContext,
         ILogger<ExercisesController> logger)
     {
@@ -49,6 +51,7 @@ public class ExercisesController : ControllerBase
         _setupProgressService = setupProgressService;
         _participantService = participantService;
         _approvalSettingsService = approvalSettingsService;
+        _approvalQueueService = approvalQueueService;
         _orgContext = orgContext;
         _logger = logger;
     }
@@ -870,6 +873,33 @@ public class ExercisesController : ControllerBase
                 "Invalid approval settings update for exercise {ExerciseId}",
                 id);
             return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    // =========================================================================
+    // Approval Queue Endpoints (S06: Approval Queue View)
+    // =========================================================================
+
+    /// <summary>
+    /// Get approval status summary for an exercise.
+    /// Returns counts of injects by approval status (Draft, Submitted, Approved).
+    /// Used for dashboard alerts and MSEL header summary.
+    /// </summary>
+    [HttpGet("{id:guid}/approval-status")]
+    [AuthorizeExerciseAccess]
+    [ProducesResponseType(typeof(ApprovalStatusDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ApprovalStatusDto>> GetApprovalStatus(Guid id)
+    {
+        try
+        {
+            var status = await _approvalQueueService.GetApprovalStatusAsync(id);
+            return Ok(status);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Exercise {ExerciseId} not found for approval status", id);
+            return NotFound(new { message = ex.Message });
         }
     }
 }

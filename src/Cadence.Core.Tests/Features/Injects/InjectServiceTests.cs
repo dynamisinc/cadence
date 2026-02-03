@@ -827,4 +827,397 @@ public class InjectServiceTests
     }
 
     #endregion
+
+    #region BatchApproveAsync Tests
+
+    [Fact]
+    public async Task BatchApprove_MultipleSubmittedInjects_ApprovesAll()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject1.SubmittedByUserId = submitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Submitted, submitterId);
+        inject2.SubmittedByUserId = submitterId;
+        inject2.SubmittedAt = DateTime.UtcNow.AddMinutes(-9);
+
+        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Submitted, submitterId);
+        inject3.SubmittedByUserId = submitterId;
+        inject3.SubmittedAt = DateTime.UtcNow.AddMinutes(-8);
+
+        context.Injects.AddRange(inject1, inject2, inject3);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id, inject3.Id };
+
+        // Act
+        var result = await service.BatchApproveAsync(exercise.Id, injectIds, "Batch approved for exercise", approverId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.ApprovedCount.Should().Be(3);
+        result.SkippedCount.Should().Be(0);
+        result.ProcessedInjects.Should().HaveCount(3);
+
+        var updated = await context.Injects.Where(i => injectIds.Contains(i.Id)).ToListAsync();
+        updated.Should().AllSatisfy(i =>
+        {
+            i.Status.Should().Be(InjectStatus.Approved);
+            i.ApprovedByUserId.Should().Be(approverId);
+            i.ApprovedAt.Should().NotBeNull();
+            i.ApproverNotes.Should().Be("Batch approved for exercise");
+        });
+    }
+
+    [Fact]
+    public async Task BatchApprove_WithSelfSubmissions_SkipsSelfAndApprovesOthers()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+        var otherSubmitterId = Guid.NewGuid().ToString();
+
+        // Inject by other user
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, otherSubmitterId);
+        inject1.SubmittedByUserId = otherSubmitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        // Self-submitted inject (approver is same as submitter)
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Submitted, approverId);
+        inject2.SubmittedByUserId = approverId;
+        inject2.SubmittedAt = DateTime.UtcNow.AddMinutes(-9);
+
+        // Another inject by other user
+        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Submitted, otherSubmitterId);
+        inject3.SubmittedByUserId = otherSubmitterId;
+        inject3.SubmittedAt = DateTime.UtcNow.AddMinutes(-8);
+
+        context.Injects.AddRange(inject1, inject2, inject3);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id, inject3.Id };
+
+        // Act
+        var result = await service.BatchApproveAsync(exercise.Id, injectIds, null, approverId);
+
+        // Assert
+        result.ApprovedCount.Should().Be(2, "two injects should be approved (excluding self-submission)");
+        result.SkippedCount.Should().Be(1, "one inject should be skipped (self-submission)");
+        result.SkippedReasons.Should().HaveCount(1);
+        result.SkippedReasons[0].Should().Contain("Cannot approve your own submission");
+
+        var inject1Updated = await context.Injects.FindAsync(inject1.Id);
+        inject1Updated!.Status.Should().Be(InjectStatus.Approved);
+
+        var inject2Updated = await context.Injects.FindAsync(inject2.Id);
+        inject2Updated!.Status.Should().Be(InjectStatus.Submitted, "self-submission should remain Submitted");
+
+        var inject3Updated = await context.Injects.FindAsync(inject3.Id);
+        inject3Updated!.Status.Should().Be(InjectStatus.Approved);
+    }
+
+    [Fact]
+    public async Task BatchApprove_MixedStatuses_OnlyApprovesSubmitted()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject1.SubmittedByUserId = submitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Draft, submitterId); // Draft
+
+        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Approved, submitterId); // Already approved
+        inject3.ApprovedByUserId = approverId;
+        inject3.ApprovedAt = DateTime.UtcNow.AddDays(-1);
+
+        context.Injects.AddRange(inject1, inject2, inject3);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id, inject3.Id };
+
+        // Act
+        var result = await service.BatchApproveAsync(exercise.Id, injectIds, null, approverId);
+
+        // Assert
+        result.ApprovedCount.Should().Be(1);
+        result.SkippedCount.Should().Be(2);
+        result.SkippedReasons.Should().HaveCount(2);
+        result.SkippedReasons.Should().Contain(r => r.Contains("Not in Submitted status"));
+    }
+
+    [Fact]
+    public async Task BatchApprove_EmptyList_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.BatchApproveAsync(exercise.Id, new List<Guid>(), null, approverId));
+
+        ex.Message.Should().Contain("at least one inject");
+    }
+
+    [Fact]
+    public async Task BatchApprove_AllSelfSubmissions_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, approverId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+
+        // All injects submitted by the same user who will approve
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, approverId);
+        inject1.SubmittedByUserId = approverId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Submitted, approverId);
+        inject2.SubmittedByUserId = approverId;
+        inject2.SubmittedAt = DateTime.UtcNow.AddMinutes(-9);
+
+        context.Injects.AddRange(inject1, inject2);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id };
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.BatchApproveAsync(exercise.Id, injectIds, null, approverId));
+
+        ex.Message.Should().Contain("all selected injects were submitted by you");
+    }
+
+    [Fact]
+    public async Task BatchApprove_CreatesStatusHistoryForEach()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var approverId = Guid.NewGuid().ToString();
+
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject1.SubmittedByUserId = submitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Submitted, submitterId);
+        inject2.SubmittedByUserId = submitterId;
+        inject2.SubmittedAt = DateTime.UtcNow.AddMinutes(-9);
+
+        context.Injects.AddRange(inject1, inject2);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id };
+
+        // Act
+        await service.BatchApproveAsync(exercise.Id, injectIds, "Batch notes", approverId);
+
+        // Assert
+        var histories = await context.InjectStatusHistories
+            .Where(h => injectIds.Contains(h.InjectId))
+            .ToListAsync();
+
+        histories.Should().HaveCount(2);
+        histories.Should().AllSatisfy(h =>
+        {
+            h.FromStatus.Should().Be(InjectStatus.Submitted);
+            h.ToStatus.Should().Be(InjectStatus.Approved);
+            h.ChangedByUserId.Should().Be(approverId);
+            h.Notes.Should().Be("Batch notes");
+        });
+    }
+
+    #endregion
+
+    #region BatchRejectAsync Tests
+
+    [Fact]
+    public async Task BatchReject_MultipleSubmittedInjects_RejectsAll()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject1.SubmittedByUserId = submitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Submitted, submitterId);
+        inject2.SubmittedByUserId = submitterId;
+        inject2.SubmittedAt = DateTime.UtcNow.AddMinutes(-9);
+
+        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Submitted, submitterId);
+        inject3.SubmittedByUserId = submitterId;
+        inject3.SubmittedAt = DateTime.UtcNow.AddMinutes(-8);
+
+        context.Injects.AddRange(inject1, inject2, inject3);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id, inject3.Id };
+
+        // Act
+        var result = await service.BatchRejectAsync(exercise.Id, injectIds,
+            "Timing needs adjustment per updated timeline", rejecterId);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.RejectedCount.Should().Be(3);
+        result.SkippedCount.Should().Be(0);
+        result.ProcessedInjects.Should().HaveCount(3);
+
+        var updated = await context.Injects.Where(i => injectIds.Contains(i.Id)).ToListAsync();
+        updated.Should().AllSatisfy(i =>
+        {
+            i.Status.Should().Be(InjectStatus.Draft);
+            i.RejectedByUserId.Should().Be(rejecterId);
+            i.RejectedAt.Should().NotBeNull();
+            i.RejectionReason.Should().Be("Timing needs adjustment per updated timeline");
+            i.SubmittedByUserId.Should().BeNull("submission tracking should be cleared");
+            i.SubmittedAt.Should().BeNull("submission tracking should be cleared");
+        });
+    }
+
+    [Fact]
+    public async Task BatchReject_MixedStatuses_OnlyRejectsSubmitted()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject1.SubmittedByUserId = submitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Draft, submitterId);
+
+        var inject3 = CreateInject(msel.Id, 3, InjectStatus.Approved, submitterId);
+
+        context.Injects.AddRange(inject1, inject2, inject3);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id, inject3.Id };
+
+        // Act
+        var result = await service.BatchRejectAsync(exercise.Id, injectIds, "Please revise per HSEEP standards", rejecterId);
+
+        // Assert
+        result.RejectedCount.Should().Be(1);
+        result.SkippedCount.Should().Be(2);
+        result.SkippedReasons.Should().HaveCount(2);
+        result.SkippedReasons.Should().Contain(r => r.Contains("Not in Submitted status"));
+    }
+
+    [Fact]
+    public async Task BatchReject_EmptyList_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, userId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.BatchRejectAsync(exercise.Id, new List<Guid>(), "Reason", rejecterId));
+
+        ex.Message.Should().Contain("at least one inject");
+    }
+
+    [Fact]
+    public async Task BatchReject_ShortReason_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject.SubmittedByUserId = submitterId;
+        inject.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+        context.Injects.Add(inject);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+
+        // Act & Assert
+        var ex = await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.BatchRejectAsync(exercise.Id, new List<Guid> { inject.Id }, "Short", rejecterId));
+
+        ex.Message.Should().Contain("at least 10 characters");
+    }
+
+    [Fact]
+    public async Task BatchReject_CreatesStatusHistoryForEach()
+    {
+        // Arrange
+        var (context, _, exercise, msel, submitterId) = CreateTestContext();
+        exercise.RequireInjectApproval = true;
+        await context.SaveChangesAsync();
+        var rejecterId = Guid.NewGuid().ToString();
+
+        var inject1 = CreateInject(msel.Id, 1, InjectStatus.Submitted, submitterId);
+        inject1.SubmittedByUserId = submitterId;
+        inject1.SubmittedAt = DateTime.UtcNow.AddMinutes(-10);
+
+        var inject2 = CreateInject(msel.Id, 2, InjectStatus.Submitted, submitterId);
+        inject2.SubmittedByUserId = submitterId;
+        inject2.SubmittedAt = DateTime.UtcNow.AddMinutes(-9);
+
+        context.Injects.AddRange(inject1, inject2);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var injectIds = new List<Guid> { inject1.Id, inject2.Id };
+
+        // Act
+        await service.BatchRejectAsync(exercise.Id, injectIds, "All need timing revision per director feedback", rejecterId);
+
+        // Assert
+        var histories = await context.InjectStatusHistories
+            .Where(h => injectIds.Contains(h.InjectId))
+            .ToListAsync();
+
+        histories.Should().HaveCount(2);
+        histories.Should().AllSatisfy(h =>
+        {
+            h.FromStatus.Should().Be(InjectStatus.Submitted);
+            h.ToStatus.Should().Be(InjectStatus.Draft);
+            h.ChangedByUserId.Should().Be(rejecterId);
+            h.Notes.Should().Be("All need timing revision per director feedback");
+        });
+    }
+
+    #endregion
 }

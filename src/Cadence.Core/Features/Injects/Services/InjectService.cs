@@ -358,6 +358,215 @@ public class InjectService : IInjectService
         return dto;
     }
 
+    /// <inheritdoc />
+    public async Task<BatchApprovalResult> BatchApproveAsync(
+        Guid exerciseId,
+        IEnumerable<Guid> injectIds,
+        string? notes,
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var injectIdsList = injectIds.ToList();
+        if (injectIdsList.Count == 0)
+        {
+            throw new InvalidOperationException("Must select at least one inject to approve.");
+        }
+
+        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
+            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
+
+        if (!exercise.RequireInjectApproval)
+        {
+            throw new InvalidOperationException(
+                "Cannot batch approve - approval workflow is not enabled for this exercise.");
+        }
+
+        if (exercise.ActiveMselId == null)
+        {
+            throw new InvalidOperationException("Exercise has no active MSEL.");
+        }
+
+        var result = new BatchApprovalResult();
+
+        // Get all requested injects
+        var injects = await _context.Injects
+            .Include(i => i.Phase)
+            .Include(i => i.InjectObjectives)
+            .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var inject in injects)
+        {
+            // Skip non-submitted injects
+            if (inject.Status != InjectStatus.Submitted)
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add(
+                    $"INJ-{inject.InjectNumber:D3}: Not in Submitted status (current: {inject.Status})");
+                continue;
+            }
+
+            // Skip self-submissions (separation of duties)
+            if (inject.SubmittedByUserId == userId)
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add(
+                    $"INJ-{inject.InjectNumber:D3}: Cannot approve your own submission");
+                continue;
+            }
+
+            // Approve the inject
+            inject.Status = InjectStatus.Approved;
+            inject.ApprovedByUserId = userId;
+            inject.ApprovedAt = DateTime.UtcNow;
+            inject.ApproverNotes = notes;
+            inject.ModifiedBy = userId;
+
+            // Clear any previous rejection
+            inject.RejectionReason = null;
+            inject.RejectedByUserId = null;
+            inject.RejectedAt = null;
+
+            // Record status history
+            var history = new InjectStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                InjectId = inject.Id,
+                FromStatus = InjectStatus.Submitted,
+                ToStatus = InjectStatus.Approved,
+                ChangedByUserId = userId,
+                ChangedAt = DateTime.UtcNow,
+                Notes = notes,
+                CreatedBy = userId,
+                ModifiedBy = userId
+            };
+            _context.InjectStatusHistories.Add(history);
+
+            result.ApprovedCount++;
+            result.ProcessedInjects.Add(inject.ToDto());
+        }
+
+        // Validate at least one inject was approved
+        if (result.ApprovedCount == 0)
+        {
+            throw new InvalidOperationException(
+                "Cannot approve - all selected injects were submitted by you or are not in Submitted status.");
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Broadcast SignalR notification for each approved inject
+        foreach (var dto in result.ProcessedInjects)
+        {
+            await _hubContext.NotifyInjectApproved(exerciseId, dto);
+        }
+
+        return result;
+    }
+
+    /// <inheritdoc />
+    public async Task<BatchApprovalResult> BatchRejectAsync(
+        Guid exerciseId,
+        IEnumerable<Guid> injectIds,
+        string reason,
+        string userId,
+        CancellationToken cancellationToken = default)
+    {
+        var injectIdsList = injectIds.ToList();
+        if (injectIdsList.Count == 0)
+        {
+            throw new InvalidOperationException("Must select at least one inject to reject.");
+        }
+
+        // Validate reason
+        if (string.IsNullOrWhiteSpace(reason))
+        {
+            throw new InvalidOperationException("Rejection reason is required.");
+        }
+        if (reason.Length < 10)
+        {
+            throw new InvalidOperationException("Rejection reason must be at least 10 characters.");
+        }
+        if (reason.Length > 1000)
+        {
+            throw new InvalidOperationException("Rejection reason must be 1000 characters or less.");
+        }
+
+        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
+            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
+
+        if (!exercise.RequireInjectApproval)
+        {
+            throw new InvalidOperationException(
+                "Cannot batch reject - approval workflow is not enabled for this exercise.");
+        }
+
+        if (exercise.ActiveMselId == null)
+        {
+            throw new InvalidOperationException("Exercise has no active MSEL.");
+        }
+
+        var result = new BatchApprovalResult();
+
+        // Get all requested injects
+        var injects = await _context.Injects
+            .Include(i => i.Phase)
+            .Include(i => i.InjectObjectives)
+            .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
+            .ToListAsync(cancellationToken);
+
+        foreach (var inject in injects)
+        {
+            // Skip non-submitted injects
+            if (inject.Status != InjectStatus.Submitted)
+            {
+                result.SkippedCount++;
+                result.SkippedReasons.Add(
+                    $"INJ-{inject.InjectNumber:D3}: Not in Submitted status (current: {inject.Status})");
+                continue;
+            }
+
+            // Reject the inject (return to Draft)
+            inject.Status = InjectStatus.Draft;
+            inject.RejectedByUserId = userId;
+            inject.RejectedAt = DateTime.UtcNow;
+            inject.RejectionReason = reason;
+            inject.ModifiedBy = userId;
+
+            // Clear submission tracking (will be re-set on resubmit)
+            inject.SubmittedByUserId = null;
+            inject.SubmittedAt = null;
+
+            // Record status history
+            var history = new InjectStatusHistory
+            {
+                Id = Guid.NewGuid(),
+                InjectId = inject.Id,
+                FromStatus = InjectStatus.Submitted,
+                ToStatus = InjectStatus.Draft,
+                ChangedByUserId = userId,
+                ChangedAt = DateTime.UtcNow,
+                Notes = reason,
+                CreatedBy = userId,
+                ModifiedBy = userId
+            };
+            _context.InjectStatusHistories.Add(history);
+
+            result.RejectedCount++;
+            result.ProcessedInjects.Add(inject.ToDto());
+        }
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Broadcast SignalR notification for each rejected inject
+        foreach (var dto in result.ProcessedInjects)
+        {
+            await _hubContext.NotifyInjectRejected(exerciseId, dto);
+        }
+
+        return result;
+    }
+
     private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)
     {
         var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)

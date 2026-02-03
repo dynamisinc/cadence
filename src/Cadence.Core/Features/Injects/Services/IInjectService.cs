@@ -59,4 +59,25 @@ public interface IInjectService
     /// <param name="reason">Required rejection reason</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task<InjectDto> RejectInjectAsync(Guid exerciseId, Guid injectId, string userId, string reason, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Batch approve multiple submitted injects.
+    /// Self-submissions are automatically skipped.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectIds">List of inject IDs to approve</param>
+    /// <param name="notes">Optional approver notes</param>
+    /// <param name="userId">The user who is approving (must be Director or Admin)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<BatchApprovalResult> BatchApproveAsync(Guid exerciseId, IEnumerable<Guid> injectIds, string? notes, string userId, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Batch reject multiple submitted injects.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectIds">List of inject IDs to reject</param>
+    /// <param name="reason">Required rejection reason</param>
+    /// <param name="userId">The user who is rejecting (must be Director or Admin)</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<BatchApprovalResult> BatchRejectAsync(Guid exerciseId, IEnumerable<Guid> injectIds, string reason, string userId, CancellationToken cancellationToken = default);
 }

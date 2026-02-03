@@ -42,10 +42,17 @@ public class InjectsController : ControllerBase
     /// <summary>
     /// Get all injects for an exercise (via its active MSEL).
     /// Uses split query approach to avoid cartesian explosion with objectives.
+    /// Supports filtering by status and by user submissions (S06: Approval Queue View).
     /// </summary>
+    /// <param name="exerciseId">Exercise ID</param>
+    /// <param name="status">Optional filter by inject status (e.g., Submitted for pending approval)</param>
+    /// <param name="mySubmissionsOnly">If true, only return injects submitted by current user</param>
     [HttpGet]
     [AuthorizeExerciseAccess]
-    public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(Guid exerciseId)
+    public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(
+        Guid exerciseId,
+        [FromQuery] InjectStatus? status = null,
+        [FromQuery] bool mySubmissionsOnly = false)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
         if (exercise == null)
@@ -61,8 +68,30 @@ public class InjectsController : ControllerBase
         // Use split query to avoid cartesian explosion with InjectObjectives
         // First get the injects without objectives
         var injectsQuery = _context.Injects
-            .Where(i => i.MselId == exercise.ActiveMselId)
-            .OrderBy(i => i.Sequence)
+            .Where(i => i.MselId == exercise.ActiveMselId);
+
+        // Apply status filter if provided
+        if (status.HasValue)
+        {
+            injectsQuery = injectsQuery.Where(i => i.Status == status.Value);
+        }
+
+        // Apply mySubmissionsOnly filter if requested
+        if (mySubmissionsOnly)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                injectsQuery = injectsQuery.Where(i =>
+                    i.SubmittedByUserId == currentUserId ||
+                    i.CreatedBy == currentUserId);
+            }
+        }
+
+        // Default ordering by sequence (for approval queue, can be changed client-side)
+        injectsQuery = injectsQuery.OrderBy(i => i.Sequence);
+
+        var injectsQueryProjected = injectsQuery
             .Select(i => new
             {
                 i.Id,
@@ -117,7 +146,7 @@ public class InjectsController : ControllerBase
                 i.ModifiedBy
             });
 
-        var injectsData = await injectsQuery.ToListAsync();
+        var injectsData = await injectsQueryProjected.ToListAsync();
 
         // Get all objective mappings in a single query
         var injectIds = injectsData.Select(i => i.Id).ToList();
@@ -706,6 +735,88 @@ public class InjectsController : ControllerBase
 
             _logger.LogInformation("Rejected inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
                 id, exerciseId, userId, request.Reason);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Batch approve multiple submitted injects.
+    /// Only Exercise Directors or Administrators can approve injects.
+    /// Self-submissions are automatically skipped (separation of duties).
+    /// </summary>
+    [HttpPost("batch/approve")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<BatchApprovalResult>> BatchApprove(
+        Guid exerciseId,
+        [FromBody] BatchApproveRequest request)
+    {
+        try
+        {
+            if (request.InjectIds == null || request.InjectIds.Count == 0)
+            {
+                return BadRequest(new { message = "InjectIds is required and must contain at least one inject" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.BatchApproveAsync(exerciseId, request.InjectIds, request.Notes, userId);
+
+            _logger.LogInformation("Batch approved {Count} injects in exercise {ExerciseId} by user {UserId}",
+                result.ApprovedCount, exerciseId, userId);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Batch reject multiple submitted injects, returning them to Draft status.
+    /// Only Exercise Directors or Administrators can reject injects.
+    /// Rejection reason is required (min 10 characters) to provide feedback to authors.
+    /// </summary>
+    [HttpPost("batch/reject")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<BatchApprovalResult>> BatchReject(
+        Guid exerciseId,
+        [FromBody] BatchRejectRequest request)
+    {
+        try
+        {
+            if (request.InjectIds == null || request.InjectIds.Count == 0)
+            {
+                return BadRequest(new { message = "InjectIds is required and must contain at least one inject" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new { message = "Rejection reason is required" });
+            }
+
+            if (request.Reason.Length < 10)
+            {
+                return BadRequest(new { message = "Rejection reason must be at least 10 characters" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.BatchRejectAsync(exerciseId, request.InjectIds, request.Reason, userId);
+
+            _logger.LogInformation("Batch rejected {Count} injects in exercise {ExerciseId} by user {UserId}: {Reason}",
+                result.RejectedCount, exerciseId, userId, request.Reason);
 
             return Ok(result);
         }
