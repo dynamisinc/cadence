@@ -98,7 +98,7 @@ export const ObservationForm = ({
       // Released injects first, sorted by firedAt descending (most recent first)
       const aIsFired = a.status === InjectStatus.Released
       const bIsFired = b.status === InjectStatus.Released
-      const aIsSkipped = a.status === InjectStatus.Skipped
+      const aIsDeferred = a.status === InjectStatus.Deferred
 
       if (aIsFired && !bIsFired) return -1
       if (!aIsFired && bIsFired) return 1
@@ -109,10 +109,10 @@ export const ObservationForm = ({
         return bTime - aTime
       }
 
-      // Skipped injects after fired
-      const bIsSkipped = b.status === InjectStatus.Skipped
-      if (aIsSkipped && !bIsSkipped && !bIsFired) return -1
-      if (!aIsSkipped && !aIsFired && bIsSkipped) return 1
+      // Deferred injects after fired
+      const bIsDeferred = b.status === InjectStatus.Deferred
+      if (aIsDeferred && !bIsDeferred && !bIsFired) return -1
+      if (!aIsDeferred && !aIsFired && bIsDeferred) return 1
 
       // Otherwise sort by sequence
       return a.sequence - b.sequence
@@ -121,8 +121,8 @@ export const ObservationForm = ({
 
   // Get status label for inject
   const getStatusLabel = (inject: InjectDto): string => {
-    if (inject.status === InjectStatus.Fired) return ' (Fired)'
-    if (inject.status === InjectStatus.Skipped) return ' (Skipped)'
+    if (inject.status === InjectStatus.Released) return ' (Released)'
+    if (inject.status === InjectStatus.Deferred) return ' (Deferred)'
     return ''
   }
 

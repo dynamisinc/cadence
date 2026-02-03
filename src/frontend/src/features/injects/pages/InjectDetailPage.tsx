@@ -236,9 +236,9 @@ export const InjectDetailPage = () => {
     )
   }
 
-  const isPending = inject.status === InjectStatus.Pending
-  const isFired = inject.status === InjectStatus.Fired
-  const isSkipped = inject.status === InjectStatus.Skipped
+  const isPending = inject.status === InjectStatus.Draft
+  const isFired = inject.status === InjectStatus.Released
+  const isSkipped = inject.status === InjectStatus.Deferred
   const scenarioTimeDisplay = formatScenarioTime(
     inject.scenarioDay,
     inject.scenarioTime,

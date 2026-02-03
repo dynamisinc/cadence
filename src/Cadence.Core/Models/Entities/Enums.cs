@@ -370,6 +370,35 @@ public enum MembershipStatus
     Inactive = 2
 }
 
+/// <summary>
+/// Organization-level policy for inject approval workflow.
+/// Determines default behavior and constraints for exercises.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ApprovalPolicy
+{
+    /// <summary>
+    /// Approval workflow is not available.
+    /// All injects move directly from Draft to Approved.
+    /// Exercise-level toggle is hidden.
+    /// </summary>
+    Disabled = 0,
+
+    /// <summary>
+    /// Exercise Directors can choose to enable approval per exercise.
+    /// Approval is disabled by default for new exercises.
+    /// Recommended for most organizations.
+    /// </summary>
+    Optional = 1,
+
+    /// <summary>
+    /// All exercises require inject approval workflow.
+    /// Directors cannot disable approval.
+    /// Administrators can override for specific exercises.
+    /// </summary>
+    Required = 2
+}
+
 // =============================================================================
 // User Preferences Enums
 // =============================================================================

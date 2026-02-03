@@ -71,9 +71,10 @@ export interface InjectFilterBarProps {
 
 // Status filter options
 const statusOptions: FilterOption<InjectStatus>[] = [
-  { value: InjectStatusEnum.Pending, label: 'Pending' },
-  { value: InjectStatusEnum.Fired, label: 'Fired' },
-  { value: InjectStatusEnum.Skipped, label: 'Skipped' },
+  { value: InjectStatusEnum.Draft, label: 'Draft' },
+  { value: InjectStatusEnum.Synchronized, label: 'Synchronized' },
+  { value: InjectStatusEnum.Released, label: 'Released' },
+  { value: InjectStatusEnum.Deferred, label: 'Deferred' },
 ]
 
 // Delivery method filter options

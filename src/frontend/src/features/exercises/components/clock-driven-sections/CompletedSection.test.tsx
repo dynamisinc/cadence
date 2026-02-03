@@ -1,7 +1,7 @@
 /**
  * Tests for CompletedSection component
  *
- * Tests the completed injects section (fired and skipped)
+ * Tests the completed injects section (released and deferred)
  * @see exercise-config/S06-clock-driven-conduct-view
  */
 
@@ -111,11 +111,11 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('2 fired')).toBeInTheDocument()
-    expect(screen.queryByText(/skipped/i)).not.toBeInTheDocument()
+    expect(screen.getByText('2 released')).toBeInTheDocument()
+    expect(screen.queryByText(/deferred/i)).not.toBeInTheDocument()
   })
 
-  it('shows only skipped count when no fired injects', () => {
+  it('shows only deferred count when no released injects', () => {
     const injects = [
       createMockInject('1', InjectStatus.Deferred, 1),
       createMockInject('2', InjectStatus.Deferred, 2),
@@ -129,8 +129,8 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('2 skipped')).toBeInTheDocument()
-    expect(screen.queryByText(/fired/i)).not.toBeInTheDocument()
+    expect(screen.getByText('2 deferred')).toBeInTheDocument()
+    expect(screen.queryByText(/released/i)).not.toBeInTheDocument()
   })
 
   it('calls onToggle when header is clicked', async () => {
@@ -206,7 +206,7 @@ describe('CompletedSection', () => {
     expect(screen.getByText('#1')).toBeInTheDocument()
   })
 
-  it('displays fired inject with fire timestamp and user', () => {
+  it('displays released inject with fire timestamp and user', () => {
     const injects = [
       createMockInject('1', InjectStatus.Released, 1, {
         firedAt: '2025-01-20T14:30:00Z',
@@ -222,11 +222,11 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('Fired')).toBeInTheDocument()
+    expect(screen.getByText('Released')).toBeInTheDocument()
     expect(screen.getByText('by John Controller')).toBeInTheDocument()
   })
 
-  it('displays skipped inject with skip reason', () => {
+  it('displays deferred inject with skip reason', () => {
     const injects = [
       createMockInject('1', InjectStatus.Deferred, 1, {
         skipReason: 'Players ahead of schedule',
@@ -242,7 +242,7 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('Skipped')).toBeInTheDocument()
+    expect(screen.getByText('Deferred')).toBeInTheDocument()
     expect(screen.getByText('by Jane Controller')).toBeInTheDocument()
     expect(screen.getByText('"Players ahead of schedule"')).toBeInTheDocument()
   })

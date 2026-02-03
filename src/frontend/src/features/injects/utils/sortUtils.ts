@@ -10,12 +10,13 @@ import type { SortConfig, SortableColumn, SortDirection } from '../types/organiz
 import { InjectStatus } from '../../../types'
 
 /**
- * Status sort order: Pending → Fired → Skipped
+ * Status sort order: Draft → Synchronized → Released → Deferred
  */
 const STATUS_ORDER: Record<string, number> = {
-  [InjectStatus.Pending]: 0,
-  [InjectStatus.Fired]: 1,
-  [InjectStatus.Skipped]: 2,
+  [InjectStatus.Draft]: 0,
+  [InjectStatus.Synchronized]: 1,
+  [InjectStatus.Released]: 2,
+  [InjectStatus.Deferred]: 3,
 }
 
 /**

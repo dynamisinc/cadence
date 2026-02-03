@@ -43,12 +43,12 @@ export const NarrativeView = ({
   // Calculate current phase from most recently fired inject
   const currentPhase = useMemo(() => {
     const firedInjects = injects.filter(
-      i => i.status === InjectStatus.Fired && i.firedAt && i.phaseName,
+      i => i.status === InjectStatus.Released && i.firedAt && i.phaseName,
     )
     if (firedInjects.length === 0) {
       // Use first pending inject's phase
       const firstPending = injects.find(
-        i => i.status === InjectStatus.Pending && i.phaseName,
+        i => i.status === InjectStatus.Draft && i.phaseName,
       )
       return firstPending?.phaseName || null
     }
@@ -65,7 +65,7 @@ export const NarrativeView = ({
   const storySoFar = useMemo(() => generateStorySoFar(injects), [injects])
 
   const nextPendingInject = useMemo(() => {
-    const pending = injects.filter(i => i.status === InjectStatus.Pending)
+    const pending = injects.filter(i => i.status === InjectStatus.Draft)
     pending.sort((a, b) => a.sequence - b.sequence)
     return pending[0] || null
   }, [injects])
@@ -76,7 +76,7 @@ export const NarrativeView = ({
   )
 
   const upcomingInjects = useMemo(() => {
-    const pending = injects.filter(i => i.status === InjectStatus.Pending)
+    const pending = injects.filter(i => i.status === InjectStatus.Draft)
     pending.sort((a, b) => a.sequence - b.sequence)
     return pending
   }, [injects])

@@ -114,10 +114,10 @@ describe('ObservationForm', () => {
       expect(options[0]).toHaveTextContent('None')
       // Most recently fired first
       expect(options[1]).toHaveTextContent('#3')
-      expect(options[1]).toHaveTextContent('(Fired)')
+      expect(options[1]).toHaveTextContent('(Released)')
       // Earlier fired second
       expect(options[2]).toHaveTextContent('#2')
-      expect(options[2]).toHaveTextContent('(Fired)')
+      expect(options[2]).toHaveTextContent('(Released)')
       // Pending injects by sequence
       expect(options[3]).toHaveTextContent('#1')
       expect(options[4]).toHaveTextContent('#4')
@@ -139,9 +139,9 @@ describe('ObservationForm', () => {
           status: InjectStatus.Draft,
         }),
         createMockInject({
-          id: 'skipped-1',
+          id: 'deferred-1',
           injectNumber: 3,
-          title: 'Skipped Inject',
+          title: 'Deferred Inject',
           status: InjectStatus.Deferred,
           skippedAt: '2025-01-01T10:05:00Z',
         }),
@@ -162,8 +162,8 @@ describe('ObservationForm', () => {
       const listbox = await screen.findByRole('listbox')
 
       // Check status indicators are shown
-      expect(within(listbox).getByText(/\(Fired\)/)).toBeInTheDocument()
-      expect(within(listbox).getByText(/\(Skipped\)/)).toBeInTheDocument()
+      expect(within(listbox).getByText(/\(Released\)/)).toBeInTheDocument()
+      expect(within(listbox).getByText(/\(Deferred\)/)).toBeInTheDocument()
     })
 
     it('shows title instead of truncated description', async () => {

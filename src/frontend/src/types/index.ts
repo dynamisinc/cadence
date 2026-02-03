@@ -417,3 +417,34 @@ export const ObservationRatingShortLabels: Record<ObservationRating, string> = {
 export const getObservationRatingLabel = (rating: ObservationRating): string => {
   return ObservationRatingLabels[rating] ?? rating
 }
+
+// =============================================================================
+// Approval Workflow Types (matches backend enums)
+// =============================================================================
+
+/**
+ * Organization-level policy for inject approval workflow.
+ * Determines default behavior and constraints for exercises.
+ */
+export const ApprovalPolicy = {
+  /** Approval workflow not available. Injects move directly from Draft to Approved. */
+  Disabled: 'Disabled',
+  /** Exercise Directors can enable approval per exercise. Disabled by default. */
+  Optional: 'Optional',
+  /** All exercises require approval. Admins can override for specific exercises. */
+  Required: 'Required',
+} as const
+
+export type ApprovalPolicy = (typeof ApprovalPolicy)[keyof typeof ApprovalPolicy]
+
+/**
+ * Human-readable descriptions for approval policy options
+ */
+export const ApprovalPolicyDescriptions: Record<ApprovalPolicy, string> = {
+  [ApprovalPolicy.Disabled]:
+    'Approval workflow not available. Injects move directly from Draft to Approved.',
+  [ApprovalPolicy.Optional]:
+    'Exercise Directors can enable approval per exercise. Approval is disabled by default.',
+  [ApprovalPolicy.Required]:
+    'All exercises require approval. Administrators can override for specific exercises.',
+}

@@ -460,7 +460,7 @@ export const ExerciseConductPage = () => {
   const readyToFireCount = useMemo(() => {
     if (!injects || injects.length === 0) return 0
     return injects.filter(inject => {
-      if (inject.status !== InjectStatus.Pending) return false
+      if (inject.status !== InjectStatus.Draft) return false
       const offsetMs = calculateScheduledOffset(inject.scheduledTime, exerciseStartTime)
       return offsetMs <= elapsedTimeMs
     }).length

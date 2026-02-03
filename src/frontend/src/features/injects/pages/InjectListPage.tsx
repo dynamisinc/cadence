@@ -1122,7 +1122,7 @@ const InjectRowCells = ({
 }: InjectRowCellsProps) => {
   const scenarioTimeDisplay = formatScenarioTime(inject.scenarioDay, inject.scenarioTime)
   const scheduledTimeDisplay = formatScheduledTime(inject.scheduledTime)
-  const isPending = inject.status === InjectStatus.Pending
+  const isPending = inject.status === InjectStatus.Draft
 
   return (
     <>
@@ -1283,7 +1283,7 @@ const InjectRow = ({
 }: InjectRowProps) => {
   const scenarioTimeDisplay = formatScenarioTime(inject.scenarioDay, inject.scenarioTime)
   const scheduledTimeDisplay = formatScheduledTime(inject.scheduledTime)
-  const isPending = inject.status === InjectStatus.Pending
+  const isPending = inject.status === InjectStatus.Draft
 
   return (
     <TableRow

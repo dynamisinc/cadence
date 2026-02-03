@@ -12,7 +12,7 @@ const renderWithTheme = (ui: React.ReactElement) => {
 
 describe('ActiveFiltersBar', () => {
   const mockFilters: ActiveFilter[] = [
-    { type: 'status', label: 'Status', value: 'Pending' },
+    { type: 'status', label: 'Status', value: 'Draft' },
     { type: 'phase', label: 'Phase', value: 'Phase 1' },
   ]
 
@@ -39,7 +39,7 @@ describe('ActiveFiltersBar', () => {
   it('renders all filter chips', () => {
     renderWithTheme(<ActiveFiltersBar {...defaultProps} />)
     expect(screen.getByText('Status:')).toBeInTheDocument()
-    expect(screen.getByText('Pending')).toBeInTheDocument()
+    expect(screen.getByText('Draft')).toBeInTheDocument()
     expect(screen.getByText('Phase:')).toBeInTheDocument()
     expect(screen.getByText('Phase 1')).toBeInTheDocument()
   })
@@ -116,7 +116,7 @@ describe('ActiveFiltersBar', () => {
 
   it('renders multiple filters of different types', () => {
     const multipleFilters: ActiveFilter[] = [
-      { type: 'status', label: 'Status', value: 'Pending' },
+      { type: 'status', label: 'Status', value: 'Draft' },
       { type: 'phase', label: 'Phase', value: 'Phase 1' },
       { type: 'method', label: 'Method', value: 'Email' },
     ]

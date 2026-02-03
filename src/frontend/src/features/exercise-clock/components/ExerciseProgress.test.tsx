@@ -70,7 +70,7 @@ describe('ExerciseProgress', () => {
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('0 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('0 of 3 injects released')).toBeInTheDocument()
     })
 
     it('counts released injects toward progress', () => {
@@ -82,7 +82,7 @@ describe('ExerciseProgress', () => {
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('2 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('2 of 3 injects released')).toBeInTheDocument()
     })
 
     it('counts deferred injects toward progress', () => {
@@ -94,7 +94,7 @@ describe('ExerciseProgress', () => {
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('2 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('2 of 3 injects released')).toBeInTheDocument()
     })
 
     it('shows 100% progress when all injects are released or deferred', () => {
@@ -106,13 +106,13 @@ describe('ExerciseProgress', () => {
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('3 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('3 of 3 injects released')).toBeInTheDocument()
     })
 
     it('handles empty inject list gracefully', () => {
       render(<ExerciseProgress injects={[]} />)
 
-      expect(screen.getByText('0 of 0 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('0 of 0 injects released')).toBeInTheDocument()
     })
   })
 
@@ -146,7 +146,7 @@ describe('ExerciseProgress', () => {
       expect(screen.getByText('Phase: Evacuation')).toBeInTheDocument()
     })
 
-    it('shows phase name from first pending inject when no injects fired', () => {
+    it('shows phase name from first pending inject when no injects released', () => {
       const injects = [
         createMockInject({
           id: '1',

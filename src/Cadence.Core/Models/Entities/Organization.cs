@@ -32,6 +32,12 @@ public class Organization : BaseEntity
     /// </summary>
     public OrgStatus Status { get; set; } = OrgStatus.Active;
 
+    /// <summary>
+    /// Organization-level inject approval policy.
+    /// Determines whether exercises require formal inject approval.
+    /// </summary>
+    public ApprovalPolicy InjectApprovalPolicy { get; set; } = ApprovalPolicy.Optional;
+
     // =========================================================================
     // Navigation Properties
     // =========================================================================

@@ -75,17 +75,17 @@ export const FloatingClockChip = ({
   // Calculate progress
   const total = injects.length
   const completed = injects.filter(
-    i => i.status === InjectStatus.Fired || i.status === InjectStatus.Skipped,
+    i => i.status === InjectStatus.Released || i.status === InjectStatus.Deferred,
   ).length
 
   // Get current phase from most recently fired inject
   const currentPhase = (() => {
     const firedInjects = injects.filter(
-      i => i.status === InjectStatus.Fired && i.firedAt && i.phaseName,
+      i => i.status === InjectStatus.Released && i.firedAt && i.phaseName,
     )
     if (firedInjects.length === 0) {
       const firstPending = injects.find(
-        i => i.status === InjectStatus.Pending && i.phaseName,
+        i => i.status === InjectStatus.Draft && i.phaseName,
       )
       return firstPending?.phaseName || null
     }

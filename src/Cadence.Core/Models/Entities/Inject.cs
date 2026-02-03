@@ -210,6 +210,58 @@ public class Inject : BaseEntity
     public string? SkipReason { get; set; }
 
     // =========================================================================
+    // Approval Workflow Properties (Inject Approval)
+    // =========================================================================
+
+    /// <summary>
+    /// ApplicationUser ID who submitted the inject for approval.
+    /// Set when inject transitions from Draft to Submitted.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
+    /// </summary>
+    public string? SubmittedByUserId { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when the inject was submitted for approval.
+    /// </summary>
+    public DateTime? SubmittedAt { get; set; }
+
+    /// <summary>
+    /// ApplicationUser ID who approved the inject.
+    /// Set when inject transitions from Submitted to Approved.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
+    /// </summary>
+    public string? ApprovedByUserId { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when the inject was approved.
+    /// </summary>
+    public DateTime? ApprovedAt { get; set; }
+
+    /// <summary>
+    /// Optional notes from the approver. Max 1000 characters.
+    /// Visible to the inject author after approval.
+    /// </summary>
+    public string? ApproverNotes { get; set; }
+
+    /// <summary>
+    /// ApplicationUser ID who rejected the inject.
+    /// Set when inject transitions from Submitted back to Draft.
+    /// References ApplicationUser (ASP.NET Core Identity) - string type to match IdentityUser.Id.
+    /// </summary>
+    public string? RejectedByUserId { get; set; }
+
+    /// <summary>
+    /// UTC timestamp when the inject was rejected.
+    /// </summary>
+    public DateTime? RejectedAt { get; set; }
+
+    /// <summary>
+    /// Required reason for rejection. Max 1000 characters.
+    /// Visible to the inject author to guide revisions.
+    /// </summary>
+    public string? RejectionReason { get; set; }
+
+    // =========================================================================
     // Foreign Keys
     // =========================================================================
 
@@ -280,4 +332,30 @@ public class Inject : BaseEntity
     /// Expected outcomes for this inject.
     /// </summary>
     public ICollection<ExpectedOutcome> ExpectedOutcomes { get; set; } = new List<ExpectedOutcome>();
+
+    /// <summary>
+    /// The user who submitted this inject for approval.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if inject not submitted or if the user has been deactivated.
+    /// </summary>
+    public ApplicationUser? SubmittedByUser { get; set; }
+
+    /// <summary>
+    /// The user who approved this inject.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if inject not approved or if the user has been deactivated.
+    /// </summary>
+    public ApplicationUser? ApprovedByUser { get; set; }
+
+    /// <summary>
+    /// The user who rejected this inject.
+    /// References ApplicationUser (ASP.NET Core Identity).
+    /// May be null if inject not rejected or if the user has been deactivated.
+    /// </summary>
+    public ApplicationUser? RejectedByUser { get; set; }
+
+    /// <summary>
+    /// Status change history for audit trail.
+    /// </summary>
+    public ICollection<InjectStatusHistory> StatusHistory { get; set; } = new List<InjectStatusHistory>();
 }

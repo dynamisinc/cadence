@@ -129,9 +129,9 @@ export interface MselSummaryDto {
   exerciseId: string
   // Inject counts
   totalInjects: number
-  pendingCount: number
-  firedCount: number
-  skippedCount: number
+  draftCount: number
+  releasedCount: number
+  deferredCount: number
   completionPercentage: number
   // Related counts
   phaseCount: number

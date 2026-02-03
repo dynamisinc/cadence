@@ -82,15 +82,23 @@ const mockExercise: ExerciseDto = {
 }
 
 const mockMselSummary: MselSummaryDto = {
+  id: 'msel-123',
+  name: 'Test MSEL',
+  description: null,
+  version: 1,
+  isActive: true,
   exerciseId: 'exercise-123',
-  mselId: 'msel-123',
   totalInjects: 25,
-  pendingCount: 10,
-  firedCount: 12,
-  skippedCount: 3,
-  deferredCount: 0,
-  hasInjects: true,
-  lastUpdated: '2025-01-20T10:00:00Z',
+  draftCount: 10,
+  releasedCount: 12,
+  deferredCount: 3,
+  completionPercentage: 60,
+  phaseCount: 3,
+  objectiveCount: 5,
+  lastModifiedAt: '2025-01-20T10:00:00Z',
+  lastModifiedByName: 'John Doe',
+  createdAt: '2025-01-20T10:00:00Z',
+  updatedAt: '2025-01-20T10:00:00Z',
 }
 
 // Helper function to render with all necessary providers
@@ -331,7 +339,7 @@ describe('ReportsPage', () => {
     it('shows MSEL summary statistics when available', () => {
       render(<ReportsPage />, { wrapper: createWrapper() })
 
-      const summary = /25 injects \(12 fired, 10 pending, 3 skipped\)/i
+      const summary = /25 injects \(12 released, 10 draft, 3 deferred\)/i
       expect(screen.getByText(summary)).toBeInTheDocument()
     })
 
