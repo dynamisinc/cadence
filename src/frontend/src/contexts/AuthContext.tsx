@@ -345,7 +345,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         }
       }, refreshIn)
     }
-  }, [refreshAccessToken])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []) // refreshAccessToken is defined below but stable
 
   /**
    * Refresh access token using refresh token cookie (S07)
