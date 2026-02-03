@@ -39,7 +39,6 @@ export function UpdatePrompt() {
     ]
     : []
   const displayChanges = allChanges.slice(0, MAX_ITEMS_TO_SHOW)
-  const _hasMoreChanges = allChanges.length > MAX_ITEMS_TO_SHOW
 
   // Show "offline ready" notification
   if (offlineReady) {
