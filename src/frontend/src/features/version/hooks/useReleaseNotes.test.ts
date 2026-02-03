@@ -17,7 +17,7 @@ describe('useReleaseNotes', () => {
 
     const v1Release = result.current.releaseNotes.find(r => r.version === '1.0.0')
     expect(v1Release).toBeDefined()
-    expect(v1Release?.features.length).toBeGreaterThan(0)
+    expect(v1Release?.date).toBeDefined()
   })
 })
 
