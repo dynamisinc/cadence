@@ -24,9 +24,7 @@ import {
   CircularProgress,
   Grid,
   Stack,
-  useMediaQuery,
 } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
@@ -79,8 +77,6 @@ export const EditOrganizationPage: FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const queryClient = useQueryClient()
-  const theme = useTheme()
-  const _isWideScreen = useMediaQuery(theme.breakpoints.up('md'))
   const { data: organization, isLoading, error } = useOrganization(id || '')
   const updateOrg = useUpdateOrganization()
   const archiveOrg = useArchiveOrganization()

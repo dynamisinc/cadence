@@ -58,14 +58,18 @@ export interface InjectDto {
   track: string | null
   // Approval workflow fields (S00-S09)
   submittedByUserId: string | null
+  submittedByName: string | null
   submittedAt: string | null // DateTime as ISO string
   approvedByUserId: string | null
+  approvedByName: string | null
   approvedAt: string | null // DateTime as ISO string
   approverNotes: string | null
   rejectedByUserId: string | null
+  rejectedByName: string | null
   rejectedAt: string | null // DateTime as ISO string
   rejectionReason: string | null
   revertedByUserId: string | null
+  revertedByName: string | null
   revertedAt: string | null // DateTime as ISO string
   revertReason: string | null
 }

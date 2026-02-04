@@ -218,6 +218,22 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     locationName: null,
     locationType: null,
     track: null,
+    // Approval workflow fields - not tracked in cache
+    submittedByUserId: null,
+    submittedByName: null,
+    submittedAt: null,
+    approvedByUserId: null,
+    approvedByName: null,
+    approvedAt: null,
+    approverNotes: null,
+    rejectedByUserId: null,
+    rejectedByName: null,
+    rejectedAt: null,
+    rejectionReason: null,
+    revertedByUserId: null,
+    revertedByName: null,
+    revertedAt: null,
+    revertReason: null,
     pendingSync: cached.pendingSync,
   }
 }

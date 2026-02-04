@@ -17,6 +17,7 @@ export type Permission =
   | 'delete_observation'
   | 'fire_inject'
   | 'edit_inject'
+  | 'approve_inject'
   | 'manage_participants'
   | 'edit_exercise'
   | 'delete_exercise'
@@ -55,6 +56,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
     'delete_observation',
     'fire_inject',
     'edit_inject',
+    'approve_inject',
     'manage_participants',
     'edit_exercise',
     'start_clock',
@@ -67,6 +69,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
     'delete_observation',
     'fire_inject',
     'edit_inject',
+    'approve_inject',
     'manage_participants',
     'edit_exercise',
     'delete_exercise',
