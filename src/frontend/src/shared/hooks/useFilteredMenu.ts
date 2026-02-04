@@ -13,9 +13,11 @@
 import { useMemo } from 'react'
 import { useExerciseRole } from '@/features/auth/hooks/useExerciseRole'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOrganization } from '@/contexts/OrganizationContext'
 import { useFeatureFlags } from '@/admin/contexts/FeatureFlagsContext'
 import type { HseepRole } from '@/types'
 import type { FeatureFlags } from '@/admin/types/featureFlags'
+import type { OrgRole } from '@/features/organizations/types'
 import {
   MENU_ITEMS,
   type MenuItem,
@@ -55,6 +57,22 @@ function isSystemRoleAllowed(item: MenuItem, systemRole: string | null): boolean
   }
   // Check if user's system role is in the allowed list
   return systemRole !== null && item.allowedSystemRoles.includes(systemRole as never)
+}
+
+/**
+ * Check if user's organization role allows access (for OrgAdmin-only items)
+ */
+function isOrgRoleAllowed(item: MenuItem, orgRole: string | null, systemRole: string | null): boolean {
+  // If no org roles specified, don't restrict by org role
+  if (!item.allowedOrgRoles || item.allowedOrgRoles.length === 0) {
+    return true
+  }
+  // System Admins can always access org-scoped items
+  if (systemRole === 'Admin') {
+    return true
+  }
+  // Check if user's org role is in the allowed list
+  return orgRole !== null && item.allowedOrgRoles.includes(orgRole as OrgRole)
 }
 
 /**
@@ -130,10 +148,14 @@ export function useFilteredMenu(options: UseFilteredMenuOptions = {}): FilteredM
   // Get user's effective role in the current exercise context
   const { effectiveRole: effectiveRoleString, systemRole } = useExerciseRole(exerciseId)
   const { user } = useAuth()
+  const { currentOrg } = useOrganization()
   const { isVisible, isComingSoon } = useFeatureFlags()
 
   // Convert to HseepRole type
   const effectiveRole = mapToHseepRole(effectiveRoleString)
+
+  // Get organization role from current org context
+  const orgRole = currentOrg?.role ?? null
 
   // Memoize filtered items
   const filteredItems = useMemo(() => {
@@ -158,15 +180,21 @@ export function useFilteredMenu(options: UseFilteredMenuOptions = {}): FilteredM
         return false
       }
 
+      // Check organization role permission (for OrgAdmin-only items)
+      if (!isOrgRoleAllowed(item, orgRole, systemRole)) {
+        return false
+      }
+
       return true
     })
-  }, [user, effectiveRole, systemRole, isVisible])
+  }, [user, effectiveRole, systemRole, orgRole, isVisible])
 
   // Memoize grouped items
   const groupedBySection = useMemo((): GroupedMenuItems => {
     const groups: GroupedMenuItems = {
       conduct: [],
       analysis: [],
+      organization: [],
       system: [],
     }
 
@@ -178,8 +206,9 @@ export function useFilteredMenu(options: UseFilteredMenuOptions = {}): FilteredM
   }, [filteredItems])
 
   // Memoize visible sections (sections that have at least one item)
+  // Order: CONDUCT → ANALYSIS → ORGANIZATION → SYSTEM
   const visibleSections = useMemo((): MenuSection[] => {
-    const sections: MenuSection[] = ['conduct', 'analysis', 'system']
+    const sections: MenuSection[] = ['conduct', 'analysis', 'organization', 'system']
     return sections.filter(section => groupedBySection[section].length > 0)
   }, [groupedBySection])
 

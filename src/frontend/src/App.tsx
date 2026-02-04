@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
+import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -52,6 +52,10 @@ import {
   OrganizationListPage,
   CreateOrganizationPage,
   EditOrganizationPage,
+  OrganizationDetailsPage,
+  OrganizationMembersPage,
+  OrganizationApprovalPage,
+  OrganizationSettingsPage,
 } from './features/organizations'
 import { NotificationToastProvider } from './features/notifications'
 import { AboutPage, WhatsNewProvider } from './features/version'
@@ -258,6 +262,62 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <UserSettingsPage />,
+      },
+
+      // Organization management routes (OrgAdmin or SysAdmin)
+      {
+        path: 'organization/details',
+        element: (
+          <OrgAdminRoute>
+            <OrganizationDetailsPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/members',
+        element: (
+          <OrgAdminRoute>
+            <OrganizationMembersPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/approval',
+        element: (
+          <OrgAdminRoute>
+            <OrganizationApprovalPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/settings',
+        element: (
+          <OrgAdminRoute>
+            <FeatureFlagGuard
+              feature="orgSettings"
+              featureName="Organization Settings"
+              description="Configure general organization settings."
+            >
+              <OrganizationSettingsPage />
+            </FeatureFlagGuard>
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/capabilities',
+        element: (
+          <OrgAdminRoute>
+            <CapabilityLibraryPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/archived',
+        element: (
+          <OrgAdminRoute>
+            <ArchivedExercisesPage />
+          </OrgAdminRoute>
+        ),
       },
 
       // Pending user page (no organization assigned)

@@ -10,11 +10,13 @@
 import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import type { HseepRole, SystemRole } from '../../../types'
 import type { FeatureFlags } from '../../../admin/types/featureFlags'
+import type { OrgRole } from '../../../features/organizations/types'
 
 /**
  * Menu sections matching HSEEP workflow
+ * Order: CONDUCT → ANALYSIS → ORGANIZATION → SYSTEM
  */
-export type MenuSection = 'conduct' | 'analysis' | 'system'
+export type MenuSection = 'conduct' | 'analysis' | 'organization' | 'system'
 
 /**
  * Display labels for menu sections
@@ -22,6 +24,7 @@ export type MenuSection = 'conduct' | 'analysis' | 'system'
 export const MENU_SECTION_LABELS: Record<MenuSection, string> = {
   conduct: 'CONDUCT',
   analysis: 'ANALYSIS',
+  organization: 'ORGANIZATION',
   system: 'SYSTEM',
 }
 
@@ -43,6 +46,8 @@ export interface MenuItem {
   allowedRoles: HseepRole[];
   /** System roles that can see this item (empty = all roles) */
   allowedSystemRoles?: SystemRole[];
+  /** Organization roles that can see this item (empty = all org roles) */
+  allowedOrgRoles?: OrgRole[];
   /** Whether this item requires being in an exercise context */
   requiresExerciseContext?: boolean;
   /** Tooltip to show when item is disabled */

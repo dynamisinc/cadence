@@ -19,6 +19,15 @@ public class AuthorizeManagerAttribute : AuthorizeAttribute
 }
 
 /// <summary>
+/// Requires the user to have OrgAdmin role in their current organization,
+/// or Admin system role (which has access to all organizations).
+/// </summary>
+public class AuthorizeOrgAdminAttribute : AuthorizeAttribute
+{
+    public AuthorizeOrgAdminAttribute() => Policy = PolicyNames.RequireOrgAdmin;
+}
+
+/// <summary>
 /// Requires the user to have any role assignment for the exercise.
 /// The exercise ID must be provided via route parameter named "exerciseId".
 /// </summary>

@@ -24,9 +24,13 @@ import {
   faShieldHalved,
   faDesktop,
   faBuilding,
+  faUserShield,
+  faPuzzlePiece,
+  faBoxArchive,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
+import type { OrgRole } from '../../../features/organizations/types'
 
 /**
  * All roles - used for items visible to everyone
@@ -71,6 +75,11 @@ const REPORTING_ROLES: HseepRole[] = [
 const ADMIN_ROLES: HseepRole[] = [
   HseepRole.Administrator,
 ]
+
+/**
+ * Organization admin roles - for org management features
+ */
+const ORG_ADMIN_ROLES: OrgRole[] = ['OrgAdmin']
 
 /**
  * Complete menu configuration
@@ -144,6 +153,65 @@ export const MENU_ITEMS: MenuItem[] = [
     section: 'analysis',
     allowedRoles: REPORTING_ROLES,
     featureFlag: 'reports',
+  },
+
+  // ============================================================================
+  // ORGANIZATION Section - Current organization management (OrgAdmin only)
+  // ============================================================================
+  {
+    id: 'org-details',
+    label: 'Details',
+    icon: faBuilding,
+    path: '/organization/details',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-members',
+    label: 'Members',
+    icon: faUsers,
+    path: '/organization/members',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-approval',
+    label: 'Inject Approval',
+    icon: faUserShield,
+    path: '/organization/approval',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-capabilities',
+    label: 'Capability Library',
+    icon: faPuzzlePiece,
+    path: '/organization/capabilities',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-archived',
+    label: 'Archived Exercises',
+    icon: faBoxArchive,
+    path: '/organization/archived',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-settings',
+    label: 'Settings',
+    icon: faCog,
+    path: '/organization/settings',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+    featureFlag: 'orgSettings',
   },
 
   // ============================================================================

@@ -49,6 +49,23 @@ public static class AuthorizationExtensions
                            systemRoleClaim?.Value == SystemRole.Manager.ToString();
                 });
             })
+            .AddPolicy(PolicyNames.RequireOrgAdmin, policy =>
+            {
+                policy.RequireAuthenticatedUser();
+                policy.RequireAssertion(context =>
+                {
+                    // System Admins always have org admin access
+                    var systemRoleClaim = context.User.FindFirst("SystemRole");
+                    if (systemRoleClaim?.Value == SystemRole.Admin.ToString())
+                    {
+                        return true;
+                    }
+
+                    // Check organization role from JWT claim
+                    var orgRoleClaim = context.User.FindFirst("org_role");
+                    return orgRoleClaim?.Value == OrgRole.OrgAdmin.ToString();
+                });
+            })
             .AddPolicy(PolicyNames.ExerciseAccess, policy =>
             {
                 policy.RequireAuthenticatedUser();

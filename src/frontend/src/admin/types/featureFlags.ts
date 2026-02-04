@@ -27,12 +27,14 @@ export interface FeatureFlags {
   controlRoom: FeatureFlagState;
   /** Inject Queue - Pending inject management view */
   injectQueue: FeatureFlagState;
+  /** Organization Settings - General organization configuration (OrgAdmin) */
+  orgSettings: FeatureFlagState;
 }
 
 /**
  * Feature flag categories for grouping in admin UI
  */
-export type FeatureFlagCategory = 'conduct' | 'analysis' | 'system'
+export type FeatureFlagCategory = 'conduct' | 'analysis' | 'organization' | 'system'
 
 /**
  * Metadata for each feature flag
@@ -72,6 +74,12 @@ export const featureFlagInfo: FeatureFlagInfo[] = [
     description: 'Manage inject templates and exercise blueprints for reuse',
     category: 'system',
   },
+  {
+    key: 'orgSettings',
+    label: 'Organization Settings',
+    description: 'General organization configuration for OrgAdmins',
+    category: 'organization',
+  },
 ]
 
 /**
@@ -83,6 +91,7 @@ export const defaultFeatureFlags: FeatureFlags = {
   reports: 'Hidden',
   controlRoom: 'Hidden',
   injectQueue: 'Hidden',
+  orgSettings: 'Hidden',
 }
 
 /**
