@@ -2,7 +2,14 @@
  * ErrorBoundary Component
  *
  * Catches JavaScript errors in child component tree,
- * logs the error, and displays a fallback UI.
+ * logs the error, and displays a reassuring fallback UI.
+ *
+ * Design Philosophy:
+ * - Feels reassuring, not alarming
+ * - Clear recovery options
+ * - Maintains COBRA styling consistency
+ * - Shows technical details only in development
+ * - Responsive: wider error details on desktop
  *
  * Usage:
  * ```tsx
@@ -13,23 +20,332 @@
  */
 
 import { Component, type ErrorInfo, type ReactNode } from 'react'
-import { Box, Typography, Button, Paper, Stack } from '@mui/material'
+import {
+  Box,
+  Typography,
+  Paper,
+  Stack,
+  Collapse,
+  alpha,
+  useMediaQuery,
+  useTheme,
+  Tooltip,
+  IconButton,
+} from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
+import {
+  faLifeRing,
+  faRotateRight,
+  faArrowRotateLeft,
+  faChevronDown,
+  faChevronUp,
+  faCopy,
+  faCheck,
+  faPaperPlane,
+} from '@fortawesome/free-solid-svg-icons'
+import {
+  CobraPrimaryButton,
+  CobraSecondaryButton,
+} from '@/theme/styledComponents'
+import CobraStyles from '@/theme/CobraStyles'
 
 interface ErrorBoundaryProps {
   /** Child components to render */
-  children: ReactNode;
+  children: ReactNode
   /** Optional fallback UI to display on error */
-  fallback?: ReactNode;
+  fallback?: ReactNode
   /** Optional callback when error is caught */
-  onError?: (error: Error, errorInfo: ErrorInfo) => void;
+  onError?: (error: Error, errorInfo: ErrorInfo) => void
 }
 
 interface ErrorBoundaryState {
-  hasError: boolean;
-  error: Error | null;
-  errorInfo: ErrorInfo | null;
+  hasError: boolean
+  error: Error | null
+  errorInfo: ErrorInfo | null
+  showDetails: boolean
+  copied: boolean
+}
+
+/**
+ * Wrapper component to access hooks (useMediaQuery, useTheme) in class component
+ */
+function ErrorBoundaryUI({
+  error,
+  errorInfo,
+  showDetails,
+  copied,
+  onReset,
+  onReload,
+  onToggleDetails,
+  onCopy,
+  onSendReport,
+}: {
+  error: Error | null
+  errorInfo: ErrorInfo | null
+  showDetails: boolean
+  copied: boolean
+  onReset: () => void
+  onReload: () => void
+  onToggleDetails: () => void
+  onCopy: () => void
+  onSendReport: () => void
+}) {
+  const theme = useTheme()
+  const isDesktop = useMediaQuery(theme.breakpoints.up('lg'))
+  const isTablet = useMediaQuery(theme.breakpoints.up('md'))
+
+  // Responsive widths
+  const cardMaxWidth = isDesktop ? 600 : isTablet ? 520 : 480
+  const detailsMaxHeight = isDesktop ? 300 : 200
+
+  const getErrorDetailsText = () => {
+    if (!error) return ''
+    let text = error.toString()
+    if (errorInfo?.componentStack) {
+      text += '\n\nComponent Stack:' + errorInfo.componentStack
+    }
+    return text
+  }
+
+  return (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        minHeight: '100vh',
+        padding: CobraStyles.Padding.MainWindow,
+        background: (theme) =>
+          theme.palette.mode === 'dark'
+            ? `linear-gradient(135deg, ${alpha(theme.palette.info.dark, 0.1)} 0%, ${theme.palette.background.default} 50%)`
+            : `linear-gradient(135deg, ${alpha(theme.palette.info.light, 0.05)} 0%, ${theme.palette.background.default} 50%)`,
+      }}
+    >
+      <Paper
+        elevation={0}
+        sx={{
+          p: { xs: 3, sm: 4, md: 5 },
+          maxWidth: cardMaxWidth,
+          width: '100%',
+          textAlign: 'center',
+          borderRadius: 3,
+          border: '1px solid',
+          borderColor: (theme) => alpha(theme.palette.divider, 0.3),
+          background: (theme) => theme.palette.background.paper,
+          boxShadow: (theme) =>
+            `0 8px 32px ${alpha(theme.palette.common.black, 0.08)}`,
+          transition: 'max-width 0.3s ease',
+        }}
+      >
+        {/* Friendly Icon */}
+        <Box
+          sx={{
+            width: { xs: 64, md: 80 },
+            height: { xs: 64, md: 80 },
+            borderRadius: '50%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 auto',
+            mb: { xs: 2, md: 3 },
+            background: (theme) => alpha(theme.palette.info.main, 0.1),
+          }}
+        >
+          <FontAwesomeIcon
+            icon={faLifeRing}
+            style={{
+              fontSize: isTablet ? '36px' : '28px',
+              color: '#0020c2',
+            }}
+          />
+        </Box>
+
+        {/* Friendly Heading */}
+        <Typography
+          variant={isTablet ? 'h5' : 'h6'}
+          sx={{
+            fontWeight: 600,
+            mb: 1.5,
+            color: 'text.primary',
+          }}
+        >
+          We hit a snag
+        </Typography>
+
+        {/* Reassuring Message */}
+        <Typography
+          variant="body1"
+          sx={{
+            color: 'text.secondary',
+            mb: 4,
+            lineHeight: 1.6,
+            maxWidth: 360,
+            mx: 'auto',
+            fontSize: { xs: '0.875rem', md: '1rem' },
+          }}
+        >
+          Something unexpected happened, but don't worry — your data is safe.
+          Let's get you back on track.
+        </Typography>
+
+        {/* Action Buttons */}
+        <Stack
+          direction={{ xs: 'column', sm: 'row' }}
+          spacing={2}
+          justifyContent="center"
+          sx={{ mb: 3 }}
+        >
+          <CobraSecondaryButton
+            onClick={onReset}
+            startIcon={<FontAwesomeIcon icon={faArrowRotateLeft} />}
+            fullWidth={!isTablet}
+          >
+            Try Again
+          </CobraSecondaryButton>
+          <CobraPrimaryButton
+            onClick={onReload}
+            startIcon={<FontAwesomeIcon icon={faRotateRight} />}
+            fullWidth={!isTablet}
+          >
+            Refresh Page
+          </CobraPrimaryButton>
+        </Stack>
+
+        {/* Send Error Report Button (disabled - future feature) */}
+        <Box sx={{ mb: 2 }}>
+          <Tooltip title="Coming soon: Send error details to our support team">
+            <span>
+              <CobraSecondaryButton
+                onClick={onSendReport}
+                startIcon={<FontAwesomeIcon icon={faPaperPlane} />}
+                disabled
+                sx={{
+                  opacity: 0.6,
+                  '&.Mui-disabled': {
+                    opacity: 0.5,
+                  },
+                }}
+              >
+                Send Error Report
+              </CobraSecondaryButton>
+            </span>
+          </Tooltip>
+        </Box>
+
+        {/* Development-only: Error Details */}
+        {import.meta.env.DEV && error && (
+          <Box sx={{ mt: 3 }}>
+            <Box
+              onClick={onToggleDetails}
+              sx={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 0.75,
+                cursor: 'pointer',
+                color: 'text.secondary',
+                fontSize: '0.8125rem',
+                '&:hover': {
+                  color: 'text.primary',
+                },
+              }}
+            >
+              <FontAwesomeIcon
+                icon={showDetails ? faChevronUp : faChevronDown}
+                style={{ fontSize: '10px' }}
+              />
+              <Typography variant="caption" sx={{ fontWeight: 500 }}>
+                {showDetails ? 'Hide' : 'Show'} technical details
+              </Typography>
+            </Box>
+
+            <Collapse in={showDetails}>
+              <Paper
+                variant="outlined"
+                sx={{
+                  mt: 2,
+                  p: 2,
+                  bgcolor: (theme) =>
+                    theme.palette.mode === 'dark'
+                      ? alpha(theme.palette.common.black, 0.2)
+                      : alpha(theme.palette.common.black, 0.02),
+                  textAlign: 'left',
+                  maxHeight: detailsMaxHeight,
+                  overflow: 'auto',
+                  borderRadius: 2,
+                  borderColor: (theme) => alpha(theme.palette.divider, 0.2),
+                  position: 'relative',
+                }}
+              >
+                {/* Copy Button */}
+                <Tooltip title={copied ? 'Copied!' : 'Copy error details'}>
+                  <IconButton
+                    onClick={onCopy}
+                    size="small"
+                    sx={{
+                      position: 'absolute',
+                      top: 8,
+                      right: 8,
+                      bgcolor: (theme) =>
+                        alpha(theme.palette.background.paper, 0.8),
+                      '&:hover': {
+                        bgcolor: (theme) => theme.palette.background.paper,
+                      },
+                    }}
+                  >
+                    <FontAwesomeIcon
+                      icon={copied ? faCheck : faCopy}
+                      style={{
+                        fontSize: '14px',
+                        color: copied ? '#08682a' : undefined,
+                      }}
+                    />
+                  </IconButton>
+                </Tooltip>
+
+                <Typography
+                  variant="caption"
+                  component="pre"
+                  sx={{
+                    fontFamily:
+                      'ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace',
+                    whiteSpace: 'pre-wrap',
+                    wordBreak: 'break-word',
+                    m: 0,
+                    pr: 4, // Space for copy button
+                    fontSize: { xs: '0.7rem', md: '0.75rem' },
+                    lineHeight: 1.5,
+                    color: 'text.secondary',
+                  }}
+                >
+                  {error.toString()}
+                  {errorInfo?.componentStack && (
+                    <>
+                      {'\n\n'}
+                      <span style={{ opacity: 0.7 }}>Component Stack:</span>
+                      {errorInfo.componentStack}
+                    </>
+                  )}
+                </Typography>
+              </Paper>
+            </Collapse>
+          </Box>
+        )}
+
+        {/* Subtle Help Text */}
+        <Typography
+          variant="caption"
+          sx={{
+            display: 'block',
+            mt: 3,
+            color: (theme) => alpha(theme.palette.text.secondary, 0.7),
+            fontSize: { xs: '0.7rem', md: '0.75rem' },
+          }}
+        >
+          If this keeps happening, try clearing your browser cache
+        </Typography>
+      </Paper>
+    </Box>
+  )
 }
 
 export class ErrorBoundary extends Component<
@@ -42,6 +358,8 @@ export class ErrorBoundary extends Component<
       hasError: false,
       error: null,
       errorInfo: null,
+      showDetails: false,
+      copied: false,
     }
   }
 
@@ -66,11 +384,44 @@ export class ErrorBoundary extends Component<
       hasError: false,
       error: null,
       errorInfo: null,
+      showDetails: false,
+      copied: false,
     })
   }
 
   handleReload = (): void => {
     window.location.reload()
+  }
+
+  toggleDetails = (): void => {
+    this.setState((prev) => ({ showDetails: !prev.showDetails }))
+  }
+
+  handleCopy = async (): Promise<void> => {
+    const { error, errorInfo } = this.state
+    if (!error) return
+
+    let text = error.toString()
+    if (errorInfo?.componentStack) {
+      text += '\n\nComponent Stack:' + errorInfo.componentStack
+    }
+
+    try {
+      await navigator.clipboard.writeText(text)
+      this.setState({ copied: true })
+      // Reset copied state after 2 seconds
+      setTimeout(() => {
+        this.setState({ copied: false })
+      }, 2000)
+    } catch (err) {
+      console.error('Failed to copy error details:', err)
+    }
+  }
+
+  handleSendReport = (): void => {
+    // Placeholder for future error reporting functionality
+    // This will be implemented as part of the error-reporting feature
+    console.log('Send error report - feature coming soon')
   }
 
   render(): ReactNode {
@@ -80,88 +431,19 @@ export class ErrorBoundary extends Component<
         return this.props.fallback
       }
 
-      // Default error UI
+      // Default error UI - Reassuring and user-friendly
       return (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            minHeight: '400px',
-            p: 3,
-          }}
-        >
-          <Paper
-            elevation={0}
-            sx={{
-              p: 4,
-              maxWidth: 500,
-              textAlign: 'center',
-              border: '1px solid',
-              borderColor: 'divider',
-            }}
-          >
-            <FontAwesomeIcon
-              icon={faExclamationTriangle}
-              style={{
-                fontSize: '48px',
-                color: '#d32f2f',
-                marginBottom: '16px',
-              }}
-            />
-
-            <Typography variant="h5" gutterBottom>
-              Something went wrong
-            </Typography>
-
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
-              An unexpected error occurred. Please try again or refresh the
-              page.
-            </Typography>
-
-            {import.meta.env.DEV && this.state.error && (
-              <Paper
-                variant="outlined"
-                sx={{
-                  p: 2,
-                  mb: 3,
-                  bgcolor: 'grey.50',
-                  textAlign: 'left',
-                  maxHeight: 200,
-                  overflow: 'auto',
-                }}
-              >
-                <Typography
-                  variant="caption"
-                  component="pre"
-                  sx={{
-                    fontFamily: 'monospace',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-word',
-                    m: 0,
-                  }}
-                >
-                  {this.state.error.toString()}
-                  {this.state.errorInfo?.componentStack && (
-                    <>
-                      {'\n\nComponent Stack:'}
-                      {this.state.errorInfo.componentStack}
-                    </>
-                  )}
-                </Typography>
-              </Paper>
-            )}
-
-            <Stack direction="row" spacing={2} justifyContent="center">
-              <Button variant="outlined" onClick={this.handleReset}>
-                Try Again
-              </Button>
-              <Button variant="contained" onClick={this.handleReload}>
-                Refresh Page
-              </Button>
-            </Stack>
-          </Paper>
-        </Box>
+        <ErrorBoundaryUI
+          error={this.state.error}
+          errorInfo={this.state.errorInfo}
+          showDetails={this.state.showDetails}
+          copied={this.state.copied}
+          onReset={this.handleReset}
+          onReload={this.handleReload}
+          onToggleDetails={this.toggleDetails}
+          onCopy={this.handleCopy}
+          onSendReport={this.handleSendReport}
+        />
       )
     }
 

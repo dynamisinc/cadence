@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
+import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp, ErrorBoundary } from './core/components'
+import { trackException } from './core/services/telemetry'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -429,7 +430,15 @@ function App() {
       {/* Base theme for auth pages (before preferences load) */}
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
-        <AuthProvider>
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            trackException(error, {
+              componentStack: errorInfo.componentStack || '',
+              source: 'ErrorBoundary',
+            })
+          }}
+        >
+          <AuthProvider>
           {/* Organization provider loads after auth */}
           <OrganizationProvider>
             {/* User preferences provider loads after auth */}
@@ -458,6 +467,7 @@ function App() {
             </UserPreferencesProvider>
           </OrganizationProvider>
         </AuthProvider>
+        </ErrorBoundary>
 
         <ToastContainer
           position="top-right"
