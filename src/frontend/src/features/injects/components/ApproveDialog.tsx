@@ -15,6 +15,7 @@ import {
   Typography,
   Box,
   Paper,
+  Alert,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faSpinner } from '@fortawesome/free-solid-svg-icons'
@@ -38,13 +39,17 @@ interface ApproveDialogProps {
   onCancel: () => void
   /** Whether the action is in progress */
   isLoading?: boolean
+  /** Whether this is a self-approval (S11) */
+  isSelfApproval?: boolean
+  /** Whether self-approval requires confirmation (S11) */
+  requiresConfirmation?: boolean
 }
 
 /**
  * Approve Dialog
  *
  * Shows inject details and allows the user to add optional review notes
- * before approving.
+ * before approving. Shows a warning when self-approval requires confirmation.
  *
  * @example
  * <ApproveDialog
@@ -53,6 +58,8 @@ interface ApproveDialogProps {
  *   onConfirm={handleApprove}
  *   onCancel={() => setApproveDialogOpen(false)}
  *   isLoading={isApproving}
+ *   isSelfApproval={true}
+ *   requiresConfirmation={true}
  * />
  */
 export const ApproveDialog = ({
@@ -61,6 +68,8 @@ export const ApproveDialog = ({
   onConfirm,
   onCancel,
   isLoading = false,
+  isSelfApproval = false,
+  requiresConfirmation = false,
 }: ApproveDialogProps) => {
   const theme = useTheme()
   const [notes, setNotes] = useState('')
@@ -135,6 +144,18 @@ export const ApproveDialog = ({
             </Typography>
           )}
         </Paper>
+
+        {isSelfApproval && requiresConfirmation && (
+          <Alert severity="warning" sx={{ mb: 3 }}>
+            <Typography variant="body2" fontWeight={500} gutterBottom>
+              Self-Approval Notice
+            </Typography>
+            <Typography variant="body2">
+              You are approving an inject you submitted. This action will be recorded in the audit log.
+              Click Approve to confirm.
+            </Typography>
+          </Alert>
+        )}
 
         <CobraTextField
           fullWidth

@@ -30,14 +30,17 @@ import { toast } from 'react-toastify'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import {
   ApprovalRoles,
+  ApprovalPolicy,
   SelfApprovalPolicy,
   hasApprovalRole,
-  createApprovalRoles,
 } from '@/types'
 import {
   useApprovalPermissions,
   useUpdateApprovalPermissions,
 } from '../hooks/useApprovalPermissions'
+import { useOrganization } from '../hooks/useOrganizations'
+import { organizationService } from '../services/organizationService'
+import { useMutation, useQueryClient } from '@tanstack/react-query'
 
 interface ApprovalPermissionsSettingsProps {
   /** Organization ID */
@@ -61,10 +64,13 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
   organizationId,
   onSaved,
 }) => {
+  const queryClient = useQueryClient()
+  const { data: organization } = useOrganization(organizationId)
   const { data: permissions, isLoading, error } = useApprovalPermissions(organizationId)
   const updateMutation = useUpdateApprovalPermissions()
 
   // Local state for editing
+  const [approvalPolicy, setApprovalPolicy] = useState<string>(ApprovalPolicy.Disabled)
   const [authorizedRoles, setAuthorizedRoles] = useState<number>(
     ApprovalRoles.Administrator | ApprovalRoles.ExerciseDirector,
   )
@@ -73,19 +79,43 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
   )
   const [hasChanges, setHasChanges] = useState(false)
 
+  // Mutation for approval policy
+  const updatePolicyMutation = useMutation({
+    mutationFn: (policy: string) =>
+      organizationService.updateApprovalPolicy(organizationId, policy),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['organization', organizationId] })
+    },
+  })
+
+  // Sync state with loaded organization
+  useEffect(() => {
+    if (organization) {
+      setApprovalPolicy(organization.injectApprovalPolicy || ApprovalPolicy.Disabled)
+    }
+  }, [organization])
+
   // Sync state with loaded permissions
   useEffect(() => {
     if (permissions) {
-      setAuthorizedRoles(permissions.authorizedRoles)
-      setSelfApprovalPolicy(permissions.selfApprovalPolicy)
+      // Use sensible defaults if no roles are configured yet
+      const defaultRoles = ApprovalRoles.Administrator | ApprovalRoles.ExerciseDirector
+      setAuthorizedRoles(permissions.authorizedRoles || defaultRoles)
+      setSelfApprovalPolicy(permissions.selfApprovalPolicy || SelfApprovalPolicy.NeverAllowed)
       setHasChanges(false)
     }
   }, [permissions])
 
-  const handleRoleToggle = (role: number) => {
-    const newRoles = hasApprovalRole(authorizedRoles, role)
-      ? authorizedRoles & ~role
-      : authorizedRoles | role
+  const handleApprovalPolicyChange = (value: string) => {
+    setApprovalPolicy(value)
+    setHasChanges(true)
+  }
+
+  const handleRoleToggle = (roleKey: keyof typeof ApprovalRoles) => {
+    const roleValue = ApprovalRoles[roleKey]
+    const newRoles = hasApprovalRole(authorizedRoles, roleKey)
+      ? authorizedRoles & ~roleValue
+      : authorizedRoles | roleValue
     setAuthorizedRoles(newRoles)
     setHasChanges(true)
   }
@@ -97,28 +127,36 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
 
   const handleSave = async () => {
     try {
+      // Save approval policy if changed
+      if (organization?.injectApprovalPolicy !== approvalPolicy) {
+        await updatePolicyMutation.mutateAsync(approvalPolicy)
+      }
+      // Save permissions
       await updateMutation.mutateAsync({
         orgId: organizationId,
         request: {
-          authorizedRoles: createApprovalRoles(authorizedRoles),
+          authorizedRoles,
           selfApprovalPolicy:
             selfApprovalPolicy as typeof SelfApprovalPolicy[keyof typeof SelfApprovalPolicy],
         },
       })
       setHasChanges(false)
-      toast.success('Approval permissions saved')
+      toast.success('Approval settings saved')
       onSaved?.()
     } catch {
-      toast.error('Failed to save approval permissions')
+      toast.error('Failed to save approval settings')
     }
   }
 
   const handleReset = () => {
+    if (organization) {
+      setApprovalPolicy(organization.injectApprovalPolicy || ApprovalPolicy.Disabled)
+    }
     if (permissions) {
       setAuthorizedRoles(permissions.authorizedRoles)
       setSelfApprovalPolicy(permissions.selfApprovalPolicy)
-      setHasChanges(false)
     }
+    setHasChanges(false)
   }
 
   if (isLoading) {
@@ -154,6 +192,58 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
 
       <Divider sx={{ mb: 3 }} />
 
+      {/* Approval Workflow Policy */}
+      <Typography variant="subtitle1" fontWeight={500} gutterBottom>
+        Approval Workflow
+      </Typography>
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        Control whether inject approval is available for exercises in this organization.
+      </Typography>
+
+      <FormControl fullWidth sx={{ mb: 3 }}>
+        <InputLabel id="approval-policy-label">Approval Workflow Policy</InputLabel>
+        <Select
+          labelId="approval-policy-label"
+          value={approvalPolicy}
+          label="Approval Workflow Policy"
+          onChange={e => handleApprovalPolicyChange(e.target.value)}
+        >
+          <MenuItem value={ApprovalPolicy.Disabled}>
+            <Box>
+              <Typography variant="body1">Disabled</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Approval workflow not available. Injects can be fired directly.
+              </Typography>
+            </Box>
+          </MenuItem>
+          <MenuItem value={ApprovalPolicy.Optional}>
+            <Box>
+              <Typography variant="body1">Optional (Recommended)</Typography>
+              <Typography variant="caption" color="text.secondary">
+                Exercise Directors can enable approval per exercise.
+              </Typography>
+            </Box>
+          </MenuItem>
+          <MenuItem value={ApprovalPolicy.Required}>
+            <Box>
+              <Typography variant="body1">Required</Typography>
+              <Typography variant="caption" color="text.secondary">
+                All exercises require approval. Admins can override if needed.
+              </Typography>
+            </Box>
+          </MenuItem>
+        </Select>
+      </FormControl>
+
+      {approvalPolicy === ApprovalPolicy.Disabled && (
+        <Alert severity="info" sx={{ mb: 3 }}>
+          Approval workflow is disabled. Injects will move directly from Draft to ready-to-fire
+          without requiring approval.
+        </Alert>
+      )}
+
+      <Divider sx={{ mb: 3 }} />
+
       {/* Authorized Roles Section */}
       <Typography variant="subtitle1" fontWeight={500} gutterBottom>
         Roles Authorized to Approve
@@ -167,8 +257,8 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, ApprovalRoles.Administrator)}
-              onChange={() => handleRoleToggle(ApprovalRoles.Administrator)}
+              checked={hasApprovalRole(authorizedRoles, 'Administrator')}
+              onChange={() => handleRoleToggle('Administrator')}
             />
           }
           label={
@@ -183,8 +273,8 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, ApprovalRoles.ExerciseDirector)}
-              onChange={() => handleRoleToggle(ApprovalRoles.ExerciseDirector)}
+              checked={hasApprovalRole(authorizedRoles, 'ExerciseDirector')}
+              onChange={() => handleRoleToggle('ExerciseDirector')}
             />
           }
           label={
@@ -199,8 +289,8 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, ApprovalRoles.Controller)}
-              onChange={() => handleRoleToggle(ApprovalRoles.Controller)}
+              checked={hasApprovalRole(authorizedRoles, 'Controller')}
+              onChange={() => handleRoleToggle('Controller')}
             />
           }
           label={
@@ -215,8 +305,8 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, ApprovalRoles.Evaluator)}
-              onChange={() => handleRoleToggle(ApprovalRoles.Evaluator)}
+              checked={hasApprovalRole(authorizedRoles, 'Evaluator')}
+              onChange={() => handleRoleToggle('Evaluator')}
             />
           }
           label={
@@ -297,7 +387,7 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <CobraSecondaryButton
           startIcon={<FontAwesomeIcon icon={faUndo} />}
           onClick={handleReset}
-          disabled={!hasChanges || updateMutation.isPending}
+          disabled={!hasChanges || updateMutation.isPending || updatePolicyMutation.isPending}
         >
           Reset
         </CobraSecondaryButton>
@@ -307,14 +397,15 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
           disabled={
             !hasChanges ||
             updateMutation.isPending ||
+            updatePolicyMutation.isPending ||
             authorizedRoles === ApprovalRoles.None
           }
         >
-          {updateMutation.isPending ? 'Saving...' : 'Save Changes'}
+          {updateMutation.isPending || updatePolicyMutation.isPending ? 'Saving...' : 'Save Changes'}
         </CobraPrimaryButton>
       </Box>
 
-      {updateMutation.isError && (
+      {(updateMutation.isError || updatePolicyMutation.isError) && (
         <Alert severity="error" sx={{ mt: 2 }}>
           Failed to save changes. Please try again.
         </Alert>
@@ -322,7 +413,7 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
 
       {updateMutation.isSuccess && !hasChanges && (
         <Alert severity="success" sx={{ mt: 2 }}>
-          Approval permissions saved successfully.
+          Approval settings saved successfully.
         </Alert>
       )}
     </Paper>

@@ -694,7 +694,10 @@ public class InjectsController : ControllerBase
     /// <summary>
     /// Approve a submitted inject.
     /// Only Exercise Directors or Administrators can approve injects.
-    /// Users cannot approve their own submissions (separation of duties).
+    /// Self-approval behavior depends on organization policy (S11):
+    /// - NeverAllowed: Cannot approve own submissions
+    /// - AllowedWithWarning: Requires confirmSelfApproval=true
+    /// - AlwaysAllowed: No restrictions
     /// </summary>
     [HttpPost("{id:guid}/approve")]
     [AuthorizeExerciseDirector]
@@ -703,7 +706,18 @@ public class InjectsController : ControllerBase
         try
         {
             var userId = GetCurrentUserIdString();
-            var result = await _injectService.ApproveInjectAsync(exerciseId, id, userId, request?.Notes);
+            InjectDto result;
+
+            // Use the confirmation-aware method when self-approval flag is provided (S11)
+            if (request?.ConfirmSelfApproval == true)
+            {
+                result = await _injectService.ApproveInjectWithConfirmationAsync(
+                    exerciseId, id, userId, request.Notes, confirmSelfApproval: true);
+            }
+            else
+            {
+                result = await _injectService.ApproveInjectAsync(exerciseId, id, userId, request?.Notes);
+            }
 
             _logger.LogInformation("Approved inject {InjectId} in exercise {ExerciseId} by user {UserId}",
                 id, exerciseId, userId);

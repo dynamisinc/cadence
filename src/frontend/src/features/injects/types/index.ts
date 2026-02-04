@@ -387,6 +387,8 @@ export const formatDeliveryTime = (ms: number): string => {
  */
 export interface ApproveInjectRequest {
   notes?: string | null
+  /** Set to true to confirm self-approval when policy requires it (S11). */
+  confirmSelfApproval?: boolean
 }
 
 /**

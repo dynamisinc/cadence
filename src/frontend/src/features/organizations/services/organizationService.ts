@@ -112,6 +112,70 @@ export const organizationService = {
   },
 
   // =========================================================================
+  // Current Organization Member Management (OrgAdmin)
+  // =========================================================================
+
+  /**
+   * Get all members of the current organization
+   */
+  getCurrentOrgMembers: async (): Promise<OrgMember[]> => {
+    const response = await apiClient.get<OrgMember[]>('/organizations/current/members')
+    return response.data
+  },
+
+  /**
+   * Add a user to the current organization by email
+   */
+  addCurrentOrgMember: async (request: AddMemberRequest): Promise<OrgMember> => {
+    const response = await apiClient.post<OrgMember>('/organizations/current/members', request)
+    return response.data
+  },
+
+  /**
+   * Update a member's role in the current organization
+   */
+  updateCurrentOrgMemberRole: async (
+    membershipId: string,
+    request: UpdateMemberRoleRequest,
+  ): Promise<void> => {
+    await apiClient.put(`/organizations/current/members/${membershipId}`, request)
+  },
+
+  /**
+   * Remove a member from the current organization
+   */
+  removeCurrentOrgMember: async (membershipId: string): Promise<void> => {
+    await apiClient.delete(`/organizations/current/members/${membershipId}`)
+  },
+
+  // =========================================================================
+  // Current Organization Approval Permissions (OrgAdmin)
+  // =========================================================================
+
+  /**
+   * Get approval permissions for the current organization
+   */
+  getCurrentApprovalPermissions: async (): Promise<ApprovalPermissionsDto> => {
+    const response = await apiClient.get<ApprovalPermissionsDto>(
+      '/organizations/current/settings/approval-permissions',
+    )
+    return response.data
+  },
+
+  /**
+   * Update approval permissions for the current organization
+   */
+  updateCurrentApprovalPermissions: async (
+    request: UpdateApprovalPermissionsRequest,
+  ): Promise<ApprovalPermissionsDto> => {
+    const response = await apiClient.put<ApprovalPermissionsDto>(
+      '/organizations/current/settings/approval-permissions',
+      request,
+    )
+    return response.data
+  },
+
+  // =========================================================================
   // Member Management (SysAdmin only)
   // =========================================================================
 
@@ -176,6 +240,20 @@ export const organizationService = {
     const response = await apiClient.put<ApprovalPermissionsDto>(
       `/admin/organizations/${orgId}/settings/approval-permissions`,
       request,
+    )
+    return response.data
+  },
+
+  /**
+   * Update approval policy for an organization (Disabled/Optional/Required)
+   */
+  updateApprovalPolicy: async (
+    orgId: string,
+    policy: string,
+  ): Promise<Organization> => {
+    const response = await apiClient.put<Organization>(
+      `/admin/organizations/${orgId}/settings/approval-policy`,
+      { injectApprovalPolicy: policy },
     )
     return response.data
   },

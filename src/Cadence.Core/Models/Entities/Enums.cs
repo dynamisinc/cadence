@@ -428,9 +428,9 @@ public enum SelfApprovalPolicy
 /// <summary>
 /// Flags enum for exercise roles authorized to approve injects.
 /// Used at organization level to configure approval permissions.
+/// NOTE: No JsonStringEnumConverter - serialized as integer for frontend bitwise operations.
 /// </summary>
 [Flags]
-[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
 public enum ApprovalRoles
 {
     /// <summary>No roles can approve.</summary>

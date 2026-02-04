@@ -380,6 +380,12 @@ public class ApproveInjectRequest
     /// Provides guidance or feedback to the Controller.
     /// </summary>
     public string? Notes { get; init; }
+
+    /// <summary>
+    /// Set to true to confirm self-approval when organization policy allows with warning (S11).
+    /// Required when the user is approving their own submission and policy is AllowedWithWarning.
+    /// </summary>
+    public bool ConfirmSelfApproval { get; init; }
 }
 
 /// <summary>

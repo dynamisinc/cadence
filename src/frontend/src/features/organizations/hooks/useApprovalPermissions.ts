@@ -57,3 +57,43 @@ export function useUpdateApprovalPermissions() {
     },
   })
 }
+
+// =========================================================================
+// Current Organization Approval Permissions (OrgAdmin)
+// =========================================================================
+
+/**
+ * Query key for current organization approval permissions
+ */
+export const currentOrgApprovalPermissionKeys = {
+  all: ['current-org-approval-permissions'] as const,
+  detail: () => [...currentOrgApprovalPermissionKeys.all, 'detail'] as const,
+}
+
+/**
+ * Fetch approval permissions for the current organization (OrgAdmin)
+ */
+export function useCurrentOrgApprovalPermissions() {
+  return useQuery({
+    queryKey: currentOrgApprovalPermissionKeys.detail(),
+    queryFn: () => organizationService.getCurrentApprovalPermissions(),
+  })
+}
+
+/**
+ * Update approval permissions for the current organization (OrgAdmin)
+ */
+export function useUpdateCurrentOrgApprovalPermissions() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (request: UpdateApprovalPermissionsRequest) =>
+      organizationService.updateCurrentApprovalPermissions(request),
+    onSuccess: data => {
+      // Update the cache with new permissions
+      queryClient.setQueryData(currentOrgApprovalPermissionKeys.detail(), data)
+      // Also invalidate current org in case it includes permissions
+      queryClient.invalidateQueries({ queryKey: organizationKeys.current() })
+    },
+  })
+}
