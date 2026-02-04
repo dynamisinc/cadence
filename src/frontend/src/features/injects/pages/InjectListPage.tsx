@@ -20,6 +20,7 @@ import {
   DialogActions,
   Collapse,
   Portal,
+  Checkbox,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -39,7 +40,7 @@ import {
 /** Minimum time to show the saving indicator (ms) */
 const MIN_INDICATOR_TIME = 1000
 
-import { useInjects, useInjectOrganization } from '../hooks'
+import { useInjects, useInjectOrganization, useInjectSelection } from '../hooks'
 import { InjectOrganizationProvider } from '../contexts/InjectOrganizationContext'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { useExercise } from '../../exercises/hooks/useExercise'
@@ -54,6 +55,8 @@ import {
   GroupHeader,
   SortableInjectList,
   SortableInjectRow,
+  BatchApprovalToolbar,
+  SubmitForApprovalButton,
 } from '../components'
 import {
   CobraPrimaryButton,
@@ -63,6 +66,9 @@ import {
 import { HighlightedText } from '../../../shared/components/HighlightedText'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
+import { ApprovalStatusHeader } from '../../exercises/components'
+import { useApprovalSettings } from '../../exercises/hooks/useApprovalSettings'
+import { useAuth } from '../../../contexts'
 import { InjectStatus } from '../../../types'
 import type { InjectDto } from '../types'
 import type { PhaseDto } from '../../phases/types'
@@ -153,6 +159,12 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const { can } = useExerciseRole(exerciseId)
   const canFireInjects = can('fire_inject')
   const canManage = can('edit_inject')
+  const canApprove = can('approve_inject')
+
+  // Approval workflow state (S11-S13)
+  const { settings: approvalSettings } = useApprovalSettings(exerciseId)
+  const { user } = useAuth()
+  const approvalEnabled = approvalSettings?.requireInjectApproval ?? false
 
   // Convert phases to the format needed by useInjectOrganization
   const phaseInfo = useMemo(
@@ -168,6 +180,16 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
   // Organization hook
   const organization = useInjectOrganization(injects, phaseInfo, objectiveInfo)
+
+  // Selection hook for batch operations (S12)
+  const {
+    selectedIds,
+    toggleSelection,
+    selectAll,
+    clearSelection,
+    isSelected,
+    selectionState,
+  } = useInjectSelection({ injects: organization.organizedInjects })
 
   // Set custom breadcrumbs with exercise name and MSEL
   useBreadcrumbs(
@@ -397,6 +419,9 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
         {exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}
       </Typography>
 
+      {/* Approval Status Header (S06) - Shows approval progress if enabled */}
+      <ApprovalStatusHeader exerciseId={exerciseId} showDetails />
+
       {/* Filter Bar */}
       <Box marginBottom={2}>
         <InjectFilterBar
@@ -429,6 +454,17 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
             onClearAll={organization.clearAllFilters}
           />
         </Box>
+      )}
+
+      {/* Batch Approval Toolbar (S12) - only shown when approval enabled and items selected */}
+      {approvalEnabled && selectedIds.length > 0 && (
+        <BatchApprovalToolbar
+          selectedIds={selectedIds}
+          injects={organization.organizedInjects}
+          exerciseId={exerciseId}
+          currentUserId={user?.id || ''}
+          onClearSelection={clearSelection}
+        />
       )}
 
       {/* Loading skeleton state */}
@@ -478,6 +514,13 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onSort={organization.toggleSort}
           showSavingIndicator={showSavingIndicator}
           onSavingChange={handleSavingChange}
+          // Approval workflow props (S12-S13)
+          approvalEnabled={approvalEnabled}
+          exerciseId={exerciseId}
+          selectedIds={selectedIds}
+          onToggleSelection={toggleSelection}
+          onSelectAll={selectionState === 'all' ? clearSelection : selectAll}
+          selectionState={selectionState}
         />
       ) : (
         // Flat list view (no grouping) with drag-and-drop reordering
@@ -505,6 +548,13 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onSort={organization.toggleSort}
           showSavingIndicator={showSavingIndicator}
           onSavingChange={handleSavingChange}
+          // Approval workflow props (S12-S13)
+          approvalEnabled={approvalEnabled}
+          exerciseId={exerciseId}
+          selectedIds={selectedIds}
+          onToggleSelection={toggleSelection}
+          onSelectAll={selectionState === 'all' ? clearSelection : selectAll}
+          selectionState={selectionState}
         />
       )}
 
@@ -719,6 +769,13 @@ interface GroupedInjectViewProps {
   onSort: (column: SortableColumn) => void
   showSavingIndicator: boolean
   onSavingChange: (isSaving: boolean) => void
+  // Approval workflow props (S12-S13)
+  approvalEnabled?: boolean
+  exerciseId: string
+  selectedIds?: string[]
+  onToggleSelection?: (id: string) => void
+  onSelectAll?: () => void
+  selectionState?: 'none' | 'some' | 'all'
 }
 
 const GroupedInjectView = ({
@@ -750,6 +807,13 @@ const GroupedInjectView = ({
   onSort,
   showSavingIndicator,
   onSavingChange,
+  // Approval workflow props (S12-S13)
+  approvalEnabled = false,
+  exerciseId,
+  selectedIds = [],
+  onToggleSelection,
+  onSelectAll,
+  selectionState = 'none',
 }: GroupedInjectViewProps) => {
   return (
     <Stack spacing={2}>
@@ -777,6 +841,17 @@ const GroupedInjectView = ({
           <Table size="small">
             <TableHead>
               <TableRow>
+                {/* Checkbox column for batch selection (S12) */}
+                {approvalEnabled && onToggleSelection && (
+                  <TableCell padding="checkbox" sx={{ width: 48 }}>
+                    <Checkbox
+                      indeterminate={selectionState === 'some'}
+                      checked={selectionState === 'all'}
+                      onChange={onSelectAll}
+                      inputProps={{ 'aria-label': 'Select all injects' }}
+                    />
+                  </TableCell>
+                )}
                 {canReorder && <TableCell width={40} />}
                 <SortableTableHeader
                   column="injectNumber"
@@ -842,6 +917,11 @@ const GroupedInjectView = ({
                       isFiring={isFiring}
                       isSkipping={isSkipping}
                       searchTerm={searchTerm}
+                      // Approval props (S12-S13)
+                      approvalEnabled={approvalEnabled}
+                      exerciseId={exerciseId}
+                      isSelected={selectedIds.includes(inject.id)}
+                      onToggleSelection={onToggleSelection}
                     />
                   </SortableInjectRow>
                 ) : (
@@ -858,6 +938,11 @@ const GroupedInjectView = ({
                     isFiring={isFiring}
                     isSkipping={isSkipping}
                     searchTerm={searchTerm}
+                    // Approval props (S12-S13)
+                    approvalEnabled={approvalEnabled}
+                    exerciseId={exerciseId}
+                    isSelected={selectedIds.includes(inject.id)}
+                    onToggleSelection={onToggleSelection}
                   />
                 )
               ))}
@@ -944,6 +1029,13 @@ interface FlatInjectListProps {
   onSort: (column: SortableColumn) => void
   showSavingIndicator: boolean
   onSavingChange: (isSaving: boolean) => void
+  // Approval workflow props (S12-S13)
+  approvalEnabled?: boolean
+  exerciseId: string
+  selectedIds?: string[]
+  onToggleSelection?: (id: string) => void
+  onSelectAll?: () => void
+  selectionState?: 'none' | 'some' | 'all'
 }
 
 const FlatInjectList = ({
@@ -965,12 +1057,30 @@ const FlatInjectList = ({
   onSort,
   showSavingIndicator,
   onSavingChange,
+  // Approval workflow props (S12-S13)
+  approvalEnabled = false,
+  exerciseId,
+  selectedIds = [],
+  onToggleSelection,
+  onSelectAll,
+  selectionState = 'none',
 }: FlatInjectListProps) => {
   const tableContent = (orderedInjects: InjectDto[]) => (
     <TableContainer component={Paper}>
       <Table size="small">
         <TableHead>
           <TableRow>
+            {/* Checkbox column for batch selection (S12) */}
+            {approvalEnabled && onToggleSelection && (
+              <TableCell padding="checkbox" sx={{ width: 48 }}>
+                <Checkbox
+                  indeterminate={selectionState === 'some'}
+                  checked={selectionState === 'all'}
+                  onChange={onSelectAll}
+                  inputProps={{ 'aria-label': 'Select all injects' }}
+                />
+              </TableCell>
+            )}
             {canReorder && <TableCell width={40} />}
             <SortableTableHeader
               column="injectNumber"
@@ -1045,6 +1155,11 @@ const FlatInjectList = ({
                   isSkipping={isSkipping}
                   searchTerm={searchTerm}
                   showPhase
+                  // Approval props (S12-S13)
+                  approvalEnabled={approvalEnabled}
+                  exerciseId={exerciseId}
+                  isSelected={selectedIds.includes(inject.id)}
+                  onToggleSelection={onToggleSelection}
                 />
               </SortableInjectRow>
             ) : (
@@ -1062,6 +1177,11 @@ const FlatInjectList = ({
                 isSkipping={isSkipping}
                 searchTerm={searchTerm}
                 showPhase
+                // Approval props (S12-S13)
+                approvalEnabled={approvalEnabled}
+                exerciseId={exerciseId}
+                isSelected={selectedIds.includes(inject.id)}
+                onToggleSelection={onToggleSelection}
               />
             )
           ))}
@@ -1100,6 +1220,11 @@ interface InjectRowCellsProps {
   isSkipping: boolean
   searchTerm?: string
   showPhase?: boolean
+  // Approval workflow props (S12-S13)
+  approvalEnabled?: boolean
+  exerciseId?: string
+  isSelected?: boolean
+  onToggleSelection?: (id: string) => void
 }
 
 /**
@@ -1119,13 +1244,32 @@ const InjectRowCells = ({
   isSkipping,
   searchTerm = '',
   showPhase = false,
+  // Approval workflow props (S12-S13)
+  approvalEnabled = false,
+  exerciseId = '',
+  isSelected = false,
+  onToggleSelection,
 }: InjectRowCellsProps) => {
   const scenarioTimeDisplay = formatScenarioTime(inject.scenarioDay, inject.scenarioTime)
   const scheduledTimeDisplay = formatScheduledTime(inject.scheduledTime)
   const isPending = inject.status === InjectStatus.Draft
 
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleSelection?.(inject.id)
+  }
+
   return (
     <>
+      {/* Checkbox cell for batch selection (S12) */}
+      {approvalEnabled && onToggleSelection && (
+        <TableCell padding="checkbox" onClick={handleCheckboxClick}>
+          <Checkbox
+            checked={isSelected}
+            inputProps={{ 'aria-label': `Select inject ${inject.injectNumber}` }}
+          />
+        </TableCell>
+      )}
       <TableCell onClick={onClick} sx={{ cursor: 'pointer' }}>
         <Typography variant="body2" fontWeight={500}>
           {inject.injectNumber}
@@ -1196,7 +1340,7 @@ const InjectRowCells = ({
           </Typography>
         </TableCell>
       )}
-      {(canFireInjects || canManage) && (
+      {(canFireInjects || canManage || approvalEnabled) && (
         <TableCell>
           <Stack direction="row" spacing={0.5}>
             {canFireInjects && isPending && (
@@ -1245,6 +1389,16 @@ const InjectRowCells = ({
                 </Tooltip>
               </>
             )}
+            {/* Quick Submit button (S13) */}
+            {approvalEnabled && exerciseId && canManage && (
+              <SubmitForApprovalButton
+                inject={inject}
+                exerciseId={exerciseId}
+                approvalEnabled={approvalEnabled}
+                canSubmit={canManage}
+                size="small"
+              />
+            )}
           </Stack>
         </TableCell>
       )}
@@ -1265,6 +1419,11 @@ interface InjectRowProps {
   isSkipping: boolean
   searchTerm?: string
   showPhase?: boolean
+  // Approval workflow props (S12-S13)
+  approvalEnabled?: boolean
+  exerciseId?: string
+  isSelected?: boolean
+  onToggleSelection?: (id: string) => void
 }
 
 const InjectRow = ({
@@ -1280,10 +1439,20 @@ const InjectRow = ({
   isSkipping,
   searchTerm = '',
   showPhase = false,
+  // Approval workflow props (S12-S13)
+  approvalEnabled = false,
+  exerciseId = '',
+  isSelected = false,
+  onToggleSelection,
 }: InjectRowProps) => {
   const scenarioTimeDisplay = formatScenarioTime(inject.scenarioDay, inject.scenarioTime)
   const scheduledTimeDisplay = formatScheduledTime(inject.scheduledTime)
   const isPending = inject.status === InjectStatus.Draft
+
+  const handleCheckboxClick = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    onToggleSelection?.(inject.id)
+  }
 
   return (
     <TableRow
@@ -1296,6 +1465,15 @@ const InjectRow = ({
         opacity: isPending ? 1 : 0.85,
       }}
     >
+      {/* Checkbox cell for batch selection (S12) */}
+      {approvalEnabled && onToggleSelection && (
+        <TableCell padding="checkbox" onClick={handleCheckboxClick}>
+          <Checkbox
+            checked={isSelected}
+            inputProps={{ 'aria-label': `Select inject ${inject.injectNumber}` }}
+          />
+        </TableCell>
+      )}
       <TableCell>
         <Typography variant="body2" fontWeight={500}>
           {inject.injectNumber}
@@ -1366,7 +1544,7 @@ const InjectRow = ({
           </Typography>
         </TableCell>
       )}
-      {(canFireInjects || canManage) && (
+      {(canFireInjects || canManage || approvalEnabled) && (
         <TableCell>
           <Stack direction="row" spacing={0.5}>
             {canFireInjects && isPending && (
@@ -1414,6 +1592,16 @@ const InjectRow = ({
                   </IconButton>
                 </Tooltip>
               </>
+            )}
+            {/* Quick Submit button (S13) */}
+            {approvalEnabled && exerciseId && canManage && (
+              <SubmitForApprovalButton
+                inject={inject}
+                exerciseId={exerciseId}
+                approvalEnabled={approvalEnabled}
+                canSubmit={canManage}
+                size="small"
+              />
             )}
           </Stack>
         </TableCell>
