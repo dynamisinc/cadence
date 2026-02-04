@@ -351,7 +351,8 @@ public record ApprovalSettingsDto(
     string? ApprovalOverrideReason,
     string? ApprovalOverriddenById,
     DateTime? ApprovalOverriddenAt,
-    ApprovalPolicy OrganizationPolicy
+    ApprovalPolicy OrganizationPolicy,
+    SelfApprovalPolicy SelfApprovalPolicy
 );
 
 /// <summary>

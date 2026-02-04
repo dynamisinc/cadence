@@ -178,7 +178,11 @@ Approval permissions are **configurable per organization** (see S11). Default se
 | S09 | Revert Approval Status | P1 | 2 | S04 |
 | S10 | Configurable Status Workflow | P2 | 8 | S00, S01 |
 | S11 | Configurable Approval Permissions | P1 | 5 | S01, S04 |
-| **Total** | | | **48** | |
+| **S12** | **Batch Approval Integration in MSEL View** | **P1** | **3** | **S05** |
+| **S13** | **Quick Submit Action in MSEL Table Row** | **P1** | **2** | **S03** |
+| **S14** | **Approval Actions in InjectDetailDrawer** | **P2** | **3** | **S03, S04** |
+| **S15** | **Edit Invalidates Approval** | **P0** | **3** | **S03, S04** |
+| **Total** | | | **59** | |
 
 ## Data Model Changes
 
@@ -445,7 +449,7 @@ Update demo data to include:
 
 ```
 docs/features/inject-approval-workflow/
-├── FEATURE.md              # This file
+├── FEATURE.md                         # This file
 ├── S00-hseep-status-enum.md
 ├── S01-org-approval-config.md
 ├── S02-exercise-approval-config.md
@@ -457,5 +461,9 @@ docs/features/inject-approval-workflow/
 ├── S08-approval-notifications.md
 ├── S09-revert-approval.md
 ├── S10-configurable-status-workflow.md
-└── S11-configurable-approval-permissions.md
+├── S11-configurable-approval-permissions.md
+├── S12-batch-approval-integration.md  # NEW: Integration of batch approval in MSEL view
+├── S13-quick-submit-table-action.md   # NEW: Quick submit from table row
+├── S14-drawer-approval-actions.md     # NEW: Approval actions in conduct drawer
+└── S15-edit-invalidates-approval.md   # NEW: Auto-revert to Draft when editing submitted/approved injects
 ```

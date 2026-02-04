@@ -311,7 +311,7 @@ export interface ExerciseCapabilitySummaryDto {
 // Approval Settings Types (S00-S09)
 // =========================================================================
 
-import { ApprovalPolicy } from '../../../types'
+import { ApprovalPolicy, SelfApprovalPolicy } from '../../../types'
 
 /**
  * Approval settings DTO - Returns exercise approval configuration
@@ -323,6 +323,7 @@ export interface ApprovalSettingsDto {
   approvalOverriddenById: string | null
   approvalOverriddenAt: string | null
   organizationPolicy: ApprovalPolicy
+  selfApprovalPolicy: SelfApprovalPolicy
 }
 
 /**

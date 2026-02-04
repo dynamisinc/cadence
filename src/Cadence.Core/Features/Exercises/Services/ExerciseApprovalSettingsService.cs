@@ -47,7 +47,8 @@ public class ExerciseApprovalSettingsService : IExerciseApprovalSettingsService
             exercise.ApprovalOverrideReason,
             exercise.ApprovalOverriddenById,
             exercise.ApprovalOverriddenAt,
-            exercise.Organization.InjectApprovalPolicy);
+            exercise.Organization.InjectApprovalPolicy,
+            exercise.Organization.SelfApprovalPolicy);
     }
 
     /// <inheritdoc />
@@ -124,7 +125,8 @@ public class ExerciseApprovalSettingsService : IExerciseApprovalSettingsService
             exercise.ApprovalOverrideReason,
             exercise.ApprovalOverriddenById,
             exercise.ApprovalOverriddenAt,
-            orgPolicy);
+            orgPolicy,
+            exercise.Organization.SelfApprovalPolicy);
     }
 
     /// <summary>

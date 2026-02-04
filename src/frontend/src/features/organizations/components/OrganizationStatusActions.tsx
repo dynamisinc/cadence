@@ -37,9 +37,12 @@ export const OrganizationStatusActions: FC<OrganizationStatusActionsProps> = ({
       <Typography variant="h6" gutterBottom>
         Organization Status
       </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        Current status: <StatusChip status={status} />
-      </Typography>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+        <Typography variant="body2" color="text.secondary">
+          Current status:
+        </Typography>
+        <StatusChip status={status} />
+      </Box>
 
       <Divider sx={{ my: 2 }} />
 

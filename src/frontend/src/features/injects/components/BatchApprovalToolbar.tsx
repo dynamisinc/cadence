@@ -21,7 +21,7 @@ import {
   CobraDeleteButton,
   CobraSecondaryButton,
 } from '@/theme/styledComponents'
-import { InjectStatus } from '@/types'
+import { InjectStatus, SelfApprovalPolicy } from '@/types'
 import { useInjectApproval } from '../hooks'
 import { ApproveDialog } from './ApproveDialog'
 import { RejectDialog } from './RejectDialog'
@@ -36,6 +36,8 @@ interface BatchApprovalToolbarProps {
   exerciseId: string
   /** Current user's ID */
   currentUserId: string
+  /** Organization's self-approval policy */
+  selfApprovalPolicy?: SelfApprovalPolicy
   /** Called to clear selection after action */
   onClearSelection: () => void
   /** Optional callback after batch action */
@@ -46,8 +48,11 @@ interface BatchApprovalToolbarProps {
  * Batch Approval Toolbar
  *
  * Shows when one or more injects are selected, allowing batch
- * approve or reject operations. Only Submitted injects that weren't
- * submitted by the current user can be batch processed.
+ * approve or reject operations. Self-approval handling depends on
+ * organization policy:
+ * - NeverAllowed: Self-submitted injects cannot be processed
+ * - AllowedWithWarning: Self-submitted injects included with warning
+ * - AlwaysAllowed: No restrictions on self-approval
  *
  * @example
  * <BatchApprovalToolbar
@@ -55,6 +60,7 @@ interface BatchApprovalToolbarProps {
  *   injects={injects}
  *   exerciseId={exerciseId}
  *   currentUserId={user.id}
+ *   selfApprovalPolicy={SelfApprovalPolicy.NeverAllowed}
  *   onClearSelection={() => setSelectedIds([])}
  * />
  */
@@ -63,6 +69,7 @@ export const BatchApprovalToolbar = ({
   injects,
   exerciseId,
   currentUserId,
+  selfApprovalPolicy = SelfApprovalPolicy.NeverAllowed,
   onClearSelection,
   onActionComplete,
 }: BatchApprovalToolbarProps) => {
@@ -73,9 +80,11 @@ export const BatchApprovalToolbar = ({
     useInjectApproval(exerciseId)
 
   // Calculate which selected injects can actually be approved
-  const { approvableIds, skippedCount, skippedReasons } = useMemo(() => {
+  // Self-approval handling depends on organization policy
+  const { approvableIds, skippedCount, skippedReasons, selfApprovalCount } = useMemo(() => {
     const approvable: string[] = []
     const reasons: string[] = []
+    let selfCount = 0
 
     selectedIds.forEach(id => {
       const inject = injects.find(i => i.id === id)
@@ -87,9 +96,14 @@ export const BatchApprovalToolbar = ({
         reasons.push('Not in Submitted status')
         return
       }
+      // Self-approval handling based on organization policy
       if (inject.submittedByUserId === currentUserId) {
-        reasons.push('Cannot approve own submission')
-        return
+        if (selfApprovalPolicy === SelfApprovalPolicy.NeverAllowed) {
+          reasons.push('Cannot approve own submission (policy: Never Allowed)')
+          return
+        }
+        // AllowedWithWarning or AlwaysAllowed - include but track count
+        selfCount++
       }
       approvable.push(id)
     })
@@ -98,8 +112,9 @@ export const BatchApprovalToolbar = ({
       approvableIds: approvable,
       skippedCount: selectedIds.length - approvable.length,
       skippedReasons: [...new Set(reasons)], // Unique reasons
+      selfApprovalCount: selfCount,
     }
-  }, [selectedIds, injects, currentUserId])
+  }, [selectedIds, injects, currentUserId, selfApprovalPolicy])
 
   // Don't render if nothing selected
   if (selectedIds.length === 0) {
@@ -161,6 +176,12 @@ export const BatchApprovalToolbar = ({
           <Typography variant="body2" color="text.secondary">
             ({skippedCount} cannot be processed
             {skippedReasons.length > 0 && `: ${skippedReasons.join(', ')}`})
+          </Typography>
+        )}
+
+        {selfApprovalCount > 0 && selfApprovalPolicy === SelfApprovalPolicy.AllowedWithWarning && (
+          <Typography variant="body2" color="warning.main">
+            ({selfApprovalCount} self-submitted - will be flagged in audit log)
           </Typography>
         )}
 

@@ -95,6 +95,11 @@ export const useApprovalSettings = (exerciseId: string) => {
     refetch,
     updateSettings,
     isUpdating: updateMutation.isPending,
+    // Convenience properties
+    confirmFireInject: settings?.requireInjectApproval ?? false,
+    confirmSkipInject: settings?.requireInjectApproval ?? false,
+    confirmClockControl: false, // Not related to approval settings
+    selfApprovalPolicy: settings?.selfApprovalPolicy,
   }
 }
 

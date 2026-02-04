@@ -461,6 +461,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           injects={organization.organizedInjects}
           exerciseId={exerciseId}
           currentUserId={user?.id || ''}
+          selfApprovalPolicy={approvalSettings?.selfApprovalPolicy}
           onClearSelection={clearSelection}
         />
       )}

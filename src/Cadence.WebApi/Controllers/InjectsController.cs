@@ -393,6 +393,10 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = validationError });
         }
 
+        // Track if we need to revert approval status (used for SignalR notification)
+        var previousStatus = inject.Status;
+        var statusRevertedToDraft = false;
+
         // Apply edit restrictions based on inject status
         if (inject.Status == InjectStatus.Released)
         {
@@ -402,8 +406,59 @@ public class InjectsController : ControllerBase
         }
         else
         {
-            // Full edit allowed for Draft/Deferred injects
+            var shouldRevertToDraft = false;
+
+            // If approval workflow is enabled and inject is Approved or Submitted,
+            // editing should revert to Draft (invalidates the approval)
+            if (exercise.RequireInjectApproval &&
+                (inject.Status == InjectStatus.Approved || inject.Status == InjectStatus.Submitted))
+            {
+                shouldRevertToDraft = true;
+            }
+
+            // Full edit allowed for Draft/Deferred/Submitted/Approved injects
             inject.UpdateFromRequest(request, GetCurrentUserId());
+
+            // Revert to Draft if approval workflow requires it
+            if (shouldRevertToDraft)
+            {
+                inject.Status = InjectStatus.Draft;
+
+                // Clear approval tracking fields
+                inject.ApprovedByUserId = null;
+                inject.ApprovedAt = null;
+                inject.ApproverNotes = null;
+
+                // Clear submission tracking (user must re-submit)
+                inject.SubmittedByUserId = null;
+                inject.SubmittedAt = null;
+
+                // Clear any rejection (fresh start)
+                inject.RejectedByUserId = null;
+                inject.RejectedAt = null;
+                inject.RejectionReason = null;
+
+                // Record status history
+                var history = new InjectStatusHistory
+                {
+                    Id = Guid.NewGuid(),
+                    InjectId = inject.Id,
+                    FromStatus = previousStatus,
+                    ToStatus = InjectStatus.Draft,
+                    ChangedByUserId = GetCurrentUserIdString(),
+                    ChangedAt = DateTime.UtcNow,
+                    Notes = "Content edited - reverted to Draft for re-approval",
+                    CreatedBy = GetCurrentUserId(),
+                    ModifiedBy = GetCurrentUserId()
+                };
+                _context.InjectStatusHistories.Add(history);
+
+                _logger.LogInformation(
+                    "Inject {InjectId} reverted from {PreviousStatus} to Draft due to content edit (approval workflow enabled)",
+                    inject.Id, previousStatus);
+
+                statusRevertedToDraft = true;
+            }
 
             // Update objective links if provided (only for non-fired injects)
             if (request.ObjectiveIds != null)
@@ -432,9 +487,17 @@ public class InjectsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        var dto = inject.ToDto();
+
+        // Notify via SignalR if status was reverted due to edit
+        if (statusRevertedToDraft)
+        {
+            await _hubContext.NotifyInjectStatusChanged(exerciseId, dto);
+        }
+
         _logger.LogInformation("Updated inject {InjectId}: {InjectTitle}", inject.Id, inject.Title);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
     }
 
     /// <summary>
