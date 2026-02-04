@@ -13,15 +13,15 @@ import { InjectStatus } from '../../../types'
  * Status group ordering and labels
  */
 const STATUS_GROUP_CONFIG: Record<string, { order: number; label: string }> = {
-  [InjectStatus.Pending]: { order: 0, label: 'Pending' },
-  [InjectStatus.Fired]: { order: 1, label: 'Fired' },
-  [InjectStatus.Skipped]: { order: 2, label: 'Skipped' },
+  [InjectStatus.Draft]: { order: 0, label: 'Draft' },
+  [InjectStatus.Released]: { order: 1, label: 'Released' },
+  [InjectStatus.Deferred]: { order: 2, label: 'Deferred' },
 }
 
 /**
  * Group injects by their status
  * @param injects Array of injects to group
- * @returns Array of groups ordered by status (Pending → Fired → Skipped)
+ * @returns Array of groups ordered by status (Draft → Released → Deferred)
  */
 export function groupByStatus(injects: InjectDto[]): InjectGroup[] {
   // Build groups map

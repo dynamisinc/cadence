@@ -156,11 +156,11 @@ const FeatureFlagCard: React.FC<FeatureFlagCardProps> = ({
 export const FeatureFlagsAdmin: React.FC = () => {
   const { flags, updateFlag, resetFlags } = useFeatureFlags()
 
-  // Group features by category
-  const toolsFlags = featureFlagInfo.filter(f => f.category === 'tools')
-  const experimentalFlags = featureFlagInfo.filter(
-    f => f.category === 'experimental',
-  )
+  // Group features by category (matching HSEEP workflow sections)
+  const conductFlags = featureFlagInfo.filter(f => f.category === 'conduct')
+  const analysisFlags = featureFlagInfo.filter(f => f.category === 'analysis')
+  const organizationFlags = featureFlagInfo.filter(f => f.category === 'organization')
+  const systemFlags = featureFlagInfo.filter(f => f.category === 'system')
 
   const renderFlagGroup = (
     title: string,
@@ -227,19 +227,39 @@ export const FeatureFlagsAdmin: React.FC = () => {
 
         <Divider />
 
-        {/* Tools Section */}
-        {toolsFlags.length > 0 &&
-          renderFlagGroup('Tools', toolsFlags, 'tools-flags-section')}
+        {/* Conduct Section */}
+        {conductFlags.length > 0 &&
+          renderFlagGroup('Conduct', conductFlags, 'conduct-flags-section')}
 
-        {/* Experimental Section */}
-        {experimentalFlags.length > 0 && (
+        {/* Analysis Section */}
+        {analysisFlags.length > 0 && (
           <>
             <Divider />
             {renderFlagGroup(
-              'Experimental',
-              experimentalFlags,
-              'experimental-flags-section',
+              'Analysis',
+              analysisFlags,
+              'analysis-flags-section',
             )}
+          </>
+        )}
+
+        {/* Organization Section */}
+        {organizationFlags.length > 0 && (
+          <>
+            <Divider />
+            {renderFlagGroup(
+              'Organization',
+              organizationFlags,
+              'organization-flags-section',
+            )}
+          </>
+        )}
+
+        {/* System Section */}
+        {systemFlags.length > 0 && (
+          <>
+            <Divider />
+            {renderFlagGroup('System', systemFlags, 'system-flags-section')}
           </>
         )}
       </Stack>

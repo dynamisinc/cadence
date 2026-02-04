@@ -38,7 +38,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -69,35 +69,35 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
 })
 
 describe('groupByStatus', () => {
-  it('groups injects by status in order: Pending → Fired → Skipped', () => {
+  it('groups injects by status in order: Draft → Released → Deferred', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Skipped }),
-      createInject({ id: '2', status: InjectStatus.Pending }),
-      createInject({ id: '3', status: InjectStatus.Fired }),
-      createInject({ id: '4', status: InjectStatus.Pending }),
+      createInject({ id: '1', status: InjectStatus.Deferred }),
+      createInject({ id: '2', status: InjectStatus.Draft }),
+      createInject({ id: '3', status: InjectStatus.Released }),
+      createInject({ id: '4', status: InjectStatus.Draft }),
     ]
 
     const result = groupByStatus(injects)
 
     expect(result).toHaveLength(3)
-    expect(result[0].name).toBe('Pending')
+    expect(result[0].name).toBe('Draft')
     expect(result[0].injectIds).toEqual(['2', '4'])
-    expect(result[1].name).toBe('Fired')
+    expect(result[1].name).toBe('Released')
     expect(result[1].injectIds).toEqual(['3'])
-    expect(result[2].name).toBe('Skipped')
+    expect(result[2].name).toBe('Deferred')
     expect(result[2].injectIds).toEqual(['1'])
   })
 
   it('omits empty status groups', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Pending }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Draft }),
     ]
 
     const result = groupByStatus(injects)
 
     expect(result).toHaveLength(1)
-    expect(result[0].name).toBe('Pending')
+    expect(result[0].name).toBe('Draft')
   })
 
   it('returns empty array for empty input', () => {
@@ -108,9 +108,9 @@ describe('groupByStatus', () => {
 
   it('includes correct count in each group', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Pending }),
-      createInject({ id: '3', status: InjectStatus.Fired }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Draft }),
+      createInject({ id: '3', status: InjectStatus.Released }),
     ]
 
     const result = groupByStatus(injects)
@@ -121,14 +121,14 @@ describe('groupByStatus', () => {
 
   it('assigns unique group IDs', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Fired }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Released }),
     ]
 
     const result = groupByStatus(injects)
 
-    expect(result[0].id).toBe('status-Pending')
-    expect(result[1].id).toBe('status-Fired')
+    expect(result[0].id).toBe('status-Draft')
+    expect(result[1].id).toBe('status-Released')
   })
 })
 
@@ -202,15 +202,15 @@ describe('groupInjects', () => {
 
   it('groups by status when groupBy is "status"', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Fired }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Released }),
     ]
 
     const result = groupInjects(injects, 'status', phases)
 
     expect(result).not.toBeNull()
     expect(result?.length).toBe(2)
-    expect(result?.[0].name).toBe('Pending')
+    expect(result?.[0].name).toBe('Draft')
   })
 
   it('groups by phase when groupBy is "phase"', () => {
@@ -289,9 +289,9 @@ describe('getInjectsForGroup', () => {
 
 describe('getGroupIdForInject', () => {
   it('returns status-based ID for status grouping', () => {
-    const inject = createInject({ status: InjectStatus.Pending })
+    const inject = createInject({ status: InjectStatus.Draft })
 
-    expect(getGroupIdForInject(inject, 'status')).toBe('status-Pending')
+    expect(getGroupIdForInject(inject, 'status')).toBe('status-Draft')
   })
 
   it('returns phase-based ID for phase grouping', () => {

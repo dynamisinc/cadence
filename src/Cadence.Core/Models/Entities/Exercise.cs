@@ -210,6 +210,38 @@ public class Exercise : BaseEntity, IOrganizationScoped
     public bool ConfirmClockControl { get; set; } = true;
 
     // =========================================================================
+    // Governance Properties (Inject Approval Workflow)
+    // =========================================================================
+
+    /// <summary>
+    /// Whether inject approval workflow is enabled for this exercise.
+    /// When true, injects must go through Draft → Submitted → Approved workflow.
+    /// Default value depends on organization's ApprovalPolicy setting.
+    /// </summary>
+    public bool RequireInjectApproval { get; set; } = false;
+
+    /// <summary>
+    /// If true, an Administrator has overridden the organization's "Required" policy
+    /// to disable approval for this specific exercise.
+    /// </summary>
+    public bool ApprovalPolicyOverridden { get; set; } = false;
+
+    /// <summary>
+    /// Optional reason provided when admin overrode the approval policy.
+    /// </summary>
+    public string? ApprovalOverrideReason { get; set; }
+
+    /// <summary>
+    /// User who overrode the approval policy. Null if not overridden.
+    /// </summary>
+    public string? ApprovalOverriddenById { get; set; }
+
+    /// <summary>
+    /// When the approval policy was overridden. Null if not overridden.
+    /// </summary>
+    public DateTime? ApprovalOverriddenAt { get; set; }
+
+    // =========================================================================
     // Navigation Properties
     // =========================================================================
 
@@ -278,4 +310,9 @@ public class Exercise : BaseEntity, IOrganizationScoped
     /// Core capabilities specifically targeted for evaluation in this exercise.
     /// </summary>
     public ICollection<ExerciseTargetCapability> TargetCapabilities { get; set; } = new List<ExerciseTargetCapability>();
+
+    /// <summary>
+    /// ApplicationUser who overrode the approval policy (if any).
+    /// </summary>
+    public ApplicationUser? ApprovalOverriddenByUser { get; set; }
 }

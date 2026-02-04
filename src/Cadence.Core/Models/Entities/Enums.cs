@@ -69,21 +69,68 @@ public enum InjectType
 }
 
 /// <summary>
-/// Inject delivery status during exercise conduct.
+/// HSEEP-compliant inject status values per FEMA PrepToolkit.
+/// These statuses align with standard exercise management terminology
+/// to ensure consistency with federal guidance and training materials.
 /// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
 public enum InjectStatus
 {
-    /// <summary>Inject is waiting; delivery time not yet reached.</summary>
-    Pending = 0,
+    /// <summary>
+    /// Initial status during design and development phase.
+    /// Inject is being authored and is not ready for review or use.
+    /// </summary>
+    Draft = 0,
 
-    /// <summary>Inject is ready to fire; delivery time reached (clock-driven mode).</summary>
-    Ready = 1,
+    /// <summary>
+    /// Event has been sent for review by Exercise Director.
+    /// Awaiting approval before it can be scheduled for delivery.
+    /// Only used when approval workflow is enabled.
+    /// </summary>
+    Submitted = 1,
 
-    /// <summary>Inject has been delivered to players.</summary>
-    Fired = 2,
+    /// <summary>
+    /// Event has been approved for use in the exercise.
+    /// Director has reviewed and signed off on the content.
+    /// Ready to be scheduled with a specific delivery time.
+    /// </summary>
+    Approved = 2,
 
-    /// <summary>Inject was intentionally not delivered.</summary>
-    Skipped = 3
+    /// <summary>
+    /// Approved event is ready and scheduled for a specific time.
+    /// The inject has a scheduled delivery time and will appear
+    /// in the Controller's queue when that time approaches.
+    /// </summary>
+    Synchronized = 3,
+
+    /// <summary>
+    /// Event has been delivered to players in real time.
+    /// Controller has "fired" the inject - delivered the message
+    /// via the specified delivery method (phone, email, radio, etc.).
+    /// </summary>
+    Released = 4,
+
+    /// <summary>
+    /// Event delivery confirmed, exercise has moved past this inject.
+    /// The inject has been delivered and any expected player actions
+    /// have occurred or the time window has passed.
+    /// </summary>
+    Complete = 5,
+
+    /// <summary>
+    /// A synchronized event that was cancelled before delivery.
+    /// The inject was scheduled but was skipped during conduct,
+    /// typically due to time constraints or scenario changes.
+    /// Requires a reason to be recorded for after-action review.
+    /// </summary>
+    Deferred = 6,
+
+    /// <summary>
+    /// Event should be ignored but remains in MSEL for audit trail.
+    /// Used for injects that were removed during planning but need
+    /// to be retained for historical record. Soft-delete pattern.
+    /// </summary>
+    Obsolete = 7
 }
 
 /// <summary>
@@ -321,6 +368,129 @@ public enum MembershipStatus
 
     /// <summary>Membership is inactive.</summary>
     Inactive = 2
+}
+
+/// <summary>
+/// Organization-level policy for inject approval workflow.
+/// Determines default behavior and constraints for exercises.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ApprovalPolicy
+{
+    /// <summary>
+    /// Approval workflow is not available.
+    /// All injects move directly from Draft to Approved.
+    /// Exercise-level toggle is hidden.
+    /// </summary>
+    Disabled = 0,
+
+    /// <summary>
+    /// Exercise Directors can choose to enable approval per exercise.
+    /// Approval is disabled by default for new exercises.
+    /// Recommended for most organizations.
+    /// </summary>
+    Optional = 1,
+
+    /// <summary>
+    /// All exercises require inject approval workflow.
+    /// Directors cannot disable approval.
+    /// Administrators can override for specific exercises.
+    /// </summary>
+    Required = 2
+}
+
+/// <summary>
+/// Organization policy for self-approval of injects.
+/// Controls whether users can approve injects they submitted.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum SelfApprovalPolicy
+{
+    /// <summary>
+    /// Users cannot approve injects they submitted.
+    /// Enforces separation of duties. Recommended setting.
+    /// </summary>
+    NeverAllowed = 0,
+
+    /// <summary>
+    /// Users can self-approve with confirmation dialog.
+    /// Self-approvals are flagged in audit logs.
+    /// </summary>
+    AllowedWithWarning = 1,
+
+    /// <summary>
+    /// No restrictions on self-approval.
+    /// Not recommended for compliance-sensitive exercises.
+    /// </summary>
+    AlwaysAllowed = 2
+}
+
+/// <summary>
+/// Flags enum for exercise roles authorized to approve injects.
+/// Used at organization level to configure approval permissions.
+/// Serialized as integer (not string) for frontend bitwise operations.
+/// </summary>
+[Flags]
+[System.Text.Json.Serialization.JsonConverter(typeof(ApprovalRolesJsonConverter))]
+public enum ApprovalRoles
+{
+    /// <summary>No roles can approve.</summary>
+    None = 0,
+
+    /// <summary>System administrators can approve injects.</summary>
+    Administrator = 1,
+
+    /// <summary>Exercise Directors can approve injects.</summary>
+    ExerciseDirector = 2,
+
+    /// <summary>Controllers can approve injects.</summary>
+    Controller = 4,
+
+    /// <summary>Evaluators can approve injects.</summary>
+    Evaluator = 8
+}
+
+/// <summary>
+/// Custom JSON converter for ApprovalRoles that serializes as integer instead of string.
+/// This overrides the global JsonStringEnumConverter to support frontend bitwise operations.
+/// </summary>
+public class ApprovalRolesJsonConverter : System.Text.Json.Serialization.JsonConverter<ApprovalRoles>
+{
+    public override ApprovalRoles Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+    {
+        if (reader.TokenType == System.Text.Json.JsonTokenType.Number)
+        {
+            return (ApprovalRoles)reader.GetInt32();
+        }
+        // Also support string input for backwards compatibility
+        if (reader.TokenType == System.Text.Json.JsonTokenType.String)
+        {
+            var stringValue = reader.GetString();
+            if (Enum.TryParse<ApprovalRoles>(stringValue, true, out var result))
+            {
+                return result;
+            }
+            // Handle comma-separated flags like "Administrator, ExerciseDirector"
+            if (stringValue?.Contains(',') == true)
+            {
+                var flags = ApprovalRoles.None;
+                foreach (var part in stringValue.Split(',', StringSplitOptions.TrimEntries))
+                {
+                    if (Enum.TryParse<ApprovalRoles>(part, true, out var flag))
+                    {
+                        flags |= flag;
+                    }
+                }
+                return flags;
+            }
+        }
+        return ApprovalRoles.None;
+    }
+
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, ApprovalRoles value, System.Text.Json.JsonSerializerOptions options)
+    {
+        writer.WriteNumberValue((int)value);
+    }
 }
 
 // =============================================================================

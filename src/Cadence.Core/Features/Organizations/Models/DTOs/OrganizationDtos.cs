@@ -1,3 +1,5 @@
+using Cadence.Core.Models.Entities;
+
 namespace Cadence.Core.Features.Organizations.Models.DTOs;
 
 /// <summary>
@@ -25,6 +27,7 @@ public record OrganizationDto(
     string? Description,
     string? ContactEmail,
     string Status,
+    string InjectApprovalPolicy,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -58,4 +61,12 @@ public record UpdateOrganizationRequest(
 public record SlugCheckResponse(
     bool Available,
     string? Suggestion
+);
+
+/// <summary>
+/// Request DTO for updating organization approval policy.
+/// Used by administrators to configure inject approval workflow.
+/// </summary>
+public record UpdateApprovalPolicyRequest(
+    ApprovalPolicy InjectApprovalPolicy
 );

@@ -153,7 +153,7 @@ const CompactView = ({
  * Upcoming inject row
  */
 const UpcomingInjectRow = ({ inject }: { inject: UpcomingInjectDto }) => {
-  const isReady = inject.status === InjectStatus.Ready
+  const isReady = inject.status === InjectStatus.Synchronized
 
   return (
     <Stack

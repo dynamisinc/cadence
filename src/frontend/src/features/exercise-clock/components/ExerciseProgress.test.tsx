@@ -29,7 +29,7 @@ const createMockInject = (
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: 'Standard',
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -61,58 +61,58 @@ const createMockInject = (
 
 describe('ExerciseProgress', () => {
   describe('Progress Calculation', () => {
-    it('shows 0% progress when no injects are fired or skipped', () => {
+    it('shows 0% progress when no injects are released or deferred', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Pending }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Draft }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('0 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('0 of 3 injects released')).toBeInTheDocument()
     })
 
-    it('counts fired injects toward progress', () => {
+    it('counts released injects toward progress', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Fired, firedAt: '2025-01-01T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Released, firedAt: '2025-01-01T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('2 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('2 of 3 injects released')).toBeInTheDocument()
     })
 
-    it('counts skipped injects toward progress', () => {
+    it('counts deferred injects toward progress', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-01T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-01T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('2 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('2 of 3 injects released')).toBeInTheDocument()
     })
 
-    it('shows 100% progress when all injects are fired or skipped', () => {
+    it('shows 100% progress when all injects are released or deferred', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-01T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Fired, firedAt: '2025-01-01T10:10:00Z' }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-01T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Released, firedAt: '2025-01-01T10:10:00Z' }),
       ]
 
       render(<ExerciseProgress injects={injects} />)
 
-      expect(screen.getByText('3 of 3 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('3 of 3 injects released')).toBeInTheDocument()
     })
 
     it('handles empty inject list gracefully', () => {
       render(<ExerciseProgress injects={[]} />)
 
-      expect(screen.getByText('0 of 0 injects fired')).toBeInTheDocument()
+      expect(screen.getByText('0 of 0 injects released')).toBeInTheDocument()
     })
   })
 
@@ -121,21 +121,21 @@ describe('ExerciseProgress', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:30:00Z',
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
         createMockInject({
           id: '3',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
@@ -146,18 +146,18 @@ describe('ExerciseProgress', () => {
       expect(screen.getByText('Phase: Evacuation')).toBeInTheDocument()
     })
 
-    it('shows phase name from first pending inject when no injects fired', () => {
+    it('shows phase name from first pending inject when no injects released', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           sequence: 1,
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           sequence: 2,
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
@@ -171,8 +171,8 @@ describe('ExerciseProgress', () => {
 
     it('shows "No phase assigned" when injects have no phase', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Pending, phaseId: null, phaseName: null }),
-        createMockInject({ id: '2', status: InjectStatus.Pending, phaseId: null, phaseName: null }),
+        createMockInject({ id: '1', status: InjectStatus.Draft, phaseId: null, phaseName: null }),
+        createMockInject({ id: '2', status: InjectStatus.Draft, phaseId: null, phaseName: null }),
       ]
 
       render(<ExerciseProgress injects={injects} />)
@@ -184,12 +184,12 @@ describe('ExerciseProgress', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
-        createMockInject({ id: '2', status: InjectStatus.Pending, phaseId: null, phaseName: null }),
+        createMockInject({ id: '2', status: InjectStatus.Draft, phaseId: null, phaseName: null }),
       ]
 
       render(<ExerciseProgress injects={injects} />)
@@ -202,10 +202,10 @@ describe('ExerciseProgress', () => {
   describe('Progress Bar', () => {
     it('renders progress bar with correct value', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
-        createMockInject({ id: '4', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
+        createMockInject({ id: '4', status: InjectStatus.Draft }),
       ]
 
       const { container } = render(<ExerciseProgress injects={injects} />)
@@ -218,8 +218,8 @@ describe('ExerciseProgress', () => {
 
     it('renders 0% progress bar when no injects completed', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Pending }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Draft }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
       ]
 
       const { container } = render(<ExerciseProgress injects={injects} />)
@@ -230,8 +230,8 @@ describe('ExerciseProgress', () => {
 
     it('renders 100% progress bar when all injects completed', () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-01T10:05:00Z' }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-01T10:05:00Z' }),
       ]
 
       const { container } = render(<ExerciseProgress injects={injects} />)

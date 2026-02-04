@@ -184,9 +184,9 @@ export const InjectList = ({
           </TableHead>
           <TableBody>
             {injects.map(inject => {
-              const isPending = inject.status === InjectStatus.Pending
-              const isFired = inject.status === InjectStatus.Fired
-              const isSkipped = inject.status === InjectStatus.Skipped
+              const isPending = inject.status === InjectStatus.Draft
+              const isFired = inject.status === InjectStatus.Released
+              const isSkipped = inject.status === InjectStatus.Deferred
 
               return (
                 <TableRow
@@ -262,7 +262,7 @@ export const InjectList = ({
                           </>
                         )}
                         {(isFired || isSkipped) && (
-                          <Tooltip title="Reset to pending">
+                          <Tooltip title="Reset to draft">
                             <IconButton
                               size="small"
                               onClick={() => handleResetClick(inject.id)}

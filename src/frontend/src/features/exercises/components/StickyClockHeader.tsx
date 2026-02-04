@@ -76,7 +76,7 @@ export const StickyClockHeader = ({
     if (exercise.timelineMode !== TimelineMode.StoryOnly) return null
 
     // Get most recently fired inject, or first pending inject
-    const firedInjects = injects.filter(i => i.status === InjectStatus.Fired && i.firedAt)
+    const firedInjects = injects.filter(i => i.status === InjectStatus.Released && i.firedAt)
     if (firedInjects.length > 0) {
       firedInjects.sort((a, b) => {
         const aTime = a.firedAt ? new Date(a.firedAt).getTime() : 0
@@ -87,7 +87,7 @@ export const StickyClockHeader = ({
     }
 
     // No fired injects - use first pending
-    const firstPending = injects.find(i => i.status === InjectStatus.Pending)
+    const firstPending = injects.find(i => i.status === InjectStatus.Draft)
     return firstPending ?? null
   })()
 
@@ -101,18 +101,18 @@ export const StickyClockHeader = ({
   // Calculate progress
   const total = injects.length
   const completed = injects.filter(
-    i => i.status === InjectStatus.Fired || i.status === InjectStatus.Skipped,
+    i => i.status === InjectStatus.Released || i.status === InjectStatus.Deferred,
   ).length
   const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
   // Get current phase from most recently fired inject
   const currentPhase = (() => {
     const firedInjects = injects.filter(
-      i => i.status === InjectStatus.Fired && i.firedAt && i.phaseName,
+      i => i.status === InjectStatus.Released && i.firedAt && i.phaseName,
     )
     if (firedInjects.length === 0) {
       const firstPending = injects.find(
-        i => i.status === InjectStatus.Pending && i.phaseName,
+        i => i.status === InjectStatus.Draft && i.phaseName,
       )
       return firstPending?.phaseName || null
     }

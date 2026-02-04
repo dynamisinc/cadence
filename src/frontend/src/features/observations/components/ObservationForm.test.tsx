@@ -30,7 +30,7 @@ const createMockInject = (
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -62,34 +62,34 @@ const createMockInject = (
 
 describe('ObservationForm', () => {
   describe('Inject Dropdown Sorting', () => {
-    it('sorts recently fired injects first', async () => {
+    it('sorts recently released injects first', async () => {
       const injects = [
         createMockInject({
           id: 'pending-1',
           injectNumber: 1,
-          title: 'Pending Inject',
-          status: InjectStatus.Pending,
+          title: 'Draft Inject',
+          status: InjectStatus.Draft,
           firedAt: null,
         }),
         createMockInject({
           id: 'fired-early',
           injectNumber: 2,
-          title: 'Early Fired',
-          status: InjectStatus.Fired,
+          title: 'Early Released',
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T09:00:00Z',
         }),
         createMockInject({
           id: 'fired-late',
           injectNumber: 3,
-          title: 'Recent Fired',
-          status: InjectStatus.Fired,
+          title: 'Recent Released',
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z', // Most recent
         }),
         createMockInject({
           id: 'pending-2',
           injectNumber: 4,
-          title: 'Another Pending',
-          status: InjectStatus.Pending,
+          title: 'Another Draft',
+          status: InjectStatus.Draft,
           firedAt: null,
         }),
       ]
@@ -114,10 +114,10 @@ describe('ObservationForm', () => {
       expect(options[0]).toHaveTextContent('None')
       // Most recently fired first
       expect(options[1]).toHaveTextContent('#3')
-      expect(options[1]).toHaveTextContent('(Fired)')
+      expect(options[1]).toHaveTextContent('(Released)')
       // Earlier fired second
       expect(options[2]).toHaveTextContent('#2')
-      expect(options[2]).toHaveTextContent('(Fired)')
+      expect(options[2]).toHaveTextContent('(Released)')
       // Pending injects by sequence
       expect(options[3]).toHaveTextContent('#1')
       expect(options[4]).toHaveTextContent('#4')
@@ -129,20 +129,20 @@ describe('ObservationForm', () => {
           id: 'fired-1',
           injectNumber: 1,
           title: 'Fired Inject',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
         }),
         createMockInject({
           id: 'pending-1',
           injectNumber: 2,
           title: 'Pending Inject',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
         }),
         createMockInject({
-          id: 'skipped-1',
+          id: 'deferred-1',
           injectNumber: 3,
-          title: 'Skipped Inject',
-          status: InjectStatus.Skipped,
+          title: 'Deferred Inject',
+          status: InjectStatus.Deferred,
           skippedAt: '2025-01-01T10:05:00Z',
         }),
       ]
@@ -162,8 +162,8 @@ describe('ObservationForm', () => {
       const listbox = await screen.findByRole('listbox')
 
       // Check status indicators are shown
-      expect(within(listbox).getByText(/\(Fired\)/)).toBeInTheDocument()
-      expect(within(listbox).getByText(/\(Skipped\)/)).toBeInTheDocument()
+      expect(within(listbox).getByText(/\(Released\)/)).toBeInTheDocument()
+      expect(within(listbox).getByText(/\(Deferred\)/)).toBeInTheDocument()
     })
 
     it('shows title instead of truncated description', async () => {
@@ -173,7 +173,7 @@ describe('ObservationForm', () => {
           injectNumber: 1,
           title: 'Media Inquiry',
           description: 'This is a very long description that would normally be truncated',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
         }),
       ]

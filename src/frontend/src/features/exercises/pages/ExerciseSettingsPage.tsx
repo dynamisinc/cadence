@@ -34,10 +34,12 @@ import {
   faForward,
   faStopwatch,
   faHome,
+  faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
 import CobraStyles from '@/theme/CobraStyles'
 import { useBreadcrumbs } from '@/core/contexts'
 import { useExercise } from '../hooks'
+import { ExerciseApprovalToggle } from '../components/ExerciseApprovalToggle'
 import { exerciseService } from '../services/exerciseService'
 import type { ExerciseSettingsDto, UpdateExerciseSettingsRequest } from '../types'
 import { CLOCK_MULTIPLIER_PRESETS } from '../types'
@@ -336,6 +338,17 @@ export const ExerciseSettingsPage = () => {
             </SettingsSection>
           </Paper>
         </Grid>
+
+        {/* Inject Approval — full width */}
+        {exerciseId && (
+          <Grid size={12}>
+            <Paper sx={{ p: 3 }}>
+              <SettingsSection title="Inject Approval" icon={faShieldHalved}>
+                <ExerciseApprovalToggle exerciseId={exerciseId} />
+              </SettingsSection>
+            </Paper>
+          </Grid>
+        )}
 
         {/* Confirmation Dialogs — full width on all screen sizes */}
         <Grid size={12}>

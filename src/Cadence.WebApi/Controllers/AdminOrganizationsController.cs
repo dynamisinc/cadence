@@ -1,4 +1,6 @@
 using System.Security.Claims;
+using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Organizations.Models.DTOs;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Models.Entities;
@@ -18,15 +20,18 @@ public class AdminOrganizationsController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
     private readonly IMembershipService _membershipService;
+    private readonly IApprovalPermissionService _approvalPermissionService;
     private readonly ILogger<AdminOrganizationsController> _logger;
 
     public AdminOrganizationsController(
         IOrganizationService organizationService,
         IMembershipService membershipService,
+        IApprovalPermissionService approvalPermissionService,
         ILogger<AdminOrganizationsController> logger)
     {
         _organizationService = organizationService;
         _membershipService = membershipService;
+        _approvalPermissionService = approvalPermissionService;
         _logger = logger;
     }
 
@@ -350,6 +355,102 @@ public class AdminOrganizationsController : ControllerBase
         catch (Core.Exceptions.BusinessRuleException ex)
         {
             return BadRequest(new { error = "business_rule_violation", message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Update organization approval policy.
+    /// Only administrators can configure the inject approval workflow policy.
+    /// </summary>
+    /// <param name="id">Organization ID</param>
+    /// <param name="request">Approval policy update request</param>
+    [HttpPut("{id:guid}/settings/approval-policy")]
+    [ProducesResponseType(typeof(OrganizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateApprovalPolicy(
+        Guid id,
+        [FromBody] UpdateApprovalPolicyRequest request)
+    {
+        try
+        {
+            var organization = await _organizationService.UpdateApprovalPolicyAsync(
+                id,
+                request.InjectApprovalPolicy);
+
+            if (organization == null)
+            {
+                return NotFound(new { message = $"Organization {id} not found" });
+            }
+
+            _logger.LogInformation(
+                "SysAdmin {AdminId} updated organization {OrgId} approval policy to {Policy}",
+                GetCurrentUserId(), id, request.InjectApprovalPolicy);
+
+            return Ok(organization);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = "validation_error", message = ex.Message });
+        }
+    }
+
+    // =========================================================================
+    // Approval Permission Settings (S11)
+    // =========================================================================
+
+    /// <summary>
+    /// Get organization approval permission settings.
+    /// Includes which roles can approve and self-approval policy.
+    /// </summary>
+    /// <param name="id">Organization ID</param>
+    [HttpGet("{id:guid}/settings/approval-permissions")]
+    [ProducesResponseType(typeof(ApprovalPermissionsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetApprovalPermissions(Guid id)
+    {
+        try
+        {
+            var permissions = await _approvalPermissionService.GetApprovalPermissionsAsync(id);
+            return Ok(permissions);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = $"Organization {id} not found" });
+        }
+    }
+
+    /// <summary>
+    /// Update organization approval permission settings.
+    /// Configures which exercise roles can approve injects and self-approval policy.
+    /// </summary>
+    /// <param name="id">Organization ID</param>
+    /// <param name="request">Approval permissions update request</param>
+    [HttpPut("{id:guid}/settings/approval-permissions")]
+    [ProducesResponseType(typeof(ApprovalPermissionsDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateApprovalPermissions(
+        Guid id,
+        [FromBody] UpdateApprovalPermissionsRequest request)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var permissions = await _approvalPermissionService.UpdateApprovalPermissionsAsync(
+                id,
+                request,
+                currentUserId);
+
+            _logger.LogInformation(
+                "SysAdmin {AdminId} updated organization {OrgId} approval permissions: Roles={Roles}, SelfApproval={SelfApproval}",
+                currentUserId, id, request.AuthorizedRoles, request.SelfApprovalPolicy);
+
+            return Ok(permissions);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = $"Organization {id} not found" });
         }
     }
 

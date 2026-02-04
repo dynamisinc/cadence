@@ -19,13 +19,13 @@ export const UPCOMING_WINDOW_MS = 30 * 60 * 1000
  * Grouped injects for clock-driven conduct view
  */
 export interface GroupedInjects {
-  /** Injects with status = Ready */
+  /** Injects with status = Synchronized */
   ready: InjectDto[]
-  /** Pending injects with DeliveryTime within next 30 minutes */
+  /** Draft injects with DeliveryTime within next 30 minutes */
   upcoming: InjectDto[]
-  /** Pending injects outside the 30-minute window or without DeliveryTime */
+  /** Draft injects outside the 30-minute window or without DeliveryTime */
   later: InjectDto[]
-  /** Fired and Skipped injects */
+  /** Released and Deferred injects */
   completed: InjectDto[]
 }
 
@@ -33,10 +33,10 @@ export interface GroupedInjects {
  * Group injects for clock-driven delivery mode
  *
  * Groups injects into four sections based on their status and delivery time:
- * - Ready: status === Ready (delivery time reached, awaiting fire)
- * - Upcoming: status === Pending AND deliveryTime within next 30 minutes
- * - Later: status === Pending AND (deliveryTime > 30 min away OR no deliveryTime)
- * - Completed: status === Fired OR status === Skipped
+ * - Ready: status === Synchronized (delivery time reached, awaiting fire)
+ * - Upcoming: status === Draft AND deliveryTime within next 30 minutes
+ * - Later: status === Draft AND (deliveryTime > 30 min away OR no deliveryTime)
+ * - Completed: status === Released OR status === Deferred
  *
  * @param injects Array of injects to group
  * @param elapsedTimeMs Current elapsed time in milliseconds
@@ -54,20 +54,20 @@ export const groupInjectsForClockDriven = (
   const upcomingWindowEndMs = elapsedTimeMs + UPCOMING_WINDOW_MS
 
   for (const inject of injects) {
-    // Completed section - Fired or Skipped
-    if (inject.status === InjectStatus.Fired || inject.status === InjectStatus.Skipped) {
+    // Completed section - Released or Deferred
+    if (inject.status === InjectStatus.Released || inject.status === InjectStatus.Deferred) {
       completed.push(inject)
       continue
     }
 
-    // Ready section - Ready status
-    if (inject.status === InjectStatus.Ready) {
+    // Ready section - Synchronized status
+    if (inject.status === InjectStatus.Synchronized) {
       ready.push(inject)
       continue
     }
 
-    // Pending injects - sort into Upcoming or Later
-    if (inject.status === InjectStatus.Pending) {
+    // Draft injects - sort into Upcoming or Later
+    if (inject.status === InjectStatus.Draft) {
       const deliveryTimeMs = parseDeliveryTime(inject.deliveryTime)
 
       if (deliveryTimeMs !== null) {
@@ -77,7 +77,7 @@ export const groupInjectsForClockDriven = (
         if (timeUntilDelivery > 0 && deliveryTimeMs <= upcomingWindowEndMs) {
           upcoming.push(inject)
         } else {
-          // Later: delivery time is past (should transition to Ready) or > 30 min away
+          // Later: delivery time is past (should transition to Synchronized) or > 30 min away
           later.push(inject)
         }
       } else {

@@ -42,9 +42,9 @@ public class InjectMetricsService : IInjectMetricsService
 
         // Basic counts
         var totalCount = injects.Count;
-        var firedCount = injects.Count(i => i.Status == InjectStatus.Fired);
-        var skippedCount = injects.Count(i => i.Status == InjectStatus.Skipped);
-        var notExecutedCount = injects.Count(i => i.Status == InjectStatus.Pending || i.Status == InjectStatus.Ready);
+        var firedCount = injects.Count(i => i.Status == InjectStatus.Released);
+        var skippedCount = injects.Count(i => i.Status == InjectStatus.Deferred);
+        var notExecutedCount = injects.Count(i => i.Status == InjectStatus.Draft || i.Status == InjectStatus.Synchronized);
 
         // Calculate percentages
         var firedPercentage = totalCount > 0 ? Math.Round((decimal)firedCount / totalCount * 100, 1) : 0;
@@ -52,7 +52,7 @@ public class InjectMetricsService : IInjectMetricsService
         var notExecutedPercentage = totalCount > 0 ? Math.Round((decimal)notExecutedCount / totalCount * 100, 1) : 0;
 
         // Calculate timing metrics for fired injects
-        var firedInjects = injects.Where(i => i.Status == InjectStatus.Fired && i.FiredAt.HasValue).ToList();
+        var firedInjects = injects.Where(i => i.Status == InjectStatus.Released && i.FiredAt.HasValue).ToList();
         var timingMetrics = CalculateTimingMetrics(firedInjects, exercise.ActivatedAt, onTimeToleranceMinutes);
 
         // Group by phase
@@ -62,16 +62,16 @@ public class InjectMetricsService : IInjectMetricsService
             .Select(g =>
             {
                 var phaseInjects = g.ToList();
-                var phaseFired = phaseInjects.Where(i => i.Status == InjectStatus.Fired && i.FiredAt.HasValue).ToList();
+                var phaseFired = phaseInjects.Where(i => i.Status == InjectStatus.Released && i.FiredAt.HasValue).ToList();
                 return new PhaseInjectSummaryDto
                 {
                     PhaseId = g.Key.PhaseId,
                     PhaseName = g.Key.PhaseName,
                     Sequence = g.Key.Sequence,
                     TotalCount = phaseInjects.Count,
-                    FiredCount = phaseInjects.Count(i => i.Status == InjectStatus.Fired),
-                    SkippedCount = phaseInjects.Count(i => i.Status == InjectStatus.Skipped),
-                    NotExecutedCount = phaseInjects.Count(i => i.Status == InjectStatus.Pending || i.Status == InjectStatus.Ready),
+                    FiredCount = phaseInjects.Count(i => i.Status == InjectStatus.Released),
+                    SkippedCount = phaseInjects.Count(i => i.Status == InjectStatus.Deferred),
+                    NotExecutedCount = phaseInjects.Count(i => i.Status == InjectStatus.Draft || i.Status == InjectStatus.Synchronized),
                     OnTimeRate = CalculateOnTimeRate(phaseFired, exercise.ActivatedAt, onTimeToleranceMinutes)
                 };
             })
@@ -99,7 +99,7 @@ public class InjectMetricsService : IInjectMetricsService
 
         // Skipped injects with reasons
         var skippedInjects = injects
-            .Where(i => i.Status == InjectStatus.Skipped)
+            .Where(i => i.Status == InjectStatus.Deferred)
             .OrderBy(i => i.Sequence)
             .Select(i => new SkippedInjectDto
             {
@@ -156,8 +156,8 @@ public class InjectMetricsService : IInjectMetricsService
 
         var injects = msel?.Injects.ToList() ?? new List<Inject>();
 
-        var firedInjects = injects.Where(i => i.Status == InjectStatus.Fired).ToList();
-        var skippedInjects = injects.Where(i => i.Status == InjectStatus.Skipped).ToList();
+        var firedInjects = injects.Where(i => i.Status == InjectStatus.Released).ToList();
+        var skippedInjects = injects.Where(i => i.Status == InjectStatus.Deferred).ToList();
 
         var totalFired = firedInjects.Count;
         var totalSkipped = skippedInjects.Count;
@@ -254,8 +254,8 @@ public class InjectMetricsService : IInjectMetricsService
                         PhaseId = g.Key.PhaseId,
                         PhaseName = g.Key.PhaseName,
                         Sequence = g.Key.Sequence,
-                        InjectsFired = g.Count(i => i.Status == InjectStatus.Fired),
-                        InjectsSkipped = g.Count(i => i.Status == InjectStatus.Skipped)
+                        InjectsFired = g.Count(i => i.Status == InjectStatus.Released),
+                        InjectsSkipped = g.Count(i => i.Status == InjectStatus.Deferred)
                     })
                     .ToList();
 

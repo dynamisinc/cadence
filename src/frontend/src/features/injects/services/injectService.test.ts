@@ -30,7 +30,7 @@ const mockInject: InjectDto = {
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -105,17 +105,17 @@ describe('injectService', () => {
 
   describe('fireInject', () => {
     it('fires an inject', async () => {
-      const firedInject = { ...mockInject, status: InjectStatus.Fired }
+      const firedInject = { ...mockInject, status: InjectStatus.Released }
       vi.mocked(apiClient.post).mockResolvedValue({ data: firedInject })
 
       const result = await injectService.fireInject('exercise-1', '123')
 
       expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/injects/123/fire', {})
-      expect(result.status).toBe(InjectStatus.Fired)
+      expect(result.status).toBe(InjectStatus.Released)
     })
 
     it('fires an inject with notes', async () => {
-      const firedInject = { ...mockInject, status: InjectStatus.Fired }
+      const firedInject = { ...mockInject, status: InjectStatus.Released }
       vi.mocked(apiClient.post).mockResolvedValue({ data: firedInject })
 
       await injectService.fireInject('exercise-1', '123', { notes: 'Early delivery' })
@@ -129,14 +129,14 @@ describe('injectService', () => {
 
   describe('skipInject', () => {
     it('skips an inject with reason', async () => {
-      const skippedInject = { ...mockInject, status: InjectStatus.Skipped, skipReason: 'Time constraints' }
+      const skippedInject = { ...mockInject, status: InjectStatus.Deferred, skipReason: 'Time constraints' }
       vi.mocked(apiClient.post).mockResolvedValue({ data: skippedInject })
 
       const request: SkipInjectRequest = { reason: 'Time constraints' }
       const result = await injectService.skipInject('exercise-1', '123', request)
 
       expect(apiClient.post).toHaveBeenCalledWith('/exercises/exercise-1/injects/123/skip', request)
-      expect(result.status).toBe(InjectStatus.Skipped)
+      expect(result.status).toBe(InjectStatus.Deferred)
       expect(result.skipReason).toBe('Time constraints')
     })
   })

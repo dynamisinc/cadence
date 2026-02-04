@@ -33,7 +33,7 @@ const createMockInject = (
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: 'Standard',
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: injectNumber,
   parentInjectId: null,
   triggerCondition: null,

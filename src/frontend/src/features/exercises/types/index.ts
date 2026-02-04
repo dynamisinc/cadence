@@ -129,9 +129,9 @@ export interface MselSummaryDto {
   exerciseId: string
   // Inject counts
   totalInjects: number
-  pendingCount: number
-  firedCount: number
-  skippedCount: number
+  draftCount: number
+  releasedCount: number
+  deferredCount: number
   completionPercentage: number
   // Related counts
   phaseCount: number
@@ -305,6 +305,58 @@ export interface ExerciseCapabilitySummaryDto {
   targetCount: number
   evaluatedCount: number
   coveragePercentage: number | null
+}
+
+// =========================================================================
+// Approval Settings Types (S00-S09)
+// =========================================================================
+
+import { ApprovalPolicy, SelfApprovalPolicy } from '../../../types'
+
+/**
+ * Approval settings DTO - Returns exercise approval configuration
+ */
+export interface ApprovalSettingsDto {
+  requireInjectApproval: boolean
+  approvalPolicyOverridden: boolean
+  approvalOverrideReason: string | null
+  approvalOverriddenById: string | null
+  approvalOverriddenAt: string | null
+  organizationPolicy: ApprovalPolicy
+  selfApprovalPolicy: SelfApprovalPolicy
+}
+
+/**
+ * Request to update exercise approval settings
+ */
+export interface UpdateApprovalSettingsRequest {
+  requireInjectApproval: boolean
+  isOverride?: boolean
+  overrideReason?: string | null
+}
+
+/**
+ * Approval queue status summary (S06: Approval Queue View)
+ */
+export interface ApprovalStatusDto {
+  totalInjects: number
+  approvedCount: number
+  pendingApprovalCount: number
+  draftCount: number
+  approvalPercentage: number
+  allApproved: boolean
+}
+
+/**
+ * Validation result for publishing an exercise (S07: Go-Live Gate)
+ */
+export interface PublishValidationResult {
+  canPublish: boolean
+  draftCount: number
+  submittedCount: number
+  totalUnapprovedCount: number
+  warnings: string[]
+  errors: string[]
 }
 
 // Re-export validation types

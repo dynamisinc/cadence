@@ -6,6 +6,7 @@ module.exports = {
       'always',
       [
         // Core areas
+        'core',
         'api',
         'ui',
         'offline',
@@ -31,7 +32,11 @@ module.exports = {
         'reports',
         'version',
         'capabilities',
+        'approval',
+        'inject-approval',
+        'feature-flags',
         // Infrastructure
+        'migrations',
         'db',
         'signalr',
         'pwa',

@@ -53,7 +53,7 @@ interface FacilitatorPacedConductViewProps {
   onFire: (injectId: string) => Promise<void> | void
   /** Called when Controller skips an inject */
   onSkip: (injectId: string, request: SkipInjectRequest) => Promise<void> | void
-  /** Called when Controller resets an inject to pending */
+  /** Called when Controller resets an inject to draft */
   onReset?: (injectId: string) => Promise<void> | void
   /** Called when Controller jumps to a later inject */
   onJumpTo: (targetInjectId: string, skipInjectIds: string[]) => Promise<void> | void
@@ -92,21 +92,21 @@ export const FacilitatorPacedConductView = ({
   // Get current and upcoming injects
   const currentInject = useMemo(() => getCurrentInject(injects), [injects])
 
-  // Get all remaining pending injects (excluding current)
+  // Get all remaining draft injects (excluding current)
   const upNextInjects = useMemo(
     () =>
       injects
-        .filter(i => i.status === InjectStatus.Pending)
+        .filter(i => i.status === InjectStatus.Draft)
         .filter(i => i.sequence > (currentInject?.sequence || 0))
         .sort((a, b) => a.sequence - b.sequence),
     [injects, currentInject],
   )
 
-  // Get completed injects (fired or skipped)
+  // Get completed injects (released or deferred)
   const completedInjects = useMemo(
     () =>
       injects.filter(
-        i => i.status === InjectStatus.Fired || i.status === InjectStatus.Skipped,
+        i => i.status === InjectStatus.Released || i.status === InjectStatus.Deferred,
       ),
     [injects],
   )

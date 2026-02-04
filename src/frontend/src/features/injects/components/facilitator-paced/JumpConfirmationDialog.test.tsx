@@ -30,7 +30,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: overrides.sequence || 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -132,7 +132,7 @@ describe('JumpConfirmationDialog', () => {
       />,
     )
 
-    expect(screen.getByText(/marked as "skipped"/i)).toBeInTheDocument()
+    expect(screen.getByText(/marked as "Deferred"/i)).toBeInTheDocument()
   })
 
   it('calls onCancel when cancel button clicked', () => {

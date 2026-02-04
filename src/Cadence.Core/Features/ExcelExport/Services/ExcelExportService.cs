@@ -381,9 +381,9 @@ public class ExcelExportService : IExcelExportService
                     EndTime = exercise.EndTime?.ToString("HH:mm"),
                     Status = exercise.Status.ToString(),
                     InjectCount = injects.Count,
-                    InjectsFired = injects.Count(i => i.Status == InjectStatus.Fired),
-                    InjectsSkipped = injects.Count(i => i.Status == InjectStatus.Skipped),
-                    InjectsPending = injects.Count(i => i.Status == InjectStatus.Pending),
+                    InjectsFired = injects.Count(i => i.Status == InjectStatus.Released),
+                    InjectsSkipped = injects.Count(i => i.Status == InjectStatus.Deferred),
+                    InjectsPending = injects.Count(i => i.Status == InjectStatus.Draft),
                     ObservationCount = observations.Count,
                     PhaseCount = phases.Count,
                     ObjectiveCount = objectives.Count,
@@ -857,7 +857,7 @@ public class ExcelExportService : IExcelExportService
         }
 
         // Inject Statuses (for reference, used in conduct exports)
-        var injectStatuses = new[] { "Pending", "Fired", "Skipped" };
+        var injectStatuses = new[] { "Draft", "Synchronized", "Released", "Deferred" };
         ws.Cell(1, 4).Value = "Inject Status";
         if (includeFormatting)
         {

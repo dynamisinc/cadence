@@ -13,14 +13,14 @@ const renderWithTheme = (ui: React.ReactElement) => {
 describe('FilterChip', () => {
   const defaultProps = {
     label: 'Status',
-    value: 'Pending',
+    value: 'Draft',
     onRemove: vi.fn(),
   }
 
   it('renders label and value', () => {
     renderWithTheme(<FilterChip {...defaultProps} />)
     expect(screen.getByText('Status:')).toBeInTheDocument()
-    expect(screen.getByText('Pending')).toBeInTheDocument()
+    expect(screen.getByText('Draft')).toBeInTheDocument()
   })
 
   it('renders delete icon', () => {
@@ -51,7 +51,7 @@ describe('FilterChip', () => {
     const { rerender } = renderWithTheme(<FilterChip {...defaultProps} />)
 
     expect(screen.getByText('Status:')).toBeInTheDocument()
-    expect(screen.getByText('Pending')).toBeInTheDocument()
+    expect(screen.getByText('Draft')).toBeInTheDocument()
 
     rerender(
       <ThemeProvider theme={cobraTheme}>

@@ -85,6 +85,14 @@ public interface IExerciseStatusService
     /// <param name="currentStatus">Current status</param>
     /// <returns>List of available target statuses</returns>
     IReadOnlyList<ExerciseStatus> GetAvailableTransitions(ExerciseStatus currentStatus);
+
+    /// <summary>
+    /// Validates whether an exercise can be published.
+    /// When approval is enabled, checks for unapproved injects (Draft or Submitted).
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <returns>Validation result with counts and error/warning messages</returns>
+    Task<PublishValidationResult> ValidatePublishAsync(Guid exerciseId);
 }
 
 /// <summary>

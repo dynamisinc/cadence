@@ -24,9 +24,13 @@ import {
   faShieldHalved,
   faDesktop,
   faBuilding,
+  faUserShield,
+  faPuzzlePiece,
+  faBoxArchive,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
+import type { OrgRole } from '../../../features/organizations/types'
 
 /**
  * All roles - used for items visible to everyone
@@ -73,6 +77,11 @@ const ADMIN_ROLES: HseepRole[] = [
 ]
 
 /**
+ * Organization admin roles - for org management features
+ */
+const ORG_ADMIN_ROLES: OrgRole[] = ['OrgAdmin']
+
+/**
  * Complete menu configuration
  *
  * 10 menu items across 3 sections:
@@ -108,7 +117,8 @@ export const MENU_ITEMS: MenuItem[] = [
     section: 'conduct',
     allowedRoles: CONTROL_ROLES,
     requiresExerciseContext: true,
-    disabledTooltip: 'Coming in a future release',
+    disabledTooltip: 'Enter an exercise first',
+    featureFlag: 'controlRoom',
   },
   {
     id: 'inject-queue',
@@ -119,6 +129,7 @@ export const MENU_ITEMS: MenuItem[] = [
     allowedRoles: CONTROL_ROLES,
     requiresExerciseContext: true,
     disabledTooltip: 'Enter an exercise first',
+    featureFlag: 'injectQueue',
   },
 
   // ============================================================================
@@ -141,6 +152,66 @@ export const MENU_ITEMS: MenuItem[] = [
     path: '/reports',
     section: 'analysis',
     allowedRoles: REPORTING_ROLES,
+    featureFlag: 'reports',
+  },
+
+  // ============================================================================
+  // ORGANIZATION Section - Current organization management (OrgAdmin only)
+  // ============================================================================
+  {
+    id: 'org-details',
+    label: 'Details',
+    icon: faBuilding,
+    path: '/organization/details',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-members',
+    label: 'Members',
+    icon: faUsers,
+    path: '/organization/members',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-approval',
+    label: 'Inject Approval',
+    icon: faUserShield,
+    path: '/organization/approval',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-capabilities',
+    label: 'Capability Library',
+    icon: faPuzzlePiece,
+    path: '/organization/capabilities',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-archived',
+    label: 'Archived Exercises',
+    icon: faBoxArchive,
+    path: '/organization/archived',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-settings',
+    label: 'Settings',
+    icon: faCog,
+    path: '/organization/settings',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+    featureFlag: 'orgSettings',
   },
 
   // ============================================================================
@@ -163,6 +234,7 @@ export const MENU_ITEMS: MenuItem[] = [
     section: 'system',
     allowedRoles: ADMIN_ROLES,
     allowedSystemRoles: [SystemRole.Admin],
+    featureFlag: 'templates',
   },
   {
     id: 'users',

@@ -10,6 +10,13 @@ export { ReadyNotification } from './ReadyNotification'
 export { InjectDetailDrawer } from './InjectDetailDrawer'
 export { FireConfirmationDialog } from './FireConfirmationDialog'
 export { SkipConfirmationDialog } from './SkipConfirmationDialog'
+export { ApproveDialog } from './ApproveDialog'
+export { RejectDialog } from './RejectDialog'
+export { SelfApprovalConfirmDialog } from './SelfApprovalConfirmDialog'
+export { SubmitForApprovalButton } from './SubmitForApprovalButton'
+export { ApprovalActionsButtons } from './ApprovalActionsButtons'
+export { BatchApprovalToolbar } from './BatchApprovalToolbar'
+export { RevertApprovalAction } from './RevertApprovalAction'
 
 // Organization components
 export { SortableTableHeader } from './SortableTableHeader'

@@ -28,7 +28,7 @@ export const createMockInject = (overrides?: Partial<InjectDto>): InjectDto => {
     deliveryMethodName: null,
     deliveryMethodOther: null,
     injectType: InjectType.Standard,
-    status: InjectStatus.Pending,
+    status: InjectStatus.Draft,
     sequence: 1,
     parentInjectId: null,
     triggerCondition: null,

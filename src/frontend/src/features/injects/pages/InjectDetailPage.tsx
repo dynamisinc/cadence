@@ -40,7 +40,7 @@ import { useInjects } from '../hooks/useInjects'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { useObjectiveSummaries } from '../../objectives/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
-import { InjectStatusChip, InjectTypeChip } from '../components'
+import { InjectStatusChip, InjectTypeChip, SubmitForApprovalButton, ApprovalActionsButtons } from '../components'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -49,6 +49,8 @@ import {
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
+import { useApprovalSettings } from '../../exercises/hooks/useApprovalSettings'
+import { useAuth } from '../../../contexts'
 import { InjectStatus, DeliveryMethod } from '../../../types'
 import {
   formatScenarioTime,
@@ -80,6 +82,12 @@ export const InjectDetailPage = () => {
   const { can } = useExerciseRole(exerciseId || null)
   const canFireInjects = can('fire_inject')
   const canDelete = can('edit_inject')
+  const canApprove = can('approve_inject') // Exercise Directors and above
+
+  // Approval settings and current user
+  const { settings: approvalSettings } = useApprovalSettings(exerciseId || '')
+  const { user } = useAuth()
+  const approvalEnabled = approvalSettings?.requireInjectApproval ?? false
 
   // Set custom breadcrumbs with exercise name, MSEL, and inject number
   useBreadcrumbs(
@@ -236,9 +244,9 @@ export const InjectDetailPage = () => {
     )
   }
 
-  const isPending = inject.status === InjectStatus.Pending
-  const isFired = inject.status === InjectStatus.Fired
-  const isSkipped = inject.status === InjectStatus.Skipped
+  const isPending = inject.status === InjectStatus.Draft
+  const isFired = inject.status === InjectStatus.Released
+  const isSkipped = inject.status === InjectStatus.Deferred
   const scenarioTimeDisplay = formatScenarioTime(
     inject.scenarioDay,
     inject.scenarioTime,
@@ -271,6 +279,30 @@ export const InjectDetailPage = () => {
         <Stack direction="row" spacing={1} alignItems="center">
           <InjectStatusChip status={inject.status} />
           <InjectTypeChip type={inject.injectType} />
+
+          {/* Approval Workflow Buttons (S03-S04) */}
+          {approvalEnabled && (
+            <>
+              {/* Submit for approval button - shown for Draft injects */}
+              <SubmitForApprovalButton
+                inject={inject}
+                exerciseId={exerciseId || ''}
+                approvalEnabled={approvalEnabled}
+                canSubmit={canFireInjects}
+                size="medium"
+                onSubmitted={() => navigate(`/exercises/${exerciseId}/msel`)}
+              />
+
+              {/* Approve/Reject buttons - shown for Submitted injects */}
+              <ApprovalActionsButtons
+                inject={inject}
+                exerciseId={exerciseId || ''}
+                currentUserId={user?.id || ''}
+                canApprove={canApprove}
+                size="medium"
+              />
+            </>
+          )}
 
           {/* Action buttons */}
           {isPending && canFireInjects && (

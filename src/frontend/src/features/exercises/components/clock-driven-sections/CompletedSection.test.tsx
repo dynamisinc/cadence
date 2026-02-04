@@ -1,7 +1,7 @@
 /**
  * Tests for CompletedSection component
  *
- * Tests the completed injects section (fired and skipped)
+ * Tests the completed injects section (released and deferred)
  * @see exercise-config/S06-clock-driven-conduct-view
  */
 
@@ -41,13 +41,13 @@ const createMockInject = (
   expectedAction: null,
   controllerNotes: null,
   readyAt: null,
-  firedAt: status === InjectStatus.Fired ? '2025-01-20T10:30:00Z' : null,
-  firedBy: status === InjectStatus.Fired ? 'user-1' : null,
-  firedByName: status === InjectStatus.Fired ? 'John Controller' : null,
-  skippedAt: status === InjectStatus.Skipped ? '2025-01-20T10:30:00Z' : null,
-  skippedBy: status === InjectStatus.Skipped ? 'user-1' : null,
-  skippedByName: status === InjectStatus.Skipped ? 'Jane Controller' : null,
-  skipReason: status === InjectStatus.Skipped ? 'Time constraints' : null,
+  firedAt: status === InjectStatus.Released ? '2025-01-20T10:30:00Z' : null,
+  firedBy: status === InjectStatus.Released ? 'user-1' : null,
+  firedByName: status === InjectStatus.Released ? 'John Controller' : null,
+  skippedAt: status === InjectStatus.Deferred ? '2025-01-20T10:30:00Z' : null,
+  skippedBy: status === InjectStatus.Deferred ? 'user-1' : null,
+  skippedByName: status === InjectStatus.Deferred ? 'Jane Controller' : null,
+  skipReason: status === InjectStatus.Deferred ? 'Time constraints' : null,
   mselId: 'msel-1',
   phaseId: null,
   phaseName: null,
@@ -79,9 +79,9 @@ describe('CompletedSection', () => {
 
   it('renders section header with completed count', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1),
-      createMockInject('2', InjectStatus.Fired, 2),
-      createMockInject('3', InjectStatus.Skipped, 3),
+      createMockInject('1', InjectStatus.Released, 1),
+      createMockInject('2', InjectStatus.Released, 2),
+      createMockInject('3', InjectStatus.Deferred, 3),
     ]
 
     render(
@@ -93,14 +93,14 @@ describe('CompletedSection', () => {
     )
 
     expect(screen.getByText('COMPLETED')).toBeInTheDocument()
-    expect(screen.getByText('2 fired')).toBeInTheDocument()
-    expect(screen.getByText('1 skipped')).toBeInTheDocument()
+    expect(screen.getByText('2 released')).toBeInTheDocument()
+    expect(screen.getByText('1 deferred')).toBeInTheDocument()
   })
 
-  it('shows only fired count when no skipped injects', () => {
+  it('shows only released count when no deferred injects', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1),
-      createMockInject('2', InjectStatus.Fired, 2),
+      createMockInject('1', InjectStatus.Released, 1),
+      createMockInject('2', InjectStatus.Released, 2),
     ]
 
     render(
@@ -111,14 +111,14 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('2 fired')).toBeInTheDocument()
-    expect(screen.queryByText(/skipped/i)).not.toBeInTheDocument()
+    expect(screen.getByText('2 released')).toBeInTheDocument()
+    expect(screen.queryByText(/deferred/i)).not.toBeInTheDocument()
   })
 
-  it('shows only skipped count when no fired injects', () => {
+  it('shows only deferred count when no released injects', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Skipped, 1),
-      createMockInject('2', InjectStatus.Skipped, 2),
+      createMockInject('1', InjectStatus.Deferred, 1),
+      createMockInject('2', InjectStatus.Deferred, 2),
     ]
 
     render(
@@ -129,14 +129,14 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('2 skipped')).toBeInTheDocument()
-    expect(screen.queryByText(/fired/i)).not.toBeInTheDocument()
+    expect(screen.getByText('2 deferred')).toBeInTheDocument()
+    expect(screen.queryByText(/released/i)).not.toBeInTheDocument()
   })
 
   it('calls onToggle when header is clicked', async () => {
     const user = userEvent.setup()
     const onToggle = vi.fn()
-    const injects = [createMockInject('1', InjectStatus.Fired, 1)]
+    const injects = [createMockInject('1', InjectStatus.Released, 1)]
 
     render(
       <CompletedSection
@@ -155,7 +155,7 @@ describe('CompletedSection', () => {
   })
 
   it('shows chevron down icon when collapsed', () => {
-    const injects = [createMockInject('1', InjectStatus.Fired, 1)]
+    const injects = [createMockInject('1', InjectStatus.Released, 1)]
 
     render(
       <CompletedSection
@@ -171,7 +171,7 @@ describe('CompletedSection', () => {
   })
 
   it('shows chevron up icon when expanded', () => {
-    const injects = [createMockInject('1', InjectStatus.Fired, 1)]
+    const injects = [createMockInject('1', InjectStatus.Released, 1)]
 
     render(
       <CompletedSection
@@ -187,7 +187,7 @@ describe('CompletedSection', () => {
 
   it('displays inject details when expanded', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1, {
+      createMockInject('1', InjectStatus.Released, 1, {
         title: 'Critical Notification',
         target: 'Emergency Operations Center',
       }),
@@ -206,9 +206,9 @@ describe('CompletedSection', () => {
     expect(screen.getByText('#1')).toBeInTheDocument()
   })
 
-  it('displays fired inject with fire timestamp and user', () => {
+  it('displays released inject with fire timestamp and user', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1, {
+      createMockInject('1', InjectStatus.Released, 1, {
         firedAt: '2025-01-20T14:30:00Z',
         firedByName: 'John Controller',
       }),
@@ -222,13 +222,13 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('Fired')).toBeInTheDocument()
+    expect(screen.getByText('Released')).toBeInTheDocument()
     expect(screen.getByText('by John Controller')).toBeInTheDocument()
   })
 
-  it('displays skipped inject with skip reason', () => {
+  it('displays deferred inject with skip reason', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Skipped, 1, {
+      createMockInject('1', InjectStatus.Deferred, 1, {
         skipReason: 'Players ahead of schedule',
         skippedByName: 'Jane Controller',
       }),
@@ -242,7 +242,7 @@ describe('CompletedSection', () => {
       />,
     )
 
-    expect(screen.getByText('Skipped')).toBeInTheDocument()
+    expect(screen.getByText('Deferred')).toBeInTheDocument()
     expect(screen.getByText('by Jane Controller')).toBeInTheDocument()
     expect(screen.getByText('"Players ahead of schedule"')).toBeInTheDocument()
   })
@@ -250,7 +250,7 @@ describe('CompletedSection', () => {
   it('calls onInjectClick when inject row is clicked', async () => {
     const user = userEvent.setup()
     const onInjectClick = vi.fn()
-    const injects = [createMockInject('1', InjectStatus.Fired, 1)]
+    const injects = [createMockInject('1', InjectStatus.Released, 1)]
 
     render(
       <CompletedSection
@@ -271,7 +271,7 @@ describe('CompletedSection', () => {
 
   it('does not call onInjectClick when prop is not provided', async () => {
     const user = userEvent.setup()
-    const injects = [createMockInject('1', InjectStatus.Fired, 1)]
+    const injects = [createMockInject('1', InjectStatus.Released, 1)]
 
     render(
       <CompletedSection
@@ -293,7 +293,7 @@ describe('CompletedSection', () => {
 
   it('displays delivery time when available', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1, {
+      createMockInject('1', InjectStatus.Released, 1, {
         deliveryTime: '00:45:00', // 45 minutes
       }),
     ]
@@ -311,7 +311,7 @@ describe('CompletedSection', () => {
 
   it('displays scenario time when available', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1, {
+      createMockInject('1', InjectStatus.Released, 1, {
         scenarioDay: 2,
         scenarioTime: '14:30:00',
       }),
@@ -330,9 +330,9 @@ describe('CompletedSection', () => {
 
   it('renders multiple completed injects', () => {
     const injects = [
-      createMockInject('1', InjectStatus.Fired, 1, { title: 'First Inject' }),
-      createMockInject('2', InjectStatus.Skipped, 2, { title: 'Second Inject' }),
-      createMockInject('3', InjectStatus.Fired, 3, { title: 'Third Inject' }),
+      createMockInject('1', InjectStatus.Released, 1, { title: 'First Inject' }),
+      createMockInject('2', InjectStatus.Deferred, 2, { title: 'Second Inject' }),
+      createMockInject('3', InjectStatus.Released, 3, { title: 'Third Inject' }),
     ]
 
     render(

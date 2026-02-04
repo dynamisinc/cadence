@@ -19,9 +19,22 @@ export type FeatureFlagState = 'Hidden' | 'ComingSoon' | 'Active'
  * Add new features here as the app grows
  */
 export interface FeatureFlags {
-  exampleTool1: FeatureFlagState;
-  exampleTool2: FeatureFlagState;
+  /** Templates - Exercise and inject templates management */
+  templates: FeatureFlagState;
+  /** Organization-level Reports - Cross-exercise reporting and analytics */
+  reports: FeatureFlagState;
+  /** Control Room - Real-time exercise conduct dashboard */
+  controlRoom: FeatureFlagState;
+  /** Inject Queue - Pending inject management view */
+  injectQueue: FeatureFlagState;
+  /** Organization Settings - General organization configuration (OrgAdmin) */
+  orgSettings: FeatureFlagState;
 }
+
+/**
+ * Feature flag categories for grouping in admin UI
+ */
+export type FeatureFlagCategory = 'conduct' | 'analysis' | 'organization' | 'system'
 
 /**
  * Metadata for each feature flag
@@ -30,7 +43,7 @@ export interface FeatureFlagInfo {
   key: keyof FeatureFlags;
   label: string;
   description: string;
-  category: 'tools' | 'features' | 'experimental';
+  category: FeatureFlagCategory;
 }
 
 /**
@@ -38,25 +51,47 @@ export interface FeatureFlagInfo {
  */
 export const featureFlagInfo: FeatureFlagInfo[] = [
   {
-    key: 'exampleTool1',
-    label: 'Example Tool 1',
-    description: 'Placeholder for additional tool implementation',
-    category: 'tools',
+    key: 'controlRoom',
+    label: 'Control Room',
+    description: 'Real-time exercise conduct dashboard for Controllers and Exercise Directors',
+    category: 'conduct',
   },
   {
-    key: 'exampleTool2',
-    label: 'Example Tool 2',
-    description: 'Another placeholder for tool implementation',
-    category: 'experimental',
+    key: 'injectQueue',
+    label: 'Inject Queue',
+    description: 'View and manage pending injects during exercise conduct',
+    category: 'conduct',
+  },
+  {
+    key: 'reports',
+    label: 'Organization Reports',
+    description: 'Cross-exercise reporting and analytics at the organization level',
+    category: 'analysis',
+  },
+  {
+    key: 'templates',
+    label: 'Templates',
+    description: 'Manage inject templates and exercise blueprints for reuse',
+    category: 'system',
+  },
+  {
+    key: 'orgSettings',
+    label: 'Organization Settings',
+    description: 'General organization configuration for OrgAdmins',
+    category: 'organization',
   },
 ]
 
 /**
  * Default feature flag values
+ * These features are not yet implemented, so they default to Hidden
  */
 export const defaultFeatureFlags: FeatureFlags = {
-  exampleTool1: 'ComingSoon',
-  exampleTool2: 'Hidden',
+  templates: 'Hidden',
+  reports: 'Hidden',
+  controlRoom: 'Hidden',
+  injectQueue: 'Hidden',
+  orgSettings: 'Hidden',
 }
 
 /**

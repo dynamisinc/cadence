@@ -80,7 +80,7 @@ export const JumpConfirmationDialog = ({
             </List>
 
             <Alert severity="warning">
-              Skipped injects will be marked as "Skipped" and can be reviewed later if needed.
+              Skipped injects will be marked as "Deferred" and can be reviewed later if needed.
             </Alert>
           </Box>
         ) : (

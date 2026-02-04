@@ -15,6 +15,7 @@ import {
   Divider,
   Chip,
   Tooltip,
+  Alert,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -37,9 +38,11 @@ import {
   faFlag,
   faSitemap,
   faEye,
+  faExclamationTriangle,
+  faFileSignature,
 } from '@fortawesome/free-solid-svg-icons'
 
-import { InjectStatusChip, InjectTypeChip } from './'
+import { InjectStatusChip, InjectTypeChip, SubmitForApprovalButton, ApprovalActionsButtons } from './'
 import { CobraPrimaryButton, CobraSecondaryButton, CobraDeleteButton } from '../../../theme/styledComponents'
 import { InjectStatus, DeliveryMethod } from '../../../types'
 import type { InjectDto } from '../types'
@@ -71,6 +74,17 @@ interface InjectDetailDrawerProps {
   onAddObservation?: (injectId: string) => void
   /** Available objectives for displaying linked objectives */
   objectives?: ObjectiveSummaryDto[]
+  // Approval workflow props (S14)
+  /** The exercise ID for approval actions */
+  exerciseId?: string
+  /** Whether approval workflow is enabled */
+  approvalEnabled?: boolean
+  /** Current user's ID for self-approval check */
+  currentUserId?: string
+  /** Can the user submit for approval (Controller+)? */
+  canSubmitForApproval?: boolean
+  /** Can the user approve/reject (Director/Admin)? */
+  canApprove?: boolean
 }
 
 const deliveryMethodLabels: Record<DeliveryMethod, string> = {
@@ -127,12 +141,20 @@ export const InjectDetailDrawer = ({
   onReset,
   onAddObservation,
   objectives = [],
+  // Approval workflow props (S14)
+  exerciseId = '',
+  approvalEnabled = false,
+  currentUserId = '',
+  canSubmitForApproval = false,
+  canApprove = false,
 }: InjectDetailDrawerProps) => {
   if (!inject) return null
 
-  const isPending = inject.status === InjectStatus.Pending
-  const isFired = inject.status === InjectStatus.Fired
-  const isSkipped = inject.status === InjectStatus.Skipped
+  const isPending = inject.status === InjectStatus.Draft
+  const isSubmitted = inject.status === InjectStatus.Submitted
+  const isApproved = inject.status === InjectStatus.Approved
+  const isFired = inject.status === InjectStatus.Released
+  const isSkipped = inject.status === InjectStatus.Deferred
 
   const handleFire = () => {
     if (onFire) onFire(inject.id)
@@ -196,6 +218,19 @@ export const InjectDetailDrawer = ({
               <Typography variant="h6" fontWeight={500}>
                 {inject.title}
               </Typography>
+              {/* Approval Status Info (S14) */}
+              {approvalEnabled && isSubmitted && inject.submittedByName && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  Submitted by {inject.submittedByName}
+                  {inject.submittedAt && ` on ${formatActionTime(inject.submittedAt)}`}
+                </Typography>
+              )}
+              {approvalEnabled && isApproved && inject.approvedByName && (
+                <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5 }}>
+                  Approved by {inject.approvedByName}
+                  {inject.approvedAt && ` on ${formatActionTime(inject.approvedAt)}`}
+                </Typography>
+              )}
             </Box>
             <IconButton onClick={onClose} size="small">
               <FontAwesomeIcon icon={faXmark} />
@@ -206,6 +241,51 @@ export const InjectDetailDrawer = ({
         {/* Content - Scrollable */}
         <Box sx={{ flex: 1, overflow: 'auto', p: 2 }}>
           <Stack spacing={3}>
+            {/* Rejection Alert (S14) - shown for Draft injects that were previously rejected */}
+            {approvalEnabled && isPending && inject.rejectionReason && (
+              <Alert
+                severity="warning"
+                icon={<FontAwesomeIcon icon={faExclamationTriangle} />}
+                sx={{ mb: 1 }}
+              >
+                <Typography variant="subtitle2" fontWeight={600}>
+                  Previously Rejected
+                </Typography>
+                {inject.rejectedByName && inject.rejectedAt && (
+                  <Typography variant="caption" display="block" color="text.secondary">
+                    Rejected by {inject.rejectedByName} on {formatActionTime(inject.rejectedAt)}
+                  </Typography>
+                )}
+                <Typography variant="body2" sx={{ mt: 0.5 }}>
+                  {inject.rejectionReason}
+                </Typography>
+              </Alert>
+            )}
+
+            {/* Approver Notes (S14) - shown for Approved injects */}
+            {approvalEnabled && isApproved && inject.approverNotes && (
+              <Box sx={{ mb: 1 }}>
+                <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                  <FontAwesomeIcon icon={faFileSignature} style={{ marginRight: 8 }} />
+                  Approver Notes
+                </Typography>
+                <Typography
+                  variant="body2"
+                  sx={{
+                    pl: 3,
+                    whiteSpace: 'pre-wrap',
+                    fontStyle: 'italic',
+                    color: 'text.secondary',
+                    backgroundColor: 'action.hover',
+                    p: 1.5,
+                    borderRadius: 1,
+                  }}
+                >
+                  {inject.approverNotes}
+                </Typography>
+              </Box>
+            )}
+
             {/* Time Information */}
             <Box>
               <Typography variant="subtitle2" color="text.secondary" gutterBottom>
@@ -599,41 +679,69 @@ export const InjectDetailDrawer = ({
                 </Tooltip>
               )}
             </Stack>
-            {canControl && (
-              <Stack direction="row" spacing={1}>
-                {isPending && (
-                  <>
-                    <CobraSecondaryButton
+            <Stack direction="row" spacing={1}>
+              {/* Approval Workflow Actions (S14) */}
+              {approvalEnabled && exerciseId && (
+                <>
+                  {/* Submit for Approval - for Draft injects */}
+                  {isPending && canSubmitForApproval && (
+                    <SubmitForApprovalButton
+                      inject={inject}
+                      exerciseId={exerciseId}
+                      approvalEnabled={approvalEnabled}
+                      canSubmit={canSubmitForApproval}
                       size="small"
-                      startIcon={<FontAwesomeIcon icon={faForwardStep} />}
-                      onClick={handleSkip}
+                    />
+                  )}
+                  {/* Approve/Reject - for Submitted injects */}
+                  {isSubmitted && canApprove && (
+                    <ApprovalActionsButtons
+                      inject={inject}
+                      exerciseId={exerciseId}
+                      currentUserId={currentUserId}
+                      canApprove={canApprove}
+                      size="small"
+                    />
+                  )}
+                </>
+              )}
+              {/* Conduct Actions */}
+              {canControl && (
+                <>
+                  {(isPending || isApproved) && (
+                    <>
+                      <CobraSecondaryButton
+                        size="small"
+                        startIcon={<FontAwesomeIcon icon={faForwardStep} />}
+                        onClick={handleSkip}
+                        disabled={isSubmitting}
+                      >
+                        Skip
+                      </CobraSecondaryButton>
+                      <CobraPrimaryButton
+                        size="small"
+                        startIcon={<FontAwesomeIcon icon={faPlay} />}
+                        onClick={handleFire}
+                        disabled={isSubmitting}
+                        color="success"
+                      >
+                        Fire Inject
+                      </CobraPrimaryButton>
+                    </>
+                  )}
+                  {(isFired || isSkipped) && (
+                    <CobraDeleteButton
+                      size="small"
+                      startIcon={<FontAwesomeIcon icon={faRotateLeft} />}
+                      onClick={handleReset}
                       disabled={isSubmitting}
                     >
-                      Skip
-                    </CobraSecondaryButton>
-                    <CobraPrimaryButton
-                      size="small"
-                      startIcon={<FontAwesomeIcon icon={faPlay} />}
-                      onClick={handleFire}
-                      disabled={isSubmitting}
-                      color="success"
-                    >
-                      Fire Inject
-                    </CobraPrimaryButton>
-                  </>
-                )}
-                {(isFired || isSkipped) && (
-                  <CobraDeleteButton
-                    size="small"
-                    startIcon={<FontAwesomeIcon icon={faRotateLeft} />}
-                    onClick={handleReset}
-                    disabled={isSubmitting}
-                  >
-                    Reset to Pending
-                  </CobraDeleteButton>
-                )}
-              </Stack>
-            )}
+                      Reset to Draft
+                    </CobraDeleteButton>
+                  )}
+                </>
+              )}
+            </Stack>
           </Stack>
         </Box>
       </Box>

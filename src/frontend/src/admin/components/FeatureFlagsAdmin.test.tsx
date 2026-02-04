@@ -98,33 +98,34 @@ describe('FeatureFlagsAdmin', () => {
     it('changes flag state when toggle button is clicked', async () => {
       renderWithProvider(<FeatureFlagsAdmin />)
 
-      // exampleTool1 starts as "ComingSoon", click "Hidden"
-      const exampleToggle = screen.getByTestId('feature-flag-toggle-exampleTool1')
-      const hiddenButton = exampleToggle.querySelector(
-        'button[value="Hidden"]',
-      ) as HTMLButtonElement
-
-      fireEvent.click(hiddenButton)
-
-      await waitFor(() => {
-        // Check localStorage was updated
-        expect(mockLocalStorage['cadence-feature-flags']).toContain('Hidden')
-      })
-    })
-
-    it('persists state changes to localStorage', async () => {
-      renderWithProvider(<FeatureFlagsAdmin />)
-
-      const exampleToggle = screen.getByTestId('feature-flag-toggle-exampleTool1')
-      const activeButton = exampleToggle.querySelector(
+      // templates starts as "Hidden", click "Active"
+      const templatesToggle = screen.getByTestId('feature-flag-toggle-templates')
+      const activeButton = templatesToggle.querySelector(
         'button[value="Active"]',
       ) as HTMLButtonElement
 
       fireEvent.click(activeButton)
 
       await waitFor(() => {
+        // Check localStorage was updated
         const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
-        expect(stored.exampleTool1).toBe('Active')
+        expect(stored.templates).toBe('Active')
+      })
+    })
+
+    it('persists state changes to localStorage', async () => {
+      renderWithProvider(<FeatureFlagsAdmin />)
+
+      const controlRoomToggle = screen.getByTestId('feature-flag-toggle-controlRoom')
+      const comingSoonButton = controlRoomToggle.querySelector(
+        'button[value="ComingSoon"]',
+      ) as HTMLButtonElement
+
+      fireEvent.click(comingSoonButton)
+
+      await waitFor(() => {
+        const stored = JSON.parse(mockLocalStorage['cadence-feature-flags'])
+        expect(stored.controlRoom).toBe('ComingSoon')
       })
     })
   })
@@ -133,8 +134,10 @@ describe('FeatureFlagsAdmin', () => {
     it('resets all flags to defaults when reset button is clicked', async () => {
       // Pre-set some non-default values
       mockLocalStorage['cadence-feature-flags'] = JSON.stringify({
-        exampleTool1: 'Active',
-        exampleTool2: 'Active',
+        templates: 'Active',
+        reports: 'ComingSoon',
+        controlRoom: 'Active',
+        injectQueue: 'ComingSoon',
       })
 
       renderWithProvider(<FeatureFlagsAdmin />)
@@ -150,20 +153,29 @@ describe('FeatureFlagsAdmin', () => {
   })
 
   describe('sections', () => {
-    it('renders tools section', () => {
+    it('renders conduct section with Control Room and Inject Queue', () => {
       renderWithProvider(<FeatureFlagsAdmin />)
 
-      expect(screen.getByTestId('tools-flags-section')).toBeInTheDocument()
-      expect(screen.getByText('Tools')).toBeInTheDocument()
+      expect(screen.getByTestId('conduct-flags-section')).toBeInTheDocument()
+      expect(screen.getByText('Conduct')).toBeInTheDocument()
+      expect(screen.getByText('Control Room')).toBeInTheDocument()
+      expect(screen.getByText('Inject Queue')).toBeInTheDocument()
     })
 
-    it('renders experimental section', () => {
+    it('renders analysis section with Reports', () => {
       renderWithProvider(<FeatureFlagsAdmin />)
 
-      expect(
-        screen.getByTestId('experimental-flags-section'),
-      ).toBeInTheDocument()
-      expect(screen.getByText('Experimental')).toBeInTheDocument()
+      expect(screen.getByTestId('analysis-flags-section')).toBeInTheDocument()
+      expect(screen.getByText('Analysis')).toBeInTheDocument()
+      expect(screen.getByText('Organization Reports')).toBeInTheDocument()
+    })
+
+    it('renders system section with Templates', () => {
+      renderWithProvider(<FeatureFlagsAdmin />)
+
+      expect(screen.getByTestId('system-flags-section')).toBeInTheDocument()
+      expect(screen.getByText('System')).toBeInTheDocument()
+      expect(screen.getByText('Templates')).toBeInTheDocument()
     })
   })
 })

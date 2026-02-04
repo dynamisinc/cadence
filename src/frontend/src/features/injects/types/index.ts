@@ -56,6 +56,22 @@ export interface InjectDto {
   locationName: string | null
   locationType: string | null
   track: string | null
+  // Approval workflow fields (S00-S09)
+  submittedByUserId: string | null
+  submittedByName: string | null
+  submittedAt: string | null // DateTime as ISO string
+  approvedByUserId: string | null
+  approvedByName: string | null
+  approvedAt: string | null // DateTime as ISO string
+  approverNotes: string | null
+  rejectedByUserId: string | null
+  rejectedByName: string | null
+  rejectedAt: string | null // DateTime as ISO string
+  rejectionReason: string | null
+  revertedByUserId: string | null
+  revertedByName: string | null
+  revertedAt: string | null // DateTime as ISO string
+  revertReason: string | null
 }
 
 /**
@@ -364,4 +380,67 @@ export const formatDeliveryTime = (ms: number): string => {
   }
 
   return timeStr
+}
+
+// =============================================================================
+// Approval Workflow Types (S00-S09)
+// =============================================================================
+
+/**
+ * Request to approve an inject
+ */
+export interface ApproveInjectRequest {
+  notes?: string | null
+  /** Set to true to confirm self-approval when policy requires it (S11). */
+  confirmSelfApproval?: boolean
+}
+
+/**
+ * Request to reject an inject
+ */
+export interface RejectInjectRequest {
+  reason: string
+}
+
+/**
+ * Request to revert an approved inject back to submitted
+ */
+export interface RevertApprovalRequest {
+  reason: string
+}
+
+/**
+ * Request to batch approve multiple injects
+ */
+export interface BatchApproveRequest {
+  injectIds: string[]
+  notes?: string | null
+}
+
+/**
+ * Request to batch reject multiple injects
+ */
+export interface BatchRejectRequest {
+  injectIds: string[]
+  reason: string
+}
+
+/**
+ * Result of a batch approval/rejection operation
+ */
+export interface BatchApprovalResult {
+  approvedCount: number
+  rejectedCount: number
+  skippedCount: number
+  skippedReasons: string[]
+  processedInjects: InjectDto[]
+}
+
+/**
+ * Approval field limits for validation
+ */
+export const APPROVAL_FIELD_LIMITS = {
+  approverNotes: { max: 1000 },
+  rejectionReason: { min: 10, max: 1000 },
+  revertReason: { min: 10, max: 1000 },
 }

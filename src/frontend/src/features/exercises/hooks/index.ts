@@ -20,3 +20,9 @@ export {
   useExerciseCapabilitySummary,
   exerciseCapabilityKeys,
 } from './useExerciseCapabilities'
+export {
+  useApprovalSettings,
+  useApprovalStatus,
+  usePublishValidation,
+  approvalKeys,
+} from './useApprovalSettings'

@@ -13,14 +13,14 @@ import type { InjectDto } from '../types'
 
 /**
  * Determines the current inject in facilitator-paced mode.
- * Current = first Pending inject in sequence order.
+ * Current = first Draft inject in sequence order.
  *
  * @param injects All injects in the exercise
- * @returns The current inject, or null if no pending injects
+ * @returns The current inject, or null if no draft injects
  */
 export const getCurrentInject = (injects: InjectDto[]): InjectDto | null => {
   const pending = injects
-    .filter(i => i.status === InjectStatus.Pending)
+    .filter(i => i.status === InjectStatus.Draft)
     .sort((a, b) => a.sequence - b.sequence)
 
   return pending[0] || null
@@ -33,7 +33,7 @@ export const getCurrentInject = (injects: InjectDto[]): InjectDto | null => {
  * @param injects All injects in the exercise
  * @param currentSequence Sequence number of the current inject
  * @param count Number of injects to return (default 3)
- * @returns Array of upcoming pending injects
+ * @returns Array of upcoming draft injects
  */
 export const getUpNextInjects = (
   injects: InjectDto[],
@@ -41,20 +41,20 @@ export const getUpNextInjects = (
   count: number = 3,
 ): InjectDto[] => {
   return injects
-    .filter(i => i.status === InjectStatus.Pending)
+    .filter(i => i.status === InjectStatus.Draft)
     .filter(i => i.sequence > currentSequence)
     .sort((a, b) => a.sequence - b.sequence)
     .slice(0, count)
 }
 
 /**
- * Gets all pending injects between current and target (for jump confirmation).
- * These injects will be skipped when jumping to a later inject.
+ * Gets all draft injects between current and target (for jump confirmation).
+ * These injects will be deferred when jumping to a later inject.
  *
  * @param injects All injects in the exercise
  * @param currentSequence Sequence number of the current inject
  * @param targetSequence Sequence number of the target inject
- * @returns Array of injects that would be skipped
+ * @returns Array of injects that would be deferred
  */
 export const getInjectsToSkip = (
   injects: InjectDto[],
@@ -62,7 +62,7 @@ export const getInjectsToSkip = (
   targetSequence: number,
 ): InjectDto[] => {
   return injects
-    .filter(i => i.status === InjectStatus.Pending)
+    .filter(i => i.status === InjectStatus.Draft)
     .filter(i => i.sequence >= currentSequence && i.sequence < targetSequence)
     .sort((a, b) => a.sequence - b.sequence)
 }

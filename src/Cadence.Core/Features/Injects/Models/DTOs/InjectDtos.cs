@@ -50,7 +50,21 @@ public record InjectDto(
     string? ResponsibleController,
     string? LocationName,
     string? LocationType,
-    string? Track
+    string? Track,
+    // Approval workflow fields
+    string? SubmittedByUserId,
+    DateTime? SubmittedAt,
+    string? ApprovedByUserId,
+    DateTime? ApprovedAt,
+    string? ApproverNotes,
+    string? RejectedByUserId,
+    DateTime? RejectedAt,
+    string? RejectionReason,
+    // Revert approval fields
+    string? RevertedByUserId,
+    DateTime? RevertedAt,
+    string? RevertReason,
+    string? ModifiedBy
 );
 
 /// <summary>
@@ -357,6 +371,113 @@ public class ReorderInjectsRequest
 }
 
 /// <summary>
+/// DTO for approving an inject.
+/// </summary>
+public class ApproveInjectRequest
+{
+    /// <summary>
+    /// Optional notes from the approver (max 1000 characters).
+    /// Provides guidance or feedback to the Controller.
+    /// </summary>
+    public string? Notes { get; init; }
+
+    /// <summary>
+    /// Set to true to confirm self-approval when organization policy allows with warning (S11).
+    /// Required when the user is approving their own submission and policy is AllowedWithWarning.
+    /// </summary>
+    public bool ConfirmSelfApproval { get; init; }
+}
+
+/// <summary>
+/// DTO for rejecting an inject.
+/// </summary>
+public class RejectInjectRequest
+{
+    /// <summary>
+    /// Required rejection reason (min 10 chars, max 1000 characters).
+    /// Explains what needs to be changed or improved.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// DTO for batch approving multiple injects.
+/// </summary>
+public class BatchApproveRequest
+{
+    /// <summary>
+    /// List of inject IDs to approve. Required, at least 1 inject.
+    /// </summary>
+    public List<Guid> InjectIds { get; init; } = new();
+
+    /// <summary>
+    /// Optional notes from the approver (max 1000 characters).
+    /// Applied to all approved injects.
+    /// </summary>
+    public string? Notes { get; init; }
+}
+
+/// <summary>
+/// DTO for batch rejecting multiple injects.
+/// </summary>
+public class BatchRejectRequest
+{
+    /// <summary>
+    /// List of inject IDs to reject. Required, at least 1 inject.
+    /// </summary>
+    public List<Guid> InjectIds { get; init; } = new();
+
+    /// <summary>
+    /// Required rejection reason (min 10 chars, max 1000 characters).
+    /// Applied to all rejected injects.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// DTO for reverting an approved inject back to Submitted status.
+/// </summary>
+public class RevertApprovalRequest
+{
+    /// <summary>
+    /// Required revert reason (min 10 chars, max 1000 characters).
+    /// Explains why the approval is being reverted and what needs to change.
+    /// </summary>
+    public string Reason { get; init; } = string.Empty;
+}
+
+/// <summary>
+/// Result of a batch approval or rejection operation.
+/// </summary>
+public class BatchApprovalResult
+{
+    /// <summary>
+    /// Number of injects successfully approved.
+    /// </summary>
+    public int ApprovedCount { get; set; }
+
+    /// <summary>
+    /// Number of injects successfully rejected.
+    /// </summary>
+    public int RejectedCount { get; set; }
+
+    /// <summary>
+    /// Number of injects skipped (wrong status or self-submission).
+    /// </summary>
+    public int SkippedCount { get; set; }
+
+    /// <summary>
+    /// Reasons why injects were skipped.
+    /// </summary>
+    public List<string> SkippedReasons { get; set; } = new();
+
+    /// <summary>
+    /// List of processed injects (approved or rejected).
+    /// </summary>
+    public List<InjectDto> ProcessedInjects { get; set; } = new();
+}
+
+/// <summary>
 /// Extension methods for mapping between Inject entity and DTOs.
 /// </summary>
 public static class InjectMapper
@@ -405,7 +526,21 @@ public static class InjectMapper
         entity.ResponsibleController,
         entity.LocationName,
         entity.LocationType,
-        entity.Track
+        entity.Track,
+        // Approval workflow fields
+        entity.SubmittedByUserId,
+        entity.SubmittedAt,
+        entity.ApprovedByUserId,
+        entity.ApprovedAt,
+        entity.ApproverNotes,
+        entity.RejectedByUserId,
+        entity.RejectedAt,
+        entity.RejectionReason,
+        // Revert approval fields
+        entity.RevertedByUserId,
+        entity.RevertedAt,
+        entity.RevertReason,
+        entity.ModifiedBy
     );
 
     public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, string createdBy) => new()
@@ -424,7 +559,7 @@ public static class InjectMapper
         DeliveryMethodId = request.DeliveryMethodId,
         DeliveryMethodOther = request.DeliveryMethodOther,
         InjectType = request.InjectType,
-        Status = InjectStatus.Pending,
+        Status = InjectStatus.Draft,
         Sequence = sequence,
         ParentInjectId = request.ParentInjectId,
         FireCondition = request.TriggerCondition,

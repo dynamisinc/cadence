@@ -21,25 +21,25 @@ interface ExerciseProgressProps {
 /**
  * Calculate the current phase name based on inject status.
  * Priority:
- * 1. Phase of most recently fired inject
- * 2. Phase of first pending inject (by sequence)
+ * 1. Phase of most recently released inject
+ * 2. Phase of first draft inject (by sequence)
  * 3. "No phase assigned" if no phases
  */
 const getCurrentPhaseName = (injects: InjectDto[]): string | null => {
   if (injects.length === 0) return null
 
-  // Find the most recently fired inject
+  // Find the most recently released inject
   const firedInjects = injects
-    .filter(i => i.status === InjectStatus.Fired && i.firedAt)
+    .filter(i => i.status === InjectStatus.Released && i.firedAt)
     .sort((a, b) => new Date(b.firedAt!).getTime() - new Date(a.firedAt!).getTime())
 
   if (firedInjects.length > 0 && firedInjects[0].phaseName) {
     return firedInjects[0].phaseName
   }
 
-  // Fall back to first pending inject's phase
+  // Fall back to first draft inject's phase
   const pendingInjects = injects
-    .filter(i => i.status === InjectStatus.Pending)
+    .filter(i => i.status === InjectStatus.Draft)
     .sort((a, b) => a.sequence - b.sequence)
 
   if (pendingInjects.length > 0 && pendingInjects[0].phaseName) {
@@ -56,11 +56,11 @@ const getCurrentPhaseName = (injects: InjectDto[]): string | null => {
 }
 
 export const ExerciseProgress = ({ injects }: ExerciseProgressProps) => {
-  // Calculate progress: (fired + skipped) / total
+  // Calculate progress: (released + deferred) / total
   const { completed, total, percentage } = useMemo(() => {
     const total = injects.length
     const completed = injects.filter(
-      i => i.status === InjectStatus.Fired || i.status === InjectStatus.Skipped,
+      i => i.status === InjectStatus.Released || i.status === InjectStatus.Deferred,
     ).length
     const percentage = total > 0 ? Math.round((completed / total) * 100) : 0
 
@@ -97,7 +97,7 @@ export const ExerciseProgress = ({ injects }: ExerciseProgressProps) => {
 
       {/* Progress Text */}
       <Typography variant="caption" color="text.secondary" sx={{ mt: 0.5, display: 'block' }}>
-        {completed} of {total} injects fired
+        {completed} of {total} injects released
       </Typography>
     </Box>
   )

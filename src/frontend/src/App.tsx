@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp } from './core/components'
+import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp, ErrorBoundary } from './core/components'
+import { trackException } from './core/services/telemetry'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
 import 'react-toastify/dist/ReactToastify.css'
@@ -16,7 +17,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { OrganizationProvider } from './contexts/OrganizationContext'
 import { ExerciseNavigationProvider } from './shared/contexts'
 import { UserPreferencesProvider } from './features/settings'
-import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
+import { ExerciseContextWrapper, GlobalPlaceholderPage, FeatureFlagGuard } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
@@ -52,6 +53,10 @@ import {
   OrganizationListPage,
   CreateOrganizationPage,
   EditOrganizationPage,
+  OrganizationDetailsPage,
+  OrganizationMembersPage,
+  OrganizationApprovalPage,
+  OrganizationSettingsPage,
 } from './features/organizations'
 import { NotificationToastProvider } from './features/notifications'
 import { AboutPage, WhatsNewProvider } from './features/version'
@@ -217,24 +222,40 @@ const router = createBrowserRouter([
       { path: 'assignments', element: <MyAssignmentsPage /> },
 
       // Reports page (top-level, not exercise-scoped)
+      // Feature flagged - redirects when Hidden, shows placeholder when ComingSoon
       {
         path: 'reports',
         element: (
-          <GlobalPlaceholderPage
-            featureName="Reports"
-            description="Generate and view exercise reports and after-action documentation."
-          />
+          <FeatureFlagGuard
+            feature="reports"
+            featureName="Organization Reports"
+            description="Generate and view cross-exercise reports and analytics at the organization level."
+          >
+            {/* When Active, render the actual reports page (placeholder for now) */}
+            <GlobalPlaceholderPage
+              featureName="Organization Reports"
+              description="Generate and view cross-exercise reports and analytics at the organization level."
+            />
+          </FeatureFlagGuard>
         ),
       },
 
       // Templates page (top-level, not exercise-scoped)
+      // Feature flagged - redirects when Hidden, shows placeholder when ComingSoon
       {
         path: 'templates',
         element: (
-          <GlobalPlaceholderPage
+          <FeatureFlagGuard
+            feature="templates"
             featureName="Templates"
-            description="Manage inject templates and exercise blueprints."
-          />
+            description="Manage inject templates and exercise blueprints for reuse."
+          >
+            {/* When Active, render the actual templates page (placeholder for now) */}
+            <GlobalPlaceholderPage
+              featureName="Templates"
+              description="Manage inject templates and exercise blueprints for reuse."
+            />
+          </FeatureFlagGuard>
         ),
       },
 
@@ -242,6 +263,62 @@ const router = createBrowserRouter([
       {
         path: 'settings',
         element: <UserSettingsPage />,
+      },
+
+      // Organization management routes (OrgAdmin or SysAdmin)
+      {
+        path: 'organization/details',
+        element: (
+          <OrgAdminRoute>
+            <OrganizationDetailsPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/members',
+        element: (
+          <OrgAdminRoute>
+            <OrganizationMembersPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/approval',
+        element: (
+          <OrgAdminRoute>
+            <OrganizationApprovalPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/settings',
+        element: (
+          <OrgAdminRoute>
+            <FeatureFlagGuard
+              feature="orgSettings"
+              featureName="Organization Settings"
+              description="Configure general organization settings."
+            >
+              <OrganizationSettingsPage />
+            </FeatureFlagGuard>
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/capabilities',
+        element: (
+          <OrgAdminRoute>
+            <CapabilityLibraryPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/archived',
+        element: (
+          <OrgAdminRoute>
+            <ArchivedExercisesPage />
+          </OrgAdminRoute>
+        ),
       },
 
       // Pending user page (no organization assigned)
@@ -353,35 +430,44 @@ function App() {
       {/* Base theme for auth pages (before preferences load) */}
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
-        <AuthProvider>
-          {/* Organization provider loads after auth */}
-          <OrganizationProvider>
-            {/* User preferences provider loads after auth */}
-            <UserPreferencesProvider>
-              {/* ThemedApp applies dynamic theme based on user preferences */}
-              <ThemedApp>
-                <ExerciseNavigationProvider>
-                  <ConnectivityProvider>
-                    <OfflineSyncProvider>
-                      <MobileBlocker>
-                        <FeatureFlagsProvider>
-                          <NotificationToastProvider>
-                            <WhatsNewProvider>
-                              <RouterProvider router={router} />
-                            </WhatsNewProvider>
-                          </NotificationToastProvider>
-                          <GlobalSyncStatus />
-                          <UpdatePrompt />
-                          <InstallBanner />
-                        </FeatureFlagsProvider>
-                      </MobileBlocker>
-                    </OfflineSyncProvider>
-                  </ConnectivityProvider>
-                </ExerciseNavigationProvider>
-              </ThemedApp>
-            </UserPreferencesProvider>
-          </OrganizationProvider>
-        </AuthProvider>
+        <ErrorBoundary
+          onError={(error, errorInfo) => {
+            trackException(error, {
+              componentStack: errorInfo.componentStack || '',
+              source: 'ErrorBoundary',
+            })
+          }}
+        >
+          <AuthProvider>
+            {/* Organization provider loads after auth */}
+            <OrganizationProvider>
+              {/* User preferences provider loads after auth */}
+              <UserPreferencesProvider>
+                {/* ThemedApp applies dynamic theme based on user preferences */}
+                <ThemedApp>
+                  <ExerciseNavigationProvider>
+                    <ConnectivityProvider>
+                      <OfflineSyncProvider>
+                        <MobileBlocker>
+                          <FeatureFlagsProvider>
+                            <NotificationToastProvider>
+                              <WhatsNewProvider>
+                                <RouterProvider router={router} />
+                              </WhatsNewProvider>
+                            </NotificationToastProvider>
+                            <GlobalSyncStatus />
+                            <UpdatePrompt />
+                            <InstallBanner />
+                          </FeatureFlagsProvider>
+                        </MobileBlocker>
+                      </OfflineSyncProvider>
+                    </ConnectivityProvider>
+                  </ExerciseNavigationProvider>
+                </ThemedApp>
+              </UserPreferencesProvider>
+            </OrganizationProvider>
+          </AuthProvider>
+        </ErrorBoundary>
 
         <ToastContainer
           position="top-right"

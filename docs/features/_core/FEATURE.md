@@ -19,6 +19,12 @@ Before implementing user-facing features, developers and AI agents need a shared
 | [Inject](./inject-entity.md) | Individual events that drive exercise scenarios | 📋 Ready |
 | [User Roles](./user-roles.md) | Role definitions and permission matrices | 📋 Ready |
 
+## User Stories
+
+| Story                                            | Description                                           | Status      |
+|--------------------------------------------------|-------------------------------------------------------|-------------|
+| [S01-error-reporting](./S01-error-reporting.md)  | Send error reports from ErrorBoundary to support team | 📋 Backlog  |
+
 ## Key Concepts
 
 ### Entity Relationships

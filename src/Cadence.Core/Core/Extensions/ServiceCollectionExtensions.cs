@@ -42,6 +42,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExerciseStatusService, ExerciseStatusService>();
         services.AddScoped<IExerciseDeleteService, ExerciseDeleteService>();
         services.AddScoped<IExerciseParticipantService, ExerciseParticipantService>();
+        services.AddScoped<IExerciseApprovalSettingsService, ExerciseApprovalSettingsService>();
+        services.AddScoped<IExerciseApprovalQueueService, ExerciseApprovalQueueService>();
+        services.AddScoped<IApprovalPermissionService, ApprovalPermissionService>();
         services.AddScoped<IMselService, MselService>();
         services.AddScoped<ISetupProgressService, SetupProgressService>();
         services.AddScoped<IExpectedOutcomeService, ExpectedOutcomeService>();
@@ -53,6 +56,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();
         services.AddScoped<IAssignmentService, AssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
+        services.AddScoped<IApprovalNotificationService, ApprovalNotificationService>();
         services.AddScoped<IExerciseMetricsService, ExerciseMetricsService>();
         services.AddScoped<IExerciseCapabilityService, ExerciseCapabilityService>();
         services.AddScoped<ICapabilityService, CapabilityService>();

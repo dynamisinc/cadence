@@ -39,7 +39,7 @@ public class TimelineMetricsService : ITimelineMetricsService
         // Get fired injects for pacing analysis
         var msel = await _context.Msels
             .AsNoTracking()
-            .Include(m => m.Injects.Where(i => !i.IsDeleted && i.Status == InjectStatus.Fired))
+            .Include(m => m.Injects.Where(i => !i.IsDeleted && i.Status == InjectStatus.Released))
                 .ThenInclude(i => i.Phase)
             .FirstOrDefaultAsync(m => m.ExerciseId == exerciseId && m.IsActive && !m.IsDeleted);
 

@@ -107,13 +107,13 @@ export const InjectListByStatus = ({
       const { inject, offsetMs } = item
 
       switch (inject.status) {
-        case InjectStatus.Fired:
+        case InjectStatus.Released:
           fired.push(item)
           break
-        case InjectStatus.Skipped:
+        case InjectStatus.Deferred:
           skipped.push(item)
           break
-        case InjectStatus.Pending:
+        case InjectStatus.Draft:
         default:
           if (offsetMs <= elapsedTimeMs) {
             // Ready to fire (offset has passed)

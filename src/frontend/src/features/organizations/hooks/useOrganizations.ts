@@ -110,6 +110,21 @@ export function useUpdateCurrentOrganization() {
 }
 
 /**
+ * Update current organization approval policy mutation (OrgAdmin)
+ */
+export function useUpdateCurrentApprovalPolicy() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (policy: string) => organizationService.updateCurrentApprovalPolicy(policy),
+    onSuccess: () => {
+      // Invalidate current org to refresh the approval policy
+      queryClient.invalidateQueries({ queryKey: organizationKeys.current() })
+    },
+  })
+}
+
+/**
  * Archive organization mutation (SysAdmin only)
  */
 export function useArchiveOrganization() {

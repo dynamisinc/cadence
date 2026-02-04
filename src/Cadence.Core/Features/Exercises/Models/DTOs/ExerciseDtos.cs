@@ -327,3 +327,164 @@ public record ExerciseAssignmentDto(
     string ExerciseRole,
     DateTime AssignedAt
 );
+
+// =========================================================================
+// Approval Settings DTOs (Inject Approval Workflow)
+// =========================================================================
+
+/// <summary>
+/// Request DTO for updating exercise approval settings.
+/// </summary>
+public record UpdateApprovalSettingsRequest(
+    bool RequireInjectApproval,
+    bool IsOverride = false,
+    string? OverrideReason = null
+);
+
+/// <summary>
+/// Response DTO for exercise approval settings.
+/// Includes organization policy context for UI rendering.
+/// </summary>
+public record ApprovalSettingsDto(
+    bool RequireInjectApproval,
+    bool ApprovalPolicyOverridden,
+    string? ApprovalOverrideReason,
+    string? ApprovalOverriddenById,
+    DateTime? ApprovalOverriddenAt,
+    ApprovalPolicy OrganizationPolicy,
+    SelfApprovalPolicy SelfApprovalPolicy
+);
+
+/// <summary>
+/// Response DTO for exercise approval status summary (S06: Approval Queue View).
+/// Shows counts of injects by approval status for queue management.
+/// </summary>
+public record ApprovalStatusDto(
+    int TotalInjects,
+    int ApprovedCount,
+    int PendingApprovalCount,
+    int DraftCount,
+    decimal ApprovalPercentage,
+    bool AllApproved
+);
+
+// =========================================================================
+// Exercise Publish Validation DTOs (Go-Live Gate - S07)
+// =========================================================================
+
+/// <summary>
+/// Result of validating whether an exercise can be published.
+/// When approval is enabled, blocks publish if any injects are unapproved (Draft or Submitted).
+/// </summary>
+public class PublishValidationResult
+{
+    /// <summary>
+    /// Whether the exercise can be published.
+    /// False if approval is enabled and unapproved injects exist.
+    /// </summary>
+    public bool CanPublish { get; set; }
+
+    /// <summary>
+    /// Count of injects in Draft status.
+    /// </summary>
+    public int DraftCount { get; set; }
+
+    /// <summary>
+    /// Count of injects in Submitted status (awaiting approval).
+    /// </summary>
+    public int SubmittedCount { get; set; }
+
+    /// <summary>
+    /// Total count of unapproved injects (Draft + Submitted).
+    /// </summary>
+    public int TotalUnapprovedCount => DraftCount + SubmittedCount;
+
+    /// <summary>
+    /// Warning messages that don't block publish (e.g., no injects, all deferred).
+    /// </summary>
+    public List<string> Warnings { get; set; } = new();
+
+    /// <summary>
+    /// Error messages that block publish (unapproved injects when approval enabled).
+    /// </summary>
+    public List<string> Errors { get; set; } = new();
+}
+
+// =========================================================================
+// Approval Permissions DTOs (S11: Configurable Approval Permissions)
+// =========================================================================
+
+/// <summary>
+/// Result of checking approval permission for a user on an inject.
+/// </summary>
+public enum ApprovalPermissionResult
+{
+    /// <summary>User is allowed to approve.</summary>
+    Allowed,
+
+    /// <summary>User's role is not authorized to approve.</summary>
+    NotAuthorized,
+
+    /// <summary>Self-approval is not permitted by organization policy.</summary>
+    SelfApprovalDenied,
+
+    /// <summary>Self-approval is allowed but requires confirmation.</summary>
+    SelfApprovalWithWarning
+}
+
+/// <summary>
+/// Response DTO for organization approval permission settings.
+/// </summary>
+public record ApprovalPermissionsDto(
+    /// <summary>Roles authorized to approve injects (flags enum value).</summary>
+    ApprovalRoles AuthorizedRoles,
+
+    /// <summary>Policy for self-approval of injects.</summary>
+    SelfApprovalPolicy SelfApprovalPolicy,
+
+    /// <summary>Human-readable list of authorized role names.</summary>
+    List<string> AuthorizedRoleNames
+);
+
+/// <summary>
+/// Request to update organization approval permissions.
+/// </summary>
+public record UpdateApprovalPermissionsRequest(
+    /// <summary>Roles authorized to approve injects (flags enum value).</summary>
+    ApprovalRoles AuthorizedRoles,
+
+    /// <summary>Policy for self-approval of injects.</summary>
+    SelfApprovalPolicy SelfApprovalPolicy
+);
+
+/// <summary>
+/// DTO for checking if a user can approve a specific inject.
+/// Used by frontend to conditionally show approve/reject buttons.
+/// </summary>
+public record InjectApprovalCheckDto(
+    /// <summary>Whether the user can approve this inject.</summary>
+    bool CanApprove,
+
+    /// <summary>The permission result explaining why or why not.</summary>
+    ApprovalPermissionResult PermissionResult,
+
+    /// <summary>Whether this is a self-approval attempt.</summary>
+    bool IsSelfApproval,
+
+    /// <summary>Whether self-approval requires confirmation dialog.</summary>
+    bool RequiresConfirmation,
+
+    /// <summary>Message explaining the permission result.</summary>
+    string? Message
+);
+
+/// <summary>
+/// Extended approve request that includes self-approval confirmation.
+/// </summary>
+public record ApproveInjectWithConfirmationRequest(
+    /// <summary>Optional approver notes.</summary>
+    string? Notes,
+
+    /// <summary>Set to true to confirm self-approval when policy allows with warning.</summary>
+    bool ConfirmSelfApproval = false
+);

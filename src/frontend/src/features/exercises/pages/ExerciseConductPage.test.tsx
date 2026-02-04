@@ -150,15 +150,15 @@ describe('ExerciseConductPage', () => {
   describe('Ready to Fire Count', () => {
     it('counts pending injects past their scheduled time', () => {
       const injects = [
-        { id: '1', status: InjectStatus.Pending, scheduledTime: '00:10:00' }, // Past due
-        { id: '2', status: InjectStatus.Pending, scheduledTime: '00:50:00' }, // Future
-        { id: '3', status: InjectStatus.Fired, scheduledTime: '00:05:00' },   // Already fired
+        { id: '1', status: InjectStatus.Draft, scheduledTime: '00:10:00' }, // Past due
+        { id: '2', status: InjectStatus.Draft, scheduledTime: '00:50:00' }, // Future
+        { id: '3', status: InjectStatus.Released, scheduledTime: '00:05:00' },   // Already fired
       ]
       const elapsedTimeMs = 30 * 60 * 1000 // 30 minutes
 
       // Simulate calculateScheduledOffset logic
       const readyInjects = injects.filter(inject => {
-        if (inject.status !== InjectStatus.Pending) return false
+        if (inject.status !== InjectStatus.Draft) return false
         // Convert scheduledTime to ms (simplified)
         const [h, m, s] = inject.scheduledTime.split(':').map(Number)
         const scheduledMs = (h * 3600 + m * 60 + s) * 1000

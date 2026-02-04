@@ -15,9 +15,9 @@ const renderWithTheme = (ui: React.ReactElement) => {
 }
 
 const statusOptions: FilterOption<string>[] = [
-  { value: 'Pending', label: 'Pending' },
-  { value: 'Fired', label: 'Fired' },
-  { value: 'Skipped', label: 'Skipped' },
+  { value: 'Draft', label: 'Draft' },
+  { value: 'Released', label: 'Released' },
+  { value: 'Deferred', label: 'Deferred' },
 ]
 
 describe('FilterDropdown', () => {
@@ -40,7 +40,7 @@ describe('FilterDropdown', () => {
         <FilterDropdown
           label="Status"
           options={statusOptions}
-          selected={['Pending', 'Fired']}
+          selected={['Draft', 'Released']}
           onChange={() => {}}
         />,
       )
@@ -78,9 +78,9 @@ describe('FilterDropdown', () => {
       await user.click(screen.getByText('Status'))
 
       await waitFor(() => {
-        expect(screen.getByText('Pending')).toBeInTheDocument()
-        expect(screen.getByText('Fired')).toBeInTheDocument()
-        expect(screen.getByText('Skipped')).toBeInTheDocument()
+        expect(screen.getByText('Draft')).toBeInTheDocument()
+        expect(screen.getByText('Released')).toBeInTheDocument()
+        expect(screen.getByText('Deferred')).toBeInTheDocument()
       })
     })
 
@@ -143,10 +143,10 @@ describe('FilterDropdown', () => {
       await user.click(screen.getByRole('button'))
 
       // Wait for the menu to appear, then click
-      const pendingOption = await screen.findByText('Pending')
+      const pendingOption = await screen.findByText('Draft')
       await user.click(pendingOption)
 
-      expect(onChange).toHaveBeenCalledWith(['Pending'])
+      expect(onChange).toHaveBeenCalledWith(['Draft'])
     })
 
     it('removes option from selection when clicked again', async () => {
@@ -157,7 +157,7 @@ describe('FilterDropdown', () => {
         <FilterDropdown
           label="Status"
           options={statusOptions}
-          selected={['Pending', 'Fired']}
+          selected={['Draft', 'Released']}
           onChange={onChange}
         />,
       )
@@ -165,10 +165,10 @@ describe('FilterDropdown', () => {
       await user.click(screen.getByRole('button'))
 
       // Wait for the menu to appear, then click
-      const pendingOption = await screen.findByText('Pending')
+      const pendingOption = await screen.findByText('Draft')
       await user.click(pendingOption)
 
-      expect(onChange).toHaveBeenCalledWith(['Fired'])
+      expect(onChange).toHaveBeenCalledWith(['Released'])
     })
 
     it('shows selected options as checked', async () => {
@@ -178,7 +178,7 @@ describe('FilterDropdown', () => {
         <FilterDropdown
           label="Status"
           options={statusOptions}
-          selected={['Pending']}
+          selected={['Draft']}
           onChange={() => {}}
         />,
       )
@@ -233,7 +233,7 @@ describe('FilterDropdown', () => {
       const selectAllButton = await screen.findByText('Select all')
       await user.click(selectAllButton)
 
-      expect(onChange).toHaveBeenCalledWith(['Pending', 'Fired', 'Skipped'])
+      expect(onChange).toHaveBeenCalledWith(['Draft', 'Released', 'Deferred'])
     })
 
     it('clears all selections when Clear is clicked', async () => {
@@ -244,7 +244,7 @@ describe('FilterDropdown', () => {
         <FilterDropdown
           label="Status"
           options={statusOptions}
-          selected={['Pending', 'Fired']}
+          selected={['Draft', 'Released']}
           onChange={onChange}
         />,
       )
@@ -265,7 +265,7 @@ describe('FilterDropdown', () => {
         <FilterDropdown
           label="Status"
           options={statusOptions}
-          selected={['Pending', 'Fired', 'Skipped']}
+          selected={['Draft', 'Released', 'Deferred']}
           onChange={() => {}}
         />,
       )

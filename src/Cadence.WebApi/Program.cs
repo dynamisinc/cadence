@@ -34,7 +34,10 @@ builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
-        // Serialize enums as strings, preserving original case (TTX, FSE, Draft, etc.)
+        // ApprovalRoles must serialize as integer for frontend bitwise operations
+        // Add this BEFORE the global string enum converter so it takes precedence
+        options.JsonSerializerOptions.Converters.Add(new Cadence.Core.Models.Entities.ApprovalRolesJsonConverter());
+        // Serialize other enums as strings, preserving original case (TTX, FSE, Draft, etc.)
         // Frontend expects enum values to match exactly
         options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
@@ -77,6 +80,8 @@ var signalRBuilder = builder.Services.AddSignalR()
     .AddJsonProtocol(options =>
     {
         options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+        // ApprovalRoles must serialize as integer for frontend bitwise operations
+        options.PayloadSerializerOptions.Converters.Add(new Cadence.Core.Models.Entities.ApprovalRolesJsonConverter());
         options.PayloadSerializerOptions.Converters.Add(new JsonStringEnumConverter());
     });
 

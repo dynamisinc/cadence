@@ -62,11 +62,11 @@ export interface GroupHeaderProps {
 function getHeaderBackground(groupBy: GroupBy, statusValue?: string): string {
   if (groupBy === 'status' && statusValue) {
     switch (statusValue) {
-      case InjectStatus.Pending:
+      case InjectStatus.Draft:
         return 'grey.100'
-      case InjectStatus.Fired:
+      case InjectStatus.Released:
         return 'success.50'
-      case InjectStatus.Skipped:
+      case InjectStatus.Deferred:
         return 'warning.50'
       default:
         return 'grey.100'
@@ -84,11 +84,11 @@ function getBadgeColor(
 ): 'default' | 'success' | 'warning' | 'error' | 'primary' {
   if (groupBy === 'status' && statusValue) {
     switch (statusValue) {
-      case InjectStatus.Pending:
+      case InjectStatus.Draft:
         return 'default'
-      case InjectStatus.Fired:
+      case InjectStatus.Released:
         return 'success'
-      case InjectStatus.Skipped:
+      case InjectStatus.Deferred:
         return 'warning'
       default:
         return 'default'

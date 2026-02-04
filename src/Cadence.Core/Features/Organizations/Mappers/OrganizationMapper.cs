@@ -20,6 +20,7 @@ public static class OrganizationMapper
             organization.Description,
             organization.ContactEmail,
             organization.Status.ToString(),
+            organization.InjectApprovalPolicy.ToString(),
             organization.CreatedAt,
             organization.UpdatedAt
         );

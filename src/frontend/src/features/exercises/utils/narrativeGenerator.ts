@@ -18,7 +18,7 @@ import type { InjectDto } from '../../injects/types'
 export const generateStorySoFar = (injects: InjectDto[]): string[] => {
   // Filter to only fired injects
   const firedInjects = injects.filter(
-    inject => inject.status === InjectStatus.Fired && inject.firedAt,
+    inject => inject.status === InjectStatus.Released && inject.firedAt,
   )
 
   // Sort by firedAt ascending (oldest first to tell story chronologically)

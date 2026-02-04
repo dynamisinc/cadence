@@ -770,7 +770,7 @@ export const ExerciseDetailPage = () => {
                         MSEL Progress
                       </Typography>
                       <Typography variant="body2" color="text.secondary">
-                        {mselSummary.firedCount + mselSummary.skippedCount} of{' '}
+                        {mselSummary.releasedCount + mselSummary.deferredCount} of{' '}
                         {mselSummary.totalInjects} injects completed
                       </Typography>
                     </Box>
@@ -811,26 +811,26 @@ export const ExerciseDetailPage = () => {
                     <Stack direction="row" spacing={2}>
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="h6" fontWeight={600}>
-                          {mselSummary.pendingCount}
+                          {mselSummary.draftCount}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Pending
+                          Draft
                         </Typography>
                       </Box>
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="h6" fontWeight={600} color="success.main">
-                          {mselSummary.firedCount}
+                          {mselSummary.releasedCount}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Fired
+                          Released
                         </Typography>
                       </Box>
                       <Box sx={{ textAlign: 'center' }}>
                         <Typography variant="h6" fontWeight={600} color="warning.main">
-                          {mselSummary.skippedCount}
+                          {mselSummary.deferredCount}
                         </Typography>
                         <Typography variant="caption" color="text.secondary">
-                          Skipped
+                          Deferred
                         </Typography>
                       </Box>
                     </Stack>

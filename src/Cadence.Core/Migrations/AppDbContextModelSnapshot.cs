@@ -191,6 +191,97 @@ namespace Cadence.Core.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.ApprovalNotification", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid?>("InjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<bool>("IsRead")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Message")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<string>("Metadata")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ReadAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Title")
+                        .IsRequired()
+                        .HasMaxLength(200)
+                        .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("TriggeredByUserId")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("InjectId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("TriggeredByUserId");
+
+                    b.HasIndex("UserId", "CreatedAt");
+
+                    b.HasIndex("UserId", "IsRead");
+
+                    b.ToTable("ApprovalNotifications");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Capability", b =>
                 {
                     b.Property<Guid>("Id")
@@ -460,6 +551,20 @@ namespace Cadence.Core.Migrations
                     b.Property<string>("ApplicationUserId")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<DateTime?>("ApprovalOverriddenAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovalOverriddenById")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ApprovalOverrideReason")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<bool>("ApprovalPolicyOverridden")
+                        .HasColumnType("bit");
+
                     b.Property<DateTime?>("ArchivedAt")
                         .HasColumnType("datetime2");
 
@@ -565,6 +670,9 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<bool>("RequireInjectApproval")
+                        .HasColumnType("bit");
+
                     b.Property<DateOnly>("ScheduledDate")
                         .HasColumnType("date");
 
@@ -597,6 +705,8 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("ActiveMselId");
 
                     b.HasIndex("ApplicationUserId");
+
+                    b.HasIndex("ApprovalOverriddenById");
 
                     b.HasIndex("ScheduledDate");
 
@@ -900,6 +1010,16 @@ namespace Cadence.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<DateTime?>("ApprovedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ApprovedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ApproverNotes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("ControllerNotes")
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
@@ -991,9 +1111,29 @@ namespace Cadence.Core.Migrations
                     b.Property<DateTime?>("ReadyAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<DateTime?>("RejectedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RejectedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("RejectionReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
                     b.Property<string>("ResponsibleController")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<string>("RevertReason")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<DateTime?>("RevertedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("RevertedByUserId")
+                        .HasColumnType("nvarchar(450)");
 
                     b.Property<int?>("ScenarioDay")
                         .HasColumnType("int");
@@ -1030,6 +1170,12 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
+                    b.Property<DateTime?>("SubmittedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("SubmittedByUserId")
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Target")
                         .IsRequired()
                         .HasMaxLength(200)
@@ -1054,6 +1200,8 @@ namespace Cadence.Core.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("ApprovedByUserId");
+
                     b.HasIndex("DeliveryMethodId");
 
                     b.HasIndex("FiredByUserId");
@@ -1062,7 +1210,13 @@ namespace Cadence.Core.Migrations
 
                     b.HasIndex("PhaseId");
 
+                    b.HasIndex("RejectedByUserId");
+
+                    b.HasIndex("RevertedByUserId");
+
                     b.HasIndex("SkippedByUserId");
+
+                    b.HasIndex("SubmittedByUserId");
 
                     b.HasIndex("Track");
 
@@ -1091,6 +1245,74 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("ObjectiveId");
 
                     b.ToTable("InjectObjectives");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.InjectStatusHistory", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("ChangedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("ChangedByUserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("FromStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<Guid>("InjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("Notes")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("ToStatus")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("ChangedByUserId");
+
+                    b.HasIndex("InjectId");
+
+                    b.HasIndex("InjectId", "ChangedAt");
+
+                    b.ToTable("InjectStatusHistories");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>
@@ -1399,6 +1621,9 @@ namespace Cadence.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
+                    b.Property<int>("ApprovalAuthorizedRoles")
+                        .HasColumnType("int");
+
                     b.Property<string>("ContactEmail")
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
@@ -1422,6 +1647,11 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(4000)
                         .HasColumnType("nvarchar(4000)");
 
+                    b.Property<string>("InjectApprovalPolicy")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
@@ -1434,6 +1664,9 @@ namespace Cadence.Core.Migrations
                         .IsRequired()
                         .HasMaxLength(200)
                         .HasColumnType("nvarchar(200)");
+
+                    b.Property<int>("SelfApprovalPolicy")
+                        .HasColumnType("int");
 
                     b.Property<string>("Slug")
                         .IsRequired()
@@ -1461,12 +1694,15 @@ namespace Cadence.Core.Migrations
                         new
                         {
                             Id = new Guid("00000000-0000-0000-0000-000000000001"),
+                            ApprovalAuthorizedRoles = 3,
                             CreatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             CreatedBy = "SYSTEM",
                             Description = "Default organization for the Cadence system",
+                            InjectApprovalPolicy = "Optional",
                             IsDeleted = false,
                             ModifiedBy = "SYSTEM",
                             Name = "Default Organization",
+                            SelfApprovalPolicy = 0,
                             Slug = "default",
                             Status = "Active",
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
@@ -1994,6 +2230,46 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.ApprovalNotification", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
+                        .WithMany()
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "Inject")
+                        .WithMany()
+                        .HasForeignKey("InjectId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "TriggeredByUser")
+                        .WithMany()
+                        .HasForeignKey("TriggeredByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade);
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("Inject");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("TriggeredByUser");
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.Capability", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
@@ -2034,6 +2310,11 @@ namespace Cadence.Core.Migrations
                         .WithMany("CreatedExercises")
                         .HasForeignKey("ApplicationUserId");
 
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "ApprovalOverriddenByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovalOverriddenById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
                         .WithMany("Exercises")
                         .HasForeignKey("OrganizationId")
@@ -2041,6 +2322,8 @@ namespace Cadence.Core.Migrations
                         .IsRequired();
 
                     b.Navigation("ActiveMsel");
+
+                    b.Navigation("ApprovalOverriddenByUser");
 
                     b.Navigation("Organization");
                 });
@@ -2113,6 +2396,11 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Inject", b =>
                 {
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "ApprovedByUser")
+                        .WithMany()
+                        .HasForeignKey("ApprovedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.DeliveryMethodLookup", "DeliveryMethodLookup")
                         .WithMany("Injects")
                         .HasForeignKey("DeliveryMethodId")
@@ -2139,10 +2427,27 @@ namespace Cadence.Core.Migrations
                         .HasForeignKey("PhaseId")
                         .OnDelete(DeleteBehavior.NoAction);
 
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "RejectedByUser")
+                        .WithMany()
+                        .HasForeignKey("RejectedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "RevertedByUser")
+                        .WithMany()
+                        .HasForeignKey("RevertedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
                     b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "SkippedByUser")
                         .WithMany()
                         .HasForeignKey("SkippedByUserId")
                         .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "SubmittedByUser")
+                        .WithMany()
+                        .HasForeignKey("SubmittedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("ApprovedByUser");
 
                     b.Navigation("DeliveryMethodLookup");
 
@@ -2154,7 +2459,13 @@ namespace Cadence.Core.Migrations
 
                     b.Navigation("Phase");
 
+                    b.Navigation("RejectedByUser");
+
+                    b.Navigation("RevertedByUser");
+
                     b.Navigation("SkippedByUser");
+
+                    b.Navigation("SubmittedByUser");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.InjectObjective", b =>
@@ -2174,6 +2485,24 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Inject");
 
                     b.Navigation("Objective");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.InjectStatusHistory", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "ChangedByUser")
+                        .WithMany()
+                        .HasForeignKey("ChangedByUserId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "Inject")
+                        .WithMany("StatusHistory")
+                        .HasForeignKey("InjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("ChangedByUser");
+
+                    b.Navigation("Inject");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>
@@ -2461,6 +2790,8 @@ namespace Cadence.Core.Migrations
                     b.Navigation("InjectObjectives");
 
                     b.Navigation("Observations");
+
+                    b.Navigation("StatusHistory");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>

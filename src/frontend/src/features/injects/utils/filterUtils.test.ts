@@ -38,7 +38,7 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: InjectType.Standard,
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -71,8 +71,8 @@ const createInject = (overrides: Partial<InjectDto> = {}): InjectDto => ({
 describe('filterByStatus', () => {
   it('returns all injects when no statuses selected', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Fired }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Released }),
     ]
 
     const result = filterByStatus(injects, [])
@@ -82,29 +82,29 @@ describe('filterByStatus', () => {
 
   it('filters to single status', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Fired }),
-      createInject({ id: '3', status: InjectStatus.Skipped }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Released }),
+      createInject({ id: '3', status: InjectStatus.Deferred }),
     ]
 
-    const result = filterByStatus(injects, [InjectStatus.Pending])
+    const result = filterByStatus(injects, [InjectStatus.Draft])
 
     expect(result).toHaveLength(1)
-    expect(result[0].status).toBe(InjectStatus.Pending)
+    expect(result[0].status).toBe(InjectStatus.Draft)
   })
 
   it('filters to multiple statuses (OR logic)', () => {
     const injects = [
-      createInject({ id: '1', status: InjectStatus.Pending }),
-      createInject({ id: '2', status: InjectStatus.Fired }),
-      createInject({ id: '3', status: InjectStatus.Skipped }),
+      createInject({ id: '1', status: InjectStatus.Draft }),
+      createInject({ id: '2', status: InjectStatus.Released }),
+      createInject({ id: '3', status: InjectStatus.Deferred }),
     ]
 
-    const result = filterByStatus(injects, [InjectStatus.Pending, InjectStatus.Fired])
+    const result = filterByStatus(injects, [InjectStatus.Draft, InjectStatus.Released])
 
     expect(result).toHaveLength(2)
-    expect(result.map(i => i.status)).toContain(InjectStatus.Pending)
-    expect(result.map(i => i.status)).toContain(InjectStatus.Fired)
+    expect(result.map(i => i.status)).toContain(InjectStatus.Draft)
+    expect(result.map(i => i.status)).toContain(InjectStatus.Released)
   })
 })
 
@@ -279,26 +279,26 @@ describe('applyFilters', () => {
     const injects = [
       createInject({
         id: '1',
-        status: InjectStatus.Pending,
+        status: InjectStatus.Draft,
         phaseId: 'phase-1',
         deliveryMethod: DeliveryMethod.Email,
       }),
       createInject({
         id: '2',
-        status: InjectStatus.Pending,
+        status: InjectStatus.Draft,
         phaseId: 'phase-2',
         deliveryMethod: DeliveryMethod.Email,
       }),
       createInject({
         id: '3',
-        status: InjectStatus.Fired,
+        status: InjectStatus.Released,
         phaseId: 'phase-1',
         deliveryMethod: DeliveryMethod.Email,
       }),
     ]
 
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: ['phase-1'],
       deliveryMethods: [DeliveryMethod.Email],
       objectiveIds: [],
@@ -332,23 +332,23 @@ describe('applyFilters', () => {
     const injects = [
       createInject({
         id: '1',
-        status: InjectStatus.Pending,
+        status: InjectStatus.Draft,
         objectiveIds: ['obj-1'],
       }),
       createInject({
         id: '2',
-        status: InjectStatus.Pending,
+        status: InjectStatus.Draft,
         objectiveIds: ['obj-2'],
       }),
       createInject({
         id: '3',
-        status: InjectStatus.Fired,
+        status: InjectStatus.Released,
         objectiveIds: ['obj-1'],
       }),
     ]
 
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: [],
       deliveryMethods: [],
       objectiveIds: ['obj-1'],
@@ -375,7 +375,7 @@ describe('countActiveFilters', () => {
 
   it('counts each active filter category', () => {
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending, InjectStatus.Fired],
+      statuses: [InjectStatus.Draft, InjectStatus.Released],
       phaseIds: ['phase-1'],
       deliveryMethods: [],
       objectiveIds: [],
@@ -386,7 +386,7 @@ describe('countActiveFilters', () => {
 
   it('returns 4 when all filters active', () => {
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: ['phase-1'],
       deliveryMethods: [DeliveryMethod.Email],
       objectiveIds: ['obj-1'],
@@ -410,7 +410,7 @@ describe('hasActiveFilters', () => {
 
   it('returns true when any filter is active', () => {
     expect(hasActiveFilters({
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: [],
       deliveryMethods: [],
       objectiveIds: [],
@@ -442,7 +442,7 @@ describe('hasActiveFilters', () => {
 describe('clearFilter', () => {
   it('clears status filter', () => {
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: ['phase-1'],
       deliveryMethods: [DeliveryMethod.Email],
       objectiveIds: ['obj-1'],
@@ -458,7 +458,7 @@ describe('clearFilter', () => {
 
   it('clears phase filter', () => {
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: ['phase-1'],
       deliveryMethods: [],
       objectiveIds: [],
@@ -466,7 +466,7 @@ describe('clearFilter', () => {
 
     const result = clearFilter(filters, 'phase')
 
-    expect(result.statuses).toEqual([InjectStatus.Pending])
+    expect(result.statuses).toEqual([InjectStatus.Draft])
     expect(result.phaseIds).toEqual([])
   })
 
@@ -524,7 +524,7 @@ describe('getActiveFilterLabels', () => {
 
   it('returns label for single status filter', () => {
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending],
+      statuses: [InjectStatus.Draft],
       phaseIds: [],
       deliveryMethods: [],
       objectiveIds: [],
@@ -536,13 +536,13 @@ describe('getActiveFilterLabels', () => {
     expect(result[0]).toEqual({
       type: 'status',
       label: 'Status',
-      value: 'Pending',
+      value: 'Draft',
     })
   })
 
   it('returns count for multiple status selections', () => {
     const filters: FilterState = {
-      statuses: [InjectStatus.Pending, InjectStatus.Fired],
+      statuses: [InjectStatus.Draft, InjectStatus.Released],
       phaseIds: [],
       deliveryMethods: [],
       objectiveIds: [],

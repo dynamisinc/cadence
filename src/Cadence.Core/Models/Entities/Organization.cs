@@ -32,6 +32,27 @@ public class Organization : BaseEntity
     /// </summary>
     public OrgStatus Status { get; set; } = OrgStatus.Active;
 
+    /// <summary>
+    /// Organization-level inject approval policy.
+    /// Determines whether exercises require formal inject approval.
+    /// </summary>
+    public ApprovalPolicy InjectApprovalPolicy { get; set; } = ApprovalPolicy.Optional;
+
+    /// <summary>
+    /// Exercise roles that can approve injects (flags enum).
+    /// Administrator is always included regardless of this setting.
+    /// Default: Administrator | ExerciseDirector.
+    /// </summary>
+    public ApprovalRoles ApprovalAuthorizedRoles { get; set; } =
+        ApprovalRoles.Administrator | ApprovalRoles.ExerciseDirector;
+
+    /// <summary>
+    /// Policy for self-approval of injects.
+    /// Controls whether users can approve injects they submitted.
+    /// Default: NeverAllowed (separation of duties).
+    /// </summary>
+    public SelfApprovalPolicy SelfApprovalPolicy { get; set; } = SelfApprovalPolicy.NeverAllowed;
+
     // =========================================================================
     // Navigation Properties
     // =========================================================================

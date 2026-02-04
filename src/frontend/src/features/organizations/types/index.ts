@@ -13,6 +13,7 @@ export interface Organization {
   description?: string;
   contactEmail?: string;
   status: OrgStatus;
+  injectApprovalPolicy: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -195,4 +195,25 @@ public class ExerciseStatusController : ControllerBase
 
         return Ok(transitions);
     }
+
+    /// <summary>
+    /// Validates whether an exercise can be published (Go-Live Gate).
+    /// Returns detailed status including unapproved inject counts.
+    /// When approval is enabled, blocks publish if any injects are Draft or Submitted.
+    /// </summary>
+    [HttpGet("publish-validation")]
+    [ProducesResponseType(typeof(PublishValidationResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<PublishValidationResult>> ValidatePublish(Guid exerciseId)
+    {
+        try
+        {
+            var result = await _statusService.ValidatePublishAsync(exerciseId);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+    }
 }

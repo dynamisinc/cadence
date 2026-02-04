@@ -1,8 +1,8 @@
 # Cadence Feature Catalog
 
 > **Master reference document for all Cadence platform features**
-> **Generated:** 2026-02-02
-> **Total Features:** 29
+> **Generated:** 2026-02-03
+> **Total Features:** 30
 
 ---
 
@@ -26,6 +26,7 @@
    - [3.2 Inject Filtering](#32-inject-filtering)
    - [3.3 Inject Organization](#33-inject-organization)
    - [3.4 MSEL Management](#34-msel-management)
+   - [3.5 Inject Approval Workflow](#35-inject-approval-workflow)
 
 4. [Exercise Conduct](#4-exercise-conduct)
    - [4.1 Exercise Observations](#41-exercise-observations)
@@ -428,6 +429,69 @@ MSEL Management enables version control for Master Scenario Events Lists, allowi
 
 ---
 
+## 3.5 Inject Approval Workflow
+
+**Phase:** MVP | **Status:** Not Started | **Stories:** 11 | **Points:** 43
+
+### Overview
+Organizations can require formal approval of injects before exercise conduct. When enabled, injects follow a Draft → Submitted → Approved workflow, and exercises cannot go live until all injects are approved. This supports HSEEP compliance and organizational governance requirements per FEMA PrepToolkit standards.
+
+### Problem Statement
+Emergency management exercises require quality control and oversight to ensure all scenario content is reviewed before delivery to players. FEMA PrepToolkit defines an 8-status inject workflow (Draft, Submitted, Approved, Synchronized, Released, Complete, Deferred, Obsolete) that organizations expect Cadence to support. Without formal approval workflow, organizations cannot enforce separation of duties between inject authors and reviewers.
+
+### User Stories
+
+| Story | Title | Priority | Points |
+|-------|-------|----------|--------|
+| S00 | HSEEP Inject Status Enum | P0 | 3 |
+| S01 | Organization Approval Configuration | P1 | 3 |
+| S02 | Exercise Approval Configuration | P1 | 3 |
+| S03 | Submit Inject for Approval | P0 | 3 |
+| S04 | Approve or Reject Inject | P0 | 5 |
+| S05 | Batch Approval Actions | P1 | 5 |
+| S06 | Approval Queue View | P1 | 3 |
+| S07 | Exercise Go-Live Gate | P0 | 3 |
+| S08 | Approval Notifications | P2 | 5 |
+| S09 | Revert Approval Status | P1 | 2 |
+| S10 | Configurable Status Workflow | P2 | 8 |
+
+### Key Concepts
+
+| Term | Definition |
+|------|------------|
+| **HSEEP Status Workflow** | FEMA PrepToolkit 8-status model: Draft → Submitted → Approved → Synchronized → Released → Complete (with Deferred/Obsolete branches) |
+| **Approval Policy** | Organization-level setting: Disabled, Optional, or Required |
+| **Go-Live Gate** | Validation that prevents publishing exercises with unapproved injects |
+| **Separation of Duties** | Users cannot approve their own submissions |
+| **Framework Templates** | Pre-built workflows for DoD/NATO, Cybersecurity, Healthcare, Financial sectors |
+
+### Configuration Model
+
+Three-tier configuration system:
+- **Organization Level:** Sets default policy (Disabled/Optional/Required)
+- **Exercise Level:** Directors enable/disable per exercise (constrained by org policy)
+- **Inject Level:** Status workflow enforced based on exercise setting
+
+### Cross-Domain Support
+
+While HSEEP is the default for U.S. civilian emergency management, the feature supports configurable status workflows for:
+- DoD/Joint Training System (JMSEL, Key/Enabling/Supporting injects)
+- NATO (STARTEX/ENDEX, EXCON/DISTAFF roles)
+- UK Cabinet Office (Main Events List, Blue/Red/Green/White Cells)
+- Australian AIIMS (Special Ideas, DISCEX/Functional/Field)
+- Cybersecurity (NIST/MITRE ATT&CK mapping, Red/Blue/Purple teams)
+- Healthcare (CMS/Joint Commission, HICS roles, surge levels)
+- Financial (FFIEC/FINRA, RTO/RPO/MTD metrics)
+- ISO 22301/BCI (BCMS validation terminology)
+
+### Dependencies
+
+- **Requires:** Phase D (Exercise Conduct) for status workflow integration
+- **Blocks:** Phase E (Observations) - evaluators need stable inject status
+- **Related:** Exercise Status Workflow (Draft → Published gate)
+
+---
+
 # 4. Exercise Conduct
 
 ## 4.1 Exercise Observations
@@ -813,7 +877,7 @@ Exercise conduct requires long, uninterrupted sessions. Users lose work when ses
 
 # Appendix: Feature Summary by Phase
 
-## MVP Phase (18 features)
+## MVP Phase (19 features)
 
 | Feature | Status |
 |---------|--------|
@@ -827,6 +891,7 @@ Exercise conduct requires long, uninterrupted sessions. Users lose work when ses
 | Exercise Phases | Not Started |
 | Inject CRUD | In Progress |
 | MSEL Management | Ready |
+| Inject Approval Workflow | Not Started |
 | Exercise Observations | Complete |
 | Connectivity | Complete |
 | Homepage | Complete |

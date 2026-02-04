@@ -198,8 +198,8 @@ export const ReportsPage = () => {
                 </Typography>
                 {mselSummary && (
                   <Typography variant="caption" color="text.secondary">
-                    {mselSummary.totalInjects} injects ({mselSummary.firedCount} fired,{' '}
-                    {mselSummary.pendingCount} pending, {mselSummary.skippedCount} skipped)
+                    {mselSummary.totalInjects} injects ({mselSummary.releasedCount} released,{' '}
+                    {mselSummary.draftCount} draft, {mselSummary.deferredCount} deferred)
                   </Typography>
                 )}
               </Box>

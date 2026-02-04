@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
+using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
@@ -26,26 +28,36 @@ public class InjectsController : ControllerBase
     private readonly ILogger<InjectsController> _logger;
     private readonly IExerciseHubContext _hubContext;
     private readonly IInjectService _injectService;
+    private readonly IApprovalPermissionService _approvalPermissionService;
 
     public InjectsController(
         AppDbContext context,
         ILogger<InjectsController> logger,
         IExerciseHubContext hubContext,
-        IInjectService injectService)
+        IInjectService injectService,
+        IApprovalPermissionService approvalPermissionService)
     {
         _context = context;
         _logger = logger;
         _hubContext = hubContext;
         _injectService = injectService;
+        _approvalPermissionService = approvalPermissionService;
     }
 
     /// <summary>
     /// Get all injects for an exercise (via its active MSEL).
     /// Uses split query approach to avoid cartesian explosion with objectives.
+    /// Supports filtering by status and by user submissions (S06: Approval Queue View).
     /// </summary>
+    /// <param name="exerciseId">Exercise ID</param>
+    /// <param name="status">Optional filter by inject status (e.g., Submitted for pending approval)</param>
+    /// <param name="mySubmissionsOnly">If true, only return injects submitted by current user</param>
     [HttpGet]
     [AuthorizeExerciseAccess]
-    public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(Guid exerciseId)
+    public async Task<ActionResult<IEnumerable<InjectDto>>> GetInjects(
+        Guid exerciseId,
+        [FromQuery] InjectStatus? status = null,
+        [FromQuery] bool mySubmissionsOnly = false)
     {
         var exercise = await _context.Exercises.FindAsync(exerciseId);
         if (exercise == null)
@@ -61,8 +73,30 @@ public class InjectsController : ControllerBase
         // Use split query to avoid cartesian explosion with InjectObjectives
         // First get the injects without objectives
         var injectsQuery = _context.Injects
-            .Where(i => i.MselId == exercise.ActiveMselId)
-            .OrderBy(i => i.Sequence)
+            .Where(i => i.MselId == exercise.ActiveMselId);
+
+        // Apply status filter if provided
+        if (status.HasValue)
+        {
+            injectsQuery = injectsQuery.Where(i => i.Status == status.Value);
+        }
+
+        // Apply mySubmissionsOnly filter if requested
+        if (mySubmissionsOnly)
+        {
+            var currentUserId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (!string.IsNullOrEmpty(currentUserId))
+            {
+                injectsQuery = injectsQuery.Where(i =>
+                    i.SubmittedByUserId == currentUserId ||
+                    i.CreatedBy == currentUserId);
+            }
+        }
+
+        // Default ordering by sequence (for approval queue, can be changed client-side)
+        injectsQuery = injectsQuery.OrderBy(i => i.Sequence);
+
+        var injectsQueryProjected = injectsQuery
             .Select(i => new
             {
                 i.Id,
@@ -105,10 +139,22 @@ public class InjectsController : ControllerBase
                 i.ResponsibleController,
                 i.LocationName,
                 i.LocationType,
-                i.Track
+                i.Track,
+                i.SubmittedByUserId,
+                i.SubmittedAt,
+                i.ApprovedByUserId,
+                i.ApprovedAt,
+                i.ApproverNotes,
+                i.RejectedByUserId,
+                i.RejectedAt,
+                i.RejectionReason,
+                i.RevertedByUserId,
+                i.RevertedAt,
+                i.RevertReason,
+                i.ModifiedBy
             });
 
-        var injectsData = await injectsQuery.ToListAsync();
+        var injectsData = await injectsQueryProjected.ToListAsync();
 
         // Get all objective mappings in a single query
         var injectIds = injectsData.Select(i => i.Id).ToList();
@@ -166,7 +212,19 @@ public class InjectsController : ControllerBase
             i.ResponsibleController,
             i.LocationName,
             i.LocationType,
-            i.Track
+            i.Track,
+            i.SubmittedByUserId,
+            i.SubmittedAt,
+            i.ApprovedByUserId,
+            i.ApprovedAt,
+            i.ApproverNotes,
+            i.RejectedByUserId,
+            i.RejectedAt,
+            i.RejectionReason,
+            i.RevertedByUserId,
+            i.RevertedAt,
+            i.RevertReason,
+            i.ModifiedBy
         )).ToList();
 
         return Ok(injects);
@@ -335,17 +393,72 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = validationError });
         }
 
+        // Track if we need to revert approval status (used for SignalR notification)
+        var previousStatus = inject.Status;
+        var statusRevertedToDraft = false;
+
         // Apply edit restrictions based on inject status
-        if (inject.Status == InjectStatus.Fired)
+        if (inject.Status == InjectStatus.Released)
         {
-            // Only Notes can be edited on fired injects
+            // Only Notes can be edited on released injects
             inject.ControllerNotes = request.ControllerNotes;
             inject.ModifiedBy = GetCurrentUserId();
         }
         else
         {
-            // Full edit allowed for Pending/Skipped injects
+            var shouldRevertToDraft = false;
+
+            // If approval workflow is enabled and inject is Approved or Submitted,
+            // editing should revert to Draft (invalidates the approval)
+            if (exercise.RequireInjectApproval &&
+                (inject.Status == InjectStatus.Approved || inject.Status == InjectStatus.Submitted))
+            {
+                shouldRevertToDraft = true;
+            }
+
+            // Full edit allowed for Draft/Deferred/Submitted/Approved injects
             inject.UpdateFromRequest(request, GetCurrentUserId());
+
+            // Revert to Draft if approval workflow requires it
+            if (shouldRevertToDraft)
+            {
+                inject.Status = InjectStatus.Draft;
+
+                // Clear approval tracking fields
+                inject.ApprovedByUserId = null;
+                inject.ApprovedAt = null;
+                inject.ApproverNotes = null;
+
+                // Clear submission tracking (user must re-submit)
+                inject.SubmittedByUserId = null;
+                inject.SubmittedAt = null;
+
+                // Clear any rejection (fresh start)
+                inject.RejectedByUserId = null;
+                inject.RejectedAt = null;
+                inject.RejectionReason = null;
+
+                // Record status history
+                var history = new InjectStatusHistory
+                {
+                    Id = Guid.NewGuid(),
+                    InjectId = inject.Id,
+                    FromStatus = previousStatus,
+                    ToStatus = InjectStatus.Draft,
+                    ChangedByUserId = GetCurrentUserIdString(),
+                    ChangedAt = DateTime.UtcNow,
+                    Notes = "Content edited - reverted to Draft for re-approval",
+                    CreatedBy = GetCurrentUserId(),
+                    ModifiedBy = GetCurrentUserId()
+                };
+                _context.InjectStatusHistories.Add(history);
+
+                _logger.LogInformation(
+                    "Inject {InjectId} reverted from {PreviousStatus} to Draft due to content edit (approval workflow enabled)",
+                    inject.Id, previousStatus);
+
+                statusRevertedToDraft = true;
+            }
 
             // Update objective links if provided (only for non-fired injects)
             if (request.ObjectiveIds != null)
@@ -374,9 +487,17 @@ public class InjectsController : ControllerBase
 
         await _context.SaveChangesAsync();
 
+        var dto = inject.ToDto();
+
+        // Notify via SignalR if status was reverted due to edit
+        if (statusRevertedToDraft)
+        {
+            await _hubContext.NotifyInjectStatusChanged(exerciseId, dto);
+        }
+
         _logger.LogInformation("Updated inject {InjectId}: {InjectTitle}", inject.Id, inject.Title);
 
-        return Ok(inject.ToDto());
+        return Ok(dto);
     }
 
     /// <summary>
@@ -405,25 +526,25 @@ public class InjectsController : ControllerBase
         }
 
         // Validate inject can be fired based on delivery mode
-        // In clock-driven mode, inject must be Ready
-        // In facilitator-paced mode, inject can be Pending or Ready
+        // In clock-driven mode, inject must be Synchronized
+        // In facilitator-paced mode, inject can be Draft or Synchronized
         if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
         {
-            if (inject.Status != InjectStatus.Ready)
+            if (inject.Status != InjectStatus.Synchronized)
             {
-                return BadRequest(new { message = $"Inject must be Ready to fire in clock-driven mode. Current status: {inject.Status}" });
+                return BadRequest(new { message = $"Inject must be Synchronized to fire in clock-driven mode. Current status: {inject.Status}" });
             }
         }
         else // FacilitatorPaced
         {
-            if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+            if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
             {
-                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Pending or Ready injects can be fired." });
+                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Draft or Synchronized injects can be fired." });
             }
         }
 
         // Fire the inject
-        inject.Status = InjectStatus.Fired;
+        inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
         inject.FiredByUserId = GetCurrentUserIdString();
         inject.ModifiedBy = GetCurrentUserId();
@@ -477,10 +598,10 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Injects can be skipped from Pending or Ready status
-        if (inject.Status != InjectStatus.Pending && inject.Status != InjectStatus.Ready)
+        // Injects can be skipped from Draft or Synchronized status
+        if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
         {
-            return BadRequest(new { message = $"Only Pending or Ready injects can be skipped. Current status: {inject.Status}" });
+            return BadRequest(new { message = $"Only Draft or Synchronized injects can be skipped. Current status: {inject.Status}" });
         }
 
         // Validate skip reason
@@ -495,7 +616,7 @@ public class InjectsController : ControllerBase
         }
 
         // Skip the inject
-        inject.Status = InjectStatus.Skipped;
+        inject.Status = InjectStatus.Deferred;
         inject.SkippedAt = DateTime.UtcNow;
         inject.SkippedByUserId = GetCurrentUserIdString();
         inject.SkipReason = request.Reason;
@@ -542,14 +663,14 @@ public class InjectsController : ControllerBase
             return NotFound(new { message = "Inject not found" });
         }
 
-        // Only fired or skipped injects can be reset
-        if (inject.Status == InjectStatus.Pending)
+        // Only released or deferred injects can be reset
+        if (inject.Status == InjectStatus.Draft)
         {
-            return BadRequest(new { message = "Inject is already pending" });
+            return BadRequest(new { message = "Inject is already in draft" });
         }
 
         // Reset the inject
-        inject.Status = InjectStatus.Pending;
+        inject.Status = InjectStatus.Draft;
         inject.FiredAt = null;
         inject.FiredByUserId = null;
         inject.SkippedAt = null;
@@ -604,6 +725,283 @@ public class InjectsController : ControllerBase
         catch (ArgumentException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Submit an inject for approval.
+    /// </summary>
+    [HttpPost("{id:guid}/submit")]
+    [AuthorizeExerciseController]
+    public async Task<ActionResult<InjectDto>> SubmitForApproval(Guid exerciseId, Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.SubmitForApprovalAsync(exerciseId, id, userId);
+
+            _logger.LogInformation("Inject {InjectId} submitted for approval by {UserId}", id, userId);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Approve a submitted inject.
+    /// Only Exercise Directors or Administrators can approve injects.
+    /// Self-approval behavior depends on organization policy (S11):
+    /// - NeverAllowed: Cannot approve own submissions
+    /// - AllowedWithWarning: Requires confirmSelfApproval=true
+    /// - AlwaysAllowed: No restrictions
+    /// </summary>
+    [HttpPost("{id:guid}/approve")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<InjectDto>> ApproveInject(Guid exerciseId, Guid id, [FromBody] ApproveInjectRequest? request = null)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            InjectDto result;
+
+            // Use the confirmation-aware method when self-approval flag is provided (S11)
+            if (request?.ConfirmSelfApproval == true)
+            {
+                result = await _injectService.ApproveInjectWithConfirmationAsync(
+                    exerciseId, id, userId, request.Notes, confirmSelfApproval: true);
+            }
+            else
+            {
+                result = await _injectService.ApproveInjectAsync(exerciseId, id, userId, request?.Notes);
+            }
+
+            _logger.LogInformation("Approved inject {InjectId} in exercise {ExerciseId} by user {UserId}",
+                id, exerciseId, userId);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Reject a submitted inject, returning it to Draft status.
+    /// Only Exercise Directors or Administrators can reject injects.
+    /// Rejection reason is required (min 10 characters) to provide feedback to the author.
+    /// </summary>
+    [HttpPost("{id:guid}/reject")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<InjectDto>> RejectInject(Guid exerciseId, Guid id, [FromBody] RejectInjectRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new { message = "Rejection reason is required" });
+            }
+
+            if (request.Reason.Length < 10)
+            {
+                return BadRequest(new { message = "Rejection reason must be at least 10 characters" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.RejectInjectAsync(exerciseId, id, userId, request.Reason);
+
+            _logger.LogInformation("Rejected inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
+                id, exerciseId, userId, request.Reason);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Batch approve multiple submitted injects.
+    /// Only Exercise Directors or Administrators can approve injects.
+    /// Self-submissions are automatically skipped (separation of duties).
+    /// </summary>
+    [HttpPost("batch/approve")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<BatchApprovalResult>> BatchApprove(
+        Guid exerciseId,
+        [FromBody] BatchApproveRequest request)
+    {
+        try
+        {
+            if (request.InjectIds == null || request.InjectIds.Count == 0)
+            {
+                return BadRequest(new { message = "InjectIds is required and must contain at least one inject" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.BatchApproveAsync(exerciseId, request.InjectIds, request.Notes, userId);
+
+            _logger.LogInformation("Batch approved {Count} injects in exercise {ExerciseId} by user {UserId}",
+                result.ApprovedCount, exerciseId, userId);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Batch reject multiple submitted injects, returning them to Draft status.
+    /// Only Exercise Directors or Administrators can reject injects.
+    /// Rejection reason is required (min 10 characters) to provide feedback to authors.
+    /// </summary>
+    [HttpPost("batch/reject")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<BatchApprovalResult>> BatchReject(
+        Guid exerciseId,
+        [FromBody] BatchRejectRequest request)
+    {
+        try
+        {
+            if (request.InjectIds == null || request.InjectIds.Count == 0)
+            {
+                return BadRequest(new { message = "InjectIds is required and must contain at least one inject" });
+            }
+
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new { message = "Rejection reason is required" });
+            }
+
+            if (request.Reason.Length < 10)
+            {
+                return BadRequest(new { message = "Rejection reason must be at least 10 characters" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.BatchRejectAsync(exerciseId, request.InjectIds, request.Reason, userId);
+
+            _logger.LogInformation("Batch rejected {Count} injects in exercise {ExerciseId} by user {UserId}: {Reason}",
+                result.RejectedCount, exerciseId, userId, request.Reason);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Revert an approved inject back to Submitted status for re-review.
+    /// Only Exercise Directors or Administrators can revert approvals.
+    /// Revert reason is required (min 10 characters) to explain why re-review is needed.
+    /// </summary>
+    [HttpPost("{id:guid}/revert")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<InjectDto>> RevertApproval(
+        Guid exerciseId,
+        Guid id,
+        [FromBody] RevertApprovalRequest request)
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(request.Reason))
+            {
+                return BadRequest(new { message = "Revert reason is required" });
+            }
+
+            if (request.Reason.Length < 10)
+            {
+                return BadRequest(new { message = "Revert reason must be at least 10 characters" });
+            }
+
+            var userId = GetCurrentUserIdString();
+            var result = await _injectService.RevertApprovalAsync(exerciseId, id, userId, request.Reason);
+
+            _logger.LogInformation("Reverted inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
+                id, exerciseId, userId, request.Reason);
+
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    // =========================================================================
+    // Approval Permission Check (S11)
+    // =========================================================================
+
+    /// <summary>
+    /// Check if the current user can approve a specific inject.
+    /// Returns permission details including whether self-approval is allowed/required confirmation.
+    /// Used by frontend to conditionally render approve/reject buttons.
+    /// </summary>
+    [HttpGet("{id:guid}/can-approve")]
+    [AuthorizeExerciseAccess]
+    public async Task<ActionResult<InjectApprovalCheckDto>> CheckApprovalPermission(Guid exerciseId, Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var result = await _approvalPermissionService.CanApproveInjectAsync(userId, id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Check if the current user can approve injects for this exercise (general check).
+    /// Returns true if user's role is authorized to approve.
+    /// </summary>
+    [HttpGet("can-approve")]
+    [AuthorizeExerciseAccess]
+    public async Task<ActionResult<bool>> CheckExerciseApprovalPermission(Guid exerciseId)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var canApprove = await _approvalPermissionService.CanApproveAsync(userId, exerciseId);
+            return Ok(new { canApprove });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
     }
 

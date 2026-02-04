@@ -54,7 +54,7 @@ const createMockInject = (
   deliveryMethodName: null,
   deliveryMethodOther: null,
   injectType: 'Standard',
-  status: InjectStatus.Pending,
+  status: InjectStatus.Draft,
   sequence: 1,
   parentInjectId: null,
   triggerCondition: null,
@@ -420,9 +420,9 @@ describe('FloatingClockChip', () => {
   describe('Progress Display', () => {
     it('shows "0 of X injects" when no injects fired', async () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Pending }),
-        createMockInject({ id: '2', status: InjectStatus.Pending }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Draft }),
+        createMockInject({ id: '2', status: InjectStatus.Draft }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
       const user = userEvent.setup()
 
@@ -442,9 +442,9 @@ describe('FloatingClockChip', () => {
 
     it('counts fired injects in progress', async () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Fired, firedAt: '2025-01-01T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Released, firedAt: '2025-01-01T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
       const user = userEvent.setup()
 
@@ -464,9 +464,9 @@ describe('FloatingClockChip', () => {
 
     it('counts skipped injects in progress', async () => {
       const injects = [
-        createMockInject({ id: '1', status: InjectStatus.Fired, firedAt: '2025-01-01T10:00:00Z' }),
-        createMockInject({ id: '2', status: InjectStatus.Skipped, skippedAt: '2025-01-01T10:05:00Z' }),
-        createMockInject({ id: '3', status: InjectStatus.Pending }),
+        createMockInject({ id: '1', status: InjectStatus.Released, firedAt: '2025-01-01T10:00:00Z' }),
+        createMockInject({ id: '2', status: InjectStatus.Deferred, skippedAt: '2025-01-01T10:05:00Z' }),
+        createMockInject({ id: '3', status: InjectStatus.Draft }),
       ]
       const user = userEvent.setup()
 
@@ -507,21 +507,21 @@ describe('FloatingClockChip', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:00:00Z',
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Fired,
+          status: InjectStatus.Released,
           firedAt: '2025-01-01T10:30:00Z',
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
         createMockInject({
           id: '3',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-2',
           phaseName: 'Evacuation',
         }),
@@ -546,13 +546,13 @@ describe('FloatingClockChip', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
         createMockInject({
           id: '2',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: 'phase-1',
           phaseName: 'Initial Response',
         }),
@@ -577,7 +577,7 @@ describe('FloatingClockChip', () => {
       const injects = [
         createMockInject({
           id: '1',
-          status: InjectStatus.Pending,
+          status: InjectStatus.Draft,
           phaseId: null,
           phaseName: null,
         }),

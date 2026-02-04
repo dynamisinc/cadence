@@ -4,42 +4,121 @@ import { InjectStatusChip } from './InjectStatusChip'
 import { InjectStatus } from '../../../types'
 
 describe('InjectStatusChip', () => {
-  it('renders Pending status with correct label', () => {
-    render(<InjectStatusChip status={InjectStatus.Pending} />)
-    expect(screen.getByText('Pending')).toBeInTheDocument()
+  describe('HSEEP Status Labels', () => {
+    it.each([
+      [InjectStatus.Draft, 'Draft'],
+      [InjectStatus.Submitted, 'Submitted'],
+      [InjectStatus.Approved, 'Approved'],
+      [InjectStatus.Synchronized, 'Synchronized'],
+      [InjectStatus.Released, 'Released'],
+      [InjectStatus.Complete, 'Complete'],
+      [InjectStatus.Deferred, 'Deferred'],
+      [InjectStatus.Obsolete, 'Obsolete'],
+    ])('renders %s status with correct label "%s"', (status, label) => {
+      render(<InjectStatusChip status={status} />)
+      expect(screen.getByText(label)).toBeInTheDocument()
+    })
   })
 
-  it('renders Fired status with correct label', () => {
-    render(<InjectStatusChip status={InjectStatus.Fired} />)
-    expect(screen.getByText('Fired')).toBeInTheDocument()
+  describe('HSEEP Status Colors', () => {
+    it('applies gray styling for Draft status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Draft} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Gray background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(224, 224, 224)' })
+    })
+
+    it('applies amber/yellow styling for Submitted status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Submitted} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Amber background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(255, 224, 178)' })
+    })
+
+    it('applies green styling for Approved status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Approved} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Green background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(200, 230, 201)' })
+    })
+
+    it('applies blue styling for Synchronized status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Synchronized} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Blue background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(187, 222, 251)' })
+    })
+
+    it('applies purple styling for Released status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Released} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Purple background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(225, 190, 231)' })
+    })
+
+    it('applies dark green styling for Complete status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Complete} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Dark green background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(165, 214, 167)' })
+    })
+
+    it('applies orange styling for Deferred status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Deferred} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Orange background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(255, 204, 128)' })
+    })
+
+    it('applies light gray styling for Obsolete status', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Obsolete} />)
+      const chip = container.querySelector('.MuiChip-root')
+      expect(chip).toBeInTheDocument()
+      // Light gray background per HSEEP spec
+      expect(chip).toHaveStyle({ backgroundColor: 'rgb(245, 245, 245)' })
+    })
   })
 
-  it('renders Skipped status with correct label', () => {
-    render(<InjectStatusChip status={InjectStatus.Skipped} />)
-    expect(screen.getByText('Skipped')).toBeInTheDocument()
+  describe('Icons', () => {
+    it('renders icon for each status', () => {
+      const statuses = [
+        InjectStatus.Draft,
+        InjectStatus.Submitted,
+        InjectStatus.Approved,
+        InjectStatus.Synchronized,
+        InjectStatus.Released,
+        InjectStatus.Complete,
+        InjectStatus.Deferred,
+        InjectStatus.Obsolete,
+      ]
+
+      statuses.forEach(status => {
+        const { container } = render(<InjectStatusChip status={status} />)
+        // FontAwesome icons render as SVG elements
+        const icon = container.querySelector('svg')
+        expect(icon).toBeInTheDocument()
+      })
+    })
   })
 
-  it('applies correct styling for Pending status (gray)', () => {
-    const { container } = render(<InjectStatusChip status={InjectStatus.Pending} />)
-    const chip = container.querySelector('.MuiChip-root')
-    expect(chip).toBeInTheDocument()
-    // Check for gray background - statusChart.grey from cobraTheme
-    expect(chip).toHaveStyle({ backgroundColor: 'rgb(192, 192, 192)' })
-  })
+  describe('Size prop', () => {
+    it('renders small size by default', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Draft} />)
+      const chip = container.querySelector('.MuiChip-sizeSmall')
+      expect(chip).toBeInTheDocument()
+    })
 
-  it('applies correct styling for Fired status (green)', () => {
-    const { container } = render(<InjectStatusChip status={InjectStatus.Fired} />)
-    const chip = container.querySelector('.MuiChip-root')
-    expect(chip).toBeInTheDocument()
-    // Check for green background - notifications.success from cobraTheme
-    expect(chip).toHaveStyle({ backgroundColor: 'rgb(174, 251, 184)' })
-  })
-
-  it('applies correct styling for Skipped status (warning/orange)', () => {
-    const { container } = render(<InjectStatusChip status={InjectStatus.Skipped} />)
-    const chip = container.querySelector('.MuiChip-root')
-    expect(chip).toBeInTheDocument()
-    // Check for warning background - notifications.warning from cobraTheme
-    expect(chip).toHaveStyle({ backgroundColor: 'rgb(249, 249, 190)' })
+    it('renders medium size when specified', () => {
+      const { container } = render(<InjectStatusChip status={InjectStatus.Draft} size="medium" />)
+      const chip = container.querySelector('.MuiChip-sizeMedium')
+      expect(chip).toBeInTheDocument()
+    })
   })
 })

@@ -79,7 +79,7 @@ public class ExcelExportServiceTests
             ScheduledTime = new TimeOnly(9, 0).Add(TimeSpan.FromMinutes(injectNumber * 15)),
             Target = "EOC",
             InjectType = InjectType.Standard,
-            Status = InjectStatus.Pending,
+            Status = InjectStatus.Draft,
             Sequence = injectNumber,
             MselId = msel.Id,
             CreatedBy = Guid.Empty.ToString(),
@@ -287,7 +287,7 @@ public class ExcelExportServiceTests
         // Arrange
         var (context, _, exercise, msel) = CreateTestContext();
         var inject = CreateInject(context, msel, 1, "Fired Inject");
-        inject.Status = InjectStatus.Fired;
+        inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
         context.SaveChanges();
 
@@ -320,7 +320,7 @@ public class ExcelExportServiceTests
         }
 
         statusColumnIndex.Should().BeGreaterThan(0, "Status column should exist");
-        worksheet.Cell(2, statusColumnIndex).GetString().Should().Be("Fired");
+        worksheet.Cell(2, statusColumnIndex).GetString().Should().Be("Released");
     }
 
     [Fact]

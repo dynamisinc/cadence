@@ -47,8 +47,14 @@ jobs:
             exit 0
           fi
 
+          # Check for frontend changes
+          # Note: We DO deploy on release-please PRs because:
+          # - CHANGELOG.md is bundled for the About page release notes
+          # - package.json version is shown in the app
           if git diff --name-only $BASE_SHA $HEAD_SHA | grep -qE '^src/frontend/'; then
             echo "frontend=true" >> $GITHUB_OUTPUT
+            echo "Changed files in src/frontend/:"
+            git diff --name-only $BASE_SHA $HEAD_SHA | grep -E '^src/frontend/' | head -20
           else
             echo "frontend=false" >> $GITHUB_OUTPUT
           fi

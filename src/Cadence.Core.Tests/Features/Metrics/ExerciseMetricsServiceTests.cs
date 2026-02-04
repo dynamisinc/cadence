@@ -84,7 +84,7 @@ public class ExerciseMetricsServiceTests
                 DeliveryTime = TimeSpan.FromMinutes(i * 10), // 10, 20, 30, etc minutes
                 Target = "Target",
                 InjectType = InjectType.Standard,
-                Status = InjectStatus.Pending,
+                Status = InjectStatus.Draft,
                 Sequence = i,
                 MselId = msel.Id,
                 CreatedBy = Guid.Empty.ToString(),
@@ -125,11 +125,11 @@ public class ExerciseMetricsServiceTests
         var (msel, injects) = CreateInjects(context, exercise, 5);
 
         // Fire 2 injects, skip 1
-        injects[0].Status = InjectStatus.Fired;
+        injects[0].Status = InjectStatus.Released;
         injects[0].FiredAt = DateTime.UtcNow;
-        injects[1].Status = InjectStatus.Fired;
+        injects[1].Status = InjectStatus.Released;
         injects[1].FiredAt = DateTime.UtcNow;
-        injects[2].Status = InjectStatus.Skipped;
+        injects[2].Status = InjectStatus.Deferred;
         injects[2].SkippedAt = DateTime.UtcNow;
         context.SaveChanges();
 
@@ -274,13 +274,13 @@ public class ExerciseMetricsServiceTests
 
         // Fire inject 1 exactly on time (DeliveryTime = 10 minutes from activation)
         var inject1 = injects[0];
-        inject1.Status = InjectStatus.Fired;
+        inject1.Status = InjectStatus.Released;
         inject1.FiredAt = activatedAt + inject1.DeliveryTime!.Value; // Exactly on time
         inject1.FiredByUserId = userId;
 
         // Fire inject 2 late (DeliveryTime = 20 minutes, but fired at 25 minutes)
         var inject2 = injects[1];
-        inject2.Status = InjectStatus.Fired;
+        inject2.Status = InjectStatus.Released;
         inject2.FiredAt = activatedAt + inject2.DeliveryTime!.Value + TimeSpan.FromMinutes(5); // 5 min late
         inject2.FiredByUserId = userId;
 
@@ -325,7 +325,7 @@ public class ExerciseMetricsServiceTests
         // Fire inject without DeliveryTime set
         var inject = injects[0];
         inject.DeliveryTime = null; // No delivery time
-        inject.Status = InjectStatus.Fired;
+        inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
         inject.FiredByUserId = userId;
         context.SaveChanges();

@@ -137,7 +137,7 @@ describe('InjectFilterBar', () => {
     it('passes status filter values to status dropdown', () => {
       const filters: FilterState = {
         ...defaultFilters,
-        statuses: [InjectStatus.Pending],
+        statuses: [InjectStatus.Draft],
       }
 
       renderWithTheme(<InjectFilterBar {...defaultProps} filters={filters} />)
