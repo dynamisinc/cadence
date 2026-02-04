@@ -2,6 +2,31 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.0.0](https://github.com/dynamisinc/cadence/compare/api-v2.0.0...api-v3.0.0) (2026-02-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **inject-approval:** InjectStatus enum values renamed to HSEEP terminology
+
+### Features
+
+* **inject-approval:** add approval workflow entity fields and HSEEP terminology ([01c3aff](https://github.com/dynamisinc/cadence/commit/01c3aff195a8bd16e1294671b44d6bef5abdab18))
+* **inject-approval:** enforce self-approval policy and edit invalidation (S11, S15) ([a862369](https://github.com/dynamisinc/cadence/commit/a862369ec2184a79ab0d1d1758c65f53bcf37d6b))
+* **inject-approval:** Implement approval workflow with configurable permissions ([d8861f4](https://github.com/dynamisinc/cadence/commit/d8861f4922e0ae2779f95ede36f893edd8686fee))
+* **inject-approval:** implement S00 HSEEP-compliant InjectStatus enum ([43ca1cd](https://github.com/dynamisinc/cadence/commit/43ca1cd77f432a8c04b0b5cb22cd50d07492dcb2))
+* **inject-approval:** implement S01-S04 approval workflow services and endpoints ([25908b0](https://github.com/dynamisinc/cadence/commit/25908b0e17877824a874cf7fe8f8b51bb81cc7da))
+* **inject-approval:** implement S05-S07 batch approval, queue view, go-live gate ([7ade1c1](https://github.com/dynamisinc/cadence/commit/7ade1c1716065645305ad43194369bc557d4ff84))
+* **inject-approval:** implement S08-S09 notifications and revert approval ([2a377dc](https://github.com/dynamisinc/cadence/commit/2a377dc2aef09fe6d5cf1f47a924f2cf8e8c8eb5))
+* **inject-approval:** implement S11 configurable approval permissions and frontend components ([aae6ad0](https://github.com/dynamisinc/cadence/commit/aae6ad0bce5207a336744fdf430af142ca608e71))
+
+
+### Bug Fixes
+
+* **inject-approval:** resolve permissions persistence and self-approval issues ([50663e2](https://github.com/dynamisinc/cadence/commit/50663e2f8b295293005a6d5e87a1fbf6e673b382))
+* **inject-approval:** resolve permissions persistence and self-approval issues ([462a5c7](https://github.com/dynamisinc/cadence/commit/462a5c7b4bf2ffe5b5d00af035478043b41ca902))
+* **migrations:** resolve inject status and FK cascade issues ([5afe1e5](https://github.com/dynamisinc/cadence/commit/5afe1e5f09e91a0b1b874a6536694de7f317cd54))
+
 ## [2.0.0](https://github.com/dynamisinc/cadence/compare/api-v1.1.0...api-v2.0.0) (2026-02-03)
 
 
