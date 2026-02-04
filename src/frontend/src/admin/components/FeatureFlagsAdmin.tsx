@@ -159,6 +159,7 @@ export const FeatureFlagsAdmin: React.FC = () => {
   // Group features by category (matching HSEEP workflow sections)
   const conductFlags = featureFlagInfo.filter(f => f.category === 'conduct')
   const analysisFlags = featureFlagInfo.filter(f => f.category === 'analysis')
+  const organizationFlags = featureFlagInfo.filter(f => f.category === 'organization')
   const systemFlags = featureFlagInfo.filter(f => f.category === 'system')
 
   const renderFlagGroup = (
@@ -238,6 +239,18 @@ export const FeatureFlagsAdmin: React.FC = () => {
               'Analysis',
               analysisFlags,
               'analysis-flags-section',
+            )}
+          </>
+        )}
+
+        {/* Organization Section */}
+        {organizationFlags.length > 0 && (
+          <>
+            <Divider />
+            {renderFlagGroup(
+              'Organization',
+              organizationFlags,
+              'organization-flags-section',
             )}
           </>
         )}
