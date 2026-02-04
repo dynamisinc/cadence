@@ -7,7 +7,7 @@
  *
  * @module features/organizations/components
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -69,6 +69,10 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
   const { data: permissions, isLoading, error } = useApprovalPermissions(organizationId)
   const updateMutation = useUpdateApprovalPermissions()
 
+  // Track initial load with refs to avoid re-syncing on every render
+  const orgInitializedRef = useRef(false)
+  const permissionsInitializedRef = useRef(false)
+
   // Local state for editing
   const [approvalPolicy, setApprovalPolicy] = useState<string>(ApprovalPolicy.Disabled)
   const [authorizedRoles, setAuthorizedRoles] = useState<number>(
@@ -88,21 +92,26 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
     },
   })
 
-  // Sync state with loaded organization
+  // Sync state with loaded organization (only on initial load)
   useEffect(() => {
-    if (organization) {
+    if (organization && !orgInitializedRef.current) {
       setApprovalPolicy(organization.injectApprovalPolicy || ApprovalPolicy.Disabled)
+      orgInitializedRef.current = true
     }
   }, [organization])
 
-  // Sync state with loaded permissions
+  // Sync state with loaded permissions (only on initial load)
   useEffect(() => {
-    if (permissions) {
+    if (permissions && !permissionsInitializedRef.current) {
       // Use sensible defaults if no roles are configured yet
       const defaultRoles = ApprovalRoles.Administrator | ApprovalRoles.ExerciseDirector
-      setAuthorizedRoles(permissions.authorizedRoles || defaultRoles)
+      // Ensure authorizedRoles is a number (handle potential string from old data)
+      const rolesValue = typeof permissions.authorizedRoles === 'number'
+        ? permissions.authorizedRoles
+        : defaultRoles
+      setAuthorizedRoles(rolesValue || defaultRoles)
       setSelfApprovalPolicy(permissions.selfApprovalPolicy || SelfApprovalPolicy.NeverAllowed)
-      setHasChanges(false)
+      permissionsInitializedRef.current = true
     }
   }, [permissions])
 
@@ -153,8 +162,12 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
       setApprovalPolicy(organization.injectApprovalPolicy || ApprovalPolicy.Disabled)
     }
     if (permissions) {
-      setAuthorizedRoles(permissions.authorizedRoles)
-      setSelfApprovalPolicy(permissions.selfApprovalPolicy)
+      const defaultRoles = ApprovalRoles.Administrator | ApprovalRoles.ExerciseDirector
+      const rolesValue = typeof permissions.authorizedRoles === 'number'
+        ? permissions.authorizedRoles
+        : defaultRoles
+      setAuthorizedRoles(rolesValue || defaultRoles)
+      setSelfApprovalPolicy(permissions.selfApprovalPolicy || SelfApprovalPolicy.NeverAllowed)
     }
     setHasChanges(false)
   }
@@ -257,8 +270,14 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, 'Administrator')}
-              onChange={() => handleRoleToggle('Administrator')}
+              checked={(authorizedRoles & ApprovalRoles.Administrator) !== 0}
+              onChange={(_e, checked) => {
+                const newRoles = checked
+                  ? authorizedRoles | ApprovalRoles.Administrator
+                  : authorizedRoles & ~ApprovalRoles.Administrator
+                setAuthorizedRoles(newRoles)
+                setHasChanges(true)
+              }}
             />
           }
           label={
@@ -273,8 +292,14 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, 'ExerciseDirector')}
-              onChange={() => handleRoleToggle('ExerciseDirector')}
+              checked={(authorizedRoles & ApprovalRoles.ExerciseDirector) !== 0}
+              onChange={(_e, checked) => {
+                const newRoles = checked
+                  ? authorizedRoles | ApprovalRoles.ExerciseDirector
+                  : authorizedRoles & ~ApprovalRoles.ExerciseDirector
+                setAuthorizedRoles(newRoles)
+                setHasChanges(true)
+              }}
             />
           }
           label={
@@ -289,8 +314,14 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, 'Controller')}
-              onChange={() => handleRoleToggle('Controller')}
+              checked={(authorizedRoles & ApprovalRoles.Controller) !== 0}
+              onChange={(_e, checked) => {
+                const newRoles = checked
+                  ? authorizedRoles | ApprovalRoles.Controller
+                  : authorizedRoles & ~ApprovalRoles.Controller
+                setAuthorizedRoles(newRoles)
+                setHasChanges(true)
+              }}
             />
           }
           label={
@@ -305,8 +336,14 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         <FormControlLabel
           control={
             <Checkbox
-              checked={hasApprovalRole(authorizedRoles, 'Evaluator')}
-              onChange={() => handleRoleToggle('Evaluator')}
+              checked={(authorizedRoles & ApprovalRoles.Evaluator) !== 0}
+              onChange={(_e, checked) => {
+                const newRoles = checked
+                  ? authorizedRoles | ApprovalRoles.Evaluator
+                  : authorizedRoles & ~ApprovalRoles.Evaluator
+                setAuthorizedRoles(newRoles)
+                setHasChanges(true)
+              }}
             />
           }
           label={

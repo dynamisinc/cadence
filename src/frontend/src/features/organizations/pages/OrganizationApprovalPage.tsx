@@ -36,24 +36,25 @@ import {
   ApprovalRoles,
   ApprovalPolicy,
   SelfApprovalPolicy,
-  hasApprovalRole,
 } from '@/types'
 import {
   useCurrentOrgApprovalPermissions,
   useUpdateCurrentOrgApprovalPermissions,
 } from '../hooks/useApprovalPermissions'
+import { useCurrentOrganization, useUpdateCurrentApprovalPolicy } from '../hooks/useOrganizations'
 import { useOrganization } from '@/contexts/OrganizationContext'
 import { useBreadcrumbs } from '@/core/contexts'
 import CobraStyles from '@/theme/CobraStyles'
 
 /**
  * Role checkboxes configuration - compact labels only
+ * Uses string keys to match the hasApprovalRole function signature
  */
-const APPROVAL_ROLES = [
-  { role: ApprovalRoles.Administrator, label: 'Administrator' },
-  { role: ApprovalRoles.ExerciseDirector, label: 'Exercise Director' },
-  { role: ApprovalRoles.Controller, label: 'Controller' },
-  { role: ApprovalRoles.Evaluator, label: 'Evaluator' },
+const APPROVAL_ROLES: { roleKey: keyof typeof ApprovalRoles; roleValue: number; label: string }[] = [
+  { roleKey: 'Administrator', roleValue: ApprovalRoles.Administrator, label: 'Administrator' },
+  { roleKey: 'ExerciseDirector', roleValue: ApprovalRoles.ExerciseDirector, label: 'Exercise Director' },
+  { roleKey: 'Controller', roleValue: ApprovalRoles.Controller, label: 'Controller' },
+  { roleKey: 'Evaluator', roleValue: ApprovalRoles.Evaluator, label: 'Evaluator' },
 ]
 
 /**
@@ -73,10 +74,15 @@ const SELF_APPROVAL_DESCRIPTIONS: Record<SelfApprovalPolicy, string> = {
 
 export const OrganizationApprovalPage: FC = () => {
   const { currentOrg } = useOrganization()
-  const { data: permissions, isLoading, error } = useCurrentOrgApprovalPermissions()
+  const { data: organization, isLoading: orgLoading } = useCurrentOrganization()
+  const { data: permissions, isLoading: permissionsLoading, error } = useCurrentOrgApprovalPermissions()
   const updatePermissions = useUpdateCurrentOrgApprovalPermissions()
+  const updatePolicy = useUpdateCurrentApprovalPolicy()
 
-  // Local state for form
+  const isLoading = orgLoading || permissionsLoading
+  const isSaving = updatePermissions.isPending || updatePolicy.isPending
+
+  // Local state for form - approval policy comes from organization, others from permissions
   const [approvalPolicy, setApprovalPolicy] = useState<ApprovalPolicy>(ApprovalPolicy.Disabled)
   const [authorizedRoles, setAuthorizedRoles] = useState<number>(0)
   const [selfApprovalPolicy, setSelfApprovalPolicy] = useState<SelfApprovalPolicy>(
@@ -90,39 +96,63 @@ export const OrganizationApprovalPage: FC = () => {
     { label: 'Inject Approval' },
   ])
 
-  // Initialize form from permissions
+  // Initialize form from organization (for approval policy) and permissions (for roles)
+  useEffect(() => {
+    if (organization) {
+      setApprovalPolicy(organization.injectApprovalPolicy as ApprovalPolicy)
+    }
+  }, [organization])
+
   useEffect(() => {
     if (permissions) {
-      setApprovalPolicy(permissions.approvalPolicy as ApprovalPolicy)
-      setAuthorizedRoles(permissions.authorizedApproverRoles)
+      console.log('[ApprovalPage] Loading permissions from API:', permissions)
+      setAuthorizedRoles(permissions.authorizedRoles)
       setSelfApprovalPolicy(permissions.selfApprovalPolicy as SelfApprovalPolicy)
     }
   }, [permissions])
 
   // Check if form has changes
   const hasChanges = useMemo(() => {
-    if (!permissions) return false
+    if (!permissions || !organization) return false
     return (
-      approvalPolicy !== permissions.approvalPolicy ||
-      authorizedRoles !== permissions.authorizedApproverRoles ||
+      approvalPolicy !== organization.injectApprovalPolicy ||
+      authorizedRoles !== permissions.authorizedRoles ||
       selfApprovalPolicy !== permissions.selfApprovalPolicy
     )
-  }, [permissions, approvalPolicy, authorizedRoles, selfApprovalPolicy])
+  }, [permissions, organization, approvalPolicy, authorizedRoles, selfApprovalPolicy])
 
-  // Handle role checkbox toggle
-  const handleRoleToggle = (role: ApprovalRoles) => {
-    if (hasApprovalRole(authorizedRoles, role)) {
-      setAuthorizedRoles(authorizedRoles & ~role)
+  // Default roles when approval is enabled
+  const DEFAULT_APPROVAL_ROLES = ApprovalRoles.Administrator | ApprovalRoles.ExerciseDirector
+
+  // Handle approval policy change - set default roles if enabling approval with minimal roles
+  const handleApprovalPolicyChange = (newPolicy: ApprovalPolicy) => {
+    setApprovalPolicy(newPolicy)
+
+    // If enabling approval (Optional or Required) and roles are not configured (0 or just Admin),
+    // default to Admin + ExerciseDirector
+    if (newPolicy !== ApprovalPolicy.Disabled) {
+      if (authorizedRoles === 0 || authorizedRoles === ApprovalRoles.Administrator) {
+        setAuthorizedRoles(DEFAULT_APPROVAL_ROLES)
+      }
+    }
+  }
+
+  // Handle role checkbox toggle using bitwise operations directly
+  const handleRoleToggle = (roleValue: number) => {
+    if ((authorizedRoles & roleValue) !== 0) {
+      setAuthorizedRoles(authorizedRoles & ~roleValue)
     } else {
-      setAuthorizedRoles(authorizedRoles | role)
+      setAuthorizedRoles(authorizedRoles | roleValue)
     }
   }
 
   // Reset to saved values
   const handleReset = () => {
+    if (organization) {
+      setApprovalPolicy(organization.injectApprovalPolicy as ApprovalPolicy)
+    }
     if (permissions) {
-      setApprovalPolicy(permissions.approvalPolicy as ApprovalPolicy)
-      setAuthorizedRoles(permissions.authorizedApproverRoles)
+      setAuthorizedRoles(permissions.authorizedRoles)
       setSelfApprovalPolicy(permissions.selfApprovalPolicy as SelfApprovalPolicy)
     }
   }
@@ -130,11 +160,26 @@ export const OrganizationApprovalPage: FC = () => {
   // Save changes
   const handleSave = async () => {
     try {
-      await updatePermissions.mutateAsync({
-        approvalPolicy,
-        authorizedApproverRoles: authorizedRoles,
-        selfApprovalPolicy,
-      })
+      // Save approval policy if changed
+      if (organization && approvalPolicy !== organization.injectApprovalPolicy) {
+        console.log('[ApprovalPage] Saving policy:', approvalPolicy)
+        await updatePolicy.mutateAsync(approvalPolicy)
+      }
+      // Save permissions if changed
+      if (permissions && (
+        authorizedRoles !== permissions.authorizedRoles ||
+        selfApprovalPolicy !== permissions.selfApprovalPolicy
+      )) {
+        console.log('[ApprovalPage] Saving permissions:', { authorizedRoles, selfApprovalPolicy })
+        console.log('[ApprovalPage] Original permissions:', {
+          authorizedRoles: permissions.authorizedRoles,
+          selfApprovalPolicy: permissions.selfApprovalPolicy
+        })
+        await updatePermissions.mutateAsync({
+          authorizedRoles,
+          selfApprovalPolicy,
+        })
+      }
       toast.success('Approval settings saved')
     } catch (err) {
       console.error('[OrganizationApprovalPage] Failed to save:', err)
@@ -204,7 +249,7 @@ export const OrganizationApprovalPage: FC = () => {
                     labelId="approval-policy-label"
                     value={approvalPolicy}
                     label="Policy"
-                    onChange={e => setApprovalPolicy(e.target.value as ApprovalPolicy)}
+                    onChange={e => handleApprovalPolicyChange(e.target.value as ApprovalPolicy)}
                   >
                     <MenuItem value={ApprovalPolicy.Disabled}>Disabled</MenuItem>
                     <MenuItem value={ApprovalPolicy.Optional}>Optional</MenuItem>
@@ -252,14 +297,14 @@ export const OrganizationApprovalPage: FC = () => {
                 Select which roles can approve injects
               </Typography>
               <FormGroup row>
-                {APPROVAL_ROLES.map(({ role, label }) => (
+                {APPROVAL_ROLES.map(({ roleKey, roleValue, label }) => (
                   <FormControlLabel
-                    key={role}
+                    key={roleKey}
                     control={
                       <Checkbox
                         size="small"
-                        checked={hasApprovalRole(authorizedRoles, role)}
-                        onChange={() => handleRoleToggle(role)}
+                        checked={(authorizedRoles & roleValue) !== 0}
+                        onChange={() => handleRoleToggle(roleValue)}
                         disabled={isDisabled}
                       />
                     }
@@ -279,17 +324,17 @@ export const OrganizationApprovalPage: FC = () => {
             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 1 }}>
               <CobraSecondaryButton
                 onClick={handleReset}
-                disabled={!hasChanges || updatePermissions.isPending}
+                disabled={!hasChanges || isSaving}
                 startIcon={<FontAwesomeIcon icon={faUndo} />}
               >
                 Reset
               </CobraSecondaryButton>
               <CobraPrimaryButton
                 onClick={handleSave}
-                disabled={!hasChanges || updatePermissions.isPending}
+                disabled={!hasChanges || isSaving}
                 startIcon={<FontAwesomeIcon icon={faSave} />}
               >
-                {updatePermissions.isPending ? 'Saving...' : 'Save Changes'}
+                {isSaving ? 'Saving...' : 'Save Changes'}
               </CobraPrimaryButton>
             </Box>
           </Stack>

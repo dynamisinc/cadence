@@ -27,6 +27,7 @@ export {
   useCreateOrganization,
   useUpdateOrganization,
   useUpdateCurrentOrganization,
+  useUpdateCurrentApprovalPolicy,
   useArchiveOrganization,
   useDeactivateOrganization,
   useRestoreOrganization,

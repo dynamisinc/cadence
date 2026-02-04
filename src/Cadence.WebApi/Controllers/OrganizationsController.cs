@@ -310,6 +310,47 @@ public class OrganizationsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Update approval policy for the current organization.
+    /// Controls whether inject approval is Disabled, Optional, or Required.
+    /// </summary>
+    [HttpPut("current/settings/approval-policy")]
+    [AuthorizeOrgAdmin]
+    [ProducesResponseType(typeof(OrganizationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> UpdateCurrentOrganizationApprovalPolicy(
+        [FromBody] UpdateApprovalPolicyRequest request)
+    {
+        var orgId = GetCurrentOrganizationId();
+        if (orgId == null)
+        {
+            return NotFound(new { message = "No organization context" });
+        }
+
+        try
+        {
+            var organization = await _organizationService.UpdateApprovalPolicyAsync(
+                orgId.Value,
+                request.InjectApprovalPolicy);
+
+            if (organization == null)
+            {
+                return NotFound(new { message = "Organization not found" });
+            }
+
+            _logger.LogInformation(
+                "OrgAdmin {AdminId} updated organization {OrgId} approval policy to {Policy}",
+                GetCurrentUserId(), orgId, request.InjectApprovalPolicy);
+
+            return Ok(organization);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { error = "validation_error", message = ex.Message });
+        }
+    }
+
     // =========================================================================
     // Helper Methods
     // =========================================================================

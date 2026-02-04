@@ -175,6 +175,17 @@ export const organizationService = {
     return response.data
   },
 
+  /**
+   * Update approval policy for the current organization (OrgAdmin)
+   */
+  updateCurrentApprovalPolicy: async (policy: string): Promise<Organization> => {
+    const response = await apiClient.put<Organization>(
+      '/organizations/current/settings/approval-policy',
+      { injectApprovalPolicy: policy },
+    )
+    return response.data
+  },
+
   // =========================================================================
   // Member Management (SysAdmin only)
   // =========================================================================

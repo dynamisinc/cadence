@@ -428,9 +428,10 @@ public enum SelfApprovalPolicy
 /// <summary>
 /// Flags enum for exercise roles authorized to approve injects.
 /// Used at organization level to configure approval permissions.
-/// NOTE: No JsonStringEnumConverter - serialized as integer for frontend bitwise operations.
+/// Serialized as integer (not string) for frontend bitwise operations.
 /// </summary>
 [Flags]
+[System.Text.Json.Serialization.JsonConverter(typeof(ApprovalRolesJsonConverter))]
 public enum ApprovalRoles
 {
     /// <summary>No roles can approve.</summary>
@@ -447,6 +448,49 @@ public enum ApprovalRoles
 
     /// <summary>Evaluators can approve injects.</summary>
     Evaluator = 8
+}
+
+/// <summary>
+/// Custom JSON converter for ApprovalRoles that serializes as integer instead of string.
+/// This overrides the global JsonStringEnumConverter to support frontend bitwise operations.
+/// </summary>
+public class ApprovalRolesJsonConverter : System.Text.Json.Serialization.JsonConverter<ApprovalRoles>
+{
+    public override ApprovalRoles Read(ref System.Text.Json.Utf8JsonReader reader, Type typeToConvert, System.Text.Json.JsonSerializerOptions options)
+    {
+        if (reader.TokenType == System.Text.Json.JsonTokenType.Number)
+        {
+            return (ApprovalRoles)reader.GetInt32();
+        }
+        // Also support string input for backwards compatibility
+        if (reader.TokenType == System.Text.Json.JsonTokenType.String)
+        {
+            var stringValue = reader.GetString();
+            if (Enum.TryParse<ApprovalRoles>(stringValue, true, out var result))
+            {
+                return result;
+            }
+            // Handle comma-separated flags like "Administrator, ExerciseDirector"
+            if (stringValue?.Contains(',') == true)
+            {
+                var flags = ApprovalRoles.None;
+                foreach (var part in stringValue.Split(',', StringSplitOptions.TrimEntries))
+                {
+                    if (Enum.TryParse<ApprovalRoles>(part, true, out var flag))
+                    {
+                        flags |= flag;
+                    }
+                }
+                return flags;
+            }
+        }
+        return ApprovalRoles.None;
+    }
+
+    public override void Write(System.Text.Json.Utf8JsonWriter writer, ApprovalRoles value, System.Text.Json.JsonSerializerOptions options)
+    {
+        writer.WriteNumberValue((int)value);
+    }
 }
 
 // =============================================================================
