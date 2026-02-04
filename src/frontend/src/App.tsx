@@ -16,7 +16,7 @@ import { AuthProvider } from './contexts/AuthContext'
 import { OrganizationProvider } from './contexts/OrganizationContext'
 import { ExerciseNavigationProvider } from './shared/contexts'
 import { UserPreferencesProvider } from './features/settings'
-import { ExerciseContextWrapper, GlobalPlaceholderPage } from './shared/components'
+import { ExerciseContextWrapper, GlobalPlaceholderPage, FeatureFlagGuard } from './shared/components'
 import { SystemRole } from './types'
 import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
@@ -217,24 +217,40 @@ const router = createBrowserRouter([
       { path: 'assignments', element: <MyAssignmentsPage /> },
 
       // Reports page (top-level, not exercise-scoped)
+      // Feature flagged - redirects when Hidden, shows placeholder when ComingSoon
       {
         path: 'reports',
         element: (
-          <GlobalPlaceholderPage
-            featureName="Reports"
-            description="Generate and view exercise reports and after-action documentation."
-          />
+          <FeatureFlagGuard
+            feature="reports"
+            featureName="Organization Reports"
+            description="Generate and view cross-exercise reports and analytics at the organization level."
+          >
+            {/* When Active, render the actual reports page (placeholder for now) */}
+            <GlobalPlaceholderPage
+              featureName="Organization Reports"
+              description="Generate and view cross-exercise reports and analytics at the organization level."
+            />
+          </FeatureFlagGuard>
         ),
       },
 
       // Templates page (top-level, not exercise-scoped)
+      // Feature flagged - redirects when Hidden, shows placeholder when ComingSoon
       {
         path: 'templates',
         element: (
-          <GlobalPlaceholderPage
+          <FeatureFlagGuard
+            feature="templates"
             featureName="Templates"
-            description="Manage inject templates and exercise blueprints."
-          />
+            description="Manage inject templates and exercise blueprints for reuse."
+          >
+            {/* When Active, render the actual templates page (placeholder for now) */}
+            <GlobalPlaceholderPage
+              featureName="Templates"
+              description="Manage inject templates and exercise blueprints for reuse."
+            />
+          </FeatureFlagGuard>
         ),
       },
 
