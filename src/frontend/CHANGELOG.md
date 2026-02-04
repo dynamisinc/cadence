@@ -5,6 +5,37 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.0.0](https://github.com/dynamisinc/cadence/compare/frontend-v1.2.0...frontend-v2.0.0) (2026-02-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* **inject-approval:** InjectStatus enum values renamed to HSEEP terminology
+
+### Features
+
+* **core:** enhance ErrorBoundary with responsive design and user-friendly UI ([5c8a25f](https://github.com/dynamisinc/cadence/commit/5c8a25fb60e3d4adc96ccdc3f54f033a87352261))
+* **feature-flags:** add route protection with FeatureFlagGuard component ([80da4ce](https://github.com/dynamisinc/cadence/commit/80da4ce0def5aa4cb3c4601ad14d8595b9d5637f))
+* **inject-approval:** add approval workflow entity fields and HSEEP terminology ([01c3aff](https://github.com/dynamisinc/cadence/commit/01c3aff195a8bd16e1294671b44d6bef5abdab18))
+* **inject-approval:** enforce self-approval policy and edit invalidation (S11, S15) ([a862369](https://github.com/dynamisinc/cadence/commit/a862369ec2184a79ab0d1d1758c65f53bcf37d6b))
+* **inject-approval:** Implement approval workflow with configurable permissions ([d8861f4](https://github.com/dynamisinc/cadence/commit/d8861f4922e0ae2779f95ede36f893edd8686fee))
+* **inject-approval:** implement S00 HSEEP-compliant InjectStatus enum ([43ca1cd](https://github.com/dynamisinc/cadence/commit/43ca1cd77f432a8c04b0b5cb22cd50d07492dcb2))
+* **inject-approval:** implement S11 configurable approval permissions and frontend components ([aae6ad0](https://github.com/dynamisinc/cadence/commit/aae6ad0bce5207a336744fdf430af142ca608e71))
+* **inject-approval:** implement S12-S14 approval workflow enhancements ([7975f47](https://github.com/dynamisinc/cadence/commit/7975f4732b6fce439e91cca1c922dd37f8b2bb26))
+* **organizations:** add Organization section to sidebar for OrgAdmin management ([82ac81d](https://github.com/dynamisinc/cadence/commit/82ac81d69b127ff77d5507b7f8a819fcdc1703b4))
+
+
+### Bug Fixes
+
+* **feature-flags:** add organization section to FeatureFlagsAdmin ([8ca03ff](https://github.com/dynamisinc/cadence/commit/8ca03ff5c67ac1647b56570a2a300e3d70d52fb5))
+* **inject-approval:** navigate back to MSEL after submit for approval ([ae0e3e3](https://github.com/dynamisinc/cadence/commit/ae0e3e3451a1c3803cf57ab383d51f82457676d9))
+* **inject-approval:** resolve lint errors and update menu tests ([00aba4b](https://github.com/dynamisinc/cadence/commit/00aba4bee3ab8d337e6c165a6de738b6b167c978))
+* **inject-approval:** resolve permissions persistence and self-approval issues ([50663e2](https://github.com/dynamisinc/cadence/commit/50663e2f8b295293005a6d5e87a1fbf6e673b382))
+* **inject-approval:** resolve permissions persistence and self-approval issues ([462a5c7](https://github.com/dynamisinc/cadence/commit/462a5c7b4bf2ffe5b5d00af035478043b41ca902))
+* **inject-approval:** resolve TypeScript build errors ([300395e](https://github.com/dynamisinc/cadence/commit/300395e9114c5d5bc396d855419e97e7d631d3e2))
+* resolve linting errors and improve approval permissions UX ([22b14c7](https://github.com/dynamisinc/cadence/commit/22b14c71ccaec5d9822f78392e6671de7c1c943d))
+* **tests:** update ErrorBoundary tests for ThemeProvider and new UI text ([019a7c4](https://github.com/dynamisinc/cadence/commit/019a7c4583525f16f045c602262230e515ead77e))
+
 ## [1.2.0](https://github.com/dynamisinc/cadence/compare/frontend-v1.1.0...frontend-v1.2.0) (2026-02-03)
 
 
