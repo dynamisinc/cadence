@@ -439,34 +439,34 @@ function App() {
           }}
         >
           <AuthProvider>
-          {/* Organization provider loads after auth */}
-          <OrganizationProvider>
-            {/* User preferences provider loads after auth */}
-            <UserPreferencesProvider>
-              {/* ThemedApp applies dynamic theme based on user preferences */}
-              <ThemedApp>
-                <ExerciseNavigationProvider>
-                  <ConnectivityProvider>
-                    <OfflineSyncProvider>
-                      <MobileBlocker>
-                        <FeatureFlagsProvider>
-                          <NotificationToastProvider>
-                            <WhatsNewProvider>
-                              <RouterProvider router={router} />
-                            </WhatsNewProvider>
-                          </NotificationToastProvider>
-                          <GlobalSyncStatus />
-                          <UpdatePrompt />
-                          <InstallBanner />
-                        </FeatureFlagsProvider>
-                      </MobileBlocker>
-                    </OfflineSyncProvider>
-                  </ConnectivityProvider>
-                </ExerciseNavigationProvider>
-              </ThemedApp>
-            </UserPreferencesProvider>
-          </OrganizationProvider>
-        </AuthProvider>
+            {/* Organization provider loads after auth */}
+            <OrganizationProvider>
+              {/* User preferences provider loads after auth */}
+              <UserPreferencesProvider>
+                {/* ThemedApp applies dynamic theme based on user preferences */}
+                <ThemedApp>
+                  <ExerciseNavigationProvider>
+                    <ConnectivityProvider>
+                      <OfflineSyncProvider>
+                        <MobileBlocker>
+                          <FeatureFlagsProvider>
+                            <NotificationToastProvider>
+                              <WhatsNewProvider>
+                                <RouterProvider router={router} />
+                              </WhatsNewProvider>
+                            </NotificationToastProvider>
+                            <GlobalSyncStatus />
+                            <UpdatePrompt />
+                            <InstallBanner />
+                          </FeatureFlagsProvider>
+                        </MobileBlocker>
+                      </OfflineSyncProvider>
+                    </ConnectivityProvider>
+                  </ExerciseNavigationProvider>
+                </ThemedApp>
+              </UserPreferencesProvider>
+            </OrganizationProvider>
+          </AuthProvider>
         </ErrorBoundary>
 
         <ToastContainer

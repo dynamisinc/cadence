@@ -98,15 +98,6 @@ function ErrorBoundaryUI({
   const cardMaxWidth = isDesktop ? 600 : isTablet ? 520 : 480
   const detailsMaxHeight = isDesktop ? 300 : 200
 
-  const getErrorDetailsText = () => {
-    if (!error) return ''
-    let text = error.toString()
-    if (errorInfo?.componentStack) {
-      text += '\n\nComponent Stack:' + errorInfo.componentStack
-    }
-    return text
-  }
-
   return (
     <Box
       sx={{
@@ -115,7 +106,7 @@ function ErrorBoundaryUI({
         justifyContent: 'center',
         minHeight: '100vh',
         padding: CobraStyles.Padding.MainWindow,
-        background: (theme) =>
+        background: theme =>
           theme.palette.mode === 'dark'
             ? `linear-gradient(135deg, ${alpha(theme.palette.info.dark, 0.1)} 0%, ${theme.palette.background.default} 50%)`
             : `linear-gradient(135deg, ${alpha(theme.palette.info.light, 0.05)} 0%, ${theme.palette.background.default} 50%)`,
@@ -130,9 +121,9 @@ function ErrorBoundaryUI({
           textAlign: 'center',
           borderRadius: 3,
           border: '1px solid',
-          borderColor: (theme) => alpha(theme.palette.divider, 0.3),
-          background: (theme) => theme.palette.background.paper,
-          boxShadow: (theme) =>
+          borderColor: theme => alpha(theme.palette.divider, 0.3),
+          background: theme => theme.palette.background.paper,
+          boxShadow: theme =>
             `0 8px 32px ${alpha(theme.palette.common.black, 0.08)}`,
           transition: 'max-width 0.3s ease',
         }}
@@ -148,7 +139,7 @@ function ErrorBoundaryUI({
             justifyContent: 'center',
             margin: '0 auto',
             mb: { xs: 2, md: 3 },
-            background: (theme) => alpha(theme.palette.info.main, 0.1),
+            background: theme => alpha(theme.palette.info.main, 0.1),
           }}
         >
           <FontAwesomeIcon
@@ -264,7 +255,7 @@ function ErrorBoundaryUI({
                 sx={{
                   mt: 2,
                   p: 2,
-                  bgcolor: (theme) =>
+                  bgcolor: theme =>
                     theme.palette.mode === 'dark'
                       ? alpha(theme.palette.common.black, 0.2)
                       : alpha(theme.palette.common.black, 0.02),
@@ -272,7 +263,7 @@ function ErrorBoundaryUI({
                   maxHeight: detailsMaxHeight,
                   overflow: 'auto',
                   borderRadius: 2,
-                  borderColor: (theme) => alpha(theme.palette.divider, 0.2),
+                  borderColor: theme => alpha(theme.palette.divider, 0.2),
                   position: 'relative',
                 }}
               >
@@ -285,10 +276,10 @@ function ErrorBoundaryUI({
                       position: 'absolute',
                       top: 8,
                       right: 8,
-                      bgcolor: (theme) =>
+                      bgcolor: theme =>
                         alpha(theme.palette.background.paper, 0.8),
                       '&:hover': {
-                        bgcolor: (theme) => theme.palette.background.paper,
+                        bgcolor: theme => theme.palette.background.paper,
                       },
                     }}
                   >
@@ -337,7 +328,7 @@ function ErrorBoundaryUI({
           sx={{
             display: 'block',
             mt: 3,
-            color: (theme) => alpha(theme.palette.text.secondary, 0.7),
+            color: theme => alpha(theme.palette.text.secondary, 0.7),
             fontSize: { xs: '0.7rem', md: '0.75rem' },
           }}
         >
@@ -394,7 +385,7 @@ export class ErrorBoundary extends Component<
   }
 
   toggleDetails = (): void => {
-    this.setState((prev) => ({ showDetails: !prev.showDetails }))
+    this.setState(prev => ({ showDetails: !prev.showDetails }))
   }
 
   handleCopy = async (): Promise<void> => {

@@ -29,12 +29,42 @@ vi.mock('@/contexts/AuthContext', () => ({
   useAuth: () => mockUseAuth(),
 }))
 
+// Mock useOrganization hook
+const mockUseOrganization = vi.fn()
+vi.mock('@/contexts/OrganizationContext', () => ({
+  useOrganization: () => mockUseOrganization(),
+}))
+
+// Mock useFeatureFlags hook
+const mockUseFeatureFlags = vi.fn()
+vi.mock('@/admin/contexts/FeatureFlagsContext', () => ({
+  useFeatureFlags: () => mockUseFeatureFlags(),
+}))
+
 describe('useFilteredMenu', () => {
   beforeEach(() => {
     vi.clearAllMocks()
     // Default: authenticated admin user
     mockUseAuth.mockReturnValue({
       user: { id: 'user-1', email: 'admin@example.com', role: 'Admin' },
+    })
+    // Default: user has an organization with OrgAdmin role
+    mockUseOrganization.mockReturnValue({
+      currentOrg: {
+        id: 'org-1',
+        name: 'Test Org',
+        role: 'OrgAdmin',
+      },
+      memberships: [],
+      isLoading: false,
+      isPending: false,
+    })
+    // Default: all feature flags active (fully visible)
+    mockUseFeatureFlags.mockReturnValue({
+      flags: {},
+      isVisible: () => true,
+      isComingSoon: () => false,
+      isLoading: false,
     })
   })
 
@@ -56,10 +86,10 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees all 11 menu items', () => {
+      it('sees all 17 menu items', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(11)
+        expect(result.current.filteredItems).toHaveLength(17)
       })
 
       it('sees all menu items in correct order', () => {
@@ -72,6 +102,12 @@ describe('useFilteredMenu', () => {
           'inject-queue',
           'observations',
           'reports',
+          'org-details',
+          'org-members',
+          'org-approval',
+          'org-capabilities',
+          'org-archived',
+          'org-settings',
           'admin',
           'templates',
           'users',
@@ -92,10 +128,15 @@ describe('useFilteredMenu', () => {
         expect(result.current.filteredItems.find(i => i.id === 'users')).toBeDefined()
       })
 
-      it('sees all three sections', () => {
+      it('sees all four sections', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.visibleSections).toEqual(['conduct', 'analysis', 'system'])
+        expect(result.current.visibleSections).toEqual([
+          'conduct',
+          'analysis',
+          'organization',
+          'system',
+        ])
       })
     })
 
@@ -109,10 +150,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 7 menu items (all except Templates and Users)', () => {
+      it('sees 13 menu items (conduct + analysis + org items + settings)', () => {
+        // ExerciseDirector with OrgAdmin role sees: 4 conduct + 2 analysis + 6 org + 1 settings = 13
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(7)
+        expect(result.current.filteredItems).toHaveLength(13)
       })
 
       it('does NOT see Templates', () => {
@@ -145,10 +187,16 @@ describe('useFilteredMenu', () => {
         expect(result.current.filteredItems.find(i => i.id === 'control-room')).toBeDefined()
       })
 
-      it('sees all three sections', () => {
+      it('sees all four sections', () => {
+        // ExerciseDirector with OrgAdmin sees conduct, analysis, organization, and system (settings only)
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.visibleSections).toEqual(['conduct', 'analysis', 'system'])
+        expect(result.current.visibleSections).toEqual([
+          'conduct',
+          'analysis',
+          'organization',
+          'system',
+        ])
       })
     })
 
@@ -162,10 +210,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees exactly 5 menu items', () => {
+      it('sees 11 menu items (conduct + org items + settings)', () => {
+        // Controller with OrgAdmin role sees: 4 conduct + 6 org + 1 settings = 11
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(5)
+        expect(result.current.filteredItems).toHaveLength(11)
       })
 
       it('sees My Assignments', () => {
@@ -213,18 +262,13 @@ describe('useFilteredMenu', () => {
         expect(result.current.filteredItems.find(i => i.id === 'users')).toBeUndefined()
       })
 
-      it('does NOT see ANALYSIS section (no visible items)', () => {
+      it('sees conduct, organization, and system sections (no analysis)', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.visibleSections).not.toContain('analysis')
+        expect(result.current.visibleSections).toEqual(['conduct', 'organization', 'system'])
         expect(result.current.groupedBySection.analysis).toHaveLength(0)
       })
 
-      it('sees CONDUCT and SYSTEM sections only', () => {
-        const { result } = renderHook(() => useFilteredMenu())
-
-        expect(result.current.visibleSections).toEqual(['conduct', 'system'])
-      })
     })
 
     describe('Evaluator role', () => {
@@ -237,10 +281,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees exactly 4 menu items', () => {
+      it('sees 10 menu items (conduct + observations + org items + settings)', () => {
+        // Evaluator with OrgAdmin role sees: 2 conduct + 1 analysis + 6 org + 1 settings = 10
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(4)
+        expect(result.current.filteredItems).toHaveLength(10)
       })
 
       it('sees My Assignments', () => {
@@ -278,10 +323,15 @@ describe('useFilteredMenu', () => {
         expect(result.current.filteredItems.find(i => i.id === 'reports')).toBeUndefined()
       })
 
-      it('sees CONDUCT, ANALYSIS, and SYSTEM sections', () => {
+      it('sees CONDUCT, ANALYSIS, ORGANIZATION, and SYSTEM sections', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.visibleSections).toEqual(['conduct', 'analysis', 'system'])
+        expect(result.current.visibleSections).toEqual([
+          'conduct',
+          'analysis',
+          'organization',
+          'system',
+        ])
       })
     })
 
@@ -295,10 +345,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees exactly 3 menu items (minimum set)', () => {
+      it('sees 9 menu items (conduct + org items + settings)', () => {
+        // Observer with OrgAdmin role sees: 2 conduct + 6 org + 1 settings = 9
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(3)
+        expect(result.current.filteredItems).toHaveLength(9)
       })
 
       it('sees My Assignments', () => {
@@ -346,17 +397,25 @@ describe('useFilteredMenu', () => {
         expect(result.current.filteredItems.find(i => i.id === 'users')).toBeUndefined()
       })
 
-      it('does NOT see ANALYSIS section (empty)', () => {
+      it('sees CONDUCT, ORGANIZATION, and SYSTEM sections (no analysis)', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.visibleSections).not.toContain('analysis')
+        expect(result.current.visibleSections).toEqual([
+          'conduct',
+          'organization',
+          'system',
+        ])
         expect(result.current.groupedBySection.analysis).toHaveLength(0)
       })
 
-      it('sees only CONDUCT and SYSTEM sections', () => {
+      it('sees CONDUCT, ORGANIZATION, and SYSTEM sections (no analysis)', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.visibleSections).toEqual(['conduct', 'system'])
+        expect(result.current.visibleSections).toEqual([
+          'conduct',
+          'organization',
+          'system',
+        ])
       })
     })
   })
@@ -384,7 +443,7 @@ describe('useFilteredMenu', () => {
       it('Control Room has correct disabled tooltip', () => {
         const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
-        expect(result.current.getDisabledTooltip('control-room')).toBe('Coming in a future release')
+        expect(result.current.getDisabledTooltip('control-room')).toBe('Enter an exercise first')
       })
 
       it('Inject Queue is disabled', () => {
@@ -597,16 +656,27 @@ describe('useFilteredMenu', () => {
       expect(result.current.groupedBySection.analysis).toHaveLength(2)
     })
 
+    it('ORGANIZATION section has 6 items for Admin', () => {
+      const { result } = renderHook(() => useFilteredMenu())
+
+      expect(result.current.groupedBySection.organization).toHaveLength(6)
+    })
+
     it('SYSTEM section has 5 items for Admin', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
       expect(result.current.groupedBySection.system).toHaveLength(5)
     })
 
-    it('returns sections in correct order (conduct, analysis, system)', () => {
+    it('returns sections in correct order (conduct, analysis, organization, system)', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.visibleSections).toEqual(['conduct', 'analysis', 'system'])
+      expect(result.current.visibleSections).toEqual([
+        'conduct',
+        'analysis',
+        'organization',
+        'system',
+      ])
     })
   })
 
@@ -741,7 +811,7 @@ describe('useFilteredMenu', () => {
     })
 
     describe('User system role', () => {
-      it('User mapped to Observer sees minimal menu', () => {
+      it('User mapped to Observer with OrgAdmin role sees org items', () => {
         mockUseExerciseRole.mockReturnValue({
           effectiveRole: HseepRole.Observer,
           systemRole: 'User',
@@ -751,7 +821,8 @@ describe('useFilteredMenu', () => {
 
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(3)
+        // Observer with OrgAdmin: 2 conduct + 6 org + 1 settings = 9
+        expect(result.current.filteredItems).toHaveLength(9)
       })
     })
   })
@@ -862,33 +933,33 @@ describe('useFilteredMenu', () => {
     it('works with empty options object', () => {
       const { result } = renderHook(() => useFilteredMenu({}))
 
-      expect(result.current.filteredItems).toHaveLength(11)
+      expect(result.current.filteredItems).toHaveLength(17)
     })
 
     it('works with no options (undefined)', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.filteredItems).toHaveLength(11)
+      expect(result.current.filteredItems).toHaveLength(17)
     })
 
     it('works with null exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
-      expect(result.current.filteredItems).toHaveLength(11)
+      expect(result.current.filteredItems).toHaveLength(17)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with undefined exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: undefined }))
 
-      expect(result.current.filteredItems).toHaveLength(11)
+      expect(result.current.filteredItems).toHaveLength(17)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with valid exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: 'valid-id' }))
 
-      expect(result.current.filteredItems).toHaveLength(11)
+      expect(result.current.filteredItems).toHaveLength(17)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
 
@@ -897,7 +968,7 @@ describe('useFilteredMenu', () => {
         useFilteredMenu({ exerciseId: '550e8400-e29b-41d4-a716-446655440000' }),
       )
 
-      expect(result.current.filteredItems).toHaveLength(11)
+      expect(result.current.filteredItems).toHaveLength(17)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
   })

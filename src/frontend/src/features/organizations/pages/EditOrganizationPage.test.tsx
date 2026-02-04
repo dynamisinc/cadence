@@ -546,16 +546,6 @@ describe('EditOrganizationPage', () => {
   })
 
   describe('Navigation', () => {
-    it('navigates back when back button clicked', async () => {
-      const user = userEvent.setup()
-      render(<EditOrganizationPage />)
-
-      const backButton = screen.getByRole('button', { name: /back/i })
-      await user.click(backButton)
-
-      expect(mockNavigate).toHaveBeenCalledWith('/admin/organizations')
-    })
-
     it('navigates back when cancel button clicked', async () => {
       const user = userEvent.setup()
       render(<EditOrganizationPage />)

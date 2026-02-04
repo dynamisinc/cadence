@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 11 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(11)
+    it('has exactly 17 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(17)
     })
 
     it('all items have required properties', () => {
@@ -53,7 +53,7 @@ describe('menuConfig', () => {
     })
 
     it('all items have valid sections', () => {
-      const validSections = ['conduct', 'analysis', 'system']
+      const validSections = ['conduct', 'analysis', 'organization', 'system']
       MENU_ITEMS.forEach(item => {
         expect(validSections).toContain(item.section)
       })
@@ -78,6 +78,11 @@ describe('menuConfig', () => {
     it('ANALYSIS section has 2 items', () => {
       const analysisItems = MENU_ITEMS.filter(item => item.section === 'analysis')
       expect(analysisItems).toHaveLength(2)
+    })
+
+    it('ORGANIZATION section has 6 items', () => {
+      const orgItems = MENU_ITEMS.filter(item => item.section === 'organization')
+      expect(orgItems).toHaveLength(6)
     })
 
     it('SYSTEM section has 5 items', () => {
@@ -196,7 +201,7 @@ describe('menuConfig', () => {
       })
 
       it('has disabled tooltip', () => {
-        expect(item.disabledTooltip).toBe('Coming in a future release')
+        expect(item.disabledTooltip).toBe('Enter an exercise first')
       })
     })
 
@@ -430,20 +435,20 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 11 items', () => {
+      it('can see all 17 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(11)
+        expect(visibleItems).toHaveLength(17)
       })
     })
 
     describe('ExerciseDirector', () => {
-      it('can see 7 items (all except Admin, Templates and Users)', () => {
+      it('can see 13 items (all except Admin, Templates, Users, Organizations)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.ExerciseDirector),
         )
-        expect(visibleItems).toHaveLength(7)
+        expect(visibleItems).toHaveLength(13)
       })
 
       it('cannot see Admin', () => {
@@ -463,11 +468,11 @@ describe('menuConfig', () => {
     })
 
     describe('Controller', () => {
-      it('can see 5 items', () => {
+      it('can see 11 items (conduct + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Controller),
         )
-        expect(visibleItems).toHaveLength(5)
+        expect(visibleItems).toHaveLength(11)
       })
 
       it('can see My Assignments, Exercises, Control Room, Inject Queue, Settings', () => {
@@ -494,11 +499,11 @@ describe('menuConfig', () => {
     })
 
     describe('Evaluator', () => {
-      it('can see 4 items', () => {
+      it('can see 10 items (conduct + observations + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Evaluator),
         )
-        expect(visibleItems).toHaveLength(4)
+        expect(visibleItems).toHaveLength(10)
       })
 
       it('can see My Assignments, Exercises, Observations, Settings', () => {
@@ -524,14 +529,14 @@ describe('menuConfig', () => {
     })
 
     describe('Observer', () => {
-      it('can see 3 items (minimum set)', () => {
+      it('can see 9 items (conduct + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Observer),
         )
-        expect(visibleItems).toHaveLength(3)
+        expect(visibleItems).toHaveLength(9)
       })
 
-      it('can see My Assignments, Exercises, Settings only', () => {
+      it('can see My Assignments, Exercises, org items, and Settings', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Observer),
         )
@@ -539,7 +544,8 @@ describe('menuConfig', () => {
         expect(ids).toContain('my-assignments')
         expect(ids).toContain('exercises')
         expect(ids).toContain('settings')
-        expect(ids).toHaveLength(3)
+        // Also includes 6 org-* items
+        expect(ids).toHaveLength(9)
       })
     })
   })
@@ -652,22 +658,30 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Menu order', () => {
     it('items are in correct order by section', () => {
-      // CONDUCT items first
+      // CONDUCT items first (0-3)
       expect(MENU_ITEMS[0].id).toBe('my-assignments')
       expect(MENU_ITEMS[1].id).toBe('exercises')
       expect(MENU_ITEMS[2].id).toBe('control-room')
       expect(MENU_ITEMS[3].id).toBe('inject-queue')
 
-      // ANALYSIS items next
+      // ANALYSIS items next (4-5)
       expect(MENU_ITEMS[4].id).toBe('observations')
       expect(MENU_ITEMS[5].id).toBe('reports')
 
-      // SYSTEM items last
-      expect(MENU_ITEMS[6].id).toBe('admin')
-      expect(MENU_ITEMS[7].id).toBe('templates')
-      expect(MENU_ITEMS[8].id).toBe('users')
-      expect(MENU_ITEMS[9].id).toBe('organizations')
-      expect(MENU_ITEMS[10].id).toBe('settings')
+      // ORGANIZATION items (6-11)
+      expect(MENU_ITEMS[6].id).toBe('org-details')
+      expect(MENU_ITEMS[7].id).toBe('org-members')
+      expect(MENU_ITEMS[8].id).toBe('org-approval')
+      expect(MENU_ITEMS[9].id).toBe('org-capabilities')
+      expect(MENU_ITEMS[10].id).toBe('org-archived')
+      expect(MENU_ITEMS[11].id).toBe('org-settings')
+
+      // SYSTEM items last (12-16)
+      expect(MENU_ITEMS[12].id).toBe('admin')
+      expect(MENU_ITEMS[13].id).toBe('templates')
+      expect(MENU_ITEMS[14].id).toBe('users')
+      expect(MENU_ITEMS[15].id).toBe('organizations')
+      expect(MENU_ITEMS[16].id).toBe('settings')
     })
   })
 })

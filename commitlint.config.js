@@ -6,6 +6,7 @@ module.exports = {
       'always',
       [
         // Core areas
+        'core',
         'api',
         'ui',
         'offline',

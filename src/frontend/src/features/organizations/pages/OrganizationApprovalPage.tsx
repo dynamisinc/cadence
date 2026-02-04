@@ -173,7 +173,7 @@ export const OrganizationApprovalPage: FC = () => {
         console.log('[ApprovalPage] Saving permissions:', { authorizedRoles, selfApprovalPolicy })
         console.log('[ApprovalPage] Original permissions:', {
           authorizedRoles: permissions.authorizedRoles,
-          selfApprovalPolicy: permissions.selfApprovalPolicy
+          selfApprovalPolicy: permissions.selfApprovalPolicy,
         })
         await updatePermissions.mutateAsync({
           authorizedRoles,

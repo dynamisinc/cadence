@@ -32,7 +32,6 @@ import {
   ApprovalRoles,
   ApprovalPolicy,
   SelfApprovalPolicy,
-  hasApprovalRole,
 } from '@/types'
 import {
   useApprovalPermissions,
@@ -117,15 +116,6 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
 
   const handleApprovalPolicyChange = (value: string) => {
     setApprovalPolicy(value)
-    setHasChanges(true)
-  }
-
-  const handleRoleToggle = (roleKey: keyof typeof ApprovalRoles) => {
-    const roleValue = ApprovalRoles[roleKey]
-    const newRoles = hasApprovalRole(authorizedRoles, roleKey)
-      ? authorizedRoles & ~roleValue
-      : authorizedRoles | roleValue
-    setAuthorizedRoles(newRoles)
     setHasChanges(true)
   }
 
