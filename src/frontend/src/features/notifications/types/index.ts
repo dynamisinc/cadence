@@ -102,3 +102,77 @@ export interface Toast {
   /** When the toast was created */
   createdAt: Date
 }
+
+// =============================================================================
+// Approval Notification Types (S08)
+// =============================================================================
+
+/**
+ * Approval notification type enum values.
+ * Matches backend ApprovalNotificationType enum.
+ */
+export type ApprovalNotificationType =
+  | 'InjectSubmitted'
+  | 'BatchSubmitted'
+  | 'InjectApproved'
+  | 'InjectRejected'
+  | 'InjectReverted'
+
+/**
+ * DTO representing an approval workflow notification.
+ * Matches backend ApprovalNotificationDto.
+ */
+export interface ApprovalNotificationDto {
+  /** Unique identifier */
+  id: string
+  /** User who receives the notification (Exercise Director ID) */
+  userId: string
+  /** Related exercise ID */
+  exerciseId: string
+  /** Exercise name for display */
+  exerciseName: string
+  /** Related inject ID (null for batch notifications) */
+  injectId: string | null
+  /** Inject number for display (e.g., "#5") */
+  injectNumber: string | null
+  /** Notification type */
+  type: ApprovalNotificationType
+  /** Short title */
+  title: string
+  /** Detailed message */
+  message: string
+  /** JSON metadata for batch notifications */
+  metadata: string | null
+  /** User who triggered the notification (e.g., Controller who submitted) */
+  triggeredByUserId: string | null
+  /** Display name of the user who triggered */
+  triggeredByName: string | null
+  /** Whether read by user */
+  isRead: boolean
+  /** When read */
+  readAt: string | null
+  /** When created */
+  createdAt: string
+}
+
+/**
+ * Batch notification metadata (parsed from JSON metadata field)
+ */
+export interface BatchNotificationMetadata {
+  injectIds: string[]
+  injectNumbers: number[]
+}
+
+/**
+ * Parse batch notification metadata
+ */
+export const parseBatchMetadata = (
+  metadata: string | null,
+): BatchNotificationMetadata | null => {
+  if (!metadata) return null
+  try {
+    return JSON.parse(metadata) as BatchNotificationMetadata
+  } catch {
+    return null
+  }
+}

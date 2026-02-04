@@ -11,7 +11,14 @@ import type {
   UpdateInjectRequest,
   FireInjectRequest,
   SkipInjectRequest,
+  ApproveInjectRequest,
+  RejectInjectRequest,
+  RevertApprovalRequest,
+  BatchApproveRequest,
+  BatchRejectRequest,
+  BatchApprovalResult,
 } from '../types'
+import type { InjectApprovalCheckDto } from '@/types'
 
 export const injectService = {
   /**
@@ -117,6 +124,122 @@ export const injectService = {
     await apiClient.post(`/exercises/${exerciseId}/injects/reorder`, {
       injectIds,
     })
+  },
+
+  // ==========================================================================
+  // Approval Workflow (S00-S09)
+  // ==========================================================================
+
+  /**
+   * Submit an inject for approval (S03)
+   */
+  submitForApproval: async (exerciseId: string, id: string): Promise<InjectDto> => {
+    const response = await apiClient.post<InjectDto>(
+      `/exercises/${exerciseId}/injects/${id}/submit`,
+    )
+    return response.data
+  },
+
+  /**
+   * Approve a submitted inject (S04)
+   */
+  approveInject: async (
+    exerciseId: string,
+    id: string,
+    request?: ApproveInjectRequest,
+  ): Promise<InjectDto> => {
+    const response = await apiClient.post<InjectDto>(
+      `/exercises/${exerciseId}/injects/${id}/approve`,
+      request ?? {},
+    )
+    return response.data
+  },
+
+  /**
+   * Reject a submitted inject (S04)
+   */
+  rejectInject: async (
+    exerciseId: string,
+    id: string,
+    request: RejectInjectRequest,
+  ): Promise<InjectDto> => {
+    const response = await apiClient.post<InjectDto>(
+      `/exercises/${exerciseId}/injects/${id}/reject`,
+      request,
+    )
+    return response.data
+  },
+
+  /**
+   * Batch approve multiple injects (S05)
+   */
+  batchApprove: async (
+    exerciseId: string,
+    request: BatchApproveRequest,
+  ): Promise<BatchApprovalResult> => {
+    const response = await apiClient.post<BatchApprovalResult>(
+      `/exercises/${exerciseId}/injects/batch/approve`,
+      request,
+    )
+    return response.data
+  },
+
+  /**
+   * Batch reject multiple injects (S05)
+   */
+  batchReject: async (
+    exerciseId: string,
+    request: BatchRejectRequest,
+  ): Promise<BatchApprovalResult> => {
+    const response = await apiClient.post<BatchApprovalResult>(
+      `/exercises/${exerciseId}/injects/batch/reject`,
+      request,
+    )
+    return response.data
+  },
+
+  /**
+   * Revert an approved inject back to submitted (S09)
+   */
+  revertApproval: async (
+    exerciseId: string,
+    id: string,
+    request: RevertApprovalRequest,
+  ): Promise<InjectDto> => {
+    const response = await apiClient.post<InjectDto>(
+      `/exercises/${exerciseId}/injects/${id}/revert`,
+      request,
+    )
+    return response.data
+  },
+
+  // ==========================================================================
+  // Approval Permission Checks (S11)
+  // ==========================================================================
+
+  /**
+   * Check if current user can approve a specific inject (S11)
+   * Returns permission result including self-approval check
+   */
+  canApproveInject: async (
+    exerciseId: string,
+    id: string,
+  ): Promise<InjectApprovalCheckDto> => {
+    const response = await apiClient.get<InjectApprovalCheckDto>(
+      `/exercises/${exerciseId}/injects/${id}/can-approve`,
+    )
+    return response.data
+  },
+
+  /**
+   * Check if current user can approve any inject for this exercise (S11)
+   * General permission check based on role
+   */
+  canApproveAny: async (exerciseId: string): Promise<boolean> => {
+    const response = await apiClient.get<{ canApprove: boolean }>(
+      `/exercises/${exerciseId}/injects/can-approve`,
+    )
+    return response.data.canApprove
   },
 }
 

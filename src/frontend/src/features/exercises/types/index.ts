@@ -307,6 +307,57 @@ export interface ExerciseCapabilitySummaryDto {
   coveragePercentage: number | null
 }
 
+// =========================================================================
+// Approval Settings Types (S00-S09)
+// =========================================================================
+
+import { ApprovalPolicy } from '../../../types'
+
+/**
+ * Approval settings DTO - Returns exercise approval configuration
+ */
+export interface ApprovalSettingsDto {
+  requireInjectApproval: boolean
+  approvalPolicyOverridden: boolean
+  approvalOverrideReason: string | null
+  approvalOverriddenById: string | null
+  approvalOverriddenAt: string | null
+  organizationPolicy: ApprovalPolicy
+}
+
+/**
+ * Request to update exercise approval settings
+ */
+export interface UpdateApprovalSettingsRequest {
+  requireInjectApproval: boolean
+  isOverride?: boolean
+  overrideReason?: string | null
+}
+
+/**
+ * Approval queue status summary (S06: Approval Queue View)
+ */
+export interface ApprovalStatusDto {
+  totalInjects: number
+  approvedCount: number
+  pendingApprovalCount: number
+  draftCount: number
+  approvalPercentage: number
+  allApproved: boolean
+}
+
+/**
+ * Validation result for publishing an exercise (S07: Go-Live Gate)
+ */
+export interface PublishValidationResult {
+  canPublish: boolean
+  draftCount: number
+  submittedCount: number
+  totalUnapprovedCount: number
+  warnings: string[]
+  errors: string[]
+}
+
 // Re-export validation types
 export type { CreateExerciseFormValues, UpdateExerciseFormValues } from './validation'
 export { createExerciseSchema, updateExerciseSchema, EXERCISE_FIELD_LIMITS } from './validation'

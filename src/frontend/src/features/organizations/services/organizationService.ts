@@ -18,6 +18,10 @@ import type {
   AddMemberRequest,
   UpdateMemberRoleRequest,
 } from '../types'
+import type {
+  ApprovalPermissionsDto,
+  UpdateApprovalPermissionsRequest,
+} from '@/types'
 
 export const organizationService = {
   /**
@@ -146,5 +150,33 @@ export const organizationService = {
    */
   removeMember: async (orgId: string, membershipId: string): Promise<void> => {
     await apiClient.delete(`/admin/organizations/${orgId}/members/${membershipId}`)
+  },
+
+  // =========================================================================
+  // Approval Permissions (S11 - SysAdmin only)
+  // =========================================================================
+
+  /**
+   * Get approval permissions for an organization
+   */
+  getApprovalPermissions: async (orgId: string): Promise<ApprovalPermissionsDto> => {
+    const response = await apiClient.get<ApprovalPermissionsDto>(
+      `/admin/organizations/${orgId}/settings/approval-permissions`,
+    )
+    return response.data
+  },
+
+  /**
+   * Update approval permissions for an organization
+   */
+  updateApprovalPermissions: async (
+    orgId: string,
+    request: UpdateApprovalPermissionsRequest,
+  ): Promise<ApprovalPermissionsDto> => {
+    const response = await apiClient.put<ApprovalPermissionsDto>(
+      `/admin/organizations/${orgId}/settings/approval-permissions`,
+      request,
+    )
+    return response.data
   },
 }

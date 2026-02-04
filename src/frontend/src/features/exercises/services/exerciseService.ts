@@ -17,6 +17,10 @@ import type {
   DeleteSummaryResponse,
   ExerciseSettingsDto,
   UpdateExerciseSettingsRequest,
+  ApprovalSettingsDto,
+  UpdateApprovalSettingsRequest,
+  ApprovalStatusDto,
+  PublishValidationResult,
 } from '../types'
 
 export const exerciseService = {
@@ -277,6 +281,55 @@ export const exerciseService = {
     const response = await apiClient.put<ExerciseSettingsDto>(
       `/exercises/${id}/settings`,
       request,
+    )
+    return response.data
+  },
+
+  // =========================================================================
+  // Approval Settings Methods (S00-S09)
+  // =========================================================================
+
+  /**
+   * Get the approval settings for an exercise (S01-S02)
+   */
+  getApprovalSettings: async (id: string): Promise<ApprovalSettingsDto> => {
+    const response = await apiClient.get<ApprovalSettingsDto>(
+      `/exercises/${id}/approval-settings`,
+    )
+    return response.data
+  },
+
+  /**
+   * Update approval settings for an exercise (S01-S02)
+   * Requires Exercise Director or higher role
+   */
+  updateApprovalSettings: async (
+    id: string,
+    request: UpdateApprovalSettingsRequest,
+  ): Promise<ApprovalSettingsDto> => {
+    const response = await apiClient.put<ApprovalSettingsDto>(
+      `/exercises/${id}/approval-settings`,
+      request,
+    )
+    return response.data
+  },
+
+  /**
+   * Get the approval queue status for an exercise (S06)
+   */
+  getApprovalStatus: async (id: string): Promise<ApprovalStatusDto> => {
+    const response = await apiClient.get<ApprovalStatusDto>(
+      `/exercises/${id}/approval-status`,
+    )
+    return response.data
+  },
+
+  /**
+   * Validate if an exercise can be published (S07)
+   */
+  validatePublish: async (id: string): Promise<PublishValidationResult> => {
+    const response = await apiClient.get<PublishValidationResult>(
+      `/exercises/${id}/publish-validation`,
     )
     return response.data
   },

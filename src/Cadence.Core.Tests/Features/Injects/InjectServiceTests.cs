@@ -1,4 +1,6 @@
 using Cadence.Core.Data;
+using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -15,10 +17,44 @@ namespace Cadence.Core.Tests.Features.Injects;
 public class InjectServiceTests
 {
     private readonly Mock<IExerciseHubContext> _hubContextMock;
+    private readonly Mock<IApprovalPermissionService> _approvalPermissionServiceMock;
 
     public InjectServiceTests()
     {
         _hubContextMock = new Mock<IExerciseHubContext>();
+        _approvalPermissionServiceMock = new Mock<IApprovalPermissionService>();
+
+        // Set up default permission check to allow approval (non-self-approval case)
+        _approvalPermissionServiceMock
+            .Setup(x => x.CanApproveInjectAsync(It.IsAny<string>(), It.IsAny<Guid>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new InjectApprovalCheckDto(
+                CanApprove: true,
+                PermissionResult: ApprovalPermissionResult.Allowed,
+                IsSelfApproval: false,
+                RequiresConfirmation: false,
+                Message: null));
+    }
+
+    /// <summary>
+    /// Set up the mock to return a specific permission result for a given inject and user.
+    /// </summary>
+    private void SetupPermissionCheck(string userId, Guid injectId, ApprovalPermissionResult result, bool isSelfApproval = false)
+    {
+        _approvalPermissionServiceMock
+            .Setup(x => x.CanApproveInjectAsync(userId, injectId, It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new InjectApprovalCheckDto(
+                CanApprove: result == ApprovalPermissionResult.Allowed ||
+                            result == ApprovalPermissionResult.SelfApprovalWithWarning,
+                PermissionResult: result,
+                IsSelfApproval: isSelfApproval,
+                RequiresConfirmation: result == ApprovalPermissionResult.SelfApprovalWithWarning,
+                Message: result switch
+                {
+                    ApprovalPermissionResult.NotAuthorized => "Your role is not authorized to approve injects.",
+                    ApprovalPermissionResult.SelfApprovalDenied => "Self-approval is not permitted by your organization.",
+                    ApprovalPermissionResult.SelfApprovalWithWarning => "You can approve your own submission, but must confirm.",
+                    _ => null
+                }));
     }
 
     private (AppDbContext context, Organization org, Exercise exercise, Msel msel, string userId) CreateTestContext(
@@ -74,7 +110,7 @@ public class InjectServiceTests
 
     private InjectService CreateService(AppDbContext context)
     {
-        return new InjectService(context, _hubContextMock.Object);
+        return new InjectService(context, _hubContextMock.Object, _approvalPermissionServiceMock.Object);
     }
 
     private Inject CreateInject(
@@ -585,13 +621,16 @@ public class InjectServiceTests
         context.Injects.Add(inject);
         await context.SaveChangesAsync();
 
+        // Set up permission check to deny self-approval
+        SetupPermissionCheck(userId, inject.Id, ApprovalPermissionResult.SelfApprovalDenied, isSelfApproval: true);
+
         var service = CreateService(context);
 
         // Act & Assert
         var ex = await Assert.ThrowsAsync<InvalidOperationException>(
             () => service.ApproveInjectAsync(exercise.Id, inject.Id, userId, null));
 
-        ex.Message.Should().Contain("Cannot approve your own submission");
+        ex.Message.Should().Contain("Self-approval is not permitted");
     }
 
     [Fact]

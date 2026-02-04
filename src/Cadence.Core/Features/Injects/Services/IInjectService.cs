@@ -42,13 +42,26 @@ public interface IInjectService
 
     /// <summary>
     /// Approve a submitted inject.
+    /// Uses organization's self-approval policy to determine if self-approval is allowed.
     /// </summary>
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="injectId">The inject ID</param>
-    /// <param name="userId">The user who is approving (must be Director or Admin)</param>
+    /// <param name="userId">The user who is approving</param>
     /// <param name="notes">Optional approver notes</param>
     /// <param name="cancellationToken">Cancellation token</param>
     Task<InjectDto> ApproveInjectAsync(Guid exerciseId, Guid injectId, string userId, string? notes, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Approve a submitted inject with optional self-approval confirmation.
+    /// Required when organization policy is AllowedWithWarning and user is self-approving.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectId">The inject ID</param>
+    /// <param name="userId">The user who is approving</param>
+    /// <param name="notes">Optional approver notes</param>
+    /// <param name="confirmSelfApproval">Set to true to confirm self-approval when policy requires it</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<InjectDto> ApproveInjectWithConfirmationAsync(Guid exerciseId, Guid injectId, string userId, string? notes, bool confirmSelfApproval, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reject a submitted inject, returning it to Draft status.

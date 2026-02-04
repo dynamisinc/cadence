@@ -1,3 +1,4 @@
+using Cadence.Core.Constants;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Notifications.Models.DTOs;
 using Cadence.Core.Features.Notifications.Services;
@@ -153,9 +154,13 @@ public class ApprovalNotificationServiceTests
         return inject;
     }
 
-    private ApprovalNotificationService CreateService(AppDbContext context)
+    private ApprovalNotificationService CreateService(AppDbContext context, Organization? testOrg = null)
     {
-        var org = context.Organizations.First();
+        // Use provided org or find the first non-default org created during test setup
+        var org = testOrg ?? context.Organizations
+            .FirstOrDefault(o => o.Id != Constants.SystemConstants.DefaultOrganizationId)
+            ?? context.Organizations.First();
+
         _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(org.Id);
         _orgContextMock.Setup(x => x.HasContext).Returns(true);
         _orgContextMock.Setup(x => x.IsSysAdmin).Returns(false);
@@ -468,7 +473,7 @@ public class ApprovalNotificationServiceTests
 
     #region GetNotificationsAsync
 
-    [Fact(Skip = "Requires investigation of test query filter interaction")]
+    [Fact]
     public async Task GetNotificationsAsync_ReturnsNotificationsForCurrentUser()
     {
         // Arrange
@@ -509,16 +514,7 @@ public class ApprovalNotificationServiceTests
         context.ApprovalNotifications.AddRange(notification1, notification2);
         context.SaveChanges();
 
-        // Debug: verify data was saved
-        var savedCount = await context.ApprovalNotifications.CountAsync();
-        savedCount.Should().Be(2);
-
-        // Debug: check org IDs
-        var savedNotifications = await context.ApprovalNotifications.ToListAsync();
-        var notificationOrg = savedNotifications.First().OrganizationId;
-        notificationOrg.Should().Be(org.Id);
-
-        var service = CreateService(context);
+        var service = CreateService(context, org);
 
         // Act
         var results = await service.GetNotificationsAsync(user1.Id);
@@ -529,7 +525,7 @@ public class ApprovalNotificationServiceTests
         results.First().Title.Should().Be("Notification for User 1");
     }
 
-    [Fact(Skip = "Requires investigation of test query filter interaction")]
+    [Fact]
     public async Task GetNotificationsAsync_UnreadOnly_FiltersReadNotifications()
     {
         // Arrange
@@ -567,7 +563,7 @@ public class ApprovalNotificationServiceTests
         context.ApprovalNotifications.AddRange(unreadNotification, readNotification);
         context.SaveChanges();
 
-        var service = CreateService(context);
+        var service = CreateService(context, org);
 
         // Act
         var results = await service.GetNotificationsAsync(user.Id, unreadOnly: true);
@@ -578,7 +574,7 @@ public class ApprovalNotificationServiceTests
         results.First().Title.Should().Be("Unread");
     }
 
-    [Fact(Skip = "Requires investigation of test query filter interaction")]
+    [Fact]
     public async Task GetNotificationsAsync_RespectsLimit()
     {
         // Arrange
@@ -606,7 +602,7 @@ public class ApprovalNotificationServiceTests
         }
         context.SaveChanges();
 
-        var service = CreateService(context);
+        var service = CreateService(context, org);
 
         // Act
         var results = await service.GetNotificationsAsync(user.Id, limit: 10);
@@ -619,7 +615,7 @@ public class ApprovalNotificationServiceTests
 
     #region GetUnreadCountAsync
 
-    [Fact(Skip = "Requires investigation of test query filter interaction")]
+    [Fact]
     public async Task GetUnreadCountAsync_ReturnsCorrectCount()
     {
         // Arrange
@@ -663,7 +659,7 @@ public class ApprovalNotificationServiceTests
         }
         context.SaveChanges();
 
-        var service = CreateService(context);
+        var service = CreateService(context, org);
 
         // Act
         var count = await service.GetUnreadCountAsync(user.Id);
@@ -716,7 +712,7 @@ public class ApprovalNotificationServiceTests
 
     #region MarkAllAsReadAsync
 
-    [Fact(Skip = "Requires investigation of test query filter interaction")]
+    [Fact]
     public async Task MarkAllAsReadAsync_MarksAllUnreadNotificationsAsRead()
     {
         // Arrange
@@ -742,7 +738,7 @@ public class ApprovalNotificationServiceTests
         }
         context.SaveChanges();
 
-        var service = CreateService(context);
+        var service = CreateService(context, org);
 
         // Act
         await service.MarkAllAsReadAsync(user.Id);

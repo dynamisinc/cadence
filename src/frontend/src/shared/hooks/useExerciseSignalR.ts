@@ -56,6 +56,15 @@ interface UseExerciseSignalROptions {
   onReconnected?: () => void
   /** Whether to automatically connect (default: true) */
   enabled?: boolean
+  // Approval workflow events (S08)
+  /** Called when an inject is submitted for approval */
+  onInjectSubmitted?: (inject: InjectDto) => void
+  /** Called when an inject is approved */
+  onInjectApproved?: (inject: InjectDto) => void
+  /** Called when an inject is rejected */
+  onInjectRejected?: (inject: InjectDto) => void
+  /** Called when an inject approval is reverted */
+  onInjectReverted?: (inject: InjectDto) => void
 }
 
 interface UseExerciseSignalRReturn {
@@ -97,6 +106,11 @@ export const useExerciseSignalR = (
     onObservationDeleted,
     onReconnected,
     enabled = true,
+    // Approval workflow events
+    onInjectSubmitted,
+    onInjectApproved,
+    onInjectRejected,
+    onInjectReverted,
   } = options
 
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected')
@@ -206,6 +220,20 @@ export const useExerciseSignalR = (
       if (onObservationDeleted) {
         connection.on('ObservationDeleted', onObservationDeleted)
       }
+
+      // Approval workflow events (S08)
+      if (onInjectSubmitted) {
+        connection.on('InjectSubmitted', onInjectSubmitted)
+      }
+      if (onInjectApproved) {
+        connection.on('InjectApproved', onInjectApproved)
+      }
+      if (onInjectRejected) {
+        connection.on('InjectRejected', onInjectRejected)
+      }
+      if (onInjectReverted) {
+        connection.on('InjectReverted', onInjectReverted)
+      }
     },
     [
       onInjectFired,
@@ -218,6 +246,10 @@ export const useExerciseSignalR = (
       onObservationAdded,
       onObservationUpdated,
       onObservationDeleted,
+      onInjectSubmitted,
+      onInjectApproved,
+      onInjectRejected,
+      onInjectReverted,
     ],
   )
 
@@ -235,6 +267,11 @@ export const useExerciseSignalR = (
     connection.off('ObservationAdded')
     connection.off('ObservationUpdated')
     connection.off('ObservationDeleted')
+    // Approval workflow events (S08)
+    connection.off('InjectSubmitted')
+    connection.off('InjectApproved')
+    connection.off('InjectRejected')
+    connection.off('InjectReverted')
   }, [])
 
   /**

@@ -10,6 +10,9 @@ export { ReadyNotification } from './ReadyNotification'
 export { InjectDetailDrawer } from './InjectDetailDrawer'
 export { FireConfirmationDialog } from './FireConfirmationDialog'
 export { SkipConfirmationDialog } from './SkipConfirmationDialog'
+export { ApproveDialog } from './ApproveDialog'
+export { RejectDialog } from './RejectDialog'
+export { SelfApprovalConfirmDialog } from './SelfApprovalConfirmDialog'
 
 // Organization components
 export { SortableTableHeader } from './SortableTableHeader'

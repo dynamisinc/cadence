@@ -1,4 +1,6 @@
 using Cadence.Core.Data;
+using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -13,11 +15,16 @@ public class InjectService : IInjectService
 {
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
+    private readonly IApprovalPermissionService _approvalPermissionService;
 
-    public InjectService(AppDbContext context, IExerciseHubContext hubContext)
+    public InjectService(
+        AppDbContext context,
+        IExerciseHubContext hubContext,
+        IApprovalPermissionService approvalPermissionService)
     {
         _context = context;
         _hubContext = hubContext;
+        _approvalPermissionService = approvalPermissionService;
     }
 
     /// <inheritdoc />
@@ -237,6 +244,32 @@ public class InjectService : IInjectService
     /// <inheritdoc />
     public async Task<InjectDto> ApproveInjectAsync(Guid exerciseId, Guid injectId, string userId, string? notes, CancellationToken cancellationToken = default)
     {
+        return await ApproveInjectInternalAsync(exerciseId, injectId, userId, notes, confirmSelfApproval: false, cancellationToken);
+    }
+
+    /// <summary>
+    /// Approve an inject with optional self-approval confirmation.
+    /// Called by the controller when self-approval requires confirmation.
+    /// </summary>
+    public async Task<InjectDto> ApproveInjectWithConfirmationAsync(
+        Guid exerciseId,
+        Guid injectId,
+        string userId,
+        string? notes,
+        bool confirmSelfApproval,
+        CancellationToken cancellationToken = default)
+    {
+        return await ApproveInjectInternalAsync(exerciseId, injectId, userId, notes, confirmSelfApproval, cancellationToken);
+    }
+
+    private async Task<InjectDto> ApproveInjectInternalAsync(
+        Guid exerciseId,
+        Guid injectId,
+        string userId,
+        string? notes,
+        bool confirmSelfApproval,
+        CancellationToken cancellationToken)
+    {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
         // Validate approval workflow is enabled
@@ -253,11 +286,22 @@ public class InjectService : IInjectService
                 $"Only Submitted injects can be approved. Current status: {inject.Status}");
         }
 
-        // Prevent self-approval (separation of duties)
-        if (inject.SubmittedByUserId == userId)
+        // Check approval permissions using the permission service
+        var permissionCheck = await _approvalPermissionService.CanApproveInjectAsync(userId, injectId, cancellationToken);
+
+        switch (permissionCheck.PermissionResult)
         {
-            throw new InvalidOperationException(
-                "Cannot approve your own submission. Another Director or Administrator must approve.");
+            case ApprovalPermissionResult.NotAuthorized:
+                throw new InvalidOperationException(
+                    "You do not have permission to approve injects.");
+
+            case ApprovalPermissionResult.SelfApprovalDenied:
+                throw new InvalidOperationException(
+                    "Cannot approve your own submission. Self-approval is not permitted by your organization.");
+
+            case ApprovalPermissionResult.SelfApprovalWithWarning when !confirmSelfApproval:
+                throw new InvalidOperationException(
+                    "SELF_APPROVAL_CONFIRMATION_REQUIRED: You are approving your own submission. Set confirmSelfApproval to true to proceed.");
         }
 
         // Update status
@@ -395,6 +439,10 @@ public class InjectService : IInjectService
             .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
             .ToListAsync(cancellationToken);
 
+        // Get organization self-approval policy (need org context)
+        var org = await _context.Organizations.FindAsync(new object[] { exercise.OrganizationId }, cancellationToken);
+        var selfApprovalPolicy = org?.SelfApprovalPolicy ?? SelfApprovalPolicy.NeverAllowed;
+
         foreach (var inject in injects)
         {
             // Skip non-submitted injects
@@ -406,13 +454,27 @@ public class InjectService : IInjectService
                 continue;
             }
 
-            // Skip self-submissions (separation of duties)
-            if (inject.SubmittedByUserId == userId)
+            // Check self-approval based on organization policy
+            var isSelfSubmission = inject.SubmittedByUserId == userId;
+            if (isSelfSubmission)
             {
-                result.SkippedCount++;
-                result.SkippedReasons.Add(
-                    $"INJ-{inject.InjectNumber:D3}: Cannot approve your own submission");
-                continue;
+                if (selfApprovalPolicy == SelfApprovalPolicy.NeverAllowed)
+                {
+                    result.SkippedCount++;
+                    result.SkippedReasons.Add(
+                        $"INJ-{inject.InjectNumber:D3}: Cannot approve your own submission (self-approval not permitted)");
+                    continue;
+                }
+                else if (selfApprovalPolicy == SelfApprovalPolicy.AllowedWithWarning)
+                {
+                    // For batch approval, skip self-submissions that require confirmation
+                    // Users should use individual approval with confirmation for their own submissions
+                    result.SkippedCount++;
+                    result.SkippedReasons.Add(
+                        $"INJ-{inject.InjectNumber:D3}: Self-approval requires individual confirmation");
+                    continue;
+                }
+                // If AlwaysAllowed, continue with approval
             }
 
             // Approve the inject

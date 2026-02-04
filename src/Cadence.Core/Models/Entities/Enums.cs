@@ -399,6 +399,56 @@ public enum ApprovalPolicy
     Required = 2
 }
 
+/// <summary>
+/// Organization policy for self-approval of injects.
+/// Controls whether users can approve injects they submitted.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum SelfApprovalPolicy
+{
+    /// <summary>
+    /// Users cannot approve injects they submitted.
+    /// Enforces separation of duties. Recommended setting.
+    /// </summary>
+    NeverAllowed = 0,
+
+    /// <summary>
+    /// Users can self-approve with confirmation dialog.
+    /// Self-approvals are flagged in audit logs.
+    /// </summary>
+    AllowedWithWarning = 1,
+
+    /// <summary>
+    /// No restrictions on self-approval.
+    /// Not recommended for compliance-sensitive exercises.
+    /// </summary>
+    AlwaysAllowed = 2
+}
+
+/// <summary>
+/// Flags enum for exercise roles authorized to approve injects.
+/// Used at organization level to configure approval permissions.
+/// </summary>
+[Flags]
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ApprovalRoles
+{
+    /// <summary>No roles can approve.</summary>
+    None = 0,
+
+    /// <summary>System administrators can approve injects.</summary>
+    Administrator = 1,
+
+    /// <summary>Exercise Directors can approve injects.</summary>
+    ExerciseDirector = 2,
+
+    /// <summary>Controllers can approve injects.</summary>
+    Controller = 4,
+
+    /// <summary>Evaluators can approve injects.</summary>
+    Evaluator = 8
+}
+
 // =============================================================================
 // User Preferences Enums
 // =============================================================================

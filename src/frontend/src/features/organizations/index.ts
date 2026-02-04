@@ -34,6 +34,12 @@ export {
   organizationKeys,
 } from './hooks/useOrganizations'
 
+export {
+  useApprovalPermissions,
+  useUpdateApprovalPermissions,
+  approvalPermissionKeys,
+} from './hooks/useApprovalPermissions'
+
 // Pages
 export {
   OrganizationListPage,

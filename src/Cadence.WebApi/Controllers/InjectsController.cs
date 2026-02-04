@@ -1,6 +1,8 @@
 using System.Security.Claims;
 using Cadence.Core.Constants;
 using Cadence.Core.Data;
+using Cadence.Core.Features.Exercises.Models.DTOs;
+using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Injects.Services;
 using Cadence.Core.Hubs;
@@ -26,17 +28,20 @@ public class InjectsController : ControllerBase
     private readonly ILogger<InjectsController> _logger;
     private readonly IExerciseHubContext _hubContext;
     private readonly IInjectService _injectService;
+    private readonly IApprovalPermissionService _approvalPermissionService;
 
     public InjectsController(
         AppDbContext context,
         ILogger<InjectsController> logger,
         IExerciseHubContext hubContext,
-        IInjectService injectService)
+        IInjectService injectService,
+        IApprovalPermissionService approvalPermissionService)
     {
         _context = context;
         _logger = logger;
         _hubContext = hubContext;
         _injectService = injectService;
+        _approvalPermissionService = approvalPermissionService;
     }
 
     /// <summary>
@@ -875,6 +880,51 @@ public class InjectsController : ControllerBase
         catch (InvalidOperationException ex)
         {
             return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    // =========================================================================
+    // Approval Permission Check (S11)
+    // =========================================================================
+
+    /// <summary>
+    /// Check if the current user can approve a specific inject.
+    /// Returns permission details including whether self-approval is allowed/required confirmation.
+    /// Used by frontend to conditionally render approve/reject buttons.
+    /// </summary>
+    [HttpGet("{id:guid}/can-approve")]
+    [AuthorizeExerciseAccess]
+    public async Task<ActionResult<InjectApprovalCheckDto>> CheckApprovalPermission(Guid exerciseId, Guid id)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var result = await _approvalPermissionService.CanApproveInjectAsync(userId, id);
+            return Ok(result);
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Check if the current user can approve injects for this exercise (general check).
+    /// Returns true if user's role is authorized to approve.
+    /// </summary>
+    [HttpGet("can-approve")]
+    [AuthorizeExerciseAccess]
+    public async Task<ActionResult<bool>> CheckExerciseApprovalPermission(Guid exerciseId)
+    {
+        try
+        {
+            var userId = GetCurrentUserIdString();
+            var canApprove = await _approvalPermissionService.CanApproveAsync(userId, exerciseId);
+            return Ok(new { canApprove });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
         }
     }
 

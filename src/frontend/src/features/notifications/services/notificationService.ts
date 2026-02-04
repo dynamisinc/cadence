@@ -8,6 +8,7 @@ import type {
   NotificationsResponse,
   UnreadCountResponse,
   MarkAllReadResponse,
+  ApprovalNotificationDto,
 } from '../types'
 
 /**
@@ -48,4 +49,46 @@ export async function markAllAsRead(): Promise<number> {
     '/notifications/read-all',
   )
   return response.data.markedCount
+}
+
+// =============================================================================
+// Approval Notifications (S08)
+// =============================================================================
+
+/**
+ * Get approval notifications for the current user.
+ */
+export async function getApprovalNotifications(
+  limit = 20,
+  unreadOnly = false,
+): Promise<ApprovalNotificationDto[]> {
+  const response = await apiClient.get<ApprovalNotificationDto[]>(
+    '/notifications/approval',
+    { params: { limit, unreadOnly } },
+  )
+  return response.data
+}
+
+/**
+ * Get unread approval notification count.
+ */
+export async function getApprovalUnreadCount(): Promise<number> {
+  const response = await apiClient.get<{ count: number }>(
+    '/notifications/approval/unread-count',
+  )
+  return response.data.count
+}
+
+/**
+ * Mark an approval notification as read.
+ */
+export async function markApprovalAsRead(notificationId: string): Promise<void> {
+  await apiClient.put(`/notifications/approval/${notificationId}/read`)
+}
+
+/**
+ * Mark all approval notifications as read.
+ */
+export async function markAllApprovalAsRead(): Promise<void> {
+  await apiClient.put('/notifications/approval/read-all')
 }
