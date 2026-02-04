@@ -31,7 +31,11 @@ module.exports = {
         'reports',
         'version',
         'capabilities',
+        'approval',
+        'inject-approval',
+        'feature-flags',
         // Infrastructure
+        'migrations',
         'db',
         'signalr',
         'pwa',
