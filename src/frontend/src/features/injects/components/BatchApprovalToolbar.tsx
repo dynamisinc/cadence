@@ -77,18 +77,18 @@ export const BatchApprovalToolbar = ({
     const approvable: string[] = []
     const reasons: string[] = []
 
-    selectedIds.forEach((id) => {
-      const inject = injects.find((i) => i.id === id)
+    selectedIds.forEach(id => {
+      const inject = injects.find(i => i.id === id)
       if (!inject) {
-        reasons.push(`Inject not found`)
+        reasons.push('Inject not found')
         return
       }
       if (inject.status !== InjectStatus.Submitted) {
-        reasons.push(`Not in Submitted status`)
+        reasons.push('Not in Submitted status')
         return
       }
       if (inject.submittedByUserId === currentUserId) {
-        reasons.push(`Cannot approve own submission`)
+        reasons.push('Cannot approve own submission')
         return
       }
       approvable.push(id)
@@ -213,12 +213,12 @@ export const BatchApprovalToolbar = ({
         inject={
           approvableIds.length > 0
             ? {
-                // Create a fake inject for display purposes
-                id: '',
-                injectNumber: 0,
-                title: `${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''}`,
-                description: `This will approve all ${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''}.`,
-              } as InjectDto
+              // Create a fake inject for display purposes
+              id: '',
+              injectNumber: 0,
+              title: `${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''}`,
+              description: `This will approve all ${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''}.`,
+            } as InjectDto
             : null
         }
         onConfirm={handleBatchApprove}
@@ -232,12 +232,12 @@ export const BatchApprovalToolbar = ({
         inject={
           approvableIds.length > 0
             ? {
-                // Create a fake inject for display purposes
-                id: '',
-                injectNumber: 0,
-                title: `${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''}`,
-                description: `This will reject all ${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''} with the same reason.`,
-              } as InjectDto
+              // Create a fake inject for display purposes
+              id: '',
+              injectNumber: 0,
+              title: `${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''}`,
+              description: `This will reject all ${approvableIds.length} selected inject${approvableIds.length !== 1 ? 's' : ''} with the same reason.`,
+            } as InjectDto
             : null
         }
         onConfirm={handleBatchReject}

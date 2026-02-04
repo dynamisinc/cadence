@@ -166,7 +166,7 @@ export const SelfApprovalConfirmDialog = ({
           label="Justification (recommended)"
           placeholder="Explain why self-approval is necessary..."
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={e => setNotes(e.target.value)}
           inputProps={{ maxLength: APPROVAL_FIELD_LIMITS.approverNotes.max }}
           helperText={`${notes.length}/${APPROVAL_FIELD_LIMITS.approverNotes.max} characters`}
         />

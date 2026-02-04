@@ -143,7 +143,7 @@ export const ApproveDialog = ({
           label="Review Notes (optional)"
           placeholder="Add any notes about your review..."
           value={notes}
-          onChange={(e) => setNotes(e.target.value)}
+          onChange={e => setNotes(e.target.value)}
           inputProps={{ maxLength: APPROVAL_FIELD_LIMITS.approverNotes.max }}
           helperText={`${notes.length}/${APPROVAL_FIELD_LIMITS.approverNotes.max} characters`}
         />

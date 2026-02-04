@@ -25,7 +25,8 @@ import {
   Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShieldCheck, faSave, faUndo } from '@fortawesome/free-solid-svg-icons'
+import { faShieldHalved, faSave, faUndo } from '@fortawesome/free-solid-svg-icons'
+import { toast } from 'react-toastify'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import {
   ApprovalRoles,
@@ -100,13 +101,15 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         orgId: organizationId,
         request: {
           authorizedRoles: createApprovalRoles(authorizedRoles),
-          selfApprovalPolicy: selfApprovalPolicy as typeof SelfApprovalPolicy[keyof typeof SelfApprovalPolicy],
+          selfApprovalPolicy:
+            selfApprovalPolicy as typeof SelfApprovalPolicy[keyof typeof SelfApprovalPolicy],
         },
       })
       setHasChanges(false)
+      toast.success('Approval permissions saved')
       onSaved?.()
     } catch {
-      // Error is handled by React Query
+      toast.error('Failed to save approval permissions')
     }
   }
 
@@ -141,7 +144,7 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
   return (
     <Paper sx={{ p: 3 }}>
       <Box display="flex" alignItems="center" gap={1} mb={1}>
-        <FontAwesomeIcon icon={faShieldCheck} />
+        <FontAwesomeIcon icon={faShieldHalved} />
         <Typography variant="h6">Inject Approval Permissions</Typography>
       </Box>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
@@ -249,7 +252,7 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
           labelId="self-approval-policy-label"
           value={selfApprovalPolicy}
           label="Self-Approval Policy"
-          onChange={(e) => handleSelfApprovalChange(e.target.value)}
+          onChange={e => handleSelfApprovalChange(e.target.value)}
         >
           <MenuItem value={SelfApprovalPolicy.NeverAllowed}>
             <Box>

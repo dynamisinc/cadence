@@ -6,6 +6,11 @@
  * - Status display and actions (archive, deactivate, restore)
  * - Member management (add, update role, remove)
  *
+ * Responsive Design:
+ * - Full width on small screens
+ * - Two-column layout on wider screens (md+)
+ * - Info cards, form sections, and status actions arranged for optimal space usage
+ *
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-03-edit-organization.md
  */
@@ -17,13 +22,18 @@ import {
   Paper,
   Alert,
   CircularProgress,
+  Grid,
+  Stack,
+  useMediaQuery,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faArrowLeft,
   faSave,
   faUsers,
   faClipboard,
+  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -43,7 +53,13 @@ import { StatusChip } from '@/shared/components'
 import { toast } from 'react-toastify'
 import type { OrgStatus, OrgRole } from '../types'
 import { organizationService } from '../services/organizationService'
-import { AddMemberDialog, OrgMembersTable, OrganizationStatusActions } from '../components'
+import {
+  AddMemberDialog,
+  OrgMembersTable,
+  OrganizationStatusActions,
+  ApprovalPermissionsSettings,
+} from '../components'
+import CobraStyles from '@/theme/CobraStyles'
 
 /** Valid status values */
 const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive']
@@ -63,6 +79,8 @@ export const EditOrganizationPage: FC = () => {
   const navigate = useNavigate()
   const { id } = useParams<{ id: string }>()
   const queryClient = useQueryClient()
+  const theme = useTheme()
+  const _isWideScreen = useMediaQuery(theme.breakpoints.up('md'))
   const { data: organization, isLoading, error } = useOrganization(id || '')
   const updateOrg = useUpdateOrganization()
   const archiveOrg = useArchiveOrganization()
@@ -206,26 +224,32 @@ export const EditOrganizationPage: FC = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', p: 4 }}>
-        <CircularProgress />
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          minHeight: 400,
+          padding: CobraStyles.Padding.MainWindow,
+        }}
+      >
+        <CircularProgress size={48} />
       </Box>
     )
   }
 
   if (error || !organization) {
     return (
-      <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-        <Alert severity="error">
+      <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
+        <Alert severity="error" sx={{ mb: 3 }}>
           {error instanceof Error ? error.message : 'Failed to load organization'}
         </Alert>
-        <Box sx={{ mt: 2 }}>
-          <CobraSecondaryButton
-            startIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-            onClick={() => navigate('/admin/organizations')}
-          >
-            Back to Organizations
-          </CobraSecondaryButton>
-        </Box>
+        <CobraSecondaryButton
+          startIcon={<FontAwesomeIcon icon={faArrowLeft} />}
+          onClick={() => navigate('/admin/organizations')}
+        >
+          Back to Organizations
+        </CobraSecondaryButton>
       </Box>
     )
   }
@@ -236,139 +260,193 @@ export const EditOrganizationPage: FC = () => {
   const status = normalizeStatus(organization.status)
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+    <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
       {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <CobraSecondaryButton
-          startIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-          onClick={() => navigate('/admin/organizations')}
+      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: 'primary.main',
+            fontSize: 32,
+          }}
         >
-          Back
-        </CobraSecondaryButton>
-        <Typography variant="h4" component="h1" sx={{ flex: 1 }}>
-          Edit Organization
-        </Typography>
+          <FontAwesomeIcon icon={faBuilding} />
+        </Box>
+        <Box sx={{ flex: 1 }}>
+          <Typography variant="h4" fontWeight={600}>
+            Edit Organization
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {organization.name} — Manage organization settings, members, and permissions
+          </Typography>
+        </Box>
         <StatusChip status={status} />
-      </Box>
+      </Stack>
 
-      {/* Info Cards */}
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
-        <Paper sx={{ p: 2, flex: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <FontAwesomeIcon icon={faUsers} size="lg" />
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Slug
-            </Typography>
-            <Typography variant="body1" fontFamily="monospace">
-              {organization.slug}
-            </Typography>
-          </Box>
-        </Paper>
-        <Paper sx={{ p: 2, flex: 1, display: 'flex', alignItems: 'center', gap: 2 }}>
-          <FontAwesomeIcon icon={faClipboard} size="lg" />
-          <Box>
-            <Typography variant="caption" color="text.secondary">
-              Created
-            </Typography>
-            <Typography variant="body1">
-              {new Date(organization.createdAt).toLocaleDateString()}
-            </Typography>
-          </Box>
-        </Paper>
-      </Box>
-
-      {/* Edit Form */}
-      <Paper sx={{ p: 3, mb: 3 }}>
-        <Typography variant="h6" gutterBottom>
-          Organization Details
-        </Typography>
-        <form onSubmit={handleSubmit}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            {/* Organization Name */}
-            <CobraTextField
-              label="Organization Name"
-              value={name}
-              onChange={e => setName(e.target.value)}
-              required
-              fullWidth
-              placeholder="e.g., CISA Region 4"
-              helperText="The display name for this organization"
-            />
-
-            {/* Description */}
-            <CobraTextField
-              label="Description"
-              value={description}
-              onChange={e => setDescription(e.target.value)}
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="Optional description of this organization"
-            />
-
-            {/* Contact Email */}
-            <CobraTextField
-              label="Contact Email"
-              type="email"
-              value={contactEmail}
-              onChange={e => setContactEmail(e.target.value)}
-              fullWidth
-              placeholder="admin@organization.gov"
-              helperText="Organization contact email (optional)"
-            />
-
-            {/* Actions */}
-            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
-              <CobraSecondaryButton onClick={() => navigate('/admin/organizations')}>
-                Cancel
-              </CobraSecondaryButton>
-              <CobraPrimaryButton
-                type="submit"
-                disabled={!hasChanges || !name.trim() || isPending}
-                startIcon={
-                  updateOrg.isPending ? (
-                    <CircularProgress size={16} color="inherit" />
-                  ) : (
-                    <FontAwesomeIcon icon={faSave} />
-                  )
-                }
-              >
-                {updateOrg.isPending ? 'Saving...' : 'Save Changes'}
-              </CobraPrimaryButton>
+      {/* Responsive Grid Layout */}
+      <Grid container spacing={2} alignItems="stretch">
+        {/* Info Cards - Two columns on all screens */}
+        <Grid size={{ xs: 6, sm: 6 }}>
+          <Paper sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary',
+                fontSize: 20,
+              }}
+            >
+              <FontAwesomeIcon icon={faUsers} />
             </Box>
-          </Box>
-        </form>
-      </Paper>
+            <Box sx={{ minWidth: 0 }}>
+              <Typography variant="caption" color="text.secondary">
+                Slug
+              </Typography>
+              <Typography variant="body1" fontFamily="monospace" noWrap>
+                {organization.slug}
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
 
-      {/* Status Actions */}
-      <OrganizationStatusActions
-        status={status}
-        isPending={isPending}
-        onArchive={handleArchive}
-        onDeactivate={handleDeactivate}
-        onRestore={handleRestore}
-      />
+        <Grid size={{ xs: 6, sm: 6 }}>
+          <Paper sx={{ p: 2, height: '100%', display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: 'text.secondary',
+                fontSize: 20,
+              }}
+            >
+              <FontAwesomeIcon icon={faClipboard} />
+            </Box>
+            <Box>
+              <Typography variant="caption" color="text.secondary">
+                Created
+              </Typography>
+              <Typography variant="body1">
+                {new Date(organization.createdAt).toLocaleDateString()}
+              </Typography>
+            </Box>
+          </Paper>
+        </Grid>
 
-      {/* Members Section */}
-      <Paper sx={{ p: 3, mt: 3 }}>
-        {membersLoading ? (
-          <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-            <CircularProgress size={24} />
+        {/* Edit Form - Half width on md+, full width on smaller screens */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Paper sx={{ p: 3, height: '100%' }}>
+            <Typography variant="h6" gutterBottom>
+              Organization Details
+            </Typography>
+            <form onSubmit={handleSubmit}>
+              <Stack spacing={CobraStyles.Spacing.FormFields}>
+                {/* Organization Name */}
+                <CobraTextField
+                  label="Organization Name"
+                  value={name}
+                  onChange={e => setName(e.target.value)}
+                  required
+                  fullWidth
+                  placeholder="e.g., CISA Region 4"
+                  helperText="The display name for this organization"
+                />
+
+                {/* Description */}
+                <CobraTextField
+                  label="Description"
+                  value={description}
+                  onChange={e => setDescription(e.target.value)}
+                  fullWidth
+                  multiline
+                  rows={3}
+                  placeholder="Optional description of this organization"
+                />
+
+                {/* Contact Email */}
+                <CobraTextField
+                  label="Contact Email"
+                  type="email"
+                  value={contactEmail}
+                  onChange={e => setContactEmail(e.target.value)}
+                  fullWidth
+                  placeholder="admin@organization.gov"
+                  helperText="Organization contact email (optional)"
+                />
+
+                {/* Actions */}
+                <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 1 }}>
+                  <CobraSecondaryButton onClick={() => navigate('/admin/organizations')}>
+                    Cancel
+                  </CobraSecondaryButton>
+                  <CobraPrimaryButton
+                    type="submit"
+                    disabled={!hasChanges || !name.trim() || isPending}
+                    startIcon={
+                      updateOrg.isPending ? (
+                        <CircularProgress size={16} color="inherit" />
+                      ) : (
+                        <FontAwesomeIcon icon={faSave} />
+                      )
+                    }
+                  >
+                    {updateOrg.isPending ? 'Saving...' : 'Save Changes'}
+                  </CobraPrimaryButton>
+                </Box>
+              </Stack>
+            </form>
+          </Paper>
+        </Grid>
+
+        {/* Status Actions - Half width on md+, full width on smaller screens */}
+        <Grid size={{ xs: 12, md: 6 }}>
+          <Box sx={{ height: '100%' }}>
+            <OrganizationStatusActions
+              status={status}
+              isPending={isPending}
+              onArchive={handleArchive}
+              onDeactivate={handleDeactivate}
+              onRestore={handleRestore}
+            />
           </Box>
-        ) : (
-          <OrgMembersTable
-            members={members}
-            isLoading={addMember.isPending || updateMemberRole.isPending || removeMember.isPending}
-            onAddClick={() => setAddMemberDialogOpen(true)}
-            onRoleChange={async (membershipId, newRole) => {
-              await updateMemberRole.mutateAsync({ membershipId, role: newRole })
-            }}
-            onRemove={async membershipId => {
-              await removeMember.mutateAsync(membershipId)
-            }}
-          />
+        </Grid>
+
+        {/* Approval Permissions Settings - Full width */}
+        {id && (
+          <Grid size={12}>
+            <ApprovalPermissionsSettings
+              organizationId={id}
+              onSaved={() => toast.success('Approval permissions saved')}
+            />
+          </Grid>
         )}
-      </Paper>
+
+        {/* Members Section - Full width */}
+        <Grid size={12}>
+          <Paper sx={{ p: 3 }}>
+            {membersLoading ? (
+              <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+                <CircularProgress size={24} />
+              </Box>
+            ) : (
+              <OrgMembersTable
+                members={members}
+                isLoading={addMember.isPending || updateMemberRole.isPending || removeMember.isPending}
+                onAddClick={() => setAddMemberDialogOpen(true)}
+                onRoleChange={async (membershipId, newRole) => {
+                  await updateMemberRole.mutateAsync({ membershipId, role: newRole })
+                }}
+                onRemove={async membershipId => {
+                  await removeMember.mutateAsync(membershipId)
+                }}
+              />
+            )}
+          </Paper>
+        </Grid>
+      </Grid>
 
       {/* Add Member Dialog */}
       <AddMemberDialog

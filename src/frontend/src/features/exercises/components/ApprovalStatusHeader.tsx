@@ -2,16 +2,16 @@
  * ApprovalStatusHeader Component
  *
  * Displays approval progress bar and summary (S06).
- * Shows how many injects are approved vs pending.
+ * Shows breakdown of Draft / Submitted / Approved inject counts.
  *
  * @module features/exercises/components
  */
 
-import { Box, Typography, LinearProgress, Tooltip, Skeleton } from '@mui/material'
+import { Box, Typography, LinearProgress, Tooltip, Skeleton, Chip, Stack } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faClock } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faPencil, faPaperPlane } from '@fortawesome/free-solid-svg-icons'
 import { useTheme } from '@mui/material/styles'
-import { useApprovalStatus } from '../hooks'
+import { useApprovalStatus, useApprovalSettings } from '../hooks'
 
 interface ApprovalStatusHeaderProps {
   /** The exercise ID */
@@ -24,7 +24,7 @@ interface ApprovalStatusHeaderProps {
  * Approval Status Header
  *
  * Shows a progress bar indicating how many injects have been approved
- * out of the total, plus summary text showing pending count.
+ * out of the total, plus summary chips showing Draft/Submitted/Approved counts.
  *
  * @example
  * <ApprovalStatusHeader exerciseId={exerciseId} showDetails />
@@ -34,6 +34,7 @@ export const ApprovalStatusHeader = ({
   showDetails = true,
 }: ApprovalStatusHeaderProps) => {
   const theme = useTheme()
+  const { settings } = useApprovalSettings(exerciseId)
   const {
     status,
     isLoading,
@@ -43,6 +44,11 @@ export const ApprovalStatusHeader = ({
     canPublish,
     approvalPercentage,
   } = useApprovalStatus(exerciseId)
+
+  // Don't show if approval is not enabled
+  if (!settings?.requireInjectApproval) {
+    return null
+  }
 
   if (isLoading) {
     return (
@@ -57,36 +63,66 @@ export const ApprovalStatusHeader = ({
     return null
   }
 
+  // Calculate draft count (not yet submitted)
+  const draftCount = totalInjects - approvedCount - pendingCount
   const progressColor = canPublish ? 'success' : 'warning'
 
   return (
     <Box sx={{ mb: 2 }}>
       {showDetails && (
-        <Box display="flex" justifyContent="space-between" alignItems="center" mb={1}>
-          <Typography variant="body2" color="text.secondary">
-            <FontAwesomeIcon
-              icon={faCheck}
-              style={{ marginRight: 6, color: theme.palette.success.main }}
+        <Box mb={1}>
+          {/* Status breakdown chips */}
+          <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" sx={{ mb: 1 }}>
+            <Typography variant="body2" color="text.secondary" sx={{ mr: 1 }}>
+              Approval Status:
+            </Typography>
+            <Chip
+              size="small"
+              icon={<FontAwesomeIcon icon={faPencil} style={{ fontSize: 10 }} />}
+              label={`${draftCount} Draft`}
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.grey[400],
+                color: theme.palette.text.secondary,
+                '& .MuiChip-icon': { color: theme.palette.grey[500] },
+              }}
             />
-            {approvedCount} of {totalInjects} injects approved
-          </Typography>
-          <Typography
-            variant="body2"
-            color={canPublish ? 'success.main' : 'warning.main'}
-            fontWeight={500}
-          >
-            {canPublish ? (
-              <>
+            <Chip
+              size="small"
+              icon={<FontAwesomeIcon icon={faPaperPlane} style={{ fontSize: 10 }} />}
+              label={`${pendingCount} Awaiting Review`}
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.warning.main,
+                color: theme.palette.warning.dark,
+                '& .MuiChip-icon': { color: theme.palette.warning.main },
+              }}
+            />
+            <Chip
+              size="small"
+              icon={<FontAwesomeIcon icon={faCheck} style={{ fontSize: 10 }} />}
+              label={`${approvedCount} Approved`}
+              variant="outlined"
+              sx={{
+                borderColor: theme.palette.success.main,
+                color: theme.palette.success.dark,
+                '& .MuiChip-icon': { color: theme.palette.success.main },
+              }}
+            />
+            {canPublish && (
+              <Typography variant="body2" color="success.main" fontWeight={500} sx={{ ml: 1 }}>
                 <FontAwesomeIcon icon={faCheck} style={{ marginRight: 4 }} />
-                Ready to publish
-              </>
-            ) : (
-              <>
-                <FontAwesomeIcon icon={faClock} style={{ marginRight: 4 }} />
-                {pendingCount} pending approval
-              </>
+                Ready to activate
+              </Typography>
             )}
-          </Typography>
+          </Stack>
+
+          {/* Workflow hint when there are drafts */}
+          {draftCount > 0 && pendingCount === 0 && approvedCount === 0 && (
+            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+              Use the <strong>Submit for Approval</strong> button on each inject to start the approval workflow.
+            </Typography>
+          )}
         </Box>
       )}
 

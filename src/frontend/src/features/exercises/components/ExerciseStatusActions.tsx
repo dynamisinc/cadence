@@ -20,6 +20,7 @@ import {
   faRotateLeft,
   faBoxOpen,
   faChevronDown,
+  faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons'
 
 import {
@@ -27,9 +28,10 @@ import {
   CobraPrimaryButton,
   CobraDeleteButton,
 } from '../../../theme/styledComponents'
-import { useExerciseStatus } from '../hooks'
+import { useExerciseStatus, usePublishValidation } from '../hooks'
 import { ExerciseStatus } from '../../../types'
 import type { ExerciseDto } from '../types'
+import { PublishBlockedDialog } from './PublishBlockedDialog'
 
 interface ExerciseStatusActionsProps {
   exercise: ExerciseDto
@@ -56,6 +58,7 @@ export const ExerciseStatusActions = ({
     onConfirm: () => Promise<unknown>
     isDestructive?: boolean
   } | null>(null)
+  const [blockedDialogOpen, setBlockedDialogOpen] = useState(false)
 
   const {
     availableTransitions,
@@ -68,6 +71,14 @@ export const ExerciseStatusActions = ({
     revertToDraft,
     isTransitioning,
   } = useExerciseStatus(exercise.id)
+
+  // Approval validation for activation (S07)
+  const {
+    validation,
+    canPublish,
+    unapprovedCount,
+    refetch: refetchValidation,
+  } = usePublishValidation(exercise.id)
 
   const handleClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget)
@@ -104,6 +115,20 @@ export const ExerciseStatusActions = ({
     }
   }
 
+  // Handle activate with approval validation (S07)
+  const handleActivate = async () => {
+    handleClose()
+    // Refresh validation before checking
+    await refetchValidation()
+
+    if (canPublish) {
+      await activate()
+    } else {
+      // Show blocked dialog if there are unapproved injects
+      setBlockedDialogOpen(true)
+    }
+  }
+
   // Don't show if no transitions available
   if (availableTransitions.length === 0) {
     return null
@@ -129,25 +154,36 @@ export const ExerciseStatusActions = ({
         {/* Activate (Draft → Active) */}
         {canTransition(ExerciseStatus.Active) && exercise.status === ExerciseStatus.Draft && (
           <Tooltip
-            title={isReadyToActivate ? '' : 'Add at least one inject to the MSEL before activating'}
+            title={
+              !isReadyToActivate
+                ? 'Add at least one inject to the MSEL before activating'
+                : unapprovedCount > 0
+                  ? `${unapprovedCount} inject${unapprovedCount !== 1 ? 's' : ''} need approval`
+                  : ''
+            }
             placement="left"
           >
             <span>
               <MenuItem
-                onClick={() => handleAction(activate)}
+                onClick={handleActivate}
                 disabled={!isReadyToActivate}
               >
                 <ListItemIcon>
                   <FontAwesomeIcon
-                    icon={faPlay}
+                    icon={unapprovedCount > 0 ? faExclamationTriangle : faPlay}
                     style={{
-                      color: isReadyToActivate
-                        ? 'var(--mui-palette-success-main)'
-                        : 'var(--mui-palette-action-disabled)',
+                      color: !isReadyToActivate
+                        ? 'var(--mui-palette-action-disabled)'
+                        : unapprovedCount > 0
+                          ? 'var(--mui-palette-warning-main)'
+                          : 'var(--mui-palette-success-main)',
                     }}
                   />
                 </ListItemIcon>
-                <ListItemText>Activate Exercise</ListItemText>
+                <ListItemText
+                  primary="Activate Exercise"
+                  secondary={unapprovedCount > 0 ? `${unapprovedCount} pending approval` : undefined}
+                />
               </MenuItem>
             </span>
           </Tooltip>
@@ -255,6 +291,14 @@ export const ExerciseStatusActions = ({
           </DialogActions>
         </Dialog>
       )}
+
+      {/* Approval Blocked Dialog (S07) */}
+      <PublishBlockedDialog
+        open={blockedDialogOpen}
+        onClose={() => setBlockedDialogOpen(false)}
+        exerciseId={exercise.id}
+        validation={validation}
+      />
     </>
   )
 }

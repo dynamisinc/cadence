@@ -108,7 +108,8 @@ export const MENU_ITEMS: MenuItem[] = [
     section: 'conduct',
     allowedRoles: CONTROL_ROLES,
     requiresExerciseContext: true,
-    disabledTooltip: 'Coming in a future release',
+    disabledTooltip: 'Enter an exercise first',
+    featureFlag: 'controlRoom',
   },
   {
     id: 'inject-queue',
@@ -119,6 +120,7 @@ export const MENU_ITEMS: MenuItem[] = [
     allowedRoles: CONTROL_ROLES,
     requiresExerciseContext: true,
     disabledTooltip: 'Enter an exercise first',
+    featureFlag: 'injectQueue',
   },
 
   // ============================================================================
@@ -141,6 +143,7 @@ export const MENU_ITEMS: MenuItem[] = [
     path: '/reports',
     section: 'analysis',
     allowedRoles: REPORTING_ROLES,
+    featureFlag: 'reports',
   },
 
   // ============================================================================
@@ -163,6 +166,7 @@ export const MENU_ITEMS: MenuItem[] = [
     section: 'system',
     allowedRoles: ADMIN_ROLES,
     allowedSystemRoles: [SystemRole.Admin],
+    featureFlag: 'templates',
   },
   {
     id: 'users',

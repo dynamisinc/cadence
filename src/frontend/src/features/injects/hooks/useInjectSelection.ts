@@ -55,7 +55,7 @@ export const useInjectSelection = ({
 
   const toggleSelection = useCallback(
     (id: string) => {
-      setSelectedIds((prev) => {
+      setSelectedIds(prev => {
         const next = new Set(prev)
         if (next.has(id)) {
           next.delete(id)
@@ -70,7 +70,7 @@ export const useInjectSelection = ({
   )
 
   const selectAll = useCallback(() => {
-    const allIds = new Set(injects.map((i) => i.id))
+    const allIds = new Set(injects.map(i => i.id))
     setSelectedIds(allIds)
     onSelectionChange?.(Array.from(allIds))
   }, [injects, onSelectionChange])

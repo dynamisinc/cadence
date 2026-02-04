@@ -79,6 +79,7 @@ vi.mock('../components', () => ({
       )}
     </div>
   ),
+  ApprovalPermissionsSettings: () => <div data-testid="approval-permissions-settings" />,
 }))
 
 vi.mock('@/shared/components', () => ({

@@ -16,7 +16,7 @@ import {
   Skeleton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faShieldCheck, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
+import { faShieldHalved, faInfoCircle } from '@fortawesome/free-solid-svg-icons'
 import { ApprovalPolicy } from '@/types'
 import { useApprovalSettings } from '../hooks'
 import { CobraTextField } from '@/theme/styledComponents'
@@ -98,7 +98,7 @@ export const ExerciseApprovalToggle = ({
     <Box>
       <Box display="flex" alignItems="flex-start" gap={2}>
         <FontAwesomeIcon
-          icon={faShieldCheck}
+          icon={faShieldHalved}
           style={{ marginTop: 4, opacity: 0.6 }}
         />
         <Box flex={1}>
@@ -106,7 +106,7 @@ export const ExerciseApprovalToggle = ({
             control={
               <Switch
                 checked={requireApproval}
-                onChange={(e) => handleToggle(e.target.checked)}
+                onChange={e => handleToggle(e.target.checked)}
                 disabled={isLocked || isUpdating}
               />
             }
@@ -144,7 +144,7 @@ export const ExerciseApprovalToggle = ({
                 label="Override reason (optional)"
                 placeholder="Why is approval being disabled?"
                 value={overrideReason}
-                onChange={(e) => setOverrideReason(e.target.value)}
+                onChange={e => setOverrideReason(e.target.value)}
                 sx={{ mt: 1 }}
               />
             </Alert>

@@ -11,8 +11,6 @@ import { exerciseService } from '../services/exerciseService'
 import type {
   ApprovalSettingsDto,
   UpdateApprovalSettingsRequest,
-  ApprovalStatusDto,
-  PublishValidationResult,
 } from '../types'
 
 /** Query key factory for approval settings */
@@ -48,7 +46,7 @@ export const useApprovalSettings = (exerciseId: string) => {
   const updateMutation = useMutation({
     mutationFn: (request: UpdateApprovalSettingsRequest) =>
       exerciseService.updateApprovalSettings(exerciseId, request),
-    onMutate: async (request) => {
+    onMutate: async request => {
       await queryClient.cancelQueries({ queryKey })
       const previousSettings =
         queryClient.getQueryData<ApprovalSettingsDto>(queryKey)
@@ -57,18 +55,18 @@ export const useApprovalSettings = (exerciseId: string) => {
       queryClient.setQueryData<ApprovalSettingsDto>(queryKey, old =>
         old
           ? {
-              ...old,
-              requireInjectApproval: request.requireInjectApproval,
-              approvalPolicyOverridden: request.isOverride ?? old.approvalPolicyOverridden,
-              approvalOverrideReason:
+            ...old,
+            requireInjectApproval: request.requireInjectApproval,
+            approvalPolicyOverridden: request.isOverride ?? old.approvalPolicyOverridden,
+            approvalOverrideReason:
                 request.overrideReason ?? old.approvalOverrideReason,
-            }
+          }
           : old,
       )
 
       return { previousSettings }
     },
-    onSuccess: (updatedSettings) => {
+    onSuccess: updatedSettings => {
       queryClient.setQueryData(queryKey, updatedSettings)
       toast.success('Approval settings updated')
     },

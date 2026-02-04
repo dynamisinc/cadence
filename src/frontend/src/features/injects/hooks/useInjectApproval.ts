@@ -30,7 +30,7 @@ export const useInjectApproval = (exerciseId: string) => {
   const submitMutation = useMutation({
     mutationFn: (injectId: string) =>
       injectService.submitForApproval(exerciseId, injectId),
-    onMutate: async (injectId) => {
+    onMutate: async injectId => {
       await queryClient.cancelQueries({ queryKey })
       const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
 
@@ -39,18 +39,18 @@ export const useInjectApproval = (exerciseId: string) => {
         old.map(inject =>
           inject.id === injectId
             ? {
-                ...inject,
-                status: InjectStatus.Submitted,
-                submittedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Submitted,
+              submittedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (submittedInject) => {
+    onSuccess: submittedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
         old.map(inject =>
           inject.id === submittedInject.id ? submittedInject : inject,
@@ -94,18 +94,18 @@ export const useInjectApproval = (exerciseId: string) => {
         old.map(inject =>
           inject.id === injectId
             ? {
-                ...inject,
-                status: InjectStatus.Approved,
-                approvedAt: new Date().toISOString(),
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Approved,
+              approvedAt: new Date().toISOString(),
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (approvedInject) => {
+    onSuccess: approvedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
         old.map(inject =>
           inject.id === approvedInject.id ? approvedInject : inject,
@@ -149,19 +149,19 @@ export const useInjectApproval = (exerciseId: string) => {
         old.map(inject =>
           inject.id === injectId
             ? {
-                ...inject,
-                status: InjectStatus.Draft,
-                rejectedAt: new Date().toISOString(),
-                rejectionReason: request.reason,
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Draft,
+              rejectedAt: new Date().toISOString(),
+              rejectionReason: request.reason,
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (rejectedInject) => {
+    onSuccess: rejectedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
         old.map(inject =>
           inject.id === rejectedInject.id ? rejectedInject : inject,
@@ -191,7 +191,7 @@ export const useInjectApproval = (exerciseId: string) => {
   const batchApproveMutation = useMutation({
     mutationFn: (request: BatchApproveRequest) =>
       injectService.batchApprove(exerciseId, request),
-    onSuccess: (result) => {
+    onSuccess: result => {
       // Invalidate inject list to get fresh data
       queryClient.invalidateQueries({ queryKey })
       // Invalidate approval status
@@ -205,7 +205,7 @@ export const useInjectApproval = (exerciseId: string) => {
           : `${result.approvedCount} injects approved`
       toast.success(message)
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to batch approve'
       toast.error(message)
@@ -216,7 +216,7 @@ export const useInjectApproval = (exerciseId: string) => {
   const batchRejectMutation = useMutation({
     mutationFn: (request: BatchRejectRequest) =>
       injectService.batchReject(exerciseId, request),
-    onSuccess: (result) => {
+    onSuccess: result => {
       // Invalidate inject list to get fresh data
       queryClient.invalidateQueries({ queryKey })
       // Invalidate approval status
@@ -230,7 +230,7 @@ export const useInjectApproval = (exerciseId: string) => {
           : `${result.rejectedCount} injects rejected`
       toast.success(message)
     },
-    onError: (err) => {
+    onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to batch reject'
       toast.error(message)
@@ -255,19 +255,19 @@ export const useInjectApproval = (exerciseId: string) => {
         old.map(inject =>
           inject.id === injectId
             ? {
-                ...inject,
-                status: InjectStatus.Submitted,
-                revertedAt: new Date().toISOString(),
-                revertReason: request.reason,
-                updatedAt: new Date().toISOString(),
-              }
+              ...inject,
+              status: InjectStatus.Submitted,
+              revertedAt: new Date().toISOString(),
+              revertReason: request.reason,
+              updatedAt: new Date().toISOString(),
+            }
             : inject,
         ),
       )
 
       return { previousInjects }
     },
-    onSuccess: (revertedInject) => {
+    onSuccess: revertedInject => {
       queryClient.setQueryData<InjectDto[]>(queryKey, (old = []) =>
         old.map(inject =>
           inject.id === revertedInject.id ? revertedInject : inject,

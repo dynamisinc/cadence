@@ -165,7 +165,7 @@ export const RejectDialog = ({
           label="Rejection Reason"
           placeholder="Explain what needs to be corrected..."
           value={reason}
-          onChange={(e) => setReason(e.target.value)}
+          onChange={e => setReason(e.target.value)}
           onBlur={() => setTouched(true)}
           error={showError}
           helperText={

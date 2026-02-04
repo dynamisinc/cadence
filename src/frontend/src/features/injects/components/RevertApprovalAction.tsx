@@ -6,7 +6,7 @@
  * @module features/injects/components
  */
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect } from 'react'
 import {
   MenuItem,
   ListItemIcon,
@@ -91,10 +91,7 @@ export const RevertApprovalAction = ({
 
   const { revertApproval, isReverting } = useInjectApproval(exerciseId)
 
-  // Only show for Approved injects
-  if (inject.status !== InjectStatus.Approved) {
-    return null
-  }
+  const isApproved = inject.status === InjectStatus.Approved
 
   const isValid =
     reason.length >= APPROVAL_FIELD_LIMITS.revertReason.min &&
@@ -135,7 +132,13 @@ export const RevertApprovalAction = ({
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dialogOpen, isValid])
+
+  // Only show for Approved injects
+  if (!isApproved) {
+    return null
+  }
 
   const showError = touched && !isValid
   const errorMessage =
@@ -208,7 +211,7 @@ export const RevertApprovalAction = ({
             label="Reason for Revert"
             placeholder="Explain why this approval needs to be reverted..."
             value={reason}
-            onChange={(e) => setReason(e.target.value)}
+            onChange={e => setReason(e.target.value)}
             onBlur={() => setTouched(true)}
             error={showError}
             helperText={

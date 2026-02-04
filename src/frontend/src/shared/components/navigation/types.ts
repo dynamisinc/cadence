@@ -9,6 +9,7 @@
 
 import type { IconDefinition } from '@fortawesome/free-solid-svg-icons'
 import type { HseepRole, SystemRole } from '../../../types'
+import type { FeatureFlags } from '../../../admin/types/featureFlags'
 
 /**
  * Menu sections matching HSEEP workflow
@@ -46,6 +47,8 @@ export interface MenuItem {
   requiresExerciseContext?: boolean;
   /** Tooltip to show when item is disabled */
   disabledTooltip?: string;
+  /** Feature flag that controls visibility of this menu item */
+  featureFlag?: keyof FeatureFlags;
 }
 
 /**

@@ -159,7 +159,6 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const { can } = useExerciseRole(exerciseId)
   const canFireInjects = can('fire_inject')
   const canManage = can('edit_inject')
-  const canApprove = can('approve_inject')
 
   // Approval workflow state (S11-S13)
   const { settings: approvalSettings } = useApprovalSettings(exerciseId)
@@ -187,7 +186,6 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     toggleSelection,
     selectAll,
     clearSelection,
-    isSelected,
     selectionState,
   } = useInjectSelection({ injects: organization.organizedInjects })
 
@@ -1343,29 +1341,44 @@ const InjectRowCells = ({
       {(canFireInjects || canManage || approvalEnabled) && (
         <TableCell>
           <Stack direction="row" spacing={0.5}>
-            {canFireInjects && isPending && (
-              <>
-                <Tooltip title="Fire inject">
-                  <IconButton
-                    size="small"
-                    color="success"
-                    onClick={onFire}
-                    disabled={isFiring || isSkipping}
-                  >
-                    <FontAwesomeIcon icon={faPlay} size="sm" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Skip inject">
-                  <IconButton
-                    size="small"
-                    color="warning"
-                    onClick={onSkip}
-                    disabled={isFiring || isSkipping}
-                  >
-                    <FontAwesomeIcon icon={faForwardStep} size="sm" />
-                  </IconButton>
-                </Tooltip>
-              </>
+            {/* Quick Submit button (S13) - shown first for Draft injects when approval enabled */}
+            {approvalEnabled && exerciseId && canManage && (
+              <SubmitForApprovalButton
+                inject={inject}
+                exerciseId={exerciseId}
+                approvalEnabled={approvalEnabled}
+                canSubmit={canManage}
+                size="small"
+              />
+            )}
+            {/* Fire/Skip - only for Draft (when no approval) or Approved injects */}
+            {canFireInjects && (
+              // When approval enabled: only show for Approved injects
+              // When approval disabled: show for Draft injects (isPending)
+              (approvalEnabled ? inject.status === InjectStatus.Approved : isPending) && (
+                <>
+                  <Tooltip title="Fire inject">
+                    <IconButton
+                      size="small"
+                      color="success"
+                      onClick={onFire}
+                      disabled={isFiring || isSkipping}
+                    >
+                      <FontAwesomeIcon icon={faPlay} size="sm" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Skip inject">
+                    <IconButton
+                      size="small"
+                      color="warning"
+                      onClick={onSkip}
+                      disabled={isFiring || isSkipping}
+                    >
+                      <FontAwesomeIcon icon={faForwardStep} size="sm" />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )
             )}
             {canManage && (
               <>
@@ -1388,16 +1401,6 @@ const InjectRowCells = ({
                   </IconButton>
                 </Tooltip>
               </>
-            )}
-            {/* Quick Submit button (S13) */}
-            {approvalEnabled && exerciseId && canManage && (
-              <SubmitForApprovalButton
-                inject={inject}
-                exerciseId={exerciseId}
-                approvalEnabled={approvalEnabled}
-                canSubmit={canManage}
-                size="small"
-              />
             )}
           </Stack>
         </TableCell>
@@ -1547,29 +1550,44 @@ const InjectRow = ({
       {(canFireInjects || canManage || approvalEnabled) && (
         <TableCell>
           <Stack direction="row" spacing={0.5}>
-            {canFireInjects && isPending && (
-              <>
-                <Tooltip title="Fire inject">
-                  <IconButton
-                    size="small"
-                    color="success"
-                    onClick={onFire}
-                    disabled={isFiring || isSkipping}
-                  >
-                    <FontAwesomeIcon icon={faPlay} size="sm" />
-                  </IconButton>
-                </Tooltip>
-                <Tooltip title="Skip inject">
-                  <IconButton
-                    size="small"
-                    color="warning"
-                    onClick={onSkip}
-                    disabled={isFiring || isSkipping}
-                  >
-                    <FontAwesomeIcon icon={faForwardStep} size="sm" />
-                  </IconButton>
-                </Tooltip>
-              </>
+            {/* Quick Submit button (S13) - shown first for Draft injects when approval enabled */}
+            {approvalEnabled && exerciseId && canManage && (
+              <SubmitForApprovalButton
+                inject={inject}
+                exerciseId={exerciseId}
+                approvalEnabled={approvalEnabled}
+                canSubmit={canManage}
+                size="small"
+              />
+            )}
+            {/* Fire/Skip - only for Draft (when no approval) or Approved injects */}
+            {canFireInjects && (
+              // When approval enabled: only show for Approved injects
+              // When approval disabled: show for Draft injects (isPending)
+              (approvalEnabled ? inject.status === InjectStatus.Approved : isPending) && (
+                <>
+                  <Tooltip title="Fire inject">
+                    <IconButton
+                      size="small"
+                      color="success"
+                      onClick={onFire}
+                      disabled={isFiring || isSkipping}
+                    >
+                      <FontAwesomeIcon icon={faPlay} size="sm" />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Skip inject">
+                    <IconButton
+                      size="small"
+                      color="warning"
+                      onClick={onSkip}
+                      disabled={isFiring || isSkipping}
+                    >
+                      <FontAwesomeIcon icon={faForwardStep} size="sm" />
+                    </IconButton>
+                  </Tooltip>
+                </>
+              )
             )}
             {canManage && (
               <>
@@ -1592,16 +1610,6 @@ const InjectRow = ({
                   </IconButton>
                 </Tooltip>
               </>
-            )}
-            {/* Quick Submit button (S13) */}
-            {approvalEnabled && exerciseId && canManage && (
-              <SubmitForApprovalButton
-                inject={inject}
-                exerciseId={exerciseId}
-                approvalEnabled={approvalEnabled}
-                canSubmit={canManage}
-                size="small"
-              />
             )}
           </Stack>
         </TableCell>
