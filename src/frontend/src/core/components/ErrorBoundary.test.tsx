@@ -1,6 +1,13 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, fireEvent } from '@testing-library/react'
+import { ThemeProvider } from '@mui/material'
+import { cobraTheme } from '../../theme/cobraTheme'
 import { ErrorBoundary } from './ErrorBoundary'
+
+// Wrap with theme provider for COBRA styled components
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider theme={cobraTheme}>{ui}</ThemeProvider>)
+}
 
 // Component that throws an error
 const ThrowError = ({ shouldThrow }: { shouldThrow: boolean }) => {
@@ -23,7 +30,7 @@ describe('ErrorBoundary', () => {
   })
 
   it('renders children when there is no error', () => {
-    render(
+    renderWithTheme(
       <ErrorBoundary>
         <div>Test content</div>
       </ErrorBoundary>,
@@ -33,20 +40,20 @@ describe('ErrorBoundary', () => {
   })
 
   it('renders error UI when child throws', () => {
-    render(
+    renderWithTheme(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>,
     )
 
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+    expect(screen.getByText('We hit a snag')).toBeInTheDocument()
     expect(
-      screen.getByText(/An unexpected error occurred/),
+      screen.getByText(/Something unexpected happened/),
     ).toBeInTheDocument()
   })
 
   it('renders custom fallback when provided', () => {
-    render(
+    renderWithTheme(
       <ErrorBoundary fallback={<div>Custom error fallback</div>}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>,
@@ -58,7 +65,7 @@ describe('ErrorBoundary', () => {
   it('calls onError callback when error is caught', () => {
     const onError = vi.fn()
 
-    render(
+    renderWithTheme(
       <ErrorBoundary onError={onError}>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>,
@@ -72,13 +79,13 @@ describe('ErrorBoundary', () => {
   })
 
   it('shows Try Again button that can be clicked', () => {
-    render(
+    renderWithTheme(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>,
     )
 
-    expect(screen.getByText('Something went wrong')).toBeInTheDocument()
+    expect(screen.getByText('We hit a snag')).toBeInTheDocument()
 
     // Try Again button should be visible and clickable
     const tryAgainButton = screen.getByText('Try Again')
@@ -89,7 +96,7 @@ describe('ErrorBoundary', () => {
   })
 
   it('shows Refresh Page button', () => {
-    render(
+    renderWithTheme(
       <ErrorBoundary>
         <ThrowError shouldThrow={true} />
       </ErrorBoundary>,
