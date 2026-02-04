@@ -290,6 +290,7 @@ export const InjectDetailPage = () => {
                 approvalEnabled={approvalEnabled}
                 canSubmit={canFireInjects}
                 size="medium"
+                onSubmitted={() => navigate(`/exercises/${exerciseId}/msel`)}
               />
 
               {/* Approve/Reject buttons - shown for Submitted injects */}
