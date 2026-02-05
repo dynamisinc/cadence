@@ -142,7 +142,7 @@ export const EegEntryForm = ({
 
   // EEG entry mutations - use task-level hook for updates
   const { createEntry, isCreating } = useEegEntries(exerciseId)
-  const { updateEegEntry, isUpdating } = useEegEntriesByTask(editEntry?.criticalTaskId ?? '')
+  const { updateEegEntry, isUpdating } = useEegEntriesByTask(exerciseId, editEntry?.criticalTaskId ?? '')
 
   // Selected critical task details
   const selectedTask = useMemo(

@@ -56,7 +56,7 @@ export const useEegEntries = (exerciseId: string) => {
   // Mutation for creating EEG entries (taskId is passed in the create call)
   const createMutation = useMutation({
     mutationFn: ({ taskId, request }: { taskId: string; request: CreateEegEntryRequest }) =>
-      eegEntryService.create(taskId, request),
+      eegEntryService.create(exerciseId, taskId, request),
     onSuccess: newEntry => {
       // Invalidate exercise entries
       queryClient.invalidateQueries({ queryKey })
@@ -100,8 +100,11 @@ export const useEegEntries = (exerciseId: string) => {
 
 /**
  * Hook for managing EEG Entries for a critical task
+ *
+ * @param exerciseId Exercise ID (required for authorization)
+ * @param taskId Critical task ID
  */
-export const useEegEntriesByTask = (taskId: string) => {
+export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
   const queryClient = useQueryClient()
   const queryKey = eegEntryKeys.byCriticalTask(taskId)
 
@@ -122,7 +125,7 @@ export const useEegEntriesByTask = (taskId: string) => {
   // Mutation for creating EEG entries
   const createMutation = useMutation({
     mutationFn: (request: CreateEegEntryRequest) =>
-      eegEntryService.create(taskId, request),
+      eegEntryService.create(exerciseId, taskId, request),
     onSuccess: newEntry => {
       queryClient.setQueryData(queryKey, (old: typeof response) => ({
         items: [...(old?.items ?? []), newEntry],
@@ -147,7 +150,7 @@ export const useEegEntriesByTask = (taskId: string) => {
   // Mutation for updating EEG entries
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: string; request: UpdateEegEntryRequest }) =>
-      eegEntryService.update(id, request),
+      eegEntryService.update(exerciseId, id, request),
     onMutate: async ({ id, request }) => {
       await queryClient.cancelQueries({ queryKey })
       const previousData = queryClient.getQueryData(queryKey)
@@ -189,7 +192,7 @@ export const useEegEntriesByTask = (taskId: string) => {
 
   // Mutation for deleting EEG entries
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => eegEntryService.delete(id),
+    mutationFn: (id: string) => eegEntryService.delete(exerciseId, id),
     onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousData = queryClient.getQueryData(queryKey)

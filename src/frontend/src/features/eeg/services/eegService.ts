@@ -236,9 +236,13 @@ export const eegEntryService = {
   /**
    * Create a new EEG entry
    */
-  async create(taskId: string, request: CreateEegEntryRequest): Promise<EegEntryDto> {
+  async create(
+    exerciseId: string,
+    taskId: string,
+    request: CreateEegEntryRequest,
+  ): Promise<EegEntryDto> {
     const response = await apiClient.post<EegEntryDto>(
-      `/critical-tasks/${taskId}/eeg-entries`,
+      `/exercises/${exerciseId}/critical-tasks/${taskId}/eeg-entries`,
       request,
     )
     return response.data
@@ -247,16 +251,23 @@ export const eegEntryService = {
   /**
    * Update an existing EEG entry
    */
-  async update(id: string, request: UpdateEegEntryRequest): Promise<EegEntryDto> {
-    const response = await apiClient.put<EegEntryDto>(`/eeg-entries/${id}`, request)
+  async update(
+    exerciseId: string,
+    id: string,
+    request: UpdateEegEntryRequest,
+  ): Promise<EegEntryDto> {
+    const response = await apiClient.put<EegEntryDto>(
+      `/exercises/${exerciseId}/eeg-entries/${id}`,
+      request,
+    )
     return response.data
   },
 
   /**
    * Delete an EEG entry
    */
-  async delete(id: string): Promise<void> {
-    await apiClient.delete(`/eeg-entries/${id}`)
+  async delete(exerciseId: string, id: string): Promise<void> {
+    await apiClient.delete(`/exercises/${exerciseId}/eeg-entries/${id}`)
   },
 
   /**

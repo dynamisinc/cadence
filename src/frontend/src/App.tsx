@@ -34,6 +34,7 @@ import {
 import { UserSettingsPage } from './features/settings'
 import { ExerciseMetricsPage } from './features/metrics'
 import { ObservationsPage } from './features/observations'
+import { EegEntriesPage } from './features/eeg'
 import {
   InjectListPage,
   InjectDetailPage,
@@ -341,6 +342,7 @@ const router = createBrowserRouter([
           { path: 'injects/:injectId', element: <InjectDetailPage /> },
           { path: 'injects/:injectId/edit', element: <EditInjectPage /> },
           { path: 'observations', element: <ObservationsPage /> },
+          { path: 'eeg-entries', element: <EegEntriesPage /> },
           { path: 'participants', element: <ExerciseParticipantsPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'metrics', element: <ExerciseMetricsPage /> },

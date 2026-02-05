@@ -69,9 +69,9 @@ public class EegEntriesController : ControllerBase
     /// Create a new EEG entry.
     /// Requires Evaluator or higher role.
     /// </summary>
-    [HttpPost("critical-tasks/{taskId:guid}/eeg-entries")]
+    [HttpPost("exercises/{exerciseId:guid}/critical-tasks/{taskId:guid}/eeg-entries")]
     [AuthorizeExerciseEvaluator]
-    public async Task<ActionResult<EegEntryDto>> Create(Guid taskId, CreateEegEntryRequest request)
+    public async Task<ActionResult<EegEntryDto>> Create(Guid exerciseId, Guid taskId, CreateEegEntryRequest request)
     {
         // Ensure task ID matches
         if (request.CriticalTaskId != Guid.Empty && request.CriticalTaskId != taskId)
@@ -115,9 +115,9 @@ public class EegEntriesController : ControllerBase
     /// Update an existing EEG entry.
     /// Requires Evaluator or higher role.
     /// </summary>
-    [HttpPut("eeg-entries/{id:guid}")]
+    [HttpPut("exercises/{exerciseId:guid}/eeg-entries/{id:guid}")]
     [AuthorizeExerciseEvaluator]
-    public async Task<ActionResult<EegEntryDto>> Update(Guid id, UpdateEegEntryRequest request)
+    public async Task<ActionResult<EegEntryDto>> Update(Guid exerciseId, Guid id, UpdateEegEntryRequest request)
     {
         // Validation
         if (string.IsNullOrWhiteSpace(request.ObservationText))
@@ -146,9 +146,9 @@ public class EegEntriesController : ControllerBase
     /// Delete an EEG entry (soft delete).
     /// Requires Exercise Director or Administrator role.
     /// </summary>
-    [HttpDelete("eeg-entries/{id:guid}")]
+    [HttpDelete("exercises/{exerciseId:guid}/eeg-entries/{id:guid}")]
     [AuthorizeExerciseDirector]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid exerciseId, Guid id)
     {
         var deletedBy = GetCurrentUserId();
         var deleted = await _eegEntryService.DeleteAsync(id, deletedBy);
