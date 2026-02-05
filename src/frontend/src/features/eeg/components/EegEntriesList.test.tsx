@@ -272,21 +272,36 @@ describe('EegEntriesList', () => {
       const user = userEvent.setup()
       const { container } = render(<EegEntriesList {...defaultProps} />)
 
+      // Default is already sorted by observedAt desc (newest first)
+      // Click same field again to toggle to asc (oldest first)
       const sortButton = screen.getByLabelText(/Sort entries/i)
       await user.click(sortButton)
+
+      await waitFor(() => {
+        expect(screen.getByText(/Time.*newest/i)).toBeInTheDocument()
+      })
 
       const timeOption = screen.getByText(/Time/)
       await user.click(timeOption)
 
-      // First click should maintain desc, second click should toggle to asc
+      // Now menu closes, click again to toggle sort direction
       await user.click(sortButton)
+
+      await waitFor(() => {
+        const timeOption2 = screen.getByText(/Time/)
+        expect(timeOption2).toBeInTheDocument()
+      })
+
       await user.click(screen.getByText(/Time/))
 
-      // After toggle, oldest first (entry-3, entry-1, entry-2)
-      await waitFor(() => {
-        const papers = container.querySelectorAll('.MuiPaper-root')
-        expect(papers[0].textContent).toContain('Deploy resources')
-      })
+      // After toggle, oldest first (entry-3 at 9:00, entry-1 at 10:00, entry-2 at 11:00)
+      await waitFor(
+        () => {
+          const papers = container.querySelectorAll('.MuiPaper-root')
+          expect(papers[0].textContent).toContain('Deploy resources')
+        },
+        { timeout: 2000 },
+      )
     })
 
     it('sorts by rating when Rating clicked', async () => {
