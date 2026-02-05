@@ -86,6 +86,7 @@ public class CriticalTaskService : ICriticalTaskService
         var task = new CriticalTask
         {
             Id = Guid.NewGuid(),
+            OrganizationId = capabilityTarget.OrganizationId,
             CapabilityTargetId = capabilityTargetId,
             TaskDescription = request.TaskDescription,
             Standard = request.Standard,
@@ -159,7 +160,7 @@ public class CriticalTaskService : ICriticalTaskService
         return true;
     }
 
-    public async Task<bool> SetLinkedInjectsAsync(Guid criticalTaskId, IEnumerable<Guid> injectIds)
+    public async Task<bool> SetLinkedInjectsAsync(Guid criticalTaskId, IEnumerable<Guid> injectIds, string createdBy)
     {
         var task = await _context.CriticalTasks
             .Include(ct => ct.LinkedInjects)
@@ -171,14 +172,17 @@ public class CriticalTaskService : ICriticalTaskService
         // Remove existing links
         _context.InjectCriticalTasks.RemoveRange(task.LinkedInjects);
 
-        // Add new links
+        // Add new links with audit fields
         var injectIdsList = injectIds.ToList();
+        var now = DateTime.UtcNow;
         foreach (var injectId in injectIdsList)
         {
             _context.InjectCriticalTasks.Add(new InjectCriticalTask
             {
                 InjectId = injectId,
-                CriticalTaskId = criticalTaskId
+                CriticalTaskId = criticalTaskId,
+                CreatedAt = now,
+                CreatedBy = createdBy
             });
         }
 

@@ -101,7 +101,9 @@ export const EegExportDialog = ({
     }
   }
 
-  const entryCount = coverage?.totalEntries ?? 0
+  const entryCount = coverage?.ratingDistribution
+    ? Object.values(coverage.ratingDistribution).reduce((sum, count) => sum + count, 0)
+    : 0
   const hasEntries = entryCount > 0
 
   return (
@@ -145,7 +147,7 @@ export const EegExportDialog = ({
         </Typography>
         <RadioGroup
           value={format}
-          onChange={(e) => setFormat(e.target.value as 'xlsx' | 'json')}
+          onChange={e => setFormat(e.target.value as 'xlsx' | 'json')}
           sx={{ mb: 2 }}
         >
           <FormControlLabel
@@ -193,7 +195,7 @@ export const EegExportDialog = ({
                 control={
                   <Checkbox
                     checked={includeSummary}
-                    onChange={(e) => setIncludeSummary(e.target.checked)}
+                    onChange={e => setIncludeSummary(e.target.checked)}
                   />
                 }
                 label="Summary statistics"
@@ -202,7 +204,7 @@ export const EegExportDialog = ({
                 control={
                   <Checkbox
                     checked={includeByCapability}
-                    onChange={(e) => setIncludeByCapability(e.target.checked)}
+                    onChange={e => setIncludeByCapability(e.target.checked)}
                   />
                 }
                 label="Entries by capability (for AAR)"
@@ -211,7 +213,7 @@ export const EegExportDialog = ({
                 control={
                   <Checkbox
                     checked={includeAllEntries}
-                    onChange={(e) => setIncludeAllEntries(e.target.checked)}
+                    onChange={e => setIncludeAllEntries(e.target.checked)}
                   />
                 }
                 label="All entries (flat list)"
@@ -220,7 +222,7 @@ export const EegExportDialog = ({
                 control={
                   <Checkbox
                     checked={includeCoverageGaps}
-                    onChange={(e) => setIncludeCoverageGaps(e.target.checked)}
+                    onChange={e => setIncludeCoverageGaps(e.target.checked)}
                   />
                 }
                 label="Coverage gaps"
@@ -237,7 +239,7 @@ export const EegExportDialog = ({
                 control={
                   <Checkbox
                     checked={includeEvaluatorNames}
-                    onChange={(e) => setIncludeEvaluatorNames(e.target.checked)}
+                    onChange={e => setIncludeEvaluatorNames(e.target.checked)}
                   />
                 }
                 label="Include evaluator names"
@@ -246,7 +248,7 @@ export const EegExportDialog = ({
                 control={
                   <Checkbox
                     checked={includeFormatting}
-                    onChange={(e) => setIncludeFormatting(e.target.checked)}
+                    onChange={e => setIncludeFormatting(e.target.checked)}
                   />
                 }
                 label="Include formatting and colors"
@@ -261,7 +263,7 @@ export const EegExportDialog = ({
               control={
                 <Checkbox
                   checked={includeEvaluatorNames}
-                  onChange={(e) => setIncludeEvaluatorNames(e.target.checked)}
+                  onChange={e => setIncludeEvaluatorNames(e.target.checked)}
                 />
               }
               label="Include evaluator names"

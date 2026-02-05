@@ -33,6 +33,7 @@ import {
   faSearch,
   faTimes,
   faEye,
+  faClipboardCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -45,6 +46,8 @@ import { useInjects } from '../../injects/hooks'
 import { useExerciseSignalR } from '../../../shared/hooks'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../../exercises/hooks/useExerciseTargetCapabilities'
+import { EegEntryForm } from '../../eeg/components'
+import { eegEntryKeys } from '../../eeg/hooks/useEegEntries'
 import {
   CobraPrimaryButton,
   CobraLinkButton,
@@ -82,6 +85,7 @@ export const ObservationsPage = () => {
   const [editingObservation, setEditingObservation] = useState<ObservationDto | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [showEegEntryForm, setShowEegEntryForm] = useState(false)
 
   // Filter state
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
@@ -220,6 +224,16 @@ export const ObservationsPage = () => {
     }
   }
 
+  // EEG Entry handlers
+  const handleCloseEegEntry = () => {
+    setShowEegEntryForm(false)
+  }
+
+  const handleEegEntrySaved = () => {
+    // Invalidate EEG entry queries to refresh dashboard
+    queryClient.invalidateQueries({ queryKey: eegEntryKeys.all })
+  }
+
   // Keyboard shortcut: Ctrl+O to open create dialog
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -307,12 +321,21 @@ export const ObservationsPage = () => {
         </Stack>
         <Stack direction="row" spacing={2}>
           {canAddObservations && (
-            <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faPlus} />}
-              onClick={() => setShowCreateDialog(true)}
-            >
-              Add Observation
-            </CobraPrimaryButton>
+            <>
+              <CobraPrimaryButton
+                startIcon={<FontAwesomeIcon icon={faPlus} />}
+                onClick={() => setShowCreateDialog(true)}
+              >
+                Add Observation
+              </CobraPrimaryButton>
+              <CobraPrimaryButton
+                startIcon={<FontAwesomeIcon icon={faClipboardCheck} />}
+                onClick={() => setShowEegEntryForm(true)}
+                variant="outlined"
+              >
+                Add EEG Entry
+              </CobraPrimaryButton>
+            </>
           )}
           <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
             Back to Exercise
@@ -489,6 +512,26 @@ export const ObservationsPage = () => {
               />
             )}
           </Box>
+        </DialogContent>
+      </Dialog>
+
+      {/* EEG Entry Form Dialog */}
+      <Dialog
+        open={showEegEntryForm}
+        onClose={handleCloseEegEntry}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '600px', maxHeight: '90vh' },
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <EegEntryForm
+            exerciseId={exerciseId!}
+            availableInjects={injects.filter(i => i.status !== 'Draft')}
+            onClose={handleCloseEegEntry}
+            onSaved={handleEegEntrySaved}
+          />
         </DialogContent>
       </Dialog>
     </Box>

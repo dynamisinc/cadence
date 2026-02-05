@@ -124,12 +124,13 @@ export interface SetLinkedCriticalTasksRequest {
 /**
  * HSEEP P/S/M/U performance rating
  */
-export enum PerformanceRating {
-  Performed = 'Performed',
-  SomeChallenges = 'SomeChallenges',
-  MajorChallenges = 'MajorChallenges',
-  UnableToPerform = 'UnableToPerform',
-}
+export const PerformanceRating = {
+  Performed: 'Performed',
+  SomeChallenges: 'SomeChallenges',
+  MajorChallenges: 'MajorChallenges',
+  UnableToPerform: 'UnableToPerform',
+} as const
+export type PerformanceRating = (typeof PerformanceRating)[keyof typeof PerformanceRating]
 
 /**
  * Display strings for performance ratings

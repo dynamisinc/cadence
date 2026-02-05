@@ -7,17 +7,17 @@
 // Capability Target components
 export { CapabilityTargetList } from './CapabilityTargetList'
 export { CapabilityTargetCard } from './CapabilityTargetCard'
-export {
-  CapabilityTargetFormDialog,
-  CAPABILITY_TARGET_FIELD_LIMITS,
-} from './CapabilityTargetFormDialog'
+export { CapabilityTargetFormDialog } from './CapabilityTargetFormDialog'
 
 // Critical Task components
 export { CriticalTaskList } from './CriticalTaskList'
+export { CriticalTaskFormDialog } from './CriticalTaskFormDialog'
+
+// Re-export constants
 export {
-  CriticalTaskFormDialog,
+  CAPABILITY_TARGET_FIELD_LIMITS,
   CRITICAL_TASK_FIELD_LIMITS,
-} from './CriticalTaskFormDialog'
+} from '../constants'
 
 // EEG Entry components
 export { EegEntryForm } from './EegEntryForm'

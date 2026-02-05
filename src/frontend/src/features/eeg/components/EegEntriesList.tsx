@@ -29,8 +29,6 @@ import {
   faChevronRight,
   faFilter,
   faSort,
-  faPen,
-  faTrash,
   faXmark,
   faLink,
 } from '@fortawesome/free-solid-svg-icons'
@@ -377,7 +375,7 @@ export const EegEntriesList = ({
 
   // Sort and filter entries
   const sortedEntries = useMemo(() => {
-    let filtered = filterRating
+    const filtered = filterRating
       ? entries.filter(e => e.rating === filterRating)
       : entries
 
@@ -387,7 +385,7 @@ export const EegEntriesList = ({
         case 'recordedAt':
           comparison = new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
           break
-        case 'rating':
+        case 'rating': {
           const ratingOrder = {
             [PerformanceRating.Performed]: 1,
             [PerformanceRating.SomeChallenges]: 2,
@@ -396,6 +394,7 @@ export const EegEntriesList = ({
           }
           comparison = ratingOrder[a.rating] - ratingOrder[b.rating]
           break
+        }
         case 'evaluator':
           comparison = (a.evaluatorName ?? '').localeCompare(b.evaluatorName ?? '')
           break

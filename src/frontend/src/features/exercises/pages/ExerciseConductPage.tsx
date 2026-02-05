@@ -1237,7 +1237,7 @@ export const ExerciseConductPage = () => {
         maxWidth="md"
         fullWidth
         PaperProps={{
-          sx: { maxHeight: '90vh' },
+          sx: { minHeight: '600px', maxHeight: '90vh' },
         }}
       >
         <DialogContent sx={{ p: 0 }}>

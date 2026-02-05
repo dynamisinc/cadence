@@ -1099,17 +1099,21 @@ public class InjectsController : ControllerBase
         // Clear existing links
         _context.InjectCriticalTasks.RemoveRange(inject.LinkedCriticalTasks);
 
-        // Add new links
+        // Add new links with audit fields
+        var userId = GetCurrentUserId();
+        var now = DateTime.UtcNow;
         foreach (var taskId in validTaskIds)
         {
             inject.LinkedCriticalTasks.Add(new InjectCriticalTask
             {
                 InjectId = id,
-                CriticalTaskId = taskId
+                CriticalTaskId = taskId,
+                CreatedAt = now,
+                CreatedBy = userId
             });
         }
 
-        inject.ModifiedBy = GetCurrentUserId();
+        inject.ModifiedBy = userId;
         await _context.SaveChangesAsync();
 
         _logger.LogInformation("Updated critical task links for inject {InjectId}: {TaskCount} tasks linked",

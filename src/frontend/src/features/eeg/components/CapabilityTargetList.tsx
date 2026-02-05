@@ -215,7 +215,7 @@ export const CapabilityTargetList: FC<CapabilityTargetListProps> = ({
             Are you sure you want to delete this Capability Target?
             <br />
             <br />
-            <strong>{deletingTarget?.capabilityName}</strong>
+            <strong>{deletingTarget?.capability.name}</strong>
             <br />
             &quot;{deletingTarget?.targetDescription}&quot;
             {deletingTarget && getDeleteWarning(deletingTarget) && (

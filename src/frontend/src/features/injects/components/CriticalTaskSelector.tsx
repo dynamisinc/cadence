@@ -18,7 +18,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLightbulb } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField } from '@/theme/styledComponents'
 import { useCapabilityTargets } from '../../eeg/hooks/useCapabilityTargets'
-import { useCriticalTasks } from '../../eeg/hooks/useCriticalTasks'
+import { useCriticalTasksByExercise } from '../../eeg/hooks/useCriticalTasks'
 import type { CriticalTaskDto, CapabilityTargetDto } from '../../eeg/types'
 
 interface CriticalTaskOption {
@@ -226,21 +226,14 @@ export const CriticalTaskSelector = ({
 /**
  * Custom hook to fetch and organize tasks by capability target
  */
-function useTasksByTarget(capabilityTargets: CapabilityTargetDto[], exerciseId: string) {
-  // We need to fetch tasks for each capability target
-  // Using a combined approach - fetch all and organize
-  const tasksByTarget = new Map<string, CriticalTaskDto[]>()
-  const allTasks: CriticalTaskDto[] = []
-  let loading = false
-
-  // For each capability target, we use the useCriticalTasks hook
-  // However, hooks can't be called conditionally, so we need a different approach
-  // We'll use the byExercise endpoint instead via a dedicated hook
-
-  const { criticalTasks, loading: tasksLoading } = useCriticalTasksForSelector(exerciseId)
-  loading = tasksLoading
+function useTasksByTarget(_capabilityTargets: CapabilityTargetDto[], exerciseId: string) {
+  // Fetch all critical tasks for the exercise
+  const { criticalTasks, loading } = useCriticalTasksByExercise(exerciseId)
 
   // Organize tasks by target
+  const tasksByTarget = new Map<string, CriticalTaskDto[]>()
+  const allTasks: CriticalTaskDto[] = []
+
   for (const task of criticalTasks) {
     allTasks.push(task)
     const targetTasks = tasksByTarget.get(task.capabilityTargetId) ?? []
@@ -249,22 +242,6 @@ function useTasksByTarget(capabilityTargets: CapabilityTargetDto[], exerciseId: 
   }
 
   return { tasksByTarget, allTasks, loading }
-}
-
-/**
- * Hook to fetch all critical tasks for an exercise (for selector use)
- */
-function useCriticalTasksForSelector(exerciseId: string) {
-  const { criticalTasks, loading } = useCriticalTasksByExerciseInternal(exerciseId)
-  return { criticalTasks, loading }
-}
-
-// Import the hook we need from the EEG feature
-import { useCriticalTasksByExercise } from '../../eeg/hooks/useCriticalTasks'
-
-function useCriticalTasksByExerciseInternal(exerciseId: string) {
-  const { criticalTasks, loading } = useCriticalTasksByExercise(exerciseId)
-  return { criticalTasks, loading }
 }
 
 export default CriticalTaskSelector

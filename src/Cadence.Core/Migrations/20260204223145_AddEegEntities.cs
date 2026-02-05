@@ -143,7 +143,7 @@ namespace Cadence.Core.Migrations
                         column: x => x.CriticalTaskId,
                         principalTable: "CriticalTasks",
                         principalColumn: "Id",
-                        onDelete: ReferentialAction.Cascade);
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "FK_InjectCriticalTasks_Injects_InjectId",
                         column: x => x.InjectId,

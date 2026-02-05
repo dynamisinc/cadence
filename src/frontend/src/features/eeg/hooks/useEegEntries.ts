@@ -10,7 +10,6 @@ import { toast } from 'react-toastify'
 import { eegEntryService } from '../services/eegService'
 import { criticalTaskKeys } from './useCriticalTasks'
 import type {
-  EegEntryDto,
   CreateEegEntryRequest,
   UpdateEegEntryRequest,
   EegCoverageDto,

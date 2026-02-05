@@ -10,7 +10,7 @@ namespace Cadence.Core.Models.Entities;
 /// Example: Under a Capability Target of "Activate EOC within 60 minutes", critical tasks
 /// might include "Issue EOC activation notification", "Staff EOC positions per roster", etc.
 /// </summary>
-public class CriticalTask : BaseEntity
+public class CriticalTask : BaseEntity, IOrganizationScoped
 {
     // =========================================================================
     // Core Properties
@@ -44,6 +44,12 @@ public class CriticalTask : BaseEntity
     // =========================================================================
 
     /// <summary>
+    /// The organization this critical task belongs to. Required for data isolation.
+    /// Denormalized from CapabilityTarget for query filter efficiency.
+    /// </summary>
+    public Guid OrganizationId { get; set; }
+
+    /// <summary>
     /// The capability target this task belongs to. Required.
     /// </summary>
     public Guid CapabilityTargetId { get; set; }
@@ -51,6 +57,11 @@ public class CriticalTask : BaseEntity
     // =========================================================================
     // Navigation Properties
     // =========================================================================
+
+    /// <summary>
+    /// The organization this critical task belongs to.
+    /// </summary>
+    public Organization Organization { get; set; } = null!;
 
     /// <summary>
     /// The capability target this task belongs to.

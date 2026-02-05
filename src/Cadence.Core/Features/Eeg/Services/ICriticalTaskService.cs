@@ -45,7 +45,10 @@ public interface ICriticalTaskService
     /// <summary>
     /// Set the linked injects for a critical task.
     /// </summary>
-    Task<bool> SetLinkedInjectsAsync(Guid criticalTaskId, IEnumerable<Guid> injectIds);
+    /// <param name="criticalTaskId">The critical task ID.</param>
+    /// <param name="injectIds">The inject IDs to link.</param>
+    /// <param name="createdBy">User ID creating the linkages (for audit).</param>
+    Task<bool> SetLinkedInjectsAsync(Guid criticalTaskId, IEnumerable<Guid> injectIds, string createdBy);
 
     /// <summary>
     /// Get linked inject IDs for a critical task.

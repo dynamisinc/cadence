@@ -132,7 +132,6 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
     try {
       if (isEditMode && target && onUpdate) {
         const request: UpdateCapabilityTargetRequest = {
-          capabilityId,
           targetDescription: targetDescription.trim(),
         }
         await onUpdate(target.id, request)

@@ -1298,8 +1298,15 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Standard).HasMaxLength(1000);
 
             // Indexes for efficient queries
+            entity.HasIndex(e => e.OrganizationId);
             entity.HasIndex(e => e.CapabilityTargetId);
             entity.HasIndex(e => new { e.CapabilityTargetId, e.SortOrder });
+
+            // Relationship to Organization (required for multi-tenancy data isolation)
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship to CapabilityTarget (cascade delete when target is deleted)
             entity.HasOne(e => e.CapabilityTarget)
@@ -1316,21 +1323,24 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Composite primary key
             entity.HasKey(e => new { e.InjectId, e.CriticalTaskId });
 
+            // Audit fields for HSEEP compliance
+            entity.Property(e => e.CreatedBy).HasMaxLength(450).IsRequired();
+
             // Indexes for efficient queries
             entity.HasIndex(e => e.InjectId);
             entity.HasIndex(e => e.CriticalTaskId);
 
-            // Relationship to Inject
+            // Relationship to Inject (cascade - when inject is deleted, remove links)
             entity.HasOne(e => e.Inject)
                 .WithMany(i => i.LinkedCriticalTasks)
                 .HasForeignKey(e => e.InjectId)
                 .OnDelete(DeleteBehavior.Cascade);
 
-            // Relationship to CriticalTask
+            // Relationship to CriticalTask (restrict to avoid cascade cycle in SQL Server)
             entity.HasOne(e => e.CriticalTask)
                 .WithMany(ct => ct.LinkedInjects)
                 .HasForeignKey(e => e.CriticalTaskId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

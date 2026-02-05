@@ -51,7 +51,7 @@ export interface ConfirmDialogProps {
   /** Dialog title */
   title: string
   /** Dialog message/description */
-  message: string
+  message: React.ReactNode
   /** Label for the confirm button */
   confirmLabel?: string
   /** Label for the cancel button */

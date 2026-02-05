@@ -24,7 +24,6 @@ import {
   faChevronDown,
   faChevronUp,
   faClipboardList,
-  faPaperclip,
 } from '@fortawesome/free-solid-svg-icons'
 import { CriticalTaskList } from './CriticalTaskList'
 import type { CapabilityTargetDto } from '../types'
@@ -105,7 +104,7 @@ export const CapabilityTargetCard: FC<CapabilityTargetCardProps> = ({
               style={{ color: 'var(--mui-palette-primary-main)' }}
             />
             <Typography variant="subtitle1" fontWeight={600}>
-              {target.capabilityName}
+              {target.capability.name}
             </Typography>
           </Stack>
 
@@ -124,11 +123,6 @@ export const CapabilityTargetCard: FC<CapabilityTargetCardProps> = ({
               <FontAwesomeIcon icon={faClipboardList} style={{ marginRight: 4 }} />
               {target.criticalTaskCount} Critical Task
               {target.criticalTaskCount !== 1 ? 's' : ''}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
-              <FontAwesomeIcon icon={faPaperclip} style={{ marginRight: 4 }} />
-              {target.totalLinkedInjects} linked inject
-              {target.totalLinkedInjects !== 1 ? 's' : ''}
             </Typography>
           </Stack>
         </Box>
@@ -185,7 +179,7 @@ export const CapabilityTargetCard: FC<CapabilityTargetCardProps> = ({
           <CriticalTaskList
             exerciseId={exerciseId}
             capabilityTargetId={target.id}
-            capabilityTargetName={target.capabilityName}
+            capabilityTargetName={target.capability.name}
             canEdit={canEdit}
           />
         </Box>

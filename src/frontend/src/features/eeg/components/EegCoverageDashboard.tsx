@@ -309,7 +309,7 @@ export const EegCoverageDashboard = ({
       groups.get(key)!.push(task)
     }
     return groups
-  }, [coverage?.unevaluatedTasks])
+  }, [coverage])
 
   // Loading state
   if (loading && !coverage) {

@@ -138,7 +138,7 @@ export const EegEntryForm = ({
   const { capabilityTargets, loading: loadingTargets } = useCapabilityTargets(exerciseId)
 
   // Fetch critical tasks for selected capability target
-  const { criticalTasks, loading: loadingTasks } = useCriticalTasks(values.capabilityTargetId)
+  const { criticalTasks, loading: loadingTasks } = useCriticalTasks(exerciseId, values.capabilityTargetId)
 
   // EEG entry mutations - use task-level hook for updates
   const { createEntry, isCreating } = useEegEntries(exerciseId)
@@ -315,7 +315,7 @@ export const EegEntryForm = ({
           onClose?.()
         }
       }
-    } catch (error) {
+    } catch {
       // Error is handled by the hook
     }
   }

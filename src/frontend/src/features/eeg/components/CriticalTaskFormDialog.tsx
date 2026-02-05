@@ -29,12 +29,7 @@ import type {
   CreateCriticalTaskRequest,
   UpdateCriticalTaskRequest,
 } from '../types'
-
-/** Field limits for critical task form */
-export const CRITICAL_TASK_FIELD_LIMITS = {
-  taskDescription: { min: 5, max: 500 },
-  standard: { max: 500 },
-}
+import { CRITICAL_TASK_FIELD_LIMITS } from '../constants'
 
 interface CriticalTaskFormDialogProps {
   /** Whether the dialog is open */
