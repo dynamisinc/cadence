@@ -77,6 +77,37 @@ interface FormValues {
   observationText: string
   rating: PerformanceRating | null
   triggeringInjectId: string
+  observedAt: string // ISO string for datetime-local input
+}
+
+// Helper to get current datetime in local format for datetime-local input
+const getCurrentLocalDatetime = () => {
+  const now = new Date()
+  // Format as YYYY-MM-DDTHH:mm (required format for datetime-local input)
+  const year = now.getFullYear()
+  const month = String(now.getMonth() + 1).padStart(2, '0')
+  const day = String(now.getDate()).padStart(2, '0')
+  const hours = String(now.getHours()).padStart(2, '0')
+  const minutes = String(now.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+// Helper to convert UTC ISO string to local datetime-local format
+const utcToLocalDatetimeInput = (utcStr: string) => {
+  const date = parseISO(utcStr.endsWith('Z') ? utcStr : `${utcStr}Z`)
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, '0')
+  const day = String(date.getDate()).padStart(2, '0')
+  const hours = String(date.getHours()).padStart(2, '0')
+  const minutes = String(date.getMinutes()).padStart(2, '0')
+  return `${year}-${month}-${day}T${hours}:${minutes}`
+}
+
+// Helper to convert local datetime-local value to ISO string for API
+const localDatetimeInputToIso = (localStr: string) => {
+  // Parse the local datetime string and convert to ISO
+  const date = new Date(localStr)
+  return date.toISOString()
 }
 
 const INITIAL_VALUES: FormValues = {
@@ -85,6 +116,7 @@ const INITIAL_VALUES: FormValues = {
   observationText: '',
   rating: null,
   triggeringInjectId: '',
+  observedAt: '', // Will be set on component mount
 }
 
 const OBSERVATION_MIN_LENGTH = 10
@@ -124,12 +156,14 @@ export const EegEntryForm = ({
         observationText: editEntry.observationText,
         rating: editEntry.rating,
         triggeringInjectId: editEntry.triggeringInjectId ?? '',
+        observedAt: utcToLocalDatetimeInput(editEntry.observedAt),
       }
     }
     return {
       ...INITIAL_VALUES,
       triggeringInjectId: triggeringInject?.id ?? '',
       capabilityTargetId: preSelectedCapabilityTargetId ?? '',
+      observedAt: getCurrentLocalDatetime(),
     }
   })
   const [errors, setErrors] = useState<Partial<Record<keyof FormValues, string>>>({})
@@ -286,6 +320,7 @@ export const EegEntryForm = ({
           observationText: values.observationText.trim(),
           rating: values.rating!,
           triggeringInjectId: values.triggeringInjectId || null,
+          observedAt: values.observedAt ? localDatetimeInputToIso(values.observedAt) : undefined,
         }
         await updateEegEntry(editEntry.id, updateRequest)
         toast.success('EEG entry updated')
@@ -298,16 +333,18 @@ export const EegEntryForm = ({
           observationText: values.observationText.trim(),
           rating: values.rating!,
           triggeringInjectId: values.triggeringInjectId || null,
+          observedAt: values.observedAt ? localDatetimeInputToIso(values.observedAt) : undefined,
         }
         await createEntry(values.criticalTaskId, request)
         toast.success('EEG entry saved')
 
         if (continueEntry) {
-          // Reset form but keep capability target and triggering inject
+          // Reset form but keep capability target and triggering inject, reset time to now
           setValues(prev => ({
             ...INITIAL_VALUES,
             capabilityTargetId: prev.capabilityTargetId,
             triggeringInjectId: prev.triggeringInjectId,
+            observedAt: getCurrentLocalDatetime(),
           }))
           setErrors({})
           setTouched({})
@@ -347,7 +384,7 @@ export const EegEntryForm = ({
           <Typography variant="h6">{isEditMode ? 'Edit EEG Entry' : '+ EEG Entry'}</Typography>
           {isEditMode && editEntry && (
             <Typography variant="body2" color="text.secondary">
-              Originally recorded: {format(parseISO(editEntry.recordedAt), 'h:mm a')} by{' '}
+              Originally recorded: {format(parseISO(editEntry.recordedAt.endsWith('Z') ? editEntry.recordedAt : `${editEntry.recordedAt}Z`), 'h:mm a')} by{' '}
               {editEntry.evaluatorName ?? 'Unknown'}
             </Typography>
           )}
@@ -479,6 +516,19 @@ export const EegEntryForm = ({
           onChange={handleRatingChange}
           error={touched.rating && !values.rating}
           helperText={getFieldError('rating')}
+        />
+
+        {/* Observed At Time */}
+        <CobraTextField
+          label="Observed At"
+          type="datetime-local"
+          value={values.observedAt}
+          onChange={handleChange('observedAt')}
+          fullWidth
+          helperText="When did you observe this behavior? Defaults to current time."
+          slotProps={{
+            inputLabel: { shrink: true },
+          }}
         />
 
         {/* Triggering Inject (Optional) */}

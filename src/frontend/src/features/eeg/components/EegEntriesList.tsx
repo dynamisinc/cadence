@@ -117,18 +117,24 @@ const EntryDetailDialog = ({
   if (!entry) return null
 
   // Helper function to format dates consistently using date-fns
+  // Ensures UTC dates are properly converted to local time
   const formatDateTime = (dateStr: string) => {
     try {
-      return format(parseISO(dateStr), 'MMM d, yyyy h:mm a')
+      // Append 'Z' if not present to ensure parseISO treats the date as UTC
+      const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`
+      return format(parseISO(utcDateStr), 'MMM d, yyyy h:mm a')
     } catch {
       return dateStr
     }
   }
 
+  // Helper to ensure dates are parsed as UTC
+  const parseAsUtc = (dateStr: string) => parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
+
   // Consider "edited" if updatedAt is more than 1 minute after createdAt
   // This avoids false positives from millisecond differences during creation
-  const createdTime = parseISO(entry.createdAt).getTime()
-  const updatedTime = parseISO(entry.updatedAt).getTime()
+  const createdTime = parseAsUtc(entry.createdAt).getTime()
+  const updatedTime = parseAsUtc(entry.updatedAt).getTime()
   const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
 
   return (
@@ -585,13 +591,15 @@ export const EegEntriesList = ({
       {/* Entries List */}
       <Stack spacing={1}>
         {sortedEntries.map(entry => {
+          // Helper to ensure dates are parsed as UTC
+          const parseAsUtc = (dateStr: string) => parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
           // Consider "edited" if updatedAt is more than 1 minute after createdAt
           // This avoids false positives from millisecond differences during creation
-          const createdTime = parseISO(entry.createdAt).getTime()
-          const updatedTime = parseISO(entry.updatedAt).getTime()
+          const createdTime = parseAsUtc(entry.createdAt).getTime()
+          const updatedTime = parseAsUtc(entry.updatedAt).getTime()
           const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
           // Format time using date-fns for consistent timezone handling
-          const timeStr = format(parseISO(entry.recordedAt), 'h:mm a')
+          const timeStr = format(parseAsUtc(entry.recordedAt), 'h:mm a')
 
           return (
             <Paper
