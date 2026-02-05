@@ -104,10 +104,10 @@ export const EegEntriesPage = () => {
   )
 
   // Permissions
-  const canCreate = can('addObservation') // Evaluators can add EEG entries
-  const canEdit = can('addObservation')
-  const canDelete = can('manageExercise') // Directors only can delete
-  const canExport = can('manageExercise')
+  const canCreate = can('add_observation') // Evaluators can add EEG entries
+  const canEdit = can('add_observation')
+  const canDelete = can('delete_observation') // Directors only can delete
+  const canExport = can('delete_observation') // Directors can export
 
   // Filter entries
   const filteredEntries = useMemo(() => {

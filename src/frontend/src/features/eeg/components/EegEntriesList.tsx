@@ -115,7 +115,11 @@ const EntryDetailDialog = ({
 }) => {
   if (!entry) return null
 
-  const wasEdited = entry.createdAt !== entry.updatedAt
+  // Consider "edited" if updatedAt is more than 1 minute after createdAt
+  // This avoids false positives from millisecond differences during creation
+  const createdTime = new Date(entry.createdAt).getTime()
+  const updatedTime = new Date(entry.updatedAt).getTime()
+  const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -571,7 +575,11 @@ export const EegEntriesList = ({
       {/* Entries List */}
       <Stack spacing={1}>
         {sortedEntries.map(entry => {
-          const wasEdited = entry.createdAt !== entry.updatedAt
+          // Consider "edited" if updatedAt is more than 1 minute after createdAt
+  // This avoids false positives from millisecond differences during creation
+  const createdTime = new Date(entry.createdAt).getTime()
+  const updatedTime = new Date(entry.updatedAt).getTime()
+  const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
           const timeStr = new Date(entry.recordedAt).toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit',
