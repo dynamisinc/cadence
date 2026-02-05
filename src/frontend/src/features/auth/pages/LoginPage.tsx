@@ -236,7 +236,7 @@ export const LoginPage: FC = () => {
             }}
             onBlur={() => validateEmail(email)}
             error={!!emailError}
-            helperText={emailError}
+            helperText={emailError || ' '}
             fullWidth
             required
             autoFocus
@@ -249,6 +249,7 @@ export const LoginPage: FC = () => {
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}
+            helperText=" " // Reserve space for consistent layout
             fullWidth
             required
             autoComplete="current-password"

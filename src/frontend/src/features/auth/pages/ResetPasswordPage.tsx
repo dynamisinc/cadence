@@ -44,6 +44,12 @@ export const ResetPasswordPage: FC = () => {
   const [showNewPassword, setShowNewPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+
+  // Focus tracking
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false)
+
+  const [passwordError, setPasswordError] = useState('')
   const [confirmPasswordError, setConfirmPasswordError] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [tokenError, setTokenError] = useState('')
@@ -59,6 +65,15 @@ export const ResetPasswordPage: FC = () => {
       setTokenError('No reset token provided. Please request a new password reset.')
     }
   }, [token])
+
+  const validatePasswordField = (value: string): boolean => {
+    if (!passwordValid && value) {
+      setPasswordError('Password does not meet requirements')
+      return false
+    }
+    setPasswordError('')
+    return true
+  }
 
   const validateConfirmPassword = (value: string): boolean => {
     if (newPassword && value && newPassword !== value) {
@@ -165,12 +180,24 @@ export const ResetPasswordPage: FC = () => {
           )}
 
           {/* New Password Field */}
-          <Box>
+          <Box sx={{ minHeight: '140px' }}>
             <CobraTextField
               label="New Password"
               type={showNewPassword ? 'text' : 'password'}
               value={newPassword}
-              onChange={e => setNewPassword(e.target.value)}
+              onChange={e => {
+                setNewPassword(e.target.value)
+                // Clear error when user starts typing after blur
+                if (passwordError) {
+                  setPasswordError('')
+                }
+              }}
+              onBlur={() => {
+                setPasswordTouched(true)
+                validatePasswordField(newPassword)
+              }}
+              error={passwordTouched && !!passwordError}
+              helperText={passwordTouched && passwordError ? passwordError : ' '}
               fullWidth
               required
               autoFocus
@@ -190,8 +217,8 @@ export const ResetPasswordPage: FC = () => {
                 ),
               }}
             />
-            {/* Show password requirements when user starts typing */}
-            {newPassword && <PasswordRequirements requirements={passwordReqs} />}
+            {/* Show password requirements only after field has been touched */}
+            {passwordTouched && newPassword && <PasswordRequirements requirements={passwordReqs} />}
           </Box>
 
           {/* Confirm Password Field */}
@@ -201,11 +228,17 @@ export const ResetPasswordPage: FC = () => {
             value={confirmPassword}
             onChange={e => {
               setConfirmPassword(e.target.value)
-              if (confirmPasswordError) validateConfirmPassword(e.target.value)
+              // Clear error when user starts typing after blur
+              if (confirmPasswordError) {
+                setConfirmPasswordError('')
+              }
             }}
-            onBlur={() => validateConfirmPassword(confirmPassword)}
-            error={!!confirmPasswordError}
-            helperText={confirmPasswordError}
+            onBlur={() => {
+              setConfirmPasswordTouched(true)
+              validateConfirmPassword(confirmPassword)
+            }}
+            error={confirmPasswordTouched && !!confirmPasswordError}
+            helperText={confirmPasswordTouched && confirmPasswordError ? confirmPasswordError : ' '}
             fullWidth
             required
             autoComplete="new-password"

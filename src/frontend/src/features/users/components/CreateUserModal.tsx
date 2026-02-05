@@ -81,6 +81,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [createdUser, setCreatedUser] = useState<UserDto | null>(null)
   const [copied, setCopied] = useState(false)
+  const [passwordTouched, setPasswordTouched] = useState(false)
 
   // Reset form when modal opens/closes
   useEffect(() => {
@@ -91,6 +92,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
       setIsSubmitting(false)
       setCreatedUser(null)
       setCopied(false)
+      setPasswordTouched(false)
     }
   }, [open])
 
@@ -130,6 +132,13 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
     // Clear general error on any change
     if (errors.general) {
       setErrors(prev => ({ ...prev, general: undefined }))
+    }
+  }
+
+  const handlePasswordBlur = () => {
+    setPasswordTouched(true)
+    if (form.password && !isPasswordValid(form.password)) {
+      setErrors(prev => ({ ...prev, password: 'Password does not meet requirements' }))
     }
   }
 
@@ -277,7 +286,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
             value={form.displayName}
             onChange={handleFieldChange('displayName')}
             error={Boolean(errors.displayName)}
-            helperText={errors.displayName}
+            helperText={errors.displayName || ' '}
             required
             fullWidth
             autoFocus
@@ -290,20 +299,21 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
             value={form.email}
             onChange={handleFieldChange('email')}
             error={Boolean(errors.email)}
-            helperText={errors.email}
+            helperText={errors.email || ' '}
             required
             fullWidth
             disabled={isSubmitting}
           />
 
-          <Box>
+          <Box sx={{ minHeight: '140px' }}>
             <TextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
               value={form.password}
               onChange={handleFieldChange('password')}
-              error={Boolean(errors.password)}
-              helperText={errors.password}
+              onBlur={handlePasswordBlur}
+              error={passwordTouched && Boolean(errors.password)}
+              helperText={passwordTouched && errors.password ? errors.password : ' '}
               required
               fullWidth
               disabled={isSubmitting}
@@ -322,7 +332,8 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
                 ),
               }}
             />
-            {form.password && <PasswordRequirements requirements={passwordRequirements} />}
+            {/* Show password requirements only after field has been touched */}
+            {passwordTouched && form.password && <PasswordRequirements requirements={passwordRequirements} />}
           </Box>
 
           <Alert severity="info" icon={false}>
