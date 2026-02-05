@@ -116,7 +116,7 @@ export const EegDocumentDialog = ({
           {coverage && (
             <>
               <Typography variant="body2" color="text.secondary">
-                Capability Targets: {coverage.capabilityTargetCount}
+                Capability Targets: {coverage.byCapabilityTarget.length}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 Critical Tasks: {coverage.totalTasks}
