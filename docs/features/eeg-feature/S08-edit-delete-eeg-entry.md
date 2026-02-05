@@ -33,11 +33,27 @@ This story covers the edit and delete workflows for EEG entries.
 - [ ] **Given** I save edits, **when** successful, **then** I see the updated entry
 - [ ] **Given** I cancel edits, **when** there are unsaved changes, **then** I see discard confirmation
 
+### Validation on Edit
+
+- [ ] **Given** I edit an entry, **when** I remove the observation text, **then** I see validation error (required)
+- [ ] **Given** I edit an entry, **when** I exceed 2000 characters, **then** I see validation error
+- [ ] **Given** I change the Critical Task, **when** saving, **then** the Capability Target updates via the task's parent relationship
+
+### Linked Inject on Edit
+
+- [ ] **Given** I edit an entry with a linked inject, **when** I select a different inject, **then** the new inject reference is saved
+- [ ] **Given** I edit an entry with a linked inject, **when** I clear the inject field, **then** the entry no longer has a triggering inject
+
 ### Edit Audit Trail
 
-- [ ] **Given** an entry is edited, **when** saved, **then** UpdatedAt timestamp is recorded
+- [ ] **Given** an entry is edited, **when** saved, **then** UpdatedAt and UpdatedBy are recorded
 - [ ] **Given** an entry is edited, **when** viewed, **then** I can see it was edited (indicator)
-- [ ] **Given** the entry detail, **when** entry was edited, **then** I see "Edited" with timestamp
+- [ ] **Given** the entry detail, **when** entry was edited, **then** I see "Edited by [Name] at [Time]"
+
+### Concurrent Editing
+
+- [ ] **Given** another user is editing the same entry, **when** I save my changes, **then** I see a conflict notification
+- [ ] **Given** a conflict occurs, **when** displayed, **then** I can choose to overwrite, reload, or cancel
 
 ### Delete Entry
 
@@ -50,6 +66,7 @@ This story covers the edit and delete workflows for EEG entries.
 
 ### Exercise Status Restrictions
 
+- [ ] **Given** the exercise is in Draft status, **when** I edit/delete entries, **then** operations are allowed without warnings
 - [ ] **Given** the exercise is Active, **when** I edit/delete my entries, **then** operations are allowed
 - [ ] **Given** the exercise is Completed, **when** I try to edit my entry, **then** I see warning about completed exercise
 - [ ] **Given** the exercise is Completed, **when** I am Director+, **then** I can still edit with acknowledgment
@@ -61,6 +78,93 @@ This story covers the edit and delete workflows for EEG entries.
 - [ ] **Given** I am offline, **when** I delete an entry, **then** delete queues for sync
 - [ ] **Given** offline edits conflict with server, **when** sync runs, **then** conflict resolution applies
 - [ ] **Given** I come online, **when** sync completes, **then** changes are reflected
+
+## Permission Matrix
+
+| Action | Admin | Director | Controller | Evaluator | Observer |
+|--------|-------|----------|------------|-----------|----------|
+| Edit own entry | ✅ | ✅ | ✅* | ✅ | ❌ |
+| Edit others' entry | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Delete own entry | ✅ | ✅ | ✅* | ✅ | ❌ |
+| Delete others' entry | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Edit in Completed exercise | ✅ | ✅** | ❌ | ❌ | ❌ |
+
+*Controllers can only edit/delete if they also have Evaluator permissions (can create entries)
+**With warning acknowledgment
+
+## API Specification
+
+### PUT /api/eeg-entries/{entryId}
+
+**Request Body:**
+```json
+{
+  "criticalTaskId": "guid",
+  "observationText": "string (1-2000 chars)",
+  "rating": "P|S|M|U",
+  "observedAt": "datetime",
+  "triggeringInjectId": "guid|null"
+}
+```
+
+**Response 200:**
+```json
+{
+  "id": "guid",
+  "criticalTaskId": "guid",
+  "criticalTaskDescription": "string",
+  "capabilityTargetId": "guid",
+  "capabilityTargetDescription": "string",
+  "observationText": "string",
+  "rating": "P",
+  "observedAt": "2026-02-03T10:45:00Z",
+  "recordedAt": "2026-02-03T10:47:00Z",
+  "updatedAt": "2026-02-03T11:30:00Z",
+  "wasEdited": true,
+  "updatedBy": {
+    "id": "guid",
+    "name": "string"
+  },
+  "evaluator": {
+    "id": "guid",
+    "name": "string"
+  },
+  "triggeringInject": {
+    "id": "guid",
+    "injectNumber": "INJ-003",
+    "title": "string"
+  }
+}
+```
+
+**Response 400:** Validation error
+```json
+{
+  "errors": {
+    "observationText": ["Observation text is required"],
+    "observationText": ["Observation text cannot exceed 2000 characters"]
+  }
+}
+```
+
+**Response 401:** Unauthorized
+**Response 403:** Not authorized to edit this entry
+**Response 404:** Entry not found
+**Response 409:** Concurrent edit conflict (optimistic concurrency)
+```json
+{
+  "error": "ConcurrencyConflict",
+  "message": "This entry was modified by another user",
+  "serverVersion": "datetime"
+}
+```
+
+### DELETE /api/eeg-entries/{entryId}
+
+**Response 204:** Successfully deleted
+**Response 401:** Unauthorized
+**Response 403:** Not authorized to delete this entry
+**Response 404:** Entry not found
 
 ## Wireframes
 
@@ -77,22 +181,23 @@ This story covers the edit and delete workflows for EEG entries.
 │  │ Operational Communications                                   ▼  │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                                                                         │
-│  Critical Task                                                          │
+│  Critical Task *                                                        │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │ Activate emergency communication plan                        ▼  │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                                                                         │
-│  Observation                                                            │
+│  Observation *                                                          │
 │  ┌─────────────────────────────────────────────────────────────────┐   │
 │  │ EOC issued activation notification at 09:15. All stakeholders   │   │
 │  │ confirmed receipt within 10 minutes. Communication plan         │   │
 │  │ followed correctly per SOP 5.2.                                 │   │
 │  │                                                                  │   │
-│  │ [EDITED: Added note about Field Unit 3 delay]                   │   │
+│  │ [ADDED: Note about Field Unit 3 delay]                          │   │
 │  │ Minor delay in reaching Field Unit 3 due to radio interference. │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
+│                                                      1,247 / 2,000     │
 │                                                                         │
-│  Performance Rating                                                     │
+│  Performance Rating *                                                   │
 │  [○ P] [● S] [○ M] [○ U]                                               │
 │                                                                         │
 │  Triggered by Inject                                                    │
@@ -149,22 +254,30 @@ This story covers the edit and delete workflows for EEG entries.
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
-## Permission Matrix
+### Conflict Resolution Dialog
 
-| Action | Admin | Director | Controller | Evaluator | Observer |
-|--------|:-----:|:--------:|:----------:|:---------:|:--------:|
-| Edit own entry | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Edit others' entry | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Delete own entry | ✅ | ✅ | ✅ | ✅ | ❌ |
-| Delete others' entry | ✅ | ✅ | ❌ | ❌ | ❌ |
-| Edit in Completed exercise | ✅ | ✅* | ❌ | ❌ | ❌ |
-
-*With warning acknowledgment
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│  Conflict Detected                                              [X]    │
+├─────────────────────────────────────────────────────────────────────────┤
+│                                                                         │
+│  ⚠️ This entry was modified by Sarah Kim while you were editing.       │
+│                                                                         │
+│  Their changes: Rating changed from P to S                              │
+│  Last modified: 11:32 AM                                                │
+│                                                                         │
+│  What would you like to do?                                             │
+│                                                                         │
+│  [Overwrite Their Changes]  [Reload Their Version]  [Cancel]           │
+│                                                                         │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ## Out of Scope
 
 - Edit history / version tracking (future enhancement)
 - Bulk edit operations (future enhancement)
+- Bulk delete operations (future enhancement)
 - Entry locking by Admin (future enhancement)
 - Undo delete (future enhancement)
 
@@ -178,8 +291,9 @@ This story covers the edit and delete workflows for EEG entries.
 
 - Reuse EEG Entry form component from S06 for edit
 - Track UpdatedAt and UpdatedBy for audit
+- Use optimistic concurrency with ETag or version field for conflict detection
 - Consider soft delete for recovery capability (future)
-- Offline deletes need careful sync handling
+- Offline deletes need careful sync handling — mark as "pending delete" locally
 
 ## Test Scenarios
 
@@ -187,6 +301,8 @@ This story covers the edit and delete workflows for EEG entries.
 - Edit form populates with existing values
 - Validation on edit (same as create)
 - Delete confirmation renders correctly
+- Character counter updates on text change
+- Conflict dialog shows correctly
 
 ### Integration Tests
 - Edit entry updates in database
@@ -195,7 +311,10 @@ This story covers the edit and delete workflows for EEG entries.
 - Completed exercise restrictions work
 - Offline edit/delete syncs correctly
 - Edited indicator shows on entry
+- Concurrent edit conflict detection works
+- UpdatedBy tracks the editor, not original author
 
 ---
 
 *Story created: 2026-02-03*
+*Revised: 2026-02-05 — Added API spec, concurrent editing, validation details*

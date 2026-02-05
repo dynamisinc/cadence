@@ -29,15 +29,24 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 ### Export Access
 
 - [ ] **Given** I am on the EEG Review page, **when** I click "Export", **then** I see export options
-- [ ] **Given** I am a Director+, **when** I access export, **then** I can export EEG data
-- [ ] **Given** I am an Evaluator, **when** I access export, **then** I cannot export (or limited export)
+- [ ] **Given** I am a Director+, **when** I access export, **then** I can export all EEG data
+- [ ] **Given** I am an Evaluator, **when** I access export, **then** I can only export my own entries (limited export)
 - [ ] **Given** the exercise has no EEG entries, **when** I try to export, **then** I see message about no data
 
 ### Export Formats
 
 - [ ] **Given** export options, **when** displayed, **then** I can choose Excel (.xlsx) format
-- [ ] **Given** export options, **when** displayed, **then** I can choose PDF format (future)
 - [ ] **Given** export options, **when** displayed, **then** I can choose JSON format (for API integration)
+- [ ] **Given** export options, **when** displayed, **then** PDF format shows as "Coming Soon" (see S13 for document generation)
+
+### Include Options
+
+- [ ] **Given** the Include Options, **when** I uncheck "Summary statistics", **then** the Summary sheet is omitted from the workbook
+- [ ] **Given** the Include Options, **when** I uncheck "Entries by capability", **then** the By Capability sheet is omitted
+- [ ] **Given** the Include Options, **when** I uncheck "All entries", **then** the All Entries sheet is omitted
+- [ ] **Given** the Include Options, **when** I uncheck "Coverage gaps", **then** the Coverage Gaps sheet is omitted
+- [ ] **Given** the Include Options, **when** I uncheck "Evaluator details", **then** evaluator names are replaced with "Evaluator 1", "Evaluator 2", etc.
+- [ ] **Given** all Include Options are unchecked, **when** I click Export, **then** I see validation error "Select at least one section to export"
 
 ### Excel Export Structure
 
@@ -52,16 +61,26 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 - [ ] **Given** the Summary sheet, **when** displayed, **then** I see exercise name, date, status
 - [ ] **Given** the Summary sheet, **when** displayed, **then** I see total entries, task coverage percentage
 - [ ] **Given** the Summary sheet, **when** displayed, **then** I see P/S/M/U distribution
-- [ ] **Given** the Summary sheet, **when** displayed, **then** I see evaluator list with entry counts
+- [ ] **Given** the Summary sheet, **when** displayed, **then** I see evaluator list with entry counts (if "Evaluator details" checked)
 - [ ] **Given** the Summary sheet, **when** displayed, **then** I see generation timestamp
+
+### Evaluator Contact Information (S12 Integration)
+
+- [ ] **Given** the Summary sheet Evaluator Activity section, **when** evaluator has phone on file (S12), **then** phone number is included (if "Evaluator details" checked)
 
 ### By Capability Sheet Content
 
 - [ ] **Given** the By Capability sheet, **when** displayed, **then** entries are grouped under Capability Target headers
 - [ ] **Given** each Capability Target section, **when** displayed, **then** I see: target description, capability name
+- [ ] **Given** each Capability Target section, **when** it has Sources (S11), **then** a "Sources" row appears under the target header
 - [ ] **Given** each section, **when** displayed, **then** Critical Tasks are listed with their entries
 - [ ] **Given** each entry row, **when** displayed, **then** I see: task, rating, observation, evaluator, timestamp
 - [ ] **Given** a task with no entries, **when** displayed, **then** row shows "Not Evaluated"
+
+### Multiple Evaluators Per Task
+
+- [ ] **Given** the By Capability sheet, **when** a task has entries from multiple evaluators, **then** each entry appears as a separate sub-row under the task
+- [ ] **Given** multiple entries, **when** displayed, **then** each row shows: evaluator name, timestamp, rating, observation text
 
 ### All Entries Sheet Content
 
@@ -76,12 +95,109 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 - [ ] **Given** each gap row, **when** displayed, **then** I see: capability, target, task description
 - [ ] **Given** all tasks evaluated, **when** displayed, **then** sheet shows "All tasks evaluated" message
 
+### Evaluator Export Permissions
+
+- [ ] **Given** I am an Evaluator, **when** I click Export, **then** I can only export my own entries (limited export)
+- [ ] **Given** the limited export, **when** generated, **then** only entries where I am the evaluator are included
+
 ### Export Process
 
 - [ ] **Given** I click Export Excel, **when** processing, **then** I see progress indicator
 - [ ] **Given** export completes, **when** ready, **then** file downloads automatically
 - [ ] **Given** export fails, **when** error occurs, **then** I see error message with retry option
 - [ ] **Given** large exercise (100+ entries), **when** exporting, **then** process completes within 30 seconds
+
+### Error Handling (Enhanced)
+
+- [ ] **Given** export takes longer than 30 seconds, **when** timeout warning shows, **then** I see "Export is taking longer than expected. Large exercises may take up to 60 seconds." with option to continue waiting
+- [ ] **Given** export fails with partial data, **when** error occurs, **then** I see error details and option to retry
+
+### Filename Handling
+
+- [ ] **Given** the exercise name contains special characters (/ \ : * ? " < > |), **when** filename is generated, **then** those characters are replaced with underscores
+
+## Permission Matrix
+
+| Action | Admin | Director | Controller | Evaluator | Observer |
+|--------|-------|----------|------------|-----------|----------|
+| Export all EEG data | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Export own entries only | ✅ | ✅ | ❌ | ✅ | ❌ |
+| Include evaluator details | ✅ | ✅ | N/A | N/A | ❌ |
+
+## API Specification
+
+### GET /api/exercises/{exerciseId}/eeg-export
+
+**Query Parameters:**
+| Parameter | Type | Default | Description |
+|-----------|------|---------|-------------|
+| format | string | xlsx | Export format: xlsx, json |
+| includeSummary | bool | true | Include Summary sheet |
+| includeByCapability | bool | true | Include By Capability sheet |
+| includeAllEntries | bool | true | Include All Entries sheet |
+| includeCoverageGaps | bool | true | Include Coverage Gaps sheet |
+| includeEvaluatorNames | bool | true | Show evaluator names (false = anonymized) |
+
+**Response (xlsx):** File download
+- Content-Type: `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`
+- Content-Disposition: `attachment; filename="EEG_Export_Hurricane_Response_TTX_2026-02-03.xlsx"`
+
+**Response (json):**
+```json
+{
+  "exercise": {
+    "name": "Hurricane Response TTX",
+    "date": "2026-02-03",
+    "status": "Completed"
+  },
+  "summary": {
+    "totalEntries": 24,
+    "tasksCoverage": { "evaluated": 8, "total": 12, "percentage": 67 },
+    "ratingDistribution": { "P": 5, "S": 3, "M": 2, "U": 2 }
+  },
+  "byCapability": [
+    {
+      "capabilityName": "Operational Communications",
+      "targetDescription": "Establish interoperable communications within 30 minutes",
+      "sources": "Metro County EOP, Annex F; SOP 5.2",
+      "tasks": [
+        {
+          "taskDescription": "Activate emergency communication plan",
+          "entries": [
+            {
+              "rating": "S",
+              "observation": "EOC issued activation notification at 09:15...",
+              "evaluator": "Robert Chen",
+              "evaluatorPhone": "(555) 123-4567",
+              "observedAt": "2026-02-03T10:45:00Z"
+            },
+            {
+              "rating": "P",
+              "observation": "Notification sent within 5 minutes...",
+              "evaluator": "Sarah Kim",
+              "evaluatorPhone": null,
+              "observedAt": "2026-02-03T10:12:00Z"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "coverageGaps": [
+    {
+      "capabilityName": "Mass Care Services",
+      "targetDescription": "Open and staff shelter within 2 hours",
+      "taskDescription": "Coordinate with Red Cross"
+    }
+  ],
+  "generatedAt": "2026-02-03T14:30:00Z"
+}
+```
+
+**Response 400:** Validation error (no sections selected)
+**Response 401:** Unauthorized
+**Response 403:** Forbidden (not authorized to export)
+**Response 404:** Exercise not found
 
 ## Wireframes
 
@@ -106,8 +222,8 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 │  [○ JSON Data]                                                          │
 │      Raw data format for integration with other tools                  │
 │                                                                         │
-│  [○ PDF Report] (Coming Soon)                                          │
-│      Formatted report ready for distribution                           │
+│  [○ HSEEP Document (.docx)] (See S13)                                  │
+│      Generate official EEG document format                             │
 │                                                                         │
 │  ─────────────────────────────────────────────────────────────────────  │
 │                                                                         │
@@ -116,7 +232,7 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 │  [✓] Entries by capability (for AAR)                                   │
 │  [✓] All entries (flat list)                                           │
 │  [✓] Coverage gaps                                                      │
-│  [ ] Evaluator details (names visible)                                 │
+│  [ ] Evaluator details (names and contact info visible)                │
 │                                                                         │
 │                                          [Cancel]  [Export]             │
 │                                                                         │
@@ -167,10 +283,10 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 ├─────────────────┼───────────────────────┼──────────────┼────────────────┤
 │  EVALUATOR ACTIVITY                                                     │
 ├─────────────────┼───────────────────────┼──────────────┼────────────────┤
-│  Evaluator      │  Entries                                              │
-│  Robert Chen    │  6                                                    │
-│  Sarah Kim      │  4                                                    │
-│  Mike Jones     │  2                                                    │
+│  Evaluator      │  Entries              │  Phone                        │
+│  Robert Chen    │  6                    │  (555) 123-4567               │
+│  Sarah Kim      │  4                    │  [Not provided]               │
+│  Mike Jones     │  2                    │  (555) 987-6543               │
 └─────────────────┴───────────────────────┴──────────────┴────────────────┘
 ```
 
@@ -182,6 +298,7 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 ├─────────────────┼──────────────┼───────────┼──────────────┼─────────────┤
 │  OPERATIONAL COMMUNICATIONS                                             │
 │  Target: Establish interoperable communications within 30 minutes       │
+│  Sources: Metro County EOP, Annex F; SOP 5.2                           │
 ├─────────────────┼──────────────┼───────────┼──────────────┼─────────────┤
 │  Task           │  Rating      │  Observation            │  Evaluator  │
 ├─────────────────┼──────────────┼───────────┼──────────────┼─────────────┤
@@ -198,67 +315,15 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 │                                                                         │
 │  MASS CARE SERVICES                                                     │
 │  Target: Open and staff shelter within 2 hours of activation            │
+│  Sources: [None specified]                                              │
 ├─────────────────┼──────────────┼───────────┼──────────────┼─────────────┤
 │  ...                                                                    │
 └─────────────────┴──────────────┴───────────┴──────────────┴─────────────┘
 ```
 
-## API Specification
-
-### GET /api/exercises/{exerciseId}/eeg-export
-
-**Query Parameters:**
-- `format`: `xlsx` | `json` (default: `xlsx`)
-- `includeEvaluatorNames`: `true` | `false` (default: `true`)
-
-**Response (xlsx):** File download with appropriate headers
-
-**Response (json):**
-```json
-{
-  "exercise": {
-    "name": "Hurricane Response TTX",
-    "date": "2026-02-03",
-    "status": "Completed"
-  },
-  "summary": {
-    "totalEntries": 24,
-    "tasksCoverage": { "evaluated": 8, "total": 12, "percentage": 67 },
-    "ratingDistribution": { "P": 5, "S": 3, "M": 2, "U": 2 }
-  },
-  "byCapability": [
-    {
-      "capabilityName": "Operational Communications",
-      "targetDescription": "Establish interoperable communications...",
-      "tasks": [
-        {
-          "taskDescription": "Activate emergency communication plan",
-          "entries": [
-            {
-              "rating": "S",
-              "observation": "EOC issued activation...",
-              "evaluator": "Robert Chen",
-              "observedAt": "2026-02-03T10:45:00Z"
-            }
-          ]
-        }
-      ]
-    }
-  ],
-  "coverageGaps": [
-    {
-      "capabilityName": "Mass Care Services",
-      "targetDescription": "Open and staff shelter...",
-      "taskDescription": "Coordinate with Red Cross"
-    }
-  ],
-  "generatedAt": "2026-02-03T14:30:00Z"
-}
-```
-
 ## Out of Scope
 
-- PDF export with formatting (future enhancement)
+- HSEEP-formatted document export — see S13 (Generate EEG Document)
 - Word document export (future enhancement)
 - AAR template auto-population (future enhancement)
 - Improvement Plan (IP) generation (future enhancement)
@@ -269,6 +334,8 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 - S01-S04: Capability Targets and Critical Tasks
 - S06-S07: EEG Entries
 - S09: Coverage metrics (reuse calculations)
+- S11: Sources field on CapabilityTarget
+- S12: Evaluator phone number
 - Excel library (EPPlus or ClosedXML)
 
 ## Technical Notes
@@ -278,6 +345,8 @@ This export provides the evaluation data in a structure ready for AAR drafting.
 - Consider background job for large exports
 - Include exercise ID in filename for traceability
 - Apply consistent styling to Excel (headers, colors for ratings)
+- Rating colors in Excel: P=green, S=yellow, M=orange, U=red
+- Sanitize filename: replace invalid characters with underscores
 
 ## HSEEP AAR Structure Reference
 
@@ -299,7 +368,8 @@ The export should facilitate creating an AAR with this structure:
 - Export data aggregation by capability
 - Rating distribution calculation
 - Coverage gaps identification
-- Filename generation
+- Filename generation with special character handling
+- Include options filtering
 
 ### Integration Tests
 - Export generates valid Excel file
@@ -308,7 +378,11 @@ The export should facilitate creating an AAR with this structure:
 - Large exercise export completes
 - Empty exercise export handles gracefully
 - Permission check for export access
+- Evaluator-only export includes only their entries
+- Sources field included in By Capability sheet
+- Phone numbers included when available
 
 ---
 
 *Story created: 2026-02-03*
+*Revised: 2026-02-05 — Added S11/S12 integration, include options, evaluator export permissions, error handling*
