@@ -1147,7 +1147,7 @@ export const ExerciseConductPage = () => {
                       exerciseId={exerciseId!}
                       compact
                       onAssessTask={handleAssessTask}
-                      onDetailsClick={handleOpenEegEntry}
+                      onDetailsClick={() => navigate(`/exercises/${exerciseId}/eeg-entries`)}
                     />
                   </Box>
                 )}

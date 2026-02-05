@@ -38,6 +38,7 @@ import { toast } from 'react-toastify'
 
 import { useExercise } from '../../exercises/hooks'
 import { useExerciseRole } from '../../auth'
+import { useAuth } from '../../../contexts/AuthContext'
 import { useEegEntries, eegEntryKeys, useEegEntriesByTask } from '../hooks/useEegEntries'
 import { useInjects } from '../../injects/hooks'
 import { EegEntriesList } from '../components/EegEntriesList'
@@ -67,6 +68,7 @@ export const EegEntriesPage = () => {
   const queryClient = useQueryClient()
 
   // Core data hooks
+  const { user } = useAuth()
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
   const { can } = useExerciseRole(exerciseId ?? null)
   const {
@@ -354,6 +356,7 @@ export const EegEntriesPage = () => {
           error={entriesError}
           canEdit={canEdit}
           canDelete={canDelete}
+          currentUserId={user?.id}
           onEdit={handleEdit}
           onDelete={handleDelete}
           onInjectClick={handleInjectClick}

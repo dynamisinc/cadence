@@ -23,6 +23,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faLightbulb } from '@fortawesome/free-solid-svg-icons'
 import { toast } from 'react-toastify'
+import { format, parseISO } from 'date-fns'
 
 import {
   CobraPrimaryButton,
@@ -346,7 +347,7 @@ export const EegEntryForm = ({
           <Typography variant="h6">{isEditMode ? 'Edit EEG Entry' : '+ EEG Entry'}</Typography>
           {isEditMode && editEntry && (
             <Typography variant="body2" color="text.secondary">
-              Originally recorded: {new Date(editEntry.recordedAt).toLocaleTimeString()} by{' '}
+              Originally recorded: {format(parseISO(editEntry.recordedAt), 'h:mm a')} by{' '}
               {editEntry.evaluatorName ?? 'Unknown'}
             </Typography>
           )}

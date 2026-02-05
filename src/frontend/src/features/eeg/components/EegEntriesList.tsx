@@ -32,6 +32,7 @@ import {
   faXmark,
   faLink,
 } from '@fortawesome/free-solid-svg-icons'
+import { format, parseISO } from 'date-fns'
 
 import {
   CobraPrimaryButton,
@@ -115,10 +116,19 @@ const EntryDetailDialog = ({
 }) => {
   if (!entry) return null
 
+  // Helper function to format dates consistently using date-fns
+  const formatDateTime = (dateStr: string) => {
+    try {
+      return format(parseISO(dateStr), 'MMM d, yyyy h:mm a')
+    } catch {
+      return dateStr
+    }
+  }
+
   // Consider "edited" if updatedAt is more than 1 minute after createdAt
   // This avoids false positives from millisecond differences during creation
-  const createdTime = new Date(entry.createdAt).getTime()
-  const updatedTime = new Date(entry.updatedAt).getTime()
+  const createdTime = parseISO(entry.createdAt).getTime()
+  const updatedTime = parseISO(entry.updatedAt).getTime()
   const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
 
   return (
@@ -204,7 +214,7 @@ const EntryDetailDialog = ({
                 Observed at
               </Typography>
               <Typography variant="body2">
-                {new Date(entry.observedAt).toLocaleString()}
+                {formatDateTime(entry.observedAt)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
@@ -212,7 +222,7 @@ const EntryDetailDialog = ({
                 Recorded at
               </Typography>
               <Typography variant="body2">
-                {new Date(entry.recordedAt).toLocaleString()}
+                {formatDateTime(entry.recordedAt)}
               </Typography>
             </Stack>
             <Stack direction="row" justifyContent="space-between">
@@ -227,7 +237,7 @@ const EntryDetailDialog = ({
                   Last edited
                 </Typography>
                 <Typography variant="body2" fontStyle="italic">
-                  {new Date(entry.updatedAt).toLocaleString()}
+                  {formatDateTime(entry.updatedAt)}
                 </Typography>
               </Stack>
             )}
@@ -576,14 +586,12 @@ export const EegEntriesList = ({
       <Stack spacing={1}>
         {sortedEntries.map(entry => {
           // Consider "edited" if updatedAt is more than 1 minute after createdAt
-  // This avoids false positives from millisecond differences during creation
-  const createdTime = new Date(entry.createdAt).getTime()
-  const updatedTime = new Date(entry.updatedAt).getTime()
-  const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
-          const timeStr = new Date(entry.recordedAt).toLocaleTimeString([], {
-            hour: '2-digit',
-            minute: '2-digit',
-          })
+          // This avoids false positives from millisecond differences during creation
+          const createdTime = parseISO(entry.createdAt).getTime()
+          const updatedTime = parseISO(entry.updatedAt).getTime()
+          const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
+          // Format time using date-fns for consistent timezone handling
+          const timeStr = format(parseISO(entry.recordedAt), 'h:mm a')
 
           return (
             <Paper
