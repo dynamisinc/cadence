@@ -68,7 +68,8 @@
       "Bash(__NEW_LINE_543bb88c1023b2f9__ curl -s \"https://app-cadence-api-uat.azurewebsites.net/api/admin/organizations/11111111-1111-1111-1111-111111111111/members\" -H \"Authorization: Bearer $TOKEN\")",
       "mcp__plugin_playwright_playwright__browser_console_messages",
       "Bash(npm run test:ci:*)",
-      "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''s/^pick a8a4ad7/reword a8a4ad7/; s/^pick 8509937/reword 8509937/; s/^pick 1515eea/reword 1515eea/''\" git rebase -i main)"
+      "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''s/^pick a8a4ad7/reword a8a4ad7/; s/^pick 8509937/reword 8509937/; s/^pick 1515eea/reword 1515eea/''\" git rebase -i main)",
+      "Bash(npm ci:*)"
     ],
     "deny": [],
     "ask": [],
