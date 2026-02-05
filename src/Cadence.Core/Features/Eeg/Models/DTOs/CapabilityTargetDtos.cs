@@ -20,6 +20,13 @@ public class CreateCapabilityTargetRequest
     public string TargetDescription { get; init; } = string.Empty;
 
     /// <summary>
+    /// References to plans, policies, SOPs, or frameworks this target is based on.
+    /// Optional, max 500 characters.
+    /// Example: "Metro County EOP, Annex F; SOP 5.2; NIMS"
+    /// </summary>
+    public string? Sources { get; init; }
+
+    /// <summary>
     /// Display order within the exercise's capability targets.
     /// If not specified, will be appended at the end.
     /// </summary>
@@ -38,6 +45,12 @@ public class UpdateCapabilityTargetRequest
     public string TargetDescription { get; init; } = string.Empty;
 
     /// <summary>
+    /// Updated references to plans, policies, SOPs, or frameworks.
+    /// Optional, max 500 characters. Set to null to clear.
+    /// </summary>
+    public string? Sources { get; init; }
+
+    /// <summary>
     /// Updated sort order.
     /// </summary>
     public int? SortOrder { get; init; }
@@ -52,6 +65,7 @@ public record CapabilityTargetDto(
     Guid CapabilityId,
     CapabilitySummaryDto Capability,
     string TargetDescription,
+    string? Sources,
     int SortOrder,
     int CriticalTaskCount,
     DateTime CreatedAt,

@@ -22,6 +22,11 @@ export {
 // EEG Entry components
 export { EegEntryForm } from './EegEntryForm'
 export { PerformanceRatingSelector } from './PerformanceRatingSelector'
+export {
+  EvaluatorContactPrompt,
+  shouldShowPhonePrompt,
+  isPromptDismissed,
+} from './EvaluatorContactPrompt'
 
 // Dashboard components
 export { EegCoverageDashboard } from './EegCoverageDashboard'
@@ -31,3 +36,4 @@ export { EegEntriesList } from './EegEntriesList'
 
 // Export components
 export { EegExportDialog } from './EegExportDialog'
+export { EegDocumentDialog } from './EegDocumentDialog'

@@ -17,6 +17,7 @@ import type {
   SetLinkedInjectsRequest,
   EegEntryDto,
   EegEntryListResponse,
+  EegEntryQueryParams,
   CreateEegEntryRequest,
   UpdateEegEntryRequest,
   EegCoverageDto,
@@ -206,11 +207,30 @@ export const criticalTaskService = {
 
 export const eegEntryService = {
   /**
-   * Get all EEG entries for an exercise
+   * Get EEG entries for an exercise with optional filtering and pagination
    */
-  async getByExercise(exerciseId: string): Promise<EegEntryListResponse> {
+  async getByExercise(
+    exerciseId: string,
+    queryParams?: EegEntryQueryParams,
+  ): Promise<EegEntryListResponse> {
+    const params = new URLSearchParams()
+
+    if (queryParams?.page) params.append('page', String(queryParams.page))
+    if (queryParams?.pageSize) params.append('pageSize', String(queryParams.pageSize))
+    if (queryParams?.rating) params.append('rating', queryParams.rating)
+    if (queryParams?.evaluatorId) params.append('evaluatorId', queryParams.evaluatorId)
+    if (queryParams?.capabilityTargetId)
+      params.append('capabilityTargetId', queryParams.capabilityTargetId)
+    if (queryParams?.criticalTaskId) params.append('criticalTaskId', queryParams.criticalTaskId)
+    if (queryParams?.fromDate) params.append('fromDate', queryParams.fromDate)
+    if (queryParams?.toDate) params.append('toDate', queryParams.toDate)
+    if (queryParams?.sortBy) params.append('sortBy', queryParams.sortBy)
+    if (queryParams?.sortOrder) params.append('sortOrder', queryParams.sortOrder)
+    if (queryParams?.search) params.append('search', queryParams.search)
+
     const response = await apiClient.get<EegEntryListResponse>(
       `/exercises/${exerciseId}/eeg-entries`,
+      { params },
     )
     return response.data
   },
@@ -416,12 +436,72 @@ export interface CoverageGapJsonDto {
   taskDescription: string
 }
 
+// =============================================================================
+// EEG Document Generation API
+// =============================================================================
+
+/** Document generation mode */
+export type EegDocumentMode = 'blank' | 'completed'
+
+/** Document output format */
+export type EegDocumentOutputFormat = 'single' | 'perCapability'
+
+/** Request options for generating an EEG document */
+export interface GenerateEegDocumentRequest {
+  /** Document mode: blank or completed */
+  mode?: EegDocumentMode
+  /** Output format: single document or per-capability ZIP */
+  outputFormat?: EegDocumentOutputFormat
+  /** For completed mode: whether to include evaluator names */
+  includeEvaluatorNames?: boolean
+}
+
+export const eegDocumentService = {
+  /**
+   * Generate an EEG document (HSEEP-compliant Word document)
+   * Returns the file as a blob for download
+   */
+  async generate(exerciseId: string, request: GenerateEegDocumentRequest = {}): Promise<Blob> {
+    const response = await apiClient.post(`/exercises/${exerciseId}/eeg-document`, request, {
+      responseType: 'blob',
+    })
+    return response.data
+  },
+
+  /**
+   * Download an EEG document
+   */
+  async download(
+    exerciseId: string,
+    exerciseName: string,
+    request: GenerateEegDocumentRequest = {},
+  ): Promise<void> {
+    const blob = await this.generate(exerciseId, request)
+
+    // Determine file extension based on output format
+    const extension = request.outputFormat === 'perCapability' ? 'zip' : 'docx'
+    const modeLabel = request.mode === 'completed' ? 'Completed' : 'Blank'
+    const safeName = exerciseName.replace(/[^a-zA-Z0-9]/g, '_')
+    const filename = `EEG_${modeLabel}_${safeName}.${extension}`
+
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = filename
+    document.body.appendChild(a)
+    a.click()
+    window.URL.revokeObjectURL(url)
+    document.body.removeChild(a)
+  },
+}
+
 // Default export with all services
 export const eegService = {
   capabilityTargets: capabilityTargetService,
   criticalTasks: criticalTaskService,
   eegEntries: eegEntryService,
   export: eegExportService,
+  document: eegDocumentService,
 }
 
 export default eegService

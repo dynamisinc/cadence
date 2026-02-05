@@ -71,6 +71,7 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
   // Form state
   const [capabilityId, setCapabilityId] = useState('')
   const [targetDescription, setTargetDescription] = useState('')
+  const [sources, setSources] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [touched, setTouched] = useState<Record<string, boolean>>({})
@@ -81,9 +82,11 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
       if (target) {
         setCapabilityId(target.capabilityId)
         setTargetDescription(target.targetDescription)
+        setSources(target.sources ?? '')
       } else {
         setCapabilityId('')
         setTargetDescription('')
+        setSources('')
       }
       setError(null)
       setIsLoading(false)
@@ -116,6 +119,13 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
       return false
     }
 
+    if (sources.length > CAPABILITY_TARGET_FIELD_LIMITS.sources.max) {
+      setError(
+        `Sources must be ${CAPABILITY_TARGET_FIELD_LIMITS.sources.max} characters or less`,
+      )
+      return false
+    }
+
     return true
   }
 
@@ -133,12 +143,14 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
       if (isEditMode && target && onUpdate) {
         const request: UpdateCapabilityTargetRequest = {
           targetDescription: targetDescription.trim(),
+          sources: sources.trim() || null,
         }
         await onUpdate(target.id, request)
       } else if (onCreate) {
         const request: CreateCapabilityTargetRequest = {
           capabilityId,
           targetDescription: targetDescription.trim(),
+          sources: sources.trim() || null,
         }
         await onCreate(request)
       }
@@ -256,6 +268,21 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
                 : `${descriptionLength}/${CAPABILITY_TARGET_FIELD_LIMITS.targetDescription.max} - Describe the measurable performance threshold`
             }
             error={touched.targetDescription && !targetDescription.trim()}
+          />
+
+          <CobraTextField
+            label="Sources"
+            value={sources}
+            onChange={e => {
+              setSources(e.target.value)
+              if (error) setError(null)
+            }}
+            fullWidth
+            multiline
+            rows={2}
+            placeholder="e.g., County EOP Annex F; SOP 5.2; NIMS"
+            helperText={`${sources.length}/${CAPABILITY_TARGET_FIELD_LIMITS.sources.max} - Plans, policies, SOPs, or frameworks this target is based on`}
+            error={sources.length > CAPABILITY_TARGET_FIELD_LIMITS.sources.max}
           />
 
           <Typography variant="body2" color="text.secondary">

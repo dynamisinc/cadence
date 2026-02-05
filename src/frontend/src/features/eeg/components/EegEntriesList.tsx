@@ -128,14 +128,8 @@ const EntryDetailDialog = ({
     }
   }
 
-  // Helper to ensure dates are parsed as UTC
-  const parseAsUtc = (dateStr: string) => parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
-
-  // Consider "edited" if updatedAt is more than 1 minute after createdAt
-  // This avoids false positives from millisecond differences during creation
-  const createdTime = parseAsUtc(entry.createdAt).getTime()
-  const updatedTime = parseAsUtc(entry.updatedAt).getTime()
-  const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
+  // Use backend-provided wasEdited flag
+  const wasEdited = entry.wasEdited
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
@@ -160,6 +154,11 @@ const EntryDetailDialog = ({
             <Typography variant="body2" color="text.secondary">
               {entry.criticalTask.capabilityTargetDescription}
             </Typography>
+            {entry.criticalTask.capabilityTargetSources && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                Sources: {entry.criticalTask.capabilityTargetSources}
+              </Typography>
+            )}
           </Box>
 
           {/* Critical Task */}
@@ -170,6 +169,11 @@ const EntryDetailDialog = ({
             <Typography variant="body1" fontWeight={600}>
               {entry.criticalTask.taskDescription}
             </Typography>
+            {entry.criticalTask.standard && (
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                Standard: {entry.criticalTask.standard}
+              </Typography>
+            )}
           </Box>
 
           <Divider />
@@ -240,9 +244,10 @@ const EntryDetailDialog = ({
             {wasEdited && (
               <Stack direction="row" justifyContent="space-between">
                 <Typography variant="caption" color="text.secondary">
-                  Last edited
+                  Edited
                 </Typography>
                 <Typography variant="body2" fontStyle="italic">
+                  {entry.updatedBy ? `by ${entry.updatedBy.name} at ` : ''}
                   {formatDateTime(entry.updatedAt)}
                 </Typography>
               </Stack>
@@ -593,11 +598,6 @@ export const EegEntriesList = ({
         {sortedEntries.map(entry => {
           // Helper to ensure dates are parsed as UTC
           const parseAsUtc = (dateStr: string) => parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
-          // Consider "edited" if updatedAt is more than 1 minute after createdAt
-          // This avoids false positives from millisecond differences during creation
-          const createdTime = parseAsUtc(entry.createdAt).getTime()
-          const updatedTime = parseAsUtc(entry.updatedAt).getTime()
-          const wasEdited = (updatedTime - createdTime) > 60000 // 1 minute threshold
           // Format time using date-fns for consistent timezone handling
           const timeStr = format(parseAsUtc(entry.recordedAt), 'h:mm a')
 
@@ -631,7 +631,7 @@ export const EegEntriesList = ({
                     <Typography variant="body2" fontWeight={600} noWrap>
                       {entry.criticalTask.taskDescription}
                     </Typography>
-                    {wasEdited && (
+                    {entry.wasEdited && (
                       <Chip label="edited" size="small" variant="outlined" sx={{ height: 18 }} />
                     )}
                   </Stack>

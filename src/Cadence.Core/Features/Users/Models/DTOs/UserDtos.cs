@@ -156,6 +156,95 @@ public record CreateUserRequest
 }
 
 /// <summary>
+/// DTO for current user's profile, including contact information.
+/// </summary>
+public record CurrentUserProfileDto
+{
+    /// <summary>
+    /// User's unique identifier.
+    /// </summary>
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User's display name shown in UI.
+    /// </summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User's email address.
+    /// </summary>
+    public string Email { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Optional phone number for EEG document generation.
+    /// </summary>
+    public string? PhoneNumber { get; init; }
+
+    /// <summary>
+    /// System-level role for application permissions.
+    /// </summary>
+    public string SystemRole { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Account status.
+    /// </summary>
+    public string Status { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Most recent successful login timestamp.
+    /// </summary>
+    public DateTime? LastLoginAt { get; init; }
+
+    /// <summary>
+    /// When the user account was created.
+    /// </summary>
+    public DateTime CreatedAt { get; init; }
+}
+
+/// <summary>
+/// Request to update current user's contact information.
+/// </summary>
+public record UpdateContactRequest
+{
+    /// <summary>
+    /// Phone number to update. Set to null to clear the phone number.
+    /// Maximum 25 characters.
+    /// </summary>
+    public string? PhoneNumber { get; init; }
+}
+
+/// <summary>
+/// Response after updating contact information.
+/// </summary>
+public record UserContactDto
+{
+    /// <summary>
+    /// User's unique identifier.
+    /// </summary>
+    public string Id { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User's display name.
+    /// </summary>
+    public string DisplayName { get; init; } = string.Empty;
+
+    /// <summary>
+    /// User's email address.
+    /// </summary>
+    public string Email { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Updated phone number.
+    /// </summary>
+    public string? PhoneNumber { get; init; }
+
+    /// <summary>
+    /// When the contact info was last updated.
+    /// </summary>
+    public DateTime UpdatedAt { get; init; }
+}
+
+/// <summary>
 /// Extension methods for mapping between ApplicationUser entity and DTOs.
 /// </summary>
 public static class UserMapper
@@ -172,5 +261,32 @@ public static class UserMapper
         Status = user.Status.ToString(),
         LastLoginAt = user.LastLoginAt,
         CreatedAt = user.CreatedAt
+    };
+
+    /// <summary>
+    /// Map ApplicationUser entity to CurrentUserProfileDto.
+    /// </summary>
+    public static CurrentUserProfileDto ToProfileDto(this ApplicationUser user) => new()
+    {
+        Id = user.Id,
+        Email = user.Email ?? string.Empty,
+        DisplayName = user.DisplayName,
+        PhoneNumber = user.PhoneNumber,
+        SystemRole = user.SystemRole.ToString(),
+        Status = user.Status.ToString(),
+        LastLoginAt = user.LastLoginAt,
+        CreatedAt = user.CreatedAt
+    };
+
+    /// <summary>
+    /// Map ApplicationUser entity to UserContactDto.
+    /// </summary>
+    public static UserContactDto ToContactDto(this ApplicationUser user, DateTime updatedAt) => new()
+    {
+        Id = user.Id,
+        DisplayName = user.DisplayName,
+        Email = user.Email ?? string.Empty,
+        PhoneNumber = user.PhoneNumber,
+        UpdatedAt = updatedAt
     };
 }

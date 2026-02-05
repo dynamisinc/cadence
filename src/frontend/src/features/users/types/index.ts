@@ -89,6 +89,52 @@ export const USER_ROLES = [
 export type UserRole = typeof USER_ROLES[number]
 
 /**
+ * Current user's profile including contact information
+ */
+export interface CurrentUserProfileDto {
+  /** Unique user identifier */
+  id: string;
+  /** User's display name */
+  displayName: string;
+  /** User's email address */
+  email: string;
+  /** Optional phone number for EEG document generation */
+  phoneNumber: string | null;
+  /** System-level role */
+  systemRole: string;
+  /** Account status */
+  status: string;
+  /** Last login timestamp */
+  lastLoginAt: string | null;
+  /** Account creation timestamp */
+  createdAt: string;
+}
+
+/**
+ * Request to update current user's contact information
+ */
+export interface UpdateContactRequest {
+  /** Phone number to update (null to clear) */
+  phoneNumber: string | null;
+}
+
+/**
+ * Response after updating contact information
+ */
+export interface UserContactDto {
+  /** User ID */
+  id: string;
+  /** User's display name */
+  displayName: string;
+  /** User's email address */
+  email: string;
+  /** Updated phone number */
+  phoneNumber: string | null;
+  /** When the contact info was last updated */
+  updatedAt: string;
+}
+
+/**
  * User membership in an organization
  */
 export interface UserMembershipDto {

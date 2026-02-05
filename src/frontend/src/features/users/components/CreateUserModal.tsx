@@ -314,8 +314,9 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
                       onClick={() => setShowPassword(prev => !prev)}
                       edge="end"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      size="small"
                     >
-                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
                   </InputAdornment>
                 ),

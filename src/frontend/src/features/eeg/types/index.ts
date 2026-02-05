@@ -27,6 +27,8 @@ export interface CapabilityTargetDto {
   capabilityId: string
   capability: CapabilitySummaryDto
   targetDescription: string
+  /** References to plans, policies, SOPs, or frameworks this target is based on */
+  sources: string | null
   sortOrder: number
   criticalTaskCount: number
   createdAt: string
@@ -39,6 +41,8 @@ export interface CapabilityTargetDto {
 export interface CreateCapabilityTargetRequest {
   capabilityId: string
   targetDescription: string
+  /** References to plans, policies, SOPs, or frameworks this target is based on */
+  sources?: string | null
   sortOrder?: number
 }
 
@@ -47,6 +51,8 @@ export interface CreateCapabilityTargetRequest {
  */
 export interface UpdateCapabilityTargetRequest {
   targetDescription: string
+  /** References to plans, policies, SOPs, or frameworks this target is based on */
+  sources?: string | null
   sortOrder?: number
 }
 
@@ -182,9 +188,21 @@ export const PERFORMANCE_RATING_DESCRIPTIONS: Record<PerformanceRating, string> 
 export interface CriticalTaskSummaryDto {
   id: string
   taskDescription: string
+  /** The performance standard for this critical task */
+  standard: string | null
   capabilityTargetId: string
   capabilityTargetDescription: string
+  /** The sources for the capability target (plans, SOPs, frameworks) */
+  capabilityTargetSources: string | null
   capabilityName: string
+}
+
+/**
+ * Summary DTO for user references
+ */
+export interface UserSummaryDto {
+  id: string
+  name: string
 }
 
 /**
@@ -214,6 +232,10 @@ export interface EegEntryDto {
   triggeringInject: InjectSummaryDto | null
   createdAt: string
   updatedAt: string
+  /** Whether this entry has been edited since creation */
+  wasEdited: boolean
+  /** Information about who last edited this entry (only when wasEdited is true) */
+  updatedBy: UserSummaryDto | null
 }
 
 /**
@@ -238,11 +260,42 @@ export interface UpdateEegEntryRequest {
 }
 
 /**
- * Response for EEG entry list
+ * Query parameters for EEG entry list endpoint
+ */
+export interface EegEntryQueryParams {
+  /** Page number (1-indexed). Default: 1 */
+  page?: number
+  /** Items per page (max: 100). Default: 20 */
+  pageSize?: number
+  /** Filter by ratings (P, S, M, U). Comma-separated */
+  rating?: string
+  /** Filter by evaluator IDs. Comma-separated */
+  evaluatorId?: string
+  /** Filter by capability target ID */
+  capabilityTargetId?: string
+  /** Filter by critical task ID */
+  criticalTaskId?: string
+  /** Filter entries observed after this time */
+  fromDate?: string
+  /** Filter entries observed before this time */
+  toDate?: string
+  /** Sort field: observedAt, recordedAt, rating. Default: observedAt */
+  sortBy?: string
+  /** Sort direction: asc, desc. Default: desc */
+  sortOrder?: string
+  /** Free-text search in observation text */
+  search?: string
+}
+
+/**
+ * Response for EEG entry list with pagination
  */
 export interface EegEntryListResponse {
   items: EegEntryDto[]
   totalCount: number
+  page: number
+  pageSize: number
+  totalPages: number
 }
 
 // =============================================================================

@@ -31,6 +31,14 @@ public class CapabilityTarget : BaseEntity, IOrganizationScoped
     /// </summary>
     public int SortOrder { get; set; }
 
+    /// <summary>
+    /// References to plans, policies, SOPs, or frameworks this target is based on.
+    /// Corresponds to the "Source(s)" field in the HSEEP EEG template.
+    /// Example: "Metro County EOP, Annex F; SOP 5.2; NIMS"
+    /// </summary>
+    [MaxLength(500)]
+    public string? Sources { get; set; }
+
     // =========================================================================
     // Foreign Keys
     // =========================================================================

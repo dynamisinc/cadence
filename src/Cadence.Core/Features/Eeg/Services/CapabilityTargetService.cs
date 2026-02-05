@@ -22,10 +22,19 @@ public class CapabilityTargetService : ICapabilityTargetService
 
     public async Task<CapabilityTargetListResponse> GetByExerciseAsync(Guid exerciseId)
     {
+        // Validate exercise exists and belongs to current organization
+        var exercise = await _context.Exercises
+            .FirstOrDefaultAsync(e => e.Id == exerciseId
+                && e.OrganizationId == _orgContext.CurrentOrganizationId);
+
+        if (exercise == null)
+            throw new InvalidOperationException($"Exercise {exerciseId} not found");
+
         var targets = await _context.CapabilityTargets
             .Include(ct => ct.Capability)
             .Include(ct => ct.CriticalTasks)
-            .Where(ct => ct.ExerciseId == exerciseId)
+            .Where(ct => ct.ExerciseId == exerciseId
+                && ct.OrganizationId == _orgContext.CurrentOrganizationId)
             .OrderBy(ct => ct.SortOrder)
             .ToListAsync();
 
@@ -38,7 +47,8 @@ public class CapabilityTargetService : ICapabilityTargetService
         var target = await _context.CapabilityTargets
             .Include(ct => ct.Capability)
             .Include(ct => ct.CriticalTasks)
-            .FirstOrDefaultAsync(ct => ct.Id == id);
+            .FirstOrDefaultAsync(ct => ct.Id == id
+                && ct.OrganizationId == _orgContext.CurrentOrganizationId);
 
         return target == null ? null : ToDto(target);
     }
@@ -47,14 +57,16 @@ public class CapabilityTargetService : ICapabilityTargetService
     {
         // Validate exercise exists and belongs to current organization
         var exercise = await _context.Exercises
-            .FirstOrDefaultAsync(e => e.Id == exerciseId);
+            .FirstOrDefaultAsync(e => e.Id == exerciseId
+                && e.OrganizationId == _orgContext.CurrentOrganizationId);
 
         if (exercise == null)
             throw new InvalidOperationException($"Exercise {exerciseId} not found");
 
         // Validate capability exists and belongs to current organization
         var capability = await _context.Capabilities
-            .FirstOrDefaultAsync(c => c.Id == request.CapabilityId);
+            .FirstOrDefaultAsync(c => c.Id == request.CapabilityId
+                && c.OrganizationId == _orgContext.CurrentOrganizationId);
 
         if (capability == null)
             throw new InvalidOperationException($"Capability {request.CapabilityId} not found");
@@ -72,6 +84,7 @@ public class CapabilityTargetService : ICapabilityTargetService
             OrganizationId = exercise.OrganizationId,
             CapabilityId = request.CapabilityId,
             TargetDescription = request.TargetDescription,
+            Sources = request.Sources?.Trim(),
             SortOrder = sortOrder,
             CreatedBy = createdBy,
             ModifiedBy = createdBy
@@ -92,12 +105,14 @@ public class CapabilityTargetService : ICapabilityTargetService
         var target = await _context.CapabilityTargets
             .Include(ct => ct.Capability)
             .Include(ct => ct.CriticalTasks)
-            .FirstOrDefaultAsync(ct => ct.Id == id);
+            .FirstOrDefaultAsync(ct => ct.Id == id
+                && ct.OrganizationId == _orgContext.CurrentOrganizationId);
 
         if (target == null)
             return null;
 
         target.TargetDescription = request.TargetDescription;
+        target.Sources = request.Sources?.Trim();
         if (request.SortOrder.HasValue)
             target.SortOrder = request.SortOrder.Value;
         target.ModifiedBy = modifiedBy;
@@ -109,7 +124,9 @@ public class CapabilityTargetService : ICapabilityTargetService
 
     public async Task<bool> DeleteAsync(Guid id, string deletedBy)
     {
-        var target = await _context.CapabilityTargets.FindAsync(id);
+        var target = await _context.CapabilityTargets
+            .FirstOrDefaultAsync(ct => ct.Id == id
+                && ct.OrganizationId == _orgContext.CurrentOrganizationId);
         if (target == null)
             return false;
 
@@ -125,7 +142,8 @@ public class CapabilityTargetService : ICapabilityTargetService
     public async Task<bool> ReorderAsync(Guid exerciseId, IEnumerable<Guid> orderedIds)
     {
         var targets = await _context.CapabilityTargets
-            .Where(ct => ct.ExerciseId == exerciseId)
+            .Where(ct => ct.ExerciseId == exerciseId
+                && ct.OrganizationId == _orgContext.CurrentOrganizationId)
             .ToListAsync();
 
         var orderedIdsList = orderedIds.ToList();
@@ -160,6 +178,7 @@ public class CapabilityTargetService : ICapabilityTargetService
             target.Capability.Category
         ),
         target.TargetDescription,
+        target.Sources,
         target.SortOrder,
         target.CriticalTasks.Count(ct => !ct.IsDeleted),
         target.CreatedAt,

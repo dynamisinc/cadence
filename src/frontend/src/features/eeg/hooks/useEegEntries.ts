@@ -13,13 +13,14 @@ import type {
   CreateEegEntryRequest,
   UpdateEegEntryRequest,
   EegCoverageDto,
+  EegEntryQueryParams,
 } from '../types'
 
 /** Query key factory for EEG entries */
 export const eegEntryKeys = {
   all: ['eeg-entries'] as const,
-  byExercise: (exerciseId: string) =>
-    [...eegEntryKeys.all, 'exercise', exerciseId] as const,
+  byExercise: (exerciseId: string, queryParams?: EegEntryQueryParams) =>
+    [...eegEntryKeys.all, 'exercise', exerciseId, queryParams] as const,
   byCriticalTask: (taskId: string) =>
     [...eegEntryKeys.all, 'task', taskId] as const,
   detail: (id: string) => [...eegEntryKeys.all, 'detail', id] as const,
@@ -34,10 +35,11 @@ export const eegEntryKeys = {
  * - Automatic caching and background refetching
  * - Optimistic updates for create/update/delete
  * - Error handling with toast notifications
+ * - Pagination and filtering support
  */
-export const useEegEntries = (exerciseId: string) => {
+export const useEegEntries = (exerciseId: string, queryParams?: EegEntryQueryParams) => {
   const queryClient = useQueryClient()
-  const queryKey = eegEntryKeys.byExercise(exerciseId)
+  const queryKey = eegEntryKeys.byExercise(exerciseId, queryParams)
 
   // Query for fetching EEG entries
   const {
@@ -47,7 +49,7 @@ export const useEegEntries = (exerciseId: string) => {
     refetch: fetchEegEntries,
   } = useQuery({
     queryKey,
-    queryFn: () => eegEntryService.getByExercise(exerciseId),
+    queryFn: () => eegEntryService.getByExercise(exerciseId, queryParams),
     enabled: !!exerciseId,
   })
 
@@ -58,8 +60,13 @@ export const useEegEntries = (exerciseId: string) => {
     mutationFn: ({ taskId, request }: { taskId: string; request: CreateEegEntryRequest }) =>
       eegEntryService.create(exerciseId, taskId, request),
     onSuccess: newEntry => {
-      // Invalidate exercise entries
-      queryClient.invalidateQueries({ queryKey })
+      // Invalidate all exercise entry queries (different query param combinations)
+      queryClient.invalidateQueries({
+        predicate: query =>
+          query.queryKey[0] === 'eeg-entries' &&
+          query.queryKey[1] === 'exercise' &&
+          query.queryKey[2] === exerciseId,
+      })
       // Invalidate critical task queries to update entry counts
       queryClient.invalidateQueries({ queryKey: criticalTaskKeys.all })
       // Invalidate task-specific entries
@@ -86,6 +93,9 @@ export const useEegEntries = (exerciseId: string) => {
   return {
     eegEntries,
     totalCount: response?.totalCount ?? 0,
+    page: response?.page ?? 1,
+    pageSize: response?.pageSize ?? 20,
+    totalPages: response?.totalPages ?? 1,
     loading,
     error: error
       ? error instanceof Error
@@ -128,6 +138,7 @@ export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
       eegEntryService.create(exerciseId, taskId, request),
     onSuccess: newEntry => {
       queryClient.setQueryData(queryKey, (old: typeof response) => ({
+        ...old,
         items: [...(old?.items ?? []), newEntry],
         totalCount: (old?.totalCount ?? 0) + 1,
       }))

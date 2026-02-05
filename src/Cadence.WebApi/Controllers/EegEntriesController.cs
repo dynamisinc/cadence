@@ -18,26 +18,68 @@ public class EegEntriesController : ControllerBase
 {
     private readonly IEegEntryService _eegEntryService;
     private readonly IEegExportService _eegExportService;
+    private readonly IEegDocumentService _eegDocumentService;
     private readonly ILogger<EegEntriesController> _logger;
 
     public EegEntriesController(
         IEegEntryService eegEntryService,
         IEegExportService eegExportService,
+        IEegDocumentService eegDocumentService,
         ILogger<EegEntriesController> logger)
     {
         _eegEntryService = eegEntryService;
         _eegExportService = eegExportService;
+        _eegDocumentService = eegDocumentService;
         _logger = logger;
     }
 
     /// <summary>
-    /// Get all EEG entries for an exercise.
+    /// Get EEG entries for an exercise with optional filtering and pagination.
     /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="page">Page number (1-indexed). Default: 1</param>
+    /// <param name="pageSize">Items per page (max: 100). Default: 20</param>
+    /// <param name="rating">Filter by ratings (P, S, M, U). Comma-separated</param>
+    /// <param name="evaluatorId">Filter by evaluator IDs. Comma-separated</param>
+    /// <param name="capabilityTargetId">Filter by capability target ID</param>
+    /// <param name="criticalTaskId">Filter by critical task ID</param>
+    /// <param name="fromDate">Filter entries observed after this time</param>
+    /// <param name="toDate">Filter entries observed before this time</param>
+    /// <param name="sortBy">Sort field: observedAt, recordedAt, rating. Default: observedAt</param>
+    /// <param name="sortOrder">Sort direction: asc, desc. Default: desc</param>
+    /// <param name="search">Free-text search in observation text</param>
     [HttpGet("exercises/{exerciseId:guid}/eeg-entries")]
     [AuthorizeExerciseAccess]
-    public async Task<ActionResult<EegEntryListResponse>> GetByExercise(Guid exerciseId)
+    public async Task<ActionResult<EegEntryListResponse>> GetByExercise(
+        Guid exerciseId,
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 20,
+        [FromQuery] string? rating = null,
+        [FromQuery] string? evaluatorId = null,
+        [FromQuery] Guid? capabilityTargetId = null,
+        [FromQuery] Guid? criticalTaskId = null,
+        [FromQuery] DateTime? fromDate = null,
+        [FromQuery] DateTime? toDate = null,
+        [FromQuery] string sortBy = "observedAt",
+        [FromQuery] string sortOrder = "desc",
+        [FromQuery] string? search = null)
     {
-        var response = await _eegEntryService.GetByExerciseAsync(exerciseId);
+        var queryParams = new EegEntryQueryParams
+        {
+            Page = page,
+            PageSize = pageSize,
+            Rating = rating,
+            EvaluatorId = evaluatorId,
+            CapabilityTargetId = capabilityTargetId,
+            CriticalTaskId = criticalTaskId,
+            FromDate = fromDate,
+            ToDate = toDate,
+            SortBy = sortBy,
+            SortOrder = sortOrder,
+            Search = search
+        };
+
+        var response = await _eegEntryService.GetByExerciseAsync(exerciseId, queryParams);
         return Ok(response);
     }
 
@@ -269,6 +311,43 @@ public class EegEntriesController : ControllerBase
         {
             _logger.LogError(ex, "Error exporting EEG data for exercise {ExerciseId}", exerciseId);
             return BadRequest(new { message = "Failed to export EEG data" });
+        }
+    }
+
+    /// <summary>
+    /// Generate an EEG document (HSEEP-compliant Word document).
+    /// Supports blank EEG for evaluators or completed EEG with recorded observations.
+    /// </summary>
+    [HttpPost("exercises/{exerciseId:guid}/eeg-document")]
+    [AuthorizeExerciseAccess]
+    [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GenerateEegDocument(
+        Guid exerciseId,
+        [FromBody] GenerateEegDocumentRequest? request = null)
+    {
+        try
+        {
+            var documentRequest = request ?? new GenerateEegDocumentRequest();
+            var result = await _eegDocumentService.GenerateAsync(exerciseId, documentRequest);
+
+            // Add metadata headers
+            Response.Headers.Append("X-Capability-Target-Count", result.CapabilityTargetCount.ToString());
+            Response.Headers.Append("X-Critical-Task-Count", result.CriticalTaskCount.ToString());
+            Response.Headers.Append("Access-Control-Expose-Headers", "X-Capability-Target-Count, X-Critical-Task-Count, Content-Disposition");
+
+            return File(result.Content, result.ContentType, result.Filename);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "EEG document generation failed: {Message}", ex.Message);
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Error generating EEG document for exercise {ExerciseId}", exerciseId);
+            return BadRequest(new { message = "Failed to generate EEG document" });
         }
     }
 

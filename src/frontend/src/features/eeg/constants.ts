@@ -7,6 +7,7 @@
 /** Field limits for capability target form */
 export const CAPABILITY_TARGET_FIELD_LIMITS = {
   targetDescription: { min: 10, max: 500 },
+  sources: { max: 500 },
 }
 
 /** Field limits for critical task form */

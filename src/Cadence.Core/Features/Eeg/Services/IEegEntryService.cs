@@ -8,9 +8,11 @@ namespace Cadence.Core.Features.Eeg.Services;
 public interface IEegEntryService
 {
     /// <summary>
-    /// Get all EEG entries for an exercise.
+    /// Get EEG entries for an exercise with optional filtering and pagination.
     /// </summary>
-    Task<EegEntryListResponse> GetByExerciseAsync(Guid exerciseId);
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="queryParams">Optional query parameters for filtering, sorting, and pagination</param>
+    Task<EegEntryListResponse> GetByExerciseAsync(Guid exerciseId, EegEntryQueryParams? queryParams = null);
 
     /// <summary>
     /// Get all EEG entries for a critical task.

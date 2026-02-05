@@ -433,4 +433,43 @@ public class UserService : IUserService
         var user = await _userManager.FindByIdAsync(userId);
         return user?.CurrentOrganizationId;
     }
+
+    /// <inheritdoc />
+    public async Task<CurrentUserProfileDto?> GetCurrentUserProfileAsync(string userId)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        return user?.ToProfileDto();
+    }
+
+    /// <inheritdoc />
+    public async Task<UserContactDto> UpdatePhoneNumberAsync(string userId, string? phoneNumber)
+    {
+        var user = await _userManager.FindByIdAsync(userId);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"User {userId} not found");
+        }
+
+        // Validate phone number length
+        if (phoneNumber != null && phoneNumber.Length > 25)
+        {
+            throw new ArgumentException("Phone number cannot exceed 25 characters");
+        }
+
+        // Trim and normalize empty string to null
+        var normalizedPhone = string.IsNullOrWhiteSpace(phoneNumber) ? null : phoneNumber.Trim();
+
+        user.PhoneNumber = normalizedPhone;
+
+        var result = await _userManager.UpdateAsync(user);
+        if (!result.Succeeded)
+        {
+            var errors = string.Join(", ", result.Errors.Select(e => e.Description));
+            throw new InvalidOperationException($"Failed to update phone number: {errors}");
+        }
+
+        _logger.LogInformation("Updated phone number for user {UserId}", userId);
+
+        return user.ToContactDto(DateTime.UtcNow);
+    }
 }

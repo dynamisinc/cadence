@@ -117,6 +117,17 @@ export const CapabilityTargetCard: FC<CapabilityTargetCardProps> = ({
             &quot;{target.targetDescription}&quot;
           </Typography>
 
+          {/* Sources - if present */}
+          {target.sources && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{ mt: 0.5, display: 'block' }}
+            >
+              <strong>Sources:</strong> {target.sources}
+            </Typography>
+          )}
+
           {/* Stats */}
           <Stack direction="row" spacing={2} sx={{ mt: 1 }}>
             <Typography variant="caption" color="text.secondary">

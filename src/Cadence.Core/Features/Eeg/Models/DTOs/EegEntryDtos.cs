@@ -77,7 +77,17 @@ public record EegEntryDto(
     Guid? TriggeringInjectId,
     InjectSummaryDto? TriggeringInject,
     DateTime CreatedAt,
-    DateTime UpdatedAt
+    DateTime UpdatedAt,
+    /// <summary>
+    /// Whether this entry has been edited since creation.
+    /// True if UpdatedAt is significantly after CreatedAt.
+    /// </summary>
+    bool WasEdited,
+    /// <summary>
+    /// Information about who last edited this entry.
+    /// Only populated when WasEdited is true.
+    /// </summary>
+    UserSummaryDto? UpdatedBy
 );
 
 /// <summary>
@@ -86,8 +96,16 @@ public record EegEntryDto(
 public record CriticalTaskSummaryDto(
     Guid Id,
     string TaskDescription,
+    /// <summary>
+    /// The performance standard for this critical task.
+    /// </summary>
+    string? Standard,
     Guid CapabilityTargetId,
     string CapabilityTargetDescription,
+    /// <summary>
+    /// The sources for the capability target (plans, SOPs, frameworks).
+    /// </summary>
+    string? CapabilityTargetSources,
     string CapabilityName
 );
 
@@ -101,11 +119,83 @@ public record InjectSummaryDto(
 );
 
 /// <summary>
-/// DTO for EEG entry list response.
+/// Summary DTO for user references in EEG entry responses.
+/// </summary>
+public record UserSummaryDto(
+    string Id,
+    string Name
+);
+
+/// <summary>
+/// Query parameters for EEG entry list endpoint.
+/// </summary>
+public class EegEntryQueryParams
+{
+    /// <summary>
+    /// Page number (1-indexed). Default: 1.
+    /// </summary>
+    public int Page { get; set; } = 1;
+
+    /// <summary>
+    /// Items per page (max: 100). Default: 20.
+    /// </summary>
+    public int PageSize { get; set; } = 20;
+
+    /// <summary>
+    /// Filter by ratings (P, S, M, U). Comma-separated.
+    /// </summary>
+    public string? Rating { get; set; }
+
+    /// <summary>
+    /// Filter by evaluator IDs. Comma-separated.
+    /// </summary>
+    public string? EvaluatorId { get; set; }
+
+    /// <summary>
+    /// Filter by capability target ID.
+    /// </summary>
+    public Guid? CapabilityTargetId { get; set; }
+
+    /// <summary>
+    /// Filter by critical task ID.
+    /// </summary>
+    public Guid? CriticalTaskId { get; set; }
+
+    /// <summary>
+    /// Filter entries observed after this time.
+    /// </summary>
+    public DateTime? FromDate { get; set; }
+
+    /// <summary>
+    /// Filter entries observed before this time.
+    /// </summary>
+    public DateTime? ToDate { get; set; }
+
+    /// <summary>
+    /// Sort field: observedAt, recordedAt, rating. Default: observedAt.
+    /// </summary>
+    public string SortBy { get; set; } = "observedAt";
+
+    /// <summary>
+    /// Sort direction: asc, desc. Default: desc.
+    /// </summary>
+    public string SortOrder { get; set; } = "desc";
+
+    /// <summary>
+    /// Free-text search in observation text.
+    /// </summary>
+    public string? Search { get; set; }
+}
+
+/// <summary>
+/// DTO for EEG entry list response with pagination.
 /// </summary>
 public record EegEntryListResponse(
     IEnumerable<EegEntryDto> Items,
-    int TotalCount
+    int TotalCount,
+    int Page,
+    int PageSize,
+    int TotalPages
 );
 
 /// <summary>

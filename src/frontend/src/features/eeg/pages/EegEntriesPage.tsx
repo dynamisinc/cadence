@@ -32,6 +32,7 @@ import {
   faTimes,
   faClipboardCheck,
   faFileExport,
+  faFileWord,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -39,12 +40,13 @@ import { toast } from 'react-toastify'
 import { useExercise } from '../../exercises/hooks'
 import { useExerciseRole } from '../../auth'
 import { useAuth } from '../../../contexts/AuthContext'
-import { useEegEntries, eegEntryKeys, useEegEntriesByTask } from '../hooks/useEegEntries'
+import { useEegEntries, eegEntryKeys, useEegEntriesByTask, useEegCoverage } from '../hooks/useEegEntries'
 import { useInjects } from '../../injects/hooks'
 import { EegEntriesList } from '../components/EegEntriesList'
 import { EegEntryForm } from '../components/EegEntryForm'
 import { EegCoverageDashboard } from '../components/EegCoverageDashboard'
 import { EegExportDialog } from '../components/EegExportDialog'
+import { EegDocumentDialog } from '../components/EegDocumentDialog'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -79,12 +81,14 @@ export const EegEntriesPage = () => {
     isCreating,
   } = useEegEntries(exerciseId!)
   const { injects } = useInjects(exerciseId!)
+  const { coverage } = useEegCoverage(exerciseId!)
 
   // UI state
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingEntry, setEditingEntry] = useState<EegEntryDto | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
+  const [showDocumentDialog, setShowDocumentDialog] = useState(false)
   const [preSelectedCapabilityTargetId, setPreSelectedCapabilityTargetId] = useState<string | null>(null)
   const [preSelectedTaskId, setPreSelectedTaskId] = useState<string | null>(null)
 
@@ -239,6 +243,12 @@ export const EegEntriesPage = () => {
           </Typography>
         </Box>
         <Stack direction="row" spacing={2}>
+          <CobraSecondaryButton
+            startIcon={<FontAwesomeIcon icon={faFileWord} />}
+            onClick={() => setShowDocumentDialog(true)}
+          >
+            Generate EEG
+          </CobraSecondaryButton>
           {canExport && (
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faFileExport} />}
@@ -415,7 +425,19 @@ export const EegEntriesPage = () => {
           open={showExportDialog}
           exerciseId={exerciseId!}
           exerciseName={exercise.name}
+          coverage={coverage}
           onClose={() => setShowExportDialog(false)}
+        />
+      )}
+
+      {/* Document Generation Dialog */}
+      {showDocumentDialog && (
+        <EegDocumentDialog
+          open={showDocumentDialog}
+          exerciseId={exerciseId!}
+          exerciseName={exercise.name}
+          coverage={coverage}
+          onClose={() => setShowDocumentDialog(false)}
         />
       )}
     </Box>

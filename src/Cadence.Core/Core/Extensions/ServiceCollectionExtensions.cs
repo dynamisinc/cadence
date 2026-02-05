@@ -71,6 +71,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICriticalTaskService, CriticalTaskService>();
         services.AddScoped<IEegEntryService, EegEntryService>();
         services.AddScoped<IEegExportService, EegExportService>();
+        services.AddScoped<IEegDocumentService, EegDocumentService>();
 
         return services;
     }

@@ -182,8 +182,9 @@ export const ResetPasswordPage: FC = () => {
                       onClick={() => setShowNewPassword(!showNewPassword)}
                       edge="end"
                       aria-label={showNewPassword ? 'Hide password' : 'Show password'}
+                      size="small"
                     >
-                      <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} />
+                      <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -215,8 +216,9 @@ export const ResetPasswordPage: FC = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     edge="end"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    size="small"
                   >
-                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
                 </InputAdornment>
               ),

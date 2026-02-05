@@ -15,6 +15,9 @@ import type {
   ChangeRoleRequest,
   CreateUserRequest,
   UserMembershipDto,
+  CurrentUserProfileDto,
+  UpdateContactRequest,
+  UserContactDto,
 } from '../types'
 
 /**
@@ -121,6 +124,25 @@ export const userService = {
    */
   async getUserMemberships(id: string): Promise<UserMembershipDto[]> {
     const response = await apiClient.get<UserMembershipDto[]>(`/users/${id}/memberships`)
+    return response.data
+  },
+
+  /**
+   * Get the current user's profile including contact information
+   * @returns Current user profile
+   */
+  async getMyProfile(): Promise<CurrentUserProfileDto> {
+    const response = await apiClient.get<CurrentUserProfileDto>('/users/me')
+    return response.data
+  },
+
+  /**
+   * Update the current user's contact information (phone number)
+   * @param request Contact update request
+   * @returns Updated contact information
+   */
+  async updateMyContact(request: UpdateContactRequest): Promise<UserContactDto> {
+    const response = await apiClient.patch<UserContactDto>('/users/me/contact', request)
     return response.data
   },
 }

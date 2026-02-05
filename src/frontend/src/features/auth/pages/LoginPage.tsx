@@ -259,8 +259,9 @@ export const LoginPage: FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     edge="end"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    size="small"
                   >
-                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
                 </InputAdornment>
               ),

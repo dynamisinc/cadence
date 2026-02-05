@@ -238,8 +238,9 @@ export const RegisterPage: FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      size="small"
                     >
-                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
                   </InputAdornment>
                 ),
@@ -271,8 +272,9 @@ export const RegisterPage: FC = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     edge="end"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    size="small"
                   >
-                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
                 </InputAdornment>
               ),
