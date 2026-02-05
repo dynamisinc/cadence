@@ -380,8 +380,9 @@ export const EegEntriesPage = () => {
 
               {/* Rating Filter */}
               <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>Rating</InputLabel>
+                <InputLabel id="rating-filter-label">Rating</InputLabel>
                 <Select
+                  labelId="rating-filter-label"
                   value={ratingFilter}
                   onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
                   label="Rating"
