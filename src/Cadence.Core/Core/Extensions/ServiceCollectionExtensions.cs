@@ -16,6 +16,7 @@ using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
+using Cadence.Core.Features.Eeg.Services;
 using FluentValidation;
 
 namespace Cadence.Core.Extensions;
@@ -64,6 +65,12 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICapabilityImportService, CapabilityImportService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IMembershipService, MembershipService>();
+
+        // EEG (Exercise Evaluation Guide) Services
+        services.AddScoped<ICapabilityTargetService, CapabilityTargetService>();
+        services.AddScoped<ICriticalTaskService, CriticalTaskService>();
+        services.AddScoped<IEegEntryService, EegEntryService>();
+        services.AddScoped<IEegExportService, EegExportService>();
 
         return services;
     }

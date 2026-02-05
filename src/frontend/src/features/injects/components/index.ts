@@ -17,6 +17,7 @@ export { SubmitForApprovalButton } from './SubmitForApprovalButton'
 export { ApprovalActionsButtons } from './ApprovalActionsButtons'
 export { BatchApprovalToolbar } from './BatchApprovalToolbar'
 export { RevertApprovalAction } from './RevertApprovalAction'
+export { CriticalTaskSelector } from './CriticalTaskSelector'
 
 // Organization components
 export { SortableTableHeader } from './SortableTableHeader'

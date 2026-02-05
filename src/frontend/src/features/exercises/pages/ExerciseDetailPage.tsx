@@ -18,7 +18,7 @@ import {
   Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical, faGear } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical, faGear, faClipboardCheck } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import {
@@ -43,6 +43,7 @@ import {
   TargetCapabilitiesDisplay,
 } from '../components'
 import { ObjectiveList } from '../../objectives'
+import { CapabilityTargetList } from '../../eeg'
 import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import {
   CobraPrimaryButton,
@@ -518,6 +519,13 @@ export const ExerciseDetailPage = () => {
                 id="exercise-tab-2"
                 aria-controls="exercise-tabpanel-2"
               />
+              <Tab
+                label="EEG Setup"
+                icon={<FontAwesomeIcon icon={faClipboardCheck} />}
+                iconPosition="start"
+                id="exercise-tab-3"
+                aria-controls="exercise-tabpanel-3"
+              />
             </Tabs>
           </Box>
 
@@ -850,6 +858,13 @@ export const ExerciseDetailPage = () => {
           {/* Participants Tab */}
           <TabPanel value={activeTab} index={2}>
             <ExerciseParticipantsPage exerciseId={id} />
+          </TabPanel>
+
+          {/* EEG Setup Tab */}
+          <TabPanel value={activeTab} index={3}>
+            <Paper sx={{ p: 3 }}>
+              <CapabilityTargetList exerciseId={exercise.id} canEdit={canEdit} />
+            </Paper>
           </TabPanel>
         </>
       )}

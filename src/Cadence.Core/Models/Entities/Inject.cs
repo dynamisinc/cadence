@@ -383,4 +383,15 @@ public class Inject : BaseEntity
     /// Status change history for audit trail.
     /// </summary>
     public ICollection<InjectStatusHistory> StatusHistory { get; set; } = new List<InjectStatusHistory>();
+
+    /// <summary>
+    /// Critical tasks that this inject tests (many-to-many via junction table).
+    /// Used for EEG evaluation linking.
+    /// </summary>
+    public ICollection<InjectCriticalTask> LinkedCriticalTasks { get; set; } = new List<InjectCriticalTask>();
+
+    /// <summary>
+    /// EEG entries triggered by this inject.
+    /// </summary>
+    public ICollection<EegEntry> TriggeredEegEntries { get; set; } = new List<EegEntry>();
 }

@@ -29,6 +29,8 @@ import {
   faEllipsisH,
   faArrowRight,
   faArrowLeft,
+  faClipboardCheck,
+  faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons'
 import { keyframes } from '@mui/system'
 
@@ -274,6 +276,41 @@ export const InjectRow = ({
       {/* Type */}
       <TableCell sx={{ width: 90 }}>
         <InjectTypeChip type={inject.injectType} />
+      </TableCell>
+
+      {/* Critical Tasks (EEG - S05) */}
+      <TableCell sx={{ width: 60 }}>
+        <Tooltip
+          title={
+            inject.linkedCriticalTaskCount > 0
+              ? `${inject.linkedCriticalTaskCount} critical task${inject.linkedCriticalTaskCount === 1 ? '' : 's'} linked`
+              : 'No critical tasks linked - consider linking tasks for EEG evaluation'
+          }
+        >
+          <Chip
+            icon={
+              <FontAwesomeIcon
+                icon={inject.linkedCriticalTaskCount > 0 ? faClipboardCheck : faTriangleExclamation}
+                size="xs"
+              />
+            }
+            label={inject.linkedCriticalTaskCount}
+            size="small"
+            color={inject.linkedCriticalTaskCount > 0 ? 'default' : 'warning'}
+            variant={inject.linkedCriticalTaskCount > 0 ? 'outlined' : 'filled'}
+            sx={{
+              height: 22,
+              '& .MuiChip-label': {
+                px: 0.5,
+                fontSize: '0.75rem',
+              },
+              '& .MuiChip-icon': {
+                ml: 0.5,
+                mr: -0.25,
+              },
+            }}
+          />
+        </Tooltip>
       </TableCell>
 
       {/* Status or Action Info */}

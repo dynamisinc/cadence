@@ -84,4 +84,10 @@ public class Capability : IHasTimestamps, IOrganizationScoped
     /// Exercises that target this capability.
     /// </summary>
     public ICollection<ExerciseTargetCapability> ExerciseTargetCapabilities { get; set; } = new List<ExerciseTargetCapability>();
+
+    /// <summary>
+    /// EEG Capability Targets that reference this capability.
+    /// Each CapabilityTarget is an exercise-specific performance threshold for this capability.
+    /// </summary>
+    public ICollection<CapabilityTarget> CapabilityTargets { get; set; } = new List<CapabilityTarget>();
 }
