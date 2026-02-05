@@ -38,18 +38,42 @@ const renderWithQueryClient = (ui: React.ReactElement) => {
 
 describe('EegDocumentDialog', () => {
   const mockCoverage: EegCoverageDto = {
-    capabilityTargetCount: 3,
     totalTasks: 12,
     evaluatedTasks: 8,
     coveragePercentage: 67,
-    tasksWithMultipleEvaluators: 2,
     ratingDistribution: {
       P: 5,
       S: 2,
       M: 1,
       U: 0,
     },
-    byCapability: [],
+    byCapabilityTarget: [
+      {
+        id: 'ct-1',
+        targetDescription: 'Target 1',
+        capabilityName: 'Capability 1',
+        totalTasks: 4,
+        evaluatedTasks: 3,
+        taskRatings: [],
+      },
+      {
+        id: 'ct-2',
+        targetDescription: 'Target 2',
+        capabilityName: 'Capability 2',
+        totalTasks: 4,
+        evaluatedTasks: 3,
+        taskRatings: [],
+      },
+      {
+        id: 'ct-3',
+        targetDescription: 'Target 3',
+        capabilityName: 'Capability 3',
+        totalTasks: 4,
+        evaluatedTasks: 2,
+        taskRatings: [],
+      },
+    ],
+    unevaluatedTasks: [],
   }
 
   const defaultProps = {
@@ -361,7 +385,7 @@ describe('EegDocumentDialog', () => {
     it('shows warning when no capability targets defined', async () => {
       const coverageNoTargets: EegCoverageDto = {
         ...mockCoverage,
-        capabilityTargetCount: 0,
+        byCapabilityTarget: [],
         totalTasks: 0,
       }
 
@@ -377,7 +401,7 @@ describe('EegDocumentDialog', () => {
     it('disables generate button when no targets defined', async () => {
       const coverageNoTargets: EegCoverageDto = {
         ...mockCoverage,
-        capabilityTargetCount: 0,
+        byCapabilityTarget: [],
         totalTasks: 0,
       }
 
