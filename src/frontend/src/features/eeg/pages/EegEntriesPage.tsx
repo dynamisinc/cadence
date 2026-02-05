@@ -2,12 +2,15 @@
  * EegEntriesPage
  *
  * Standalone page for viewing and managing all EEG entries in an exercise.
- * Provides filtering, sorting, and full CRUD capabilities for evaluator observations.
+ * Features:
+ * - Tab navigation between Entries and Coverage views
+ * - Filtering and sorting capabilities
+ * - Full CRUD capabilities for evaluator observations
  * Accessible via in-exercise navigation at /exercises/:id/eeg-entries.
  */
 
-import { useState, useMemo, useCallback } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box,
   Typography,
@@ -23,6 +26,8 @@ import {
   MenuItem,
   Chip,
   InputAdornment,
+  Tabs,
+  Tab,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -33,6 +38,7 @@ import {
   faClipboardCheck,
   faFileExport,
   faFileWord,
+  faChartBar,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -40,7 +46,7 @@ import { toast } from 'react-toastify'
 import { useExercise } from '../../exercises/hooks'
 import { useExerciseRole } from '../../auth'
 import { useAuth } from '../../../contexts/AuthContext'
-import { useEegEntries, eegEntryKeys, useEegEntriesByTask, useEegCoverage } from '../hooks/useEegEntries'
+import { useEegEntries, eegEntryKeys, useEegCoverage } from '../hooks/useEegEntries'
 import { useInjects } from '../../injects/hooks'
 import { EegEntriesList } from '../components/EegEntriesList'
 import { EegEntryForm } from '../components/EegEntryForm'
@@ -53,9 +59,7 @@ import {
   CobraLinkButton,
   CobraTextField,
 } from '../../../theme/styledComponents'
-import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
-import { ExerciseStatus } from '../../../types'
 import {
   PerformanceRating,
   PERFORMANCE_RATING_SHORT_LABELS,
@@ -63,11 +67,13 @@ import {
 } from '../types'
 
 type RatingFilterValue = 'all' | PerformanceRating
+type TabValue = 'entries' | 'coverage'
 
 export const EegEntriesPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
+  const [searchParams, setSearchParams] = useSearchParams()
 
   // Core data hooks
   const { user } = useAuth()
@@ -77,11 +83,15 @@ export const EegEntriesPage = () => {
     eegEntries,
     loading: entriesLoading,
     error: entriesError,
-    createEntry,
-    isCreating,
   } = useEegEntries(exerciseId!)
   const { injects } = useInjects(exerciseId!)
   const { coverage } = useEegCoverage(exerciseId!)
+
+  // Tab state - sync with URL
+  const [activeTab, setActiveTab] = useState<TabValue>(() => {
+    const tabParam = searchParams.get('tab')
+    return tabParam === 'coverage' ? 'coverage' : 'entries'
+  })
 
   // UI state
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -106,8 +116,16 @@ export const EegEntriesPage = () => {
         { label: 'EEG Entries', path: `/exercises/${exerciseId}/eeg-entries` },
       ]
       : [],
-    [exercise, exerciseId],
   )
+
+  // Sync tab changes with URL
+  useEffect(() => {
+    const tabParam = searchParams.get('tab')
+    const expectedTab = tabParam === 'coverage' ? 'coverage' : 'entries'
+    if (activeTab !== expectedTab) {
+      setActiveTab(expectedTab)
+    }
+  }, [searchParams, activeTab])
 
   // Permissions
   const canCreate = can('add_observation') // Evaluators can add EEG entries
@@ -197,12 +215,21 @@ export const EegEntriesPage = () => {
     navigate(`/exercises/${exerciseId}/msel?inject=${injectId}`)
   }
 
+  const handleTabChange = (_event: React.SyntheticEvent, newValue: TabValue) => {
+    setActiveTab(newValue)
+    setSearchParams({ tab: newValue })
+  }
+
   const clearFilters = () => {
     setRatingFilter('all')
     setSearchQuery('')
   }
 
   const hasActiveFilters = ratingFilter !== 'all' || searchQuery.trim()
+
+  // Check if EEG tasks are configured
+  const hasNoTasks = coverage && coverage.totalTasks === 0
+  const hasNoEntries = eegEntries.length === 0
 
   // Loading state
   if (exerciseLoading) {
@@ -222,9 +249,6 @@ export const EegEntriesPage = () => {
     )
   }
 
-  // Check exercise status
-  const isExerciseActive = exercise.status === ExerciseStatus.Active
-
   return (
     <Box sx={{ p: 3 }}>
       {/* Header */}
@@ -232,7 +256,7 @@ export const EegEntriesPage = () => {
         direction="row"
         justifyContent="space-between"
         alignItems="center"
-        sx={{ mb: 3 }}
+        sx={{ mb: 2 }}
       >
         <Box>
           <Typography variant="h4" fontWeight={600}>
@@ -243,12 +267,15 @@ export const EegEntriesPage = () => {
           </Typography>
         </Box>
         <Stack direction="row" spacing={2}>
-          <CobraSecondaryButton
-            startIcon={<FontAwesomeIcon icon={faFileWord} />}
-            onClick={() => setShowDocumentDialog(true)}
-          >
-            Generate EEG
-          </CobraSecondaryButton>
+          {/* Show Generate button only on Coverage tab */}
+          {activeTab === 'coverage' && (
+            <CobraSecondaryButton
+              startIcon={<FontAwesomeIcon icon={faFileWord} />}
+              onClick={() => setShowDocumentDialog(true)}
+            >
+              Generate EEG
+            </CobraSecondaryButton>
+          )}
           {canExport && (
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faFileExport} />}
@@ -257,7 +284,7 @@ export const EegEntriesPage = () => {
               Export
             </CobraSecondaryButton>
           )}
-          {canCreate && (
+          {canCreate && activeTab === 'entries' && (
             <CobraPrimaryButton
               startIcon={<FontAwesomeIcon icon={faPlus} />}
               onClick={handleCreateClick}
@@ -268,111 +295,203 @@ export const EegEntriesPage = () => {
         </Stack>
       </Stack>
 
-      {/* Coverage Dashboard */}
-      <Box sx={{ mb: 3 }}>
-        <EegCoverageDashboard
-          exerciseId={exerciseId!}
-          onAssessTask={canCreate ? handleAssessTask : undefined}
-        />
+      {/* Tab Navigation */}
+      <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
+        <Tabs
+          value={activeTab}
+          onChange={handleTabChange}
+          aria-label="EEG page tabs"
+        >
+          <Tab
+            label="Entries"
+            value="entries"
+            icon={<FontAwesomeIcon icon={faClipboardCheck} />}
+            iconPosition="start"
+            aria-label="Entries tab"
+          />
+          <Tab
+            label="Coverage"
+            value="coverage"
+            icon={<FontAwesomeIcon icon={faChartBar} />}
+            iconPosition="start"
+            aria-label="Coverage tab"
+          />
+        </Tabs>
       </Box>
 
-      {/* Filters */}
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Stack
-          direction={{ xs: 'column', sm: 'row' }}
-          spacing={2}
-          alignItems={{ sm: 'center' }}
-        >
-          {/* Search */}
-          <CobraTextField
-            placeholder="Search entries..."
-            value={searchQuery}
-            onChange={e => setSearchQuery(e.target.value)}
-            size="small"
-            sx={{ minWidth: 250 }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <FontAwesomeIcon icon={faSearch} />
-                </InputAdornment>
-              ),
-              endAdornment: searchQuery && (
-                <InputAdornment position="end">
-                  <CobraLinkButton size="small" onClick={() => setSearchQuery('')}>
-                    <FontAwesomeIcon icon={faTimes} />
-                  </CobraLinkButton>
-                </InputAdornment>
-              ),
-            }}
-          />
-
-          {/* Rating Filter */}
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>Rating</InputLabel>
-            <Select
-              value={ratingFilter}
-              onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
-              label="Rating"
-            >
-              <MenuItem value="all">All Ratings</MenuItem>
-              {Object.values(PerformanceRating).map(rating => (
-                <MenuItem key={rating} value={rating}>
-                  {PERFORMANCE_RATING_SHORT_LABELS[rating]} - {rating.replace(/([A-Z])/g, ' $1').trim()}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          {/* Clear Filters */}
-          {hasActiveFilters && (
-            <CobraLinkButton onClick={clearFilters}>
-              Clear Filters
-            </CobraLinkButton>
+      {/* Entries Tab */}
+      {activeTab === 'entries' && (
+        <Box role="tabpanel" aria-labelledby="entries-tab">
+          {/* No tasks configured alert */}
+          {hasNoTasks && (
+            <Alert severity="info" sx={{ mb: 3 }}>
+              <Typography variant="subtitle2" gutterBottom>
+                No critical tasks configured
+              </Typography>
+              <Typography variant="body2">
+                Add capability targets and critical tasks in the EEG Setup to enable evaluation
+                tracking.
+              </Typography>
+            </Alert>
           )}
 
-          {/* Results Count */}
-          <Box sx={{ flex: 1 }} />
-          <Typography variant="body2" color="text.secondary">
-            {filteredEntries.length} of {eegEntries.length} entries
-          </Typography>
-        </Stack>
-
-        {/* Active Filters Display */}
-        {hasActiveFilters && (
-          <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap">
-            {ratingFilter !== 'all' && (
-              <Chip
-                label={`Rating: ${PERFORMANCE_RATING_SHORT_LABELS[ratingFilter]}`}
-                onDelete={() => setRatingFilter('all')}
-                size="small"
+          {/* Compact coverage summary */}
+          {!hasNoTasks && (
+            <Box sx={{ mb: 3 }}>
+              <EegCoverageDashboard
+                exerciseId={exerciseId!}
+                compact
+                onDetailsClick={() => handleTabChange({} as React.SyntheticEvent, 'coverage')}
               />
-            )}
-            {searchQuery && (
-              <Chip
-                label={`Search: "${searchQuery}"`}
-                onDelete={() => setSearchQuery('')}
-                size="small"
-              />
-            )}
-          </Stack>
-        )}
-      </Paper>
+            </Box>
+          )}
 
-      {/* Entries List */}
-      <Paper sx={{ p: 2 }}>
-        <EegEntriesList
-          entries={filteredEntries}
-          loading={entriesLoading}
-          error={entriesError}
-          canEdit={canEdit}
-          canDelete={canDelete}
-          currentUserId={user?.id}
-          onEdit={handleEdit}
-          onDelete={handleDelete}
-          onInjectClick={handleInjectClick}
-          deletingId={deletingId}
-        />
-      </Paper>
+          {/* Filters */}
+          <Paper sx={{ p: 2, mb: 3 }}>
+            <Stack
+              direction={{ xs: 'column', sm: 'row' }}
+              spacing={2}
+              alignItems={{ sm: 'center' }}
+            >
+              {/* Search */}
+              <CobraTextField
+                placeholder="Search entries..."
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                size="small"
+                sx={{ minWidth: 250 }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <FontAwesomeIcon icon={faSearch} />
+                      </InputAdornment>
+                    ),
+                    endAdornment: searchQuery && (
+                      <InputAdornment position="end">
+                        <CobraLinkButton size="small" onClick={() => setSearchQuery('')}>
+                          <FontAwesomeIcon icon={faTimes} />
+                        </CobraLinkButton>
+                      </InputAdornment>
+                    ),
+                  },
+                }}
+              />
+
+              {/* Rating Filter */}
+              <FormControl size="small" sx={{ minWidth: 150 }}>
+                <InputLabel>Rating</InputLabel>
+                <Select
+                  value={ratingFilter}
+                  onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
+                  label="Rating"
+                >
+                  <MenuItem value="all">All Ratings</MenuItem>
+                  {Object.values(PerformanceRating).map(rating => (
+                    <MenuItem key={rating} value={rating}>
+                      {PERFORMANCE_RATING_SHORT_LABELS[rating]} - {rating.replace(/([A-Z])/g, ' $1').trim()}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Clear Filters */}
+              {hasActiveFilters && (
+                <CobraLinkButton onClick={clearFilters}>
+                  Clear Filters
+                </CobraLinkButton>
+              )}
+
+              {/* Results Count */}
+              <Box sx={{ flex: 1 }} />
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                role="status"
+                aria-live="polite"
+                aria-atomic="true"
+              >
+                {filteredEntries.length} of {eegEntries.length} entries
+              </Typography>
+            </Stack>
+
+            {/* Active Filters Display */}
+            {hasActiveFilters && (
+              <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap">
+                {ratingFilter !== 'all' && (
+                  <Chip
+                    label={`Rating: ${PERFORMANCE_RATING_SHORT_LABELS[ratingFilter]}`}
+                    onDelete={() => setRatingFilter('all')}
+                    size="small"
+                  />
+                )}
+                {searchQuery && (
+                  <Chip
+                    label={`Search: "${searchQuery}"`}
+                    onDelete={() => setSearchQuery('')}
+                    size="small"
+                  />
+                )}
+              </Stack>
+            )}
+          </Paper>
+
+          {/* Empty state when no entries */}
+          {hasNoEntries && !entriesLoading ? (
+            <Paper sx={{ p: 4, textAlign: 'center' }}>
+              <Box sx={{ mb: 2 }}>
+                <FontAwesomeIcon
+                  icon={faClipboardCheck}
+                  size="3x"
+                  style={{ color: '#bdbdbd' }}
+                />
+              </Box>
+              <Typography variant="h6" gutterBottom>
+                No EEG entries yet
+              </Typography>
+              <Typography variant="body2" color="text.secondary" paragraph>
+                {hasNoTasks
+                  ? 'Configure critical tasks in EEG Setup before adding entries.'
+                  : 'Record structured observations during exercise conduct using the EEG Entry form.'}
+              </Typography>
+              {canCreate && !hasNoTasks && (
+                <CobraPrimaryButton
+                  startIcon={<FontAwesomeIcon icon={faPlus} />}
+                  onClick={handleCreateClick}
+                >
+                  Add First Entry
+                </CobraPrimaryButton>
+              )}
+            </Paper>
+          ) : (
+            /* Entries List */
+            <Paper sx={{ p: 2 }}>
+              <EegEntriesList
+                entries={filteredEntries}
+                loading={entriesLoading}
+                error={entriesError}
+                canEdit={canEdit}
+                canDelete={canDelete}
+                currentUserId={user?.id}
+                onEdit={handleEdit}
+                onDelete={handleDelete}
+                onInjectClick={handleInjectClick}
+                deletingId={deletingId}
+              />
+            </Paper>
+          )}
+        </Box>
+      )}
+
+      {/* Coverage Tab */}
+      {activeTab === 'coverage' && (
+        <Box role="tabpanel" aria-labelledby="coverage-tab">
+          <EegCoverageDashboard
+            exerciseId={exerciseId!}
+            onAssessTask={canCreate ? handleAssessTask : undefined}
+          />
+        </Box>
+      )}
 
       {/* Create Entry Dialog */}
       <Dialog

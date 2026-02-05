@@ -1,7 +1,8 @@
 /**
  * EegEntriesList Component
  *
- * Displays EEG entries in a list view with filtering and sorting.
+ * Displays EEG entries in a list view with sorting.
+ * Filtering is handled at the page level.
  * Used for reviewing entries during and after exercise conduct.
  */
 
@@ -27,7 +28,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faChevronRight,
-  faFilter,
   faSort,
   faXmark,
   faLink,
@@ -71,7 +71,7 @@ interface EegEntriesListProps {
   deletingId?: string | null
 }
 
-type SortField = 'recordedAt' | 'rating' | 'evaluator' | 'task'
+type SortField = 'observedAt' | 'rating' | 'evaluator' | 'task'
 type SortOrder = 'asc' | 'desc'
 
 /**
@@ -371,7 +371,6 @@ const DeleteConfirmDialog = ({
  * Features:
  * - List view with entry summary
  * - Sorting by time, rating, evaluator, task
- * - Filtering by rating
  * - Entry detail dialog
  * - Edit/delete actions with permissions
  */
@@ -388,27 +387,21 @@ export const EegEntriesList = ({
   deletingId,
 }: EegEntriesListProps) => {
   // State
-  const [sortField, setSortField] = useState<SortField>('recordedAt')
+  const [sortField, setSortField] = useState<SortField>('observedAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
-  const [filterRating, setFilterRating] = useState<PerformanceRating | null>(null)
   const [selectedEntry, setSelectedEntry] = useState<EegEntryDto | null>(null)
   const [deleteEntry, setDeleteEntry] = useState<EegEntryDto | null>(null)
 
   // Menus
   const [sortAnchor, setSortAnchor] = useState<null | HTMLElement>(null)
-  const [filterAnchor, setFilterAnchor] = useState<null | HTMLElement>(null)
 
-  // Sort and filter entries
+  // Sort entries (filtering is done at page level)
   const sortedEntries = useMemo(() => {
-    const filtered = filterRating
-      ? entries.filter(e => e.rating === filterRating)
-      : entries
-
-    return [...filtered].sort((a, b) => {
+    return [...entries].sort((a, b) => {
       let comparison = 0
       switch (sortField) {
-        case 'recordedAt':
-          comparison = new Date(a.recordedAt).getTime() - new Date(b.recordedAt).getTime()
+        case 'observedAt':
+          comparison = new Date(a.observedAt).getTime() - new Date(b.observedAt).getTime()
           break
         case 'rating': {
           const ratingOrder = {
@@ -431,7 +424,7 @@ export const EegEntriesList = ({
       }
       return sortOrder === 'asc' ? comparison : -comparison
     })
-  }, [entries, sortField, sortOrder, filterRating])
+  }, [entries, sortField, sortOrder])
 
   // Check if user can edit/delete a specific entry
   const canEditEntry = (entry: EegEntryDto) => {
@@ -454,11 +447,6 @@ export const EegEntriesList = ({
       setSortOrder('desc')
     }
     setSortAnchor(null)
-  }
-
-  const handleFilter = (rating: PerformanceRating | null) => {
-    setFilterRating(rating)
-    setFilterAnchor(null)
   }
 
   const handleEntryClick = (entry: EegEntryDto) => {
@@ -531,47 +519,13 @@ export const EegEntriesList = ({
       >
         <Typography variant="body2" color="text.secondary">
           {sortedEntries.length} {sortedEntries.length === 1 ? 'entry' : 'entries'}
-          {filterRating && ` (filtered: ${PERFORMANCE_RATING_SHORT_LABELS[filterRating]})`}
         </Typography>
-        <Stack direction="row" spacing={1}>
-          <Tooltip title="Filter by rating">
-            <IconButton
-              size="small"
-              onClick={e => setFilterAnchor(e.currentTarget)}
-              color={filterRating ? 'primary' : 'default'}
-            >
-              <FontAwesomeIcon icon={faFilter} />
-            </IconButton>
-          </Tooltip>
-          <Tooltip title="Sort entries">
-            <IconButton size="small" onClick={e => setSortAnchor(e.currentTarget)}>
-              <FontAwesomeIcon icon={faSort} />
-            </IconButton>
-          </Tooltip>
-        </Stack>
+        <Tooltip title="Sort entries">
+          <IconButton size="small" onClick={e => setSortAnchor(e.currentTarget)}>
+            <FontAwesomeIcon icon={faSort} />
+          </IconButton>
+        </Tooltip>
       </Stack>
-
-      {/* Filter Menu */}
-      <Menu
-        anchorEl={filterAnchor}
-        open={Boolean(filterAnchor)}
-        onClose={() => setFilterAnchor(null)}
-      >
-        <MenuItem onClick={() => handleFilter(null)} selected={filterRating === null}>
-          All Ratings
-        </MenuItem>
-        <Divider />
-        {Object.values(PerformanceRating).map(rating => (
-          <MenuItem
-            key={rating}
-            onClick={() => handleFilter(rating)}
-            selected={filterRating === rating}
-          >
-            <RatingChip rating={rating} />
-            <Typography sx={{ ml: 1 }}>{rating}</Typography>
-          </MenuItem>
-        ))}
-      </Menu>
 
       {/* Sort Menu */}
       <Menu
@@ -579,8 +533,8 @@ export const EegEntriesList = ({
         open={Boolean(sortAnchor)}
         onClose={() => setSortAnchor(null)}
       >
-        <MenuItem onClick={() => handleSort('recordedAt')} selected={sortField === 'recordedAt'}>
-          Time {sortField === 'recordedAt' && (sortOrder === 'desc' ? '(newest)' : '(oldest)')}
+        <MenuItem onClick={() => handleSort('observedAt')} selected={sortField === 'observedAt'}>
+          Time {sortField === 'observedAt' && (sortOrder === 'desc' ? '(newest)' : '(oldest)')}
         </MenuItem>
         <MenuItem onClick={() => handleSort('rating')} selected={sortField === 'rating'}>
           Rating {sortField === 'rating' && (sortOrder === 'asc' ? '(P→U)' : '(U→P)')}
@@ -599,7 +553,7 @@ export const EegEntriesList = ({
           // Helper to ensure dates are parsed as UTC
           const parseAsUtc = (dateStr: string) => parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
           // Format time using date-fns for consistent timezone handling
-          const timeStr = format(parseAsUtc(entry.recordedAt), 'h:mm a')
+          const timeStr = format(parseAsUtc(entry.observedAt), 'h:mm a')
 
           return (
             <Paper

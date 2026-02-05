@@ -13,7 +13,6 @@ import {
   Typography,
   Stack,
   Alert,
-  Collapse,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPhone, faXmark, faCheck } from '@fortawesome/free-solid-svg-icons'
@@ -24,6 +23,7 @@ import {
 } from '@/theme/styledComponents'
 import { userService } from '@/features/users/services/userService'
 import type { CurrentUserProfileDto } from '@/features/users/types'
+import { setPromptDismissed } from '../utils/phonePromptUtils'
 
 interface EvaluatorContactPromptProps {
   /** Exercise ID for dismissal tracking */
@@ -38,33 +38,6 @@ interface EvaluatorContactPromptProps {
 
 /** Max phone number length per S12 spec */
 const MAX_PHONE_LENGTH = 25
-
-/** LocalStorage key for dismissed prompts */
-const getDismissalKey = (exerciseId: string) => `eeg_phone_prompt_dismissed_${exerciseId}`
-
-/**
- * Check if the prompt has been dismissed for this exercise
- */
-export const isPromptDismissed = (exerciseId: string): boolean => {
-  try {
-    return localStorage.getItem(getDismissalKey(exerciseId)) === 'true'
-  } catch {
-    return false
-  }
-}
-
-/**
- * Check if the user needs to see the phone prompt
- */
-export const shouldShowPhonePrompt = (
-  userProfile: CurrentUserProfileDto | null,
-  exerciseId: string
-): boolean => {
-  if (!userProfile) return false
-  if (userProfile.phoneNumber) return false
-  if (isPromptDismissed(exerciseId)) return false
-  return true
-}
 
 /**
  * Evaluator contact information prompt component
@@ -135,11 +108,7 @@ export const EvaluatorContactPrompt: FC<EvaluatorContactPromptProps> = ({
 
   const handleSkip = () => {
     // Save dismissal to localStorage (client-specific per S12 spec)
-    try {
-      localStorage.setItem(getDismissalKey(exerciseId), 'true')
-    } catch {
-      // Ignore localStorage errors
-    }
+    setPromptDismissed(exerciseId)
     onComplete()
   }
 
@@ -195,7 +164,7 @@ export const EvaluatorContactPrompt: FC<EvaluatorContactPromptProps> = ({
           <CobraTextField
             label="Phone"
             value={phone}
-            onChange={(e) => handlePhoneChange(e.target.value)}
+            onChange={e => handlePhoneChange(e.target.value)}
             placeholder="e.g., (555) 123-4567 or +1-555-123-4567"
             fullWidth
             size="small"
