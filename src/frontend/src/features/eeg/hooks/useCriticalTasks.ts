@@ -34,8 +34,11 @@ export const criticalTaskKeys = {
  * - Automatic caching and background refetching
  * - Optimistic updates for create/update/delete/reorder
  * - Error handling with toast notifications
+ *
+ * @param exerciseId Exercise ID (required for authorization)
+ * @param targetId Capability target ID
  */
-export const useCriticalTasks = (targetId: string) => {
+export const useCriticalTasks = (exerciseId: string, targetId: string) => {
   const queryClient = useQueryClient()
   const queryKey = criticalTaskKeys.byCapabilityTarget(targetId)
 
@@ -56,7 +59,7 @@ export const useCriticalTasks = (targetId: string) => {
   // Mutation for creating critical tasks
   const createMutation = useMutation({
     mutationFn: (request: CreateCriticalTaskRequest) =>
-      criticalTaskService.create(targetId, request),
+      criticalTaskService.create(exerciseId, targetId, request),
     onSuccess: newTask => {
       queryClient.setQueryData(queryKey, (old: typeof response) => ({
         items: [...(old?.items ?? []), newTask],
@@ -76,7 +79,7 @@ export const useCriticalTasks = (targetId: string) => {
   // Mutation for updating critical tasks
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: string; request: UpdateCriticalTaskRequest }) =>
-      criticalTaskService.update(id, request),
+      criticalTaskService.update(exerciseId, id, request),
     onMutate: async ({ id, request }) => {
       await queryClient.cancelQueries({ queryKey })
       const previousData = queryClient.getQueryData(queryKey)
@@ -113,7 +116,7 @@ export const useCriticalTasks = (targetId: string) => {
 
   // Mutation for deleting critical tasks
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => criticalTaskService.delete(id),
+    mutationFn: (id: string) => criticalTaskService.delete(exerciseId, id),
     onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousData = queryClient.getQueryData(queryKey)
@@ -143,7 +146,7 @@ export const useCriticalTasks = (targetId: string) => {
   // Mutation for reordering critical tasks
   const reorderMutation = useMutation({
     mutationFn: (orderedIds: string[]) =>
-      criticalTaskService.reorder(targetId, orderedIds),
+      criticalTaskService.reorder(exerciseId, targetId, orderedIds),
     onMutate: async orderedIds => {
       await queryClient.cancelQueries({ queryKey })
       const previousData = queryClient.getQueryData(queryKey)
@@ -258,8 +261,11 @@ export const useCriticalTask = (id: string | undefined) => {
 
 /**
  * Hook for managing linked injects for a critical task
+ *
+ * @param exerciseId Exercise ID (required for authorization)
+ * @param taskId Critical task ID
  */
-export const useLinkedInjects = (taskId: string) => {
+export const useLinkedInjects = (exerciseId: string, taskId: string) => {
   const queryClient = useQueryClient()
   const queryKey = criticalTaskKeys.linkedInjects(taskId)
 
@@ -275,7 +281,7 @@ export const useLinkedInjects = (taskId: string) => {
 
   const setLinkedInjectsMutation = useMutation({
     mutationFn: (request: SetLinkedInjectsRequest) =>
-      criticalTaskService.setLinkedInjects(taskId, request),
+      criticalTaskService.setLinkedInjects(exerciseId, taskId, request),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
       // Also invalidate critical task queries to update inject counts

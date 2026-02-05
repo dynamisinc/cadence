@@ -14,15 +14,15 @@ import {
   DialogActions,
   Alert,
   Stack,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Typography,
-  FormHelperText,
+  Autocomplete,
+  TextField,
+  Box,
+  Tooltip,
+  IconButton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSave, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faSave, faXmark, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
 import {
   CobraTextField,
   CobraPrimaryButton,
@@ -35,11 +35,7 @@ import type {
   CreateCapabilityTargetRequest,
   UpdateCapabilityTargetRequest,
 } from '../types'
-
-/** Field limits for capability target form */
-export const CAPABILITY_TARGET_FIELD_LIMITS = {
-  targetDescription: { min: 10, max: 500 },
-}
+import { CAPABILITY_TARGET_FIELD_LIMITS } from '../constants'
 
 interface CapabilityTargetFormDialogProps {
   /** Whether the dialog is open */
@@ -177,49 +173,70 @@ export const CapabilityTargetFormDialog: FC<CapabilityTargetFormDialogProps> = (
           </Alert>
         )}
         <Stack spacing={CobraStyles.Spacing.FormFields} sx={{ mt: 1 }}>
-          <FormControl fullWidth required error={touched.capabilityId && !capabilityId}>
-            <InputLabel id="capability-label">Capability</InputLabel>
-            <Select
-              labelId="capability-label"
-              value={capabilityId}
-              onChange={e => {
-                setCapabilityId(e.target.value as string)
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1 }}>
+            <Autocomplete
+              sx={{ flex: 1 }}
+              options={capabilities.filter(c => c.isActive)}
+              value={selectedCapability ?? null}
+              onChange={(_event, newValue) => {
+                setCapabilityId(newValue?.id ?? '')
                 setTouched(prev => ({ ...prev, capabilityId: true }))
                 if (error) setError(null)
               }}
-              label="Capability"
+              getOptionLabel={option => option.name}
+              groupBy={option => option.category || 'Uncategorized'}
+              loading={capabilitiesLoading}
               disabled={capabilitiesLoading}
-            >
-              {capabilities
-                .filter(c => c.isActive)
-                .map(cap => (
-                  <MenuItem key={cap.id} value={cap.id}>
-                    {cap.name}
-                    {cap.category && (
-                      <Typography
-                        component="span"
-                        variant="caption"
-                        color="text.secondary"
-                        sx={{ ml: 1 }}
-                      >
-                        ({cap.category})
-                      </Typography>
-                    )}
-                  </MenuItem>
-                ))}
-            </Select>
-            <FormHelperText>
-              {capabilitiesLoading
-                ? 'Loading capabilities...'
-                : 'Select the organizational capability this target measures'}
-            </FormHelperText>
-          </FormControl>
-
-          {selectedCapability?.description && (
-            <Alert severity="info" sx={{ py: 0.5 }}>
-              <Typography variant="body2">{selectedCapability.description}</Typography>
-            </Alert>
-          )}
+              isOptionEqualToValue={(option, value) => option.id === value.id}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props
+                return (
+                  <Box component="li" key={key} {...otherProps}>
+                    <Box>
+                      <Typography variant="body1">{option.name}</Typography>
+                      {option.description && (
+                        <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                          {option.description.length > 80
+                            ? `${option.description.substring(0, 80)}...`
+                            : option.description}
+                        </Typography>
+                      )}
+                    </Box>
+                  </Box>
+                )
+              }}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  label="Capability"
+                  required
+                  error={touched.capabilityId && !capabilityId}
+                  helperText={
+                    capabilitiesLoading
+                      ? 'Loading capabilities...'
+                      : 'Search and select the organizational capability this target measures'
+                  }
+                  placeholder="Type to search capabilities..."
+                />
+              )}
+            />
+            {selectedCapability?.description && (
+              <Tooltip
+                title={selectedCapability.description}
+                arrow
+                placement="right"
+                slotProps={{
+                  tooltip: {
+                    sx: { maxWidth: 350 },
+                  },
+                }}
+              >
+                <IconButton size="small" sx={{ mt: 1 }} aria-label="View capability description">
+                  <FontAwesomeIcon icon={faCircleInfo} />
+                </IconButton>
+              </Tooltip>
+            )}
+          </Box>
 
           <CobraTextField
             label="Target Description"

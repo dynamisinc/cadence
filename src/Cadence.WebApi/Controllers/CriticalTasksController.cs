@@ -69,10 +69,11 @@ public class CriticalTasksController : ControllerBase
     /// Create a new critical task for a capability target.
     /// Requires Exercise Director or Administrator role.
     /// </summary>
-    [HttpPost("capability-targets/{targetId:guid}/critical-tasks")]
+    [HttpPost("exercises/{exerciseId:guid}/capability-targets/{targetId:guid}/critical-tasks")]
     [AuthorizeExerciseDirector]
-    public async Task<ActionResult<CriticalTaskDto>> Create(Guid targetId, CreateCriticalTaskRequest request)
+    public async Task<ActionResult<CriticalTaskDto>> Create(Guid exerciseId, Guid targetId, CreateCriticalTaskRequest request)
     {
+        // exerciseId is used for authorization only - the targetId determines the parent
         // Validation
         if (string.IsNullOrWhiteSpace(request.TaskDescription))
             return BadRequest(new { message = "Task description is required" });
@@ -104,10 +105,11 @@ public class CriticalTasksController : ControllerBase
     /// Update an existing critical task.
     /// Requires Exercise Director or Administrator role.
     /// </summary>
-    [HttpPut("critical-tasks/{id:guid}")]
+    [HttpPut("exercises/{exerciseId:guid}/critical-tasks/{id:guid}")]
     [AuthorizeExerciseDirector]
-    public async Task<ActionResult<CriticalTaskDto>> Update(Guid id, UpdateCriticalTaskRequest request)
+    public async Task<ActionResult<CriticalTaskDto>> Update(Guid exerciseId, Guid id, UpdateCriticalTaskRequest request)
     {
+        // exerciseId is used for authorization only
         // Validation
         if (string.IsNullOrWhiteSpace(request.TaskDescription))
             return BadRequest(new { message = "Task description is required" });
@@ -138,10 +140,11 @@ public class CriticalTasksController : ControllerBase
     /// Delete a critical task (cascades to EEG entries and inject links).
     /// Requires Exercise Director or Administrator role.
     /// </summary>
-    [HttpDelete("critical-tasks/{id:guid}")]
+    [HttpDelete("exercises/{exerciseId:guid}/critical-tasks/{id:guid}")]
     [AuthorizeExerciseDirector]
-    public async Task<IActionResult> Delete(Guid id)
+    public async Task<IActionResult> Delete(Guid exerciseId, Guid id)
     {
+        // exerciseId is used for authorization only
         var deletedBy = GetCurrentUserId();
         var deleted = await _criticalTaskService.DeleteAsync(id, deletedBy);
 
@@ -155,10 +158,11 @@ public class CriticalTasksController : ControllerBase
     /// Reorder critical tasks within a capability target.
     /// Requires Exercise Director or Administrator role.
     /// </summary>
-    [HttpPut("capability-targets/{targetId:guid}/critical-tasks/reorder")]
+    [HttpPut("exercises/{exerciseId:guid}/capability-targets/{targetId:guid}/critical-tasks/reorder")]
     [AuthorizeExerciseDirector]
-    public async Task<IActionResult> Reorder(Guid targetId, [FromBody] List<Guid> orderedIds)
+    public async Task<IActionResult> Reorder(Guid exerciseId, Guid targetId, [FromBody] List<Guid> orderedIds)
     {
+        // exerciseId is used for authorization only
         var success = await _criticalTaskService.ReorderAsync(targetId, orderedIds);
 
         if (!success)
@@ -171,11 +175,13 @@ public class CriticalTasksController : ControllerBase
     /// Set linked injects for a critical task.
     /// Requires Exercise Director or Administrator role.
     /// </summary>
-    [HttpPut("critical-tasks/{id:guid}/injects")]
+    [HttpPut("exercises/{exerciseId:guid}/critical-tasks/{id:guid}/injects")]
     [AuthorizeExerciseDirector]
-    public async Task<IActionResult> SetLinkedInjects(Guid id, SetLinkedInjectsRequest request)
+    public async Task<IActionResult> SetLinkedInjects(Guid exerciseId, Guid id, SetLinkedInjectsRequest request)
     {
-        var success = await _criticalTaskService.SetLinkedInjectsAsync(id, request.InjectIds);
+        // exerciseId is used for authorization only
+        var userId = GetCurrentUserId();
+        var success = await _criticalTaskService.SetLinkedInjectsAsync(id, request.InjectIds, userId);
 
         if (!success)
             return NotFound();

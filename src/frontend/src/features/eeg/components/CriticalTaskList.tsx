@@ -40,6 +40,8 @@ import type {
 } from '../types'
 
 interface CriticalTaskListProps {
+  /** Exercise ID (required for authorization) */
+  exerciseId: string
   /** Parent capability target ID */
   capabilityTargetId: string
   /** Parent capability target name for display */
@@ -52,6 +54,7 @@ interface CriticalTaskListProps {
  * List of Critical Tasks within a Capability Target
  */
 export const CriticalTaskList: FC<CriticalTaskListProps> = ({
+  exerciseId,
   capabilityTargetId,
   capabilityTargetName,
   canEdit = true,
@@ -63,10 +66,8 @@ export const CriticalTaskList: FC<CriticalTaskListProps> = ({
     createCriticalTask,
     updateCriticalTask,
     deleteCriticalTask,
-    isCreating,
-    isUpdating,
     isDeleting,
-  } = useCriticalTasks(capabilityTargetId)
+  } = useCriticalTasks(exerciseId, capabilityTargetId)
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTask, setEditingTask] = useState<CriticalTaskDto | null>(null)

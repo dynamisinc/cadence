@@ -30,6 +30,8 @@ import { CriticalTaskList } from './CriticalTaskList'
 import type { CapabilityTargetDto } from '../types'
 
 interface CapabilityTargetCardProps {
+  /** Exercise ID (required for authorization) */
+  exerciseId: string
   /** The capability target to display */
   target: CapabilityTargetDto
   /** Whether the user can edit (Director+) */
@@ -46,6 +48,7 @@ interface CapabilityTargetCardProps {
  * Card component for a Capability Target with expandable Critical Tasks
  */
 export const CapabilityTargetCard: FC<CapabilityTargetCardProps> = ({
+  exerciseId,
   target,
   canEdit = true,
   onEdit,
@@ -180,6 +183,7 @@ export const CapabilityTargetCard: FC<CapabilityTargetCardProps> = ({
         <Divider />
         <Box sx={{ px: 2, py: 1.5, bgcolor: 'grey.50' }}>
           <CriticalTaskList
+            exerciseId={exerciseId}
             capabilityTargetId={target.id}
             capabilityTargetName={target.capabilityName}
             canEdit={canEdit}

@@ -13,8 +13,15 @@ import type { CapabilityDto, CreateCapabilityRequest, UpdateCapabilityRequest } 
 /** Query key factory for capabilities */
 export const capabilityKeys = {
   all: ['capabilities'] as const,
-  list: (includeInactive: boolean) => [...capabilityKeys.all, { includeInactive }] as const,
+  list: (includeInactive: boolean, organizationId?: string) => [...capabilityKeys.all, { includeInactive, organizationId }] as const,
   detail: (id: string) => [...capabilityKeys.all, 'detail', id] as const,
+}
+
+interface UseCapabilitiesOptions {
+  /** Include inactive capabilities (default: false) */
+  includeInactive?: boolean
+  /** Organization ID to filter capabilities (required for proper org scoping) */
+  organizationId?: string
 }
 
 /**
@@ -24,10 +31,17 @@ export const capabilityKeys = {
  * - Automatic caching and background refetching
  * - Optimistic updates for create/update/delete
  * - Error handling with toast notifications
+ *
+ * @param optionsOrIncludeInactive Configuration options object, or boolean for backwards compatibility
  */
-export const useCapabilities = (includeInactive = false) => {
+export const useCapabilities = (optionsOrIncludeInactive: UseCapabilitiesOptions | boolean = {}) => {
+  // Support both old signature (boolean) and new signature (options object)
+  const options: UseCapabilitiesOptions = typeof optionsOrIncludeInactive === 'boolean'
+    ? { includeInactive: optionsOrIncludeInactive }
+    : optionsOrIncludeInactive
+  const { includeInactive = false, organizationId } = options
   const queryClient = useQueryClient()
-  const queryKey = capabilityKeys.list(includeInactive)
+  const queryKey = capabilityKeys.list(includeInactive, organizationId)
 
   // Query for fetching capabilities
   const {
@@ -37,14 +51,14 @@ export const useCapabilities = (includeInactive = false) => {
     refetch: fetchCapabilities,
   } = useQuery({
     queryKey,
-    queryFn: () => capabilityService.getCapabilities(includeInactive),
+    queryFn: () => capabilityService.getCapabilities(includeInactive, organizationId),
     staleTime: 5 * 60 * 1000, // Cache for 5 minutes (reference data)
   })
 
   // Mutation for creating capabilities
   const createMutation = useMutation({
     mutationFn: (request: CreateCapabilityRequest) =>
-      capabilityService.createCapability(request),
+      capabilityService.createCapability(request, organizationId),
     onSuccess: newCapability => {
       queryClient.setQueryData<CapabilityDto[]>(queryKey, (old = []) => [
         ...old,
@@ -52,7 +66,7 @@ export const useCapabilities = (includeInactive = false) => {
       ])
       // Also invalidate the inactive list if we're viewing active only
       if (!includeInactive) {
-        queryClient.invalidateQueries({ queryKey: capabilityKeys.list(true) })
+        queryClient.invalidateQueries({ queryKey: capabilityKeys.list(true, organizationId) })
       }
       toast.success('Capability created')
     },
@@ -66,7 +80,7 @@ export const useCapabilities = (includeInactive = false) => {
   // Mutation for updating capabilities
   const updateMutation = useMutation({
     mutationFn: ({ id, request }: { id: string; request: UpdateCapabilityRequest }) =>
-      capabilityService.updateCapability(id, request),
+      capabilityService.updateCapability(id, request, organizationId),
     onMutate: async ({ id, request }) => {
       await queryClient.cancelQueries({ queryKey })
       const previousCapabilities = queryClient.getQueryData<CapabilityDto[]>(queryKey)
@@ -103,7 +117,7 @@ export const useCapabilities = (includeInactive = false) => {
 
   // Mutation for deleting (deactivating) capabilities
   const deleteMutation = useMutation({
-    mutationFn: (id: string) => capabilityService.deleteCapability(id),
+    mutationFn: (id: string) => capabilityService.deleteCapability(id, organizationId),
     onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousCapabilities = queryClient.getQueryData<CapabilityDto[]>(queryKey)
@@ -137,7 +151,7 @@ export const useCapabilities = (includeInactive = false) => {
 
   // Mutation for reactivating capabilities
   const reactivateMutation = useMutation({
-    mutationFn: (id: string) => capabilityService.reactivateCapability(id),
+    mutationFn: (id: string) => capabilityService.reactivateCapability(id, organizationId),
     onMutate: async id => {
       await queryClient.cancelQueries({ queryKey })
       const previousCapabilities = queryClient.getQueryData<CapabilityDto[]>(queryKey)

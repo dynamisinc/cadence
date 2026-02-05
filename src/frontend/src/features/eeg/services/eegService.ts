@@ -136,9 +136,13 @@ export const criticalTaskService = {
   /**
    * Create a new critical task
    */
-  async create(targetId: string, request: CreateCriticalTaskRequest): Promise<CriticalTaskDto> {
+  async create(
+    exerciseId: string,
+    targetId: string,
+    request: CreateCriticalTaskRequest,
+  ): Promise<CriticalTaskDto> {
     const response = await apiClient.post<CriticalTaskDto>(
-      `/capability-targets/${targetId}/critical-tasks`,
+      `/exercises/${exerciseId}/capability-targets/${targetId}/critical-tasks`,
       request,
     )
     return response.data
@@ -147,30 +151,44 @@ export const criticalTaskService = {
   /**
    * Update an existing critical task
    */
-  async update(id: string, request: UpdateCriticalTaskRequest): Promise<CriticalTaskDto> {
-    const response = await apiClient.put<CriticalTaskDto>(`/critical-tasks/${id}`, request)
+  async update(
+    exerciseId: string,
+    id: string,
+    request: UpdateCriticalTaskRequest,
+  ): Promise<CriticalTaskDto> {
+    const response = await apiClient.put<CriticalTaskDto>(
+      `/exercises/${exerciseId}/critical-tasks/${id}`,
+      request,
+    )
     return response.data
   },
 
   /**
    * Delete a critical task
    */
-  async delete(id: string): Promise<void> {
-    await apiClient.delete(`/critical-tasks/${id}`)
+  async delete(exerciseId: string, id: string): Promise<void> {
+    await apiClient.delete(`/exercises/${exerciseId}/critical-tasks/${id}`)
   },
 
   /**
    * Reorder critical tasks within a capability target
    */
-  async reorder(targetId: string, orderedIds: string[]): Promise<void> {
-    await apiClient.put(`/capability-targets/${targetId}/critical-tasks/reorder`, orderedIds)
+  async reorder(exerciseId: string, targetId: string, orderedIds: string[]): Promise<void> {
+    await apiClient.put(
+      `/exercises/${exerciseId}/capability-targets/${targetId}/critical-tasks/reorder`,
+      orderedIds,
+    )
   },
 
   /**
    * Set linked injects for a critical task
    */
-  async setLinkedInjects(id: string, request: SetLinkedInjectsRequest): Promise<void> {
-    await apiClient.put(`/critical-tasks/${id}/injects`, request)
+  async setLinkedInjects(
+    exerciseId: string,
+    id: string,
+    request: SetLinkedInjectsRequest,
+  ): Promise<void> {
+    await apiClient.put(`/exercises/${exerciseId}/critical-tasks/${id}/injects`, request)
   },
 
   /**

@@ -22,6 +22,7 @@ import {
 } from '@/theme/styledComponents'
 import { useCapabilityTargets } from '../hooks/useCapabilityTargets'
 import { useCapabilities } from '@/features/capabilities/hooks/useCapabilities'
+import { useOrganization } from '@/contexts/OrganizationContext'
 import { CapabilityTargetCard } from './CapabilityTargetCard'
 import { CapabilityTargetFormDialog } from './CapabilityTargetFormDialog'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
@@ -45,6 +46,8 @@ export const CapabilityTargetList: FC<CapabilityTargetListProps> = ({
   exerciseId,
   canEdit = true,
 }) => {
+  const { currentOrg } = useOrganization()
+
   const {
     capabilityTargets,
     loading,
@@ -52,12 +55,13 @@ export const CapabilityTargetList: FC<CapabilityTargetListProps> = ({
     createCapabilityTarget,
     updateCapabilityTarget,
     deleteCapabilityTarget,
-    isCreating,
-    isUpdating,
     isDeleting,
   } = useCapabilityTargets(exerciseId)
 
-  const { capabilities, loading: capabilitiesLoading } = useCapabilities()
+  // Only fetch capabilities from the current organization
+  const { capabilities, loading: capabilitiesLoading } = useCapabilities({
+    organizationId: currentOrg?.id,
+  })
 
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [editingTarget, setEditingTarget] = useState<CapabilityTargetDto | null>(null)
@@ -168,6 +172,7 @@ export const CapabilityTargetList: FC<CapabilityTargetListProps> = ({
           {capabilityTargets.map(target => (
             <CapabilityTargetCard
               key={target.id}
+              exerciseId={exerciseId}
               target={target}
               canEdit={canEdit}
               onEdit={handleOpenEdit}
@@ -179,27 +184,15 @@ export const CapabilityTargetList: FC<CapabilityTargetListProps> = ({
 
       {/* Tip */}
       {capabilityTargets.length > 0 && (
-        <Paper
-          sx={{
-            mt: 2,
-            p: 2,
-            bgcolor: 'info.light',
-            display: 'flex',
-            gap: 1.5,
-            alignItems: 'flex-start',
-          }}
-          elevation={0}
+        <Alert
+          severity="info"
+          icon={<FontAwesomeIcon icon={faLightbulb} />}
+          sx={{ mt: 2 }}
         >
-          <FontAwesomeIcon
-            icon={faLightbulb}
-            style={{ color: 'var(--mui-palette-info-main)', marginTop: 2 }}
-          />
-          <Typography variant="body2" color="info.dark">
-            After defining targets, expand each one to add Critical Tasks that specify
-            the exact actions evaluators should observe. Then link injects to tasks
-            in the MSEL view for full traceability.
-          </Typography>
-        </Paper>
+          After defining targets, expand each one to add Critical Tasks that specify
+          the exact actions evaluators should observe. Then link injects to tasks
+          in the MSEL view for full traceability.
+        </Alert>
       )}
 
       {/* Form Dialog */}
