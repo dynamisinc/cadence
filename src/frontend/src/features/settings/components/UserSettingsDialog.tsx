@@ -40,6 +40,7 @@ import {
   CobraLinkButton,
 } from '@/theme/styledComponents'
 import { useUserPreferences } from '../contexts/UserPreferencesContext'
+import { EmailNotificationsSection } from './EmailNotificationsSection'
 import { getCurrentTimeFormatted } from '../utils/timeFormat'
 import type { ThemePreference, DisplayDensity, TimeFormat } from '../types'
 
@@ -306,6 +307,11 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
             </RadioGroup>
           </FormControl>
         </SettingsSection>
+
+        <Divider />
+
+        {/* Email Notifications Section */}
+        <EmailNotificationsSection />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>

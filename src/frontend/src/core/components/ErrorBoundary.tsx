@@ -42,12 +42,14 @@ import {
   faCopy,
   faCheck,
   faPaperPlane,
+  faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
 } from '@/theme/styledComponents'
 import CobraStyles from '@/theme/CobraStyles'
+import { feedbackService } from '@/features/feedback'
 
 interface ErrorBoundaryProps {
   /** Child components to render */
@@ -64,6 +66,9 @@ interface ErrorBoundaryState {
   errorInfo: ErrorInfo | null
   showDetails: boolean
   copied: boolean
+  reportSending: boolean
+  reportSent: boolean
+  reportError: string | null
 }
 
 /**
@@ -74,6 +79,9 @@ function ErrorBoundaryUI({
   errorInfo,
   showDetails,
   copied,
+  reportSending,
+  reportSent,
+  reportError,
   onReset,
   onReload,
   onToggleDetails,
@@ -84,6 +92,9 @@ function ErrorBoundaryUI({
   errorInfo: ErrorInfo | null
   showDetails: boolean
   copied: boolean
+  reportSending: boolean
+  reportSent: boolean
+  reportError: string | null
   onReset: () => void
   onReload: () => void
   onToggleDetails: () => void
@@ -202,25 +213,36 @@ function ErrorBoundaryUI({
           </CobraPrimaryButton>
         </Stack>
 
-        {/* Send Error Report Button (disabled - future feature) */}
+        {/* Send Error Report Button */}
         <Box sx={{ mb: 2 }}>
-          <Tooltip title="Coming soon: Send error details to our support team">
-            <span>
-              <CobraSecondaryButton
-                onClick={onSendReport}
-                startIcon={<FontAwesomeIcon icon={faPaperPlane} />}
-                disabled
-                sx={{
-                  opacity: 0.6,
-                  '&.Mui-disabled': {
-                    opacity: 0.5,
-                  },
-                }}
-              >
-                Send Error Report
-              </CobraSecondaryButton>
-            </span>
-          </Tooltip>
+          {reportError && (
+            <Typography
+              variant="caption"
+              color="error"
+              sx={{ display: 'block', mb: 1 }}
+            >
+              {reportError}
+            </Typography>
+          )}
+          <CobraSecondaryButton
+            onClick={onSendReport}
+            startIcon={
+              reportSending ? (
+                <FontAwesomeIcon icon={faSpinner} spin />
+              ) : reportSent ? (
+                <FontAwesomeIcon icon={faCheck} />
+              ) : (
+                <FontAwesomeIcon icon={faPaperPlane} />
+              )
+            }
+            disabled={reportSending || reportSent}
+          >
+            {reportSending
+              ? 'Sending...'
+              : reportSent
+                ? 'Report Sent'
+                : 'Send Error Report'}
+          </CobraSecondaryButton>
         </Box>
 
         {/* Development-only: Error Details */}
@@ -351,6 +373,9 @@ export class ErrorBoundary extends Component<
       errorInfo: null,
       showDetails: false,
       copied: false,
+      reportSending: false,
+      reportSent: false,
+      reportError: null,
     }
   }
 
@@ -409,10 +434,28 @@ export class ErrorBoundary extends Component<
     }
   }
 
-  handleSendReport = (): void => {
-    // Placeholder for future error reporting functionality
-    // This will be implemented as part of the error-reporting feature
-    console.log('Send error report - feature coming soon')
+  handleSendReport = async (): Promise<void> => {
+    const { error, errorInfo } = this.state
+    if (!error) return
+
+    this.setState({ reportSending: true, reportError: null })
+
+    try {
+      await feedbackService.submitErrorReport({
+        errorMessage: error.toString(),
+        stackTrace: error.stack ?? undefined,
+        componentStack: errorInfo?.componentStack ?? undefined,
+        url: window.location.href,
+        browser: navigator.userAgent,
+      })
+      this.setState({ reportSent: true, reportSending: false })
+    } catch (err) {
+      console.error('Failed to send error report:', err)
+      this.setState({
+        reportSending: false,
+        reportError: 'Failed to send report. Please try again.',
+      })
+    }
   }
 
   render(): ReactNode {
@@ -429,6 +472,9 @@ export class ErrorBoundary extends Component<
           errorInfo={this.state.errorInfo}
           showDetails={this.state.showDetails}
           copied={this.state.copied}
+          reportSending={this.state.reportSending}
+          reportSent={this.state.reportSent}
+          reportError={this.state.reportError}
           onReset={this.handleReset}
           onReload={this.handleReload}
           onToggleDetails={this.toggleDetails}

@@ -41,6 +41,7 @@ import { useUserPreferences } from '../contexts/UserPreferencesContext'
 import { getCurrentTimeFormatted } from '../utils/timeFormat'
 import { useBreadcrumbs } from '@/core/contexts'
 import { VersionInfoCard } from '@/features/version'
+import { EmailNotificationsSection } from '../components/EmailNotificationsSection'
 import type { ThemePreference, DisplayDensity, TimeFormat } from '../types'
 
 /**
@@ -361,6 +362,13 @@ export const UserSettingsPage = () => {
                 {isResetting ? 'Resetting...' : 'Reset to Defaults'}
               </CobraLinkButton>
             </Box>
+          </Paper>
+        </Grid>
+
+        {/* Email Notifications */}
+        <Grid size={12}>
+          <Paper sx={{ p: 3 }}>
+            <EmailNotificationsSection />
           </Paper>
         </Grid>
 
