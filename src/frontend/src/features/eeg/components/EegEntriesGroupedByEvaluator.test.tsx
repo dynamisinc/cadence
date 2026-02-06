@@ -5,8 +5,14 @@
 import { describe, it, expect, vi } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ThemeProvider } from '@mui/material'
+import { cobraTheme } from '../../../theme/cobraTheme'
 import { EegEntriesGroupedByEvaluator } from './EegEntriesGroupedByEvaluator'
 import { PerformanceRating, type EegEntryDto } from '../types'
+
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider theme={cobraTheme}>{ui}</ThemeProvider>)
+}
 
 const mockEntries: EegEntryDto[] = [
   {
@@ -134,13 +140,13 @@ describe('EegEntriesGroupedByEvaluator', () => {
     )
 
     // R. Chen: S:1, M:1
-    const chenSection = screen.getByText('R. Chen').closest('div')
-    expect(chenSection?.textContent).toMatch(/S:1/)
-    expect(chenSection?.textContent).toMatch(/M:1/)
+    const chenButton = screen.getByRole('button', { name: /Expand R\. Chen entries/i })
+    expect(chenButton.textContent).toMatch(/S:1/)
+    expect(chenButton.textContent).toMatch(/M:1/)
 
     // S. Kim: P:1
-    const kimSection = screen.getByText('S. Kim').closest('div')
-    expect(kimSection?.textContent).toMatch(/P:1/)
+    const kimButton = screen.getByRole('button', { name: /Expand S\. Kim entries/i })
+    expect(kimButton.textContent).toMatch(/P:1/)
   })
 
   it('expands to show evaluator entries', async () => {
@@ -210,7 +216,7 @@ describe('EegEntriesGroupedByEvaluator', () => {
     const handleEdit = vi.fn()
     const user = userEvent.setup()
 
-    render(
+    renderWithTheme(
       <EegEntriesGroupedByEvaluator
         entries={mockEntries}
         onEdit={handleEdit}

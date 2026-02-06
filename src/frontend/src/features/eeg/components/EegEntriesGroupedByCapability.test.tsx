@@ -3,10 +3,16 @@
  */
 
 import { describe, it, expect, vi } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ThemeProvider } from '@mui/material'
+import { cobraTheme } from '../../../theme/cobraTheme'
 import { EegEntriesGroupedByCapability } from './EegEntriesGroupedByCapability'
 import { PerformanceRating, type EegEntryDto } from '../types'
+
+const renderWithTheme = (ui: React.ReactElement) => {
+  return render(<ThemeProvider theme={cobraTheme}>{ui}</ThemeProvider>)
+}
 
 const mockEntries: EegEntryDto[] = [
   {
@@ -161,9 +167,11 @@ describe('EegEntriesGroupedByCapability', () => {
     )
 
     // Should show P:1 S:1 M:1 U:0 for Operational Communications
-    expect(screen.getByText(/P:1/)).toBeInTheDocument()
-    expect(screen.getByText(/S:1/)).toBeInTheDocument()
-    expect(screen.getByText(/M:1/)).toBeInTheDocument()
+    const opCommButton = screen.getByRole('button', { name: /Expand Operational Communications entries/i })
+    const opComm = within(opCommButton)
+    expect(opComm.getByText(/P:1/)).toBeInTheDocument()
+    expect(opComm.getByText(/S:1/)).toBeInTheDocument()
+    expect(opComm.getByText(/M:1/)).toBeInTheDocument()
   })
 
   it('expands and collapses capability targets', async () => {
@@ -270,7 +278,7 @@ describe('EegEntriesGroupedByCapability', () => {
     const handleEdit = vi.fn()
     const user = userEvent.setup()
 
-    render(
+    renderWithTheme(
       <EegEntriesGroupedByCapability
         entries={mockEntries}
         onEdit={handleEdit}
