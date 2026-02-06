@@ -35,6 +35,7 @@ module.exports = {
         'capabilities',
         'approval',
         'inject-approval',
+        'email-communications',
         'feature-flags',
         // Infrastructure
         'agent',
