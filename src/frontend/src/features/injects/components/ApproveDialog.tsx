@@ -151,8 +151,9 @@ export const ApproveDialog = ({
               Self-Approval Notice
             </Typography>
             <Typography variant="body2">
-              You are approving an inject you submitted. This action will be recorded in the audit log.
-              Click Approve to confirm.
+              You are approving an inject you submitted. This action
+              will be recorded in the audit log. Click Approve to
+              confirm.
             </Typography>
           </Alert>
         )}

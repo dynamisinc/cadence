@@ -150,8 +150,8 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 13 menu items (conduct + analysis + org items + settings)', () => {
-        // ExerciseDirector with OrgAdmin role sees: 4 conduct + 2 analysis + 6 org + 1 settings = 13
+      it('sees 13 menu items (conduct+analysis+org+settings)', () => {
+        // ExerciseDirector w/OrgAdmin: 4 conduct + 2 analysis + 6 org + 1 settings = 13
         const { result } = renderHook(() => useFilteredMenu())
 
         expect(result.current.filteredItems).toHaveLength(13)
@@ -188,7 +188,7 @@ describe('useFilteredMenu', () => {
       })
 
       it('sees all four sections', () => {
-        // ExerciseDirector with OrgAdmin sees conduct, analysis, organization, and system (settings only)
+        // ExerciseDirector+OrgAdmin: conduct, analysis, org, system
         const { result } = renderHook(() => useFilteredMenu())
 
         expect(result.current.visibleSections).toEqual([

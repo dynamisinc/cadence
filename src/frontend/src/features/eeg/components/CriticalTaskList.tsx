@@ -338,7 +338,7 @@ export const CriticalTaskList: FC<CriticalTaskListProps> = ({
     useSensor(PointerSensor),
     useSensor(KeyboardSensor, {
       coordinateGetter: sortableKeyboardCoordinates,
-    })
+    }),
   )
 
   const handleOpenCreate = () => {
@@ -414,7 +414,8 @@ export const CriticalTaskList: FC<CriticalTaskListProps> = ({
     const warnings: string[] = []
     if (task.linkedInjectCount > 0) {
       warnings.push(
-        `${task.linkedInjectCount} linked inject association${task.linkedInjectCount !== 1 ? 's' : ''}`
+        `${task.linkedInjectCount} linked inject ` +
+          `association${task.linkedInjectCount !== 1 ? 's' : ''}`,
       )
     }
     if (task.eegEntryCount > 0) {
@@ -476,7 +477,10 @@ export const CriticalTaskList: FC<CriticalTaskListProps> = ({
         </Paper>
       ) : (
         <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
-          <SortableContext items={criticalTasks.map(t => t.id)} strategy={verticalListSortingStrategy}>
+          <SortableContext
+            items={criticalTasks.map(t => t.id)}
+            strategy={verticalListSortingStrategy}
+          >
             <Stack spacing={0.5}>
               {criticalTasks.map((task, index) => (
                 <SortableTaskItem

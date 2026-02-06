@@ -59,9 +59,11 @@ export const useEegSignalR = ({
   const onUpdatedRef = useRef(onEntryUpdated)
   const onDeletedRef = useRef(onEntryDeleted)
 
-  onCreatedRef.current = onEntryCreated
-  onUpdatedRef.current = onEntryUpdated
-  onDeletedRef.current = onEntryDeleted
+  useEffect(() => {
+    onCreatedRef.current = onEntryCreated
+    onUpdatedRef.current = onEntryUpdated
+    onDeletedRef.current = onEntryDeleted
+  })
 
   // Invalidate queries
   const invalidateQueries = useCallback(() => {

@@ -86,7 +86,7 @@ export const RouteErrorFallback = () => {
         justifyContent: 'center',
         minHeight: '100vh',
         padding: CobraStyles.Padding.MainWindow,
-        background: (theme) =>
+        background: theme =>
           theme.palette.mode === 'dark'
             ? `linear-gradient(135deg, ${alpha(theme.palette.info.dark, 0.1)} 0%, ${theme.palette.background.default} 50%)`
             : `linear-gradient(135deg, ${alpha(theme.palette.info.light, 0.05)} 0%, ${theme.palette.background.default} 50%)`,
@@ -101,9 +101,9 @@ export const RouteErrorFallback = () => {
           textAlign: 'center',
           borderRadius: 3,
           border: '1px solid',
-          borderColor: (theme) => alpha(theme.palette.divider, 0.3),
-          background: (theme) => theme.palette.background.paper,
-          boxShadow: (theme) =>
+          borderColor: theme => alpha(theme.palette.divider, 0.3),
+          background: theme => theme.palette.background.paper,
+          boxShadow: theme =>
             `0 8px 32px ${alpha(theme.palette.common.black, 0.08)}`,
         }}
       >
@@ -117,7 +117,7 @@ export const RouteErrorFallback = () => {
             justifyContent: 'center',
             margin: '0 auto',
             mb: { xs: 2, md: 3 },
-            background: (theme) => alpha(theme.palette.info.main, 0.1),
+            background: theme => alpha(theme.palette.info.main, 0.1),
           }}
         >
           <FontAwesomeIcon
@@ -176,7 +176,7 @@ export const RouteErrorFallback = () => {
         {import.meta.env.DEV && (
           <Box sx={{ mt: 3 }}>
             <Box
-              onClick={() => setShowDetails((v) => !v)}
+              onClick={() => setShowDetails(v => !v)}
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -202,7 +202,7 @@ export const RouteErrorFallback = () => {
                 sx={{
                   mt: 2,
                   p: 2,
-                  bgcolor: (theme) =>
+                  bgcolor: theme =>
                     theme.palette.mode === 'dark'
                       ? alpha(theme.palette.common.black, 0.2)
                       : alpha(theme.palette.common.black, 0.02),
@@ -210,7 +210,7 @@ export const RouteErrorFallback = () => {
                   maxHeight: detailsMaxHeight,
                   overflow: 'auto',
                   borderRadius: 2,
-                  borderColor: (theme) => alpha(theme.palette.divider, 0.2),
+                  borderColor: theme => alpha(theme.palette.divider, 0.2),
                   position: 'relative',
                 }}
               >
@@ -222,10 +222,10 @@ export const RouteErrorFallback = () => {
                       position: 'absolute',
                       top: 8,
                       right: 8,
-                      bgcolor: (theme) =>
+                      bgcolor: theme =>
                         alpha(theme.palette.background.paper, 0.8),
                       '&:hover': {
-                        bgcolor: (theme) => theme.palette.background.paper,
+                        bgcolor: theme => theme.palette.background.paper,
                       },
                     }}
                   >
@@ -274,7 +274,7 @@ export const RouteErrorFallback = () => {
           sx={{
             display: 'block',
             mt: 3,
-            color: (theme) => alpha(theme.palette.text.secondary, 0.7),
+            color: theme => alpha(theme.palette.text.secondary, 0.7),
             fontSize: { xs: '0.7rem', md: '0.75rem' },
           }}
         >

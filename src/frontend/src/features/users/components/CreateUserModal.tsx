@@ -333,7 +333,9 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
               }}
             />
             {/* Show password requirements only after field has been touched */}
-            {passwordTouched && form.password && <PasswordRequirements requirements={passwordRequirements} />}
+            {passwordTouched && form.password && (
+              <PasswordRequirements requirements={passwordRequirements} />
+            )}
           </Box>
 
           <Alert severity="info" icon={false}>

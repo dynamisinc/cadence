@@ -482,7 +482,8 @@ export const ExerciseConductPage = () => {
   // EEG Entry state
   const [showEegEntryForm, setShowEegEntryForm] = useState(false)
   const [eegPreSelectedTaskId, setEegPreSelectedTaskId] = useState<string | null>(null)
-  const [eegPreSelectedCapabilityTargetId, setEegPreSelectedCapabilityTargetId] = useState<string | null>(null)
+  const [eegPreSelectedCapabilityTargetId, setEegPreSelectedCapabilityTargetId] =
+    useState<string | null>(null)
 
   // Handlers
   const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0]) => {

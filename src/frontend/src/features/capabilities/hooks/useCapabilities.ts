@@ -13,7 +13,8 @@ import type { CapabilityDto, CreateCapabilityRequest, UpdateCapabilityRequest } 
 /** Query key factory for capabilities */
 export const capabilityKeys = {
   all: ['capabilities'] as const,
-  list: (includeInactive: boolean, organizationId?: string) => [...capabilityKeys.all, { includeInactive, organizationId }] as const,
+  list: (includeInactive: boolean, organizationId?: string) =>
+    [...capabilityKeys.all, { includeInactive, organizationId }] as const,
   detail: (id: string) => [...capabilityKeys.all, 'detail', id] as const,
 }
 
@@ -32,9 +33,12 @@ interface UseCapabilitiesOptions {
  * - Optimistic updates for create/update/delete
  * - Error handling with toast notifications
  *
- * @param optionsOrIncludeInactive Configuration options object, or boolean for backwards compatibility
+ * @param optionsOrIncludeInactive Configuration options object,
+ *   or boolean for backwards compatibility
  */
-export const useCapabilities = (optionsOrIncludeInactive: UseCapabilitiesOptions | boolean = {}) => {
+export const useCapabilities = (
+  optionsOrIncludeInactive: UseCapabilitiesOptions | boolean = {},
+) => {
   // Support both old signature (boolean) and new signature (options object)
   const options: UseCapabilitiesOptions = typeof optionsOrIncludeInactive === 'boolean'
     ? { includeInactive: optionsOrIncludeInactive }

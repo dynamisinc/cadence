@@ -228,7 +228,8 @@ const CompactSummary = ({
             style={{ color: hasWarning ? '#ed6c02' : '#2e7d32' }}
           />
           <Typography variant="body2" fontWeight={600}>
-            EEG: {coverage.evaluatedTasks}/{coverage.totalTasks} tasks ({coverage.coveragePercentage}%)
+            EEG: {coverage.evaluatedTasks}/{coverage.totalTasks} tasks{' '}
+            ({coverage.coveragePercentage}%)
           </Typography>
         </Stack>
 
@@ -335,7 +336,8 @@ export const EegCoverageDashboard = ({
   if (!coverage) {
     return (
       <Alert severity="info" sx={{ mb: 2 }}>
-        No EEG data available. Add capability targets and critical tasks to enable evaluation tracking.
+        No EEG data available. Add capability targets and critical tasks to enable evaluation
+        tracking.
       </Alert>
     )
   }

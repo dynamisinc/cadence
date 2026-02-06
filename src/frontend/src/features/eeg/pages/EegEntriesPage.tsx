@@ -107,7 +107,8 @@ export const EegEntriesPage = () => {
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showExportDialog, setShowExportDialog] = useState(false)
   const [showDocumentDialog, setShowDocumentDialog] = useState(false)
-  const [preSelectedCapabilityTargetId, setPreSelectedCapabilityTargetId] = useState<string | null>(null)
+  const [preSelectedCapabilityTargetId, setPreSelectedCapabilityTargetId] =
+    useState<string | null>(null)
   const [preSelectedTaskId, setPreSelectedTaskId] = useState<string | null>(null)
 
   // Filter state

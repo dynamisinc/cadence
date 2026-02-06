@@ -128,7 +128,8 @@ export const EegExportDialog = ({
           </Typography>
           {coverage && (
             <Typography variant="body2" color="text.secondary">
-              Task Coverage: {coverage.coveragePercentage}% ({coverage.evaluatedTasks}/{coverage.totalTasks})
+              Task Coverage: {coverage.coveragePercentage}%{' '}
+              ({coverage.evaluatedTasks}/{coverage.totalTasks})
             </Typography>
           )}
         </Box>

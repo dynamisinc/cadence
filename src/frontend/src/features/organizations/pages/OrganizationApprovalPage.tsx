@@ -50,7 +50,11 @@ import CobraStyles from '@/theme/CobraStyles'
  * Role checkboxes configuration - compact labels only
  * Uses string keys to match the hasApprovalRole function signature
  */
-const APPROVAL_ROLES: { roleKey: keyof typeof ApprovalRoles; roleValue: number; label: string }[] = [
+const APPROVAL_ROLES: {
+  roleKey: keyof typeof ApprovalRoles
+  roleValue: number
+  label: string
+}[] = [
   { roleKey: 'Administrator', roleValue: ApprovalRoles.Administrator, label: 'Administrator' },
   { roleKey: 'ExerciseDirector', roleValue: ApprovalRoles.ExerciseDirector, label: 'Exercise Director' },
   { roleKey: 'Controller', roleValue: ApprovalRoles.Controller, label: 'Controller' },
@@ -75,7 +79,11 @@ const SELF_APPROVAL_DESCRIPTIONS: Record<SelfApprovalPolicy, string> = {
 export const OrganizationApprovalPage: FC = () => {
   const { currentOrg } = useOrganization()
   const { data: organization, isLoading: orgLoading } = useCurrentOrganization()
-  const { data: permissions, isLoading: permissionsLoading, error } = useCurrentOrgApprovalPermissions()
+  const {
+    data: permissions,
+    isLoading: permissionsLoading,
+    error,
+  } = useCurrentOrgApprovalPermissions()
   const updatePermissions = useUpdateCurrentOrgApprovalPermissions()
   const updatePolicy = useUpdateCurrentApprovalPolicy()
 
@@ -276,7 +284,9 @@ export const OrganizationApprovalPage: FC = () => {
                     disabled={isDisabled}
                   >
                     <MenuItem value={SelfApprovalPolicy.NeverAllowed}>Never Allowed</MenuItem>
-                    <MenuItem value={SelfApprovalPolicy.AllowedWithWarning}>Allowed with Warning</MenuItem>
+                    <MenuItem value={SelfApprovalPolicy.AllowedWithWarning}>
+                      Allowed with Warning
+                    </MenuItem>
                     <MenuItem value={SelfApprovalPolicy.AlwaysAllowed}>Always Allowed</MenuItem>
                   </Select>
                 </FormControl>

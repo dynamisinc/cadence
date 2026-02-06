@@ -120,7 +120,8 @@ export const ApprovalStatusHeader = ({
           {/* Workflow hint when there are drafts */}
           {draftCount > 0 && pendingCount === 0 && approvedCount === 0 && (
             <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
-              Use the <strong>Submit for Approval</strong> button on each inject to start the approval workflow.
+              Use the <strong>Submit for Approval</strong> button on each
+              inject to start the approval workflow.
             </Typography>
           )}
         </Box>
