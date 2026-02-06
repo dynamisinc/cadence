@@ -28,6 +28,8 @@ import {
   InputAdornment,
   Tabs,
   Tab,
+  ToggleButtonGroup,
+  ToggleButton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -39,6 +41,9 @@ import {
   faFileExport,
   faFileWord,
   faChartBar,
+  faList,
+  faLayerGroup,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { toast } from 'react-toastify'
@@ -105,6 +110,9 @@ export const EegEntriesPage = () => {
   // Filter state
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
   const [searchQuery, setSearchQuery] = useState('')
+
+  // View mode state (for Entries tab)
+  const [viewMode, setViewMode] = useState<ViewMode>('list')
 
   // Set breadcrumbs
   useBreadcrumbs(
@@ -346,6 +354,45 @@ export const EegEntriesPage = () => {
             </Box>
           )}
 
+          {/* View Mode Toggle */}
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Stack direction="row" spacing={2} alignItems="center">
+              <Typography variant="body2" fontWeight={600}>
+                View:
+              </Typography>
+              <ToggleButtonGroup
+                value={viewMode}
+                exclusive
+                onChange={(_, newValue) => {
+                  if (newValue) setViewMode(newValue)
+                }}
+                size="small"
+                aria-label="View mode"
+              >
+                <ToggleButton value="list" aria-label="List view">
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <FontAwesomeIcon icon={faList} size="sm" />
+                    <span>List</span>
+                  </Stack>
+                </ToggleButton>
+                <ToggleButton value="byCapability" aria-label="Group by capability">
+                  <Stack direction="row" spacing={0.5} alignItems="center">
+                    <FontAwesomeIcon icon={faLayerGroup} size="sm" />
+                    <span>By Capability</span>
+                  </Stack>
+                </ToggleButton>
+                {canDelete && (
+                  <ToggleButton value="byEvaluator" aria-label="Group by evaluator">
+                    <Stack direction="row" spacing={0.5} alignItems="center">
+                      <FontAwesomeIcon icon={faUsers} size="sm" />
+                      <span>By Evaluator</span>
+                    </Stack>
+                  </ToggleButton>
+                )}
+              </ToggleButtonGroup>
+            </Stack>
+          </Paper>
+
           {/* Filters */}
           <Paper sx={{ p: 2, mb: 3 }}>
             <Stack
@@ -465,20 +512,50 @@ export const EegEntriesPage = () => {
               )}
             </Paper>
           ) : (
-            /* Entries List */
+            /* Entries Views - Conditional based on viewMode */
             <Paper sx={{ p: 2 }}>
-              <EegEntriesList
-                entries={filteredEntries}
-                loading={entriesLoading}
-                error={entriesError}
-                canEdit={canEdit}
-                canDelete={canDelete}
-                currentUserId={user?.id}
-                onEdit={handleEdit}
-                onDelete={handleDelete}
-                onInjectClick={handleInjectClick}
-                deletingId={deletingId}
-              />
+              {viewMode === 'list' && (
+                <EegEntriesList
+                  entries={filteredEntries}
+                  loading={entriesLoading}
+                  error={entriesError}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
+                  currentUserId={user?.id}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onInjectClick={handleInjectClick}
+                  deletingId={deletingId}
+                />
+              )}
+              {viewMode === 'byCapability' && (
+                <EegEntriesGroupedByCapability
+                  entries={filteredEntries}
+                  loading={entriesLoading}
+                  error={entriesError}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
+                  currentUserId={user?.id}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onInjectClick={handleInjectClick}
+                  deletingId={deletingId}
+                />
+              )}
+              {viewMode === 'byEvaluator' && canDelete && (
+                <EegEntriesGroupedByEvaluator
+                  entries={filteredEntries}
+                  loading={entriesLoading}
+                  error={entriesError}
+                  canEdit={canEdit}
+                  canDelete={canDelete}
+                  currentUserId={user?.id}
+                  onEdit={handleEdit}
+                  onDelete={handleDelete}
+                  onInjectClick={handleInjectClick}
+                  deletingId={deletingId}
+                />
+              )}
             </Paper>
           )}
         </Box>

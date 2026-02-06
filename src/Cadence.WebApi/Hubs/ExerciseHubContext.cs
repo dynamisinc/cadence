@@ -1,3 +1,4 @@
+using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Injects.Models.DTOs;
@@ -264,5 +265,41 @@ public class ExerciseHubContext : IExerciseHubContext
         _logger.LogDebug(
             "Broadcast InjectsReordered ({Count} injects) to exercise {ExerciseId}",
             injectIds.Count, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyEegEntryCreated(Guid exerciseId, EegEntryDto entry)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("EegEntryCreated", entry);
+
+        _logger.LogDebug(
+            "Broadcast EegEntryCreated for entry {EntryId} to exercise {ExerciseId}",
+            entry.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyEegEntryUpdated(Guid exerciseId, EegEntryDto entry)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("EegEntryUpdated", entry);
+
+        _logger.LogDebug(
+            "Broadcast EegEntryUpdated for entry {EntryId} to exercise {ExerciseId}",
+            entry.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyEegEntryDeleted(Guid exerciseId, Guid entryId)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("EegEntryDeleted", entryId);
+
+        _logger.LogDebug(
+            "Broadcast EegEntryDeleted for entry {EntryId} to exercise {ExerciseId}",
+            entryId, exerciseId);
     }
 }

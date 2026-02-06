@@ -30,6 +30,9 @@ export { EegCoverageDashboard } from './EegCoverageDashboard'
 
 // List components
 export { EegEntriesList } from './EegEntriesList'
+export { EegEntriesGroupedByCapability } from './EegEntriesGroupedByCapability'
+export { EegEntriesGroupedByEvaluator } from './EegEntriesGroupedByEvaluator'
+export { EntryDetailDialog, DeleteConfirmDialog } from './EegEntryDialogs'
 
 // Export components
 export { EegExportDialog } from './EegExportDialog'

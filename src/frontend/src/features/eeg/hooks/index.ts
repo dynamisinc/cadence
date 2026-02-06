@@ -25,3 +25,5 @@ export {
   useEegCoverage,
   eegEntryKeys,
 } from './useEegEntries'
+
+export { useEegSignalR } from './useEegSignalR'

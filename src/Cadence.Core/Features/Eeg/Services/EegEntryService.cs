@@ -13,11 +13,16 @@ public class EegEntryService : IEegEntryService
 {
     private readonly AppDbContext _context;
     private readonly ICurrentOrganizationContext _orgContext;
+    private readonly IExerciseHubContext _hubContext;
 
-    public EegEntryService(AppDbContext context, ICurrentOrganizationContext orgContext)
+    public EegEntryService(
+        AppDbContext context,
+        ICurrentOrganizationContext orgContext,
+        IExerciseHubContext hubContext)
     {
         _context = context;
         _orgContext = orgContext;
+        _hubContext = hubContext;
     }
 
     public async Task<EegEntryListResponse> GetByExerciseAsync(Guid exerciseId, EegEntryQueryParams? queryParams = null)
@@ -227,12 +232,22 @@ public class EegEntryService : IEegEntryService
         await _context.SaveChangesAsync();
 
         // Reload with navigation properties
-        return (await GetByIdAsync(entry.Id))!;
+        var dto = (await GetByIdAsync(entry.Id))!;
+
+        // Get exerciseId from the critical task relationship
+        var exerciseId = criticalTask.CapabilityTarget.ExerciseId;
+
+        // Broadcast to all connected clients
+        await _hubContext.NotifyEegEntryCreated(exerciseId, dto);
+
+        return dto;
     }
 
     public async Task<EegEntryDto?> UpdateAsync(Guid id, UpdateEegEntryRequest request, string modifiedBy)
     {
         var entry = await _context.EegEntries
+            .Include(e => e.CriticalTask)
+                .ThenInclude(ct => ct.CapabilityTarget)
             .FirstOrDefaultAsync(e => e.Id == id
                 && e.OrganizationId == _orgContext.CurrentOrganizationId);
         if (entry == null)
@@ -247,16 +262,32 @@ public class EegEntryService : IEegEntryService
 
         await _context.SaveChangesAsync();
 
-        return await GetByIdAsync(id);
+        var dto = await GetByIdAsync(id);
+
+        // Get exerciseId from the critical task relationship
+        var exerciseId = entry.CriticalTask.CapabilityTarget.ExerciseId;
+
+        // Broadcast to all connected clients
+        if (dto != null)
+        {
+            await _hubContext.NotifyEegEntryUpdated(exerciseId, dto);
+        }
+
+        return dto;
     }
 
     public async Task<bool> DeleteAsync(Guid id, string deletedBy)
     {
         var entry = await _context.EegEntries
+            .Include(e => e.CriticalTask)
+                .ThenInclude(ct => ct.CapabilityTarget)
             .FirstOrDefaultAsync(e => e.Id == id
                 && e.OrganizationId == _orgContext.CurrentOrganizationId);
         if (entry == null)
             return false;
+
+        // Get exerciseId before soft delete
+        var exerciseId = entry.CriticalTask.CapabilityTarget.ExerciseId;
 
         // Soft delete
         entry.IsDeleted = true;
@@ -264,6 +295,10 @@ public class EegEntryService : IEegEntryService
         entry.DeletedBy = deletedBy;
 
         await _context.SaveChangesAsync();
+
+        // Broadcast to all connected clients
+        await _hubContext.NotifyEegEntryDeleted(exerciseId, id);
+
         return true;
     }
 

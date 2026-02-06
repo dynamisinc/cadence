@@ -1,3 +1,4 @@
+using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Injects.Models.DTOs;
@@ -106,4 +107,19 @@ public interface IExerciseHubContext
     /// Notify clients that injects have been reordered.
     /// </summary>
     Task NotifyInjectsReordered(Guid exerciseId, List<Guid> injectIds);
+
+    /// <summary>
+    /// Notify clients that a new EEG entry was created.
+    /// </summary>
+    Task NotifyEegEntryCreated(Guid exerciseId, EegEntryDto entry);
+
+    /// <summary>
+    /// Notify clients that an EEG entry was updated.
+    /// </summary>
+    Task NotifyEegEntryUpdated(Guid exerciseId, EegEntryDto entry);
+
+    /// <summary>
+    /// Notify clients that an EEG entry was deleted.
+    /// </summary>
+    Task NotifyEegEntryDeleted(Guid exerciseId, Guid entryId);
 }
