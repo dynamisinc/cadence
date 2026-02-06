@@ -9,6 +9,7 @@ using Cadence.Core.Extensions;
 using Cadence.Core.Features.Authentication.Models;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Capabilities.Services;
+using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Notifications;
 using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
@@ -164,6 +165,17 @@ else
     builder.Services.AddDatabase(builder.Configuration);
 }
 builder.Services.AddApplicationServices();
+
+// Add Email Delivery Services (using fully qualified names to avoid conflict with Auth IEmailService)
+builder.Services.Configure<EmailServiceOptions>(builder.Configuration.GetSection(EmailServiceOptions.SectionName));
+if (builder.Environment.IsDevelopment())
+{
+    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, LoggingEmailService>();
+}
+else
+{
+    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, AzureCommunicationEmailService>();
+}
 
 // Add SignalR Hub Context
 builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();

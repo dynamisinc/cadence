@@ -1,4 +1,5 @@
 using Cadence.Core.Constants;
+using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -111,6 +112,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InjectCriticalTask> InjectCriticalTasks => Set<InjectCriticalTask>();
     public DbSet<EegEntry> EegEntries => Set<EegEntry>();
 
+    // Email entities
+    public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
+    public DbSet<UserEmailPreference> UserEmailPreferences => Set<UserEmailPreference>();
+
     // =========================================================================
     // Model Configuration
     // =========================================================================
@@ -210,6 +215,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureCriticalTask(modelBuilder);
         ConfigureInjectCriticalTask(modelBuilder);
         ConfigureEegEntry(modelBuilder);
+
+        // Email entities
+        ConfigureEmailLog(modelBuilder);
+        ConfigureUserEmailPreference(modelBuilder);
     }
 
     /// <summary>
@@ -1384,6 +1393,65 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany()
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    // =========================================================================
+    // Email Entity Configurations
+    // =========================================================================
+
+    private static void ConfigureEmailLog(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<EmailLog>(entity =>
+        {
+            entity.Property(e => e.RecipientEmail).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.Subject).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.TemplateId).HasMaxLength(100);
+            entity.Property(e => e.AcsMessageId).HasMaxLength(200);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.StatusDetail).HasMaxLength(1000);
+            entity.Property(e => e.RelatedEntityType).HasMaxLength(50);
+            entity.Property(e => e.UserId).HasMaxLength(450);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => e.AcsMessageId);
+            entity.HasIndex(e => new { e.OrganizationId, e.SentAt });
+            entity.HasIndex(e => new { e.OrganizationId, e.Status });
+
+            // Relationships
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureUserEmailPreference(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<UserEmailPreference>(entity =>
+        {
+            entity.Property(e => e.UserId).HasMaxLength(450).IsRequired();
+            entity.Property(e => e.Category).HasConversion<string>().HasMaxLength(20);
+
+            // Unique constraint: one preference per user per category
+            entity.HasIndex(e => new { e.UserId, e.Category }).IsUnique();
+
+            // Index for user lookups
+            entity.HasIndex(e => e.UserId);
+
+            // Relationship to ApplicationUser
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 
