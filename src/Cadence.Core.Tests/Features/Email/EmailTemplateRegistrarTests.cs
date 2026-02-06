@@ -24,6 +24,8 @@ public class EmailTemplateRegistrarTests
     [InlineData("Welcome")]
     [InlineData("AccountDeactivated")]
     [InlineData("AccountReactivated")]
+    [InlineData("OrganizationInvite")]
+    [InlineData("WelcomeToOrg")]
     public async Task RegisterAll_RegistersExpectedTemplate(string templateId)
     {
         var template = await _store.GetTemplateAsync(templateId);
@@ -33,13 +35,14 @@ public class EmailTemplateRegistrarTests
     }
 
     [Fact]
-    public async Task RegisterAll_RegistersExactly8Templates()
+    public async Task RegisterAll_RegistersAll10Templates()
     {
-        // Verify all 8 expected templates exist
+        // Verify all 10 expected templates exist
         var expectedTemplates = new[]
         {
             "_Layout", "PasswordReset", "PasswordChanged", "AccountVerification",
-            "NewDeviceAlert", "Welcome", "AccountDeactivated", "AccountReactivated"
+            "NewDeviceAlert", "Welcome", "AccountDeactivated", "AccountReactivated",
+            "OrganizationInvite", "WelcomeToOrg"
         };
 
         foreach (var id in expectedTemplates)
@@ -141,5 +144,31 @@ public class EmailTemplateRegistrarTests
         Assert.Equal("Your Cadence account has been reactivated", template!.SubjectTemplate);
         Assert.Contains("{{DisplayName}}", template.HtmlContent);
         Assert.Contains("{{Email}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_OrganizationInviteTemplate_HasInviteDetails()
+    {
+        var template = await _store.GetTemplateAsync("OrganizationInvite");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{OrganizationName}}", template!.SubjectTemplate);
+        Assert.Contains("{{InviterName}}", template.HtmlContent);
+        Assert.Contains("{{InviteUrl}}", template.HtmlContent);
+        Assert.Contains("{{ExpiresAt}}", template.HtmlContent);
+        Assert.Contains("{{OrganizationName}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_WelcomeToOrgTemplate_HasOrgDetails()
+    {
+        var template = await _store.GetTemplateAsync("WelcomeToOrg");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{OrganizationName}}", template!.SubjectTemplate);
+        Assert.Contains("{{DisplayName}}", template.HtmlContent);
+        Assert.Contains("{{OrganizationName}}", template.HtmlContent);
+        Assert.Contains("{{Role}}", template.HtmlContent);
+        Assert.Contains("{{SignInUrl}}", template.HtmlContent);
     }
 }

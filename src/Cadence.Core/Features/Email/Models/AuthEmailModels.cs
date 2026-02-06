@@ -38,6 +38,29 @@ public class AccountVerificationEmailModel
 }
 
 /// <summary>
+/// Template model for organization invitation emails.
+/// </summary>
+public class OrganizationInviteEmailModel
+{
+    public string OrganizationName { get; set; } = string.Empty;
+    public string InviterName { get; set; } = string.Empty;
+    public string InviteUrl { get; set; } = string.Empty;
+    public DateTime ExpiresAt { get; set; }
+    public string Role { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Template model for "Welcome to Organization" emails (after accepting invitation).
+/// </summary>
+public class WelcomeToOrgEmailModel
+{
+    public string DisplayName { get; set; } = string.Empty;
+    public string OrganizationName { get; set; } = string.Empty;
+    public string Role { get; set; } = string.Empty;
+    public string SignInUrl { get; set; } = string.Empty;
+}
+
+/// <summary>
 /// Template model for new device login alert emails.
 /// </summary>
 public class NewDeviceAlertEmailModel

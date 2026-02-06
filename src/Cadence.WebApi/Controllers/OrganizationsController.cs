@@ -21,6 +21,7 @@ public class OrganizationsController : ControllerBase
 {
     private readonly IOrganizationService _organizationService;
     private readonly IMembershipService _membershipService;
+    private readonly IOrganizationInvitationService _invitationService;
     private readonly IApprovalPermissionService _approvalPermissionService;
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<OrganizationsController> _logger;
@@ -28,12 +29,14 @@ public class OrganizationsController : ControllerBase
     public OrganizationsController(
         IOrganizationService organizationService,
         IMembershipService membershipService,
+        IOrganizationInvitationService invitationService,
         IApprovalPermissionService approvalPermissionService,
         ICurrentOrganizationContext orgContext,
         ILogger<OrganizationsController> logger)
     {
         _organizationService = organizationService;
         _membershipService = membershipService;
+        _invitationService = invitationService;
         _approvalPermissionService = approvalPermissionService;
         _orgContext = orgContext;
         _logger = logger;
@@ -240,6 +243,172 @@ public class OrganizationsController : ControllerBase
         catch (Core.Exceptions.BusinessRuleException ex)
         {
             return BadRequest(new { error = "business_rule_violation", message = ex.Message });
+        }
+    }
+
+    // =========================================================================
+    // Current Organization Invitations (OrgAdmin)
+    // =========================================================================
+
+    /// <summary>
+    /// Get all invitations for the current organization.
+    /// </summary>
+    [HttpGet("current/invitations")]
+    [AuthorizeOrgAdmin]
+    [ProducesResponseType(typeof(IEnumerable<InvitationDto>), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetCurrentOrganizationInvitations([FromQuery] string? status = null)
+    {
+        var orgId = GetCurrentOrganizationId();
+        if (orgId == null)
+        {
+            return NotFound(new { message = "No organization context" });
+        }
+
+        var invitations = await _invitationService.GetInvitationsAsync(orgId.Value, status);
+        return Ok(invitations);
+    }
+
+    /// <summary>
+    /// Create and send an organization invitation.
+    /// </summary>
+    [HttpPost("current/invitations")]
+    [AuthorizeOrgAdmin]
+    [ProducesResponseType(typeof(InvitationDto), StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> CreateInvitation([FromBody] CreateInvitationRequest request)
+    {
+        var orgId = GetCurrentOrganizationId();
+        if (orgId == null)
+        {
+            return NotFound(new { message = "No organization context" });
+        }
+
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var invitation = await _invitationService.CreateInvitationAsync(
+                orgId.Value, request, currentUserId);
+
+            _logger.LogInformation(
+                "OrgAdmin {AdminId} invited {Email} to organization {OrgId}",
+                currentUserId, request.Email, orgId);
+
+            return CreatedAtAction(
+                nameof(GetCurrentOrganizationInvitations),
+                invitation);
+        }
+        catch (Core.Exceptions.ConflictException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Resend a pending or expired invitation.
+    /// </summary>
+    [HttpPost("current/invitations/{invitationId:guid}/resend")]
+    [AuthorizeOrgAdmin]
+    [ProducesResponseType(typeof(InvitationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ResendInvitation(Guid invitationId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            var invitation = await _invitationService.ResendInvitationAsync(
+                invitationId, currentUserId);
+
+            _logger.LogInformation(
+                "OrgAdmin {AdminId} resent invitation {InviteId}",
+                currentUserId, invitationId);
+
+            return Ok(invitation);
+        }
+        catch (Core.Exceptions.NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Core.Exceptions.BusinessRuleException ex)
+        {
+            return BadRequest(new { error = "business_rule_violation", message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Cancel a pending invitation.
+    /// </summary>
+    [HttpDelete("current/invitations/{invitationId:guid}")]
+    [AuthorizeOrgAdmin]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> CancelInvitation(Guid invitationId)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            await _invitationService.CancelInvitationAsync(invitationId, currentUserId);
+
+            _logger.LogInformation(
+                "OrgAdmin {AdminId} cancelled invitation {InviteId}",
+                currentUserId, invitationId);
+
+            return NoContent();
+        }
+        catch (Core.Exceptions.NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Core.Exceptions.BusinessRuleException ex)
+        {
+            return BadRequest(new { error = "business_rule_violation", message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Validate an invitation code (public endpoint for invitation acceptance flow).
+    /// </summary>
+    [HttpGet("/api/invitations/validate/{code}")]
+    [AllowAnonymous]
+    [ProducesResponseType(typeof(InvitationDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> ValidateInvitationCode(string code)
+    {
+        var invitation = await _invitationService.ValidateCodeAsync(code);
+        if (invitation == null)
+        {
+            return NotFound(new { message = "Invitation not found, expired, or already used" });
+        }
+
+        return Ok(invitation);
+    }
+
+    /// <summary>
+    /// Accept an invitation and join the organization.
+    /// </summary>
+    [HttpPost("/api/invitations/accept/{code}")]
+    [Authorize]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
+    public async Task<IActionResult> AcceptInvitation(string code)
+    {
+        try
+        {
+            var currentUserId = GetCurrentUserId();
+            await _invitationService.AcceptInvitationAsync(code, currentUserId);
+
+            return Ok(new { message = "Invitation accepted successfully" });
+        }
+        catch (Core.Exceptions.NotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+        catch (Core.Exceptions.ConflictException ex)
+        {
+            return Conflict(new { message = ex.Message });
         }
     }
 

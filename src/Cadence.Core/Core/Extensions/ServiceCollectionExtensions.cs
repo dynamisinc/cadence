@@ -67,6 +67,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICapabilityImportService, CapabilityImportService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IMembershipService, MembershipService>();
+        services.AddScoped<IOrganizationInvitationService, OrganizationInvitationService>();
 
         // EEG (Exercise Evaluation Guide) Services
         services.AddScoped<ICapabilityTargetService, CapabilityTargetService>();

@@ -19,6 +19,10 @@ public static class EmailTemplateRegistrar
         RegisterWelcomeTemplate(store);
         RegisterAccountDeactivatedTemplate(store);
         RegisterAccountReactivatedTemplate(store);
+
+        // Organization invitation templates
+        RegisterOrganizationInviteTemplate(store);
+        RegisterWelcomeToOrgTemplate(store);
     }
 
     private static void RegisterLayoutTemplate(InMemoryEmailTemplateStore store)
@@ -261,6 +265,70 @@ Cadence - Exercise Management Platform"
 Hi {{DisplayName}},
 
 Your Cadence account ({{Email}}) has been reactivated. You can now sign in and access your exercises.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterOrganizationInviteTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "OrganizationInvite",
+            SubjectTemplate: "You're invited to join {{OrganizationName}} on Cadence",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">You're Invited!</h2>
+<p>Hi,</p>
+<p><strong>{{InviterName}}</strong> has invited you to join <strong>{{OrganizationName}}</strong> on Cadence, the exercise management platform.</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{InviteUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Accept Invitation</a>
+</p>
+<p>This invitation expires on {{ExpiresAt}}.</p>
+<p style=""color: #666666; font-size: 14px;"">If you weren't expecting this invitation, you can safely ignore this email.</p>",
+            PlainTextContent: @"You're Invited!
+
+Hi,
+
+{{InviterName}} has invited you to join {{OrganizationName}} on Cadence, the exercise management platform.
+
+Accept your invitation: {{InviteUrl}}
+
+This invitation expires on {{ExpiresAt}}.
+
+If you weren't expecting this invitation, you can safely ignore this email.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterWelcomeToOrgTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "WelcomeToOrg",
+            SubjectTemplate: "Welcome to {{OrganizationName}} on Cadence",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Welcome to {{OrganizationName}}!</h2>
+<p>Hi {{DisplayName}},</p>
+<p>You've successfully joined <strong>{{OrganizationName}}</strong> on Cadence.</p>
+<table style=""margin: 16px 0; font-size: 14px;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666;"">Organization:</td><td>{{OrganizationName}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666;"">Your Role:</td><td>{{Role}}</td></tr>
+</table>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{SignInUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Sign In to Cadence</a>
+</p>
+<p style=""color: #666666; font-size: 14px;"">You can manage your notification preferences in your account settings.</p>",
+            PlainTextContent: @"Welcome to {{OrganizationName}}!
+
+Hi {{DisplayName}},
+
+You've successfully joined {{OrganizationName}} on Cadence.
+
+Organization: {{OrganizationName}}
+Your Role: {{Role}}
+
+Sign in to Cadence: {{SignInUrl}}
+
+You can manage your notification preferences in your account settings.
 
 ---
 Cadence - Exercise Management Platform"
