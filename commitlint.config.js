@@ -37,6 +37,7 @@ module.exports = {
         'inject-approval',
         'feature-flags',
         // Infrastructure
+        'agent',
         'migrations',
         'db',
         'signalr',
