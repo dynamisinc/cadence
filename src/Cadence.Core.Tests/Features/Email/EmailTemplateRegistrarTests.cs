@@ -26,6 +26,9 @@ public class EmailTemplateRegistrarTests
     [InlineData("AccountReactivated")]
     [InlineData("OrganizationInvite")]
     [InlineData("WelcomeToOrg")]
+    [InlineData("ExerciseInvite")]
+    [InlineData("ExternalExerciseInvite")]
+    [InlineData("ExerciseDetailsUpdated")]
     public async Task RegisterAll_RegistersExpectedTemplate(string templateId)
     {
         var template = await _store.GetTemplateAsync(templateId);
@@ -35,14 +38,15 @@ public class EmailTemplateRegistrarTests
     }
 
     [Fact]
-    public async Task RegisterAll_RegistersAll10Templates()
+    public async Task RegisterAll_RegistersAll13Templates()
     {
-        // Verify all 10 expected templates exist
+        // Verify all 13 expected templates exist
         var expectedTemplates = new[]
         {
             "_Layout", "PasswordReset", "PasswordChanged", "AccountVerification",
             "NewDeviceAlert", "Welcome", "AccountDeactivated", "AccountReactivated",
-            "OrganizationInvite", "WelcomeToOrg"
+            "OrganizationInvite", "WelcomeToOrg",
+            "ExerciseInvite", "ExternalExerciseInvite", "ExerciseDetailsUpdated"
         };
 
         foreach (var id in expectedTemplates)
@@ -170,5 +174,46 @@ public class EmailTemplateRegistrarTests
         Assert.Contains("{{OrganizationName}}", template.HtmlContent);
         Assert.Contains("{{Role}}", template.HtmlContent);
         Assert.Contains("{{SignInUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ExerciseInviteTemplate_HasExerciseDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExerciseInvite");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseType}}", template.HtmlContent);
+        Assert.Contains("{{RoleName}}", template.HtmlContent);
+        Assert.Contains("{{StartDate}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+        Assert.Contains("{{DirectorName}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ExternalExerciseInviteTemplate_HasInviteAndExerciseDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExternalExerciseInvite");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{OrganizationName}}", template.SubjectTemplate);
+        Assert.Contains("{{InviteUrl}}", template.HtmlContent);
+        Assert.Contains("{{ExpiresAt}}", template.HtmlContent);
+        Assert.Contains("{{RoleName}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ExerciseDetailsUpdatedTemplate_HasChangeDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExerciseDetailsUpdated");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{Changes}}", template.HtmlContent);
+        Assert.Contains("{{RoleName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
     }
 }

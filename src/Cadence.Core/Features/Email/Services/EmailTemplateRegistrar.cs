@@ -23,6 +23,11 @@ public static class EmailTemplateRegistrar
         // Organization invitation templates
         RegisterOrganizationInviteTemplate(store);
         RegisterWelcomeToOrgTemplate(store);
+
+        // Exercise invitation templates
+        RegisterExerciseInviteTemplate(store);
+        RegisterExternalExerciseInviteTemplate(store);
+        RegisterExerciseDetailsUpdatedTemplate(store);
     }
 
     private static void RegisterLayoutTemplate(InMemoryEmailTemplateStore store)
@@ -329,6 +334,131 @@ Your Role: {{Role}}
 Sign in to Cadence: {{SignInUrl}}
 
 You can manage your notification preferences in your account settings.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterExerciseInviteTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExerciseInvite",
+            SubjectTemplate: "You're invited to participate in {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Invitation</h2>
+<p>Hi {{RecipientName}},</p>
+<p>You've been invited to participate in <strong>{{ExerciseName}}</strong> as a <strong>{{RoleName}}</strong>.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Type:</td><td>{{ExerciseType}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Date:</td><td>{{StartDate}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Location:</td><td>{{Location}}</td></tr>
+</table>
+<h3 style=""color: #1a237e;"">Your Role: {{RoleName}}</h3>
+<p>{{RoleDescription}}</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Exercise Details</a>
+</p>
+<p style=""color: #666666; font-size: 14px;"">Questions? Contact Exercise Director {{DirectorName}} at {{DirectorEmail}}.</p>",
+            PlainTextContent: @"Exercise Invitation
+
+Hi {{RecipientName}},
+
+You've been invited to participate in {{ExerciseName}} as a {{RoleName}}.
+
+EXERCISE DETAILS
+Type: {{ExerciseType}}
+Date: {{StartDate}}
+Location: {{Location}}
+
+YOUR ROLE: {{RoleName}}
+{{RoleDescription}}
+
+View exercise details: {{ExerciseUrl}}
+
+Questions? Contact Exercise Director {{DirectorName}} at {{DirectorEmail}}.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterExternalExerciseInviteTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExternalExerciseInvite",
+            SubjectTemplate: "You're invited to {{ExerciseName}} by {{OrganizationName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Invitation</h2>
+<p>Hi,</p>
+<p><strong>{{OrganizationName}}</strong> has invited you to participate in <strong>{{ExerciseName}}</strong> as a <strong>{{RoleName}}</strong>.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Exercise:</td><td>{{ExerciseName}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Type:</td><td>{{ExerciseType}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Date:</td><td>{{StartDate}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Location:</td><td>{{Location}}</td></tr>
+</table>
+<p>To participate, you'll need to create a Cadence account. Click the button below to get started.</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{InviteUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Accept Invitation</a>
+</p>
+<p>This invitation expires on {{ExpiresAt}}.</p>
+<p style=""color: #666666; font-size: 14px;"">Questions? Contact Exercise Director {{DirectorName}}.</p>
+<p style=""color: #666666; font-size: 14px;"">If you weren't expecting this invitation, you can safely ignore this email.</p>",
+            PlainTextContent: @"Exercise Invitation
+
+Hi,
+
+{{OrganizationName}} has invited you to participate in {{ExerciseName}} as a {{RoleName}}.
+
+EXERCISE DETAILS
+Exercise: {{ExerciseName}}
+Type: {{ExerciseType}}
+Date: {{StartDate}}
+Location: {{Location}}
+
+To participate, you'll need to create a Cadence account.
+
+Accept your invitation: {{InviteUrl}}
+
+This invitation expires on {{ExpiresAt}}.
+
+Questions? Contact Exercise Director {{DirectorName}}.
+
+If you weren't expecting this invitation, you can safely ignore this email.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterExerciseDetailsUpdatedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExerciseDetailsUpdated",
+            SubjectTemplate: "Exercise Update: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Details Updated</h2>
+<p>Hi {{RecipientName}},</p>
+<p>The details for <strong>{{ExerciseName}}</strong> have been updated:</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #fff3e0; border-left: 4px solid #ff9800; border-radius: 4px;"">
+{{Changes}}
+</div>
+<p>Your role (<strong>{{RoleName}}</strong>) remains the same.</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Updated Details</a>
+</p>
+<p style=""color: #666666; font-size: 14px;"">Questions? Contact Exercise Director {{DirectorName}}.</p>",
+            PlainTextContent: @"Exercise Details Updated
+
+Hi {{RecipientName}},
+
+The details for {{ExerciseName}} have been updated:
+
+{{Changes}}
+
+Your role ({{RoleName}}) remains the same.
+
+View updated details: {{ExerciseUrl}}
+
+Questions? Contact Exercise Director {{DirectorName}}.
 
 ---
 Cadence - Exercise Management Platform"
