@@ -78,6 +78,7 @@ describe('ResetPasswordPage', () => {
     const newPasswordInput = screen.getByLabelText(/new password/i)
 
     fireEvent.change(newPasswordInput, { target: { value: 'weak' } })
+    fireEvent.blur(newPasswordInput)
 
     await waitFor(() => {
       expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument()

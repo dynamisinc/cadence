@@ -104,6 +104,7 @@ describe('CreateUserModal', () => {
 
     const passwordInput = screen.getByLabelText('Password *')
     fireEvent.change(passwordInput, { target: { value: 'weak' } })
+    fireEvent.blur(passwordInput)
 
     await waitFor(() => {
       expect(screen.getByText(/at least 8 characters/i)).toBeInTheDocument()

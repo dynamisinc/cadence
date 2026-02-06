@@ -5,6 +5,7 @@
  */
 
 export { ErrorBoundary } from './ErrorBoundary'
+export { RouteErrorFallback } from './RouteErrorFallback'
 export { InstallBanner } from './InstallBanner'
 export { MobileBlocker } from './MobileBlocker'
 export { ProfileMenu } from './ProfileMenu'

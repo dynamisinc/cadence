@@ -58,6 +58,8 @@ import { EegEntryForm } from '../components/EegEntryForm'
 import { EegCoverageDashboard } from '../components/EegCoverageDashboard'
 import { EegExportDialog } from '../components/EegExportDialog'
 import { EegDocumentDialog } from '../components/EegDocumentDialog'
+import { EegEntriesGroupedByCapability } from '../components/EegEntriesGroupedByCapability'
+import { EegEntriesGroupedByEvaluator } from '../components/EegEntriesGroupedByEvaluator'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -73,6 +75,7 @@ import {
 
 type RatingFilterValue = 'all' | PerformanceRating
 type TabValue = 'entries' | 'coverage'
+type ViewMode = 'list' | 'byCapability' | 'byEvaluator'
 
 export const EegEntriesPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()

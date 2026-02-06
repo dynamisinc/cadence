@@ -29,6 +29,7 @@ import {
   PERFORMANCE_RATING_COLORS,
   type EegEntryDto,
 } from '../types'
+import { EntryDetailDialog, DeleteConfirmDialog } from './EegEntryDialogs'
 
 interface EegEntriesGroupedByEvaluatorProps {
   /** EEG entries to display */

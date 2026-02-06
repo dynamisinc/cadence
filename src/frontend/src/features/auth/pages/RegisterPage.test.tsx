@@ -61,8 +61,9 @@ describe('RegisterPage', () => {
     const passwordInputs = screen.getAllByLabelText(/password/i) as HTMLInputElement[]
     const passwordInput = passwordInputs[0]
 
-    // Type a password to trigger requirements display
+    // Type a password and blur to trigger requirements display
     fireEvent.change(passwordInput, { target: { value: 'test' } })
+    fireEvent.blur(passwordInput)
 
     await waitFor(() => {
       // Check for requirement text from PasswordRequirements component
@@ -206,8 +207,9 @@ describe('RegisterPage', () => {
     const passwordInputs = screen.getAllByLabelText(/password/i) as HTMLInputElement[]
     const passwordInput = passwordInputs[0]
 
-    // Type a weak password
+    // Type a weak password and blur to trigger requirements display
     fireEvent.change(passwordInput, { target: { value: 'weak' } })
+    fireEvent.blur(passwordInput)
 
     // Should show requirement indicators - check for the actual requirement text
     await waitFor(() => {
