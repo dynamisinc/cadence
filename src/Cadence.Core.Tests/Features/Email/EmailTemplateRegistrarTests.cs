@@ -36,6 +36,20 @@ public class EmailTemplateRegistrarTests
     [InlineData("InjectAssignment")]
     [InlineData("RoleChange")]
     [InlineData("EvaluatorAreaAssignment")]
+    [InlineData("ExercisePublished")]
+    [InlineData("ExerciseStarted")]
+    [InlineData("ExerciseCompleted")]
+    [InlineData("ExerciseCancelled")]
+    [InlineData("BugReport")]
+    [InlineData("FeatureRequest")]
+    [InlineData("GeneralFeedback")]
+    [InlineData("SupportTicketAcknowledgment")]
+    [InlineData("ExerciseStartReminder")]
+    [InlineData("MselReviewDeadline")]
+    [InlineData("ObservationFinalization")]
+    [InlineData("DailyDigest")]
+    [InlineData("DirectorDailySummary")]
+    [InlineData("WeeklyOrgReport")]
     public async Task RegisterAll_RegistersExpectedTemplate(string templateId)
     {
         var template = await _store.GetTemplateAsync(templateId);
@@ -45,9 +59,9 @@ public class EmailTemplateRegistrarTests
     }
 
     [Fact]
-    public async Task RegisterAll_RegistersAll20Templates()
+    public async Task RegisterAll_RegistersAll34Templates()
     {
-        // Verify all 20 expected templates exist
+        // Verify all 34 expected templates exist
         var expectedTemplates = new[]
         {
             "_Layout", "PasswordReset", "PasswordChanged", "AccountVerification",
@@ -55,7 +69,11 @@ public class EmailTemplateRegistrarTests
             "OrganizationInvite", "WelcomeToOrg",
             "ExerciseInvite", "ExternalExerciseInvite", "ExerciseDetailsUpdated",
             "InjectSubmitted", "InjectApproved", "InjectRejected", "InjectChangesRequested",
-            "InjectAssignment", "RoleChange", "EvaluatorAreaAssignment"
+            "InjectAssignment", "RoleChange", "EvaluatorAreaAssignment",
+            "ExercisePublished", "ExerciseStarted", "ExerciseCompleted", "ExerciseCancelled",
+            "BugReport", "FeatureRequest", "GeneralFeedback", "SupportTicketAcknowledgment",
+            "ExerciseStartReminder", "MselReviewDeadline", "ObservationFinalization",
+            "DailyDigest", "DirectorDailySummary", "WeeklyOrgReport"
         };
 
         foreach (var id in expectedTemplates)
@@ -321,5 +339,213 @@ public class EmailTemplateRegistrarTests
         Assert.Contains("{{AssignedArea}}", template.HtmlContent);
         Assert.Contains("{{AreaDescription}}", template.HtmlContent);
         Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    // ── EM-07: Exercise Status Template Tests ─────────────────────
+
+    [Fact]
+    public async Task RegisterAll_ExercisePublishedTemplate_HasExerciseDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExercisePublished");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseDate}}", template.HtmlContent);
+        Assert.Contains("{{Location}}", template.HtmlContent);
+        Assert.Contains("{{RoleName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ExerciseStartedTemplate_HasActiveStatus()
+    {
+        var template = await _store.GetTemplateAsync("ExerciseStarted");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("ACTIVE", template.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{StartedAt}}", template.HtmlContent);
+        Assert.Contains("{{ScenarioTime}}", template.HtmlContent);
+        Assert.Contains("{{RoleName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ExerciseCompletedTemplate_HasCompletionDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExerciseCompleted");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{Duration}}", template.HtmlContent);
+        Assert.Contains("{{CompletedAt}}", template.HtmlContent);
+        Assert.Contains("{{NextSteps}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ExerciseCancelledTemplate_HasCancellationDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExerciseCancelled");
+
+        Assert.NotNull(template);
+        Assert.Contains("CANCELLED", template!.SubjectTemplate);
+        Assert.Contains("{{ExerciseName}}", template.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseDate}}", template.HtmlContent);
+        Assert.Contains("{{CancellationReason}}", template.HtmlContent);
+        Assert.Contains("{{DirectorName}}", template.HtmlContent);
+        Assert.Contains("{{DirectorEmail}}", template.HtmlContent);
+    }
+
+    // ── EM-08: Support & Feedback Template Tests ──────────────────
+
+    [Fact]
+    public async Task RegisterAll_BugReportTemplate_HasBugDetails()
+    {
+        var template = await _store.GetTemplateAsync("BugReport");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{Title}}", template!.SubjectTemplate);
+        Assert.Contains("{{Description}}", template.HtmlContent);
+        Assert.Contains("{{StepsToReproduce}}", template.HtmlContent);
+        Assert.Contains("{{Severity}}", template.HtmlContent);
+        Assert.Contains("{{ReporterName}}", template.HtmlContent);
+        Assert.Contains("{{Browser}}", template.HtmlContent);
+        Assert.Contains("{{OperatingSystem}}", template.HtmlContent);
+        Assert.Contains("{{CurrentUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_FeatureRequestTemplate_HasRequestDetails()
+    {
+        var template = await _store.GetTemplateAsync("FeatureRequest");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{Title}}", template!.SubjectTemplate);
+        Assert.Contains("{{Description}}", template.HtmlContent);
+        Assert.Contains("{{UseCase}}", template.HtmlContent);
+        Assert.Contains("{{ReporterName}}", template.HtmlContent);
+        Assert.Contains("{{ReporterEmail}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_GeneralFeedbackTemplate_HasFeedbackDetails()
+    {
+        var template = await _store.GetTemplateAsync("GeneralFeedback");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{Category}}", template!.SubjectTemplate);
+        Assert.Contains("{{Subject}}", template.SubjectTemplate);
+        Assert.Contains("{{Message}}", template.HtmlContent);
+        Assert.Contains("{{SenderName}}", template.HtmlContent);
+        Assert.Contains("{{SenderEmail}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_SupportTicketAcknowledgmentTemplate_HasTicketDetails()
+    {
+        var template = await _store.GetTemplateAsync("SupportTicketAcknowledgment");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ReferenceNumber}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{TicketType}}", template.HtmlContent);
+        Assert.Contains("{{TicketTitle}}", template.HtmlContent);
+        Assert.Contains("{{MessagePreview}}", template.HtmlContent);
+        Assert.Contains("{{SubmittedAt}}", template.HtmlContent);
+    }
+
+    // ── EM-09: Scheduled Reminder Template Tests ──────────────────
+
+    [Fact]
+    public async Task RegisterAll_ExerciseStartReminderTemplate_HasReminderDetails()
+    {
+        var template = await _store.GetTemplateAsync("ExerciseStartReminder");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseDate}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseTime}}", template.HtmlContent);
+        Assert.Contains("{{Location}}", template.HtmlContent);
+        Assert.Contains("{{RoleName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_MselReviewDeadlineTemplate_HasReviewDetails()
+    {
+        var template = await _store.GetTemplateAsync("MselReviewDeadline");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{PendingCount}}", template!.SubjectTemplate);
+        Assert.Contains("{{ExerciseName}}", template.SubjectTemplate);
+        Assert.Contains("{{ApproverName}}", template.HtmlContent);
+        Assert.Contains("{{PendingInjectsList}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseDate}}", template.HtmlContent);
+        Assert.Contains("{{ReviewUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_ObservationFinalizationTemplate_HasFinalizationDetails()
+    {
+        var template = await _store.GetTemplateAsync("ObservationFinalization");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{EvaluatorName}}", template.HtmlContent);
+        Assert.Contains("{{DraftCount}}", template.HtmlContent);
+        Assert.Contains("{{Deadline}}", template.HtmlContent);
+        Assert.Contains("{{ObservationsUrl}}", template.HtmlContent);
+    }
+
+    // ── EM-10: Digest & Summary Template Tests ────────────────────
+
+    [Fact]
+    public async Task RegisterAll_DailyDigestTemplate_HasDigestDetails()
+    {
+        var template = await _store.GetTemplateAsync("DailyDigest");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{DigestDate}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{ActivitySummary}}", template.HtmlContent);
+        Assert.Contains("{{DashboardUrl}}", template.HtmlContent);
+        Assert.Contains("{{PreferencesUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_DirectorDailySummaryTemplate_HasSummaryDetails()
+    {
+        var template = await _store.GetTemplateAsync("DirectorDailySummary");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{SummaryDate}}", template.SubjectTemplate);
+        Assert.Contains("{{DirectorName}}", template.HtmlContent);
+        Assert.Contains("{{DaysUntilExercise}}", template.HtmlContent);
+        Assert.Contains("{{MselStatus}}", template.HtmlContent);
+        Assert.Contains("{{AttentionItems}}", template.HtmlContent);
+        Assert.Contains("{{ParticipantStatus}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_WeeklyOrgReportTemplate_HasReportDetails()
+    {
+        var template = await _store.GetTemplateAsync("WeeklyOrgReport");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{OrganizationName}}", template!.SubjectTemplate);
+        Assert.Contains("{{ReportPeriod}}", template.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{ActivityMetrics}}", template.HtmlContent);
+        Assert.Contains("{{UpcomingExercises}}", template.HtmlContent);
+        Assert.Contains("{{TeamUpdates}}", template.HtmlContent);
+        Assert.Contains("{{DashboardUrl}}", template.HtmlContent);
     }
 }

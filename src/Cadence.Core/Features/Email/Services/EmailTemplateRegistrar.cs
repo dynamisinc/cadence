@@ -39,6 +39,28 @@ public static class EmailTemplateRegistrar
         RegisterInjectAssignmentTemplate(store);
         RegisterRoleChangeTemplate(store);
         RegisterEvaluatorAreaAssignmentTemplate(store);
+
+        // Exercise status templates
+        RegisterExercisePublishedTemplate(store);
+        RegisterExerciseStartedTemplate(store);
+        RegisterExerciseCompletedTemplate(store);
+        RegisterExerciseCancelledTemplate(store);
+
+        // Support & feedback templates
+        RegisterBugReportTemplate(store);
+        RegisterFeatureRequestTemplate(store);
+        RegisterGeneralFeedbackTemplate(store);
+        RegisterSupportTicketAcknowledgmentTemplate(store);
+
+        // Scheduled reminder templates
+        RegisterExerciseStartReminderTemplate(store);
+        RegisterMselReviewDeadlineTemplate(store);
+        RegisterObservationFinalizationTemplate(store);
+
+        // Digest & summary templates
+        RegisterDailyDigestTemplate(store);
+        RegisterDirectorDailySummaryTemplate(store);
+        RegisterWeeklyOrgReportTemplate(store);
     }
 
     private static void RegisterLayoutTemplate(InMemoryEmailTemplateStore store)
@@ -715,6 +737,540 @@ ASSIGNED AREA
 {{AreaDescription}}
 
 View evaluation guide: {{ExerciseUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    // ── EM-07: Exercise Status Templates ──────────────────────────
+
+    private static void RegisterExercisePublishedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExercisePublished",
+            SubjectTemplate: "Exercise published: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Ready for Conduct</h2>
+<p>Hi {{RecipientName}},</p>
+<p><strong>{{ExerciseName}}</strong> has been published and is ready for conduct.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Date:</td><td>{{ExerciseDate}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Location:</td><td>{{Location}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Your Role:</td><td>{{RoleName}}</td></tr>
+</table>
+<p>Please review your assignments and prepare for exercise day.</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Exercise Details</a>
+</p>",
+            PlainTextContent: @"Exercise Ready for Conduct
+
+Hi {{RecipientName}},
+
+{{ExerciseName}} has been published and is ready for conduct.
+
+EXERCISE DETAILS
+Date: {{ExerciseDate}}
+Location: {{Location}}
+Your Role: {{RoleName}}
+
+Please review your assignments and prepare for exercise day.
+
+View exercise details: {{ExerciseUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterExerciseStartedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExerciseStarted",
+            SubjectTemplate: "Exercise ACTIVE: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #2e7d32; margin-top: 0;"">Exercise Now Active</h2>
+<p>Hi {{RecipientName}},</p>
+<p><strong>{{ExerciseName}}</strong> is now in progress.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #e8f5e9; border-left: 4px solid #2e7d32; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Status:</td><td><strong style=""color: #2e7d32;"">ACTIVE</strong></td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Started:</td><td>{{StartedAt}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Scenario Time:</td><td>{{ScenarioTime}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Your Role:</td><td>{{RoleName}}</td></tr>
+</table>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #2e7d32; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Open Exercise</a>
+</p>
+<p>Good luck!</p>",
+            PlainTextContent: @"Exercise Now Active
+
+Hi {{RecipientName}},
+
+{{ExerciseName}} is now in progress.
+
+EXERCISE STATUS: ACTIVE
+Started: {{StartedAt}}
+Scenario Time: {{ScenarioTime}}
+Your Role: {{RoleName}}
+
+Open exercise: {{ExerciseUrl}}
+
+Good luck!
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterExerciseCompletedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExerciseCompleted",
+            SubjectTemplate: "Exercise complete: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Complete</h2>
+<p>Hi {{RecipientName}},</p>
+<p><strong>{{ExerciseName}}</strong> has concluded. Thank you for your participation!</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Duration:</td><td>{{Duration}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Completed:</td><td>{{CompletedAt}}</td></tr>
+</table>
+<div style=""margin: 16px 0; padding: 16px; background-color: #e3f2fd; border-left: 4px solid #1a237e; border-radius: 4px;"">
+  <strong>Next Steps</strong>
+  <div style=""margin-top: 8px;"">{{NextSteps}}</div>
+</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Exercise Summary</a>
+</p>
+<p>Thank you for making this exercise a success!</p>",
+            PlainTextContent: @"Exercise Complete
+
+Hi {{RecipientName}},
+
+{{ExerciseName}} has concluded. Thank you for your participation!
+
+SUMMARY
+Duration: {{Duration}}
+Completed: {{CompletedAt}}
+
+NEXT STEPS
+{{NextSteps}}
+
+View exercise summary: {{ExerciseUrl}}
+
+Thank you for making this exercise a success!
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterExerciseCancelledTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExerciseCancelled",
+            SubjectTemplate: "CANCELLED: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #d32f2f; margin-top: 0;"">Exercise Cancelled</h2>
+<p>Hi {{RecipientName}},</p>
+<p><strong>{{ExerciseName}}</strong> scheduled for {{ExerciseDate}} has been <strong style=""color: #d32f2f;"">CANCELLED</strong>.</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #ffebee; border-left: 4px solid #d32f2f; border-radius: 4px;"">
+  <strong style=""color: #d32f2f;"">Reason:</strong>
+  <p style=""margin: 8px 0 0 0;"">{{CancellationReason}}</p>
+</div>
+<p>We apologize for any inconvenience. The exercise may be rescheduled — watch for updates.</p>
+<p style=""color: #666666; font-size: 14px;"">Questions? Contact Exercise Director {{DirectorName}} at {{DirectorEmail}}.</p>",
+            PlainTextContent: @"Exercise Cancelled
+
+Hi {{RecipientName}},
+
+{{ExerciseName}} scheduled for {{ExerciseDate}} has been CANCELLED.
+
+REASON
+{{CancellationReason}}
+
+We apologize for any inconvenience. The exercise may be rescheduled - watch for updates.
+
+Questions? Contact Exercise Director {{DirectorName}} at {{DirectorEmail}}.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    // ── EM-08: Support & Feedback Templates ───────────────────────
+
+    private static void RegisterBugReportTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "BugReport",
+            SubjectTemplate: "Bug Report: {{Title}}",
+            HtmlContent: @"<h2 style=""color: #d32f2f; margin-top: 0;"">Bug Report</h2>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Title:</td><td>{{Title}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Severity:</td><td>{{Severity}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Reporter:</td><td>{{ReporterName}} ({{ReporterEmail}})</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Reported:</td><td>{{ReportedAt}}</td></tr>
+</table>
+<h3>Description</h3>
+<p>{{Description}}</p>
+<h3>Steps to Reproduce</h3>
+<p>{{StepsToReproduce}}</p>
+<h3>Environment</h3>
+<table style=""margin: 8px 0; font-size: 14px;"">
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">URL:</td><td>{{CurrentUrl}}</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Browser:</td><td>{{Browser}}</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">OS:</td><td>{{OperatingSystem}}</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Screen:</td><td>{{ScreenSize}}</td></tr>
+</table>",
+            PlainTextContent: @"Bug Report
+
+Title: {{Title}}
+Severity: {{Severity}}
+Reporter: {{ReporterName}} ({{ReporterEmail}})
+Reported: {{ReportedAt}}
+
+DESCRIPTION
+{{Description}}
+
+STEPS TO REPRODUCE
+{{StepsToReproduce}}
+
+ENVIRONMENT
+URL: {{CurrentUrl}}
+Browser: {{Browser}}
+OS: {{OperatingSystem}}
+Screen: {{ScreenSize}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterFeatureRequestTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "FeatureRequest",
+            SubjectTemplate: "Feature Request: {{Title}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Feature Request</h2>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Title:</td><td>{{Title}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">From:</td><td>{{ReporterName}} ({{ReporterEmail}})</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Submitted:</td><td>{{ReportedAt}}</td></tr>
+</table>
+<h3>Description</h3>
+<p>{{Description}}</p>
+<h3>Use Case</h3>
+<p>{{UseCase}}</p>",
+            PlainTextContent: @"Feature Request
+
+Title: {{Title}}
+From: {{ReporterName}} ({{ReporterEmail}})
+Submitted: {{ReportedAt}}
+
+DESCRIPTION
+{{Description}}
+
+USE CASE
+{{UseCase}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterGeneralFeedbackTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "GeneralFeedback",
+            SubjectTemplate: "Feedback [{{Category}}]: {{Subject}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">User Feedback</h2>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Category:</td><td>{{Category}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Subject:</td><td>{{Subject}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">From:</td><td>{{SenderName}} ({{SenderEmail}})</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Sent:</td><td>{{SentAt}}</td></tr>
+</table>
+<h3>Message</h3>
+<p>{{Message}}</p>",
+            PlainTextContent: @"User Feedback
+
+Category: {{Category}}
+Subject: {{Subject}}
+From: {{SenderName}} ({{SenderEmail}})
+Sent: {{SentAt}}
+
+MESSAGE
+{{Message}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterSupportTicketAcknowledgmentTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "SupportTicketAcknowledgment",
+            SubjectTemplate: "We received your feedback [{{ReferenceNumber}}]",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Thanks for Reaching Out</h2>
+<p>Hi {{RecipientName}},</p>
+<p>We've received your submission and will review it shortly.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Reference:</td><td>{{ReferenceNumber}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Type:</td><td>{{TicketType}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Title:</td><td>{{TicketTitle}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Submitted:</td><td>{{SubmittedAt}}</td></tr>
+</table>
+<div style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px;"">
+  <strong>Your Message</strong>
+  <p style=""margin: 8px 0 0 0;"">{{MessagePreview}}</p>
+</div>
+<h3>What's Next</h3>
+<p>We typically respond within 1-2 business days. For urgent issues during an exercise, please contact your Exercise Director.</p>
+<p style=""color: #666666; font-size: 14px;"">To follow up on this ticket, reply to this email.</p>",
+            PlainTextContent: @"Thanks for Reaching Out
+
+Hi {{RecipientName}},
+
+We've received your submission and will review it shortly.
+
+REFERENCE: {{ReferenceNumber}}
+Type: {{TicketType}}
+Title: {{TicketTitle}}
+Submitted: {{SubmittedAt}}
+
+YOUR MESSAGE
+{{MessagePreview}}
+
+WHAT'S NEXT
+We typically respond within 1-2 business days. For urgent issues during an exercise, please contact your Exercise Director.
+
+To follow up on this ticket, reply to this email.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    // ── EM-09: Scheduled Reminder Templates ───────────────────────
+
+    private static void RegisterExerciseStartReminderTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ExerciseStartReminder",
+            SubjectTemplate: "Reminder: {{ExerciseName}} starts tomorrow",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Reminder</h2>
+<p>Hi {{RecipientName}},</p>
+<p><strong>{{ExerciseName}}</strong> starts in 24 hours.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Date:</td><td>{{ExerciseDate}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Time:</td><td>{{ExerciseTime}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Location:</td><td>{{Location}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Your Role:</td><td>{{RoleName}}</td></tr>
+</table>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Exercise</a>
+</p>
+<p>Good luck tomorrow!</p>",
+            PlainTextContent: @"Exercise Reminder
+
+Hi {{RecipientName}},
+
+{{ExerciseName}} starts in 24 hours.
+
+EXERCISE DETAILS
+Date: {{ExerciseDate}}
+Time: {{ExerciseTime}}
+Location: {{Location}}
+Your Role: {{RoleName}}
+
+View exercise: {{ExerciseUrl}}
+
+Good luck tomorrow!
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterMselReviewDeadlineTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "MselReviewDeadline",
+            SubjectTemplate: "{{PendingCount}} injects awaiting your review: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #f57c00; margin-top: 0;"">MSEL Review Reminder</h2>
+<p>Hi {{ApproverName}},</p>
+<p>You have injects awaiting approval for <strong>{{ExerciseName}}</strong>.</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #fff3e0; border-left: 4px solid #f57c00; border-radius: 4px;"">
+  <strong>Pending Your Review</strong>
+  <div style=""margin-top: 8px;"">{{PendingInjectsList}}</div>
+</div>
+<p>Exercise date: {{ExerciseDate}}</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ReviewUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Review Pending Injects</a>
+</p>",
+            PlainTextContent: @"MSEL Review Reminder
+
+Hi {{ApproverName}},
+
+You have injects awaiting approval for {{ExerciseName}}.
+
+PENDING YOUR REVIEW
+{{PendingInjectsList}}
+
+Exercise date: {{ExerciseDate}}
+
+Review pending injects: {{ReviewUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterObservationFinalizationTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "ObservationFinalization",
+            SubjectTemplate: "Please finalize your observations: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #f57c00; margin-top: 0;"">Observation Finalization Reminder</h2>
+<p>Hi {{EvaluatorName}},</p>
+<p>You have draft observations from <strong>{{ExerciseName}}</strong> that need to be finalized for the After-Action Report.</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #fff3e0; border-left: 4px solid #f57c00; border-radius: 4px;"">
+  <strong>{{DraftCount}} observations pending review</strong>
+  <p style=""margin: 8px 0 0 0;"">Deadline: {{Deadline}}</p>
+</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ObservationsUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Review &amp; Finalize</a>
+</p>
+<p>Please review your observations, add any missing details, and mark them as final.</p>",
+            PlainTextContent: @"Observation Finalization Reminder
+
+Hi {{EvaluatorName}},
+
+You have draft observations from {{ExerciseName}} that need to be finalized for the After-Action Report.
+
+{{DraftCount}} observations pending review
+Deadline: {{Deadline}}
+
+Review and finalize: {{ObservationsUrl}}
+
+Please review your observations, add any missing details, and mark them as final.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    // ── EM-10: Digest & Summary Templates ─────────────────────────
+
+    private static void RegisterDailyDigestTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "DailyDigest",
+            SubjectTemplate: "Your Cadence daily digest - {{DigestDate}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Daily Activity Summary</h2>
+<p style=""color: #666666;"">{{DigestDate}}</p>
+<p>Hi {{RecipientName}},</p>
+<p>Here's a summary of activity across your exercises.</p>
+<div style=""margin: 16px 0;"">{{ActivitySummary}}</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{DashboardUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Open Cadence</a>
+</p>
+<p style=""color: #666666; font-size: 12px;"">Manage digest preferences: <a href=""{{PreferencesUrl}}"" style=""color: #1a237e;"">Notification Settings</a></p>",
+            PlainTextContent: @"Daily Activity Summary
+{{DigestDate}}
+
+Hi {{RecipientName}},
+
+Here's a summary of activity across your exercises.
+
+{{ActivitySummary}}
+
+Open Cadence: {{DashboardUrl}}
+
+Manage digest preferences: {{PreferencesUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterDirectorDailySummaryTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "DirectorDailySummary",
+            SubjectTemplate: "Director Summary: {{ExerciseName}} - {{SummaryDate}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Exercise Director Summary</h2>
+<p><strong>{{ExerciseName}}</strong> | {{SummaryDate}}</p>
+<p>Hi {{DirectorName}},</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #e3f2fd; border-radius: 4px; text-align: center;"">
+  <strong style=""font-size: 18px;"">Exercise Countdown: {{DaysUntilExercise}} days</strong>
+</div>
+<h3 style=""color: #1a237e;"">MSEL Status</h3>
+<div style=""margin: 8px 0;"">{{MselStatus}}</div>
+<div style=""margin: 16px 0; padding: 16px; background-color: #fff3e0; border-left: 4px solid #f57c00; border-radius: 4px;"">
+  <strong style=""color: #f57c00;"">Attention Needed</strong>
+  <div style=""margin-top: 8px;"">{{AttentionItems}}</div>
+</div>
+<h3 style=""color: #1a237e;"">Participant Status</h3>
+<div style=""margin: 8px 0;"">{{ParticipantStatus}}</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Open Exercise Dashboard</a>
+</p>",
+            PlainTextContent: @"Exercise Director Summary
+{{ExerciseName}} | {{SummaryDate}}
+
+Hi {{DirectorName}},
+
+EXERCISE COUNTDOWN: {{DaysUntilExercise}} DAYS
+
+MSEL STATUS
+{{MselStatus}}
+
+ATTENTION NEEDED
+{{AttentionItems}}
+
+PARTICIPANT STATUS
+{{ParticipantStatus}}
+
+Open exercise dashboard: {{ExerciseUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterWeeklyOrgReportTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "WeeklyOrgReport",
+            SubjectTemplate: "Weekly Report: {{OrganizationName}} - {{ReportPeriod}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Weekly Organization Report</h2>
+<p><strong>{{OrganizationName}}</strong></p>
+<p style=""color: #666666;"">{{ReportPeriod}}</p>
+<p>Hi {{RecipientName}},</p>
+<h3 style=""color: #1a237e;"">This Week's Activity</h3>
+<div style=""margin: 8px 0;"">{{ActivityMetrics}}</div>
+<h3 style=""color: #1a237e;"">Upcoming Exercises</h3>
+<div style=""margin: 8px 0;"">{{UpcomingExercises}}</div>
+<h3 style=""color: #1a237e;"">Team Updates</h3>
+<div style=""margin: 8px 0;"">{{TeamUpdates}}</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{DashboardUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Organization Dashboard</a>
+</p>",
+            PlainTextContent: @"Weekly Organization Report
+{{OrganizationName}}
+{{ReportPeriod}}
+
+Hi {{RecipientName}},
+
+THIS WEEK'S ACTIVITY
+{{ActivityMetrics}}
+
+UPCOMING EXERCISES
+{{UpcomingExercises}}
+
+TEAM UPDATES
+{{TeamUpdates}}
+
+View organization dashboard: {{DashboardUrl}}
 
 ---
 Cadence - Exercise Management Platform"
