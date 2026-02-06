@@ -5,6 +5,36 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.1.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.0.0...frontend-v2.1.0) (2026-02-06)
+
+
+### Features
+
+* **eeg:** add EEG Entries page and fix authorization routes ([2a9abd3](https://github.com/dynamisinc/cadence/commit/2a9abd336429b48056abb143a6a7028431b36f55))
+* **eeg:** add Exercise Evaluation Guide feature ([d7365d4](https://github.com/dynamisinc/cadence/commit/d7365d4182dc9e7ed5f8ceebed95de4099ee3df8))
+* **eeg:** add grouped views, SignalR updates, DnD reorder, inject linking ([cbbe413](https://github.com/dynamisinc/cadence/commit/cbbe413a18429c9d9a09d24571a5d3d4782c6e4d))
+* **eeg:** add tests and refactor evaluator contact prompt ([c681ce0](https://github.com/dynamisinc/cadence/commit/c681ce01989134412ab10219d3dcf8b413224e2b))
+* **eeg:** Exercise Evaluation Guide (EEG) feature ([42a4369](https://github.com/dynamisinc/cadence/commit/42a4369b66528d2bb1367a820c182d29d342183b))
+* **eeg:** implement EEG document generation (S13a/S13b) ([d3670d0](https://github.com/dynamisinc/cadence/commit/d3670d0ca295c921d02e425869983ada173bb14b))
+
+
+### Bug Fixes
+
+* **auth:** improve password field UX and icon sizing ([594664e](https://github.com/dynamisinc/cadence/commit/594664e57245c513eb0cbcb3de9f252f625246d4))
+* **eeg:** add observed-at time field and fix UTC display ([3165ba5](https://github.com/dynamisinc/cadence/commit/3165ba5789e5bf23445ea34bbfe2d9af3e42a335))
+* **eeg:** add org-scoping and authorization for capability targets ([4502a65](https://github.com/dynamisinc/cadence/commit/4502a65bc01ce71f2d02d93f88c47469a1673c82))
+* **eeg:** align EegDocumentDialog test mocks with EegCoverageDto type ([013eb9a](https://github.com/dynamisinc/cadence/commit/013eb9a2d1b547e881457d5002d13306ec037f4a))
+* **eeg:** compact critical task item layout on tablet/laptop screens ([c4d2a0f](https://github.com/dynamisinc/cadence/commit/c4d2a0f8e461a1d47fa86434c0683c01fab3d614))
+* **eeg:** correct permission checks and edited timestamp detection ([b0486b4](https://github.com/dynamisinc/cadence/commit/b0486b4c2be42da6b5e337556287d5df28651a7a))
+* **eeg:** fix 5 failing grouped view tests with theme provider and scoped queries ([e21b475](https://github.com/dynamisinc/cadence/commit/e21b475a8f195815b3e1f994d97e28e2ce6d2705))
+* **eeg:** improve date formatting and add currentUserId for edit checks ([c59d202](https://github.com/dynamisinc/cadence/commit/c59d20235745bd77b32ee0ea62f01ddd88d58aa5))
+* **eeg:** improve test stability and accessibility ([76c070d](https://github.com/dynamisinc/cadence/commit/76c070d2183730036c3dd82f37370f78e71309c9))
+* **eeg:** stabilize dialog size and add EEG entry to observations page ([de16fc7](https://github.com/dynamisinc/cadence/commit/de16fc70400d27fe6ff0e0963d2935fffdac7efb))
+* **eeg:** update coverage display in EegDocumentDialog and clean up exports in index ([619d0c3](https://github.com/dynamisinc/cadence/commit/619d0c3ba10f576f0aa73bbf031ce71094acba58))
+* **eeg:** use correct loading property from useInjects hook ([897ff19](https://github.com/dynamisinc/cadence/commit/897ff1960f131af9468ceef27949105c80275e0d))
+* **ui:** add route error fallback, fix password test blur events, wire up grouped EEG views ([bf1ce0c](https://github.com/dynamisinc/cadence/commit/bf1ce0c8f2efee767b04c99d67118de939b3a479))
+* **ui:** resolve all ESLint errors and warnings across 17 files ([338314a](https://github.com/dynamisinc/cadence/commit/338314af465c8cbdea4d7699d8c8be0e4c93786d))
+
 ## [2.0.0](https://github.com/dynamisinc/cadence/compare/frontend-v1.2.0...frontend-v2.0.0) (2026-02-04)
 
 

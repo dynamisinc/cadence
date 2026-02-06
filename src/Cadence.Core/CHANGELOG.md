@@ -2,6 +2,21 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.1.0](https://github.com/dynamisinc/cadence/compare/api-v3.0.0...api-v3.1.0) (2026-02-06)
+
+
+### Features
+
+* **eeg:** add Exercise Evaluation Guide feature ([d7365d4](https://github.com/dynamisinc/cadence/commit/d7365d4182dc9e7ed5f8ceebed95de4099ee3df8))
+* **eeg:** add grouped views, SignalR updates, DnD reorder, inject linking ([cbbe413](https://github.com/dynamisinc/cadence/commit/cbbe413a18429c9d9a09d24571a5d3d4782c6e4d))
+* **eeg:** Exercise Evaluation Guide (EEG) feature ([42a4369](https://github.com/dynamisinc/cadence/commit/42a4369b66528d2bb1367a820c182d29d342183b))
+* **eeg:** implement EEG document generation (S13a/S13b) ([d3670d0](https://github.com/dynamisinc/cadence/commit/d3670d0ca295c921d02e425869983ada173bb14b))
+
+
+### Bug Fixes
+
+* **eeg:** stabilize dialog size and add EEG entry to observations page ([de16fc7](https://github.com/dynamisinc/cadence/commit/de16fc70400d27fe6ff0e0963d2935fffdac7efb))
+
 ## [3.0.0](https://github.com/dynamisinc/cadence/compare/api-v2.0.0...api-v3.0.0) (2026-02-04)
 
 
