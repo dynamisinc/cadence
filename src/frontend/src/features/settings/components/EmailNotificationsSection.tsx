@@ -3,6 +3,7 @@
  *
  * Renders email notification preference toggles grouped by required/optional.
  * Fetches preferences from the API and saves changes optimistically.
+ * Uses 2-column grid layout on medium+ screens for better space utilization.
  */
 
 import { useState, useEffect, useCallback } from 'react'
@@ -14,6 +15,8 @@ import {
   Alert,
   CircularProgress,
   Chip,
+  Grid,
+  Paper,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelope } from '@fortawesome/free-solid-svg-icons'
@@ -35,9 +38,10 @@ const SectionHeader = () => (
 )
 
 /**
- * Single preference row with toggle switch
+ * Single preference card with toggle switch
+ * Displayed as a compact card within a grid layout
  */
-const PreferenceRow = ({
+const PreferenceCard = ({
   pref,
   onToggle,
   isUpdating,
@@ -46,15 +50,24 @@ const PreferenceRow = ({
   onToggle: (category: string, isEnabled: boolean) => void
   isUpdating: boolean
 }) => (
-  <Stack
-    direction="row"
-    alignItems="center"
-    justifyContent="space-between"
-    sx={{ py: 1 }}
+  <Paper
+    variant="outlined"
+    sx={{
+      px: 2,
+      py: 1.5,
+      height: '100%',
+      display: 'flex',
+      alignItems: 'center',
+      gap: 2,
+      transition: 'box-shadow 0.2s',
+      '&:hover': {
+        boxShadow: 1,
+      },
+    }}
   >
-    <Box sx={{ flex: 1 }}>
+    <Box sx={{ minWidth: 0 }}>
       <Stack direction="row" spacing={1} alignItems="center">
-        <Typography variant="body2" fontWeight={500}>
+        <Typography variant="body2" fontWeight={500} noWrap>
           {pref.displayName}
         </Typography>
         {pref.isMandatory && (
@@ -79,7 +92,7 @@ const PreferenceRow = ({
         'aria-label': `${pref.displayName} email notifications`,
       }}
     />
-  </Stack>
+  </Paper>
 )
 
 export const EmailNotificationsSection = () => {
@@ -153,23 +166,26 @@ export const EmailNotificationsSection = () => {
 
       {/* Required notifications */}
       {requiredPrefs.length > 0 && (
-        <Box sx={{ mb: 2 }}>
+        <Box sx={{ mb: 3 }}>
           <Typography
             variant="caption"
             color="text.secondary"
             fontWeight={600}
-            sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+            sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mb: 1.5, display: 'block' }}
           >
-            Always On
+            Required — cannot be disabled
           </Typography>
-          {requiredPrefs.map(pref => (
-            <PreferenceRow
-              key={pref.category}
-              pref={pref}
-              onToggle={handleToggle}
-              isUpdating={updatingCategory === pref.category}
-            />
-          ))}
+          <Grid container spacing={2}>
+            {requiredPrefs.map(pref => (
+              <Grid key={pref.category} size={{ xs: 12, md: 6 }}>
+                <PreferenceCard
+                  pref={pref}
+                  onToggle={handleToggle}
+                  isUpdating={updatingCategory === pref.category}
+                />
+              </Grid>
+            ))}
+          </Grid>
         </Box>
       )}
 
@@ -180,18 +196,21 @@ export const EmailNotificationsSection = () => {
             variant="caption"
             color="text.secondary"
             fontWeight={600}
-            sx={{ textTransform: 'uppercase', letterSpacing: 0.5 }}
+            sx={{ textTransform: 'uppercase', letterSpacing: 0.5, mb: 1.5, display: 'block' }}
           >
-            Customizable
+            Optional
           </Typography>
-          {optionalPrefs.map(pref => (
-            <PreferenceRow
-              key={pref.category}
-              pref={pref}
-              onToggle={handleToggle}
-              isUpdating={updatingCategory === pref.category}
-            />
-          ))}
+          <Grid container spacing={2}>
+            {optionalPrefs.map(pref => (
+              <Grid key={pref.category} size={{ xs: 12, md: 6 }}>
+                <PreferenceCard
+                  pref={pref}
+                  onToggle={handleToggle}
+                  isUpdating={updatingCategory === pref.category}
+                />
+              </Grid>
+            ))}
+          </Grid>
         </Box>
       )}
     </Box>

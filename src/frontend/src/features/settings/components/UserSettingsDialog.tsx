@@ -130,7 +130,7 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
   // Show loading state
   if (isLoading) {
     return (
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
         <DialogContent>
           <Box
             sx={{
@@ -155,7 +155,7 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       aria-labelledby="settings-dialog-title"
     >
