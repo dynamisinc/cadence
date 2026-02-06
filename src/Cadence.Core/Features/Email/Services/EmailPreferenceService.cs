@@ -56,11 +56,20 @@ public class EmailPreferenceService : IEmailPreferenceService
         // Mandatory categories always send
         if (MandatoryCategories.Contains(category))
         {
+            _logger.LogDebug(
+                "[EmailPref] CanSend check - User: {UserId}, Category: {Category}, Result: true (mandatory)",
+                userId, category);
             return true;
         }
 
         var prefs = await GetPreferencesAsync(userId, ct);
-        return prefs.TryGetValue(category, out var isEnabled) && isEnabled;
+        var canSend = prefs.TryGetValue(category, out var isEnabled) && isEnabled;
+
+        _logger.LogDebug(
+            "[EmailPref] CanSend check - User: {UserId}, Category: {Category}, Result: {CanSend}",
+            userId, category, canSend);
+
+        return canSend;
     }
 
     public async Task<IReadOnlyDictionary<EmailCategory, bool>> GetPreferencesAsync(
@@ -71,8 +80,11 @@ public class EmailPreferenceService : IEmailPreferenceService
 
         if (_cache.TryGetValue(cacheKey, out IReadOnlyDictionary<EmailCategory, bool>? cached) && cached != null)
         {
+            _logger.LogDebug("[EmailPref] Cache HIT for user {UserId}", userId);
             return cached;
         }
+
+        _logger.LogDebug("[EmailPref] Cache MISS for user {UserId}, loading from database", userId);
 
         var dbPrefs = await _context.UserEmailPreferences
             .IgnoreQueryFilters()
@@ -95,6 +107,13 @@ public class EmailPreferenceService : IEmailPreferenceService
         var frozen = (IReadOnlyDictionary<EmailCategory, bool>)result;
         _cache.Set(cacheKey, frozen, CacheDuration);
 
+        _logger.LogInformation(
+            "[EmailPref] Loaded preferences for user {UserId} - DbRecords: {DbCount}, " +
+            "Enabled: {EnabledCategories}, Disabled: {DisabledCategories}",
+            userId, dbPrefs.Count,
+            string.Join(", ", result.Where(kv => kv.Value).Select(kv => kv.Key)),
+            string.Join(", ", result.Where(kv => !kv.Value).Select(kv => kv.Key)));
+
         return frozen;
     }
 
@@ -106,6 +125,9 @@ public class EmailPreferenceService : IEmailPreferenceService
     {
         if (MandatoryCategories.Contains(category) && !isEnabled)
         {
+            _logger.LogWarning(
+                "[EmailPref] Rejected attempt to disable mandatory category - User: {UserId}, Category: {Category}",
+                userId, category);
             throw new InvalidOperationException(
                 $"Cannot disable mandatory email category '{category}'. " +
                 "Security and Invitation emails are required for account functionality.");
@@ -135,9 +157,9 @@ public class EmailPreferenceService : IEmailPreferenceService
         // Invalidate cache
         _cache.Remove($"email_prefs_{userId}");
 
-        _logger.LogDebug(
-            "Updated email preference for user {UserId}: {Category} = {IsEnabled}",
-            userId, category, isEnabled);
+        _logger.LogInformation(
+            "[EmailPref] Updated - User: {UserId}, Category: {Category}, IsEnabled: {IsEnabled}, WasExisting: {WasExisting}",
+            userId, category, isEnabled, existing != null);
     }
 
     public async Task InitializeDefaultsAsync(string userId, CancellationToken ct = default)
@@ -148,7 +170,9 @@ public class EmailPreferenceService : IEmailPreferenceService
 
         if (existingCount > 0)
         {
-            _logger.LogDebug("User {UserId} already has email preferences, skipping initialization.", userId);
+            _logger.LogDebug(
+                "[EmailPref] User {UserId} already has {Count} preferences, skipping initialization",
+                userId, existingCount);
             return;
         }
 
@@ -165,7 +189,9 @@ public class EmailPreferenceService : IEmailPreferenceService
 
         await _context.SaveChangesAsync(ct);
 
-        _logger.LogDebug("Initialized default email preferences for user {UserId}", userId);
+        _logger.LogInformation(
+            "[EmailPref] Initialized defaults for user {UserId} - {Count} categories created",
+            userId, DefaultPreferences.Count);
     }
 
     /// <summary>

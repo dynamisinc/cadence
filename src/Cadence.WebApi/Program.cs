@@ -177,10 +177,12 @@ var emailProvider = builder.Configuration.GetSection(EmailServiceOptions.Section
 if (emailProvider.Equals("AzureCommunicationServices", StringComparison.OrdinalIgnoreCase))
 {
     builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, AzureCommunicationEmailService>();
+    Console.WriteLine("[Startup] Email provider: AzureCommunicationServices");
 }
 else
 {
     builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, LoggingEmailService>();
+    Console.WriteLine("[Startup] Email provider: Logging (emails logged to console, not delivered)");
 }
 
 // Add SignalR Hub Context

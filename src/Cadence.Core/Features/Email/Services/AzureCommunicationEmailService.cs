@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Azure;
 using Azure.Communication.Email;
 using Cadence.Core.Features.Email.Models;
@@ -8,6 +9,7 @@ namespace Cadence.Core.Features.Email.Services;
 
 /// <summary>
 /// Production email service using Azure Communication Services.
+/// Includes structured logging for production troubleshooting.
 /// </summary>
 public class AzureCommunicationEmailService : IEmailService
 {
@@ -28,11 +30,14 @@ public class AzureCommunicationEmailService : IEmailService
         if (!string.IsNullOrWhiteSpace(_options.ConnectionString))
         {
             _client = new EmailClient(_options.ConnectionString);
+            _logger.LogInformation(
+                "[Email:ACS] Initialized - Sender: {SenderAddress}, Support: {SupportAddress}",
+                _options.DefaultSenderAddress, _options.SupportAddress);
         }
         else
         {
             _logger.LogWarning(
-                "ACS connection string is not configured. Email sending will fail. " +
+                "[Email:ACS] Connection string is not configured. Email sending will fail. " +
                 "Set Email:ConnectionString in appsettings or use Provider=Logging for development.");
         }
     }
@@ -51,7 +56,9 @@ public class AzureCommunicationEmailService : IEmailService
 
         if (_client == null)
         {
-            _logger.LogError("Cannot send email: ACS connection string is not configured.");
+            _logger.LogError(
+                "[Email:ACS] Cannot send - connection string not configured. To: {ToEmail}, Subject: {Subject}",
+                message.To.Email, message.Subject);
             return new Models.EmailSendResult(
                 MessageId: null,
                 Status: Models.EmailSendStatus.Failed,
@@ -61,6 +68,7 @@ public class AzureCommunicationEmailService : IEmailService
 
         var from = message.From ?? new Models.EmailSender(_options.DefaultSenderAddress, _options.DefaultSenderName);
         var senderAddress = from.Email;
+        var sw = Stopwatch.StartNew();
 
         try
         {
@@ -80,15 +88,23 @@ public class AzureCommunicationEmailService : IEmailService
                 acsMessage.ReplyTo.Add(new EmailAddress(message.ReplyTo));
             }
 
-            _logger.LogInformation(
-                "Sending email via ACS - From: {FromEmail}, To: {ToEmail}, Subject: {Subject}",
-                senderAddress, message.To.Email, message.Subject);
+            _logger.LogDebug(
+                "[Email:ACS] Sending - From: {FromName} <{FromEmail}>, To: {ToName} <{ToEmail}>, " +
+                "Subject: {Subject}, HasHtml: {HasHtml}, HasPlainText: {HasPlainText}, HtmlLength: {HtmlLength}",
+                from.DisplayName, senderAddress,
+                message.To.DisplayName, message.To.Email,
+                message.Subject,
+                !string.IsNullOrEmpty(message.HtmlBody),
+                !string.IsNullOrEmpty(message.PlainTextBody),
+                message.HtmlBody?.Length ?? 0);
 
             var operation = await _client.SendAsync(WaitUntil.Started, acsMessage, ct);
+            sw.Stop();
 
             _logger.LogInformation(
-                "Email queued via ACS - OperationId: {OperationId}, To: {ToEmail}",
-                operation.Id, message.To.Email);
+                "[Email:ACS] Queued - To: {ToEmail}, Subject: {Subject}, " +
+                "OperationId: {OperationId}, ElapsedMs: {ElapsedMs}",
+                message.To.Email, message.Subject, operation.Id, sw.ElapsedMilliseconds);
 
             return new Models.EmailSendResult(
                 MessageId: operation.Id,
@@ -97,9 +113,11 @@ public class AzureCommunicationEmailService : IEmailService
         }
         catch (RequestFailedException ex)
         {
+            sw.Stop();
             _logger.LogError(ex,
-                "ACS email send failed - To: {ToEmail}, Subject: {Subject}, ErrorCode: {ErrorCode}",
-                message.To.Email, message.Subject, ex.ErrorCode);
+                "[Email:ACS] FAILED - To: {ToEmail}, Subject: {Subject}, " +
+                "ErrorCode: {ErrorCode}, HttpStatus: {HttpStatus}, ElapsedMs: {ElapsedMs}",
+                message.To.Email, message.Subject, ex.ErrorCode, ex.Status, sw.ElapsedMilliseconds);
 
             return new Models.EmailSendResult(
                 MessageId: null,
@@ -109,9 +127,11 @@ public class AzureCommunicationEmailService : IEmailService
         }
         catch (Exception ex)
         {
+            sw.Stop();
             _logger.LogError(ex,
-                "Unexpected error sending email - To: {ToEmail}, Subject: {Subject}",
-                message.To.Email, message.Subject);
+                "[Email:ACS] Unexpected error - To: {ToEmail}, Subject: {Subject}, " +
+                "ExceptionType: {ExceptionType}, ElapsedMs: {ElapsedMs}",
+                message.To.Email, message.Subject, ex.GetType().Name, sw.ElapsedMilliseconds);
 
             return new Models.EmailSendResult(
                 MessageId: null,
@@ -132,7 +152,18 @@ public class AzureCommunicationEmailService : IEmailService
             throw new InvalidOperationException("Template renderer is not configured.");
         }
 
+        var sw = Stopwatch.StartNew();
+
+        _logger.LogDebug(
+            "[Email:ACS] Rendering template '{TemplateId}' for {ToEmail}, ModelType: {ModelType}",
+            templateId, recipient.Email, typeof(TModel).Name);
+
         var rendered = await _templateRenderer.RenderAsync(templateId, model);
+        var renderMs = sw.ElapsedMilliseconds;
+
+        _logger.LogDebug(
+            "[Email:ACS] Template '{TemplateId}' rendered in {RenderMs}ms - Subject: {Subject}, HtmlLength: {HtmlLength}",
+            templateId, renderMs, rendered.Subject, rendered.HtmlBody?.Length ?? 0);
 
         var emailMessage = new Models.EmailMessage(
             Subject: rendered.Subject,
@@ -142,7 +173,14 @@ public class AzureCommunicationEmailService : IEmailService
             ReplyTo: _options.SupportAddress
         );
 
-        return await SendAsync(emailMessage, ct);
+        var result = await SendAsync(emailMessage, ct);
+
+        _logger.LogInformation(
+            "[Email:ACS] Templated send complete - Template: {TemplateId}, To: {ToEmail}, " +
+            "Status: {Status}, MessageId: {MessageId}, TotalElapsedMs: {TotalElapsedMs}",
+            templateId, recipient.Email, result.Status, result.MessageId, sw.ElapsedMilliseconds);
+
+        return result;
     }
 
     private static bool IsValidEmail(string email)

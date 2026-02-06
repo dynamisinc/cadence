@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using Cadence.Core.Features.Email.Models;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -6,7 +7,7 @@ namespace Cadence.Core.Features.Email.Services;
 
 /// <summary>
 /// Development email service that logs email content instead of sending.
-/// Used in non-production environments to verify email content without actual delivery.
+/// Uses the same [Email:Log] prefix pattern as ACS service for consistent log filtering.
 /// </summary>
 public class LoggingEmailService : IEmailService
 {
@@ -22,6 +23,10 @@ public class LoggingEmailService : IEmailService
         _logger = logger;
         _options = options.Value;
         _templateRenderer = templateRenderer;
+
+        _logger.LogDebug(
+            "[Email:Log] Initialized (development mode) - Sender: {SenderAddress}, Support: {SupportAddress}",
+            _options.DefaultSenderAddress, _options.SupportAddress);
     }
 
     public Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken ct = default)
@@ -40,23 +45,29 @@ public class LoggingEmailService : IEmailService
         var from = message.From ?? new EmailSender(_options.DefaultSenderAddress, _options.DefaultSenderName);
 
         _logger.LogInformation(
-            "[EMAIL] From: {FromName} <{FromEmail}> | To: {ToName} <{ToEmail}> | Subject: {Subject}",
-            from.DisplayName, from.Email, message.To.DisplayName, message.To.Email, message.Subject);
+            "[Email:Log] SENT (logged, not delivered) - From: {FromName} <{FromEmail}>, " +
+            "To: {ToName} <{ToEmail}>, Subject: {Subject}, MessageId: {MessageId}, " +
+            "HtmlLength: {HtmlLength}, HasPlainText: {HasPlainText}",
+            from.DisplayName, from.Email,
+            message.To.DisplayName, message.To.Email,
+            message.Subject, messageId,
+            message.HtmlBody?.Length ?? 0,
+            !string.IsNullOrEmpty(message.PlainTextBody));
 
         _logger.LogDebug(
-            "[EMAIL] HTML Body:\n{HtmlBody}",
-            message.HtmlBody);
+            "[Email:Log] HTML Body for {MessageId}:\n{HtmlBody}",
+            messageId, message.HtmlBody);
 
         if (!string.IsNullOrEmpty(message.PlainTextBody))
         {
             _logger.LogDebug(
-                "[EMAIL] Plain Text Body:\n{PlainTextBody}",
-                message.PlainTextBody);
+                "[Email:Log] Plain Text Body for {MessageId}:\n{PlainTextBody}",
+                messageId, message.PlainTextBody);
         }
 
         if (!string.IsNullOrEmpty(message.ReplyTo))
         {
-            _logger.LogDebug("[EMAIL] Reply-To: {ReplyTo}", message.ReplyTo);
+            _logger.LogDebug("[Email:Log] Reply-To: {ReplyTo}", message.ReplyTo);
         }
 
         return Task.FromResult(new EmailSendResult(
@@ -76,7 +87,18 @@ public class LoggingEmailService : IEmailService
             throw new InvalidOperationException("Template renderer is not configured.");
         }
 
+        var sw = Stopwatch.StartNew();
+
+        _logger.LogDebug(
+            "[Email:Log] Rendering template '{TemplateId}' for {ToEmail}, ModelType: {ModelType}",
+            templateId, recipient.Email, typeof(TModel).Name);
+
         var rendered = await _templateRenderer.RenderAsync(templateId, model);
+        var renderMs = sw.ElapsedMilliseconds;
+
+        _logger.LogDebug(
+            "[Email:Log] Template '{TemplateId}' rendered in {RenderMs}ms - Subject: {Subject}, HtmlLength: {HtmlLength}",
+            templateId, renderMs, rendered.Subject, rendered.HtmlBody?.Length ?? 0);
 
         var message = new EmailMessage(
             Subject: rendered.Subject,
@@ -86,9 +108,14 @@ public class LoggingEmailService : IEmailService
             ReplyTo: _options.SupportAddress
         );
 
-        _logger.LogInformation("[EMAIL] Rendered template '{TemplateId}' for {Recipient}", templateId, recipient.Email);
+        var result = await SendAsync(message, ct);
 
-        return await SendAsync(message, ct);
+        _logger.LogInformation(
+            "[Email:Log] Templated send complete - Template: {TemplateId}, To: {ToEmail}, " +
+            "Status: {Status}, MessageId: {MessageId}, TotalElapsedMs: {TotalElapsedMs}",
+            templateId, recipient.Email, result.Status, result.MessageId, sw.ElapsedMilliseconds);
+
+        return result;
     }
 
     private static bool IsValidEmail(string email)
