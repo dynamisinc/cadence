@@ -72,7 +72,7 @@ export const LinkedInjectsDialog: FC<LinkedInjectsDialogProps> = ({
     isUpdating,
   } = useLinkedInjects(exerciseId, task?.id ?? '')
 
-  const { injects = [], isLoading: injectsLoading } = useInjects(exerciseId)
+  const { injects = [], loading: injectsLoading } = useInjects(exerciseId)
 
   // Local state for optimistic updates
   const [localLinkedIds, setLocalLinkedIds] = useState<string[]>([])
