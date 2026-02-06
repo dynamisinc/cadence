@@ -77,11 +77,19 @@ public static class ServiceCollectionExtensions
 
         // Email Services
         services.AddMemoryCache();
-        services.AddSingleton<InMemoryEmailTemplateStore>();
+        services.AddSingleton<InMemoryEmailTemplateStore>(sp =>
+        {
+            var store = new InMemoryEmailTemplateStore();
+            EmailTemplateRegistrar.RegisterAll(store);
+            return store;
+        });
         services.AddSingleton<IEmailTemplateStore>(sp => sp.GetRequiredService<InMemoryEmailTemplateStore>());
         services.AddScoped<IEmailTemplateRenderer, PlaceholderEmailTemplateRenderer>();
         services.AddScoped<IEmailLogService, EmailLogService>();
         services.AddScoped<IEmailPreferenceService, EmailPreferenceService>();
+        services.AddScoped<AuthenticationEmailService>();
+        services.AddScoped<Cadence.Core.Features.Authentication.Services.IEmailService>(sp =>
+            sp.GetRequiredService<AuthenticationEmailService>());
 
         return services;
     }

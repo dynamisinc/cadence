@@ -46,4 +46,20 @@ public interface IEmailService
     Task<bool> SendAccountReactivatedEmailAsync(
         string email,
         string displayName);
+
+    /// <summary>
+    /// Send password changed confirmation email (security notification).
+    /// </summary>
+    /// <param name="email">Recipient's email address.</param>
+    /// <param name="displayName">Recipient's display name.</param>
+    /// <param name="changeMethod">How the password was changed (e.g., "Password reset", "Settings").</param>
+    /// <param name="resetPasswordUrl">URL to reset password if this was unauthorized.</param>
+    /// <param name="supportUrl">URL for support contact.</param>
+    /// <returns>True if email sent successfully, false otherwise.</returns>
+    Task<bool> SendPasswordChangedEmailAsync(
+        string email,
+        string displayName,
+        string changeMethod,
+        string resetPasswordUrl,
+        string supportUrl);
 }
