@@ -241,6 +241,37 @@ export const injectService = {
     )
     return response.data.canApprove
   },
+
+  // ==========================================================================
+  // Critical Task Linking (S05 - EEG)
+  // ==========================================================================
+
+  /**
+   * Get linked critical task IDs for an inject
+   */
+  getLinkedCriticalTasks: async (
+    exerciseId: string,
+    injectId: string,
+  ): Promise<string[]> => {
+    const response = await apiClient.get<string[]>(
+      `/exercises/${exerciseId}/injects/${injectId}/critical-tasks`,
+    )
+    return response.data
+  },
+
+  /**
+   * Set linked critical tasks for an inject
+   */
+  setLinkedCriticalTasks: async (
+    exerciseId: string,
+    injectId: string,
+    criticalTaskIds: string[],
+  ): Promise<void> => {
+    await apiClient.put(
+      `/exercises/${exerciseId}/injects/${injectId}/critical-tasks`,
+      { criticalTaskIds },
+    )
+  },
 }
 
 export default injectService

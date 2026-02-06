@@ -24,6 +24,8 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Dialog,
+  DialogContent,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -38,6 +40,7 @@ import {
   faGrip,
   faWindowMaximize,
   faGear,
+  faClipboardCheck,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -67,6 +70,8 @@ import {
   useObservations,
   observationsQueryKey,
 } from '../../observations'
+import { EegEntryForm, EegCoverageDashboard } from '../../eeg/components'
+import { eegEntryKeys } from '../../eeg/hooks/useEegEntries'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
@@ -290,6 +295,11 @@ export const ExerciseConductPage = () => {
     [exerciseId, queryClient],
   )
 
+  // Handle EEG entry created - invalidate coverage queries
+  const handleEegEntryCreated = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: eegEntryKeys.coverage(exerciseId!) })
+  }, [exerciseId, queryClient])
+
   // Track clock state and elapsed time before disconnection to detect changes during offline period
   const previousClockStateRef = useRef<ExerciseClockState | null>(null)
   const previousElapsedTimeMsRef = useRef<number>(0)
@@ -469,6 +479,12 @@ export const ExerciseConductPage = () => {
   // Handle adding observation from inject drawer - pre-select the inject
   const [preSelectedInjectId, setPreSelectedInjectId] = useState<string | null>(null)
 
+  // EEG Entry state
+  const [showEegEntryForm, setShowEegEntryForm] = useState(false)
+  const [eegPreSelectedTaskId, setEegPreSelectedTaskId] = useState<string | null>(null)
+  const [eegPreSelectedCapabilityTargetId, setEegPreSelectedCapabilityTargetId] =
+    useState<string | null>(null)
+
   // Handlers
   const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0]) => {
     setIsSubmittingObservation(true)
@@ -517,6 +533,29 @@ export const ExerciseConductPage = () => {
     setShowObservationForm(false)
     setEditingObservation(null)
     setPreSelectedInjectId(null)
+  }
+
+  // Handle EEG Entry form open/close
+  const handleOpenEegEntry = () => {
+    setShowEegEntryForm(true)
+  }
+
+  const handleCloseEegEntry = () => {
+    setShowEegEntryForm(false)
+    setEegPreSelectedTaskId(null)
+    setEegPreSelectedCapabilityTargetId(null)
+  }
+
+  const handleEegEntrySaved = () => {
+    // Invalidate coverage when entry saved
+    handleEegEntryCreated()
+  }
+
+  // Handle assess task from coverage dashboard
+  const handleAssessTask = (taskId: string, capabilityTargetId: string) => {
+    setEegPreSelectedTaskId(taskId)
+    setEegPreSelectedCapabilityTargetId(capabilityTargetId)
+    setShowEegEntryForm(true)
   }
 
   // Stop clock with confirmation
@@ -1049,13 +1088,23 @@ export const ExerciseConductPage = () => {
                     </IconButton>
                   </Stack>
                   {canAddObservations && !showObservationForm && (
-                    <CobraPrimaryButton
-                      size="small"
-                      startIcon={<FontAwesomeIcon icon={faPlus} />}
-                      onClick={() => setShowObservationForm(true)}
-                    >
-                      Add
-                    </CobraPrimaryButton>
+                    <Stack direction="row" spacing={1}>
+                      <CobraPrimaryButton
+                        size="small"
+                        startIcon={<FontAwesomeIcon icon={faPlus} />}
+                        onClick={() => setShowObservationForm(true)}
+                      >
+                        Add
+                      </CobraPrimaryButton>
+                      <CobraPrimaryButton
+                        size="small"
+                        startIcon={<FontAwesomeIcon icon={faClipboardCheck} />}
+                        onClick={handleOpenEegEntry}
+                        sx={{ backgroundColor: 'secondary.main' }}
+                      >
+                        EEG Entry
+                      </CobraPrimaryButton>
+                    </Stack>
                   )}
                 </Stack>
 
@@ -1089,6 +1138,18 @@ export const ExerciseConductPage = () => {
                       isSubmitting={isSubmittingObservation}
                     />
                     <Divider sx={{ my: 2 }} />
+                  </Box>
+                )}
+
+                {/* EEG Coverage Dashboard (when expanded) */}
+                {observationsExpanded && canAddObservations && (
+                  <Box sx={{ mb: 2, flexShrink: 0 }}>
+                    <EegCoverageDashboard
+                      exerciseId={exerciseId!}
+                      compact
+                      onAssessTask={handleAssessTask}
+                      onDetailsClick={() => navigate(`/exercises/${exerciseId}/eeg-entries`)}
+                    />
                   </Box>
                 )}
 
@@ -1169,6 +1230,29 @@ export const ExerciseConductPage = () => {
         exerciseName={exercise.name}
         onClose={() => setSettingsDialogOpen(false)}
       />
+
+      {/* EEG Entry Form Dialog */}
+      <Dialog
+        open={showEegEntryForm}
+        onClose={handleCloseEegEntry}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{
+          sx: { minHeight: '600px', maxHeight: '90vh' },
+        }}
+      >
+        <DialogContent sx={{ p: 0 }}>
+          <EegEntryForm
+            exerciseId={exerciseId!}
+            exerciseTime={displayTime}
+            availableInjects={injects.filter(i => i.status !== 'Draft')}
+            preSelectedCapabilityTargetId={eegPreSelectedCapabilityTargetId ?? undefined}
+            preSelectedTaskId={eegPreSelectedTaskId ?? undefined}
+            onClose={handleCloseEegEntry}
+            onSaved={handleEegEntrySaved}
+          />
+        </DialogContent>
+      </Dialog>
     </Box>
   )
 }

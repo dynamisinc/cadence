@@ -1,5 +1,6 @@
 using Cadence.Core.Features.Capabilities.Models.DTOs;
 using Cadence.Core.Features.Capabilities.Services;
+using Cadence.Core.Hubs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -18,18 +19,51 @@ public class CapabilitiesController : ControllerBase
     private readonly ICapabilityService _capabilityService;
     private readonly IPredefinedLibraryProvider _libraryProvider;
     private readonly ICapabilityImportService _importService;
+    private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<CapabilitiesController> _logger;
 
     public CapabilitiesController(
         ICapabilityService capabilityService,
         IPredefinedLibraryProvider libraryProvider,
         ICapabilityImportService importService,
+        ICurrentOrganizationContext orgContext,
         ILogger<CapabilitiesController> logger)
     {
         _capabilityService = capabilityService;
         _libraryProvider = libraryProvider;
         _importService = importService;
+        _orgContext = orgContext;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Validates that the user has access to the requested organization.
+    /// Returns a Forbid result if access is denied, null if access is allowed.
+    /// </summary>
+    private ActionResult? ValidateOrganizationAccess(Guid organizationId)
+    {
+        // SysAdmins can access any organization
+        if (_orgContext.IsSysAdmin)
+        {
+            return null;
+        }
+
+        // Regular users must have a current organization context
+        if (!_orgContext.CurrentOrganizationId.HasValue)
+        {
+            return Forbid();
+        }
+
+        // Regular users can only access their current organization
+        if (_orgContext.CurrentOrganizationId.Value != organizationId)
+        {
+            _logger.LogWarning(
+                "User attempted to access capabilities for organization {RequestedOrgId} but is in organization {CurrentOrgId}",
+                organizationId, _orgContext.CurrentOrganizationId.Value);
+            return Forbid();
+        }
+
+        return null;
     }
 
     /// <summary>
@@ -43,6 +77,9 @@ public class CapabilitiesController : ControllerBase
         Guid organizationId,
         [FromQuery] bool includeInactive = false)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         var capabilities = await _capabilityService.GetCapabilitiesAsync(organizationId, includeInactive);
         return Ok(capabilities);
     }
@@ -56,6 +93,9 @@ public class CapabilitiesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<CapabilityDto>> GetCapability(Guid organizationId, Guid id)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         var capability = await _capabilityService.GetCapabilityAsync(organizationId, id);
 
         if (capability == null)
@@ -77,6 +117,9 @@ public class CapabilitiesController : ControllerBase
         Guid organizationId,
         CreateCapabilityRequest request)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         // Validation
         var validationError = ValidateCapabilityRequest(request.Name, request.Description, request.Category);
         if (validationError != null)
@@ -117,6 +160,9 @@ public class CapabilitiesController : ControllerBase
         Guid id,
         UpdateCapabilityRequest request)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         // Validation
         var validationError = ValidateCapabilityRequest(request.Name, request.Description, request.Category);
         if (validationError != null)
@@ -155,6 +201,9 @@ public class CapabilitiesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<IActionResult> DeleteCapability(Guid organizationId, Guid id)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         var deactivated = await _capabilityService.DeactivateCapabilityAsync(organizationId, id);
 
         if (!deactivated)
@@ -176,6 +225,9 @@ public class CapabilitiesController : ControllerBase
     [HttpPost("{id:guid}/reactivate")]
     public async Task<IActionResult> ReactivateCapability(Guid organizationId, Guid id)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         var reactivated = await _capabilityService.ReactivateCapabilityAsync(organizationId, id);
 
         if (!reactivated)
@@ -202,6 +254,9 @@ public class CapabilitiesController : ControllerBase
         [FromQuery] string name,
         [FromQuery] Guid? excludeId = null)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         if (string.IsNullOrWhiteSpace(name))
         {
             return BadRequest(new { message = "Name is required" });
@@ -218,11 +273,14 @@ public class CapabilitiesController : ControllerBase
     /// <summary>
     /// Get available predefined capability libraries.
     /// </summary>
-    /// <param name="organizationId">The organization ID (required by route but not used).</param>
+    /// <param name="organizationId">The organization ID.</param>
     /// <returns>List of available libraries with metadata.</returns>
     [HttpGet("libraries")]
     public ActionResult<IEnumerable<PredefinedLibraryInfo>> GetAvailableLibraries(Guid organizationId)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         var libraries = _libraryProvider.GetAvailableLibraries();
         return Ok(libraries);
     }
@@ -239,6 +297,9 @@ public class CapabilitiesController : ControllerBase
         Guid organizationId,
         [FromBody] ImportLibraryRequest request)
     {
+        var accessError = ValidateOrganizationAccess(organizationId);
+        if (accessError != null) return accessError;
+
         if (string.IsNullOrWhiteSpace(request.LibraryName))
         {
             return BadRequest(new { message = "Library name is required" });

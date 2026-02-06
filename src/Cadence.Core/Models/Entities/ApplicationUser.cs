@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Identity;
 
 namespace Cadence.Core.Models.Entities;
@@ -41,6 +42,14 @@ public class ApplicationUser : IdentityUser
     /// Null for self-registered users.
     /// </summary>
     public string? CreatedById { get; set; }
+
+    /// <summary>
+    /// Optional phone number for EEG document generation.
+    /// Stored as entered (no format normalization).
+    /// Hides the base IdentityUser.PhoneNumber to add length validation.
+    /// </summary>
+    [MaxLength(25)]
+    public new string? PhoneNumber { get; set; }
 
     /// <summary>
     /// Primary organization this user belongs to.

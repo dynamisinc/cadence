@@ -288,6 +288,65 @@ public class UsersController : ControllerBase
     }
 
     /// <summary>
+    /// Get the current user's profile including contact information.
+    /// Any authenticated user can access their own profile.
+    /// </summary>
+    [HttpGet("me")]
+    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
+    [ProducesResponseType(typeof(CurrentUserProfileDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetMyProfile()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        var profile = await _userService.GetCurrentUserProfileAsync(userId);
+        if (profile == null)
+        {
+            return NotFound(new { message = "User profile not found" });
+        }
+
+        return Ok(profile);
+    }
+
+    /// <summary>
+    /// Update the current user's contact information (phone number).
+    /// Any authenticated user can update their own contact info.
+    /// </summary>
+    [HttpPatch("me/contact")]
+    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
+    [ProducesResponseType(typeof(UserContactDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> UpdateMyContact([FromBody] UpdateContactRequest request)
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return Unauthorized();
+        }
+
+        try
+        {
+            var result = await _userService.UpdatePhoneNumberAsync(userId, request.PhoneNumber);
+            _logger.LogInformation("User {UserId} updated their phone number", userId);
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { errors = new { phoneNumber = new[] { ex.Message } } });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Get the current user's organization memberships.
     /// Any authenticated user can access their own memberships.
     /// </summary>

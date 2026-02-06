@@ -105,6 +105,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<InjectStatusHistory> InjectStatusHistories => Set<InjectStatusHistory>();
     public DbSet<ApprovalNotification> ApprovalNotifications => Set<ApprovalNotification>();
 
+    // EEG (Exercise Evaluation Guide) entities
+    public DbSet<CapabilityTarget> CapabilityTargets => Set<CapabilityTarget>();
+    public DbSet<CriticalTask> CriticalTasks => Set<CriticalTask>();
+    public DbSet<InjectCriticalTask> InjectCriticalTasks => Set<InjectCriticalTask>();
+    public DbSet<EegEntry> EegEntries => Set<EegEntry>();
+
     // =========================================================================
     // Model Configuration
     // =========================================================================
@@ -198,6 +204,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureExerciseTargetCapability(modelBuilder);
         ConfigureInjectStatusHistory(modelBuilder);
         ConfigureApprovalNotification(modelBuilder);
+
+        // EEG (Exercise Evaluation Guide) entities
+        ConfigureCapabilityTarget(modelBuilder);
+        ConfigureCriticalTask(modelBuilder);
+        ConfigureInjectCriticalTask(modelBuilder);
+        ConfigureEegEntry(modelBuilder);
     }
 
     /// <summary>
@@ -1240,6 +1252,138 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(e => e.TriggeredByUserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    // =========================================================================
+    // EEG (Exercise Evaluation Guide) Entity Configurations
+    // =========================================================================
+
+    private void ConfigureCapabilityTarget(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CapabilityTarget>(entity =>
+        {
+            entity.Property(e => e.TargetDescription).HasMaxLength(500).IsRequired();
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => e.CapabilityId);
+            entity.HasIndex(e => new { e.ExerciseId, e.SortOrder });
+
+            // Relationship to Exercise (cascade delete when exercise is deleted)
+            entity.HasOne(e => e.Exercise)
+                .WithMany(ex => ex.CapabilityTargets)
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to Capability (no cascade - capability can be deactivated without deleting targets)
+            entity.HasOne(e => e.Capability)
+                .WithMany(c => c.CapabilityTargets)
+                .HasForeignKey(e => e.CapabilityId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship to Organization (for data isolation)
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private static void ConfigureCriticalTask(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<CriticalTask>(entity =>
+        {
+            entity.Property(e => e.TaskDescription).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.Standard).HasMaxLength(1000);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.OrganizationId);
+            entity.HasIndex(e => e.CapabilityTargetId);
+            entity.HasIndex(e => new { e.CapabilityTargetId, e.SortOrder });
+
+            // Relationship to Organization (required for multi-tenancy data isolation)
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            // Relationship to CapabilityTarget (cascade delete when target is deleted)
+            entity.HasOne(e => e.CapabilityTarget)
+                .WithMany(ct => ct.CriticalTasks)
+                .HasForeignKey(e => e.CapabilityTargetId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureInjectCriticalTask(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<InjectCriticalTask>(entity =>
+        {
+            // Composite primary key
+            entity.HasKey(e => new { e.InjectId, e.CriticalTaskId });
+
+            // Audit fields for HSEEP compliance
+            entity.Property(e => e.CreatedBy).HasMaxLength(450).IsRequired();
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.InjectId);
+            entity.HasIndex(e => e.CriticalTaskId);
+
+            // Relationship to Inject (cascade - when inject is deleted, remove links)
+            entity.HasOne(e => e.Inject)
+                .WithMany(i => i.LinkedCriticalTasks)
+                .HasForeignKey(e => e.InjectId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to CriticalTask (restrict to avoid cascade cycle in SQL Server)
+            entity.HasOne(e => e.CriticalTask)
+                .WithMany(ct => ct.LinkedInjects)
+                .HasForeignKey(e => e.CriticalTaskId)
+                .OnDelete(DeleteBehavior.Restrict);
+        });
+    }
+
+    private void ConfigureEegEntry(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<EegEntry>(entity =>
+        {
+            entity.Property(e => e.ObservationText).HasMaxLength(4000).IsRequired();
+            entity.Property(e => e.Rating).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.EvaluatorId).HasMaxLength(450).IsRequired();
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.CriticalTaskId);
+            entity.HasIndex(e => e.EvaluatorId);
+            entity.HasIndex(e => e.TriggeringInjectId);
+            entity.HasIndex(e => e.ObservedAt);
+            entity.HasIndex(e => new { e.CriticalTaskId, e.ObservedAt });
+
+            // Relationship to CriticalTask (cascade delete when task is deleted)
+            entity.HasOne(e => e.CriticalTask)
+                .WithMany(ct => ct.EegEntries)
+                .HasForeignKey(e => e.CriticalTaskId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to ApplicationUser (evaluator)
+            entity.HasOne(e => e.Evaluator)
+                .WithMany()
+                .HasForeignKey(e => e.EvaluatorId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Relationship to Inject (triggering inject, optional)
+            entity.HasOne(e => e.TriggeringInject)
+                .WithMany(i => i.TriggeredEegEntries)
+                .HasForeignKey(e => e.TriggeringInjectId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Relationship to Organization (for data isolation)
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Restrict);
         });
     }
 

@@ -26,6 +26,25 @@ Target capabilities define the scope of evaluation for an exercise. Per HSEEP me
 
 Target capabilities are selected from the organization's capability library (which may include FEMA, NATO, NIST, ISO, or custom capabilities). An exercise can target any number of capabilities, though HSEEP guidance suggests focusing on 3-5 key capabilities per exercise.
 
+### Relationship to EEG Feature
+
+This story provides **simple capability selection** - identifying which capability areas the exercise will evaluate. For detailed HSEEP-compliant evaluation, the **EEG Feature** builds on this:
+
+| This Story (S04) | EEG Feature |
+|------------------|-------------|
+| Select capabilities from library | Define Capability Targets with measurable thresholds |
+| "We will evaluate Operational Communications" | "Establish communications within 30 minutes" |
+| Quick setup for basic exercises | Full HSEEP evaluation chain |
+| Optional for simple TTX | Recommended for formal exercises |
+
+**Workflow:**
+1. **S04 (this story):** Director selects target capabilities (quick selection)
+2. **EEG S03:** Director optionally creates Capability Targets with specific performance thresholds
+3. **EEG S04:** Director defines Critical Tasks under each target
+4. **EEG S06:** Evaluators record structured assessments against Critical Tasks
+
+For exercises that don't need the full EEG structure (e.g., simple TTX), the capability selection from this story is sufficient for basic metrics and observation tagging.
+
 ---
 
 ## Acceptance Criteria
@@ -43,6 +62,7 @@ Target capabilities are selected from the organization's capability library (whi
 - [ ] **Given** API, **when** `PUT /api/exercises/{id}/capabilities` called with capability IDs, **then** updates target capabilities
 - [ ] **Given** no capabilities in org library, **when** viewing exercise form, **then** Target Capabilities section shows "No capabilities defined" with link to Settings
 - [ ] **Given** exercise with target capabilities, **when** Evaluator creates observation, **then** target capabilities are shown prominently in capability selector (S05)
+- [ ] **Given** exercise with target capabilities, **when** Director opens EEG Setup, **then** selected capabilities are available for creating Capability Targets
 
 ---
 
@@ -51,7 +71,8 @@ Target capabilities are selected from the organization's capability library (whi
 - Capability performance metrics (S06)
 - Suggesting capabilities based on exercise type
 - Limiting number of target capabilities
-- Capability objectives/targets (quantifiable goals)
+- **Capability Targets with performance thresholds (EEG Feature S01-S03)**
+- **Critical Tasks definition (EEG Feature S02, S04)**
 
 ---
 
@@ -68,6 +89,7 @@ Target capabilities are selected from the organization's capability library (whi
 - [x] Is target capability selection required? **No, optional**
 - [x] Should there be a recommended limit? **Show guidance but don't enforce**
 - [ ] Should we show capability descriptions in the selector? **Yes, on hover/expand**
+- [x] How does this relate to EEG Capability Targets? **This is simple selection; EEG adds thresholds**
 
 ---
 
@@ -75,7 +97,8 @@ Target capabilities are selected from the organization's capability library (whi
 
 | Term | Definition |
 |------|------------|
-| Target Capability | A capability explicitly selected for evaluation in a specific exercise |
+| Target Capability | A capability explicitly selected for evaluation in a specific exercise (simple selection from library) |
+| Capability Target | An exercise-scoped performance threshold with measurable criteria (see EEG Feature) |
 | Capability Gap | A target capability that received no observations during the exercise |
 | Exercise Scope | The defined boundaries of what an exercise will evaluate |
 
@@ -114,6 +137,9 @@ Target capabilities are selected from the organization's capability library (whi
 │  └─────────────────────────────────────────────────────────────────┘   │
 │                                                                         │
 │  💡 HSEEP recommends focusing on 3-5 key capabilities per exercise     │
+│                                                                         │
+│  💡 For detailed evaluation criteria, define Capability Targets in      │
+│     EEG Setup after creating the exercise.                              │
 │                                                                         │
 │                                              [Cancel]  [Create Exercise]│
 └─────────────────────────────────────────────────────────────────────────┘
@@ -155,6 +181,9 @@ Target capabilities are selected from the organization's capability library (whi
 │  [Public Information and Warning]                                       │
 │                                                                         │
 │  3 capabilities targeted for evaluation                                 │
+│                                                                         │
+│  💡 Define measurable Capability Targets in EEG Setup for structured   │
+│     evaluation with Critical Tasks.                         [Go to EEG]│
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -179,7 +208,7 @@ Target capabilities are selected from the organization's capability library (whi
 ### API Endpoints
 
 ```csharp
-// Get target capabilities for an exercise
+// Get target capabilities for an exercise (simple selection)
 [HttpGet("{exerciseId}/capabilities")]
 public async Task<ActionResult<List<CapabilityDto>>> GetExerciseCapabilities(
     Guid exerciseId)
@@ -200,14 +229,16 @@ public record ExerciseDto(
     Guid Id,
     string Name,
     // ... existing fields ...
-    List<CapabilityDto> TargetCapabilities  // Add this
+    List<CapabilityDto> TargetCapabilities,  // Simple capability selection
+    bool HasCapabilityTargets  // True if EEG Capability Targets have been defined
 );
 
 public record ExerciseDetailDto(
     Guid Id,
     string Name,
     // ... existing fields ...
-    List<CapabilityDto> TargetCapabilities  // Add this
+    List<CapabilityDto> TargetCapabilities,  // Simple capability selection
+    int CapabilityTargetCount  // Count of detailed EEG Capability Targets
 );
 ```
 
@@ -265,6 +296,15 @@ public class ExerciseCapabilityService
         
         await _context.SaveChangesAsync();
     }
+    
+    /// <summary>
+    /// Check if the exercise has detailed Capability Targets defined (EEG feature)
+    /// </summary>
+    public async Task<bool> HasCapabilityTargetsAsync(Guid exerciseId)
+    {
+        return await _context.CapabilityTargets
+            .AnyAsync(ct => ct.ExerciseId == exerciseId);
+    }
 }
 ```
 
@@ -293,3 +333,14 @@ public class ExerciseCapabilityService
 - [ ] Create exercise with target capabilities
 - [ ] Edit exercise to add/remove capabilities
 - [ ] View exercise shows target capabilities
+
+---
+
+## Related Features
+
+| Feature | Relationship |
+|---------|--------------|
+| S05 Observation Tagging | Target capabilities shown first in observation capability selector |
+| S06 Capability Metrics | Uses target capabilities for coverage calculation |
+| **EEG Feature S03** | Capability Targets reference the capabilities selected here |
+| **EEG Feature S09** | Coverage dashboard shows evaluation status of target capabilities |

@@ -20,6 +20,7 @@ module.exports = {
         'tests',
         'seeding',
         // Feature modules
+        'eeg',
         'exercises',
         'injects',
         'msel',
@@ -36,6 +37,7 @@ module.exports = {
         'inject-approval',
         'feature-flags',
         // Infrastructure
+        'agent',
         'migrations',
         'db',
         'signalr',

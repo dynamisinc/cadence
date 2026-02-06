@@ -1,6 +1,6 @@
 ---
 name: frontend-agent
-description: React/TypeScript/Material UI specialist. Use proactively for all frontend work including components, hooks, pages, and styling. Expert in responsive design and COBRA styling patterns.
+description: "React/TypeScript/Material UI specialist. Use proactively for all frontend work including components, hooks, pages, and styling. Expert in responsive design and COBRA styling patterns."
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 ---

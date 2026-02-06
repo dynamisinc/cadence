@@ -280,6 +280,49 @@ public enum ObservationRating
 }
 
 // =============================================================================
+// EEG (Exercise Evaluation Guide) Enums
+// =============================================================================
+
+/// <summary>
+/// HSEEP P/S/M/U performance rating scale for EEG entries.
+/// Uses exact HSEEP 2020 Doctrine terminology for EEG structured assessments.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum PerformanceRating
+{
+    /// <summary>
+    /// P - Performed without Challenges.
+    /// The targets and critical tasks associated with the capability were completed in a manner that
+    /// achieved the objective(s) and did not negatively impact the performance of other activities.
+    /// Performance did not contribute to additional health and/or safety risks and was conducted
+    /// in accordance with applicable plans, policies, procedures, regulations, and laws.
+    /// </summary>
+    Performed = 0,
+
+    /// <summary>
+    /// S - Performed with Some Challenges.
+    /// The targets and critical tasks were completed successfully, achieving the objective(s).
+    /// However, opportunities to enhance effectiveness and/or efficiency were identified.
+    /// </summary>
+    SomeChallenges = 1,
+
+    /// <summary>
+    /// M - Performed with Major Challenges.
+    /// The targets and critical tasks were completed in a manner that achieved the objective(s);
+    /// however, the completion negatively impacted the performance of other activities, contributed
+    /// to additional health and/or safety risks, and/or was not conducted in accordance with
+    /// applicable plans, policies, procedures, regulations, and laws.
+    /// </summary>
+    MajorChallenges = 2,
+
+    /// <summary>
+    /// U - Unable to be Performed.
+    /// The targets and critical tasks were not performed in a manner that achieved the objective(s).
+    /// </summary>
+    UnableToPerform = 3
+}
+
+// =============================================================================
 // User/Authentication Enums
 // =============================================================================
 

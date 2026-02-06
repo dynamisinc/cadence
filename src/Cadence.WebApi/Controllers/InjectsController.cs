@@ -5,6 +5,8 @@ using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Injects.Services;
+using Cadence.Core.Features.Eeg.Services;
+using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
@@ -29,19 +31,22 @@ public class InjectsController : ControllerBase
     private readonly IExerciseHubContext _hubContext;
     private readonly IInjectService _injectService;
     private readonly IApprovalPermissionService _approvalPermissionService;
+    private readonly ICriticalTaskService _criticalTaskService;
 
     public InjectsController(
         AppDbContext context,
         ILogger<InjectsController> logger,
         IExerciseHubContext hubContext,
         IInjectService injectService,
-        IApprovalPermissionService approvalPermissionService)
+        IApprovalPermissionService approvalPermissionService,
+        ICriticalTaskService criticalTaskService)
     {
         _context = context;
         _logger = logger;
         _hubContext = hubContext;
         _injectService = injectService;
         _approvalPermissionService = approvalPermissionService;
+        _criticalTaskService = criticalTaskService;
     }
 
     /// <summary>
@@ -168,6 +173,13 @@ public class InjectsController : ControllerBase
             .GroupBy(io => io.InjectId)
             .ToDictionary(g => g.Key, g => g.Select(io => io.ObjectiveId).ToList());
 
+        // Get critical task counts per inject (EEG linking - S05)
+        var criticalTaskCounts = await _context.Set<InjectCriticalTask>()
+            .Where(ict => injectIds.Contains(ict.InjectId))
+            .GroupBy(ict => ict.InjectId)
+            .Select(g => new { InjectId = g.Key, Count = g.Count() })
+            .ToDictionaryAsync(g => g.InjectId, g => g.Count);
+
         // Map to DTOs
         var injects = injectsData.Select(i => new InjectDto(
             i.Id,
@@ -224,7 +236,8 @@ public class InjectsController : ControllerBase
             i.RevertedByUserId,
             i.RevertedAt,
             i.RevertReason,
-            i.ModifiedBy
+            i.ModifiedBy,
+            criticalTaskCounts.GetValueOrDefault(i.Id, 0)
         )).ToList();
 
         return Ok(injects);
@@ -248,6 +261,7 @@ public class InjectsController : ControllerBase
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.LinkedCriticalTasks)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -1003,6 +1017,128 @@ public class InjectsController : ControllerBase
         {
             return NotFound(new { message = ex.Message });
         }
+    }
+
+    // =========================================================================
+    // Critical Task Linking (S05 - EEG)
+    // =========================================================================
+
+    /// <summary>
+    /// Get linked Critical Tasks for an inject.
+    /// Returns task IDs for populating multi-select in inject form.
+    /// </summary>
+    [HttpGet("{id:guid}/critical-tasks")]
+    [AuthorizeExerciseAccess]
+    public async Task<ActionResult<List<Guid>>> GetLinkedCriticalTasks(Guid exerciseId, Guid id)
+    {
+        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        if (exercise == null)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+
+        // Verify inject belongs to this exercise
+        var inject = await _context.Injects
+            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
+
+        if (inject == null)
+        {
+            return NotFound(new { message = "Inject not found" });
+        }
+
+        // Get linked critical task IDs
+        var taskIds = await _context.InjectCriticalTasks
+            .Where(ict => ict.InjectId == id)
+            .Select(ict => ict.CriticalTaskId)
+            .ToListAsync();
+
+        return Ok(taskIds);
+    }
+
+    /// <summary>
+    /// Set linked Critical Tasks for an inject.
+    /// Replaces all existing links with the provided task IDs.
+    /// Tasks must belong to the same exercise.
+    /// </summary>
+    [HttpPut("{id:guid}/critical-tasks")]
+    [AuthorizeExerciseController]
+    public async Task<ActionResult<List<CriticalTaskDto>>> SetLinkedCriticalTasks(
+        Guid exerciseId,
+        Guid id,
+        [FromBody] SetLinkedCriticalTasksRequest request)
+    {
+        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        if (exercise == null)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+
+        // Verify inject belongs to this exercise
+        var inject = await _context.Injects
+            .Include(i => i.LinkedCriticalTasks)
+            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
+
+        if (inject == null)
+        {
+            return NotFound(new { message = "Inject not found" });
+        }
+
+        // Validate all task IDs belong to this exercise
+        var validTaskIds = await _context.CriticalTasks
+            .Where(ct => request.CriticalTaskIds.Contains(ct.Id))
+            .Where(ct => ct.CapabilityTarget.ExerciseId == exerciseId)
+            .Select(ct => ct.Id)
+            .ToListAsync();
+
+        var invalidTaskIds = request.CriticalTaskIds.Except(validTaskIds).ToList();
+        if (invalidTaskIds.Count > 0)
+        {
+            return BadRequest(new { message = $"Invalid or cross-exercise task IDs: {string.Join(", ", invalidTaskIds)}" });
+        }
+
+        // Clear existing links
+        _context.InjectCriticalTasks.RemoveRange(inject.LinkedCriticalTasks);
+
+        // Add new links with audit fields
+        var userId = GetCurrentUserId();
+        var now = DateTime.UtcNow;
+        foreach (var taskId in validTaskIds)
+        {
+            inject.LinkedCriticalTasks.Add(new InjectCriticalTask
+            {
+                InjectId = id,
+                CriticalTaskId = taskId,
+                CreatedAt = now,
+                CreatedBy = userId
+            });
+        }
+
+        inject.ModifiedBy = userId;
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Updated critical task links for inject {InjectId}: {TaskCount} tasks linked",
+            id, validTaskIds.Count);
+
+        // Return the linked tasks with full details
+        var linkedTasks = await _context.CriticalTasks
+            .Include(ct => ct.LinkedInjects)
+            .Include(ct => ct.EegEntries)
+            .Where(ct => validTaskIds.Contains(ct.Id))
+            .OrderBy(ct => ct.SortOrder)
+            .ToListAsync();
+
+        var dtos = linkedTasks.Select(ct => new CriticalTaskDto(
+            ct.Id,
+            ct.CapabilityTargetId,
+            ct.TaskDescription,
+            ct.Standard,
+            ct.SortOrder,
+            ct.LinkedInjects?.Count ?? 0,
+            ct.EegEntries?.Count ?? 0,
+            ct.CreatedAt,
+            ct.UpdatedAt
+        )).ToList();
+        return Ok(dtos);
     }
 
     /// <summary>

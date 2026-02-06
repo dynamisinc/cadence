@@ -26,6 +26,27 @@ Observations capture what evaluators see during exercise conduct. Tagging observ
 
 To streamline the evaluator workflow, the UI prioritizes exercise target capabilities at the top of the selector. Evaluators can also tag capabilities beyond the target list if their observation is relevant to other areas.
 
+### Observations vs. EEG Entries
+
+Cadence provides two evaluation mechanisms. This story covers **Observation capability tagging**:
+
+| Observations (this story) | EEG Entries (EEG Feature) |
+|---------------------------|---------------------------|
+| **Ad-hoc notes** during conduct | **Structured assessments** against Critical Tasks |
+| Capability tagging is **optional** | Critical Task selection is **required** |
+| P/S/M/U rating is **optional** | P/S/M/U rating is **required** |
+| General categorization by capability area | Precise evaluation chain: Target → Task → Entry |
+| Quick entry for any observation | Formal assessment per HSEEP methodology |
+| Good for TTX and informal exercises | Required for formal HSEEP-compliant exercises |
+
+**Both are valuable:**
+- **Observations** capture quick notes, general impressions, logistics issues, and anything that doesn't fit a specific Critical Task
+- **EEG Entries** provide structured assessment data for AAR and metrics
+
+**Recommendation for Evaluators:**
+- Use **EEG Entries** when assessing performance against defined Critical Tasks
+- Use **Observations** for ad-hoc notes, general observations, and exercises without EEG setup
+
 ---
 
 ## Acceptance Criteria
@@ -44,6 +65,7 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 - [ ] **Given** exercise metrics, **when** observations have capability tags, **then** capability performance can be calculated
 - [ ] **Given** no target capabilities on exercise, **when** tagging observation, **then** all org capabilities shown (no "Target" section)
 - [ ] **Given** no capabilities in org library, **when** creating observation, **then** Capabilities field is hidden
+- [ ] **Given** exercise has EEG setup, **when** creating observation, **then** hint suggests using EEG Entry for structured assessment
 
 ---
 
@@ -53,6 +75,8 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 - Required capability tagging (always optional)
 - Capability-specific observation templates
 - Bulk tagging of multiple observations
+- **EEG Entry form** (EEG Feature S06)
+- **Critical Task linking** (EEG Feature S05)
 
 ---
 
@@ -69,6 +93,7 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 - [x] Should capability tagging be required? **No, always optional**
 - [x] Can evaluators tag capabilities not in target list? **Yes, "Other Capabilities" section**
 - [ ] Should we show capability descriptions on hover? **Yes, if space permits**
+- [x] How does this differ from EEG Entries? **Observations are ad-hoc; EEG Entries are structured per task**
 
 ---
 
@@ -76,9 +101,11 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 
 | Term | Definition |
 |------|------------|
-| Capability Tag | A capability linked to an observation |
+| Capability Tag | A capability linked to an observation (ad-hoc categorization) |
 | Target Capability | A capability explicitly targeted for this exercise (shown first) |
 | Other Capability | Any active capability not in the exercise target list |
+| Observation | Ad-hoc evaluator note, optionally tagged with capabilities and rated |
+| EEG Entry | Structured assessment against a specific Critical Task (see EEG Feature) |
 
 ---
 
@@ -102,6 +129,8 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 │  │ [Mass Care Services ×] [Operational Communications ×]           │   │
 │  │                                                         [+ Add] │   │
 │  └─────────────────────────────────────────────────────────────────┘   │
+│                                                                         │
+│  💡 For structured assessment against Critical Tasks, use EEG Entry    │
 │                                                                         │
 │  ... (other fields) ...                                                 │
 │                                                                         │
@@ -146,6 +175,8 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 │                                                                         │
 │  [Operational Communications] [Mass Care Services]                      │
 │                                                                         │
+│  📝 Ad-hoc observation                                                  │
+│                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -157,7 +188,7 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 ├─────────────────────────────────────────────────────────────────────────┤
 │                                                                         │
 │  Recorded: 14:32:15                          Rating: ● Marginal (M)    │
-│  Evaluator: Jane Smith                                                  │
+│  Evaluator: Jane Smith                       Type: Ad-hoc Observation  │
 │                                                                         │
 │  ─────────────────────────────────────────────────────────────────────  │
 │                                                                         │
@@ -176,6 +207,11 @@ To streamline the evaluator workflow, the UI prioritizes exercise target capabil
 │  CAPABILITIES                                                           │
 │  [Operational Communications]  [Mass Care Services]                     │
 │                                                                         │
+│  ─────────────────────────────────────────────────────────────────────  │
+│                                                                         │
+│  💡 This is an ad-hoc observation. For structured assessments, see     │
+│     EEG Entries organized by Capability Target and Critical Task.      │
+│                                                                         │
 └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -192,7 +228,8 @@ public record ObservationDto(
     string? Rating,
     DateTime RecordedAt,
     // ... existing fields ...
-    List<CapabilityDto> Capabilities  // Add this
+    List<CapabilityDto> Capabilities,  // Add this
+    bool IsAdHoc = true  // Distinguishes from EEG Entry in combined views
 );
 
 public record CreateObservationRequest(
@@ -290,6 +327,7 @@ interface ObservationCapabilitySelectorProps {
   exerciseId: string;
   selectedCapabilityIds: string[];
   onChange: (capabilityIds: string[]) => void;
+  showEegHint?: boolean;  // Show hint about EEG entries if exercise has EEG setup
 }
 
 // Fetches:
@@ -325,3 +363,14 @@ interface ObservationCapabilitySelectorProps {
 - [ ] Edit observation to add/remove capabilities
 - [ ] View observation shows capability tags
 - [ ] Observation list shows capability tags
+
+---
+
+## Related Features
+
+| Feature | Relationship |
+|---------|--------------|
+| S04 Target Capabilities | Provides the "Target Capabilities" section in selector |
+| S06 Capability Metrics | Includes observation capability tags in metrics calculation |
+| **EEG Feature S06** | EEG Entry form provides structured assessment alternative |
+| **EEG Feature S09** | EEG Coverage Dashboard shows task-based evaluation status |

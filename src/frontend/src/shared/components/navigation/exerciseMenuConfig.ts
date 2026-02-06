@@ -9,6 +9,7 @@
  * - MSEL: Master Scenario Events List
  * - Inject Queue: Real-time inject management
  * - Observations: Evaluator notes and observations
+ * - EEG Entries: Structured evaluation entries against Critical Tasks
  * - Participants: Exercise participant management
  * - Metrics: Exercise performance metrics
  * - Settings: Exercise configuration
@@ -22,6 +23,7 @@ import {
   faClipboardList,
   faListCheck,
   faBinoculars,
+  faClipboardCheck,
   faUsers,
   faChartBar,
   faFileExport,
@@ -117,6 +119,13 @@ export const EXERCISE_MENU_ITEMS: ExerciseMenuItem[] = [
     label: 'Observations',
     icon: faBinoculars,
     path: 'observations',
+    allowedRoles: OBSERVATION_ROLES,
+  },
+  {
+    id: 'eeg-entries',
+    label: 'EEG Entries',
+    icon: faClipboardCheck,
+    path: 'eeg-entries',
     allowedRoles: OBSERVATION_ROLES,
   },
   {

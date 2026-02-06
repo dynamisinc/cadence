@@ -10,3 +10,4 @@ export {
   approvalCheckKeys,
 } from './useInjectApprovalCheck'
 export { useInjectSelection } from './useInjectSelection'
+export { useLinkedCriticalTasks, linkedCriticalTaskKeys } from './useLinkedCriticalTasks'

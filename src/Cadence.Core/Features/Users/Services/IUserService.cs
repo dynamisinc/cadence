@@ -111,4 +111,21 @@ public interface IUserService
     /// <param name="userId">User ID (string for Identity compatibility).</param>
     /// <returns>Current organization ID, or null if not set.</returns>
     Task<Guid?> GetCurrentOrganizationIdAsync(string userId);
+
+    /// <summary>
+    /// Get the current user's profile including contact information.
+    /// </summary>
+    /// <param name="userId">User ID (string for Identity compatibility).</param>
+    /// <returns>Current user profile DTO if found, null otherwise.</returns>
+    Task<CurrentUserProfileDto?> GetCurrentUserProfileAsync(string userId);
+
+    /// <summary>
+    /// Update the current user's phone number.
+    /// </summary>
+    /// <param name="userId">User ID (string for Identity compatibility).</param>
+    /// <param name="phoneNumber">Phone number to set (null to clear).</param>
+    /// <returns>Updated contact DTO.</returns>
+    /// <exception cref="KeyNotFoundException">User not found.</exception>
+    /// <exception cref="ArgumentException">Phone number exceeds 25 characters.</exception>
+    Task<UserContactDto> UpdatePhoneNumberAsync(string userId, string? phoneNumber);
 }

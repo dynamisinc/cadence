@@ -143,7 +143,8 @@ namespace Cadence.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("PhoneNumber")
-                        .HasColumnType("nvarchar(max)");
+                        .HasMaxLength(25)
+                        .HasColumnType("nvarchar(25)");
 
                     b.Property<bool>("PhoneNumberConfirmed")
                         .HasColumnType("bit");
@@ -334,6 +335,72 @@ namespace Cadence.Core.Migrations
                     b.ToTable("Capabilities");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.CapabilityTarget", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CapabilityId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Sources")
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<string>("TargetDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CapabilityId");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("ExerciseId", "SortOrder");
+
+                    b.ToTable("CapabilityTargets");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.ClockEvent", b =>
                 {
                     b.Property<Guid>("Id")
@@ -371,6 +438,67 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("ExerciseId", "OccurredAt");
 
                     b.ToTable("ClockEvents");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.CriticalTask", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CapabilityTargetId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<int>("SortOrder")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Standard")
+                        .HasMaxLength(1000)
+                        .HasColumnType("nvarchar(1000)");
+
+                    b.Property<string>("TaskDescription")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CapabilityTargetId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("CapabilityTargetId", "SortOrder");
+
+                    b.ToTable("CriticalTasks");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.DeliveryMethodLookup", b =>
@@ -531,6 +659,85 @@ namespace Cadence.Core.Migrations
                             SortOrder = 99,
                             UpdatedAt = new DateTime(2025, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.EegEntry", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid>("CriticalTaskId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EvaluatorId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("ObservationText")
+                        .IsRequired()
+                        .HasMaxLength(4000)
+                        .HasColumnType("nvarchar(4000)");
+
+                    b.Property<DateTime>("ObservedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Rating")
+                        .IsRequired()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
+
+                    b.Property<DateTime>("RecordedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<Guid?>("TriggeringInjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CriticalTaskId");
+
+                    b.HasIndex("EvaluatorId");
+
+                    b.HasIndex("ObservedAt");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("TriggeringInjectId");
+
+                    b.HasIndex("CriticalTaskId", "ObservedAt");
+
+                    b.ToTable("EegEntries");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
@@ -1228,6 +1435,31 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("MselId", "Status");
 
                     b.ToTable("Injects");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.InjectCriticalTask", b =>
+                {
+                    b.Property<Guid>("InjectId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CriticalTaskId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("InjectId", "CriticalTaskId");
+
+                    b.HasIndex("CriticalTaskId");
+
+                    b.HasIndex("InjectId");
+
+                    b.ToTable("InjectCriticalTasks");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.InjectObjective", b =>
@@ -2281,6 +2513,33 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Organization");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.CapabilityTarget", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.Capability", "Capability")
+                        .WithMany("CapabilityTargets")
+                        .HasForeignKey("CapabilityId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
+                        .WithMany("CapabilityTargets")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("Capability");
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.ClockEvent", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
@@ -2297,6 +2556,58 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Exercise");
 
                     b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.CriticalTask", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.CapabilityTarget", "CapabilityTarget")
+                        .WithMany("CriticalTasks")
+                        .HasForeignKey("CapabilityTargetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.Navigation("CapabilityTarget");
+
+                    b.Navigation("Organization");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.EegEntry", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.CriticalTask", "CriticalTask")
+                        .WithMany("EegEntries")
+                        .HasForeignKey("CriticalTaskId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "Evaluator")
+                        .WithMany()
+                        .HasForeignKey("EvaluatorId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "TriggeringInject")
+                        .WithMany("TriggeredEegEntries")
+                        .HasForeignKey("TriggeringInjectId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.Navigation("CriticalTask");
+
+                    b.Navigation("Evaluator");
+
+                    b.Navigation("Organization");
+
+                    b.Navigation("TriggeringInject");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
@@ -2466,6 +2777,25 @@ namespace Cadence.Core.Migrations
                     b.Navigation("SkippedByUser");
 
                     b.Navigation("SubmittedByUser");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.InjectCriticalTask", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.CriticalTask", "CriticalTask")
+                        .WithMany("LinkedInjects")
+                        .HasForeignKey("CriticalTaskId")
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Inject", "Inject")
+                        .WithMany("LinkedCriticalTasks")
+                        .HasForeignKey("InjectId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("CriticalTask");
+
+                    b.Navigation("Inject");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.InjectObjective", b =>
@@ -2754,9 +3084,23 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Capability", b =>
                 {
+                    b.Navigation("CapabilityTargets");
+
                     b.Navigation("ExerciseTargetCapabilities");
 
                     b.Navigation("ObservationCapabilities");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.CapabilityTarget", b =>
+                {
+                    b.Navigation("CriticalTasks");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Models.Entities.CriticalTask", b =>
+                {
+                    b.Navigation("EegEntries");
+
+                    b.Navigation("LinkedInjects");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.DeliveryMethodLookup", b =>
@@ -2766,6 +3110,8 @@ namespace Cadence.Core.Migrations
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Exercise", b =>
                 {
+                    b.Navigation("CapabilityTargets");
+
                     b.Navigation("ClockEvents");
 
                     b.Navigation("Msels");
@@ -2789,9 +3135,13 @@ namespace Cadence.Core.Migrations
 
                     b.Navigation("InjectObjectives");
 
+                    b.Navigation("LinkedCriticalTasks");
+
                     b.Navigation("Observations");
 
                     b.Navigation("StatusHistory");
+
+                    b.Navigation("TriggeredEegEntries");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Msel", b =>

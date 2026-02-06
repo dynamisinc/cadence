@@ -57,6 +57,7 @@ export const AuthLayout: FC<AuthLayoutProps> = ({
           width: '100%',
           maxWidth: 400,
           p: CobraStyles.Padding.DialogContent,
+          minHeight: '400px', // Prevent resize when validation messages appear
         }}
         elevation={3}
       >

@@ -105,7 +105,7 @@ export const ForgotPasswordPage: FC = () => {
           </Box>
 
           <Link to="/login" style={{ textDecoration: 'none' }}>
-            <CobraLinkButton fullWidth startIcon={<FontAwesomeIcon icon={faArrowLeft} />}>
+            <CobraLinkButton fullWidth startIcon={<FontAwesomeIcon icon={faArrowLeft} size="sm" />}>
               Back to Sign In
             </CobraLinkButton>
           </Link>
@@ -155,7 +155,7 @@ export const ForgotPasswordPage: FC = () => {
 
           {/* Back to Sign In */}
           <Link to="/login" style={{ textDecoration: 'none' }}>
-            <CobraLinkButton fullWidth startIcon={<FontAwesomeIcon icon={faArrowLeft} />}>
+            <CobraLinkButton fullWidth startIcon={<FontAwesomeIcon icon={faArrowLeft} size="sm" />}>
               Back to Sign In
             </CobraLinkButton>
           </Link>

@@ -33,6 +33,8 @@ import { useObjectiveSummaries } from '../../objectives/hooks/useObjectives'
 import type { ObjectiveSummaryDto } from '../../objectives/types'
 import { useDeliveryMethods } from '../../delivery-methods'
 import { ExpectedOutcomesList } from '../../expected-outcomes'
+import { CriticalTaskSelector } from './CriticalTaskSelector'
+import { useLinkedCriticalTasks } from '../hooks/useLinkedCriticalTasks'
 
 interface InjectFormProps {
   /** Exercise ID for loading objectives */
@@ -97,6 +99,15 @@ export const InjectForm = ({
   const { summaries: objectives } = useObjectiveSummaries(exerciseId)
   const { data: deliveryMethods = [] } = useDeliveryMethods()
 
+  // Critical task linking (only in edit mode)
+  const {
+    linkedTaskIds,
+    setLinkedTasks,
+    isUpdating: isSavingTasks,
+  } = useLinkedCriticalTasks(exerciseId, inject?.id)
+  const [selectedTaskIds, setSelectedTaskIds] = useState<string[]>([])
+  const [tasksModified, setTasksModified] = useState(false)
+
   const [values, setValues] = useState<InjectFormValues>(INITIAL_VALUES)
   const [errors, setErrors] = useState<Partial<Record<keyof InjectFormValues, string>>>({})
   const [touched, setTouched] = useState<Partial<Record<keyof InjectFormValues, boolean>>>({})
@@ -104,6 +115,14 @@ export const InjectForm = ({
   // Find if selected delivery method is "Other"
   const selectedDeliveryMethod = deliveryMethods.find(dm => dm.id === values.deliveryMethodId)
   const showOtherInput = selectedDeliveryMethod?.isOther ?? false
+
+  // Initialize selected critical task IDs from linked tasks
+  useEffect(() => {
+    if (linkedTaskIds.length > 0 || (inject && linkedTaskIds.length === 0)) {
+      setSelectedTaskIds(linkedTaskIds)
+      setTasksModified(false)
+    }
+  }, [linkedTaskIds, inject])
 
   // Initialize form values from inject when editing
   useEffect(() => {
@@ -148,6 +167,11 @@ export const InjectForm = ({
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
     }
+  }
+
+  const handleCriticalTasksChange = (taskIds: string[]) => {
+    setSelectedTaskIds(taskIds)
+    setTasksModified(true)
   }
 
   const handleBlur = (field: keyof InjectFormValues) => () => {
@@ -329,6 +353,11 @@ export const InjectForm = ({
       locationName: values.locationName.trim() || null,
       locationType: values.locationType.trim() || null,
       track: values.track.trim() || null,
+    }
+
+    // Save critical task links if modified (edit mode only)
+    if (isEditMode && tasksModified) {
+      await setLinkedTasks(selectedTaskIds)
     }
 
     await onSubmit(request)
@@ -691,6 +720,18 @@ export const InjectForm = ({
                 noOptionsText="No objectives defined for this exercise"
               />
             </Grid>
+            {/* Critical Tasks Linking (Edit mode only per S05) */}
+            {isEditMode && (
+              <Grid size={{ xs: 12 }}>
+                <CriticalTaskSelector
+                  exerciseId={exerciseId}
+                  selectedTaskIds={selectedTaskIds}
+                  onChange={handleCriticalTasksChange}
+                  disabled={isSubmitting || isSavingTasks}
+                  helperText="Critical tasks this inject is designed to test (EEG linkage)"
+                />
+              </Grid>
+            )}
           </Grid>
 
           {(values.injectType === InjectType.Contingency ||

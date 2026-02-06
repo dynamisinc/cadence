@@ -49,9 +49,14 @@ export const RegisterPage: FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
+  // Focus tracking
+  const [passwordTouched, setPasswordTouched] = useState(false)
+  const [confirmPasswordTouched, setConfirmPasswordTouched] = useState(false)
+
   // Validation errors
   const [displayNameError, setDisplayNameError] = useState('')
   const [emailError, setEmailError] = useState('')
+  const [passwordError, setPasswordError] = useState('')
   const [confirmPasswordError, setConfirmPasswordError] = useState('')
   const [error, setError] = useState<string | null>(null)
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
@@ -88,6 +93,15 @@ export const RegisterPage: FC = () => {
       return false
     }
     setEmailError('')
+    return true
+  }
+
+  const validatePasswordField = (value: string): boolean => {
+    if (!passwordIsValid && value) {
+      setPasswordError('Password does not meet requirements')
+      return false
+    }
+    setPasswordError('')
     return true
   }
 
@@ -197,7 +211,7 @@ export const RegisterPage: FC = () => {
             }}
             onBlur={() => validateDisplayName(displayName)}
             error={!!displayNameError}
-            helperText={displayNameError}
+            helperText={displayNameError || ' '}
             fullWidth
             required
             autoFocus
@@ -215,19 +229,31 @@ export const RegisterPage: FC = () => {
             }}
             onBlur={() => validateEmail(email)}
             error={!!emailError}
-            helperText={emailError}
+            helperText={emailError || ' '}
             fullWidth
             required
             autoComplete="email"
           />
 
           {/* Password Field */}
-          <Box>
+          <Box sx={{ minHeight: '140px' }}>
             <CobraTextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
               value={password}
-              onChange={e => setPassword(e.target.value)}
+              onChange={e => {
+                setPassword(e.target.value)
+                // Clear error when user starts typing after blur
+                if (passwordError) {
+                  setPasswordError('')
+                }
+              }}
+              onBlur={() => {
+                setPasswordTouched(true)
+                validatePasswordField(password)
+              }}
+              error={passwordTouched && !!passwordError}
+              helperText={passwordTouched && passwordError ? passwordError : ' '}
               fullWidth
               required
               autoComplete="new-password"
@@ -238,15 +264,16 @@ export const RegisterPage: FC = () => {
                       onClick={() => setShowPassword(!showPassword)}
                       edge="end"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      size="small"
                     >
-                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                      <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
                   </InputAdornment>
                 ),
               }}
             />
-            {/* Show password requirements when user starts typing */}
-            {password && <PasswordRequirements requirements={passwordReqs} />}
+            {/* Show password requirements only after field has been touched */}
+            {passwordTouched && password && <PasswordRequirements requirements={passwordReqs} />}
           </Box>
 
           {/* Confirm Password Field */}
@@ -256,11 +283,17 @@ export const RegisterPage: FC = () => {
             value={confirmPassword}
             onChange={e => {
               setConfirmPassword(e.target.value)
-              if (confirmPasswordError) validateConfirmPassword(e.target.value)
+              // Clear error when user starts typing after blur
+              if (confirmPasswordError) {
+                setConfirmPasswordError('')
+              }
             }}
-            onBlur={() => validateConfirmPassword(confirmPassword)}
-            error={!!confirmPasswordError}
-            helperText={confirmPasswordError}
+            onBlur={() => {
+              setConfirmPasswordTouched(true)
+              validateConfirmPassword(confirmPassword)
+            }}
+            error={confirmPasswordTouched && !!confirmPasswordError}
+            helperText={confirmPasswordTouched && confirmPasswordError ? confirmPasswordError : ' '}
             fullWidth
             required
             autoComplete="new-password"
@@ -271,8 +304,9 @@ export const RegisterPage: FC = () => {
                     onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                     edge="end"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
+                    size="small"
                   >
-                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} />
+                    <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
                 </InputAdornment>
               ),

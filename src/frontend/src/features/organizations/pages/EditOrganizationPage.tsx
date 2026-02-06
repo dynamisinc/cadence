@@ -430,7 +430,11 @@ export const EditOrganizationPage: FC = () => {
             ) : (
               <OrgMembersTable
                 members={members}
-                isLoading={addMember.isPending || updateMemberRole.isPending || removeMember.isPending}
+                isLoading={
+                  addMember.isPending ||
+                  updateMemberRole.isPending ||
+                  removeMember.isPending
+                }
                 onAddClick={() => setAddMemberDialogOpen(true)}
                 onRoleChange={async (membershipId, newRole) => {
                   await updateMemberRole.mutateAsync({ membershipId, role: newRole })

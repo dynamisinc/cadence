@@ -26,7 +26,7 @@ interface ApprovalActionsButtonsProps {
   exerciseId: string
   /** Current user's ID */
   currentUserId: string
-  /** Whether the current user can approve (has ExerciseDirector or higher role) - used as initial hint */
+  /** Whether the user can approve (ExerciseDirector+) - hint */
   canApprove?: boolean
   /** Size variant */
   size?: 'small' | 'medium'

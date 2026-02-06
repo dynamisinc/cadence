@@ -315,4 +315,10 @@ public class Exercise : BaseEntity, IOrganizationScoped
     /// ApplicationUser who overrode the approval policy (if any).
     /// </summary>
     public ApplicationUser? ApprovalOverriddenByUser { get; set; }
+
+    /// <summary>
+    /// Capability targets defined for EEG evaluation in this exercise.
+    /// Each target represents a measurable performance threshold for a capability.
+    /// </summary>
+    public ICollection<CapabilityTarget> CapabilityTargets { get; set; } = new List<CapabilityTarget>();
 }

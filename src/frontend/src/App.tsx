@@ -1,7 +1,7 @@
 import { useEffect } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp, ErrorBoundary } from './core/components'
+import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp, ErrorBoundary, RouteErrorFallback } from './core/components'
 import { trackException } from './core/services/telemetry'
 import { Box, Typography } from '@mui/material'
 import { ToastContainer } from 'react-toastify'
@@ -34,6 +34,7 @@ import {
 import { UserSettingsPage } from './features/settings'
 import { ExerciseMetricsPage } from './features/metrics'
 import { ObservationsPage } from './features/observations'
+import { EegEntriesPage } from './features/eeg'
 import {
   InjectListPage,
   InjectDetailPage,
@@ -193,6 +194,7 @@ const router = createBrowserRouter([
   // Authentication routes (public - no auth required)
   {
     element: <AuthLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       { path: 'login', element: <LoginPage /> },
       { path: 'register', element: <RegisterPage /> },
@@ -204,6 +206,7 @@ const router = createBrowserRouter([
   // Public routes with app shell (no auth required)
   {
     element: <PublicLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       // About page (version info and release notes) - publicly accessible
       { path: 'about', element: <AboutPage /> },
@@ -214,6 +217,7 @@ const router = createBrowserRouter([
   {
     path: '/',
     element: <RootLayout />,
+    errorElement: <RouteErrorFallback />,
     children: [
       // Home page
       { index: true, element: <HomePage /> },
@@ -341,6 +345,7 @@ const router = createBrowserRouter([
           { path: 'injects/:injectId', element: <InjectDetailPage /> },
           { path: 'injects/:injectId/edit', element: <EditInjectPage /> },
           { path: 'observations', element: <ObservationsPage /> },
+          { path: 'eeg-entries', element: <EegEntriesPage /> },
           { path: 'participants', element: <ExerciseParticipantsPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'metrics', element: <ExerciseMetricsPage /> },

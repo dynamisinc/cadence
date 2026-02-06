@@ -49,11 +49,12 @@ describe('exerciseMenuConfig', () => {
         expect(itemIds).toContain('msel')
         expect(itemIds).toContain('inject-queue')
         expect(itemIds).toContain('observations')
+        expect(itemIds).toContain('eeg-entries')
         expect(itemIds).toContain('participants')
         expect(itemIds).toContain('reports')
         expect(itemIds).toContain('metrics')
         expect(itemIds).toContain('settings')
-        expect(items.length).toBe(8)
+        expect(items.length).toBe(9)
       })
     })
 
@@ -66,11 +67,12 @@ describe('exerciseMenuConfig', () => {
         expect(itemIds).toContain('msel')
         expect(itemIds).toContain('inject-queue')
         expect(itemIds).toContain('observations')
+        expect(itemIds).toContain('eeg-entries')
         expect(itemIds).toContain('participants')
         expect(itemIds).toContain('reports')
         expect(itemIds).toContain('metrics')
         expect(itemIds).toContain('settings')
-        expect(items.length).toBe(8)
+        expect(items.length).toBe(9)
       })
     })
 
@@ -91,31 +93,33 @@ describe('exerciseMenuConfig', () => {
     })
 
     describe('Evaluator role', () => {
-      it('sees Hub and Observations', () => {
+      it('sees Hub, Observations, and EEG Entries', () => {
         const items = getExerciseMenuItems(HseepRole.Evaluator)
         const itemIds = items.map(item => item.id)
 
         expect(itemIds).toContain('hub')
         expect(itemIds).toContain('observations')
+        expect(itemIds).toContain('eeg-entries')
         expect(itemIds).not.toContain('msel')
         expect(itemIds).not.toContain('inject-queue')
         expect(itemIds).not.toContain('participants')
         expect(itemIds).not.toContain('metrics')
         expect(itemIds).not.toContain('settings')
-        expect(items.length).toBe(2)
+        expect(items.length).toBe(3)
       })
     })
 
     describe('Observer role', () => {
-      it('sees Hub and Observations', () => {
+      it('sees Hub, Observations, and EEG Entries', () => {
         const items = getExerciseMenuItems(HseepRole.Observer)
         const itemIds = items.map(item => item.id)
 
         expect(itemIds).toContain('hub')
         expect(itemIds).toContain('observations')
+        expect(itemIds).toContain('eeg-entries')
         expect(itemIds).not.toContain('msel')
         expect(itemIds).not.toContain('inject-queue')
-        expect(items.length).toBe(2)
+        expect(items.length).toBe(3)
       })
     })
   })

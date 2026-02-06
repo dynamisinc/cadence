@@ -62,7 +62,11 @@ function isSystemRoleAllowed(item: MenuItem, systemRole: string | null): boolean
 /**
  * Check if user's organization role allows access (for OrgAdmin-only items)
  */
-function isOrgRoleAllowed(item: MenuItem, orgRole: string | null, systemRole: string | null): boolean {
+function isOrgRoleAllowed(
+  item: MenuItem,
+  orgRole: string | null,
+  systemRole: string | null,
+): boolean {
   // If no org roles specified, don't restrict by org role
   if (!item.allowedOrgRoles || item.allowedOrgRoles.length === 0) {
     return true

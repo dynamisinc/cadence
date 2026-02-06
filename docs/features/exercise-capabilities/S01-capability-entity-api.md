@@ -21,6 +21,28 @@ Capabilities represent the organizational competencies or functions that exercis
 
 Capabilities are scoped to organizations, allowing each organization to maintain their own capability library independent of others. This enables commercial clients, international agencies, and US federal organizations to each use their preferred framework.
 
+### HSEEP Evaluation Hierarchy
+
+The Capability entity is the foundation of a larger evaluation hierarchy:
+
+```
+Organization
+└── Capability (this story - organization library)
+        │
+        └── CapabilityTarget (EEG feature - exercise-scoped threshold)
+                │
+                └── CriticalTask (EEG feature - specific assessable action)
+                        │
+                        └── EegEntry (EEG feature - evaluator assessment)
+```
+
+**Key Distinction:**
+- **Capability** = Generic organizational function (e.g., "Operational Communications")
+- **CapabilityTarget** = Exercise-specific performance threshold (e.g., "Establish communications within 30 minutes")
+- **CriticalTask** = Specific observable action (e.g., "Issue activation notification")
+
+This story creates the Capability library. The EEG feature creates CapabilityTarget and CriticalTask entities that reference capabilities from this library.
+
 ---
 
 ## Acceptance Criteria
@@ -36,7 +58,7 @@ Capabilities are scoped to organizations, allowing each organization to maintain
 - [ ] **Given** the create endpoint, **when** called with duplicate Name within same organization, **then** returns 409 Conflict
 - [ ] **Given** an authenticated Administrator, **when** calling `PUT /api/organizations/{orgId}/capabilities/{id}` with valid data, **then** updates the capability
 - [ ] **Given** an authenticated Administrator, **when** calling `DELETE /api/organizations/{orgId}/capabilities/{id}`, **then** sets IsActive to false (soft delete)
-- [ ] **Given** a capability linked to observations, **when** DELETE is called, **then** capability is deactivated but not removed (preserves referential integrity)
+- [ ] **Given** a capability linked to observations or capability targets, **when** DELETE is called, **then** capability is deactivated but not removed (preserves referential integrity)
 - [ ] **Given** a non-Administrator role, **when** calling any capability management endpoint, **then** returns 403 Forbidden
 
 ---
@@ -49,6 +71,8 @@ Capabilities are scoped to organizations, allowing each organization to maintain
 - Observation capability tagging (S05)
 - Metrics integration (S06)
 - Bulk operations (import/export CSV)
+- CapabilityTarget entity (EEG Feature S01)
+- CriticalTask entity (EEG Feature S02)
 
 ---
 
@@ -72,10 +96,12 @@ Capabilities are scoped to organizations, allowing each organization to maintain
 
 | Term | Definition |
 |------|------------|
-| Capability | An organizational competency or function that can be evaluated during an exercise |
+| Capability | An organizational competency or function that can be evaluated during an exercise (library item) |
 | Category | Optional grouping for capabilities (e.g., Mission Area for FEMA capabilities) |
 | Source Library | Identifier for predefined libraries (FEMA, NATO, NIST, ISO) vs custom |
 | Active | Whether a capability is available for selection in exercises and observations |
+| CapabilityTarget | Exercise-scoped performance threshold referencing a Capability (see EEG feature) |
+| CriticalTask | Specific action required to achieve a CapabilityTarget (see EEG feature) |
 
 ---
 
@@ -90,6 +116,9 @@ namespace Cadence.Core.Entities;
 /// Represents an organizational capability that can be evaluated during exercises.
 /// Capabilities are scoped to organizations and support multiple frameworks
 /// (FEMA Core Capabilities, NATO Baseline Requirements, NIST CSF, ISO 22301, custom).
+/// 
+/// This is the "library" entity. For exercise-specific performance thresholds,
+/// see CapabilityTarget in the EEG feature.
 /// </summary>
 public class Capability
 {
@@ -140,8 +169,22 @@ public class Capability
     
     // Navigation properties
     public Organization Organization { get; set; } = null!;
+    
+    /// <summary>
+    /// Exercises that have selected this capability as a target (simple selection).
+    /// </summary>
     public ICollection<ExerciseCapability> ExerciseCapabilities { get; set; } = [];
+    
+    /// <summary>
+    /// Observations tagged with this capability (ad-hoc tagging).
+    /// </summary>
     public ICollection<ObservationCapability> ObservationCapabilities { get; set; } = [];
+    
+    /// <summary>
+    /// Capability Targets that reference this capability (EEG feature).
+    /// Each CapabilityTarget has a measurable threshold and Critical Tasks.
+    /// </summary>
+    public ICollection<CapabilityTarget> CapabilityTargets { get; set; } = [];
 }
 ```
 
@@ -149,7 +192,8 @@ public class Capability
 
 ```csharp
 /// <summary>
-/// Links exercises to their target capabilities for evaluation.
+/// Links exercises to their target capabilities for evaluation (simple selection).
+/// For detailed performance thresholds, see CapabilityTarget in EEG feature.
 /// </summary>
 public class ExerciseCapability
 {
@@ -161,7 +205,8 @@ public class ExerciseCapability
 }
 
 /// <summary>
-/// Links observations to evaluated capabilities.
+/// Links observations to evaluated capabilities (ad-hoc tagging).
+/// For structured assessments against Critical Tasks, see EegEntry in EEG feature.
 /// </summary>
 public class ObservationCapability
 {
@@ -170,6 +215,23 @@ public class ObservationCapability
     
     public Observation Observation { get; set; } = null!;
     public Capability Capability { get; set; } = null!;
+}
+```
+
+### Relationship to EEG Feature
+
+The EEG feature defines additional entities that reference Capability:
+
+```csharp
+// Defined in EEG Feature - shown here for relationship context
+public class CapabilityTarget
+{
+    public Guid ExerciseId { get; set; }
+    public Guid CapabilityId { get; set; }  // References this Capability entity
+    public string TargetDescription { get; set; }  // e.g., "Activate EOC within 60 min"
+    
+    public Capability Capability { get; set; } = null!;  // Navigation to library item
+    public ICollection<CriticalTask> CriticalTasks { get; set; } = [];
 }
 ```
 
@@ -278,5 +340,16 @@ This story is API-only. See S02 for Admin UI.
 ### Integration Tests
 - [ ] API endpoint authorization (Admin only)
 - [ ] Create/Read/Update/Delete flow
-- [ ] Soft delete preserves linked data
+- [ ] Soft delete preserves linked data (observations, capability targets)
 - [ ] Query filtering (active/inactive)
+
+---
+
+## Related Features
+
+| Feature | Relationship |
+|---------|--------------|
+| Exercise Capabilities S04 | Uses Capability for simple target selection |
+| Exercise Capabilities S05 | Uses Capability for observation tagging |
+| Exercise Capabilities S06 | Uses Capability for metrics grouping |
+| **EEG Feature** | Creates CapabilityTarget entities that reference Capability with measurable thresholds |

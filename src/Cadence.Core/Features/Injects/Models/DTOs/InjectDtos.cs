@@ -64,7 +64,9 @@ public record InjectDto(
     string? RevertedByUserId,
     DateTime? RevertedAt,
     string? RevertReason,
-    string? ModifiedBy
+    string? ModifiedBy,
+    // EEG Linking (S05)
+    int LinkedCriticalTaskCount
 );
 
 /// <summary>
@@ -540,7 +542,9 @@ public static class InjectMapper
         entity.RevertedByUserId,
         entity.RevertedAt,
         entity.RevertReason,
-        entity.ModifiedBy
+        entity.ModifiedBy,
+        // EEG Linking (S05)
+        entity.LinkedCriticalTasks?.Count ?? 0
     );
 
     public static Inject ToEntity(this CreateInjectRequest request, Guid mselId, int injectNumber, int sequence, string createdBy) => new()

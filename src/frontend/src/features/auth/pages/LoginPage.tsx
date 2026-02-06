@@ -236,7 +236,7 @@ export const LoginPage: FC = () => {
             }}
             onBlur={() => validateEmail(email)}
             error={!!emailError}
-            helperText={emailError}
+            helperText={emailError || ' '}
             fullWidth
             required
             autoFocus
@@ -249,6 +249,7 @@ export const LoginPage: FC = () => {
             type={showPassword ? 'text' : 'password'}
             value={password}
             onChange={e => setPassword(e.target.value)}
+            helperText=" " // Reserve space for consistent layout
             fullWidth
             required
             autoComplete="current-password"
@@ -259,8 +260,9 @@ export const LoginPage: FC = () => {
                     onClick={() => setShowPassword(!showPassword)}
                     edge="end"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    size="small"
                   >
-                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} />
+                    <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
                 </InputAdornment>
               ),
