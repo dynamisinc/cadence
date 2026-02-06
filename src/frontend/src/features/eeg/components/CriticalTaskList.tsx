@@ -88,6 +88,7 @@ interface SortableTaskItemProps {
 
 /**
  * Sortable task item with drag handle (S04)
+ * Uses compact horizontal layout on md+ screens, vertical on mobile
  */
 const SortableTaskItem: FC<SortableTaskItemProps> = ({
   task,
@@ -119,17 +120,17 @@ const SortableTaskItem: FC<SortableTaskItemProps> = ({
       style={style}
       sx={{
         px: 1.5,
-        py: 1,
+        py: isMobile ? 1 : 0.75,
         display: 'flex',
-        alignItems: 'flex-start',
-        gap: 1.5,
+        alignItems: isMobile ? 'flex-start' : 'center',
+        gap: isMobile ? 1.5 : 1,
         bgcolor: 'background.paper',
       }}
       variant="outlined"
     >
       {/* Drag Handle (desktop) or Move Buttons (mobile) */}
       {canEdit && (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, pt: 0.25 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, pt: isMobile ? 0.25 : 0 }}>
           {isMobile ? (
             <>
               <IconButton
@@ -189,21 +190,58 @@ const SortableTaskItem: FC<SortableTaskItemProps> = ({
         {index + 1}
       </Box>
 
-      {/* Content */}
-      <Box flex={1} sx={{ minWidth: 0 }}>
-        <Typography variant="body2" fontWeight={500} sx={{ lineHeight: 1.3 }}>
-          {task.taskDescription}
-        </Typography>
-        {task.standard && (
-          <Typography
-            variant="caption"
-            color="text.secondary"
-            sx={{ mt: 0.25, display: 'block', fontStyle: 'italic' }}
-          >
-            Standard: {task.standard}
+      {/* Content - Horizontal layout on md+, vertical on mobile */}
+      <Box
+        flex={1}
+        sx={{
+          minWidth: 0,
+          display: 'flex',
+          flexDirection: isMobile ? 'column' : 'row',
+          alignItems: isMobile ? 'flex-start' : 'center',
+          gap: isMobile ? 0 : 1.5,
+        }}
+      >
+        {/* Task Description */}
+        <Box
+          flex={1}
+          sx={{
+            minWidth: 0,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: isMobile ? 0.25 : 0,
+          }}
+        >
+          <Typography variant="body2" fontWeight={500} sx={{ lineHeight: 1.3 }}>
+            {task.taskDescription}
           </Typography>
-        )}
-        <Stack direction="row" spacing={1} sx={{ mt: 0.5, flexWrap: 'wrap', gap: 0.5 }}>
+          {task.standard && (
+            <Typography
+              variant="caption"
+              color="text.secondary"
+              sx={{
+                mt: isMobile ? 0.25 : 0,
+                display: isMobile ? 'block' : 'inline',
+                fontStyle: 'italic',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: isMobile ? 'normal' : 'nowrap',
+              }}
+            >
+              Standard: {task.standard}
+            </Typography>
+          )}
+        </Box>
+
+        {/* Chips - Inline on md+, below on mobile */}
+        <Stack
+          direction="row"
+          spacing={0.5}
+          sx={{
+            mt: isMobile ? 0.5 : 0,
+            flexShrink: 0,
+            alignItems: 'center',
+          }}
+        >
           {/* Inject Count Chip - Clickable to link injects (S05) */}
           {task.linkedInjectCount > 0 ? (
             <Chip
