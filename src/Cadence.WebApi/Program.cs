@@ -30,6 +30,9 @@ using Scalar.AspNetCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// Load optional local config (git-ignored, for secrets like ACS connection strings)
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
+
 // Add services to the container.
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -166,15 +169,18 @@ else
 }
 builder.Services.AddApplicationServices();
 
-// Add Email Delivery Services (using fully qualified names to avoid conflict with Auth IEmailService)
+// Add Email Services (templates registered in AddApplicationServices, delivery provider selected here)
 builder.Services.Configure<EmailServiceOptions>(builder.Configuration.GetSection(EmailServiceOptions.SectionName));
-if (builder.Environment.IsDevelopment())
+
+// Register email delivery provider (config-driven: set Email:Provider in appsettings)
+var emailProvider = builder.Configuration.GetSection(EmailServiceOptions.SectionName)["Provider"] ?? "Logging";
+if (emailProvider.Equals("AzureCommunicationServices", StringComparison.OrdinalIgnoreCase))
 {
-    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, LoggingEmailService>();
+    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, AzureCommunicationEmailService>();
 }
 else
 {
-    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, AzureCommunicationEmailService>();
+    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, LoggingEmailService>();
 }
 
 // Add SignalR Hub Context
