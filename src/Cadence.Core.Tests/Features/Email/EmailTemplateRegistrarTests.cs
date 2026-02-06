@@ -29,6 +29,13 @@ public class EmailTemplateRegistrarTests
     [InlineData("ExerciseInvite")]
     [InlineData("ExternalExerciseInvite")]
     [InlineData("ExerciseDetailsUpdated")]
+    [InlineData("InjectSubmitted")]
+    [InlineData("InjectApproved")]
+    [InlineData("InjectRejected")]
+    [InlineData("InjectChangesRequested")]
+    [InlineData("InjectAssignment")]
+    [InlineData("RoleChange")]
+    [InlineData("EvaluatorAreaAssignment")]
     public async Task RegisterAll_RegistersExpectedTemplate(string templateId)
     {
         var template = await _store.GetTemplateAsync(templateId);
@@ -38,15 +45,17 @@ public class EmailTemplateRegistrarTests
     }
 
     [Fact]
-    public async Task RegisterAll_RegistersAll13Templates()
+    public async Task RegisterAll_RegistersAll20Templates()
     {
-        // Verify all 13 expected templates exist
+        // Verify all 20 expected templates exist
         var expectedTemplates = new[]
         {
             "_Layout", "PasswordReset", "PasswordChanged", "AccountVerification",
             "NewDeviceAlert", "Welcome", "AccountDeactivated", "AccountReactivated",
             "OrganizationInvite", "WelcomeToOrg",
-            "ExerciseInvite", "ExternalExerciseInvite", "ExerciseDetailsUpdated"
+            "ExerciseInvite", "ExternalExerciseInvite", "ExerciseDetailsUpdated",
+            "InjectSubmitted", "InjectApproved", "InjectRejected", "InjectChangesRequested",
+            "InjectAssignment", "RoleChange", "EvaluatorAreaAssignment"
         };
 
         foreach (var id in expectedTemplates)
@@ -214,6 +223,103 @@ public class EmailTemplateRegistrarTests
         Assert.Contains("{{RecipientName}}", template.HtmlContent);
         Assert.Contains("{{Changes}}", template.HtmlContent);
         Assert.Contains("{{RoleName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_InjectSubmittedTemplate_HasApprovalDetails()
+    {
+        var template = await _store.GetTemplateAsync("InjectSubmitted");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{InjectNumber}}", template!.SubjectTemplate);
+        Assert.Contains("{{InjectTitle}}", template.SubjectTemplate);
+        Assert.Contains("{{ApproverName}}", template.HtmlContent);
+        Assert.Contains("{{SubmitterName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseName}}", template.HtmlContent);
+        Assert.Contains("{{ReviewUrl}}", template.HtmlContent);
+        Assert.Contains("{{ReviewUrl}}", template.PlainTextContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_InjectApprovedTemplate_HasApprovalDetails()
+    {
+        var template = await _store.GetTemplateAsync("InjectApproved");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{InjectNumber}}", template!.SubjectTemplate);
+        Assert.Contains("{{InjectTitle}}", template.SubjectTemplate);
+        Assert.Contains("{{SubmitterName}}", template.HtmlContent);
+        Assert.Contains("{{ApproverName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseName}}", template.HtmlContent);
+        Assert.Contains("{{InjectUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_InjectRejectedTemplate_HasFeedbackDetails()
+    {
+        var template = await _store.GetTemplateAsync("InjectRejected");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{InjectNumber}}", template!.SubjectTemplate);
+        Assert.Contains("{{SubmitterName}}", template.HtmlContent);
+        Assert.Contains("{{ReviewerName}}", template.HtmlContent);
+        Assert.Contains("{{RejectionReason}}", template.HtmlContent);
+        Assert.Contains("{{InjectUrl}}", template.HtmlContent);
+        Assert.Contains("{{RejectionReason}}", template.PlainTextContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_InjectChangesRequestedTemplate_HasChangeRequestDetails()
+    {
+        var template = await _store.GetTemplateAsync("InjectChangesRequested");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{InjectNumber}}", template!.SubjectTemplate);
+        Assert.Contains("{{SubmitterName}}", template.HtmlContent);
+        Assert.Contains("{{ReviewerName}}", template.HtmlContent);
+        Assert.Contains("{{RequestedChanges}}", template.HtmlContent);
+        Assert.Contains("{{InjectUrl}}", template.HtmlContent);
+        Assert.Contains("{{RequestedChanges}}", template.PlainTextContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_InjectAssignmentTemplate_HasAssignmentDetails()
+    {
+        var template = await _store.GetTemplateAsync("InjectAssignment");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{ControllerName}}", template.HtmlContent);
+        Assert.Contains("{{AssignmentSummary}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+        Assert.Contains("{{AssignmentSummary}}", template.PlainTextContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_RoleChangeTemplate_HasRoleDetails()
+    {
+        var template = await _store.GetTemplateAsync("RoleChange");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{RecipientName}}", template.HtmlContent);
+        Assert.Contains("{{OldRole}}", template.HtmlContent);
+        Assert.Contains("{{NewRole}}", template.HtmlContent);
+        Assert.Contains("{{ChangedByName}}", template.HtmlContent);
+        Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
+    }
+
+    [Fact]
+    public async Task RegisterAll_EvaluatorAreaAssignmentTemplate_HasAreaDetails()
+    {
+        var template = await _store.GetTemplateAsync("EvaluatorAreaAssignment");
+
+        Assert.NotNull(template);
+        Assert.Contains("{{ExerciseName}}", template!.SubjectTemplate);
+        Assert.Contains("{{EvaluatorName}}", template.HtmlContent);
+        Assert.Contains("{{AssignedArea}}", template.HtmlContent);
+        Assert.Contains("{{AreaDescription}}", template.HtmlContent);
         Assert.Contains("{{ExerciseUrl}}", template.HtmlContent);
     }
 }

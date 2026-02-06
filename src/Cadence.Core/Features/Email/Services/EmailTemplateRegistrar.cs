@@ -28,6 +28,17 @@ public static class EmailTemplateRegistrar
         RegisterExerciseInviteTemplate(store);
         RegisterExternalExerciseInviteTemplate(store);
         RegisterExerciseDetailsUpdatedTemplate(store);
+
+        // Inject workflow templates
+        RegisterInjectSubmittedTemplate(store);
+        RegisterInjectApprovedTemplate(store);
+        RegisterInjectRejectedTemplate(store);
+        RegisterInjectChangesRequestedTemplate(store);
+
+        // Assignment notification templates
+        RegisterInjectAssignmentTemplate(store);
+        RegisterRoleChangeTemplate(store);
+        RegisterEvaluatorAreaAssignmentTemplate(store);
     }
 
     private static void RegisterLayoutTemplate(InMemoryEmailTemplateStore store)
@@ -459,6 +470,251 @@ Your role ({{RoleName}}) remains the same.
 View updated details: {{ExerciseUrl}}
 
 Questions? Contact Exercise Director {{DirectorName}}.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterInjectSubmittedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "InjectSubmitted",
+            SubjectTemplate: "Inject pending approval: [#{{InjectNumber}}] {{InjectTitle}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Inject Awaiting Your Approval</h2>
+<p>Hi {{ApproverName}},</p>
+<p>Inject <strong>#{{InjectNumber}}</strong> has been submitted for approval.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Title:</td><td>{{InjectTitle}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Submitted by:</td><td>{{SubmitterName}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Exercise:</td><td>{{ExerciseName}}</td></tr>
+</table>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ReviewUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Review &amp; Approve</a>
+</p>",
+            PlainTextContent: @"Inject Awaiting Your Approval
+
+Hi {{ApproverName}},
+
+Inject #{{InjectNumber}} has been submitted for approval.
+
+INJECT DETAILS
+Title: {{InjectTitle}}
+Submitted by: {{SubmitterName}}
+Exercise: {{ExerciseName}}
+
+Review and approve: {{ReviewUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterInjectApprovedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "InjectApproved",
+            SubjectTemplate: "Inject approved: [#{{InjectNumber}}] {{InjectTitle}}",
+            HtmlContent: @"<h2 style=""color: #2e7d32; margin-top: 0;"">Inject Approved</h2>
+<p>Hi {{SubmitterName}},</p>
+<p>Good news! Your inject has been approved.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Inject:</td><td>#{{InjectNumber}} - {{InjectTitle}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Approved by:</td><td>{{ApproverName}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Exercise:</td><td>{{ExerciseName}}</td></tr>
+</table>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{InjectUrl}}"" style=""background-color: #2e7d32; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Inject</a>
+</p>",
+            PlainTextContent: @"Inject Approved
+
+Hi {{SubmitterName}},
+
+Good news! Your inject has been approved.
+
+Inject: #{{InjectNumber}} - {{InjectTitle}}
+Approved by: {{ApproverName}}
+Exercise: {{ExerciseName}}
+
+View inject: {{InjectUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterInjectRejectedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "InjectRejected",
+            SubjectTemplate: "Inject needs revision: [#{{InjectNumber}}] {{InjectTitle}}",
+            HtmlContent: @"<h2 style=""color: #d32f2f; margin-top: 0;"">Inject Requires Changes</h2>
+<p>Hi {{SubmitterName}},</p>
+<p>Your inject was reviewed but needs revisions before approval.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Inject:</td><td>#{{InjectNumber}} - {{InjectTitle}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Reviewed by:</td><td>{{ReviewerName}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Exercise:</td><td>{{ExerciseName}}</td></tr>
+</table>
+<div style=""margin: 16px 0; padding: 16px; background-color: #ffebee; border-left: 4px solid #d32f2f; border-radius: 4px;"">
+  <strong style=""color: #d32f2f;"">Feedback:</strong>
+  <p style=""margin: 8px 0 0 0;"">{{RejectionReason}}</p>
+</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{InjectUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Edit Inject</a>
+</p>",
+            PlainTextContent: @"Inject Requires Changes
+
+Hi {{SubmitterName}},
+
+Your inject was reviewed but needs revisions before approval.
+
+Inject: #{{InjectNumber}} - {{InjectTitle}}
+Reviewed by: {{ReviewerName}}
+Exercise: {{ExerciseName}}
+
+FEEDBACK
+{{RejectionReason}}
+
+Edit inject: {{InjectUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterInjectChangesRequestedTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "InjectChangesRequested",
+            SubjectTemplate: "Changes requested: [#{{InjectNumber}}] {{InjectTitle}}",
+            HtmlContent: @"<h2 style=""color: #f57c00; margin-top: 0;"">Minor Changes Requested</h2>
+<p>Hi {{SubmitterName}},</p>
+<p>Your inject is almost ready — just a few tweaks needed.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Inject:</td><td>#{{InjectNumber}} - {{InjectTitle}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Requested by:</td><td>{{ReviewerName}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Exercise:</td><td>{{ExerciseName}}</td></tr>
+</table>
+<div style=""margin: 16px 0; padding: 16px; background-color: #fff3e0; border-left: 4px solid #f57c00; border-radius: 4px;"">
+  <strong style=""color: #f57c00;"">Requested Changes:</strong>
+  <p style=""margin: 8px 0 0 0;"">{{RequestedChanges}}</p>
+</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{InjectUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Make Changes</a>
+</p>",
+            PlainTextContent: @"Minor Changes Requested
+
+Hi {{SubmitterName}},
+
+Your inject is almost ready - just a few tweaks needed.
+
+Inject: #{{InjectNumber}} - {{InjectTitle}}
+Requested by: {{ReviewerName}}
+Exercise: {{ExerciseName}}
+
+REQUESTED CHANGES
+{{RequestedChanges}}
+
+Make changes: {{InjectUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterInjectAssignmentTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "InjectAssignment",
+            SubjectTemplate: "You've been assigned injects for {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Inject Assignment</h2>
+<p>Hi {{ControllerName}},</p>
+<p>You've been assigned to deliver injects for <strong>{{ExerciseName}}</strong>.</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px;"">
+  <strong>Your Assigned Injects</strong>
+  <div style=""margin-top: 12px;"">{{AssignmentSummary}}</div>
+</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Your Injects</a>
+</p>",
+            PlainTextContent: @"Inject Assignment
+
+Hi {{ControllerName}},
+
+You've been assigned to deliver injects for {{ExerciseName}}.
+
+YOUR ASSIGNED INJECTS
+{{AssignmentSummary}}
+
+View your injects: {{ExerciseUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterRoleChangeTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "RoleChange",
+            SubjectTemplate: "Your role changed in {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Role Change Notification</h2>
+<p>Hi {{RecipientName}},</p>
+<p>Your role in <strong>{{ExerciseName}}</strong> has been updated.</p>
+<table style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px; width: 100%;"">
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">From:</td><td>{{OldRole}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">To:</td><td>{{NewRole}}</td></tr>
+  <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Changed by:</td><td>{{ChangedByName}}</td></tr>
+</table>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Exercise</a>
+</p>",
+            PlainTextContent: @"Role Change Notification
+
+Hi {{RecipientName}},
+
+Your role in {{ExerciseName}} has been updated.
+
+ROLE CHANGE
+From: {{OldRole}}
+To: {{NewRole}}
+Changed by: {{ChangedByName}}
+
+View exercise: {{ExerciseUrl}}
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterEvaluatorAreaAssignmentTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "EvaluatorAreaAssignment",
+            SubjectTemplate: "Your evaluation assignment: {{ExerciseName}}",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">Evaluation Area Assignment</h2>
+<p>Hi {{EvaluatorName}},</p>
+<p>You've been assigned to evaluate the following area in <strong>{{ExerciseName}}</strong>.</p>
+<div style=""margin: 16px 0; padding: 16px; background-color: #f5f5f5; border-radius: 4px;"">
+  <strong>Assigned Area</strong>
+  <p style=""margin: 8px 0 0 0; font-size: 16px;"">{{AssignedArea}}</p>
+  <p style=""margin: 8px 0 0 0; color: #666666;"">{{AreaDescription}}</p>
+</div>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{ExerciseUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">View Evaluation Guide</a>
+</p>",
+            PlainTextContent: @"Evaluation Area Assignment
+
+Hi {{EvaluatorName}},
+
+You've been assigned to evaluate the following area in {{ExerciseName}}.
+
+ASSIGNED AREA
+{{AssignedArea}}
+{{AreaDescription}}
+
+View evaluation guide: {{ExerciseUrl}}
 
 ---
 Cadence - Exercise Management Platform"
