@@ -1,10 +1,14 @@
 using System.Security.Cryptography;
 using Cadence.Core.Data;
 using Cadence.Core.Exceptions;
+using Cadence.Core.Features.Authentication.Models;
+using Cadence.Core.Features.Email.Models;
+using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Organizations.Models.DTOs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace Cadence.Core.Features.Organizations.Services;
 
@@ -15,15 +19,21 @@ public class OrganizationInvitationService : IOrganizationInvitationService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<OrganizationInvitationService> _logger;
+    private readonly IEmailService _emailService;
+    private readonly AuthenticationOptions _authOptions;
     private const int InvitationExpirationDays = 7;
     private const int InviteCodeLength = 8;
 
     public OrganizationInvitationService(
         AppDbContext context,
-        ILogger<OrganizationInvitationService> logger)
+        ILogger<OrganizationInvitationService> logger,
+        IEmailService emailService,
+        IOptions<AuthenticationOptions> authOptions)
     {
         _context = context;
         _logger = logger;
+        _emailService = emailService;
+        _authOptions = authOptions.Value;
     }
 
     public async Task<InvitationDto> CreateInvitationAsync(
@@ -65,6 +75,11 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             throw new ConflictException("A pending invitation already exists for this email. Use resend to send it again.");
         }
 
+        // Load inviter user for email
+        var inviter = await _context.Users
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == invitedByUserId);
+
         var invite = new OrganizationInvite
         {
             Id = Guid.NewGuid(),
@@ -87,13 +102,18 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             "Invitation created for {Email} to organization {OrgId} by {InvitedBy}",
             request.Email, organizationId, invitedByUserId);
 
-        return await MapToDto(invite);
+        // Send invitation email (don't fail the operation if email fails)
+        var (emailSent, emailError) = await SendInvitationEmailAsync(invite, org.Name, inviter?.DisplayName ?? "A team member");
+
+        var dto = await MapToDto(invite);
+        return dto with { EmailSent = emailSent, EmailError = emailError };
     }
 
     public async Task<InvitationDto> ResendInvitationAsync(Guid invitationId, string requestedByUserId)
     {
         var invite = await _context.OrganizationInvites
             .Include(i => i.CreatedByUser)
+            .Include(i => i.Organization)
             .FirstOrDefaultAsync(i => i.Id == invitationId && !i.IsDeleted)
             ?? throw new NotFoundException("Invitation not found");
 
@@ -114,7 +134,13 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             "Invitation {InviteId} resent to {Email} by {UserId}",
             invitationId, invite.Email, requestedByUserId);
 
-        return await MapToDto(invite);
+        // Send invitation email (don't fail the operation if email fails)
+        var inviterName = invite.CreatedByUser?.DisplayName ?? "A team member";
+        var orgName = invite.Organization?.Name ?? "the organization";
+        var (emailSent, emailError) = await SendInvitationEmailAsync(invite, orgName, inviterName);
+
+        var dto = await MapToDto(invite);
+        return dto with { EmailSent = emailSent, EmailError = emailError };
     }
 
     public async Task CancelInvitationAsync(Guid invitationId, string requestedByUserId)
@@ -246,6 +272,53 @@ public class OrganizationInvitationService : IOrganizationInvitationService
     // =========================================================================
     // Private Helpers
     // =========================================================================
+
+    /// <summary>
+    /// Send invitation email. Logs warnings on failure but doesn't throw.
+    /// Returns (sent, errorMessage) so callers can surface the result.
+    /// </summary>
+    private async Task<(bool Sent, string? Error)> SendInvitationEmailAsync(OrganizationInvite invite, string organizationName, string inviterName)
+    {
+        try
+        {
+            var inviteUrl = $"{_authOptions.FrontendBaseUrl}/invite/{invite.Code}";
+
+            var model = new OrganizationInviteEmailModel
+            {
+                OrganizationName = organizationName,
+                InviterName = inviterName,
+                InviteUrl = inviteUrl,
+                ExpiresAt = invite.ExpiresAt,
+                Role = invite.Role.ToString()
+            };
+
+            var recipient = new EmailRecipient(invite.Email ?? string.Empty);
+
+            var result = await _emailService.SendTemplatedAsync("OrganizationInvite", model, recipient);
+
+            if (result.Status == EmailSendStatus.Failed)
+            {
+                _logger.LogWarning(
+                    "Failed to send invitation email to {Email} for organization {OrgName}. " +
+                    "Invitation created but email not delivered. Error: {Error}",
+                    invite.Email, organizationName, result.ErrorMessage);
+                return (false, result.ErrorMessage);
+            }
+
+            _logger.LogInformation(
+                "Invitation email sent to {Email} for organization {OrgName}. MessageId: {MessageId}",
+                invite.Email, organizationName, result.MessageId);
+            return (true, null);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "Exception sending invitation email to {Email} for organization {OrgName}. " +
+                "Invitation created but email not delivered.",
+                invite.Email, organizationName);
+            return (false, ex.Message);
+        }
+    }
 
     private static string GenerateInviteCode()
     {

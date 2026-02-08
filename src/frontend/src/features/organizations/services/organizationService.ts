@@ -17,6 +17,9 @@ import type {
   OrgMember,
   AddMemberRequest,
   UpdateMemberRoleRequest,
+  Invitation,
+  CreateInvitationRequest,
+  InvitationStatus,
 } from '../types'
 import type {
   ApprovalPermissionsDto,
@@ -146,6 +149,65 @@ export const organizationService = {
    */
   removeCurrentOrgMember: async (membershipId: string): Promise<void> => {
     await apiClient.delete(`/organizations/current/members/${membershipId}`)
+  },
+
+  // =========================================================================
+  // Current Organization Invitations (OrgAdmin) - EM-02
+  // =========================================================================
+
+  /**
+   * Create an invitation to join the current organization.
+   * Returns the full InvitationDto including emailSent/emailError status.
+   */
+  createInvitation: async (request: CreateInvitationRequest): Promise<Invitation> => {
+    const response = await apiClient.post<Invitation>(
+      '/organizations/current/invitations',
+      request,
+    )
+    return response.data
+  },
+
+  /**
+   * Get all invitations for the current organization with optional status filter
+   */
+  getInvitations: async (status?: InvitationStatus): Promise<Invitation[]> => {
+    const response = await apiClient.get<Invitation[]>('/organizations/current/invitations', {
+      params: status ? { status } : undefined,
+    })
+    return response.data
+  },
+
+  /**
+   * Resend an invitation email.
+   * Returns the updated InvitationDto including emailSent/emailError status.
+   */
+  resendInvitation: async (invitationId: string): Promise<Invitation> => {
+    const response = await apiClient.post<Invitation>(
+      `/organizations/current/invitations/${invitationId}/resend`,
+    )
+    return response.data
+  },
+
+  /**
+   * Cancel a pending invitation
+   */
+  cancelInvitation: async (invitationId: string): Promise<void> => {
+    await apiClient.delete(`/organizations/current/invitations/${invitationId}`)
+  },
+
+  /**
+   * Validate an invitation code (public endpoint - no auth required)
+   */
+  validateInvitation: async (code: string): Promise<Invitation> => {
+    const response = await apiClient.get<Invitation>(`/invitations/validate/${code}`)
+    return response.data
+  },
+
+  /**
+   * Accept an invitation (authenticated user only)
+   */
+  acceptInvitation: async (code: string): Promise<void> => {
+    await apiClient.post(`/invitations/accept/${code}`)
   },
 
   // =========================================================================

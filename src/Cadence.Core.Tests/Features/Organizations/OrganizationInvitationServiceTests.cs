@@ -1,10 +1,14 @@
 using Cadence.Core.Data;
 using Cadence.Core.Exceptions;
+using Cadence.Core.Features.Authentication.Models;
+using Cadence.Core.Features.Email.Models;
+using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Organizations.Models.DTOs;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Models.Entities;
 using Cadence.Core.Tests.Helpers;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Moq;
 
 namespace Cadence.Core.Tests.Features.Organizations;
@@ -18,12 +22,29 @@ public class OrganizationInvitationServiceTests : IDisposable
     private readonly OrganizationInvitationService _sut;
     private readonly Organization _testOrg;
     private readonly ApplicationUser _adminUser;
+    private readonly Mock<IEmailService> _mockEmailService;
 
     public OrganizationInvitationServiceTests()
     {
         _context = TestDbContextFactory.Create();
         var logger = new Mock<ILogger<OrganizationInvitationService>>();
-        _sut = new OrganizationInvitationService(_context, logger.Object);
+        _mockEmailService = new Mock<IEmailService>();
+
+        // Setup email service to return successful result by default
+        _mockEmailService
+            .Setup(x => x.SendTemplatedAsync(
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<EmailRecipient>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new EmailSendResult("test-message-id", EmailSendStatus.Sent));
+
+        var authOptions = Options.Create(new AuthenticationOptions
+        {
+            FrontendBaseUrl = "http://localhost:5173"
+        });
+
+        _sut = new OrganizationInvitationService(_context, logger.Object, _mockEmailService.Object, authOptions);
 
         // Seed test data
         _testOrg = new Organization
@@ -173,6 +194,48 @@ public class OrganizationInvitationServiceTests : IDisposable
         Assert.Equal("admin@test.com", result.InvitedByEmail);
     }
 
+    [Fact]
+    public async Task CreateInvitationAsync_SendsInvitationEmail()
+    {
+        var request = new CreateInvitationRequest("new@example.com");
+
+        await _sut.CreateInvitationAsync(_testOrg.Id, request, _adminUser.Id);
+
+        // Verify email was sent with correct template and recipient
+        _mockEmailService.Verify(
+            x => x.SendTemplatedAsync(
+                "OrganizationInvite",
+                It.Is<OrganizationInviteEmailModel>(m =>
+                    m.OrganizationName == "Test Organization" &&
+                    m.InviterName == "Test Admin" &&
+                    m.Role == "OrgUser" &&
+                    m.InviteUrl.Contains("/invite/")),
+                It.Is<EmailRecipient>(r => r.Email == "new@example.com"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateInvitationAsync_EmailFailure_DoesNotThrow()
+    {
+        // Setup email service to fail
+        _mockEmailService
+            .Setup(x => x.SendTemplatedAsync(
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<EmailRecipient>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new EmailSendResult(null, EmailSendStatus.Failed, "SMTP error"));
+
+        var request = new CreateInvitationRequest("fail@example.com");
+
+        // Should not throw even if email fails
+        var result = await _sut.CreateInvitationAsync(_testOrg.Id, request, _adminUser.Id);
+
+        Assert.NotNull(result);
+        Assert.Equal("fail@example.com", result.Email);
+    }
+
     // =========================================================================
     // ResendInvitationAsync Tests
     // =========================================================================
@@ -234,6 +297,37 @@ public class OrganizationInvitationServiceTests : IDisposable
     {
         await Assert.ThrowsAsync<NotFoundException>(
             () => _sut.ResendInvitationAsync(Guid.NewGuid(), _adminUser.Id));
+    }
+
+    [Fact]
+    public async Task ResendInvitationAsync_SendsInvitationEmail()
+    {
+        var request = new CreateInvitationRequest("user@example.com");
+        var invite = await _sut.CreateInvitationAsync(_testOrg.Id, request, _adminUser.Id);
+
+        // Reset mock to clear previous call
+        _mockEmailService.Reset();
+        _mockEmailService
+            .Setup(x => x.SendTemplatedAsync(
+                It.IsAny<string>(),
+                It.IsAny<object>(),
+                It.IsAny<EmailRecipient>(),
+                It.IsAny<CancellationToken>()))
+            .ReturnsAsync(new EmailSendResult("test-message-id", EmailSendStatus.Sent));
+
+        await _sut.ResendInvitationAsync(invite.Id, _adminUser.Id);
+
+        // Verify email was sent with correct template and new code
+        _mockEmailService.Verify(
+            x => x.SendTemplatedAsync(
+                "OrganizationInvite",
+                It.Is<OrganizationInviteEmailModel>(m =>
+                    m.OrganizationName == "Test Organization" &&
+                    m.InviterName == "Test Admin" &&
+                    m.InviteUrl.Contains("/invite/")),
+                It.Is<EmailRecipient>(r => r.Email == "user@example.com"),
+                It.IsAny<CancellationToken>()),
+            Times.Once);
     }
 
     // =========================================================================

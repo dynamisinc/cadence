@@ -25,7 +25,9 @@ public record InvitationDto(
     string InvitedByEmail,
     DateTime? AcceptedAt,
     DateTime? CancelledAt,
-    string? AcceptedByName
+    string? AcceptedByName,
+    bool? EmailSent = null,
+    string? EmailError = null
 );
 
 /// <summary>

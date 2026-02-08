@@ -63,4 +63,6 @@ export {
   OrganizationMembersPage,
   OrganizationApprovalPage,
   OrganizationSettingsPage,
+  // Public pages
+  InviteAcceptPage,
 } from './pages'
