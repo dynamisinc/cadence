@@ -54,6 +54,18 @@ public class AzureCommunicationEmailService : IEmailService
             throw new ArgumentException($"Invalid recipient email address: '{message.To.Email}'", nameof(message));
         }
 
+        if (IsReservedDomain(message.To.Email))
+        {
+            _logger.LogWarning(
+                "[Email:ACS] Blocked send to RFC 2606 reserved domain - To: {ToEmail}, Subject: {Subject}",
+                message.To.Email, message.Subject);
+            return new Models.EmailSendResult(
+                MessageId: null,
+                Status: Models.EmailSendStatus.Failed,
+                ErrorMessage: $"Cannot send to reserved domain: '{message.To.Email}'"
+            );
+        }
+
         if (_client == null)
         {
             _logger.LogError(
@@ -197,5 +209,19 @@ public class AzureCommunicationEmailService : IEmailService
         {
             return false;
         }
+    }
+
+    private static readonly HashSet<string> ReservedDomains = new(StringComparer.OrdinalIgnoreCase)
+    {
+        "example.com", "example.org", "example.net", "example.edu",
+        "test.com", "test.org", "test.net"
+    };
+
+    private static bool IsReservedDomain(string email)
+    {
+        var atIndex = email.LastIndexOf('@');
+        if (atIndex < 0) return false;
+        var domain = email[(atIndex + 1)..];
+        return ReservedDomains.Contains(domain);
     }
 }

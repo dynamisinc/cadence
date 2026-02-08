@@ -50,7 +50,8 @@ public class CadenceWebApplicationFactory : WebApplicationFactory<Program>
                 ["Authentication:Jwt:AccessTokenMinutes"] = "15",
                 ["Authentication:Jwt:RefreshTokenHours"] = "4",
                 ["Authentication:Jwt:RememberMeDays"] = "30",
-                ["Azure:SignalR:Enabled"] = "false"
+                ["Azure:SignalR:Enabled"] = "false",
+                ["Email:Provider"] = "Logging"
             });
         });
 
