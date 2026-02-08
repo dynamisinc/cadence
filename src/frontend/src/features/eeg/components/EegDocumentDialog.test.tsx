@@ -325,7 +325,7 @@ describe('EegDocumentDialog', () => {
 
     it('shows loading state during generation', async () => {
       vi.mocked(eegDocumentService.download).mockImplementation(
-        () => new Promise(resolve => setTimeout(resolve, 100)),
+        () => new Promise(() => {}),
       )
 
       const user = userEvent.setup()
