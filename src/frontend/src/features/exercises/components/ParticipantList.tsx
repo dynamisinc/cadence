@@ -21,8 +21,8 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUserPlus, faUsers } from '@fortawesome/free-solid-svg-icons'
-import { CobraPrimaryButton } from '../../../theme/styledComponents'
+import { faUserPlus, faUsers, faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { ParticipantListItem } from './ParticipantListItem'
 import type { ExerciseParticipantDto } from '../types'
 
@@ -31,6 +31,7 @@ interface ParticipantListProps {
   canEdit: boolean
   loading: boolean
   onAdd: () => void
+  onInviteMembers?: () => void
   onRoleChange: (userId: string, newRole: string) => void
   onRemove: (userId: string, displayName: string) => void
 }
@@ -129,6 +130,7 @@ export const ParticipantList: FC<ParticipantListProps> = ({
   canEdit,
   loading,
   onAdd,
+  onInviteMembers,
   onRoleChange,
   onRemove,
 }) => {
@@ -150,12 +152,22 @@ export const ParticipantList: FC<ParticipantListProps> = ({
       <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
         <Typography variant="h5">Exercise Participants</Typography>
         {canEdit && (
-          <CobraPrimaryButton
-            startIcon={<FontAwesomeIcon icon={faUserPlus} />}
-            onClick={onAdd}
-          >
-            Add Participant
-          </CobraPrimaryButton>
+          <Stack direction="row" spacing={1}>
+            {onInviteMembers && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faEnvelope} />}
+                onClick={onInviteMembers}
+              >
+                Invite Members
+              </CobraSecondaryButton>
+            )}
+            <CobraPrimaryButton
+              startIcon={<FontAwesomeIcon icon={faUserPlus} />}
+              onClick={onAdd}
+            >
+              Add Participant
+            </CobraPrimaryButton>
+          </Stack>
         )}
       </Stack>
 

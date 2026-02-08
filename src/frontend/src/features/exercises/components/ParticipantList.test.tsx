@@ -36,6 +36,7 @@ describe('ParticipantList', () => {
 
   const mockHandlers = {
     onAdd: vi.fn(),
+    onInviteMembers: vi.fn(),
     onRoleChange: vi.fn(),
     onRemove: vi.fn(),
   }
@@ -207,5 +208,54 @@ describe('ParticipantList', () => {
     )
 
     expect(screen.queryByText('Actions')).not.toBeInTheDocument()
+  })
+
+  it('shows invite members button when canEdit and onInviteMembers is provided', () => {
+    render(
+      <ParticipantList
+        participants={mockParticipants}
+        canEdit={true}
+        loading={false}
+        {...mockHandlers}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: /invite members/i })).toBeInTheDocument()
+  })
+
+  it('hides invite members button when onInviteMembers is not provided', () => {
+    const handlersWithoutInvite = {
+      onAdd: vi.fn(),
+      onRoleChange: vi.fn(),
+      onRemove: vi.fn(),
+    }
+
+    render(
+      <ParticipantList
+        participants={mockParticipants}
+        canEdit={true}
+        loading={false}
+        {...handlersWithoutInvite}
+      />,
+    )
+
+    expect(screen.queryByRole('button', { name: /invite members/i })).not.toBeInTheDocument()
+  })
+
+  it('calls onInviteMembers when invite button is clicked', async () => {
+    const user = userEvent.setup()
+    render(
+      <ParticipantList
+        participants={mockParticipants}
+        canEdit={true}
+        loading={false}
+        {...mockHandlers}
+      />,
+    )
+
+    const inviteButton = screen.getByRole('button', { name: /invite members/i })
+    await user.click(inviteButton)
+
+    expect(mockHandlers.onInviteMembers).toHaveBeenCalled()
   })
 })
