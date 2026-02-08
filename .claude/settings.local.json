@@ -69,7 +69,16 @@
       "mcp__plugin_playwright_playwright__browser_console_messages",
       "Bash(npm run test:ci:*)",
       "Bash(GIT_SEQUENCE_EDITOR=\"sed -i ''s/^pick a8a4ad7/reword a8a4ad7/; s/^pick 8509937/reword 8509937/; s/^pick 1515eea/reword 1515eea/''\" git rebase -i main)",
-      "Bash(npm ci:*)"
+      "Bash(npm ci:*)",
+      "Read(//c/Users/TomBull/.claude/projects/c--Code-dynamis-cadence/0a20f879-65c2-4361-8a5b-dd9957787474/tool-results/**)",
+      "Bash(az webapp list:*)",
+      "Bash(az webapp log download:*)",
+      "Bash(az webapp log show:*)",
+      "Bash(az monitor app-insights component list:*)",
+      "Bash(az resource list:*)",
+      "Bash(az webapp log config:*)",
+      "Bash(wc:*)",
+      "Bash(tail:*)"
     ],
     "deny": [],
     "ask": [],
