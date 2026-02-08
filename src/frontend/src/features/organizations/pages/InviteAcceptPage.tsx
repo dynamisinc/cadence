@@ -41,6 +41,7 @@ import { AuthLayout } from '@/features/auth/components/AuthLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { organizationService } from '../services/organizationService'
 import type { Invitation } from '../types'
+import { getOrgRoleLabel } from '../types'
 import { toast } from 'react-toastify'
 
 type PageState =
@@ -328,7 +329,7 @@ export const InviteAcceptPage: FC = () => {
                     Assigned Role
                   </Typography>
                   <Typography variant="body2" fontWeight={500}>
-                    {invitation.role}
+                    {getOrgRoleLabel(invitation.role)}
                   </Typography>
                 </Box>
               </Box>
@@ -340,7 +341,7 @@ export const InviteAcceptPage: FC = () => {
                   Invited By
                 </Typography>
                 <Typography variant="body2" fontWeight={500}>
-                  {invitation.createdByUserName}
+                  {invitation.invitedByName}
                 </Typography>
               </Box>
             </Stack>
@@ -389,7 +390,7 @@ export const InviteAcceptPage: FC = () => {
                   Your Role
                 </Typography>
                 <Typography variant="body2" fontWeight={500}>
-                  {invitation.role}
+                  {getOrgRoleLabel(invitation.role)}
                 </Typography>
               </Box>
             </Box>
@@ -401,7 +402,7 @@ export const InviteAcceptPage: FC = () => {
                 Invited By
               </Typography>
               <Typography variant="body2" fontWeight={500}>
-                {invitation.createdByUserName}
+                {invitation.invitedByName}
               </Typography>
             </Box>
           </Stack>

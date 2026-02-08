@@ -212,7 +212,10 @@ public class OrganizationInvitationService : IOrganizationInvitationService
 
     public async Task<InvitationDto?> ValidateCodeAsync(string code)
     {
+        // IgnoreQueryFilters: the user accepting the invite is not yet a member
+        // of the organization, so the org-scoped query filter would hide the invite.
         var invite = await _context.OrganizationInvites
+            .IgnoreQueryFilters()
             .Include(i => i.Organization)
             .Include(i => i.CreatedByUser)
             .FirstOrDefaultAsync(i =>
@@ -227,7 +230,9 @@ public class OrganizationInvitationService : IOrganizationInvitationService
 
     public async Task AcceptInvitationAsync(string code, string userId)
     {
+        // IgnoreQueryFilters: the accepting user is not yet a member of the org.
         var invite = await _context.OrganizationInvites
+            .IgnoreQueryFilters()
             .FirstOrDefaultAsync(i =>
                 i.Code == code &&
                 !i.IsDeleted &&

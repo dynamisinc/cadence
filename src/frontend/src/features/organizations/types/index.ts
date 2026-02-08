@@ -95,7 +95,8 @@ export interface Invitation {
   createdAt: string;
   expiresAt: string;
   usedAt?: string;
-  createdByUserName: string;
+  invitedByName: string;
+  invitedByEmail: string;
   emailSent?: boolean | null;
   emailError?: string | null;
 }
@@ -109,4 +110,14 @@ export interface InvitationSentResponse {
   invitationId: string;
   email: string;
   message: string;
+}
+
+const orgRoleLabels: Record<OrgRole, string> = {
+  OrgAdmin: 'Admin',
+  OrgManager: 'Manager',
+  OrgUser: 'User',
+}
+
+export function getOrgRoleLabel(role: OrgRole | string): string {
+  return orgRoleLabels[role as OrgRole] ?? role
 }

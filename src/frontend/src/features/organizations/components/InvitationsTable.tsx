@@ -24,6 +24,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelope, faXmark } from '@fortawesome/free-solid-svg-icons'
 import type { Invitation } from '../types'
+import { getOrgRoleLabel } from '../types'
 import { format } from 'date-fns'
 
 interface InvitationsTableProps {
@@ -103,7 +104,7 @@ export const InvitationsTable: FC<InvitationsTableProps> = ({
                 </Typography>
               </TableCell>
               <TableCell>
-                <Typography variant="body2">{invitation.role}</Typography>
+                <Typography variant="body2">{getOrgRoleLabel(invitation.role)}</Typography>
               </TableCell>
               <TableCell>
                 <Chip
@@ -124,7 +125,7 @@ export const InvitationsTable: FC<InvitationsTableProps> = ({
               </TableCell>
               <TableCell>
                 <Typography variant="body2" color="text.secondary">
-                  {invitation.createdByUserName}
+                  {invitation.invitedByName}
                 </Typography>
               </TableCell>
               <TableCell align="right">
