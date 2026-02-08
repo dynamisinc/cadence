@@ -98,6 +98,9 @@ public class AzureCommunicationEmailService : IEmailService
                 !string.IsNullOrEmpty(message.PlainTextBody),
                 message.HtmlBody?.Length ?? 0);
 
+            // Azure SDK handles 429 retries natively via its built-in RetryPolicy.
+            // Do NOT add application-level retries here - that causes double-retrying
+            // and can multiply API calls dramatically (SDK retries × app retries).
             var operation = await _client.SendAsync(WaitUntil.Started, acsMessage, ct);
             sw.Stop();
 

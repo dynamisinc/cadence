@@ -201,13 +201,9 @@ if (!builder.Environment.IsProduction() && !builder.Environment.IsEnvironment("T
     builder.Services.AddDemoSeeder();
 }
 
-// Add Logging
-builder.Services.AddLogging(logging =>
-{
-    logging.ClearProviders();
-    logging.AddConsole();
-    logging.AddDebug();
-});
+// Logging: WebApplication.CreateBuilder() registers Console, Debug, EventSource, EventLog
+// by default. AddApplicationInsightsTelemetry() (above) adds the App Insights provider.
+// Do NOT call ClearProviders() here - it would strip the App Insights logging provider.
 
 // Add Rate Limiting for authentication endpoints
 builder.Services.AddRateLimiter(options =>
