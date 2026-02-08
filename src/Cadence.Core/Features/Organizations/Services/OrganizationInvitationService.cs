@@ -1,3 +1,4 @@
+using System.Net.Mail;
 using System.Security.Cryptography;
 using Cadence.Core.Data;
 using Cadence.Core.Exceptions;
@@ -41,6 +42,12 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         CreateInvitationRequest request,
         string invitedByUserId)
     {
+        // Validate email format before persisting
+        if (string.IsNullOrWhiteSpace(request.Email) || !IsValidEmail(request.Email))
+        {
+            throw new BusinessRuleException("Invalid email address format");
+        }
+
         // Validate organization exists
         var org = await _context.Organizations
             .AsNoTracking()
@@ -317,6 +324,19 @@ public class OrganizationInvitationService : IOrganizationInvitationService
                 "Invitation created but email not delivered.",
                 invite.Email, organizationName);
             return (false, ex.Message);
+        }
+    }
+
+    private static bool IsValidEmail(string email)
+    {
+        try
+        {
+            var addr = new MailAddress(email);
+            return addr.Address == email;
+        }
+        catch
+        {
+            return false;
         }
     }
 

@@ -15,7 +15,7 @@
  *
  * @module features/organizations/pages
  */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FC } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
@@ -60,6 +60,16 @@ export const InviteAcceptPage: FC = () => {
   const [state, setState] = useState<PageState>('loading')
   const [invitation, setInvitation] = useState<Invitation | null>(null)
   const [errorMessage, setErrorMessage] = useState<string>('')
+  const redirectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  // Clean up redirect timer on unmount
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current)
+      }
+    }
+  }, [])
 
   // Validate invitation code on mount
   useEffect(() => {
@@ -99,7 +109,7 @@ export const InviteAcceptPage: FC = () => {
       toast.success('Welcome! You\'ve joined the organization')
 
       // Navigate to home after 2 seconds
-      setTimeout(() => {
+      redirectTimerRef.current = setTimeout(() => {
         navigate('/', { replace: true })
       }, 2000)
     } catch (error: unknown) {

@@ -245,6 +245,25 @@ public class AuthenticationService : IAuthenticationService
                     return AuthResponse.Failure(AuthError.ValidationFailed(errors));
                 }
 
+                // Create organization membership so user has an OrgRole in their JWT
+                var defaultOrgRole = isFirstUser ? OrgRole.OrgAdmin : OrgRole.OrgUser;
+                var membership = new OrganizationMembership
+                {
+                    Id = Guid.NewGuid(),
+                    UserId = user.Id,
+                    OrganizationId = organization.Id,
+                    Role = defaultOrgRole,
+                    Status = MembershipStatus.Active,
+                    JoinedAt = DateTime.UtcNow,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.OrganizationMemberships.Add(membership);
+
+                // Set current organization so JWT includes org context
+                user.CurrentOrganizationId = organization.Id;
+                await _userManager.UpdateAsync(user);
+
                 await transaction.CommitAsync();
 
                 _logger.LogInformation(
