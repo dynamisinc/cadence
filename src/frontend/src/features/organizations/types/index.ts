@@ -99,6 +99,7 @@ export interface Invitation {
   invitedByEmail: string;
   emailSent?: boolean | null;
   emailError?: string | null;
+  accountExists?: boolean;
 }
 
 export interface CreateInvitationRequest {

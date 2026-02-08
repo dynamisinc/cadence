@@ -27,7 +27,8 @@ public record InvitationDto(
     DateTime? CancelledAt,
     string? AcceptedByName,
     bool? EmailSent = null,
-    string? EmailError = null
+    string? EmailError = null,
+    bool AccountExists = false
 );
 
 /// <summary>

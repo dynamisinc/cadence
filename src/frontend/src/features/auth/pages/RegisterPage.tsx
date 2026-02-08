@@ -16,7 +16,7 @@
  */
 import { useState, useEffect } from 'react'
 import type { FC, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   Stack,
   IconButton,
@@ -40,9 +40,13 @@ import { validatePassword, isPasswordValid } from '../types'
 export const RegisterPage: FC = () => {
   const { register, isAuthenticated } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state as { from?: { pathname?: string }; inviteEmail?: string } | null
+  const returnUrl = locationState?.from?.pathname || '/'
+  const inviteEmail = locationState?.inviteEmail || ''
 
   const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(inviteEmail)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -69,9 +73,9 @@ export const RegisterPage: FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true })
+      navigate(returnUrl, { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, returnUrl])
 
   const validateDisplayName = (value: string): boolean => {
     if (!value.trim()) {
@@ -144,9 +148,9 @@ export const RegisterPage: FC = () => {
         if (result.isFirstUser) {
           setIsFirstUser(true)
           // Show admin welcome message before redirecting
-          setTimeout(() => navigate('/', { replace: true }), 3000)
+          setTimeout(() => navigate(returnUrl, { replace: true }), 3000)
         } else {
-          navigate('/', { replace: true })
+          navigate(returnUrl, { replace: true })
         }
       } else if (result.error) {
         setError(result.error.message)
@@ -330,7 +334,7 @@ export const RegisterPage: FC = () => {
           <Box sx={{ textAlign: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Already have an account?{' '}
-              <Link to="/login" style={{ textDecoration: 'none' }}>
+              <Link to="/login" state={location.state} style={{ textDecoration: 'none' }}>
                 <Typography
                   component="span"
                   variant="body2"

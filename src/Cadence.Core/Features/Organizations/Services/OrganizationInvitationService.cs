@@ -225,7 +225,14 @@ public class OrganizationInvitationService : IOrganizationInvitationService
                 i.UseCount < i.MaxUses &&
                 i.ExpiresAt > DateTime.UtcNow);
 
-        return invite == null ? null : MapToDtoSync(invite);
+        if (invite == null) return null;
+
+        // Check if the invited email already has an account so the frontend
+        // can show "Sign In" vs "Create Account" as the primary action.
+        var accountExists = await _context.ApplicationUsers
+            .AnyAsync(u => u.Email == invite.Email);
+
+        return MapToDtoSync(invite) with { AccountExists = accountExists };
     }
 
     public async Task AcceptInvitationAsync(string code, string userId)

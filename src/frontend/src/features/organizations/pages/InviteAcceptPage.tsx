@@ -89,8 +89,17 @@ export const InviteAcceptPage: FC = () => {
         setState('valid')
       } catch (error) {
         console.error('[InviteAcceptPage] Validation failed:', error)
-        setState('invalid')
-        setErrorMessage('This invitation is no longer valid')
+        const axiosErr = error as { response?: { status?: number }; code?: string }
+        if (axiosErr.response?.status === 404) {
+          setState('invalid')
+          setErrorMessage('This invitation is no longer valid')
+        } else if (axiosErr.code === 'ERR_NETWORK' || !axiosErr.response) {
+          setState('error')
+          setErrorMessage('Unable to connect to the server. Please check your connection and try again.')
+        } else {
+          setState('error')
+          setErrorMessage('Something went wrong while validating this invitation.')
+        }
       }
     }
 
@@ -129,11 +138,19 @@ export const InviteAcceptPage: FC = () => {
     }
   }
 
+  const inviteReturnState = {
+    state: {
+      from: { pathname: `/invite/${code}` },
+      inviteEmail: invitation?.email,
+    },
+  }
+
   const handleSignIn = () => {
-    // Save return URL so we can come back after login
-    navigate('/login', {
-      state: { from: { pathname: `/invite/${code}` } },
-    })
+    navigate('/login', inviteReturnState)
+  }
+
+  const handleCreateAccount = () => {
+    navigate('/register', inviteReturnState)
   }
 
   const handleGoToDashboard = () => {
@@ -296,14 +313,16 @@ export const InviteAcceptPage: FC = () => {
     return null // Should not happen
   }
 
-  // Not authenticated - prompt to sign in
+  // Not authenticated - prompt to sign in or create account
   if (!isAuthenticated) {
     return (
-      <AuthLayout title="Sign In Required">
+      <AuthLayout title="You're Invited!">
         <Stack spacing={3}>
           <Alert severity="info">
-            You've been invited to join an organization. Please sign in to accept this
-            invitation.
+            You've been invited to join an organization.
+            {invitation.accountExists
+              ? ' Sign in to accept this invitation.'
+              : ' Create an account to get started.'}
           </Alert>
 
           <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
@@ -347,13 +366,25 @@ export const InviteAcceptPage: FC = () => {
             </Stack>
           </Paper>
 
-          <CobraPrimaryButton onClick={handleSignIn} fullWidth>
-            Sign In to Accept
-          </CobraPrimaryButton>
-
-          <Typography variant="caption" color="text.secondary" sx={{ textAlign: 'center' }}>
-            Don't have an account? You can create one after signing in.
-          </Typography>
+          {invitation.accountExists ? (
+            <>
+              <CobraPrimaryButton onClick={handleSignIn} fullWidth>
+                Sign In to Accept
+              </CobraPrimaryButton>
+              <CobraSecondaryButton onClick={handleCreateAccount} fullWidth>
+                Create a New Account
+              </CobraSecondaryButton>
+            </>
+          ) : (
+            <>
+              <CobraPrimaryButton onClick={handleCreateAccount} fullWidth>
+                Create an Account
+              </CobraPrimaryButton>
+              <CobraSecondaryButton onClick={handleSignIn} fullWidth>
+                Already have an account? Sign In
+              </CobraSecondaryButton>
+            </>
+          )}
         </Stack>
       </AuthLayout>
     )

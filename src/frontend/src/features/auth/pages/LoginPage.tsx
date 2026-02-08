@@ -331,7 +331,7 @@ export const LoginPage: FC = () => {
           <Box sx={{ textAlign: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Don't have an account?{' '}
-              <Link to="/register" style={{ textDecoration: 'none' }}>
+              <Link to="/register" state={location.state} style={{ textDecoration: 'none' }}>
                 <Typography
                   component="span"
                   variant="body2"
