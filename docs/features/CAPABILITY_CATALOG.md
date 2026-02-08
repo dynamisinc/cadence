@@ -127,6 +127,32 @@ Emergency management often involves complex organizational relationships. Cadenc
 
 ---
 
+## 1.4 Bulk Participant Import
+
+### Capability Overview
+
+Large exercises—especially Full-Scale Exercises involving multiple agencies—require onboarding dozens to hundreds of participants efficiently. Cadence supports bulk participant import from CSV or Excel files, allowing Exercise Directors to upload participant lists received from partner agencies and process them in a single operation.
+
+The import handles the full spectrum of participant scenarios: existing organization members are assigned to the exercise immediately, while new participants receive organization invitations with automatic exercise role assignment upon acceptance. A preview step shows exactly what will happen before any changes are committed, preventing errors in large imports.
+
+### Key Capabilities
+
+- **File upload** accepting CSV and XLSX formats with auto-column detection
+- **Preview and validation** showing classification of each row before processing
+- **Immediate assignment** for existing organization members
+- **Automatic invitation** for non-members with pending exercise role assignment
+- **Results tracking** showing assignment status and pending invitation progress
+- **Downloadable template** for distribution to partner agencies
+
+### Business Value
+
+Exercise Directors receive participant lists as spreadsheets from partner agencies—this is the standard workflow in emergency management. Bulk import eliminates the manual bottleneck of individually inviting and assigning each participant, reducing exercise setup from hours to minutes for large multi-agency exercises.
+
+### Related Stories
+*See bulk import stories S01-S06 in `docs/features/bulk-participant-import/`*
+
+---
+
 # 2. Exercise Management
 
 ## 2.1 Exercise Creation & Configuration
@@ -820,7 +846,7 @@ Users need to know when new capabilities become available. Version notifications
 
 | Category | Capabilities |
 |----------|--------------|
-| **Access & Security** | Authentication, RBAC, Organizations |
+| **Access & Security** | Authentication, RBAC, Organizations, Bulk Participant Import |
 | **Exercise Management** | CRUD, Lifecycle, Objectives, Phases, Configuration |
 | **MSEL & Injects** | Authoring, Organization, Versioning, Approval Workflow |
 | **Conduct** | Delivery, Observations, Real-Time Sync, Offline |
@@ -839,6 +865,7 @@ For detailed requirements, user stories are organized by feature area in `docs/f
 |--------------|----------------|
 | Authentication | `docs/features/authentication/` |
 | Organizations | `docs/features/organizations/` |
+| Bulk Participant Import | `docs/features/bulk-participant-import/` |
 | Exercise CRUD | `docs/features/exercise-crud/` |
 | Exercise Lifecycle | `docs/features/exercise-lifecycle/` |
 | Exercise Status | `docs/features/exercise-status/` |

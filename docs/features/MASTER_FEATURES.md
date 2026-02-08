@@ -2,7 +2,7 @@
 
 > **Master reference document for all Cadence platform features**
 > **Generated:** 2026-02-03
-> **Total Features:** 30
+> **Total Features:** 31
 
 ---
 
@@ -11,7 +11,8 @@
 1. [Foundation](#1-foundation)
    - [1.1 Authentication & Authorization](#11-authentication--authorization)
    - [1.2 Organization Management](#12-organization-management)
-   - [1.3 Core Domain Entities](#13-core-domain-entities)
+   - [1.3 Bulk Participant Import](#13-bulk-participant-import)
+   - [1.4 Core Domain Entities](#14-core-domain-entities)
 
 2. [Exercise Management](#2-exercise-management)
    - [2.1 Exercise CRUD](#21-exercise-crud)
@@ -148,7 +149,55 @@ Emergency management platforms need robust multi-tenancy to ensure data isolatio
 
 ---
 
-## 1.3 Core Domain Entities
+## 1.3 Bulk Participant Import
+
+**Phase:** Standard | **Status:** Not Started | **Stories:** 6
+
+### Overview
+Exercise Directors can upload CSV or Excel files containing participant information to add multiple participants to an exercise at once. The system classifies each row based on the participant's current relationship with the platform—assigning existing org members immediately, and sending organization invitations with pending exercise assignments for new participants.
+
+### Problem Statement
+Full-Scale Exercises (FSE) and multi-agency Functional Exercises (FE) often involve 50-500+ participants from multiple agencies. Exercise Directors typically receive participant lists as spreadsheets from partner agencies. Today, each participant must be individually invited to the organization and then separately assigned to the exercise with a specific HSEEP role. For large exercises, this manual process is prohibitively slow and error-prone.
+
+### User Stories
+
+| Story | Title | Priority |
+|-------|-------|----------|
+| S01 | Upload Participant File | P1 |
+| S02 | Preview and Validate Import | P1 |
+| S03 | Process Existing Organization Members | P1 |
+| S04 | Invite Non-Members via Bulk Upload | P1 |
+| S05 | View Upload Results and Status | P2 |
+| S06 | Download Participant Template | P2 |
+
+### Key Concepts
+
+| Term | Definition |
+|------|------------|
+| **Participant Classification** | System determination of each row's scenario: Assign (existing member), Update (already in exercise), Invite (needs org invitation), or Error |
+| **Pending Exercise Assignment** | A deferred exercise role that activates automatically when the participant accepts their organization invitation |
+| **Preview** | Validation step showing what will happen for each row before any changes are committed |
+| **Bulk Import Record** | Audit trail of each import operation with summary counts and per-row results |
+
+### Participant Classification Scenarios
+
+| Scenario | Condition | Action |
+|----------|-----------|--------|
+| **Assign** | Existing org member, not in exercise | Create ExerciseParticipant immediately |
+| **Update** | Already assigned to exercise | Update role or skip if unchanged |
+| **Invite** | Not an org member (or no account) | Create OrgInvite + pending exercise assignment |
+| **Error** | Invalid data | Flag with reason, skip processing |
+
+### Dependencies
+
+- exercise-config/S02: Assign Participants (existing single-participant assignment)
+- organization-management/OM-07: Organization Invitations (email invitation system)
+- email-communications/EM-02: Invitation Emails (email delivery)
+- excel-import/S01-S03: Excel Import (file parsing patterns)
+
+---
+
+## 1.4 Core Domain Entities
 
 **Phase:** Foundation | **Status:** In Progress
 
@@ -904,10 +953,11 @@ Exercise conduct requires long, uninterrupted sessions. Users lose work when ses
 | Versioning | Complete |
 | Cross-Cutting | In Progress |
 
-## Standard Phase (8 features)
+## Standard Phase (9 features)
 
 | Feature | Status |
 |---------|--------|
+| Bulk Participant Import | Not Started |
 | Exercise Objectives | Not Started |
 | Inject Filtering | Not Started |
 | Inject Organization | Not Started |

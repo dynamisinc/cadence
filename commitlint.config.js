@@ -36,6 +36,7 @@ module.exports = {
         'approval',
         'inject-approval',
         'email-communications',
+        'bulk-participant-import',
         'feature-flags',
         // Infrastructure
         'agent',
