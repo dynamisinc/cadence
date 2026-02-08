@@ -39,6 +39,7 @@ import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponen
 import CobraStyles from '@/theme/CobraStyles'
 import { AuthLayout } from '@/features/auth/components/AuthLayout'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOrganization } from '@/contexts/OrganizationContext'
 import { organizationService } from '../services/organizationService'
 import type { Invitation } from '../types'
 import { getOrgRoleLabel } from '../types'
@@ -56,7 +57,8 @@ type PageState =
 export const InviteAcceptPage: FC = () => {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
-  const { isAuthenticated, user } = useAuth()
+  const { isAuthenticated, user, refreshAccessToken } = useAuth()
+  const { currentOrg, isLoading: isOrgLoading } = useOrganization()
 
   const [state, setState] = useState<PageState>('loading')
   const [invitation, setInvitation] = useState<Invitation | null>(null)
@@ -106,6 +108,19 @@ export const InviteAcceptPage: FC = () => {
     validateCode()
   }, [code])
 
+  // Navigate to dashboard once org context has settled after accepting
+  useEffect(() => {
+    if (state === 'accepted' && !isOrgLoading && currentOrg) {
+      // Clear the fallback timer since org is ready
+      if (redirectTimerRef.current) {
+        clearTimeout(redirectTimerRef.current)
+      }
+      redirectTimerRef.current = setTimeout(() => {
+        navigate('/', { replace: true })
+      }, 1000)
+    }
+  }, [state, isOrgLoading, currentOrg, navigate])
+
   const handleAccept = async () => {
     if (!code) return
 
@@ -116,12 +131,21 @@ export const InviteAcceptPage: FC = () => {
       await organizationService.acceptInvitation(code)
       console.log('[InviteAcceptPage] Invitation accepted successfully')
       setState('accepted')
-      toast.success('Welcome! You\'ve joined the organization')
+      toast.success(`Welcome! You've joined ${invitation?.organizationName || 'the organization'}`)
 
-      // Navigate to home after 2 seconds
+      // Refresh token so JWT picks up the new org context.
+      // OrganizationContext will auto-refresh memberships when the new token propagates.
+      // Navigation is handled by the useEffect below once the org context settles.
+      try {
+        await refreshAccessToken()
+      } catch {
+        // Token refresh may fail if session expired; navigation will handle re-auth
+      }
+
+      // Fallback: navigate after 4s even if org context hasn't settled
       redirectTimerRef.current = setTimeout(() => {
         navigate('/', { replace: true })
-      }, 2000)
+      }, 4000)
     } catch (error: unknown) {
       console.error('[InviteAcceptPage] Accept failed:', error)
 
@@ -142,6 +166,8 @@ export const InviteAcceptPage: FC = () => {
     state: {
       from: { pathname: `/invite/${code}` },
       inviteEmail: invitation?.email,
+      inviteCode: code,
+      inviteOrgName: invitation?.organizationName,
     },
   }
 

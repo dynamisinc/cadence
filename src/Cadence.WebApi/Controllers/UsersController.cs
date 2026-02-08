@@ -19,7 +19,7 @@ namespace Cadence.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Route("api/users")]
-[AuthorizeAdmin]
+[Authorize]
 public class UsersController : ControllerBase
 {
     private readonly IUserService _userService;
@@ -56,7 +56,7 @@ public class UsersController : ControllerBase
     /// <param name="status">Optional status filter (Active, Inactive, Pending).</param>
     /// <param name="organizationId">Optional filter by organization membership (Admin only).</param>
     [HttpGet]
-    [AuthorizeManager] // Override class-level AuthorizeAdmin to allow Managers to list users
+    [AuthorizeManager]
     [ProducesResponseType(typeof(UserListResponse), StatusCodes.Status200OK)]
     public async Task<IActionResult> GetUsers(
         [FromQuery] int page = 1,
@@ -75,6 +75,7 @@ public class UsersController : ControllerBase
     /// </summary>
     /// <param name="id">User ID.</param>
     [HttpGet("{id:guid}")]
+    [AuthorizeAdmin]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUser(Guid id)
@@ -95,7 +96,7 @@ public class UsersController : ControllerBase
     /// </summary>
     /// <param name="request">User creation request.</param>
     [HttpPost]
-    [AuthorizeManager] // Override class-level AuthorizeAdmin
+    [AuthorizeManager]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status409Conflict)]
@@ -131,6 +132,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID.</param>
     /// <param name="request">Update request.</param>
     [HttpPut("{id:guid}")]
+    [AuthorizeAdmin]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -158,6 +160,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID.</param>
     /// <param name="request">Role change request.</param>
     [HttpPatch("{id:guid}/role")]
+    [AuthorizeAdmin]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -191,6 +194,7 @@ public class UsersController : ControllerBase
     /// <param name="id">User ID.</param>
     /// <param name="request">Optional deactivation reason.</param>
     [HttpPost("{id:guid}/deactivate")]
+    [AuthorizeAdmin]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -218,6 +222,7 @@ public class UsersController : ControllerBase
     /// </summary>
     /// <param name="id">User ID.</param>
     [HttpPost("{id:guid}/reactivate")]
+    [AuthorizeAdmin]
     [ProducesResponseType(typeof(UserDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReactivateUser(Guid id)
@@ -245,7 +250,6 @@ public class UsersController : ControllerBase
     /// </summary>
     /// <param name="userId">User ID (GUID as string path parameter).</param>
     [HttpGet("{userId:guid}/exercise-assignments")]
-    [Authorize] // Override controller-level RequireAdmin policy
     [ProducesResponseType(typeof(IEnumerable<ExerciseAssignmentDto>), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -292,7 +296,6 @@ public class UsersController : ControllerBase
     /// Any authenticated user can access their own profile.
     /// </summary>
     [HttpGet("me")]
-    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
     [ProducesResponseType(typeof(CurrentUserProfileDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -318,7 +321,6 @@ public class UsersController : ControllerBase
     /// Any authenticated user can update their own contact info.
     /// </summary>
     [HttpPatch("me/contact")]
-    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
     [ProducesResponseType(typeof(UserContactDto), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -351,7 +353,6 @@ public class UsersController : ControllerBase
     /// Any authenticated user can access their own memberships.
     /// </summary>
     [HttpGet("me/organizations")]
-    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
     [ProducesResponseType(typeof(UserOrganizationsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetMyOrganizations()
@@ -396,7 +397,6 @@ public class UsersController : ControllerBase
     /// SysAdmins can switch to any organization (they get OrgAdmin access).
     /// </summary>
     [HttpPost("current-organization")]
-    [Authorize] // Override class-level AuthorizeAdmin - any authenticated user
     [ProducesResponseType(typeof(SwitchOrganizationResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     [ProducesResponseType(StatusCodes.Status403Forbidden)]

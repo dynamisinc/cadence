@@ -33,17 +33,26 @@ import { AuthLayout } from '../components/AuthLayout'
 import { PasswordRequirements } from '../components/PasswordRequirements'
 import { useAuth } from '../../../contexts/AuthContext'
 import { validatePassword, isPasswordValid } from '../types'
+import { organizationService } from '../../organizations/services/organizationService'
+import { toast } from 'react-toastify'
 
 /**
  * Registration page for creating new user accounts
  */
 export const RegisterPage: FC = () => {
-  const { register, isAuthenticated } = useAuth()
+  const { register, isAuthenticated, refreshAccessToken } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
-  const locationState = location.state as { from?: { pathname?: string }; inviteEmail?: string } | null
+  const locationState = location.state as {
+    from?: { pathname?: string }
+    inviteEmail?: string
+    inviteCode?: string
+    inviteOrgName?: string
+  } | null
   const returnUrl = locationState?.from?.pathname || '/'
   const inviteEmail = locationState?.inviteEmail || ''
+  const inviteCode = locationState?.inviteCode || ''
+  const inviteOrgName = locationState?.inviteOrgName || ''
 
   const [displayName, setDisplayName] = useState('')
   const [email, setEmail] = useState(inviteEmail)
@@ -144,13 +153,25 @@ export const RegisterPage: FC = () => {
       const result = await register({ email, password, displayName })
 
       if (result.isSuccess) {
+        // Auto-accept invitation if registering from an invite link
+        if (inviteCode) {
+          try {
+            await organizationService.acceptInvitation(inviteCode)
+            // Refresh token so JWT picks up the new org context
+            await refreshAccessToken()
+            toast.success(`Welcome! You've joined ${inviteOrgName || 'the organization'}`)
+          } catch {
+            // If accept fails (e.g., already used), continue — user can retry from invite page
+          }
+        }
+
         // Check if first user (S03)
         if (result.isFirstUser) {
           setIsFirstUser(true)
           // Show admin welcome message before redirecting
-          setTimeout(() => navigate(returnUrl, { replace: true }), 3000)
+          setTimeout(() => navigate('/', { replace: true }), 3000)
         } else {
-          navigate(returnUrl, { replace: true })
+          navigate('/', { replace: true })
         }
       } else if (result.error) {
         setError(result.error.message)

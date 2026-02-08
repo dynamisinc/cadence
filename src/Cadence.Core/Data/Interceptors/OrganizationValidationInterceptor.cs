@@ -1,3 +1,4 @@
+using Cadence.Core.Data;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -72,6 +73,12 @@ public class OrganizationValidationInterceptor : SaveChangesInterceptor
     /// </exception>
     private void ValidateOrganizationScope(DbContext context)
     {
+        // Allow explicit bypass for cross-org operations (e.g., invitation acceptance)
+        if (context is AppDbContext appDb && appDb.BypassOrgValidation)
+        {
+            return;
+        }
+
         var orgContext = GetOrgContext();
 
         // If no org context available (migrations, design-time, tests), skip validation
@@ -83,6 +90,15 @@ public class OrganizationValidationInterceptor : SaveChangesInterceptor
         // If no HTTP context (seeding, background jobs), skip validation
         // This allows data seeding to run without user authentication
         if (!orgContext.HasContext)
+        {
+            return;
+        }
+
+        // If the request is unauthenticated (registration, invitation accept), skip validation.
+        // These flows create org-scoped entities (e.g., OrganizationMembership) before the user
+        // has JWT claims. The controller-level [Authorize] / [AllowAnonymous] attributes
+        // and service-layer logic are responsible for authorization in these flows.
+        if (!orgContext.IsAuthenticated)
         {
             return;
         }

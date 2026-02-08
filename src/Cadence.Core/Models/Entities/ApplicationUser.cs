@@ -53,8 +53,9 @@ public class ApplicationUser : IdentityUser
 
     /// <summary>
     /// Primary organization this user belongs to.
+    /// Null for newly registered users who haven't joined an organization yet.
     /// </summary>
-    public Guid OrganizationId { get; set; }
+    public Guid? OrganizationId { get; set; }
 
     /// <summary>
     /// Current active organization context for the user.
@@ -70,7 +71,7 @@ public class ApplicationUser : IdentityUser
     /// <summary>
     /// The organization this user belongs to.
     /// </summary>
-    public Organization Organization { get; set; } = null!;
+    public Organization? Organization { get; set; }
 
     /// <summary>
     /// The current active organization context.

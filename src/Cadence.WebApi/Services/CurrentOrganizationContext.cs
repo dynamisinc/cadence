@@ -48,4 +48,8 @@ public class CurrentOrganizationContext : ICurrentOrganizationContext
 
     /// <inheritdoc />
     public bool HasContext => _httpContextAccessor.HttpContext != null;
+
+    /// <inheritdoc />
+    public bool IsAuthenticated =>
+        _httpContextAccessor.HttpContext?.User.Identity?.IsAuthenticated == true;
 }

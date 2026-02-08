@@ -33,4 +33,11 @@ public interface ICurrentOrganizationContext
     /// When false, organization validation should be skipped.
     /// </summary>
     bool HasContext { get; }
+
+    /// <summary>
+    /// Gets whether the current request has an authenticated user.
+    /// Returns false for anonymous requests (registration, invitation validation).
+    /// When false, organization write-validation should be skipped.
+    /// </summary>
+    bool IsAuthenticated { get; }
 }

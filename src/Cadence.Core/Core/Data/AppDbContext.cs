@@ -46,6 +46,13 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     // =========================================================================
 
     /// <summary>
+    /// When true, the OrganizationValidationInterceptor skips write-side org validation.
+    /// Used for legitimate cross-org operations like accepting an invitation.
+    /// Callers MUST reset this to false after SaveChangesAsync.
+    /// </summary>
+    public bool BypassOrgValidation { get; set; }
+
+    /// <summary>
     /// Gets whether the current user is a SysAdmin (bypasses org filters).
     /// Used by parameterized query filters at query execution time.
     /// </summary>
@@ -415,10 +422,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.OrganizationId);
             entity.HasIndex(e => e.CurrentOrganizationId);
 
-            // Relationship to Organization
+            // Relationship to Organization (nullable for pending users)
             entity.HasOne(e => e.Organization)
                 .WithMany()
                 .HasForeignKey(e => e.OrganizationId)
+                .IsRequired(false)
                 .OnDelete(DeleteBehavior.Restrict);
 
             // Relationship to CurrentOrganization

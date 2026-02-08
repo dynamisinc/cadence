@@ -281,7 +281,31 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         invite.UseCount++;
         invite.UpdatedAt = DateTime.UtcNow;
 
-        await _context.SaveChangesAsync();
+        // Switch the user's current organization to the one they just joined
+        // so their next JWT will have the correct org context.
+        var user = await _context.Users.FindAsync(userId);
+        if (user != null)
+        {
+            user.CurrentOrganizationId = invite.OrganizationId;
+
+            // Set primary org if not yet assigned (new user accepting first invite)
+            if (user.OrganizationId == null)
+            {
+                user.OrganizationId = invite.OrganizationId;
+            }
+        }
+
+        // Bypass org validation: the user's JWT org context differs from the invited org,
+        // but this cross-org write is legitimate (accepting an invitation).
+        _context.BypassOrgValidation = true;
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        finally
+        {
+            _context.BypassOrgValidation = false;
+        }
 
         _logger.LogInformation(
             "Invitation {InviteId} accepted by user {UserId} for organization {OrgId}",

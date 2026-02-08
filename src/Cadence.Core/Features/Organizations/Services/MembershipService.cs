@@ -25,10 +25,13 @@ public class MembershipService : IMembershipService
     /// <inheritdoc />
     public async Task<IEnumerable<MembershipDto>> GetUserMembershipsAsync(string userId, CancellationToken ct = default)
     {
+        // IgnoreQueryFilters: users must see ALL their memberships across orgs
+        // (not just the current org) so they can switch organizations.
         var memberships = await _context.OrganizationMemberships
+            .IgnoreQueryFilters()
             .AsNoTracking()
             .Include(m => m.Organization)
-            .Where(m => m.UserId == userId && m.Status == MembershipStatus.Active)
+            .Where(m => m.UserId == userId && m.Status == MembershipStatus.Active && !m.IsDeleted && !m.Organization.IsDeleted)
             .OrderBy(m => m.JoinedAt)
             .Select(m => new MembershipDto(
                 m.Id,

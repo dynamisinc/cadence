@@ -201,21 +201,25 @@ public class AuthenticationService : IAuthenticationService
                 var isFirstUser = !await _userManager.Users.AnyAsync();
                 var defaultSystemRole = isFirstUser ? SystemRole.Admin : SystemRole.User;
 
-                // Get or create default organization
-                // For MVP, all users belong to a single default organization
-                var organization = await _context.Organizations.FirstOrDefaultAsync();
-                if (organization == null)
+                // First user bootstraps the default organization.
+                // Subsequent users start without org membership - they join via invitations.
+                Organization? organization = null;
+                if (isFirstUser)
                 {
-                    organization = new Organization
+                    organization = await _context.Organizations.FirstOrDefaultAsync();
+                    if (organization == null)
                     {
-                        Id = Guid.NewGuid(),
-                        Name = "Default Organization",
-                        Description = "Default organization for Cadence users",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Organizations.Add(organization);
-                    await _context.SaveChangesAsync();
+                        organization = new Organization
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Default Organization",
+                            Description = "Default organization for Cadence users",
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _context.Organizations.Add(organization);
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 var user = new ApplicationUser
@@ -226,7 +230,7 @@ public class AuthenticationService : IAuthenticationService
                     SystemRole = defaultSystemRole,
                     Status = UserStatus.Active,
                     EmailConfirmed = true, // For MVP, skip email verification
-                    OrganizationId = organization.Id
+                    OrganizationId = organization?.Id
                 };
 
                 var result = await _userManager.CreateAsync(user, request.Password);
@@ -245,24 +249,25 @@ public class AuthenticationService : IAuthenticationService
                     return AuthResponse.Failure(AuthError.ValidationFailed(errors));
                 }
 
-                // Create organization membership so user has an OrgRole in their JWT
-                var defaultOrgRole = isFirstUser ? OrgRole.OrgAdmin : OrgRole.OrgUser;
-                var membership = new OrganizationMembership
+                // First user gets org membership + admin role; others join via invitations
+                if (isFirstUser && organization != null)
                 {
-                    Id = Guid.NewGuid(),
-                    UserId = user.Id,
-                    OrganizationId = organization.Id,
-                    Role = defaultOrgRole,
-                    Status = MembershipStatus.Active,
-                    JoinedAt = DateTime.UtcNow,
-                    CreatedAt = DateTime.UtcNow,
-                    UpdatedAt = DateTime.UtcNow
-                };
-                _context.OrganizationMemberships.Add(membership);
+                    var membership = new OrganizationMembership
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = user.Id,
+                        OrganizationId = organization.Id,
+                        Role = OrgRole.OrgAdmin,
+                        Status = MembershipStatus.Active,
+                        JoinedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.OrganizationMemberships.Add(membership);
 
-                // Set current organization so JWT includes org context
-                user.CurrentOrganizationId = organization.Id;
-                await _userManager.UpdateAsync(user);
+                    user.CurrentOrganizationId = organization.Id;
+                    await _userManager.UpdateAsync(user);
+                }
 
                 await transaction.CommitAsync();
 
@@ -664,13 +669,17 @@ public class AuthenticationService : IAuthenticationService
                 orgName = org.Name;
                 orgSlug = org.Slug;
 
-                // Get user's role in this organization
+                // Get user's role in this organization.
+                // IgnoreQueryFilters: during login/token refresh the JWT org context
+                // doesn't match yet, so the org-scoped filter would hide the membership.
                 var membership = await _context.Set<OrganizationMembership>()
+                    .IgnoreQueryFilters()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(m =>
                         m.UserId == user.Id &&
                         m.OrganizationId == org.Id &&
-                        m.Status == MembershipStatus.Active);
+                        m.Status == MembershipStatus.Active &&
+                        !m.IsDeleted);
 
                 if (membership != null)
                 {
