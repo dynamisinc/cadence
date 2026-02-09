@@ -5,6 +5,18 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.3.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.2.0...frontend-v2.3.0) (2026-02-09)
+
+
+### Features
+
+* **logging:** implement Serilog structured logging ([2884710](https://github.com/dynamisinc/cadence/commit/2884710e8930d1f00f738af6f77d409fc9c0cd8e))
+
+
+### Bug Fixes
+
+* **pwa:** persist install banner dismiss with 90-day cooldown ([7355324](https://github.com/dynamisinc/cadence/commit/73553242f1799ca0569c85a2908d09ebd384a507))
+
 ## [2.2.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.1.0...frontend-v2.2.0) (2026-02-09)
 
 
