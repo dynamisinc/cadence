@@ -3,6 +3,8 @@
  *
  * Displays a banner prompting users to install the Cadence PWA.
  * Only shown when the app is installable (beforeinstallprompt event captured).
+ * Dismiss is persisted to localStorage with a 90-day cooldown.
+ * Re-shown on major version updates regardless of cooldown.
  * Follows COBRA styling guidelines.
  */
 
@@ -12,21 +14,27 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDownload, faXmark } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton } from '../../theme/styledComponents'
 import { useInstallPrompt } from '../../shared/hooks'
+import { shouldShowBanner, persistDismiss } from './installBannerUtils'
 
 export function InstallBanner() {
   const { canInstall, promptInstall } = useInstallPrompt()
-  const [dismissed, setDismissed] = useState(false)
+  const [dismissed, setDismissed] = useState(() => !shouldShowBanner())
 
   // Don't show if not installable or user dismissed
   if (!canInstall || dismissed) {
     return null
   }
 
+  const handleDismiss = () => {
+    persistDismiss()
+    setDismissed(true)
+  }
+
   const handleInstall = async () => {
     const accepted = await promptInstall()
     if (!accepted) {
-      // User declined, dismiss the banner
-      setDismissed(true)
+      // User declined, dismiss the banner with cooldown
+      handleDismiss()
     }
   }
 
@@ -82,7 +90,7 @@ export function InstallBanner() {
 
       <IconButton
         size="small"
-        onClick={() => setDismissed(true)}
+        onClick={handleDismiss}
         aria-label="Dismiss install banner"
         sx={{ ml: -1 }}
       >
