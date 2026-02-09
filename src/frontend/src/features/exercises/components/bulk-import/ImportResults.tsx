@@ -5,7 +5,7 @@
  * Shows success counts and any errors that occurred.
  */
 
-import { useState } from 'react';
+import { useState } from 'react'
 import {
   Box,
   Typography,
@@ -19,18 +19,18 @@ import {
   ListItemIcon,
   ListItemText,
   Divider,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+} from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCheck,
   faClock,
   faCircleXmark,
   faChevronDown,
   faChevronRight,
-} from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton } from '@/theme/styledComponents';
-import type { BulkImportResult } from '../../types/bulkImport';
+} from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton } from '@/theme/styledComponents'
+import type { BulkImportResult } from '../../types/bulkImport'
 
 interface ImportResultsProps {
   /** Import result data */
@@ -43,36 +43,36 @@ export const ImportResults = ({
   result,
   onClose,
 }: ImportResultsProps) => {
-  const theme = useTheme();
+  const theme = useTheme()
   const [expandedSections, setExpandedSections] = useState({
     assigned: true,
     invited: true,
     errors: true,
-  });
+  })
 
   const toggleSection = (section: 'assigned' | 'invited' | 'errors') => {
-    setExpandedSections((prev) => ({
+    setExpandedSections(prev => ({
       ...prev,
       [section]: !prev[section],
-    }));
-  };
+    }))
+  }
 
   // Filter rows by status
   const assignedRows = result.rowOutcomes.filter(
-    (row) => row.classification === 'Assign' && row.status === 'Success'
-  );
+    row => row.classification === 'Assign' && row.status === 'Success',
+  )
   const updatedRows = result.rowOutcomes.filter(
-    (row) => row.classification === 'Update' && row.status === 'Success'
-  );
+    row => row.classification === 'Update' && row.status === 'Success',
+  )
   const invitedRows = result.rowOutcomes.filter(
-    (row) => row.classification === 'Invite' && row.status === 'Success'
-  );
+    row => row.classification === 'Invite' && row.status === 'Success',
+  )
   const errorRows = result.rowOutcomes.filter(
-    (row) => row.status === 'Failed'
-  );
+    row => row.status === 'Failed',
+  )
   const skippedRows = result.rowOutcomes.filter(
-    (row) => row.status === 'Skipped'
-  );
+    row => row.status === 'Skipped',
+  )
 
   return (
     <Box>
@@ -158,7 +158,7 @@ export const ImportResults = ({
           <Collapse in={expandedSections.assigned}>
             <Divider />
             <List dense sx={{ maxHeight: '300px', overflow: 'auto' }}>
-              {[...assignedRows, ...updatedRows].map((row) => (
+              {[...assignedRows, ...updatedRows].map(row => (
                 <ListItem key={row.rowNumber}>
                   <ListItemIcon>
                     <FontAwesomeIcon
@@ -200,7 +200,7 @@ export const ImportResults = ({
           <Collapse in={expandedSections.invited}>
             <Divider />
             <List dense sx={{ maxHeight: '300px', overflow: 'auto' }}>
-              {invitedRows.map((row) => (
+              {invitedRows.map(row => (
                 <ListItem key={row.rowNumber}>
                   <ListItemIcon>
                     <FontAwesomeIcon
@@ -242,7 +242,7 @@ export const ImportResults = ({
           <Collapse in={expandedSections.errors}>
             <Divider />
             <List dense sx={{ maxHeight: '300px', overflow: 'auto' }}>
-              {errorRows.map((row) => (
+              {errorRows.map(row => (
                 <ListItem key={row.rowNumber}>
                   <ListItemIcon>
                     <FontAwesomeIcon
@@ -277,7 +277,7 @@ export const ImportResults = ({
         <CobraPrimaryButton onClick={onClose}>Done</CobraPrimaryButton>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
-export default ImportResults;
+export default ImportResults

@@ -5,7 +5,7 @@
  * Shows summary counts and detailed row-by-row breakdown.
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo } from 'react'
 import {
   Box,
   Typography,
@@ -18,10 +18,9 @@ import {
   TableRow,
   Paper,
   Stack,
-  Divider,
-} from '@mui/material';
-import { useTheme } from '@mui/material/styles';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+} from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faUserPlus,
   faUserPen,
@@ -29,15 +28,15 @@ import {
   faCircleXmark,
   faArrowRight,
   faTriangleExclamation,
-} from '@fortawesome/free-solid-svg-icons';
+} from '@fortawesome/free-solid-svg-icons'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
-} from '@/theme/styledComponents';
+} from '@/theme/styledComponents'
 import type {
   ImportPreviewResult,
   ParticipantClassification,
-} from '../../types/bulkImport';
+} from '../../types/bulkImport'
 
 interface ImportPreviewProps {
   /** Preview result with classified rows */
@@ -59,56 +58,56 @@ export const ImportPreview = ({
   onCancel,
   error,
 }: ImportPreviewProps) => {
-  const theme = useTheme();
+  const theme = useTheme()
   const [activeFilter, setActiveFilter] = useState<
     ParticipantClassification | 'all'
-  >('all');
+  >('all')
 
   // Filter rows based on active filter
   const filteredRows = useMemo(() => {
     if (activeFilter === 'all') {
-      return preview.rows;
+      return preview.rows
     }
     return preview.rows.filter(
-      (row) => row.classification === activeFilter
-    );
-  }, [preview.rows, activeFilter]);
+      row => row.classification === activeFilter,
+    )
+  }, [preview.rows, activeFilter])
 
   // Get classification color
   const getClassificationColor = (
-    classification: ParticipantClassification
+    classification: ParticipantClassification,
   ) => {
     switch (classification) {
       case 'Assign':
-        return theme.palette.success.main;
+        return theme.palette.success.main
       case 'Update':
-        return theme.palette.warning.main;
+        return theme.palette.warning.main
       case 'Invite':
-        return theme.palette.info.main;
+        return theme.palette.info.main
       case 'Error':
-        return theme.palette.error.main;
+        return theme.palette.error.main
       default:
-        return theme.palette.grey[500];
+        return theme.palette.grey[500]
     }
-  };
+  }
 
   // Get classification icon
   const getClassificationIcon = (
-    classification: ParticipantClassification
+    classification: ParticipantClassification,
   ) => {
     switch (classification) {
       case 'Assign':
-        return faUserPlus;
+        return faUserPlus
       case 'Update':
-        return faUserPen;
+        return faUserPen
       case 'Invite':
-        return faEnvelope;
+        return faEnvelope
       case 'Error':
-        return faCircleXmark;
+        return faCircleXmark
       default:
-        return faCircleXmark;
+        return faCircleXmark
     }
-  };
+  }
 
   return (
     <Box>
@@ -183,7 +182,7 @@ export const ImportPreview = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {filteredRows.map((row) => (
+            {filteredRows.map(row => (
               <TableRow
                 key={row.parsedRow.rowNumber}
                 sx={{
@@ -307,7 +306,7 @@ export const ImportPreview = ({
         </Alert>
       )}
     </Box>
-  );
-};
+  )
+}
 
-export default ImportPreview;
+export default ImportPreview

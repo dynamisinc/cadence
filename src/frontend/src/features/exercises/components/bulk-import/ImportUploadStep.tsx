@@ -5,20 +5,20 @@
  * Allows users to select CSV or XLSX files containing participant data.
  */
 
-import { useState, useRef, useCallback } from 'react';
-import { Box, Typography, Paper, Alert, Stack, Link } from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { useState, useRef, useCallback } from 'react'
+import { Box, Typography, Paper, Alert, Stack, Link } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faUpload,
   faSpinner,
   faFileArrowDown,
-} from '@fortawesome/free-solid-svg-icons';
-import { CobraPrimaryButton } from '@/theme/styledComponents';
-import { bulkImportService } from '../../services/bulkImportService';
+} from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { bulkImportService } from '../../services/bulkImportService'
 
-const SUPPORTED_EXTENSIONS = ['.csv', '.xlsx'];
-const MAX_FILE_SIZE_MB = 10;
-const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024;
+const SUPPORTED_EXTENSIONS = ['.csv', '.xlsx']
+const MAX_FILE_SIZE_MB = 10
+const MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 interface ImportUploadStepProps {
   /** Called when a file is selected and passes validation */
@@ -37,53 +37,53 @@ export const ImportUploadStep = ({
   error,
   exerciseId,
 }: ImportUploadStepProps) => {
-  const [validationError, setValidationError] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
+  const [validationError, setValidationError] = useState<string | null>(null)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   const validateFile = (file: File): string | null => {
     // Check file extension
-    const extension = '.' + file.name.split('.').pop()?.toLowerCase();
+    const extension = '.' + file.name.split('.').pop()?.toLowerCase()
     if (!SUPPORTED_EXTENSIONS.includes(extension)) {
-      return `Unsupported file format. Please use: ${SUPPORTED_EXTENSIONS.join(', ')}`;
+      return `Unsupported file format. Please use: ${SUPPORTED_EXTENSIONS.join(', ')}`
     }
 
     // Check file size
     if (file.size > MAX_FILE_SIZE_BYTES) {
-      return `File size exceeds the maximum of ${MAX_FILE_SIZE_MB} MB`;
+      return `File size exceeds the maximum of ${MAX_FILE_SIZE_MB} MB`
     }
 
-    return null;
-  };
+    return null
+  }
 
   const handleFileSelect = useCallback(
     (file: File) => {
-      const error = validateFile(file);
+      const error = validateFile(file)
       if (error) {
-        setValidationError(error);
-        return;
+        setValidationError(error)
+        return
       }
 
-      setValidationError(null);
-      onFileSelected(file);
+      setValidationError(null)
+      onFileSelected(file)
     },
-    [onFileSelected]
-  );
+    [onFileSelected],
+  )
 
   const handleBrowseClick = () => {
-    fileInputRef.current?.click();
-  };
+    fileInputRef.current?.click()
+  }
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
+    const files = e.target.files
     if (files && files.length > 0) {
-      handleFileSelect(files[0]);
+      handleFileSelect(files[0])
     }
     // Reset input so the same file can be selected again
-    e.target.value = '';
-  };
+    e.target.value = ''
+  }
 
-  const csvTemplateUrl = bulkImportService.getTemplateUrl(exerciseId, 'csv');
-  const xlsxTemplateUrl = bulkImportService.getTemplateUrl(exerciseId, 'xlsx');
+  const csvTemplateUrl = bulkImportService.getTemplateUrl(exerciseId, 'csv')
+  const xlsxTemplateUrl = bulkImportService.getTemplateUrl(exerciseId, 'xlsx')
 
   return (
     <Box>
@@ -111,9 +111,9 @@ export const ImportUploadStep = ({
           transition: 'all 0.2s ease-in-out',
           '&:hover': !isUploading
             ? {
-                borderColor: 'primary.main',
-                backgroundColor: 'action.hover',
-              }
+              borderColor: 'primary.main',
+              backgroundColor: 'action.hover',
+            }
             : {},
         }}
       >
@@ -147,9 +147,9 @@ export const ImportUploadStep = ({
               Maximum 500 rows, 10 MB file size
             </Typography>
             <CobraPrimaryButton
-              onClick={(e) => {
-                e.stopPropagation();
-                handleBrowseClick();
+              onClick={e => {
+                e.stopPropagation()
+                handleBrowseClick()
               }}
             >
               Choose File
@@ -195,7 +195,7 @@ export const ImportUploadStep = ({
         </Typography>
       </Stack>
     </Box>
-  );
-};
+  )
+}
 
-export default ImportUploadStep;
+export default ImportUploadStep

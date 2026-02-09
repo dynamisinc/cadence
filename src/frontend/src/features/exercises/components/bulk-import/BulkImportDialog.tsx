@@ -14,13 +14,13 @@ import {
   IconButton,
   Stack,
   CircularProgress,
-} from '@mui/material';
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faXmark, faFileImport } from '@fortawesome/free-solid-svg-icons';
-import { useParticipantImport } from '../../hooks/useParticipantImport';
-import { ImportUploadStep } from './ImportUploadStep';
-import { ImportPreview } from './ImportPreview';
-import { ImportResults } from './ImportResults';
+} from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faXmark, faFileImport } from '@fortawesome/free-solid-svg-icons'
+import { useParticipantImport } from '../../hooks/useParticipantImport'
+import { ImportUploadStep } from './ImportUploadStep'
+import { ImportPreview } from './ImportPreview'
+import { ImportResults } from './ImportResults'
 
 interface BulkImportDialogProps {
   /** Whether the dialog is open */
@@ -41,28 +41,28 @@ export const BulkImportDialog = ({
 }: BulkImportDialogProps) => {
   const {
     step,
-    parseResult,
+    parseResult: _parseResult,
     previewResult,
     importResult,
     error,
-    isLoading,
+    isLoading: _isLoading,
     uploadFile,
     confirmImport,
     goBackToUpload,
     reset,
-  } = useParticipantImport(exerciseId);
+  } = useParticipantImport(exerciseId)
 
   const handleClose = () => {
-    reset();
-    onClose();
-  };
+    reset()
+    onClose()
+  }
 
   const handleImportComplete = () => {
     if (onImportComplete) {
-      onImportComplete();
+      onImportComplete()
     }
-    handleClose();
-  };
+    handleClose()
+  }
 
   // Render content based on current step
   const renderContent = () => {
@@ -76,10 +76,10 @@ export const BulkImportDialog = ({
             error={error}
             exerciseId={exerciseId}
           />
-        );
+        )
 
       case 'preview':
-        if (!previewResult) return null;
+        if (!previewResult) return null
         return (
           <ImportPreview
             preview={previewResult}
@@ -88,7 +88,7 @@ export const BulkImportDialog = ({
             onCancel={goBackToUpload}
             error={error}
           />
-        );
+        )
 
       case 'confirming':
         return (
@@ -107,21 +107,21 @@ export const BulkImportDialog = ({
               This may take a moment
             </Typography>
           </Box>
-        );
+        )
 
       case 'results':
-        if (!importResult) return null;
+        if (!importResult) return null
         return (
           <ImportResults
             result={importResult}
             onClose={handleImportComplete}
           />
-        );
+        )
 
       default:
-        return null;
+        return null
     }
-  };
+  }
 
   return (
     <Dialog
@@ -151,7 +151,7 @@ export const BulkImportDialog = ({
         <Box sx={{ minHeight: '400px' }}>{renderContent()}</Box>
       </DialogContent>
     </Dialog>
-  );
-};
+  )
+}
 
-export default BulkImportDialog;
+export default BulkImportDialog
