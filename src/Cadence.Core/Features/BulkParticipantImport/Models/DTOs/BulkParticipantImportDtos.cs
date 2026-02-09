@@ -241,6 +241,7 @@ public record BulkImportRowResultDto
 public record PendingExerciseAssignmentDto
 {
     public Guid Id { get; init; }
+    public Guid OrganizationInviteId { get; init; }
     public string Email { get; init; } = null!;
     public string ExerciseRole { get; init; } = null!;
     public string? DisplayName { get; init; }

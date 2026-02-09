@@ -21,7 +21,7 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUserPlus, faUsers, faEnvelope } from '@fortawesome/free-solid-svg-icons'
+import { faUserPlus, faUsers, faEnvelope, faFileImport } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { ParticipantListItem } from './ParticipantListItem'
 import type { ExerciseParticipantDto } from '../types'
@@ -32,6 +32,7 @@ interface ParticipantListProps {
   loading: boolean
   onAdd: () => void
   onInviteMembers?: () => void
+  onBulkImport?: () => void
   onRoleChange: (userId: string, newRole: string) => void
   onRemove: (userId: string, displayName: string) => void
 }
@@ -131,6 +132,7 @@ export const ParticipantList: FC<ParticipantListProps> = ({
   loading,
   onAdd,
   onInviteMembers,
+  onBulkImport,
   onRoleChange,
   onRemove,
 }) => {
@@ -159,6 +161,14 @@ export const ParticipantList: FC<ParticipantListProps> = ({
                 onClick={onInviteMembers}
               >
                 Invite Members
+              </CobraSecondaryButton>
+            )}
+            {onBulkImport && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faFileImport} />}
+                onClick={onBulkImport}
+              >
+                Bulk Import
               </CobraSecondaryButton>
             )}
             <CobraPrimaryButton

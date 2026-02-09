@@ -252,6 +252,8 @@ export interface BulkImportRowResultDto {
 export interface PendingExerciseAssignmentDto {
   /** Pending assignment ID */
   id: string
+  /** Related organization invite ID */
+  organizationInviteId: string
   /** Email address */
   email: string
   /** Assigned exercise role */

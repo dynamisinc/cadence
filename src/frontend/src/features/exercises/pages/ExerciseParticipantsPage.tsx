@@ -18,7 +18,10 @@ import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
 import { InviteMembersDialog } from '../components/InviteMembersDialog'
+import { BulkImportDialog } from '../components/bulk-import/BulkImportDialog'
+import { PendingInvitationsList } from '../components/PendingInvitationsList'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
+import { usePendingAssignments } from '../hooks/usePendingAssignments'
 import { useExercise } from '../hooks'
 import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { useBreadcrumbs } from '../../../core/contexts'
@@ -53,6 +56,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
   const canManageParticipants = can('manage_participants')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
+  const [bulkImportDialogOpen, setBulkImportDialogOpen] = useState(false)
 
   // Use empty string fallback for hooks - they will handle missing exerciseId gracefully
   const safeExerciseId = exerciseId ?? ''
@@ -82,12 +86,25 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
     removeParticipant,
   } = useExerciseParticipants(safeExerciseId)
 
+  // Fetch pending assignments (invited users who haven't registered yet)
+  const {
+    pendingAssignments,
+    isLoading: isPendingLoading,
+    refetch: refetchPending,
+    resendInvitation,
+    isResending,
+  } = usePendingAssignments(exerciseId)
+
   const handleAddClick = useCallback(() => {
     setDialogOpen(true)
   }, [])
 
   const handleInviteMembersClick = useCallback(() => {
     setInviteDialogOpen(true)
+  }, [])
+
+  const handleBulkImportClick = useCallback(() => {
+    setBulkImportDialogOpen(true)
   }, [])
 
   const handleAddParticipant = useCallback(
@@ -149,6 +166,25 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
     [removeParticipant],
   )
 
+  const handleBulkImportComplete = useCallback(() => {
+    // Refresh both participants and pending assignments after import
+    refetchPending()
+  }, [refetchPending])
+
+  const handleResendInvitation = useCallback(
+    async (invitationId: string, email: string) => {
+      try {
+        await resendInvitation(invitationId)
+        // Success toast could be added here
+        console.log(`Invitation resent to ${email}`)
+      } catch (error) {
+        console.error('Failed to resend invitation:', error)
+        // Error toast could be added here
+      }
+    },
+    [resendInvitation],
+  )
+
   // Early return for missing exerciseId (after all hooks)
   if (!exerciseId) {
     return (
@@ -174,9 +210,20 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
         loading={isLoading}
         onAdd={handleAddClick}
         onInviteMembers={canManageParticipants ? handleInviteMembersClick : undefined}
+        onBulkImport={canManageParticipants ? handleBulkImportClick : undefined}
         onRoleChange={handleRoleChange}
         onRemove={handleRemove}
       />
+
+      {/* Pending Invitations */}
+      {canManageParticipants && (
+        <PendingInvitationsList
+          pendingAssignments={pendingAssignments}
+          loading={isPendingLoading}
+          onResend={handleResendInvitation}
+          isResending={isResending}
+        />
+      )}
 
       {/* Add Participant Dialog */}
       {canManageParticipants && (
@@ -195,6 +242,16 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
           currentParticipants={participants}
           onInvite={handleInviteMembers}
           onClose={() => setInviteDialogOpen(false)}
+        />
+      )}
+
+      {/* Bulk Import Dialog */}
+      {canManageParticipants && (
+        <BulkImportDialog
+          open={bulkImportDialogOpen}
+          exerciseId={exerciseId}
+          onClose={() => setBulkImportDialogOpen(false)}
+          onImportComplete={handleBulkImportComplete}
         />
       )}
     </Box>

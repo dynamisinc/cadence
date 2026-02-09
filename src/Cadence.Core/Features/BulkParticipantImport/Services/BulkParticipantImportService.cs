@@ -381,6 +381,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
             .Select(a => new PendingExerciseAssignmentDto
             {
                 Id = a.Id,
+                OrganizationInviteId = a.OrganizationInviteId,
                 Email = a.OrganizationInvite.Email ?? "",
                 ExerciseRole = a.ExerciseRole.ToString(),
                 DisplayName = null,
