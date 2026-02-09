@@ -12,12 +12,14 @@ export { useFormattedTime } from './hooks/useFormattedTime'
 
 // Components
 export { UserSettingsDialog } from './components/UserSettingsDialog'
+export { EmailNotificationsSection } from './components/EmailNotificationsSection'
 
 // Pages
 export { UserSettingsPage } from './pages'
 
 // Services
 export { preferencesService } from './services/preferencesService'
+export { emailPreferencesService } from './services/emailPreferencesService'
 
 // Utils
 export {
@@ -36,4 +38,7 @@ export type {
   DisplayDensity,
   TimeFormat,
   ResolvedTheme,
+  EmailPreferenceDto,
+  EmailPreferencesResponse,
+  UpdateEmailPreferenceRequest,
 } from './types'

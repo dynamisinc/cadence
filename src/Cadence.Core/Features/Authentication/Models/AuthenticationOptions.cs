@@ -14,6 +14,12 @@ public class AuthenticationOptions
     /// Identity provider configuration (local password authentication).
     /// </summary>
     public IdentityProviderOptions Identity { get; set; } = new();
+
+    /// <summary>
+    /// Frontend application base URL for constructing links in emails (e.g., "https://app.cadence-hq.com").
+    /// Used for password reset links, verification links, etc.
+    /// </summary>
+    public string FrontendBaseUrl { get; set; } = "http://localhost:5173";
 }
 
 /// <summary>

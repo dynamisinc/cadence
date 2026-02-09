@@ -17,6 +17,7 @@ import { Box, Alert } from '@mui/material'
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
+import { InviteMembersDialog } from '../components/InviteMembersDialog'
 import { useExerciseParticipants } from '../hooks/useExerciseParticipants'
 import { useExercise } from '../hooks'
 import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
@@ -51,6 +52,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
   const { can } = useExerciseRole(exerciseId ?? null)
   const canManageParticipants = can('manage_participants')
   const [dialogOpen, setDialogOpen] = useState(false)
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
 
   // Use empty string fallback for hooks - they will handle missing exerciseId gracefully
   const safeExerciseId = exerciseId ?? ''
@@ -84,6 +86,10 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
     setDialogOpen(true)
   }, [])
 
+  const handleInviteMembersClick = useCallback(() => {
+    setInviteDialogOpen(true)
+  }, [])
+
   const handleAddParticipant = useCallback(
     async (request: AddParticipantRequest) => {
       try {
@@ -92,6 +98,23 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
       } catch (error) {
         // Error toast handled by hook
         console.error('Failed to add participant:', error)
+      }
+    },
+    [addParticipant],
+  )
+
+  const handleInviteMembers = useCallback(
+    async (invitations: Array<{ userId: string; role: string }>) => {
+      try {
+        // Add each member to the exercise
+        for (const invitation of invitations) {
+          await addParticipant(invitation)
+        }
+        setInviteDialogOpen(false)
+      } catch (error) {
+        // Error toast handled by hook
+        console.error('Failed to invite members:', error)
+        throw error // Re-throw so dialog can handle the error
       }
     },
     [addParticipant],
@@ -150,6 +173,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
         canEdit={canManageParticipants}
         loading={isLoading}
         onAdd={handleAddClick}
+        onInviteMembers={canManageParticipants ? handleInviteMembersClick : undefined}
         onRoleChange={handleRoleChange}
         onRemove={handleRemove}
       />
@@ -160,6 +184,17 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
           open={dialogOpen}
           onAdd={handleAddParticipant}
           onClose={() => setDialogOpen(false)}
+        />
+      )}
+
+      {/* Invite Members Dialog */}
+      {canManageParticipants && (
+        <InviteMembersDialog
+          open={inviteDialogOpen}
+          exerciseId={exerciseId}
+          currentParticipants={participants}
+          onInvite={handleInviteMembers}
+          onClose={() => setInviteDialogOpen(false)}
         />
       )}
     </Box>

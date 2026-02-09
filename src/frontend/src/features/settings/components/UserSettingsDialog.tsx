@@ -40,6 +40,7 @@ import {
   CobraLinkButton,
 } from '@/theme/styledComponents'
 import { useUserPreferences } from '../contexts/UserPreferencesContext'
+import { EmailNotificationsSection } from './EmailNotificationsSection'
 import { getCurrentTimeFormatted } from '../utils/timeFormat'
 import type { ThemePreference, DisplayDensity, TimeFormat } from '../types'
 
@@ -129,7 +130,7 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
   // Show loading state
   if (isLoading) {
     return (
-      <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
+      <Dialog open={open} onClose={onClose} maxWidth="md" fullWidth>
         <DialogContent>
           <Box
             sx={{
@@ -154,7 +155,7 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
     <Dialog
       open={open}
       onClose={onClose}
-      maxWidth="sm"
+      maxWidth="md"
       fullWidth
       aria-labelledby="settings-dialog-title"
     >
@@ -177,7 +178,7 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
         >
           <FontAwesomeIcon icon={faGear} />
         </Box>
-        User Settings
+        My Preferences
       </DialogTitle>
 
       <DialogContent dividers>
@@ -306,6 +307,11 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
             </RadioGroup>
           </FormControl>
         </SettingsSection>
+
+        <Divider />
+
+        {/* Email Notifications Section */}
+        <EmailNotificationsSection />
       </DialogContent>
 
       <DialogActions sx={{ px: 3, py: 2, justifyContent: 'space-between' }}>

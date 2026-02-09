@@ -25,6 +25,7 @@ const ALLOWED_ROUTES = [
   '/register',
   '/forgot-password',
   '/reset-password',
+  '/invite',
 ]
 
 /**

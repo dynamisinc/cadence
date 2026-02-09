@@ -235,6 +235,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
                     size="small"
                     onClick={() => setShowPassword(prev => !prev)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
@@ -305,7 +306,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
             disabled={isSubmitting}
           />
 
-          <Box sx={{ minHeight: '140px' }}>
+          <Box>
             <TextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
@@ -325,6 +326,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
                       edge="end"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       size="small"
+                      tabIndex={-1}
                     >
                       <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>

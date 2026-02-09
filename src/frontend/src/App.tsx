@@ -58,6 +58,7 @@ import {
   OrganizationMembersPage,
   OrganizationApprovalPage,
   OrganizationSettingsPage,
+  InviteAcceptPage,
 } from './features/organizations'
 import { NotificationToastProvider } from './features/notifications'
 import { AboutPage, WhatsNewProvider } from './features/version'
@@ -200,6 +201,7 @@ const router = createBrowserRouter([
       { path: 'register', element: <RegisterPage /> },
       { path: 'forgot-password', element: <ForgotPasswordPage /> },
       { path: 'reset-password', element: <ResetPasswordPage /> },
+      { path: 'invite/:code', element: <InviteAcceptPage /> },
     ],
   },
 

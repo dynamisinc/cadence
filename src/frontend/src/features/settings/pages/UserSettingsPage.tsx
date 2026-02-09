@@ -41,6 +41,7 @@ import { useUserPreferences } from '../contexts/UserPreferencesContext'
 import { getCurrentTimeFormatted } from '../utils/timeFormat'
 import { useBreadcrumbs } from '@/core/contexts'
 import { VersionInfoCard } from '@/features/version'
+import { EmailNotificationsSection } from '../components/EmailNotificationsSection'
 import type { ThemePreference, DisplayDensity, TimeFormat } from '../types'
 
 /**
@@ -89,7 +90,7 @@ export const UserSettingsPage = () => {
   // Set breadcrumbs
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
-    { label: 'Settings' },
+    { label: 'My Preferences' },
   ])
 
   const handleThemeChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -165,7 +166,7 @@ export const UserSettingsPage = () => {
         </Box>
         <Box>
           <Typography variant="h4" fontWeight={600}>
-            User Settings
+            My Preferences
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Customize your experience with display and behavior preferences.
@@ -361,6 +362,13 @@ export const UserSettingsPage = () => {
                 {isResetting ? 'Resetting...' : 'Reset to Defaults'}
               </CobraLinkButton>
             </Box>
+          </Paper>
+        </Grid>
+
+        {/* Email Notifications */}
+        <Grid size={12}>
+          <Paper sx={{ p: 3 }}>
+            <EmailNotificationsSection />
           </Paper>
         </Grid>
 

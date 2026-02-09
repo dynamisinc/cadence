@@ -21,6 +21,7 @@ public class AuthenticationService : IAuthenticationService
     private readonly AppDbContext _context;
     private readonly AuthenticationOptions _options;
     private readonly ILogger<AuthenticationService> _logger;
+    private readonly IEmailService? _emailService;
 
     public AuthenticationService(
         UserManager<ApplicationUser> userManager,
@@ -28,7 +29,8 @@ public class AuthenticationService : IAuthenticationService
         IRefreshTokenStore refreshTokenStore,
         AppDbContext context,
         IOptions<AuthenticationOptions> options,
-        ILogger<AuthenticationService> logger)
+        ILogger<AuthenticationService> logger,
+        IEmailService? emailService = null)
     {
         _userManager = userManager;
         _tokenService = tokenService;
@@ -36,6 +38,7 @@ public class AuthenticationService : IAuthenticationService
         _context = context;
         _options = options.Value;
         _logger = logger;
+        _emailService = emailService;
     }
 
     /// <summary>
@@ -198,21 +201,25 @@ public class AuthenticationService : IAuthenticationService
                 var isFirstUser = !await _userManager.Users.AnyAsync();
                 var defaultSystemRole = isFirstUser ? SystemRole.Admin : SystemRole.User;
 
-                // Get or create default organization
-                // For MVP, all users belong to a single default organization
-                var organization = await _context.Organizations.FirstOrDefaultAsync();
-                if (organization == null)
+                // First user bootstraps the default organization.
+                // Subsequent users start without org membership - they join via invitations.
+                Organization? organization = null;
+                if (isFirstUser)
                 {
-                    organization = new Organization
+                    organization = await _context.Organizations.FirstOrDefaultAsync();
+                    if (organization == null)
                     {
-                        Id = Guid.NewGuid(),
-                        Name = "Default Organization",
-                        Description = "Default organization for Cadence users",
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.Organizations.Add(organization);
-                    await _context.SaveChangesAsync();
+                        organization = new Organization
+                        {
+                            Id = Guid.NewGuid(),
+                            Name = "Default Organization",
+                            Description = "Default organization for Cadence users",
+                            CreatedAt = DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _context.Organizations.Add(organization);
+                        await _context.SaveChangesAsync();
+                    }
                 }
 
                 var user = new ApplicationUser
@@ -223,7 +230,7 @@ public class AuthenticationService : IAuthenticationService
                     SystemRole = defaultSystemRole,
                     Status = UserStatus.Active,
                     EmailConfirmed = true, // For MVP, skip email verification
-                    OrganizationId = organization.Id
+                    OrganizationId = organization?.Id
                 };
 
                 var result = await _userManager.CreateAsync(user, request.Password);
@@ -242,6 +249,26 @@ public class AuthenticationService : IAuthenticationService
                     return AuthResponse.Failure(AuthError.ValidationFailed(errors));
                 }
 
+                // First user gets org membership + admin role; others join via invitations
+                if (isFirstUser && organization != null)
+                {
+                    var membership = new OrganizationMembership
+                    {
+                        Id = Guid.NewGuid(),
+                        UserId = user.Id,
+                        OrganizationId = organization.Id,
+                        Role = OrgRole.OrgAdmin,
+                        Status = MembershipStatus.Active,
+                        JoinedAt = DateTime.UtcNow,
+                        CreatedAt = DateTime.UtcNow,
+                        UpdatedAt = DateTime.UtcNow
+                    };
+                    _context.OrganizationMemberships.Add(membership);
+
+                    user.CurrentOrganizationId = organization.Id;
+                    await _userManager.UpdateAsync(user);
+                }
+
                 await transaction.CommitAsync();
 
                 _logger.LogInformation(
@@ -249,13 +276,31 @@ public class AuthenticationService : IAuthenticationService
                     user.Id, user.Email, defaultSystemRole, isFirstUser);
 
                 // Auto-login: generate tokens
-                return await GenerateAuthResponseAsync(
+                var authResult = await GenerateAuthResponseAsync(
                     user,
                     rememberMe: false,
                     isFirstUser,
                     isNewAccount: true,
                     ipAddress,
                     deviceInfo);
+
+                // Send welcome email (fire-and-forget, after DbContext work is done)
+                if (_emailService != null)
+                {
+                    _ = Task.Run(async () =>
+                    {
+                        try
+                        {
+                            await _emailService.SendWelcomeEmailAsync(user.Email!, user.DisplayName);
+                        }
+                        catch (Exception emailEx)
+                        {
+                            _logger.LogError(emailEx, "Failed to send welcome email for {UserId}", user.Id);
+                        }
+                    });
+                }
+
+                return authResult;
             }
             catch (Exception ex)
             {
@@ -455,11 +500,23 @@ public class AuthenticationService : IAuthenticationService
         _context.PasswordResetTokens.Add(resetToken);
         await _context.SaveChangesAsync();
 
-        // TODO: Send email with reset link
-        // For MVP, log the token (remove in production!)
-        _logger.LogWarning(
-            "Password reset token generated for {UserId}: {Token}",
-            user.Id, token);
+        // Construct the frontend reset URL and send email
+        var resetUrl = $"{_options.FrontendBaseUrl}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
+
+        if (_emailService != null)
+        {
+            await _emailService.SendPasswordResetEmailAsync(
+                email,
+                user.DisplayName,
+                resetUrl);
+        }
+        else
+        {
+            // Fallback: log the token when email service is not configured
+            _logger.LogWarning(
+                "Password reset token generated for {UserId} but no email service configured. Token: {Token}",
+                user.Id, token);
+        }
 
         return true;
     }
@@ -538,13 +595,39 @@ public class AuthenticationService : IAuthenticationService
         _logger.LogInformation("Password reset completed for user: {UserId}", user.Id);
 
         // Auto-login after password reset
-        return await GenerateAuthResponseAsync(
+        var authResult = await GenerateAuthResponseAsync(
             user,
             rememberMe: false,
             isFirstUser: false,
             isNewAccount: false,
             ipAddress,
             deviceInfo);
+
+        // Send password changed confirmation email (fire-and-forget, after DbContext work is done)
+        if (_emailService != null)
+        {
+            var resetPasswordUrl = $"{_options.FrontendBaseUrl}/forgot-password";
+            var supportUrl = $"{_options.FrontendBaseUrl}/support";
+
+            _ = Task.Run(async () =>
+            {
+                try
+                {
+                    await _emailService.SendPasswordChangedEmailAsync(
+                        user.Email!,
+                        user.DisplayName,
+                        "Password reset",
+                        resetPasswordUrl,
+                        supportUrl);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Failed to send password changed email for {UserId}", user.Id);
+                }
+            });
+        }
+
+        return authResult;
     }
 
     // =========================================================================
@@ -590,13 +673,17 @@ public class AuthenticationService : IAuthenticationService
                 orgName = org.Name;
                 orgSlug = org.Slug;
 
-                // Get user's role in this organization
+                // Get user's role in this organization.
+                // IgnoreQueryFilters: during login/token refresh the JWT org context
+                // doesn't match yet, so the org-scoped filter would hide the membership.
                 var membership = await _context.Set<OrganizationMembership>()
+                    .IgnoreQueryFilters()
                     .AsNoTracking()
                     .FirstOrDefaultAsync(m =>
                         m.UserId == user.Id &&
                         m.OrganizationId == org.Id &&
-                        m.Status == MembershipStatus.Active);
+                        m.Status == MembershipStatus.Active &&
+                        !m.IsDeleted);
 
                 if (membership != null)
                 {

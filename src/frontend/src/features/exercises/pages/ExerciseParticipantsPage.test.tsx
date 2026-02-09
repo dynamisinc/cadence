@@ -23,6 +23,11 @@ vi.mock('../../../contexts/AuthContext', () => ({
     isLoading: false,
   })),
 }))
+vi.mock('../../organizations/services/organizationService', () => ({
+  organizationService: {
+    getCurrentOrgMembers: vi.fn(() => Promise.resolve([])),
+  },
+}))
 vi.mock('@/core/contexts', () => ({
   useBreadcrumbs: vi.fn(),
 }))
@@ -269,5 +274,31 @@ describe('ExerciseParticipantsPage', () => {
     render(<ExerciseParticipantsPage />, { wrapper: createWrapper() })
 
     expect(screen.getByText(/failed to load participants/i)).toBeInTheDocument()
+  })
+
+  it('shows invite members button for users with manage_participants permission', () => {
+    vi.mocked(useExerciseRole).mockReturnValue({
+      effectiveRole: 'ExerciseDirector',
+      systemRole: 'Manager',
+      exerciseRole: 'ExerciseDirector',
+      can: vi.fn((permission: string) => permission === 'manage_participants'),
+      isLoading: false,
+    })
+
+    render(<ExerciseParticipantsPage />, { wrapper: createWrapper() })
+
+    expect(screen.getByRole('button', { name: /invite members/i })).toBeInTheDocument()
+  })
+
+  it('opens invite members dialog when invite button clicked', async () => {
+    const user = userEvent.setup()
+    render(<ExerciseParticipantsPage />, { wrapper: createWrapper() })
+
+    const inviteButton = screen.getByRole('button', { name: /invite members/i })
+    await user.click(inviteButton)
+
+    await waitFor(() => {
+      expect(screen.getByText('Invite Members to Exercise')).toBeInTheDocument()
+    })
   })
 })

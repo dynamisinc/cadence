@@ -79,3 +79,47 @@ export interface AddMemberRequest {
 export interface UpdateMemberRoleRequest {
   role: OrgRole;
 }
+
+// =========================================================================
+// Organization Invitations (EM-02)
+// =========================================================================
+
+export type InvitationStatus = 'Pending' | 'Used' | 'Expired' | 'Cancelled'
+
+export interface Invitation {
+  id: string;
+  email: string;
+  code?: string;
+  role: OrgRole;
+  status: InvitationStatus;
+  createdAt: string;
+  expiresAt: string;
+  usedAt?: string;
+  invitedByName: string;
+  invitedByEmail: string;
+  organizationName?: string;
+  emailSent?: boolean | null;
+  emailError?: string | null;
+  accountExists?: boolean;
+}
+
+export interface CreateInvitationRequest {
+  email: string;
+  role?: OrgRole;
+}
+
+export interface InvitationSentResponse {
+  invitationId: string;
+  email: string;
+  message: string;
+}
+
+const orgRoleLabels: Record<OrgRole, string> = {
+  OrgAdmin: 'Admin',
+  OrgManager: 'Manager',
+  OrgUser: 'User',
+}
+
+export function getOrgRoleLabel(role: OrgRole | string): string {
+  return orgRoleLabels[role as OrgRole] ?? role
+}

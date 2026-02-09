@@ -35,7 +35,12 @@ module.exports = {
         'capabilities',
         'approval',
         'inject-approval',
+        'email',
+        'email-communications',
+        'invitation',
+        'bulk-participant-import',
         'feature-flags',
+        'system-settings',
         // Infrastructure
         'agent',
         'migrations',

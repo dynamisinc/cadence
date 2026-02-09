@@ -111,11 +111,21 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
   const { accessToken, isAuthenticated } = useAuth()
   const [currentOrg, setCurrentOrg] = useState<CurrentOrganization | null>(null)
   const [memberships, setMemberships] = useState<OrganizationMembership[]>([])
-  const [isLoading, setIsLoading] = useState(true)
+  const [isFetching, setIsFetching] = useState(false)
   const [isPending, setIsPending] = useState(false)
 
   // Track if we're currently switching to prevent duplicate requests
   const isSwitchingRef = useRef(false)
+
+  // Track the token we last completed a membership fetch for.
+  // Used to derive loading state synchronously during render,
+  // preventing the one-render gap where isPending=true before the useEffect fires.
+  const lastFetchedTokenRef = useRef<string | null>(null)
+
+  // Derive loading: true if actively fetching OR haven't fetched for the current token yet.
+  // This is computed during render (not in an effect), so PendingUserGuard sees
+  // isLoading=true immediately when isAuthenticated transitions to true.
+  const isLoading = isFetching || (isAuthenticated && lastFetchedTokenRef.current !== (accessToken ?? null))
 
   /**
    * Fetch user's organization memberships
@@ -125,10 +135,13 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
       console.log('[OrganizationContext] Not authenticated, skipping membership fetch')
       setMemberships([])
       setCurrentOrg(null)
-      setIsPending(true)
-      setIsLoading(false)
+      setIsPending(false)
+      setIsFetching(false)
+      lastFetchedTokenRef.current = null
       return
     }
+
+    setIsFetching(true)
 
     try {
       console.log('[OrganizationContext] Fetching user memberships')
@@ -191,12 +204,16 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
           }
         }
       }
+      // Mark this token as fetched so the derived isLoading becomes false
+      lastFetchedTokenRef.current = accessToken ?? null
     } catch (error) {
       console.error('[OrganizationContext] Failed to fetch memberships:', error)
       setMemberships([])
       setCurrentOrg(null)
+      // Still mark as fetched so we don't loop
+      lastFetchedTokenRef.current = accessToken ?? null
     } finally {
-      setIsLoading(false)
+      setIsFetching(false)
     }
   }, [isAuthenticated, accessToken])
 
@@ -247,10 +264,11 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
     if (isAuthenticated) {
       refreshMemberships()
     } else {
-      setIsLoading(false)
-      setIsPending(true)
+      setIsFetching(false)
+      setIsPending(false)
       setMemberships([])
       setCurrentOrg(null)
+      lastFetchedTokenRef.current = null
     }
   }, [isAuthenticated, refreshMemberships])
 

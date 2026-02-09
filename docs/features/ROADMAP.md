@@ -103,6 +103,7 @@
 | Basic Metrics | Inject counts, completion rates | MVP complete |
 | Observer Dashboard | Read-only exercise overview | exercise-crud/S03 |
 | Bulk Operations | Multi-select inject actions | inject-organization/S01 |
+| Bulk Participant Import | CSV/Excel upload for exercise participants | exercise-config/S02, OM-07 |
 | Controller Assignment | Assign Controllers to specific injects | exercise-config/S02 |
 | Confirmation Tracking | Track player acknowledgment of injects | inject-crud/S01 |
 | Quick Actions | Right-click context menus | _cross-cutting/S02 |

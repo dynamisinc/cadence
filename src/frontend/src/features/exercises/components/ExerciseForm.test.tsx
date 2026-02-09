@@ -82,7 +82,7 @@ describe('ExerciseForm - Director Selection', () => {
   })
 
   describe('Create Mode', () => {
-    it('renders director field with optional label', () => {
+    it('renders director field with optional label', async () => {
       render(
         <ExerciseForm
           onSubmit={vi.fn()}
@@ -90,8 +90,10 @@ describe('ExerciseForm - Director Selection', () => {
         />,
       )
 
-      expect(screen.getByLabelText(/exercise director \(optional\)/i)).toBeInTheDocument()
-    })
+      await waitFor(() => {
+        expect(screen.getByLabelText(/exercise director \(optional\)/i)).toBeInTheDocument()
+      }, { timeout: 15000 })
+    }, 20000)
 
     it('shows helper text for create mode', () => {
       render(

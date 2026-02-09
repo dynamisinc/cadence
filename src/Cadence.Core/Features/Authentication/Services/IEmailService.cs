@@ -46,4 +46,50 @@ public interface IEmailService
     Task<bool> SendAccountReactivatedEmailAsync(
         string email,
         string displayName);
+
+    /// <summary>
+    /// Send password changed confirmation email (security notification).
+    /// </summary>
+    /// <param name="email">Recipient's email address.</param>
+    /// <param name="displayName">Recipient's display name.</param>
+    /// <param name="changeMethod">How the password was changed (e.g., "Password reset", "Settings").</param>
+    /// <param name="resetPasswordUrl">URL to reset password if this was unauthorized.</param>
+    /// <param name="supportUrl">URL for support contact.</param>
+    /// <returns>True if email sent successfully, false otherwise.</returns>
+    Task<bool> SendPasswordChangedEmailAsync(
+        string email,
+        string displayName,
+        string changeMethod,
+        string resetPasswordUrl,
+        string supportUrl);
+
+    /// <summary>
+    /// Send account verification email with verification link.
+    /// </summary>
+    /// <param name="email">Recipient's email address.</param>
+    /// <param name="displayName">Recipient's display name.</param>
+    /// <param name="verificationUrl">Full URL to verify the account.</param>
+    /// <returns>True if email sent successfully, false otherwise.</returns>
+    Task<bool> SendAccountVerificationEmailAsync(
+        string email,
+        string displayName,
+        string verificationUrl);
+
+    /// <summary>
+    /// Send new device login alert email (security notification).
+    /// </summary>
+    /// <param name="email">Recipient's email address.</param>
+    /// <param name="displayName">Recipient's display name.</param>
+    /// <param name="browser">Browser name detected from user agent.</param>
+    /// <param name="operatingSystem">OS detected from user agent.</param>
+    /// <param name="approximateLocation">Approximate location from IP (nullable).</param>
+    /// <param name="secureAccountUrl">URL to secure the account if login was unauthorized.</param>
+    /// <returns>True if email sent successfully, false otherwise.</returns>
+    Task<bool> SendNewDeviceAlertEmailAsync(
+        string email,
+        string displayName,
+        string browser,
+        string operatingSystem,
+        string? approximateLocation,
+        string secureAccountUrl);
 }

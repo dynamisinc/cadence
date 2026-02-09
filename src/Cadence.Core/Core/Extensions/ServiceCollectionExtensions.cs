@@ -17,7 +17,10 @@ using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Features.Eeg.Services;
+using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.SystemSettings.Services;
 using FluentValidation;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace Cadence.Core.Extensions;
 
@@ -65,6 +68,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<ICapabilityImportService, CapabilityImportService>();
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IMembershipService, MembershipService>();
+        services.AddScoped<IOrganizationInvitationService, OrganizationInvitationService>();
 
         // EEG (Exercise Evaluation Guide) Services
         services.AddScoped<ICapabilityTargetService, CapabilityTargetService>();
@@ -72,6 +76,26 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEegEntryService, EegEntryService>();
         services.AddScoped<IEegExportService, EegExportService>();
         services.AddScoped<IEegDocumentService, EegDocumentService>();
+
+        // Email Services
+        services.AddMemoryCache();
+        services.AddSingleton<InMemoryEmailTemplateStore>(sp =>
+        {
+            var store = new InMemoryEmailTemplateStore();
+            EmailTemplateRegistrar.RegisterAll(store);
+            return store;
+        });
+        services.AddSingleton<IEmailTemplateStore>(sp => sp.GetRequiredService<InMemoryEmailTemplateStore>());
+        services.AddScoped<IEmailTemplateRenderer, PlaceholderEmailTemplateRenderer>();
+        services.AddScoped<IEmailLogService, EmailLogService>();
+        services.AddScoped<IEmailPreferenceService, EmailPreferenceService>();
+        services.AddScoped<AuthenticationEmailService>();
+        services.AddScoped<Cadence.Core.Features.Authentication.Services.IEmailService>(sp =>
+            sp.GetRequiredService<AuthenticationEmailService>());
+
+        // System Settings Services
+        services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+        services.AddScoped<IEmailConfigurationProvider, EmailConfigurationProvider>();
 
         return services;
     }

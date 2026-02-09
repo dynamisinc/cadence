@@ -180,7 +180,7 @@ export const ResetPasswordPage: FC = () => {
           )}
 
           {/* New Password Field */}
-          <Box sx={{ minHeight: '140px' }}>
+          <Box>
             <CobraTextField
               label="New Password"
               type={showNewPassword ? 'text' : 'password'}
@@ -210,6 +210,7 @@ export const ResetPasswordPage: FC = () => {
                       edge="end"
                       aria-label={showNewPassword ? 'Hide password' : 'Show password'}
                       size="small"
+                      tabIndex={-1}
                     >
                       <FontAwesomeIcon icon={showNewPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
@@ -250,6 +251,7 @@ export const ResetPasswordPage: FC = () => {
                     edge="end"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     size="small"
+                    tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>

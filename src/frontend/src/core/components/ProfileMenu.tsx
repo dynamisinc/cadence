@@ -23,13 +23,14 @@ import {
   Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear, faCircleInfo } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear, faCircleInfo, faCommentDots } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
 import type { ExerciseRole, ExerciseAssignmentDto } from '@/features/auth'
 import { useExerciseNavigation } from '@/shared/contexts'
 import { UserSettingsDialog } from '@/features/settings'
+import { FeedbackDialog } from '@/features/feedback'
 import { useNavigate } from 'react-router-dom'
 
 /**
@@ -61,6 +62,7 @@ export const ProfileMenu: React.FC = () => {
   const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
   const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
+  const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   const open = Boolean(anchorEl)
 
@@ -120,6 +122,15 @@ export const ProfileMenu: React.FC = () => {
 
   const handleCloseSettings = () => {
     setSettingsOpen(false)
+  }
+
+  const handleOpenFeedback = () => {
+    handleClose()
+    setFeedbackOpen(true)
+  }
+
+  const handleCloseFeedback = () => {
+    setFeedbackOpen(false)
   }
 
   const userInitials = getInitials(accountFullName)
@@ -313,7 +324,17 @@ export const ProfileMenu: React.FC = () => {
             <ListItemIcon>
               <FontAwesomeIcon icon={faGear} />
             </ListItemIcon>
-            <ListItemText>Settings</ListItemText>
+            <ListItemText>My Preferences</ListItemText>
+          </MenuItem>
+        )}
+
+        {/* Send Feedback */}
+        {user && (
+          <MenuItem onClick={handleOpenFeedback} data-testid="feedback-button">
+            <ListItemIcon>
+              <FontAwesomeIcon icon={faCommentDots} />
+            </ListItemIcon>
+            <ListItemText>Send Feedback</ListItemText>
           </MenuItem>
         )}
 
@@ -346,6 +367,9 @@ export const ProfileMenu: React.FC = () => {
 
       {/* Settings Dialog */}
       <UserSettingsDialog open={settingsOpen} onClose={handleCloseSettings} />
+
+      {/* Feedback Dialog */}
+      <FeedbackDialog open={feedbackOpen} onClose={handleCloseFeedback} />
     </>
   )
 }

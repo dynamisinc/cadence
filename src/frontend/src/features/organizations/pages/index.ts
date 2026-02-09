@@ -17,3 +17,6 @@ export { OrganizationDetailsPage } from './OrganizationDetailsPage'
 export { OrganizationMembersPage } from './OrganizationMembersPage'
 export { OrganizationApprovalPage } from './OrganizationApprovalPage'
 export { OrganizationSettingsPage } from './OrganizationSettingsPage'
+
+// Public pages
+export { InviteAcceptPage } from './InviteAcceptPage'

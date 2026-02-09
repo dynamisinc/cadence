@@ -16,7 +16,7 @@
  */
 import { useState, useEffect } from 'react'
 import type { FC, FormEvent } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useLocation } from 'react-router-dom'
 import {
   Stack,
   IconButton,
@@ -33,16 +33,29 @@ import { AuthLayout } from '../components/AuthLayout'
 import { PasswordRequirements } from '../components/PasswordRequirements'
 import { useAuth } from '../../../contexts/AuthContext'
 import { validatePassword, isPasswordValid } from '../types'
+import { organizationService } from '../../organizations/services/organizationService'
+import { toast } from 'react-toastify'
 
 /**
  * Registration page for creating new user accounts
  */
 export const RegisterPage: FC = () => {
-  const { register, isAuthenticated } = useAuth()
+  const { register, isAuthenticated, refreshAccessToken } = useAuth()
   const navigate = useNavigate()
+  const location = useLocation()
+  const locationState = location.state as {
+    from?: { pathname?: string }
+    inviteEmail?: string
+    inviteCode?: string
+    inviteOrgName?: string
+  } | null
+  const returnUrl = locationState?.from?.pathname || '/'
+  const inviteEmail = locationState?.inviteEmail || ''
+  const inviteCode = locationState?.inviteCode || ''
+  const inviteOrgName = locationState?.inviteOrgName || ''
 
   const [displayName, setDisplayName] = useState('')
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(inviteEmail)
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [showPassword, setShowPassword] = useState(false)
@@ -69,9 +82,9 @@ export const RegisterPage: FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/', { replace: true })
+      navigate(returnUrl, { replace: true })
     }
-  }, [isAuthenticated, navigate])
+  }, [isAuthenticated, navigate, returnUrl])
 
   const validateDisplayName = (value: string): boolean => {
     if (!value.trim()) {
@@ -140,6 +153,18 @@ export const RegisterPage: FC = () => {
       const result = await register({ email, password, displayName })
 
       if (result.isSuccess) {
+        // Auto-accept invitation if registering from an invite link
+        if (inviteCode) {
+          try {
+            await organizationService.acceptInvitation(inviteCode)
+            // Refresh token so JWT picks up the new org context
+            await refreshAccessToken()
+            toast.success(`Welcome! You've joined ${inviteOrgName || 'the organization'}`)
+          } catch {
+            // If accept fails (e.g., already used), continue — user can retry from invite page
+          }
+        }
+
         // Check if first user (S03)
         if (result.isFirstUser) {
           setIsFirstUser(true)
@@ -236,7 +261,7 @@ export const RegisterPage: FC = () => {
           />
 
           {/* Password Field */}
-          <Box sx={{ minHeight: '140px' }}>
+          <Box>
             <CobraTextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
@@ -265,6 +290,7 @@ export const RegisterPage: FC = () => {
                       edge="end"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       size="small"
+                      tabIndex={-1}
                     >
                       <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
@@ -305,6 +331,7 @@ export const RegisterPage: FC = () => {
                     edge="end"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     size="small"
+                    tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
@@ -330,7 +357,7 @@ export const RegisterPage: FC = () => {
           <Box sx={{ textAlign: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Already have an account?{' '}
-              <Link to="/login" style={{ textDecoration: 'none' }}>
+              <Link to="/login" state={location.state} style={{ textDecoration: 'none' }}>
                 <Typography
                   component="span"
                   variant="body2"

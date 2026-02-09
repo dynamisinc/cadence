@@ -87,7 +87,7 @@ const ORG_ADMIN_ROLES: OrgRole[] = ['OrgAdmin']
  * 10 menu items across 3 sections:
  * - CONDUCT (4): My Assignments, Exercises, Control Room, Inject Queue
  * - ANALYSIS (2): Observations, Reports
- * - SYSTEM (4): Admin, Templates, Users, Organizations, Settings
+ * - SYSTEM (5): System Settings, Templates, Users, Organizations, My Preferences
  */
 export const MENU_ITEMS: MenuItem[] = [
   // ============================================================================
@@ -219,7 +219,7 @@ export const MENU_ITEMS: MenuItem[] = [
   // ============================================================================
   {
     id: 'admin',
-    label: 'Admin',
+    label: 'System Settings',
     icon: faShieldHalved,
     path: '/admin',
     section: 'system',
@@ -256,7 +256,7 @@ export const MENU_ITEMS: MenuItem[] = [
   },
   {
     id: 'settings',
-    label: 'Settings',
+    label: 'My Preferences',
     icon: faCog,
     path: '/settings',
     section: 'system',

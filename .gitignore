@@ -197,6 +197,7 @@ credentials.txt
 *.key
 *.pem
 appsettings.*.local.json
+appsettings.Local.json
 
 ## Local tool data
 DataProtectionKeys/

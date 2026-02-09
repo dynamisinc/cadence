@@ -207,7 +207,7 @@ export const LoginPage: FC = () => {
           )}
 
           {/* General Error Message */}
-          {error && !attemptsRemaining && !lockoutEnd && (
+          {error && !lockoutEnd && (
             <Alert severity="error">{error}</Alert>
           )}
 
@@ -261,6 +261,7 @@ export const LoginPage: FC = () => {
                     edge="end"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     size="small"
+                    tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
@@ -331,7 +332,7 @@ export const LoginPage: FC = () => {
           <Box sx={{ textAlign: 'center', mt: 2 }}>
             <Typography variant="body2" color="text.secondary">
               Don't have an account?{' '}
-              <Link to="/register" style={{ textDecoration: 'none' }}>
+              <Link to="/register" state={location.state} style={{ textDecoration: 'none' }}>
                 <Typography
                   component="span"
                   variant="body2"

@@ -156,7 +156,7 @@ const mockMenuItems = {
   },
   'settings': {
     id: 'settings',
-    label: 'Settings',
+    label: 'My Preferences',
     icon: faCog,
     path: '/settings',
     section: 'system',
@@ -376,7 +376,7 @@ describe('Sidebar', () => {
       expect(screen.getByText('Reports')).toBeInTheDocument()
       expect(screen.getByText('Templates')).toBeInTheDocument()
       expect(screen.getByText('Users')).toBeInTheDocument()
-      expect(screen.getByText('Settings')).toBeInTheDocument()
+      expect(screen.getByText('My Preferences')).toBeInTheDocument()
     })
 
     it('does not render labels when sidebar is collapsed', () => {

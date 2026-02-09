@@ -289,7 +289,7 @@ describe('menuConfig', () => {
       })
     })
 
-    describe('Admin', () => {
+    describe('System Settings', () => {
       const item = MENU_ITEMS.find(i => i.id === 'admin')!
 
       it('exists', () => {
@@ -405,7 +405,7 @@ describe('menuConfig', () => {
       })
     })
 
-    describe('Settings', () => {
+    describe('My Preferences', () => {
       const item = MENU_ITEMS.find(i => i.id === 'settings')!
 
       it('exists', () => {

@@ -9,6 +9,7 @@ using Cadence.Core.Extensions;
 using Cadence.Core.Features.Authentication.Models;
 using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Capabilities.Services;
+using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Notifications;
 using Cadence.Core.Hubs;
 using Cadence.Core.Logging;
@@ -28,6 +29,9 @@ using Scalar.AspNetCore;
 
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Load optional local config (git-ignored, for secrets like ACS connection strings)
+builder.Configuration.AddJsonFile("appsettings.Local.json", optional: true, reloadOnChange: true);
 
 // Add services to the container.
 builder.Services.AddControllers()
@@ -165,6 +169,22 @@ else
 }
 builder.Services.AddApplicationServices();
 
+// Add Email Services (templates registered in AddApplicationServices, delivery provider selected here)
+builder.Services.Configure<EmailServiceOptions>(builder.Configuration.GetSection(EmailServiceOptions.SectionName));
+
+// Register email delivery provider (config-driven: set Email:Provider in appsettings)
+var emailProvider = builder.Configuration.GetSection(EmailServiceOptions.SectionName)["Provider"] ?? "Logging";
+if (emailProvider.Equals("AzureCommunicationServices", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, AzureCommunicationEmailService>();
+    Console.WriteLine("[Startup] Email provider: AzureCommunicationServices");
+}
+else
+{
+    builder.Services.AddScoped<Cadence.Core.Features.Email.Services.IEmailService, LoggingEmailService>();
+    Console.WriteLine("[Startup] Email provider: Logging (emails logged to console, not delivered)");
+}
+
 // Add SignalR Hub Context
 builder.Services.AddScoped<IExerciseHubContext, ExerciseHubContext>();
 builder.Services.AddScoped<INotificationBroadcaster, NotificationBroadcaster>();
@@ -181,13 +201,9 @@ if (!builder.Environment.IsProduction() && !builder.Environment.IsEnvironment("T
     builder.Services.AddDemoSeeder();
 }
 
-// Add Logging
-builder.Services.AddLogging(logging =>
-{
-    logging.ClearProviders();
-    logging.AddConsole();
-    logging.AddDebug();
-});
+// Logging: WebApplication.CreateBuilder() registers Console, Debug, EventSource, EventLog
+// by default. AddApplicationInsightsTelemetry() (above) adds the App Insights provider.
+// Do NOT call ClearProviders() here - it would strip the App Insights logging provider.
 
 // Add Rate Limiting for authentication endpoints
 builder.Services.AddRateLimiter(options =>
