@@ -275,7 +275,16 @@ public class AuthenticationService : IAuthenticationService
                     "User registered: {UserId}, Email: {Email}, Role: {Role}, IsFirstUser: {IsFirst}",
                     user.Id, user.Email, defaultSystemRole, isFirstUser);
 
-                // Send welcome email (fire-and-forget, don't block registration)
+                // Auto-login: generate tokens
+                var authResult = await GenerateAuthResponseAsync(
+                    user,
+                    rememberMe: false,
+                    isFirstUser,
+                    isNewAccount: true,
+                    ipAddress,
+                    deviceInfo);
+
+                // Send welcome email (fire-and-forget, after DbContext work is done)
                 if (_emailService != null)
                 {
                     _ = Task.Run(async () =>
@@ -291,14 +300,7 @@ public class AuthenticationService : IAuthenticationService
                     });
                 }
 
-                // Auto-login: generate tokens
-                return await GenerateAuthResponseAsync(
-                    user,
-                    rememberMe: false,
-                    isFirstUser,
-                    isNewAccount: true,
-                    ipAddress,
-                    deviceInfo);
+                return authResult;
             }
             catch (Exception ex)
             {
@@ -592,7 +594,16 @@ public class AuthenticationService : IAuthenticationService
 
         _logger.LogInformation("Password reset completed for user: {UserId}", user.Id);
 
-        // Send password changed confirmation email (fire-and-forget, don't block auth flow)
+        // Auto-login after password reset
+        var authResult = await GenerateAuthResponseAsync(
+            user,
+            rememberMe: false,
+            isFirstUser: false,
+            isNewAccount: false,
+            ipAddress,
+            deviceInfo);
+
+        // Send password changed confirmation email (fire-and-forget, after DbContext work is done)
         if (_emailService != null)
         {
             var resetPasswordUrl = $"{_options.FrontendBaseUrl}/forgot-password";
@@ -616,14 +627,7 @@ public class AuthenticationService : IAuthenticationService
             });
         }
 
-        // Auto-login after password reset
-        return await GenerateAuthResponseAsync(
-            user,
-            rememberMe: false,
-            isFirstUser: false,
-            isNewAccount: false,
-            ipAddress,
-            deviceInfo);
+        return authResult;
     }
 
     // =========================================================================
