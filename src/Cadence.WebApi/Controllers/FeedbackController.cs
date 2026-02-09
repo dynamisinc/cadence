@@ -3,9 +3,9 @@ using System.Security.Claims;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Models.DTOs;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Options;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -19,16 +19,16 @@ namespace Cadence.WebApi.Controllers;
 public class FeedbackController : ControllerBase
 {
     private readonly IEmailService _emailService;
-    private readonly EmailServiceOptions _emailOptions;
+    private readonly IEmailConfigurationProvider _emailConfig;
     private readonly ILogger<FeedbackController> _logger;
 
     public FeedbackController(
         IEmailService emailService,
-        IOptions<EmailServiceOptions> emailOptions,
+        IEmailConfigurationProvider emailConfig,
         ILogger<FeedbackController> logger)
     {
         _emailService = emailService;
-        _emailOptions = emailOptions.Value;
+        _emailConfig = emailConfig;
         _logger = logger;
     }
 
@@ -68,7 +68,8 @@ public class FeedbackController : ControllerBase
             };
 
             // Send bug report to support
-            var supportRecipient = new EmailRecipient(_emailOptions.SupportAddress, "Cadence Support");
+            var config = await _emailConfig.GetConfigurationAsync();
+            var supportRecipient = new EmailRecipient(config.SupportAddress, "Cadence Support");
             var supportResult = await _emailService.SendTemplatedAsync("BugReport", model, supportRecipient);
 
             if (supportResult.Status == EmailSendStatus.Failed)
@@ -127,7 +128,8 @@ public class FeedbackController : ControllerBase
                 ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
             };
 
-            var supportRecipient = new EmailRecipient(_emailOptions.SupportAddress, "Cadence Support");
+            var config = await _emailConfig.GetConfigurationAsync();
+            var supportRecipient = new EmailRecipient(config.SupportAddress, "Cadence Support");
             var supportResult = await _emailService.SendTemplatedAsync("FeatureRequest", model, supportRecipient);
 
             if (supportResult.Status == EmailSendStatus.Failed)
@@ -185,7 +187,8 @@ public class FeedbackController : ControllerBase
                 SentAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
             };
 
-            var supportRecipient = new EmailRecipient(_emailOptions.SupportAddress, "Cadence Support");
+            var config = await _emailConfig.GetConfigurationAsync();
+            var supportRecipient = new EmailRecipient(config.SupportAddress, "Cadence Support");
             var supportResult = await _emailService.SendTemplatedAsync("GeneralFeedback", model, supportRecipient);
 
             if (supportResult.Status == EmailSendStatus.Failed)
@@ -255,7 +258,8 @@ public class FeedbackController : ControllerBase
                 ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
             };
 
-            var supportRecipient = new EmailRecipient(_emailOptions.SupportAddress, "Cadence Support");
+            var config = await _emailConfig.GetConfigurationAsync();
+            var supportRecipient = new EmailRecipient(config.SupportAddress, "Cadence Support");
             var supportResult = await _emailService.SendTemplatedAsync("BugReport", model, supportRecipient);
 
             if (supportResult.Status == EmailSendStatus.Failed)

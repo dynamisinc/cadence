@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Azure;
 using Azure.Communication.Email;
 using Cadence.Core.Features.Email.Models;
+using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -15,16 +16,19 @@ public class AzureCommunicationEmailService : IEmailService
 {
     private readonly ILogger<AzureCommunicationEmailService> _logger;
     private readonly IEmailTemplateRenderer? _templateRenderer;
+    private readonly IEmailConfigurationProvider _emailConfig;
     private readonly EmailServiceOptions _options;
     private readonly EmailClient? _client;
 
     public AzureCommunicationEmailService(
         ILogger<AzureCommunicationEmailService> logger,
         IOptions<EmailServiceOptions> options,
+        IEmailConfigurationProvider emailConfig,
         IEmailTemplateRenderer? templateRenderer = null)
     {
         _logger = logger;
         _options = options.Value;
+        _emailConfig = emailConfig;
         _templateRenderer = templateRenderer;
 
         if (!string.IsNullOrWhiteSpace(_options.ConnectionString))
@@ -78,7 +82,8 @@ public class AzureCommunicationEmailService : IEmailService
             );
         }
 
-        var from = message.From ?? new Models.EmailSender(_options.DefaultSenderAddress, _options.DefaultSenderName);
+        var config = await _emailConfig.GetConfigurationAsync();
+        var from = message.From ?? new Models.EmailSender(config.DefaultSenderAddress, config.DefaultSenderName);
         var senderAddress = from.Email;
         var sw = Stopwatch.StartNew();
 
@@ -180,12 +185,13 @@ public class AzureCommunicationEmailService : IEmailService
             "[Email:ACS] Template '{TemplateId}' rendered in {RenderMs}ms - Subject: {Subject}, HtmlLength: {HtmlLength}",
             templateId, renderMs, rendered.Subject, rendered.HtmlBody?.Length ?? 0);
 
+        var config = await _emailConfig.GetConfigurationAsync();
         var emailMessage = new Models.EmailMessage(
             Subject: rendered.Subject,
             HtmlBody: rendered.HtmlBody,
             PlainTextBody: rendered.PlainTextBody,
             To: recipient,
-            ReplyTo: _options.SupportAddress
+            ReplyTo: config.SupportAddress
         );
 
         var result = await SendAsync(emailMessage, ct);

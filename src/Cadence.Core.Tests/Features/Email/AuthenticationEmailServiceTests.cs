@@ -1,5 +1,7 @@
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.SystemSettings.Models;
+using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -14,7 +16,7 @@ public class AuthenticationEmailServiceTests
     private readonly Mock<IEmailService> _emailServiceMock;
     private readonly Mock<IEmailTemplateRenderer> _templateRendererMock;
     private readonly Mock<ILogger<AuthenticationEmailService>> _loggerMock;
-    private readonly EmailServiceOptions _options;
+    private readonly Mock<IEmailConfigurationProvider> _emailConfigMock;
     private readonly AuthenticationEmailService _sut;
 
     public AuthenticationEmailServiceTests()
@@ -22,17 +24,19 @@ public class AuthenticationEmailServiceTests
         _emailServiceMock = new Mock<IEmailService>();
         _templateRendererMock = new Mock<IEmailTemplateRenderer>();
         _loggerMock = new Mock<ILogger<AuthenticationEmailService>>();
-        _options = new EmailServiceOptions
-        {
-            DefaultSenderAddress = "noreply@test.com",
-            DefaultSenderName = "Test Cadence",
-            SupportAddress = "support@test.com"
-        };
+        _emailConfigMock = new Mock<IEmailConfigurationProvider>();
+        _emailConfigMock.Setup(x => x.GetConfigurationAsync())
+            .ReturnsAsync(new ResolvedEmailConfiguration
+            {
+                DefaultSenderAddress = "noreply@test.com",
+                DefaultSenderName = "Test Cadence",
+                SupportAddress = "support@test.com"
+            });
 
         _sut = new AuthenticationEmailService(
             _emailServiceMock.Object,
             _templateRendererMock.Object,
-            Options.Create(_options),
+            _emailConfigMock.Object,
             _loggerMock.Object);
 
         // Default: all sends succeed

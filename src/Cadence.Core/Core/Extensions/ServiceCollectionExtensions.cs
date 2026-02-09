@@ -18,6 +18,7 @@ using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.SystemSettings.Services;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
 
@@ -91,6 +92,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AuthenticationEmailService>();
         services.AddScoped<Cadence.Core.Features.Authentication.Services.IEmailService>(sp =>
             sp.GetRequiredService<AuthenticationEmailService>());
+
+        // System Settings Services
+        services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+        services.AddScoped<IEmailConfigurationProvider, EmailConfigurationProvider>();
 
         return services;
     }

@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Cadence.Core.Features.Email.Models;
+using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using AuthIEmailService = Cadence.Core.Features.Authentication.Services.IEmailService;
@@ -15,18 +16,18 @@ public class AuthenticationEmailService : AuthIEmailService
 {
     private readonly IEmailService _emailService;
     private readonly IEmailTemplateRenderer _templateRenderer;
-    private readonly EmailServiceOptions _options;
+    private readonly IEmailConfigurationProvider _emailConfig;
     private readonly ILogger<AuthenticationEmailService> _logger;
 
     public AuthenticationEmailService(
         IEmailService emailService,
         IEmailTemplateRenderer templateRenderer,
-        IOptions<EmailServiceOptions> options,
+        IEmailConfigurationProvider emailConfig,
         ILogger<AuthenticationEmailService> logger)
     {
         _emailService = emailService;
         _templateRenderer = templateRenderer;
-        _options = options.Value;
+        _emailConfig = emailConfig;
         _logger = logger;
     }
 
@@ -67,13 +68,14 @@ public class AuthenticationEmailService : AuthIEmailService
     {
         return await SendAuthEmailAsync("AccountDeactivated", email, displayName, async () =>
         {
+            var config = await _emailConfig.GetConfigurationAsync();
             var model = new PasswordChangedEmailModel
             {
                 Email = email,
                 DisplayName = displayName,
                 ChangedAt = DateTime.UtcNow,
                 ChangeMethod = "Account deactivated",
-                SupportUrl = _options.SupportAddress
+                SupportUrl = config.SupportAddress
             };
 
             return await RenderAndSendAsync("AccountDeactivated", model, email, displayName);
@@ -84,13 +86,14 @@ public class AuthenticationEmailService : AuthIEmailService
     {
         return await SendAuthEmailAsync("AccountReactivated", email, displayName, async () =>
         {
+            var config = await _emailConfig.GetConfigurationAsync();
             var model = new PasswordChangedEmailModel
             {
                 Email = email,
                 DisplayName = displayName,
                 ChangedAt = DateTime.UtcNow,
                 ChangeMethod = "Account reactivated",
-                SupportUrl = _options.SupportAddress
+                SupportUrl = config.SupportAddress
             };
 
             return await RenderAndSendAsync("AccountReactivated", model, email, displayName);
@@ -217,13 +220,14 @@ public class AuthenticationEmailService : AuthIEmailService
         string templateId, TModel model, string recipientEmail, string recipientName)
     {
         var rendered = await _templateRenderer.RenderAsync(templateId, model);
+        var config = await _emailConfig.GetConfigurationAsync();
 
         return await _emailService.SendAsync(new EmailMessage(
             Subject: rendered.Subject,
             HtmlBody: rendered.HtmlBody,
             PlainTextBody: rendered.PlainTextBody,
             To: new EmailRecipient(recipientEmail, recipientName),
-            ReplyTo: _options.SupportAddress
+            ReplyTo: config.SupportAddress
         ));
     }
 }

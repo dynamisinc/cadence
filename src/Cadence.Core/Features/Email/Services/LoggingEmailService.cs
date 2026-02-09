@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Cadence.Core.Features.Email.Models;
+using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 
@@ -13,15 +14,18 @@ public class LoggingEmailService : IEmailService
 {
     private readonly ILogger<LoggingEmailService> _logger;
     private readonly IEmailTemplateRenderer? _templateRenderer;
+    private readonly IEmailConfigurationProvider _emailConfig;
     private readonly EmailServiceOptions _options;
 
     public LoggingEmailService(
         ILogger<LoggingEmailService> logger,
         IOptions<EmailServiceOptions> options,
+        IEmailConfigurationProvider emailConfig,
         IEmailTemplateRenderer? templateRenderer = null)
     {
         _logger = logger;
         _options = options.Value;
+        _emailConfig = emailConfig;
         _templateRenderer = templateRenderer;
 
         _logger.LogDebug(
@@ -29,7 +33,7 @@ public class LoggingEmailService : IEmailService
             _options.DefaultSenderAddress, _options.SupportAddress);
     }
 
-    public Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken ct = default)
+    public async Task<EmailSendResult> SendAsync(EmailMessage message, CancellationToken ct = default)
     {
         if (string.IsNullOrWhiteSpace(message.To.Email))
         {
@@ -42,7 +46,8 @@ public class LoggingEmailService : IEmailService
         }
 
         var messageId = Guid.NewGuid().ToString();
-        var from = message.From ?? new EmailSender(_options.DefaultSenderAddress, _options.DefaultSenderName);
+        var config = await _emailConfig.GetConfigurationAsync();
+        var from = message.From ?? new EmailSender(config.DefaultSenderAddress, config.DefaultSenderName);
 
         _logger.LogInformation(
             "[Email:Log] SENT (logged, not delivered) - From: {FromName} <{FromEmail}>, " +
@@ -70,10 +75,10 @@ public class LoggingEmailService : IEmailService
             _logger.LogDebug("[Email:Log] Reply-To: {ReplyTo}", message.ReplyTo);
         }
 
-        return Task.FromResult(new EmailSendResult(
+        return new EmailSendResult(
             MessageId: messageId,
             Status: EmailSendStatus.Sent
-        ));
+        );
     }
 
     public async Task<EmailSendResult> SendTemplatedAsync<TModel>(
@@ -100,12 +105,13 @@ public class LoggingEmailService : IEmailService
             "[Email:Log] Template '{TemplateId}' rendered in {RenderMs}ms - Subject: {Subject}, HtmlLength: {HtmlLength}",
             templateId, renderMs, rendered.Subject, rendered.HtmlBody?.Length ?? 0);
 
+        var config = await _emailConfig.GetConfigurationAsync();
         var message = new EmailMessage(
             Subject: rendered.Subject,
             HtmlBody: rendered.HtmlBody,
             PlainTextBody: rendered.PlainTextBody,
             To: recipient,
-            ReplyTo: _options.SupportAddress
+            ReplyTo: config.SupportAddress
         );
 
         var result = await SendAsync(message, ct);

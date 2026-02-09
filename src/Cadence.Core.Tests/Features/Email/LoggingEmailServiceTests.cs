@@ -1,5 +1,7 @@
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.SystemSettings.Models;
+using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Moq;
@@ -13,6 +15,7 @@ public class LoggingEmailServiceTests
 {
     private readonly Mock<ILogger<LoggingEmailService>> _logger;
     private readonly IOptions<EmailServiceOptions> _options;
+    private readonly Mock<IEmailConfigurationProvider> _emailConfigMock;
     private readonly LoggingEmailService _service;
 
     public LoggingEmailServiceTests()
@@ -24,7 +27,15 @@ public class LoggingEmailServiceTests
             DefaultSenderName = "Test Cadence",
             SupportAddress = "support@test.com"
         });
-        _service = new LoggingEmailService(_logger.Object, _options);
+        _emailConfigMock = new Mock<IEmailConfigurationProvider>();
+        _emailConfigMock.Setup(x => x.GetConfigurationAsync())
+            .ReturnsAsync(new ResolvedEmailConfiguration
+            {
+                DefaultSenderAddress = "noreply@test.com",
+                DefaultSenderName = "Test Cadence",
+                SupportAddress = "support@test.com"
+            });
+        _service = new LoggingEmailService(_logger.Object, _options, _emailConfigMock.Object);
     }
 
     // =========================================================================
@@ -168,7 +179,7 @@ public class LoggingEmailServiceTests
     public async Task SendTemplatedAsync_NoTemplateRenderer_ThrowsInvalidOperation()
     {
         // LoggingEmailService created without template renderer
-        var service = new LoggingEmailService(_logger.Object, _options);
+        var service = new LoggingEmailService(_logger.Object, _options, _emailConfigMock.Object);
 
         await Assert.ThrowsAsync<InvalidOperationException>(
             () => service.SendTemplatedAsync(
@@ -185,7 +196,7 @@ public class LoggingEmailServiceTests
             .Setup(r => r.RenderAsync("TestTemplate", It.IsAny<object>()))
             .ReturnsAsync(new RenderedEmail("Rendered Subject", "<p>Rendered HTML</p>", "Rendered Text"));
 
-        var service = new LoggingEmailService(_logger.Object, _options, templateRenderer.Object);
+        var service = new LoggingEmailService(_logger.Object, _options, _emailConfigMock.Object, templateRenderer.Object);
 
         var result = await service.SendTemplatedAsync(
             "TestTemplate",

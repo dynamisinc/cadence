@@ -1,5 +1,6 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Features.Email.Models;
+using Cadence.Core.Features.SystemSettings.Models.Entities;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
@@ -123,6 +124,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<EmailLog> EmailLogs => Set<EmailLog>();
     public DbSet<UserEmailPreference> UserEmailPreferences => Set<UserEmailPreference>();
 
+    // System configuration
+    public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
+
     // =========================================================================
     // Model Configuration
     // =========================================================================
@@ -226,6 +230,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         // Email entities
         ConfigureEmailLog(modelBuilder);
         ConfigureUserEmailPreference(modelBuilder);
+
+        // System configuration
+        ConfigureSystemSettings(modelBuilder);
     }
 
     /// <summary>
@@ -1460,6 +1467,18 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasForeignKey(e => e.UserId)
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureSystemSettings(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<SystemSettings>(entity =>
+        {
+            entity.ToTable("SystemSettings");
+            entity.Property(e => e.SupportAddress).HasMaxLength(200);
+            entity.Property(e => e.DefaultSenderAddress).HasMaxLength(200);
+            entity.Property(e => e.DefaultSenderName).HasMaxLength(100);
+            entity.Property(e => e.UpdatedBy).HasMaxLength(450);
         });
     }
 
