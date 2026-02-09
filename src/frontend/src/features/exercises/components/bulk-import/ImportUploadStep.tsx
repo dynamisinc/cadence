@@ -38,6 +38,7 @@ export const ImportUploadStep = ({
   exerciseId,
 }: ImportUploadStepProps) => {
   const [validationError, setValidationError] = useState<string | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const validateFile = (file: File): string | null => {
@@ -82,6 +83,41 @@ export const ImportUploadStep = ({
     e.target.value = ''
   }
 
+  const handleDragEnter = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (!isUploading) {
+      setIsDragging(true)
+    }
+  }, [isUploading])
+
+  const handleDragOver = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+  }, [])
+
+  const handleDragLeave = useCallback((e: React.DragEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+  }, [])
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      setIsDragging(false)
+
+      if (isUploading) return
+
+      const files = e.dataTransfer.files
+      if (files && files.length > 0) {
+        handleFileSelect(files[0])
+      }
+    },
+    [isUploading, handleFileSelect],
+  )
+
   const csvTemplateUrl = bulkImportService.getTemplateUrl(exerciseId, 'csv')
   const xlsxTemplateUrl = bulkImportService.getTemplateUrl(exerciseId, 'xlsx')
 
@@ -99,14 +135,24 @@ export const ImportUploadStep = ({
       {/* Upload Area */}
       <Paper
         onClick={!isUploading ? handleBrowseClick : undefined}
+        onDragEnter={handleDragEnter}
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
         sx={{
           p: 4,
           textAlign: 'center',
           border: '2px dashed',
           borderColor:
-            validationError || error ? 'error.main' : 'grey.400',
+            validationError || error
+              ? 'error.main'
+              : isDragging
+                ? 'primary.main'
+                : 'grey.400',
           borderRadius: 2,
-          backgroundColor: 'background.paper',
+          backgroundColor: isDragging
+            ? 'action.selected'
+            : 'background.paper',
           cursor: !isUploading ? 'pointer' : 'default',
           transition: 'all 0.2s ease-in-out',
           '&:hover': !isUploading
@@ -137,14 +183,14 @@ export const ImportUploadStep = ({
               style={{ color: '#757575', marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
-              Select a CSV or XLSX file
+              {isDragging ? 'Drop file here' : 'Drag & drop or click to select'}
             </Typography>
             <Typography
               variant="body2"
               color="text.secondary"
               sx={{ mb: 2 }}
             >
-              Maximum 500 rows, 10 MB file size
+              CSV or XLSX files • Max 500 rows, 10 MB
             </Typography>
             <CobraPrimaryButton
               onClick={e => {
