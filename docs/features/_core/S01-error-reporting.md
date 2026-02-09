@@ -8,15 +8,13 @@
 
 ## Context
 
-When users encounter unexpected errors in the application, the ErrorBoundary component displays a friendly error page. Currently, users can only refresh or try again. Adding an error reporting feature allows users to proactively help the support team by submitting error details automatically.
+When users encounter unexpected errors in the application, the ErrorBoundary component displays a friendly error page. Basic error reporting was implemented as part of EM-08-S01 (Bug Report Submission): the "Send Error Report" button is enabled and submits error details (error message, stack trace, component stack, URL, browser info) to `POST /api/feedback/error-report`, which emails the support team using the BugReport template and returns a reference number.
 
-This feature improves the support experience by:
-1. Reducing friction for users to report issues
-2. Providing detailed technical information automatically
-3. Allowing optional user context (what they were doing)
-4. Tracking error patterns across users
-
-The "Send Error Report" button is already present in the ErrorBoundary UI but is disabled pending implementation.
+This story covers enhancements to that baseline:
+1. Adding a modal for user context (what they were doing, contact email)
+2. Storing error reports in a dedicated database table
+3. Application Insights correlation
+4. Rate limiting and offline clipboard fallback
 
 ## Acceptance Criteria
 
@@ -63,7 +61,7 @@ The "Send Error Report" button is already present in the ErrorBoundary UI but is
 
 - ErrorBoundary component (implemented)
 - Application Insights telemetry (implemented)
-- Backend API endpoint for error reports (to be implemented)
+- Backend API endpoint for error reports (implemented — `POST /api/feedback/error-report` via EM-08-S01)
 
 ## API Design
 
