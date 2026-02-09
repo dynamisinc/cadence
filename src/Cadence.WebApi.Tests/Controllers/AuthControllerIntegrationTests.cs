@@ -11,7 +11,8 @@ namespace Cadence.WebApi.Tests.Controllers;
 /// Integration tests for AuthController API endpoints.
 /// Tests the full request/response cycle including authentication, cookies, and error handling.
 /// </summary>
-public class AuthControllerIntegrationTests : IClassFixture<CadenceWebApplicationFactory>
+[Collection("WebApi Integration")]
+public class AuthControllerIntegrationTests
 {
     private readonly CadenceWebApplicationFactory _factory;
     private readonly HttpClient _client;

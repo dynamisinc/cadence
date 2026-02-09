@@ -12,7 +12,8 @@ namespace Cadence.WebApi.Tests.Controllers;
 /// Tests the full request/response cycle including DI resolution, authorization, and database operations.
 /// These tests ensure that all services are properly registered in the DI container.
 /// </summary>
-public class AdminOrganizationsControllerIntegrationTests : IClassFixture<CadenceWebApplicationFactory>
+[Collection("WebApi Integration")]
+public class AdminOrganizationsControllerIntegrationTests
 {
     private readonly CadenceWebApplicationFactory _factory;
     private readonly HttpClient _client;
