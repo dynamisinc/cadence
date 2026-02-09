@@ -36,7 +36,6 @@ import {
   faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
-import CobraStyles from '@/theme/CobraStyles'
 import { AuthLayout } from '@/features/auth/components/AuthLayout'
 import { useAuth } from '@/contexts/AuthContext'
 import { useOrganization } from '@/contexts/OrganizationContext'

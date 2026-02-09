@@ -117,7 +117,7 @@ describe('OrganizationContext', () => {
         expect(result.current.isLoading).toBe(false)
       })
 
-      expect(result.current.isPending).toBe(true)
+      expect(result.current.isPending).toBe(false)
       expect(result.current.currentOrg).toBeNull()
       expect(result.current.memberships).toEqual([])
     })

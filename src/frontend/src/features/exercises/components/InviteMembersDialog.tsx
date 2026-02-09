@@ -105,7 +105,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
       // Filter out members who are already exercise participants
       const participantUserIds = new Set(currentParticipants.map(p => p.userId))
       const availableMembers = orgMembers.filter(
-        member => !participantUserIds.has(member.userId)
+        member => !participantUserIds.has(member.userId),
       )
 
       // Initialize selection state
@@ -114,7 +114,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
           member,
           selected: false,
           role: 'Observer', // Default role
-        }))
+        })),
       )
     } catch (err) {
       console.error('Failed to load organization members:', err)
@@ -127,14 +127,14 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
   const handleToggleSelect = (userId: string) => {
     setMembers(prev =>
       prev.map(m =>
-        m.member.userId === userId ? { ...m, selected: !m.selected } : m
-      )
+        m.member.userId === userId ? { ...m, selected: !m.selected } : m,
+      ),
     )
   }
 
   const handleRoleChange = (userId: string, role: string) => {
     setMembers(prev =>
-      prev.map(m => (m.member.userId === userId ? { ...m, role } : m))
+      prev.map(m => (m.member.userId === userId ? { ...m, role } : m)),
     )
   }
 
@@ -166,7 +166,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
     } catch (err) {
       console.error('Failed to invite members:', err)
       setError(
-        err instanceof Error ? err.message : 'Failed to invite members. Please try again.'
+        err instanceof Error ? err.message : 'Failed to invite members. Please try again.',
       )
     } finally {
       setSubmitting(false)
@@ -175,17 +175,17 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
 
   const selectedCount = useMemo(
     () => members.filter(m => m.selected).length,
-    [members]
+    [members],
   )
 
   const allSelected = useMemo(
     () => members.length > 0 && members.every(m => m.selected),
-    [members]
+    [members],
   )
 
   const someSelected = useMemo(
     () => members.some(m => m.selected) && !allSelected,
-    [members, allSelected]
+    [members, allSelected],
   )
 
   return (
@@ -280,7 +280,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
                             {member.role}
                           </Typography>
                         </TableCell>
-                        <TableCell onClick={(e) => e.stopPropagation()}>
+                        <TableCell onClick={e => e.stopPropagation()}>
                           <FormControl size="small" fullWidth disabled={!selected}>
                             <Select
                               value={role}

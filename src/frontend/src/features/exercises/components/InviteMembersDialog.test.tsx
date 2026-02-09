@@ -7,6 +7,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import { ThemeProvider } from '@mui/material/styles'
+import { cobraTheme } from '@/theme/cobraTheme'
 import { InviteMembersDialog } from './InviteMembersDialog'
 import { organizationService } from '../../organizations/services/organizationService'
 import type { OrgMember } from '../../organizations/types'
@@ -18,6 +20,10 @@ vi.mock('../../organizations/services/organizationService', () => ({
     getCurrentOrgMembers: vi.fn(),
   },
 }))
+
+const themeWrapper = ({ children }: { children: React.ReactNode }) => (
+  <ThemeProvider theme={cobraTheme}>{children}</ThemeProvider>
+)
 
 describe('InviteMembersDialog', () => {
   const mockOrgMembers: OrgMember[] = [
@@ -78,13 +84,14 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     expect(screen.getByText('Invite Members to Exercise')).toBeInTheDocument()
     await waitFor(() => {
       expect(
-        screen.getByText(/Select organization members to invite to this exercise/i)
+        screen.getByText(/Select organization members to invite to this exercise/i),
       ).toBeInTheDocument()
     })
   })
@@ -98,7 +105,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -134,7 +142,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={participantsWithOrgMember}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -160,7 +169,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -175,12 +185,13 @@ describe('InviteMembersDialog', () => {
     const aliceCheckbox = aliceRow.querySelector('input[type="checkbox"]') as HTMLInputElement
     expect(aliceCheckbox.checked).toBe(true)
 
-    // Change role to Controller
-    const roleSelect = aliceRow.querySelector('select') as HTMLSelectElement
-    await user.click(roleSelect)
+    // Change role to Controller via MUI Select
+    const roleCombobox = aliceRow.querySelector('[role="combobox"]')!
+    await user.click(roleCombobox)
     await user.click(screen.getByRole('option', { name: 'Controller' }))
 
-    expect(roleSelect.value).toBe('Controller')
+    // Verify the selected value is displayed
+    expect(roleCombobox).toHaveTextContent('Controller')
   })
 
   // EM-03-S01 AC4: Given multiple members selected, when inviting, then all receive individual emails
@@ -194,7 +205,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -221,7 +233,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -248,7 +261,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -259,9 +273,9 @@ describe('InviteMembersDialog', () => {
     const aliceRow = screen.getByText('Alice Smith').closest('tr')!
     await user.click(aliceRow)
 
-    // Change role to Controller
-    const roleSelect = aliceRow.querySelector('select') as HTMLSelectElement
-    await user.click(roleSelect)
+    // Change role to Controller via MUI Select
+    const roleCombobox = aliceRow.querySelector('[role="combobox"]')!
+    await user.click(roleCombobox)
     await user.click(screen.getByRole('option', { name: 'Controller' }))
 
     // Click invite button
@@ -275,8 +289,6 @@ describe('InviteMembersDialog', () => {
   })
 
   it('should show error when no members selected', async () => {
-    const user = userEvent.setup()
-
     render(
       <InviteMembersDialog
         open={true}
@@ -284,7 +296,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -316,12 +329,13 @@ describe('InviteMembersDialog', () => {
         currentParticipants={allParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
       expect(
-        screen.getByText(/All organization members are already participants/i)
+        screen.getByText(/All organization members are already participants/i),
       ).toBeInTheDocument()
     })
   })
@@ -329,7 +343,7 @@ describe('InviteMembersDialog', () => {
   it('should show loading state while fetching members', async () => {
     // Delay the resolution to test loading state
     vi.mocked(organizationService.getCurrentOrgMembers).mockImplementation(
-      () => new Promise(resolve => setTimeout(() => resolve(mockOrgMembers), 100))
+      () => new Promise(resolve => setTimeout(() => resolve(mockOrgMembers), 100)),
     )
 
     render(
@@ -339,7 +353,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     // Should show loading spinner
@@ -352,7 +367,7 @@ describe('InviteMembersDialog', () => {
 
   it('should handle API errors gracefully', async () => {
     vi.mocked(organizationService.getCurrentOrgMembers).mockRejectedValue(
-      new Error('Network error')
+      new Error('Network error'),
     )
 
     render(
@@ -362,12 +377,13 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
       expect(
-        screen.getByText(/Failed to load organization members/i)
+        screen.getByText(/Failed to load organization members/i),
       ).toBeInTheDocument()
     })
   })
@@ -382,7 +398,8 @@ describe('InviteMembersDialog', () => {
         currentParticipants={mockCurrentParticipants}
         onInvite={mockOnInvite}
         onClose={mockOnClose}
-      />
+      />,
+      { wrapper: themeWrapper },
     )
 
     await waitFor(() => {
@@ -396,13 +413,15 @@ describe('InviteMembersDialog', () => {
 
   it('should reset state when dialog is closed and reopened', async () => {
     const { rerender } = render(
-      <InviteMembersDialog
-        open={true}
-        exerciseId="ex1"
-        currentParticipants={mockCurrentParticipants}
-        onInvite={mockOnInvite}
-        onClose={mockOnClose}
-      />
+      <ThemeProvider theme={cobraTheme}>
+        <InviteMembersDialog
+          open={true}
+          exerciseId="ex1"
+          currentParticipants={mockCurrentParticipants}
+          onInvite={mockOnInvite}
+          onClose={mockOnClose}
+        />
+      </ThemeProvider>,
     )
 
     await waitFor(() => {
@@ -411,24 +430,28 @@ describe('InviteMembersDialog', () => {
 
     // Close dialog
     rerender(
-      <InviteMembersDialog
-        open={false}
-        exerciseId="ex1"
-        currentParticipants={mockCurrentParticipants}
-        onInvite={mockOnInvite}
-        onClose={mockOnClose}
-      />
+      <ThemeProvider theme={cobraTheme}>
+        <InviteMembersDialog
+          open={false}
+          exerciseId="ex1"
+          currentParticipants={mockCurrentParticipants}
+          onInvite={mockOnInvite}
+          onClose={mockOnClose}
+        />
+      </ThemeProvider>,
     )
 
     // Reopen dialog - should reload members
     rerender(
-      <InviteMembersDialog
-        open={true}
-        exerciseId="ex1"
-        currentParticipants={mockCurrentParticipants}
-        onInvite={mockOnInvite}
-        onClose={mockOnClose}
-      />
+      <ThemeProvider theme={cobraTheme}>
+        <InviteMembersDialog
+          open={true}
+          exerciseId="ex1"
+          currentParticipants={mockCurrentParticipants}
+          onInvite={mockOnInvite}
+          onClose={mockOnClose}
+        />
+      </ThemeProvider>,
     )
 
     await waitFor(() => {
