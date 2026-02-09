@@ -26,6 +26,7 @@ public record InvitationDto(
     DateTime? AcceptedAt,
     DateTime? CancelledAt,
     string? AcceptedByName,
+    string? OrganizationName = null,
     bool? EmailSent = null,
     string? EmailError = null,
     bool AccountExists = false

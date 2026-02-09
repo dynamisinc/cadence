@@ -422,7 +422,8 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             InvitedByEmail: invite.CreatedByUser?.Email ?? string.Empty,
             AcceptedAt: invite.UsedAt,
             CancelledAt: invite.IsDeleted ? invite.DeletedAt : null,
-            AcceptedByName: invite.UsedBy?.DisplayName
+            AcceptedByName: invite.UsedBy?.DisplayName,
+            OrganizationName: invite.Organization?.Name
         );
     }
 }

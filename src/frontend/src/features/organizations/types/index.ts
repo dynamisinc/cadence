@@ -97,6 +97,7 @@ export interface Invitation {
   usedAt?: string;
   invitedByName: string;
   invitedByEmail: string;
+  organizationName?: string;
   emailSent?: boolean | null;
   emailError?: string | null;
   accountExists?: boolean;
