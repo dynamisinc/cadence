@@ -300,10 +300,13 @@ try
     app.UseRequestResponseLogging();
 
     app.UseAuthentication();
-    app.UseAuthorization();
 
     // Enrich Serilog LogContext with UserId, OrganizationId, ExerciseId from JWT claims
+    // Placed after authentication (so claims are available) but before authorization
+    // (so authorization failures are logged with user context)
     app.UseMiddleware<SerilogContextMiddleware>();
+
+    app.UseAuthorization();
 
     // Serilog request logging (structured HTTP request summaries)
     app.UseSerilogRequestLogging(options =>
