@@ -324,7 +324,7 @@ export const ProfileMenu: React.FC = () => {
             <ListItemIcon>
               <FontAwesomeIcon icon={faGear} />
             </ListItemIcon>
-            <ListItemText>Settings</ListItemText>
+            <ListItemText>My Preferences</ListItemText>
           </MenuItem>
         )}
 

@@ -90,7 +90,7 @@ export const UserSettingsPage = () => {
   // Set breadcrumbs
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
-    { label: 'Settings' },
+    { label: 'My Preferences' },
   ])
 
   const handleThemeChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -166,7 +166,7 @@ export const UserSettingsPage = () => {
         </Box>
         <Box>
           <Typography variant="h4" fontWeight={600}>
-            User Settings
+            My Preferences
           </Typography>
           <Typography variant="body2" color="text.secondary">
             Customize your experience with display and behavior preferences.

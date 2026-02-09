@@ -47,14 +47,14 @@ describe('AdminPage', () => {
     it('displays the page title', () => {
       renderWithProvider(<AdminPage />)
 
-      expect(screen.getByText('Administration')).toBeInTheDocument()
+      expect(screen.getByText('System Settings')).toBeInTheDocument()
     })
 
     it('displays the page description', () => {
       renderWithProvider(<AdminPage />)
 
       expect(
-        screen.getByText('Manage application settings and feature availability'),
+        screen.getByText('Manage platform-wide configuration and feature availability'),
       ).toBeInTheDocument()
     })
 
@@ -64,13 +64,12 @@ describe('AdminPage', () => {
       expect(screen.getByTestId('feature-flags-section')).toBeInTheDocument()
     })
 
-    it('renders the future settings placeholder section', () => {
+    it('renders the system settings section', () => {
       renderWithProvider(<AdminPage />)
 
       expect(
-        screen.getByTestId('future-settings-section'),
+        screen.getByTestId('system-settings-section'),
       ).toBeInTheDocument()
-      expect(screen.getByText('System Settings')).toBeInTheDocument()
     })
   })
 

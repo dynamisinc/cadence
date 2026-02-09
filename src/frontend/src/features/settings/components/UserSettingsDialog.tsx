@@ -178,7 +178,7 @@ export const UserSettingsDialog = ({ open, onClose }: UserSettingsDialogProps) =
         >
           <FontAwesomeIcon icon={faGear} />
         </Box>
-        User Settings
+        My Preferences
       </DialogTitle>
 
       <DialogContent dividers>

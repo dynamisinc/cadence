@@ -26,11 +26,11 @@ export const AdminPage: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
             <FontAwesomeIcon icon={faGear} size="lg" />
             <Typography variant="h4" component="h1">
-              Administration
+              System Settings
             </Typography>
           </Box>
           <Typography variant="body1" color="text.secondary">
-            Manage application settings and feature availability
+            Manage platform-wide configuration and feature availability
           </Typography>
         </Box>
 
