@@ -207,7 +207,7 @@ export const LoginPage: FC = () => {
           )}
 
           {/* General Error Message */}
-          {error && !attemptsRemaining && !lockoutEnd && (
+          {error && !lockoutEnd && (
             <Alert severity="error">{error}</Alert>
           )}
 
@@ -261,6 +261,7 @@ export const LoginPage: FC = () => {
                     edge="end"
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
                     size="small"
+                    tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>

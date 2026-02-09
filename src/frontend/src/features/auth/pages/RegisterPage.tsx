@@ -261,7 +261,7 @@ export const RegisterPage: FC = () => {
           />
 
           {/* Password Field */}
-          <Box sx={{ minHeight: '140px' }}>
+          <Box>
             <CobraTextField
               label="Password"
               type={showPassword ? 'text' : 'password'}
@@ -290,6 +290,7 @@ export const RegisterPage: FC = () => {
                       edge="end"
                       aria-label={showPassword ? 'Hide password' : 'Show password'}
                       size="small"
+                      tabIndex={-1}
                     >
                       <FontAwesomeIcon icon={showPassword ? faEyeSlash : faEye} size="sm" />
                     </IconButton>
@@ -330,6 +331,7 @@ export const RegisterPage: FC = () => {
                     edge="end"
                     aria-label={showConfirmPassword ? 'Hide password' : 'Show password'}
                     size="small"
+                    tabIndex={-1}
                   >
                     <FontAwesomeIcon icon={showConfirmPassword ? faEyeSlash : faEye} size="sm" />
                   </IconButton>
