@@ -2,6 +2,36 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.2.0](https://github.com/dynamisinc/cadence/compare/api-v3.1.0...api-v3.2.0) (2026-02-09)
+
+
+### Features
+
+* **email:** add authentication email templates and integration (Phase 2) ([e897614](https://github.com/dynamisinc/cadence/commit/e8976143b748074953fe045dd17d23ba84f0a5ab))
+* **email:** add email communications system with templates, invitations, and preferences ([d3ac229](https://github.com/dynamisinc/cadence/commit/d3ac229814f591acec2b594dffe941404a460216))
+* **email:** add email infrastructure foundation (Phase 1) ([a071264](https://github.com/dynamisinc/cadence/commit/a071264276a87128bd7be598c6ac1084532215cf))
+* **email:** add email preferences UI, feedback forms, and error reporting ([a95095e](https://github.com/dynamisinc/cadence/commit/a95095e69fdda2c4bab72574ced389606fbb842a))
+* **email:** add exercise invitation email templates (Phase 4) ([9a44dd9](https://github.com/dynamisinc/cadence/commit/9a44dd9f4900d846dc3443e578e402f758e46dcc))
+* **email:** add invitation UI with email delivery and accept flow ([181a3d3](https://github.com/dynamisinc/cadence/commit/181a3d3130e3e395f4d23ca7bfc7a6dfb0a8b6a0))
+* **email:** add organization invitation system (Phase 3) ([ec91c1d](https://github.com/dynamisinc/cadence/commit/ec91c1df8d54026c3b78670a27b2c9f6915fcef1))
+* **email:** add status, support, reminder, and digest templates (EM-07 through EM-10) ([eed266f](https://github.com/dynamisinc/cadence/commit/eed266f609057b571a1af5ed24ba751e9d3dcf92))
+* **email:** add structured production logging and EF migration ([15e764a](https://github.com/dynamisinc/cadence/commit/15e764a5f39c472437f290e0d42a1f6739a0d2b6))
+* **email:** add workflow and assignment notification templates (EM-05, EM-06) ([87aff49](https://github.com/dynamisinc/cadence/commit/87aff49150005cf43ec550d373fe1d5bb268b2c3))
+* **email:** integrate Azure Communication Services for email delivery ([bb15c57](https://github.com/dynamisinc/cadence/commit/bb15c57f45a49dd9a35f615e1f8fe7b62d81e148))
+* **invitation:** smart invite flow with account detection and return URLs ([4a9da41](https://github.com/dynamisinc/cadence/commit/4a9da41945bbd67a810c7a2bb5a63ede8b6c6711))
+* **system-settings:** add admin UI for email configuration overrides ([7f42341](https://github.com/dynamisinc/cadence/commit/7f4234171c9b690db1ca3eb856b0378dfad5c79c))
+
+
+### Bug Fixes
+
+* **auth:** resolve DbContext concurrency in registration and password reset ([0803f07](https://github.com/dynamisinc/cadence/commit/0803f07009bfb2c9bd55592ca8aa502aa1e19a24))
+* **email:** address code review findings across auth and invitations ([f732352](https://github.com/dynamisinc/cadence/commit/f732352fa8a2f75276d8ed87fc5a3c04da306c73))
+* **email:** block reserved domains and force Logging provider in tests ([2706ecc](https://github.com/dynamisinc/cadence/commit/2706ecc0d15bbb22447bd4d47ca39987b8b61b3c))
+* **email:** remove double-retry and restore App Insights logging provider ([8d7d542](https://github.com/dynamisinc/cadence/commit/8d7d542ad84df5f2b28d3d2300c5305a5bdb964a))
+* **invitation:** add organizationName to InvitationDto and frontend type ([028491a](https://github.com/dynamisinc/cadence/commit/028491a063821c30c22a9885564dadc29d2df280))
+* **invitation:** bypass org query filter and fix invite display fields ([ced1c25](https://github.com/dynamisinc/cadence/commit/ced1c25b37a33ecec7671ded2c46dc8f0399a8b9))
+* **invitation:** complete new-user invitation flow with auto-accept and org context ([480e5e8](https://github.com/dynamisinc/cadence/commit/480e5e815caf39a11d601db0b53bfec32227c46c))
+
 ## [3.1.0](https://github.com/dynamisinc/cadence/compare/api-v3.0.0...api-v3.1.0) (2026-02-06)
 
 
