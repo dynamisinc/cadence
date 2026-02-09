@@ -5,6 +5,29 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.2.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.1.0...frontend-v2.2.0) (2026-02-09)
+
+
+### Features
+
+* **email:** add email communications system with templates, invitations, and preferences ([d3ac229](https://github.com/dynamisinc/cadence/commit/d3ac229814f591acec2b594dffe941404a460216))
+* **email:** add email preferences UI, feedback forms, and error reporting ([a95095e](https://github.com/dynamisinc/cadence/commit/a95095e69fdda2c4bab72574ced389606fbb842a))
+* **email:** add exercise invitation dialog and participant list updates ([2993ecf](https://github.com/dynamisinc/cadence/commit/2993ecf59e96116f986c34eda547293d61e144bc))
+* **email:** add invitation UI with email delivery and accept flow ([181a3d3](https://github.com/dynamisinc/cadence/commit/181a3d3130e3e395f4d23ca7bfc7a6dfb0a8b6a0))
+* **invitation:** smart invite flow with account detection and return URLs ([4a9da41](https://github.com/dynamisinc/cadence/commit/4a9da41945bbd67a810c7a2bb5a63ede8b6c6711))
+* **system-settings:** add admin UI for email configuration overrides ([7f42341](https://github.com/dynamisinc/cadence/commit/7f4234171c9b690db1ca3eb856b0378dfad5c79c))
+
+
+### Bug Fixes
+
+* **auth:** show error on invalid login and improve password field UX ([8579647](https://github.com/dynamisinc/cadence/commit/857964734e52c843e7eecb07f202855df9218ae6))
+* **email:** address code review findings across auth and invitations ([f732352](https://github.com/dynamisinc/cadence/commit/f732352fa8a2f75276d8ed87fc5a3c04da306c73))
+* **invitation:** add organizationName to InvitationDto and frontend type ([028491a](https://github.com/dynamisinc/cadence/commit/028491a063821c30c22a9885564dadc29d2df280))
+* **invitation:** bypass org query filter and fix invite display fields ([ced1c25](https://github.com/dynamisinc/cadence/commit/ced1c25b37a33ecec7671ded2c46dc8f0399a8b9))
+* **invitation:** complete new-user invitation flow with auto-accept and org context ([480e5e8](https://github.com/dynamisinc/cadence/commit/480e5e815caf39a11d601db0b53bfec32227c46c))
+* **tests:** update test assertions for component changes ([197b1c7](https://github.com/dynamisinc/cadence/commit/197b1c7aebf79989e378cb3f4226c47e9e7b6a60))
+* **ui:** resolve lint errors and failing frontend tests ([4bfa34c](https://github.com/dynamisinc/cadence/commit/4bfa34c0bb028a7cc65ebe7d339824a91d6a50b3))
+
 ## [2.1.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.0.0...frontend-v2.1.0) (2026-02-06)
 
 
