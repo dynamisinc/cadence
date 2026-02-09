@@ -188,7 +188,7 @@ public class AzureCommunicationEmailService : IEmailService
         var config = await _emailConfig.GetConfigurationAsync();
         var emailMessage = new Models.EmailMessage(
             Subject: rendered.Subject,
-            HtmlBody: rendered.HtmlBody,
+            HtmlBody: rendered.HtmlBody ?? string.Empty,
             PlainTextBody: rendered.PlainTextBody,
             To: recipient,
             ReplyTo: config.SupportAddress
