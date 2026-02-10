@@ -33,6 +33,7 @@ export const useExerciseParticipants = (exerciseId: string) => {
     isLoading,
     isError,
     error,
+    refetch,
   } = useQuery<ExerciseParticipantDto[]>({
     queryKey,
     queryFn: () => participantService.getParticipants(exerciseId),
@@ -156,6 +157,7 @@ export const useExerciseParticipants = (exerciseId: string) => {
     isLoading,
     isError,
     error,
+    refetch,
     addParticipant: addParticipantMutation.mutateAsync,
     updateParticipantRole: (userId: string, request: UpdateParticipantRoleRequest) =>
       updateParticipantRoleMutation.mutateAsync({ userId, request }),

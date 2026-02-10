@@ -81,6 +81,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
     isLoading,
     isError,
     error,
+    refetch: refetchParticipants,
     addParticipant,
     updateParticipantRole,
     removeParticipant,
@@ -168,8 +169,9 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
 
   const handleBulkImportComplete = useCallback(() => {
     // Refresh both participants and pending assignments after import
+    refetchParticipants()
     refetchPending()
-  }, [refetchPending])
+  }, [refetchParticipants, refetchPending])
 
   const handleResendInvitation = useCallback(
     async (invitationId: string, email: string) => {
