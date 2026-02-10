@@ -42,6 +42,8 @@ module.exports = {
         'feature-flags',
         'system-settings',
         'hseep-roles',
+        'field-operations',
+        'photo-capture',
         // Infrastructure
         'agent',
         'migrations',

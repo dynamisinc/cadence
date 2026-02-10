@@ -1,8 +1,8 @@
 # Cadence Feature Catalog
 
 > **Master reference document for all Cadence platform features**
-> **Generated:** 2026-02-03
-> **Total Features:** 31
+> **Generated:** 2026-02-10
+> **Total Features:** 34
 
 ---
 
@@ -54,6 +54,11 @@
 8. [Cross-Cutting Concerns](#8-cross-cutting-concerns)
    - [8.1 Versioning](#81-versioning)
    - [8.2 Cross-Cutting Technical Features](#82-cross-cutting-technical-features)
+
+9. [Field Operations](#9-field-operations)
+   - [9.1 Photo Capture & Attachment](#91-photo-capture--attachment)
+   - [9.2 Enhanced Field Observations](#92-enhanced-field-observations)
+   - [9.3 Location Tracking](#93-location-tracking)
 
 ---
 
@@ -924,6 +929,147 @@ Exercise conduct requires long, uninterrupted sessions. Users lose work when ses
 
 ---
 
+# 9. Field Operations
+
+> **Epic:** Field Operations — Rich field capture tools for Controllers, Evaluators, and Observers during operations-based exercises. Photo evidence, enhanced observations, and location context flow directly into After-Action Review materials.
+>
+> **Epic Document:** `docs/features/field-operations/EPIC-field-operations.md`
+> **Mobile Addendum:** `docs/features/field-operations/MOBILE-ADDENDUM.md`
+
+## 9.1 Photo Capture & Attachment
+
+**Phase:** Field Operations | **Status:** Not Started | **Stories:** 6 | **Implementation Order:** 1st (independent, high SME demand)
+
+### Overview
+Participants capture photos during exercise conduct using device cameras or gallery selection, attach them to observations as evidence, optionally annotate them, and queue them for offline upload. Photos are compressed client-side, timestamped with both wall clock and scenario time, and stored in Azure Blob Storage.
+
+### Problem Statement
+Evaluators in the field observe critical player actions but lack tools to capture photographic evidence in real time. Post-exercise, teams reconstruct observations from memory and handwritten notes, losing the visual context that makes AAR findings compelling. Currently only ~5% of observations include photo evidence.
+
+### User Stories
+
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| S01 | Capture Photo | P0 | 📋 Ready |
+| S02 | Attach Photo to Observation | P0 | 📋 Ready |
+| S03 | Quick Photo Observation (FAB) | P0 | 📋 Ready |
+| S04 | Photo Gallery | P1 | 📋 Ready |
+| S05 | Annotate Photo | P2 | 📋 Ready |
+| S06 | Offline Photo Queue | P0 | 📋 Ready |
+
+### Key Concepts
+
+| Term | Definition |
+|------|------------|
+| **Photo Evidence** | Camera or gallery image captured during exercise conduct, compressed and timestamped |
+| **Quick Photo** | FAB-initiated camera capture that auto-creates a draft observation (capture now, document later) |
+| **Draft Observation** | Auto-created observation from Quick Photo, visually distinguished until completed |
+| **Photo Annotation** | Non-destructive overlay (circles, arrows, text labels) stored as separate JSON layer |
+| **Thumbnail** | 300px compressed preview used in lists and galleries |
+| **Offline Photo Queue** | IndexedDB blob storage with automatic upload on reconnect |
+
+### Dependencies
+
+- **Phase E (Observations):** Observation entity and CRUD — foundation for photo attachment
+- **Phase H (Connectivity):** IndexedDB offline sync, pending action queue, reconnection logic
+- **Phase I (PWA):** Service worker context for camera access
+- **Azure Blob Storage:** Required for photo file storage (new infrastructure)
+
+---
+
+## 9.2 Enhanced Field Observations
+
+**Phase:** Field Operations | **Status:** Not Started | **Stories:** 5
+
+### Overview
+Field-optimized observation capture with quick-add workflows, voice-to-text input, smart inject linking (recently-fired injects surfaced first), safety flagging with immediate Director notification, and a real-time Director observation feed. Builds on existing Phase E observation infrastructure.
+
+### Problem Statement
+Current observation capture is designed for desktop use. Field evaluators need faster workflows — completing an observation in under 30 seconds, dictating notes via voice, quickly linking to the inject they just witnessed, and immediately flagging safety concerns. Exercise Directors lack real-time visibility into evaluator observations, relying on radio check-ins with 30-60 minute delays.
+
+### User Stories
+
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| S01 | Quick-Add Observation | P0 | 📋 Ready |
+| S02 | Voice-to-Text | P1 | 📋 Ready |
+| S03 | Link to Active Inject | P0 | 📋 Ready |
+| S04 | Safety Flag | P1 | 📋 Ready |
+| S05 | Director Observation Feed | P1 | 📋 Ready |
+
+### Key Concepts
+
+| Term | Definition |
+|------|------------|
+| **Quick-Add Observation** | Bottom sheet/modal optimized for 30-second completion with minimal required fields |
+| **Voice-to-Text** | Browser SpeechRecognition API input with real-time interim results, no cloud dependency |
+| **Recently-Fired Inject** | Injects fired within the last 60 minutes of exercise time, surfaced first in inject selector |
+| **Safety-Flagged Observation** | Observation marked as real-world safety concern with immediate SignalR notification |
+| **No-Duff** | HSEEP term for real-world safety event during exercise; triggers immediate escalation |
+| **Observation Feed** | Real-time reverse-chronological stream of all observations pushed to Exercise Director |
+| **Acknowledged / Resolved** | Safety concern lifecycle: flagged → acknowledged by Director → resolved with notes |
+
+### Dependencies
+
+- **Phase E (Observations):** Observation entity, CRUD, basic form
+- **Phase D (Exercise Conduct):** Exercise clock state, inject firing, inject status tracking
+- **Phase H (Connectivity):** SignalR broadcasting, IndexedDB offline sync
+- **Photo Capture (9.1):** Photo attachment integration in Quick-Add form
+
+---
+
+## 9.3 Location Tracking
+
+**Phase:** Field Operations | **Status:** Not Started | **Stories:** 5
+
+### Overview
+Opt-in GPS tracking during exercise conduct with automatic geo-stamping of observations and inject firings, a Director map view showing participant positions, and post-exercise position history replay. Privacy-first design with explicit per-exercise consent, persistent sharing indicators, and automatic stop when the exercise clock stops.
+
+### Problem Statement
+Exercise Directors managing operations-based exercises across large venues (airports, industrial complexes, urban areas) lack real-time awareness of evaluator positions. They rely on 15-30 minute radio check-ins to understand coverage, missing gaps until opportunities for observation have passed. Post-exercise, there is no spatial context for where observations occurred.
+
+### User Stories
+
+| Story | Title | Priority | Status |
+|-------|-------|----------|--------|
+| S01 | Opt-In Location Sharing | P1 | 📋 Ready |
+| S02 | Location Stamp on Observations | P1 | 📋 Ready |
+| S03 | Location Stamp on Inject Firing | P2 | 📋 Ready |
+| S04 | Director Location Map | P2 | 📋 Ready |
+| S05 | Position History | P3 | 📋 Ready |
+
+### Key Concepts
+
+| Term | Definition |
+|------|------------|
+| **Location Sharing** | Explicit per-exercise opt-in GPS tracking with 30-second position updates |
+| **Location Stamp** | Automatic GPS coordinates attached to observations or inject firings |
+| **Position Update** | Periodic lat/lng broadcast to server while sharing is active |
+| **Coverage Gap** | Area of exercise venue without evaluator presence, visible on Director map |
+| **Stale Position** | Participant marker not updated for >5 minutes, visually distinguished |
+| **Movement Path** | Post-exercise polyline showing participant movement over time |
+| **Timeline Scrubber** | Playback control for position history replay at 1x/2x/5x/10x speed |
+
+### Privacy & Consent Framework
+
+| Principle | Implementation |
+|-----------|---------------|
+| Explicit Consent | Modal prompt on first entry to active exercise |
+| Transparency | Persistent header indicator when sharing |
+| User Control | Stop button always accessible; auto-stop on clock stop |
+| Purpose Limitation | Situational awareness only, not surveillance |
+| Data Minimization | 30-60 second update intervals |
+| Access Control | Director and Safety Controller only |
+
+### Dependencies
+
+- **Phase D (Exercise Conduct):** Exercise clock state for auto-start/stop
+- **Phase H (Connectivity):** SignalR for real-time position broadcasting
+- **Enhanced Observations (9.2):** Location stamp integration
+- **Leaflet.js + OpenStreetMap:** Map rendering (new dependency)
+
+---
+
 # Appendix: Feature Summary by Phase
 
 ## MVP Phase (19 features)
@@ -966,6 +1112,29 @@ Exercise conduct requires long, uninterrupted sessions. Users lose work when ses
 | Metrics | Not Started |
 | Review Mode | Not Started |
 | Reports | Planned |
+
+## Field Operations Phase (3 features, 16 stories)
+
+| Feature | Stories | Priority | Status |
+|---------|---------|----------|--------|
+| Photo Capture & Attachment | 6 | P0 (first to implement) | Not Started |
+| Enhanced Field Observations | 5 | P0 | Not Started |
+| Location Tracking | 5 | P1-P2 | Not Started |
+
+### Priority Distribution
+
+| Priority | Stories | Description |
+|----------|---------|-------------|
+| P0 | 7 | Photo S01-S03, S06; Enhanced Obs S01, S03 |
+| P1 | 5 | Photo S04; Enhanced Obs S02, S04, S05; Location S01, S02 |
+| P2 | 3 | Photo S05; Location S03, S04 |
+| P3 | 1 | Location S05 |
+
+### Implementation Order
+
+1. **Photo Capture & Attachment** — Independent of other field operations features, highest SME demand
+2. **Enhanced Field Observations** — Builds on existing Phase E, integrates with Photo Capture
+3. **Location Tracking** — Most complex, benefits from patterns established in features 1 and 2
 
 ---
 

@@ -46,6 +46,7 @@ Cadence focuses specifically on the **conduct phase** of HSEEP exercises—the o
 6. [Reporting & Analysis](#6-reporting--analysis)
 7. [Data Exchange](#7-data-exchange)
 8. [Platform Features](#8-platform-features)
+9. [Field Operations](#9-field-operations)
 
 ---
 
@@ -842,6 +843,94 @@ Users need to know when new capabilities become available. Version notifications
 
 ---
 
+# 9. Field Operations
+
+## 9.1 Photo Capture & Evidence
+
+### Capability Overview
+
+Operations-based exercises generate critical moments that words alone cannot capture. Cadence enables Evaluators, Controllers, and Observers to photograph what they see in the field and attach those images directly to observations — building a visual evidence base that transforms After-Action Reviews from reconstructed narratives into documented fact.
+
+Photos are captured through device cameras or gallery selection, automatically compressed for efficient storage, and timestamped with both wall clock and scenario time. A "Quick Photo" action lets field users capture an image immediately and document the observation later — ensuring the moment is never missed even when the exercise is moving fast. All photos queue locally and sync automatically when connectivity is available, supporting field locations with poor or intermittent network access.
+
+### Key Capabilities
+
+- **Camera and gallery capture** using device hardware during active exercises
+- **Quick Photo mode**: Capture first, document later — auto-creates a draft observation
+- **Automatic compression**: Client-side image optimization (1920px max, JPEG 80%) with thumbnail generation
+- **Dual timestamps**: Wall clock and scenario time recorded on every photo
+- **Photo-observation attachment**: Add multiple photos to any observation with preview and navigation
+- **Photo gallery**: Consolidated view of all exercise photos, filterable by participant, time, and rating
+- **Photo annotation**: Non-destructive overlay tools (circles, arrows, text labels) preserving originals
+- **Offline photo queue**: IndexedDB storage with automatic upload on reconnect and progress tracking
+
+### Business Value
+
+Currently only ~5% of exercise observations include photographic evidence. Field teams reconstruct observations from memory and handwritten notes hours after the exercise, losing the visual context that makes AAR findings compelling. Photo capture targets >40% of observations with photo evidence, providing concrete documentation for improvement plans and compliance reporting.
+
+### Related Stories
+*See photo capture stories S01-S06 in `docs/features/field-operations/photo-capture/`*
+
+---
+
+## 9.2 Enhanced Field Observations
+
+### Capability Overview
+
+Field observation capture needs to be fast — under 30 seconds per observation — to keep pace with exercise operations. Cadence provides field-optimized workflows that minimize taps and typing: a quick-add form with smart defaults, voice-to-text input for hands-free dictation, and intelligent inject linking that surfaces recently-fired injects first.
+
+When an Evaluator witnesses a real-world safety concern during exercise play, a safety flag triggers immediate notification to the Exercise Director and Safety Controller — no radio call needed. The Exercise Director receives a real-time observation feed showing all evaluator observations as they happen, with safety concerns pinned prominently at the top.
+
+### Key Capabilities
+
+- **Quick-add observation**: Bottom sheet/modal optimized for 30-second capture with auto-focus and auto-timestamps
+- **Voice-to-text input**: Browser-native speech recognition with real-time transcription, works offline on most devices
+- **Smart inject linking**: Recently-fired injects (last 60 minutes) surfaced first, full MSEL searchable as fallback
+- **Safety flagging**: One-tap flag for real-world safety concerns with immediate SignalR notification to Director
+- **Safety concern lifecycle**: Flag → Acknowledge → Resolve with notes, all tracked for post-exercise review
+- **Director observation feed**: Real-time reverse-chronological stream of all observations with <5 second latency
+- **Feed filtering**: By participant, rating, safety status, photo attachment, linked inject, and time range
+- **Save & New**: Sequential observation entry without returning to list between captures
+
+### Business Value
+
+Evaluator observation rates are expected to increase from 5-10 (reconstructed post-exercise) to 15-25 (captured in real-time). Director visibility drops from 30-60 minute radio check-in delays to under 30 seconds. Safety concerns gain 100% tracking with documented resolution — eliminating the inconsistent radio-based escalation that risks real injuries being lost in exercise noise.
+
+### Related Stories
+*See enhanced observation stories S01-S05 in `docs/features/field-operations/enhanced-observations/`*
+
+---
+
+## 9.3 Location Tracking & Situational Awareness
+
+### Capability Overview
+
+For operations-based exercises spanning large venues — airports, industrial complexes, urban training areas — Exercise Directors need to know where their evaluators are. Cadence provides opt-in GPS tracking that automatically stamps observations and inject firings with location data, shows participant positions on a real-time map, and supports post-exercise position history replay for coverage analysis.
+
+Privacy is foundational: location sharing requires explicit per-exercise consent, displays a persistent indicator when active, and automatically stops when the exercise clock stops. Only Exercise Directors and Safety Controllers can view participant positions. The system provides situational awareness, not surveillance.
+
+### Key Capabilities
+
+- **Opt-in location sharing**: Explicit per-exercise consent with clear explanation of what, who, and when
+- **Persistent sharing indicator**: Always-visible header badge with one-tap stop control
+- **Automatic geo-stamping**: GPS coordinates attached silently to observations and inject firings
+- **Location display**: Pin icon with coordinates on observations, tappable mini-map view
+- **Director location map**: Real-time participant markers with role-based colors and stale-data indicators
+- **Inject location overlay**: Toggle inject firing locations as distinct markers on the Director map
+- **Coverage gap identification**: Director sees which areas lack evaluator presence
+- **Position history replay**: Post-exercise timeline scrubber at 1x/2x/5x/10x with movement paths
+- **Automatic lifecycle**: Sharing starts/stops with exercise clock, resumes on clock resume
+- **Graceful degradation**: Works without GPS — location features are additive, never blocking
+
+### Business Value
+
+Exercise Directors managing distributed field exercises currently rely on 15-30 minute radio check-ins to understand evaluator positions, missing coverage gaps until opportunities for observation have passed. Real-time location awareness enables Directors to redirect evaluators to emerging action, verify coverage of critical objectives, and maintain safety accountability — all without increasing radio traffic.
+
+### Related Stories
+*See location tracking stories S01-S05 in `docs/features/field-operations/location-tracking/`*
+
+---
+
 # Appendix A: Capability Summary
 
 | Category | Capabilities |
@@ -854,6 +943,7 @@ Users need to know when new capabilities become available. Version notifications
 | **Reporting** | Metrics, Review Mode, Reports |
 | **Data Exchange** | Excel Import, Excel Export |
 | **Platform** | Sessions, Keyboard, Auto-Save, Responsive, Versioning |
+| **Field Operations** | Photo Capture, Enhanced Observations, Location Tracking |
 
 ---
 
@@ -891,8 +981,13 @@ For detailed requirements, user stories are organized by feature area in `docs/f
 | Excel Import | `docs/features/excel-import/` |
 | Excel Export | `docs/features/excel-export/` |
 | Cross-Cutting | `docs/features/_cross-cutting/` |
+| Photo Capture | `docs/features/field-operations/photo-capture/` |
+| Enhanced Observations | `docs/features/field-operations/enhanced-observations/` |
+| Location Tracking | `docs/features/field-operations/location-tracking/` |
+| Field Operations (Epic) | `docs/features/field-operations/EPIC-field-operations.md` |
+| Mobile Addendum | `docs/features/field-operations/MOBILE-ADDENDUM.md` |
 
 ---
 
-*Document generated: 2026-02-03*
-*Based on Cadence Master_Features.md v1.0*
+*Document updated: 2026-02-10*
+*Based on Cadence Master_Features.md v1.1*
