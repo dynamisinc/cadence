@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 using Cadence.Core.Data;
 using Cadence.Core.Exceptions;
 using Cadence.Core.Features.Authentication.Models;
+using Cadence.Core.Features.BulkParticipantImport.Models.Entities;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Organizations.Models.DTOs;
@@ -166,11 +167,21 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         invite.DeletedAt = DateTime.UtcNow;
         invite.UpdatedAt = DateTime.UtcNow;
 
+        // Cancel any pending exercise assignments linked to this invitation
+        var pendingAssignments = await _context.PendingExerciseAssignments
+            .Where(pa => pa.OrganizationInviteId == invitationId && pa.Status == PendingAssignmentStatus.Pending)
+            .ToListAsync();
+
+        foreach (var assignment in pendingAssignments)
+        {
+            assignment.Status = PendingAssignmentStatus.Cancelled;
+        }
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
-            "Invitation {InviteId} cancelled by {UserId}",
-            invitationId, requestedByUserId);
+            "Invitation {InviteId} cancelled by {UserId} with {PendingCount} pending assignments also cancelled",
+            invitationId, requestedByUserId, pendingAssignments.Count);
     }
 
     public async Task<IEnumerable<InvitationDto>> GetInvitationsAsync(
@@ -310,6 +321,9 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         _logger.LogInformation(
             "Invitation {InviteId} accepted by user {UserId} for organization {OrgId}",
             invite.Id, userId, invite.OrganizationId);
+
+        // Activate any pending exercise assignments linked to this invitation
+        await ActivatePendingExerciseAssignmentsAsync(invite.Id, userId, user);
     }
 
     // =========================================================================
@@ -317,8 +331,113 @@ public class OrganizationInvitationService : IOrganizationInvitationService
     // =========================================================================
 
     /// <summary>
+    /// Activates pending exercise assignments when an org invitation is accepted.
+    /// Creates ExerciseParticipant records for each pending assignment.
+    /// </summary>
+    private async Task ActivatePendingExerciseAssignmentsAsync(Guid inviteId, string userId, ApplicationUser? user)
+    {
+        var pendingAssignments = await _context.PendingExerciseAssignments
+            .Include(pa => pa.Exercise)
+            .Where(pa => pa.OrganizationInviteId == inviteId && pa.Status == PendingAssignmentStatus.Pending)
+            .ToListAsync();
+
+        if (pendingAssignments.Count == 0) return;
+
+        foreach (var assignment in pendingAssignments)
+        {
+            try
+            {
+                // Validate exercise is still in Draft or Active status
+                if (assignment.Exercise.Status != ExerciseStatus.Draft &&
+                    assignment.Exercise.Status != ExerciseStatus.Active)
+                {
+                    assignment.Status = PendingAssignmentStatus.Cancelled;
+                    _logger.LogWarning(
+                        "Pending assignment {AssignmentId} cancelled: exercise {ExerciseId} is in {Status} status",
+                        assignment.Id, assignment.ExerciseId, assignment.Exercise.Status);
+                    continue;
+                }
+
+                // Validate Exercise Director role requirement
+                var effectiveRole = assignment.ExerciseRole;
+                if (effectiveRole == ExerciseRole.ExerciseDirector &&
+                    user?.SystemRole == SystemRole.User)
+                {
+                    // Downgrade to Observer and log warning
+                    effectiveRole = ExerciseRole.Observer;
+                    _logger.LogWarning(
+                        "Pending assignment {AssignmentId}: Exercise Director role downgraded to Observer " +
+                        "because user {UserId} has User system role (requires Admin or Manager)",
+                        assignment.Id, userId);
+                }
+
+                // Check if participant already exists (e.g., added manually between import and acceptance)
+                var existingParticipant = await _context.ExerciseParticipants
+                    .IgnoreQueryFilters()
+                    .FirstOrDefaultAsync(ep =>
+                        ep.ExerciseId == assignment.ExerciseId &&
+                        ep.UserId == userId);
+
+                if (existingParticipant != null)
+                {
+                    if (existingParticipant.IsDeleted)
+                    {
+                        // Reactivate soft-deleted participant
+                        existingParticipant.IsDeleted = false;
+                        existingParticipant.DeletedAt = null;
+                        existingParticipant.DeletedBy = null;
+                        existingParticipant.Role = effectiveRole;
+                        existingParticipant.AssignedAt = DateTime.UtcNow;
+                    }
+                    // else: already assigned, skip
+                }
+                else
+                {
+                    // Create new exercise participant
+                    var participant = new ExerciseParticipant
+                    {
+                        Id = Guid.NewGuid(),
+                        ExerciseId = assignment.ExerciseId,
+                        UserId = userId,
+                        Role = effectiveRole,
+                        AssignedAt = DateTime.UtcNow,
+                        AssignedById = assignment.CreatedBy
+                    };
+                    _context.ExerciseParticipants.Add(participant);
+                }
+
+                assignment.Status = PendingAssignmentStatus.Activated;
+
+                _logger.LogInformation(
+                    "Pending assignment {AssignmentId} activated: user {UserId} assigned as {Role} in exercise {ExerciseId}",
+                    assignment.Id, userId, effectiveRole, assignment.ExerciseId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex,
+                    "Failed to activate pending assignment {AssignmentId} for user {UserId}",
+                    assignment.Id, userId);
+                // Don't fail the entire invitation acceptance for a failed assignment
+            }
+        }
+
+        // Save all assignment activations
+        // This is within the BypassOrgValidation context from the caller
+        _context.BypassOrgValidation = true;
+        try
+        {
+            await _context.SaveChangesAsync();
+        }
+        finally
+        {
+            _context.BypassOrgValidation = false;
+        }
+    }
+
+    /// <summary>
     /// Send invitation email. Logs warnings on failure but doesn't throw.
     /// Returns (sent, errorMessage) so callers can surface the result.
+    /// Automatically includes pending exercise assignments if they exist.
     /// </summary>
     private async Task<(bool Sent, string? Error)> SendInvitationEmailAsync(OrganizationInvite invite, string organizationName, string inviterName)
     {
@@ -326,18 +445,53 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         {
             var inviteUrl = $"{_authOptions.FrontendBaseUrl}/invite/{invite.Code}";
 
+            // Check for pending exercise assignments linked to this invitation
+            var pendingAssignments = await _context.PendingExerciseAssignments
+                .Include(pa => pa.Exercise)
+                .Where(pa => pa.OrganizationInviteId == invite.Id
+                          && pa.Status == PendingAssignmentStatus.Pending
+                          && !pa.Exercise.IsDeleted)
+                .ToListAsync();
+
+            var pendingExercises = pendingAssignments.Select(pa => new PendingExerciseInfo
+            {
+                ExerciseName = pa.Exercise.Name,
+                ExerciseRole = pa.ExerciseRole.ToString(),
+                ExerciseType = pa.Exercise.ExerciseType.ToString(),
+                ScheduledDate = pa.Exercise.ScheduledDate
+            }).ToList();
+
+            // Pre-render exercise lists for email template
+            var exercisesHtml = string.Join("", pendingExercises.Select(ex =>
+                $@"<div style=""margin: 12px 0; padding: 12px; background-color: #ffffff; border-radius: 4px;"">
+    <strong>{ex.ExerciseName}</strong> ({ex.ExerciseType})<br/>
+    <span style=""color: #666666;"">Your Role:</span> <strong>{ex.ExerciseRole}</strong><br/>
+    <span style=""color: #666666;"">Date:</span> {ex.ScheduledDate:MMMM d, yyyy}
+  </div>"));
+
+            var exercisesText = string.Join("\n", pendingExercises.Select(ex =>
+                $"- {ex.ExerciseName} ({ex.ExerciseType})\n  Your Role: {ex.ExerciseRole}\n  Date: {ex.ScheduledDate:MMMM d, yyyy}\n"));
+
             var model = new OrganizationInviteEmailModel
             {
                 OrganizationName = organizationName,
                 InviterName = inviterName,
                 InviteUrl = inviteUrl,
                 ExpiresAt = invite.ExpiresAt,
-                Role = invite.Role.ToString()
+                Role = invite.Role.ToString(),
+                PendingExercises = pendingExercises,
+                PendingExercisesHtml = exercisesHtml,
+                PendingExercisesText = exercisesText
             };
 
             var recipient = new EmailRecipient(invite.Email ?? string.Empty);
 
-            var result = await _emailService.SendTemplatedAsync("OrganizationInvite", model, recipient);
+            // Use exercise-aware template if there are pending assignments
+            var templateName = pendingAssignments.Any()
+                ? "OrganizationInviteWithExercises"
+                : "OrganizationInvite";
+
+            var result = await _emailService.SendTemplatedAsync(templateName, model, recipient);
 
             if (result.Status == EmailSendStatus.Failed)
             {
@@ -349,8 +503,8 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             }
 
             _logger.LogInformation(
-                "Invitation email sent to {Email} for organization {OrgName}. MessageId: {MessageId}",
-                invite.Email, organizationName, result.MessageId);
+                "Invitation email sent to {Email} for organization {OrgName} with {ExerciseCount} pending exercise(s). MessageId: {MessageId}",
+                invite.Email, organizationName, pendingAssignments.Count, result.MessageId);
             return (true, null);
         }
         catch (Exception ex)

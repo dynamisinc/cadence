@@ -1,5 +1,8 @@
 # Story: S06 - Download Participant Template
 
+**Feature:** bulk-participant-import
+**Status:** 🚧 In Progress
+
 ## User Story
 
 **As an** Exercise Director,
@@ -19,7 +22,9 @@ This story has no dependencies on other bulk import stories and can be developed
 - [ ] **Given** I am on the exercise participants screen, **when** I click "Download Template", **then** I can choose between CSV and XLSX formats
 - [ ] **Given** I select CSV format, **when** the download completes, **then** I receive a file named `participant-template.csv`
 - [ ] **Given** I select XLSX format, **when** the download completes, **then** I receive a file named `participant-template.xlsx`
-- [ ] **Given** I am on the bulk import upload dialog, **when** I see the template link, **then** I can download the template from there as well
+- [x] **Given** I am on the bulk import upload dialog, **when** I see the template link, **then** I can download the template from there as well
+  - Test: `ImportUploadStep.tsx` - Template download links for CSV and XLSX formats
+  - Completed: 2026-02-09
 
 ### Template Content - CSV
 
@@ -108,3 +113,35 @@ NOTES:
 - XLSX template with dropdown validation requires a backend endpoint using EPPlus (already a project dependency for inject import/export)
 - Consider caching the generated XLSX template since it does not change per-request
 - The template download endpoint should not require organization context (generic template)
+
+## Implementation Notes
+
+**Added during development (2026-02-09):**
+
+### Template Download Links
+- Download links integrated into `ImportUploadStep.tsx` component
+- Links displayed below the file upload area with FontAwesome download icon (faFileArrowDown)
+- Service method `bulkImportService.getTemplateUrl(exerciseId, format)` generates download URLs
+- Format parameter accepts 'csv' or 'xlsx'
+
+### Frontend Implementation
+- Links use standard MUI `Link` component with target="_blank" and rel="noopener"
+- Both CSV and XLSX links displayed side-by-side: "Download template: CSV | XLSX"
+- Links positioned in a Stack component with consistent spacing
+
+### Backend Requirements
+- Need to implement `/api/exercises/{exerciseId}/participants/bulk-import/template` endpoint
+- Endpoint should accept query parameter: `?format=csv` or `?format=xlsx`
+- CSV template can be generated as simple text file
+- XLSX template should use EPPlus library with column validation dropdowns
+
+### Template Content (To Be Implemented)
+- Required columns: Email, Exercise Role
+- Optional columns: Display Name, Organization Role
+- Exercise Role dropdown validation for XLSX: ExerciseDirector, Controller, Evaluator, Observer
+- Organization Role dropdown validation for XLSX: OrgAdmin, OrgManager, OrgUser
+- Instructions sheet in XLSX with column descriptions and import rules
+
+## Test Coverage
+- Frontend: `src/frontend/src/features/exercises/components/bulk-import/ImportUploadStep.tsx`
+- Backend: Needs implementation for template generation endpoints

@@ -47,6 +47,33 @@ public class OrganizationInviteEmailModel
     public string InviteUrl { get; set; } = string.Empty;
     public DateTime ExpiresAt { get; set; }
     public string Role { get; set; } = string.Empty;
+
+    /// <summary>
+    /// List of pending exercise assignments associated with this invitation.
+    /// If populated, the email template should show exercise details.
+    /// </summary>
+    public List<PendingExerciseInfo> PendingExercises { get; set; } = new();
+
+    /// <summary>
+    /// Pre-rendered HTML for pending exercises list (for template).
+    /// </summary>
+    public string PendingExercisesHtml { get; set; } = string.Empty;
+
+    /// <summary>
+    /// Pre-rendered plain text for pending exercises list (for template).
+    /// </summary>
+    public string PendingExercisesText { get; set; } = string.Empty;
+}
+
+/// <summary>
+/// Information about a pending exercise assignment for invitation emails.
+/// </summary>
+public class PendingExerciseInfo
+{
+    public string ExerciseName { get; set; } = string.Empty;
+    public string ExerciseRole { get; set; } = string.Empty;
+    public string ExerciseType { get; set; } = string.Empty;
+    public DateOnly ScheduledDate { get; set; }
 }
 
 /// <summary>

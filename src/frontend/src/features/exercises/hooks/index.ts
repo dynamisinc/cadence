@@ -26,3 +26,4 @@ export {
   usePublishValidation,
   approvalKeys,
 } from './useApprovalSettings'
+export { usePendingAssignments } from './usePendingAssignments'

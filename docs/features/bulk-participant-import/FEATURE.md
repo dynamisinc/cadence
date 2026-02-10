@@ -1,7 +1,7 @@
 # Feature: Bulk Participant Import
 
 **Phase:** Standard
-**Status:** Not Started
+**Status:** 🚧 In Progress
 
 ## Overview
 
@@ -15,12 +15,12 @@ Full-Scale Exercises (FSE) and multi-agency Functional Exercises (FE) often invo
 
 | Story | Title | Priority | Status |
 |-------|-------|----------|--------|
-| [S01](./S01-upload-participant-file.md) | Upload Participant File | P1 | 📋 Ready |
+| [S01](./S01-upload-participant-file.md) | Upload Participant File | P1 | 🚧 In Progress |
 | [S02](./S02-preview-validate-import.md) | Preview and Validate Import | P1 | 📋 Ready |
 | [S03](./S03-process-existing-members.md) | Process Existing Organization Members | P1 | 📋 Ready |
 | [S04](./S04-invite-non-members.md) | Invite Non-Members via Bulk Upload | P1 | 📋 Ready |
-| [S05](./S05-view-upload-results.md) | View Upload Results and Status | P2 | 📋 Ready |
-| [S06](./S06-download-participant-template.md) | Download Participant Template | P2 | 📋 Ready |
+| [S05](./S05-view-upload-results.md) | View Upload Results and Status | P2 | 🚧 In Progress |
+| [S06](./S06-download-participant-template.md) | Download Participant Template | P2 | 🚧 In Progress |
 
 ## User Personas
 
@@ -64,3 +64,65 @@ Full-Scale Exercises (FSE) and multi-agency Functional Exercises (FE) often invo
 - The existing `ExcelImportService` (for injects) provides reusable patterns for file parsing, column detection, and session-based import tracking
 - Organization membership is required before exercise assignment to preserve the security architecture (query filters, JWT claims, `OrganizationValidationInterceptor`)
 - Exercise Directors who are only OrgUsers cannot create org invitations; the system should handle this permission boundary gracefully
+
+## Implementation Progress (2026-02-09)
+
+### Completed Components
+- **BulkImportDialog.tsx** - Main dialog with wizard flow (upload → preview → results)
+- **ImportUploadStep.tsx** - Drag-and-drop file upload with validation
+- **PendingInvitationsList.tsx** - Display pending invitations with resend functionality
+- **usePendingAssignments.ts** - Hook for fetching pending exercise assignments
+- **bulkImportService.ts** - Service methods for template URLs and import operations
+
+### Frontend Features Implemented
+1. **Drag-and-Drop Upload** (S01)
+   - Visual feedback during drag operations
+   - File format validation (.csv, .xlsx)
+   - File size validation (10 MB max)
+   - Template download links in upload dialog
+
+2. **Pending Invitations Display** (S05)
+   - Collapsible panel on participants page
+   - Status indicators (Pending, Accepted, Expired)
+   - Relative time display for expiration
+   - Resend invitation functionality
+   - Integration with bulk import completion
+
+3. **Template Download Links** (S06)
+   - CSV and XLSX format links
+   - Integrated into upload dialog
+   - Service method for URL generation
+
+### Backend Work Required
+1. **File Parsing and Validation** (S01, S02)
+   - Endpoint: `POST /api/exercises/{id}/participants/bulk-import/upload`
+   - Parse CSV/XLSX files
+   - Column detection and synonym mapping
+   - Row-level validation
+   - Return preview data with classifications
+
+2. **Import Processing** (S03, S04)
+   - Endpoint: `POST /api/exercises/{id}/participants/bulk-import/confirm`
+   - Process "Assign" rows (existing org members)
+   - Process "Update" rows (existing participants)
+   - Create organization invitations for "Invite" rows
+   - Create pending exercise assignments linked to invitations
+   - Return results summary
+
+3. **Pending Assignments** (S05)
+   - Endpoint: `GET /api/exercises/{id}/participants/pending-assignments`
+   - Return pending exercise assignments with invitation status
+   - Endpoint: `POST /api/invitations/{id}/resend`
+   - Resend invitation email
+
+4. **Template Generation** (S06)
+   - Endpoint: `GET /api/exercises/{id}/participants/bulk-import/template?format={csv|xlsx}`
+   - Generate CSV template as text file
+   - Generate XLSX template with EPPlus (column validation dropdowns)
+
+### Current Branch
+- Branch: `feature/bulk-participants`
+- Recent commits:
+  - 22b5531: Add pending invitations section
+  - 6eb6d16: Add drag-and-drop file upload
+  - 0227521: Add implementation prompt

@@ -78,7 +78,8 @@
       "Bash(az resource list:*)",
       "Bash(az webapp log config:*)",
       "Bash(wc:*)",
-      "Bash(tail:*)"
+      "Bash(tail:*)",
+      "Bash(gh pr comment:*)"
     ],
     "deny": [],
     "ask": [],

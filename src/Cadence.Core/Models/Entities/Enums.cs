@@ -537,6 +537,65 @@ public class ApprovalRolesJsonConverter : System.Text.Json.Serialization.JsonCon
 }
 
 // =============================================================================
+// Bulk Participant Import Enums
+// =============================================================================
+
+/// <summary>
+/// Classification of a participant row during bulk import processing.
+/// Determines what action will be taken for each row.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ParticipantClassification
+{
+    /// <summary>Existing org member not yet in exercise - will be assigned immediately.</summary>
+    Assign = 0,
+
+    /// <summary>Already assigned to exercise - role will be updated or no change.</summary>
+    Update = 1,
+
+    /// <summary>Not an org member - will receive org invitation with pending exercise assignment.</summary>
+    Invite = 2,
+
+    /// <summary>Invalid data - cannot be processed.</summary>
+    Error = 3
+}
+
+/// <summary>
+/// Status of a pending exercise assignment that awaits org invitation acceptance.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum PendingAssignmentStatus
+{
+    /// <summary>Awaiting org invitation acceptance.</summary>
+    Pending = 0,
+
+    /// <summary>Invitation accepted, exercise assignment created.</summary>
+    Activated = 1,
+
+    /// <summary>Invitation expired without acceptance.</summary>
+    Expired = 2,
+
+    /// <summary>Invitation or assignment was cancelled.</summary>
+    Cancelled = 3
+}
+
+/// <summary>
+/// Processing status of an individual row in a bulk import operation.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum BulkImportRowStatus
+{
+    /// <summary>Row processed successfully.</summary>
+    Success = 0,
+
+    /// <summary>Row skipped (e.g., update with no change).</summary>
+    Skipped = 1,
+
+    /// <summary>Row processing failed.</summary>
+    Failed = 2
+}
+
+// =============================================================================
 // User Preferences Enums
 // =============================================================================
 
