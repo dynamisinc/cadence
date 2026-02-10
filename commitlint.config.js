@@ -41,6 +41,7 @@ module.exports = {
         'bulk-participant-import',
         'feature-flags',
         'system-settings',
+        'hseep-roles',
         // Infrastructure
         'agent',
         'migrations',
