@@ -52,6 +52,7 @@ module.exports = {
         'pwa',
         'telemetry',
         'database',
+        'logging',
       ],
     ],
     'scope-empty': [1, 'never'],
