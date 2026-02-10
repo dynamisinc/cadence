@@ -2,6 +2,7 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.BulkParticipantImport.Models.DTOs;
 using Cadence.Core.Features.BulkParticipantImport.Models.Entities;
 using Cadence.Core.Features.BulkParticipantImport.Services;
+using Cadence.Core.Features.Organizations.Models.DTOs;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -23,6 +24,7 @@ public class BulkParticipantImportServiceTests : IDisposable
     private readonly Mock<IParticipantFileParser> _mockParser;
     private readonly Mock<IParticipantClassificationService> _mockClassificationService;
     private readonly Mock<IMembershipService> _mockMembershipService;
+    private readonly Mock<IOrganizationInvitationService> _mockInvitationService;
     private readonly Mock<ICurrentOrganizationContext> _mockOrgContext;
     private readonly Mock<ILogger<BulkParticipantImportService>> _mockLogger;
     private readonly BulkParticipantImportService _sut;
@@ -37,6 +39,7 @@ public class BulkParticipantImportServiceTests : IDisposable
         _mockParser = new Mock<IParticipantFileParser>();
         _mockClassificationService = new Mock<IParticipantClassificationService>();
         _mockMembershipService = new Mock<IMembershipService>();
+        _mockInvitationService = new Mock<IOrganizationInvitationService>();
         _mockOrgContext = new Mock<ICurrentOrganizationContext>();
         _mockLogger = new Mock<ILogger<BulkParticipantImportService>>();
 
@@ -49,6 +52,7 @@ public class BulkParticipantImportServiceTests : IDisposable
             _mockParser.Object,
             _mockClassificationService.Object,
             _mockMembershipService.Object,
+            _mockInvitationService.Object,
             _mockOrgContext.Object,
             _mockLogger.Object);
 
@@ -447,6 +451,7 @@ public class BulkParticipantImportServiceTests : IDisposable
     {
         // Arrange
         var sessionId = Guid.NewGuid();
+        var inviteId = Guid.NewGuid();
         var parseResult = new FileParseResult
         {
             SessionId = sessionId,
@@ -478,6 +483,50 @@ public class BulkParticipantImportServiceTests : IDisposable
             .Setup(x => x.ClassifyAsync(_exerciseId, It.IsAny<IReadOnlyList<ParsedParticipantRow>>()))
             .ReturnsAsync(classifiedRows);
 
+        // Mock invitation service to create invite and return DTO
+        _mockInvitationService
+            .Setup(x => x.CreateInvitationAsync(
+                _organizationId,
+                It.Is<CreateInvitationRequest>(r => r.Email == "newuser@example.com" && r.Role == OrgRole.OrgUser),
+                _userId))
+            .ReturnsAsync((Guid orgId, CreateInvitationRequest req, string userId) =>
+            {
+                // Create the invite in the database for the test
+                var invite = new OrganizationInvite
+                {
+                    Id = inviteId,
+                    OrganizationId = orgId,
+                    Email = req.Email,
+                    Code = "TESTCODE",
+                    Role = req.Role,
+                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    CreatedByUserId = userId,
+                    MaxUses = 1,
+                    UseCount = 0
+                };
+                _context.OrganizationInvites.Add(invite);
+                _context.SaveChanges();
+
+                return new InvitationDto(
+                    Id: invite.Id,
+                    Email: invite.Email!,
+                    Code: invite.Code,
+                    Role: invite.Role.ToString(),
+                    Status: "Pending",
+                    CreatedAt: invite.CreatedAt,
+                    ExpiresAt: invite.ExpiresAt,
+                    InvitedByName: "Test User",
+                    InvitedByEmail: "test@example.com",
+                    AcceptedAt: null,
+                    CancelledAt: null,
+                    AcceptedByName: null,
+                    OrganizationName: "Test Organization",
+                    EmailSent: true,
+                    EmailError: null,
+                    AccountExists: false
+                );
+            });
+
         using var stream = new MemoryStream();
         await _sut.UploadAndParseAsync(_exerciseId, stream, "test.csv");
         await _sut.GetPreviewAsync(_exerciseId, sessionId);
@@ -504,6 +553,11 @@ public class BulkParticipantImportServiceTests : IDisposable
         pendingAssignment!.ExerciseId.Should().Be(_exerciseId);
         pendingAssignment.ExerciseRole.Should().Be(ExerciseRole.Evaluator);
         pendingAssignment.Status.Should().Be(PendingAssignmentStatus.Pending);
+
+        // Verify invitation service was called
+        _mockInvitationService.Verify(
+            x => x.CreateInvitationAsync(_organizationId, It.IsAny<CreateInvitationRequest>(), _userId),
+            Times.Once);
     }
 
     [Fact]
@@ -566,6 +620,50 @@ public class BulkParticipantImportServiceTests : IDisposable
         _mockClassificationService
             .Setup(x => x.ClassifyAsync(_exerciseId, It.IsAny<IReadOnlyList<ParsedParticipantRow>>()))
             .ReturnsAsync(classifiedRows);
+
+        // Mock invitation service for the invite row
+        var inviteId = Guid.NewGuid();
+        _mockInvitationService
+            .Setup(x => x.CreateInvitationAsync(
+                _organizationId,
+                It.Is<CreateInvitationRequest>(r => r.Email == "newuser@example.com"),
+                _userId))
+            .ReturnsAsync((Guid orgId, CreateInvitationRequest req, string userId) =>
+            {
+                var invite = new OrganizationInvite
+                {
+                    Id = inviteId,
+                    OrganizationId = orgId,
+                    Email = req.Email,
+                    Code = "TESTCODE",
+                    Role = req.Role,
+                    ExpiresAt = DateTime.UtcNow.AddDays(7),
+                    CreatedByUserId = userId,
+                    MaxUses = 1,
+                    UseCount = 0
+                };
+                _context.OrganizationInvites.Add(invite);
+                _context.SaveChanges();
+
+                return new InvitationDto(
+                    Id: invite.Id,
+                    Email: invite.Email!,
+                    Code: invite.Code,
+                    Role: invite.Role.ToString(),
+                    Status: "Pending",
+                    CreatedAt: invite.CreatedAt,
+                    ExpiresAt: invite.ExpiresAt,
+                    InvitedByName: "Test User",
+                    InvitedByEmail: "test@example.com",
+                    AcceptedAt: null,
+                    CancelledAt: null,
+                    AcceptedByName: null,
+                    OrganizationName: "Test Organization",
+                    EmailSent: true,
+                    EmailError: null,
+                    AccountExists: false
+                );
+            });
 
         using var stream = new MemoryStream();
         await _sut.UploadAndParseAsync(_exerciseId, stream, "test.csv");

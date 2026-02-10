@@ -3,6 +3,7 @@ using System.Text;
 using Cadence.Core.Data;
 using Cadence.Core.Features.BulkParticipantImport.Models.DTOs;
 using Cadence.Core.Features.BulkParticipantImport.Models.Entities;
+using Cadence.Core.Features.Organizations.Models.DTOs;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -22,6 +23,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
     private readonly IParticipantFileParser _parser;
     private readonly IParticipantClassificationService _classificationService;
     private readonly IMembershipService _membershipService;
+    private readonly IOrganizationInvitationService _invitationService;
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<BulkParticipantImportService> _logger;
 
@@ -33,6 +35,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         IParticipantFileParser parser,
         IParticipantClassificationService classificationService,
         IMembershipService membershipService,
+        IOrganizationInvitationService invitationService,
         ICurrentOrganizationContext orgContext,
         ILogger<BulkParticipantImportService> logger)
     {
@@ -40,6 +43,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         _parser = parser;
         _classificationService = classificationService;
         _membershipService = membershipService;
+        _invitationService = invitationService;
         _orgContext = orgContext;
         _logger = logger;
     }
@@ -473,29 +477,33 @@ public class BulkParticipantImportService : IBulkParticipantImportService
 
         if (existingInvite == null)
         {
-            // Create new invitation
-            existingInvite = new OrganizationInvite
-            {
-                Id = Guid.NewGuid(),
-                OrganizationId = organizationId,
-                Email = email,
-                Code = GenerateInviteCode(),
-                Role = orgRole,
-                ExpiresAt = DateTime.UtcNow.AddDays(7),
-                CreatedByUserId = importingUserId,
-                MaxUses = 1,
-                UseCount = 0
-            };
+            // Use OrganizationInvitationService to create invitation (sends email)
+            var request = new CreateInvitationRequest(email, orgRole);
 
-            _context.OrganizationInvites.Add(existingInvite);
-            await _context.SaveChangesAsync();
+            try
+            {
+                var inviteDto = await _invitationService.CreateInvitationAsync(organizationId, request, importingUserId);
+                existingInvite = await _context.OrganizationInvites.FindAsync(inviteDto.Id);
+
+                if (inviteDto.EmailSent == false && !string.IsNullOrEmpty(inviteDto.EmailError))
+                {
+                    _logger.LogWarning(
+                        "Invitation created for {Email} but email failed to send: {Error}",
+                        email, inviteDto.EmailError);
+                }
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to create invitation for {Email} during bulk import", email);
+                throw;
+            }
         }
 
         // Create PendingExerciseAssignment
         var pendingAssignment = new PendingExerciseAssignment
         {
             Id = Guid.NewGuid(),
-            OrganizationInviteId = existingInvite.Id,
+            OrganizationInviteId = existingInvite!.Id,
             ExerciseId = exerciseId,
             ExerciseRole = exerciseRole,
             Status = PendingAssignmentStatus.Pending,
@@ -504,17 +512,6 @@ public class BulkParticipantImportService : IBulkParticipantImportService
 
         _context.PendingExerciseAssignments.Add(pendingAssignment);
         await _context.SaveChangesAsync();
-    }
-
-    private static string GenerateInviteCode()
-    {
-        const string chars = "ABCDEFGHJKMNPQRSTUVWXYZ23456789abcdefghjkmnpqrstuvwxyz";
-        var bytes = new byte[8];
-        System.Security.Cryptography.RandomNumberGenerator.Fill(bytes);
-        var code = new char[8];
-        for (int i = 0; i < 8; i++)
-            code[i] = chars[bytes[i] % chars.Length];
-        return new string(code);
     }
 
     private (byte[] Content, string ContentType, string FileName) GenerateCsvTemplate()
