@@ -437,6 +437,7 @@ public class OrganizationInvitationService : IOrganizationInvitationService
     /// <summary>
     /// Send invitation email. Logs warnings on failure but doesn't throw.
     /// Returns (sent, errorMessage) so callers can surface the result.
+    /// Automatically includes pending exercise assignments if they exist.
     /// </summary>
     private async Task<(bool Sent, string? Error)> SendInvitationEmailAsync(OrganizationInvite invite, string organizationName, string inviterName)
     {
@@ -444,18 +445,53 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         {
             var inviteUrl = $"{_authOptions.FrontendBaseUrl}/invite/{invite.Code}";
 
+            // Check for pending exercise assignments linked to this invitation
+            var pendingAssignments = await _context.PendingExerciseAssignments
+                .Include(pa => pa.Exercise)
+                .Where(pa => pa.OrganizationInviteId == invite.Id
+                          && pa.Status == PendingAssignmentStatus.Pending
+                          && !pa.Exercise.IsDeleted)
+                .ToListAsync();
+
+            var pendingExercises = pendingAssignments.Select(pa => new PendingExerciseInfo
+            {
+                ExerciseName = pa.Exercise.Name,
+                ExerciseRole = pa.ExerciseRole.ToString(),
+                ExerciseType = pa.Exercise.ExerciseType.ToString(),
+                ScheduledDate = pa.Exercise.ScheduledDate
+            }).ToList();
+
+            // Pre-render exercise lists for email template
+            var exercisesHtml = string.Join("", pendingExercises.Select(ex =>
+                $@"<div style=""margin: 12px 0; padding: 12px; background-color: #ffffff; border-radius: 4px;"">
+    <strong>{ex.ExerciseName}</strong> ({ex.ExerciseType})<br/>
+    <span style=""color: #666666;"">Your Role:</span> <strong>{ex.ExerciseRole}</strong><br/>
+    <span style=""color: #666666;"">Date:</span> {ex.ScheduledDate:MMMM d, yyyy}
+  </div>"));
+
+            var exercisesText = string.Join("\n", pendingExercises.Select(ex =>
+                $"- {ex.ExerciseName} ({ex.ExerciseType})\n  Your Role: {ex.ExerciseRole}\n  Date: {ex.ScheduledDate:MMMM d, yyyy}\n"));
+
             var model = new OrganizationInviteEmailModel
             {
                 OrganizationName = organizationName,
                 InviterName = inviterName,
                 InviteUrl = inviteUrl,
                 ExpiresAt = invite.ExpiresAt,
-                Role = invite.Role.ToString()
+                Role = invite.Role.ToString(),
+                PendingExercises = pendingExercises,
+                PendingExercisesHtml = exercisesHtml,
+                PendingExercisesText = exercisesText
             };
 
             var recipient = new EmailRecipient(invite.Email ?? string.Empty);
 
-            var result = await _emailService.SendTemplatedAsync("OrganizationInvite", model, recipient);
+            // Use exercise-aware template if there are pending assignments
+            var templateName = pendingAssignments.Any()
+                ? "OrganizationInviteWithExercises"
+                : "OrganizationInvite";
+
+            var result = await _emailService.SendTemplatedAsync(templateName, model, recipient);
 
             if (result.Status == EmailSendStatus.Failed)
             {
@@ -467,8 +503,8 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             }
 
             _logger.LogInformation(
-                "Invitation email sent to {Email} for organization {OrgName}. MessageId: {MessageId}",
-                invite.Email, organizationName, result.MessageId);
+                "Invitation email sent to {Email} for organization {OrgName} with {ExerciseCount} pending exercise(s). MessageId: {MessageId}",
+                invite.Email, organizationName, pendingAssignments.Count, result.MessageId);
             return (true, null);
         }
         catch (Exception ex)
