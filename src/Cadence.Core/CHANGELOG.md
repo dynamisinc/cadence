@@ -2,6 +2,21 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.3.0](https://github.com/dynamisinc/cadence/compare/api-v3.2.0...api-v3.3.0) (2026-02-10)
+
+
+### Features
+
+* **bulk-participant-import:** add pending invitations section ([22b5531](https://github.com/dynamisinc/cadence/commit/22b5531eb05444150d12439bfc2837c48188bc5c))
+* **bulk-participant-import:** implement bulk participant import with drag-drop and pending invitations ([653a2bb](https://github.com/dynamisinc/cadence/commit/653a2bb58708b609e748cfce3affd7e066508f0b))
+* **invitation:** add exercise-aware invitation emails ([52a8685](https://github.com/dynamisinc/cadence/commit/52a86859553bda6abd5fa07546876882650f5736))
+
+
+### Bug Fixes
+
+* **backend:** resolve nullable reference warnings in services ([184760a](https://github.com/dynamisinc/cadence/commit/184760a992f8b20b7a85a69166fcf50da6e45f2a))
+* **bulk-participant-import:** integrate email delivery for invitations ([04e5e35](https://github.com/dynamisinc/cadence/commit/04e5e358dff673b2874ae2ecdd0599ced3550a8f))
+
 ## [3.2.0](https://github.com/dynamisinc/cadence/compare/api-v3.1.0...api-v3.2.0) (2026-02-09)
 
 
