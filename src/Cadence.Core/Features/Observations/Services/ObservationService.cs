@@ -2,6 +2,7 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.Notifications.Models.DTOs;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Observations.Models.DTOs;
+using Cadence.Core.Features.Photos.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -17,17 +18,20 @@ public class ObservationService : IObservationService
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
     private readonly INotificationService _notificationService;
+    private readonly IPhotoService _photoService;
     private readonly ILogger<ObservationService> _logger;
 
     public ObservationService(
         AppDbContext context,
         IExerciseHubContext hubContext,
         INotificationService notificationService,
+        IPhotoService photoService,
         ILogger<ObservationService> logger)
     {
         _context = context;
         _hubContext = hubContext;
         _notificationService = notificationService;
+        _photoService = photoService;
         _logger = logger;
     }
 
@@ -39,6 +43,7 @@ public class ObservationService : IObservationService
             .Include(o => o.Inject)
             .Include(o => o.ObservationCapabilities)
                 .ThenInclude(oc => oc.Capability)
+            .Include(o => o.Photos)
             .Where(o => o.ExerciseId == exerciseId)
             .OrderByDescending(o => o.ObservedAt)
             .ToListAsync();
@@ -54,6 +59,7 @@ public class ObservationService : IObservationService
             .Include(o => o.Inject)
             .Include(o => o.ObservationCapabilities)
                 .ThenInclude(oc => oc.Capability)
+            .Include(o => o.Photos)
             .Where(o => o.InjectId == injectId)
             .OrderByDescending(o => o.ObservedAt)
             .ToListAsync();
@@ -69,6 +75,7 @@ public class ObservationService : IObservationService
             .Include(o => o.Inject)
             .Include(o => o.ObservationCapabilities)
                 .ThenInclude(oc => oc.Capability)
+            .Include(o => o.Photos)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         return observation?.ToDto();
@@ -84,9 +91,9 @@ public class ObservationService : IObservationService
             throw new InvalidOperationException($"Exercise {exerciseId} not found");
         }
 
-        if (exercise.Status != ExerciseStatus.Active)
+        if (exercise.Status != ExerciseStatus.Active && exercise.Status != ExerciseStatus.Paused)
         {
-            throw new InvalidOperationException($"Cannot add observations. Exercise is {exercise.Status}. Observations can only be added during an active exercise.");
+            throw new InvalidOperationException($"Cannot add observations. Exercise is {exercise.Status}. Observations can only be added during an active or paused exercise.");
         }
 
         // Validate inject exists if specified
@@ -145,6 +152,9 @@ public class ObservationService : IObservationService
             .Query()
             .Include(oc => oc.Capability)
             .LoadAsync();
+        await _context.Entry(observation)
+            .Collection(o => o.Photos)
+            .LoadAsync();
 
         var dto = observation.ToDto();
 
@@ -199,6 +209,7 @@ public class ObservationService : IObservationService
             .Include(o => o.CreatedByUser)
             .Include(o => o.Inject)
             .Include(o => o.Exercise)
+            .Include(o => o.Photos)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (observation == null)
@@ -206,10 +217,10 @@ public class ObservationService : IObservationService
             return null;
         }
 
-        // Validate exercise is active
-        if (observation.Exercise.Status != ExerciseStatus.Active)
+        // Validate exercise is active or paused
+        if (observation.Exercise.Status != ExerciseStatus.Active && observation.Exercise.Status != ExerciseStatus.Paused)
         {
-            throw new InvalidOperationException($"Cannot update observations. Exercise is {observation.Exercise.Status}. Observations can only be modified during an active exercise.");
+            throw new InvalidOperationException($"Cannot update observations. Exercise is {observation.Exercise.Status}. Observations can only be modified during an active or paused exercise.");
         }
 
         // Validate inject exists if specified
@@ -240,6 +251,14 @@ public class ObservationService : IObservationService
         observation.InjectId = request.InjectId;
         observation.ObjectiveId = request.ObjectiveId;
         observation.ModifiedBy = modifiedBy;
+
+        // Promote Draft observation to Complete when content is substantive
+        if (observation.Status == ObservationStatus.Draft &&
+            !string.IsNullOrWhiteSpace(request.Content) &&
+            request.Content != "Photo captured — add details")
+        {
+            observation.Status = ObservationStatus.Complete;
+        }
 
         if (request.ObservedAt.HasValue)
         {
@@ -284,6 +303,11 @@ public class ObservationService : IObservationService
             .Include(oc => oc.Capability)
             .LoadAsync();
 
+        // Reload photos
+        await _context.Entry(observation)
+            .Collection(o => o.Photos)
+            .LoadAsync();
+
         var dto = observation.ToDto();
 
         // Broadcast to all connected clients
@@ -304,7 +328,16 @@ public class ObservationService : IObservationService
 
         var exerciseId = observation.ExerciseId;
 
-        // Soft delete
+        // Cascade soft-delete linked photos first (while they're still queryable)
+        var photosDeleted = await _photoService.SoftDeletePhotosForObservationAsync(id, deletedBy);
+        if (photosDeleted > 0)
+        {
+            _logger.LogInformation(
+                "Cascade soft-deleted {PhotoCount} photos for observation {ObservationId}",
+                photosDeleted, id);
+        }
+
+        // Soft delete the observation
         observation.IsDeleted = true;
         observation.DeletedAt = DateTime.UtcNow;
         observation.DeletedBy = deletedBy;

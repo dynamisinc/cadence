@@ -7,6 +7,8 @@
 
 import { ObservationRating } from '../../../types'
 
+export type ObservationStatus = 'Draft' | 'Complete'
+
 /**
  * Capability tag DTO - Lightweight capability info for observation display
  */
@@ -14,6 +16,16 @@ export interface CapabilityTagDto {
   id: string
   name: string
   category: string | null
+}
+
+/**
+ * Photo tag DTO - Lightweight photo info for observation display
+ */
+export interface PhotoTagDto {
+  id: string
+  thumbnailUri: string
+  capturedAt: string
+  displayOrder: number
 }
 
 /**
@@ -29,6 +41,8 @@ export interface ObservationDto {
   recommendation: string | null
   observedAt: string // DateTime as ISO string
   location: string | null
+  status: ObservationStatus
+  photos: PhotoTagDto[]
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
   createdBy: string

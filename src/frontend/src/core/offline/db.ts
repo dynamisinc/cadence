@@ -101,6 +101,10 @@ export type PendingActionType =
   | 'CREATE_OBSERVATION'
   | 'UPDATE_OBSERVATION'
   | 'DELETE_OBSERVATION'
+  | 'UPLOAD_PHOTO'
+  | 'QUICK_PHOTO'
+  | 'UPDATE_PHOTO'
+  | 'DELETE_PHOTO'
 
 /** Status of a pending action */
 export type PendingActionStatus = 'pending' | 'syncing' | 'failed'

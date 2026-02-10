@@ -3,6 +3,7 @@ using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Observations.Models.DTOs;
+using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Hubs;
 using Microsoft.AspNetCore.SignalR;
 
@@ -301,5 +302,41 @@ public class ExerciseHubContext : IExerciseHubContext
         _logger.LogDebug(
             "Broadcast EegEntryDeleted for entry {EntryId} to exercise {ExerciseId}",
             entryId, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyPhotoAdded(Guid exerciseId, PhotoDto photo)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("PhotoAdded", photo);
+
+        _logger.LogDebug(
+            "Broadcast PhotoAdded for photo {PhotoId} to exercise {ExerciseId}",
+            photo.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyPhotoUpdated(Guid exerciseId, PhotoDto photo)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("PhotoUpdated", photo);
+
+        _logger.LogDebug(
+            "Broadcast PhotoUpdated for photo {PhotoId} to exercise {ExerciseId}",
+            photo.Id, exerciseId);
+    }
+
+    /// <inheritdoc />
+    public async Task NotifyPhotoDeleted(Guid exerciseId, Guid photoId)
+    {
+        await _hubContext.Clients
+            .Group(GetGroupName(exerciseId))
+            .SendAsync("PhotoDeleted", photoId);
+
+        _logger.LogDebug(
+            "Broadcast PhotoDeleted for photo {PhotoId} to exercise {ExerciseId}",
+            photoId, exerciseId);
     }
 }

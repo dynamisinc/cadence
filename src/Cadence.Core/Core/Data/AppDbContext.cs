@@ -128,6 +128,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     // System configuration
     public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
 
+    // Photo entities
+    public DbSet<ExercisePhoto> ExercisePhotos => Set<ExercisePhoto>();
+
     // Bulk Participant Import entities
     public DbSet<PendingExerciseAssignment> PendingExerciseAssignments => Set<PendingExerciseAssignment>();
     public DbSet<BulkImportRecord> BulkImportRecords => Set<BulkImportRecord>();
@@ -244,6 +247,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigurePendingExerciseAssignment(modelBuilder);
         ConfigureBulkImportRecord(modelBuilder);
         ConfigureBulkImportRowResult(modelBuilder);
+
+        // Photo entities
+        ConfigureExercisePhoto(modelBuilder);
     }
 
     /// <summary>
@@ -874,6 +880,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.Recommendation).HasMaxLength(2000);
             entity.Property(e => e.Location).HasMaxLength(200);
             entity.Property(e => e.Rating).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20).HasDefaultValue(ObservationStatus.Complete);
             entity.Property(e => e.CreatedByUserId).HasMaxLength(450); // Match AspNetUsers.Id length
 
             entity.HasIndex(e => e.ExerciseId);
@@ -1577,6 +1584,43 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .WithMany(r => r.RowResults)
                 .HasForeignKey(e => e.BulkImportRecordId)
                 .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureExercisePhoto(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<ExercisePhoto>(entity =>
+        {
+            entity.Property(e => e.FileName).HasMaxLength(500).IsRequired();
+            entity.Property(e => e.BlobUri).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.ThumbnailUri).HasMaxLength(2000).IsRequired();
+            entity.Property(e => e.CapturedById).HasMaxLength(450).IsRequired();
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20).HasDefaultValue(PhotoStatus.Draft);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => e.ObservationId);
+            entity.HasIndex(e => e.CapturedById);
+            entity.HasIndex(e => new { e.ExerciseId, e.CapturedAt });
+
+            // Relationships
+            entity.HasOne(e => e.Exercise)
+                .WithMany(ex => ex.Photos)
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            entity.HasOne(e => e.Observation)
+                .WithMany(o => o.Photos)
+                .HasForeignKey(e => e.ObservationId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // User who captured the photo - references ApplicationUser (ASP.NET Core Identity)
+            entity.HasOne(e => e.CapturedByUser)
+                .WithMany()
+                .HasForeignKey(e => e.CapturedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
         });
     }
 

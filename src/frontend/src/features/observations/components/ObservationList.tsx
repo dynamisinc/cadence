@@ -26,7 +26,7 @@ import {
 } from '@mui/material'
 import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faTrash, faSpinner, faCamera } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { RatingBadge } from './RatingBadge'
@@ -269,6 +269,17 @@ export const ObservationList = ({
                           <Typography variant="caption" color="text.secondary" fontStyle="italic">
                             General observation
                           </Typography>
+                        )}
+                        {/* Photo indicator */}
+                        {observation.photos?.length > 0 && (
+                          <Tooltip title={`${observation.photos.length} photo${observation.photos.length === 1 ? '' : 's'} attached`}>
+                            <Stack direction="row" spacing={0.5} alignItems="center">
+                              <FontAwesomeIcon icon={faCamera} size="xs" color="#757575" />
+                              <Typography variant="caption" color="text.secondary">
+                                {observation.photos.length}
+                              </Typography>
+                            </Stack>
+                          </Tooltip>
                         )}
                       </Stack>
 

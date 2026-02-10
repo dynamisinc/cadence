@@ -76,6 +76,7 @@ import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { useObjectiveSummaries } from '../../objectives/hooks'
+import { QuickPhotoFab } from '../../photos'
 import type { ObservationDto } from '../../observations/types'
 import type { InjectDto } from '../../injects/types'
 import type { ExerciseClockDto } from '../../exercise-clock/types'
@@ -1112,6 +1113,7 @@ export const ExerciseConductPage = () => {
                 {observationsExpanded && showObservationForm && (
                   <Box sx={{ mb: 2, flexShrink: 0 }}>
                     <ObservationForm
+                      exerciseId={exerciseId!}
                       inject={
                         preSelectedInjectId
                           ? injects.find(i => i.id === preSelectedInjectId)
@@ -1253,6 +1255,9 @@ export const ExerciseConductPage = () => {
           />
         </DialogContent>
       </Dialog>
+
+      {/* Quick Photo FAB */}
+      <QuickPhotoFab exerciseId={exerciseId!} scenarioTime={displayTime} />
     </Box>
   )
 }

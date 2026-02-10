@@ -1,3 +1,4 @@
+using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Models.Entities;
 
 namespace Cadence.Core.Features.Observations.Models.DTOs;
@@ -109,13 +110,15 @@ public record ObservationDto(
     string? Recommendation,
     DateTime ObservedAt,
     string? Location,
+    ObservationStatus Status,
     DateTime CreatedAt,
     DateTime UpdatedAt,
     string? CreatedBy,
     string? CreatedByName,
     string? InjectTitle,
     int? InjectNumber,
-    List<CapabilityTagDto> Capabilities
+    List<CapabilityTagDto> Capabilities,
+    List<PhotoTagDto> Photos
 );
 
 /// <summary>
@@ -142,6 +145,7 @@ public static class ObservationMapper
         entity.Recommendation,
         entity.ObservedAt,
         entity.Location,
+        entity.Status,
         entity.CreatedAt,
         entity.UpdatedAt,
         entity.CreatedBy,
@@ -153,6 +157,15 @@ public static class ObservationMapper
                 oc.Capability.Id,
                 oc.Capability.Name,
                 oc.Capability.Category))
+            .ToList(),
+        entity.Photos
+            .Where(p => !p.IsDeleted)
+            .OrderBy(p => p.DisplayOrder)
+            .Select(p => new PhotoTagDto(
+                p.Id,
+                p.ThumbnailUri,
+                p.CapturedAt,
+                p.DisplayOrder))
             .ToList()
     );
 

@@ -321,4 +321,9 @@ public class Exercise : BaseEntity, IOrganizationScoped
     /// Each target represents a measurable performance threshold for a capability.
     /// </summary>
     public ICollection<CapabilityTarget> CapabilityTargets { get; set; } = new List<CapabilityTarget>();
+
+    /// <summary>
+    /// Photos captured during exercise conduct.
+    /// </summary>
+    public ICollection<ExercisePhoto> Photos { get; set; } = new List<ExercisePhoto>();
 }

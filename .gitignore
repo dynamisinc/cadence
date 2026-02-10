@@ -81,6 +81,7 @@ ScaffoldingReadMe.txt
 local.settings.json
 .python_packages/
 __azurite_*/
+__azurite_db_*
 __blobstorage__/
 __queuestorage__/
 .azure/
@@ -201,6 +202,9 @@ appsettings.Local.json
 
 ## Local tool data
 DataProtectionKeys/
+
+## Local file uploads (development blob storage)
+**/wwwroot/uploads/
 
 ## Temporary files
 *.tmp
