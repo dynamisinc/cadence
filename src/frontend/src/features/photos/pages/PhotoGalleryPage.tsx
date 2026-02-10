@@ -37,6 +37,7 @@ import {
   DialogContent,
   IconButton,
   Pagination,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -48,6 +49,7 @@ import {
   faChevronRight,
   faTimes,
   faTrash,
+  faEye,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -58,6 +60,9 @@ import { CobraTextField, CobraLinkButton, CobraDeleteButton } from '../../../the
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
+import { useObservations } from '../../observations/hooks/useObservations'
+import { ObservationRatingShortLabels } from '../../../types'
+import type { ObservationDto } from '../../observations/types'
 import type { PhotoListQuery } from '../types'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 
@@ -103,6 +108,18 @@ export const PhotoGalleryPage = () => {
 
   // Fetch photos with filters
   const { photos, totalCount, isLoading, error, deletePhoto, isDeleting } = usePhotos(exerciseId!, query)
+
+  // Fetch observations for linked photo details
+  const { observations } = useObservations(exerciseId!)
+
+  // Build lookup map: observationId -> ObservationDto
+  const observationMap = useMemo(() => {
+    const map = new Map<string, ObservationDto>()
+    for (const obs of observations) {
+      map.set(obs.id, obs)
+    }
+    return map
+  }, [observations])
 
   // Preview state
   const [previewPhotoId, setPreviewPhotoId] = useState<string | null>(null)
@@ -380,26 +397,34 @@ export const PhotoGalleryPage = () => {
                       </Typography>
                     </Stack>
 
-                    {/* Linked indicator */}
-                    {photo.observationId && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: -24,
-                          right: 8,
-                          bgcolor: 'primary.main',
-                          color: 'white',
-                          borderRadius: '50%',
-                          width: 20,
-                          height: 20,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <FontAwesomeIcon icon={faLink} size="xs" />
-                      </Box>
-                    )}
+                    {/* Linked indicator with observation tooltip */}
+                    {photo.observationId && (() => {
+                      const obs = observationMap.get(photo.observationId!)
+                      const tooltipContent = obs
+                        ? `${obs.rating ? ObservationRatingShortLabels[obs.rating] + ' — ' : ''}${obs.content.length > 80 ? obs.content.slice(0, 80) + '...' : obs.content}`
+                        : 'Linked to observation'
+                      return (
+                        <Tooltip title={tooltipContent} arrow placement="top">
+                          <Box
+                            sx={{
+                              position: 'absolute',
+                              top: -24,
+                              right: 8,
+                              bgcolor: 'primary.main',
+                              color: 'white',
+                              borderRadius: '50%',
+                              width: 20,
+                              height: 20,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faLink} size="xs" />
+                          </Box>
+                        </Tooltip>
+                      )
+                    })()}
                   </Box>
                 </Box>
               ))}
@@ -519,15 +544,64 @@ export const PhotoGalleryPage = () => {
                       Scenario Time: {previewPhoto.scenarioTime}
                     </Typography>
                   )}
-                  {previewPhoto.observationId && (
-                    <Chip
-                      icon={<FontAwesomeIcon icon={faLink} />}
-                      label="Linked to Observation"
-                      size="small"
-                      color="primary"
-                      sx={{ width: 'fit-content' }}
-                    />
-                  )}
+                  {previewPhoto.observationId && (() => {
+                    const obs = observationMap.get(previewPhoto.observationId!)
+                    return (
+                      <Box
+                        sx={{
+                          bgcolor: 'rgba(255, 255, 255, 0.08)',
+                          borderRadius: 1,
+                          p: 1.5,
+                          border: 1,
+                          borderColor: 'rgba(255, 255, 255, 0.15)',
+                        }}
+                      >
+                        <Stack spacing={0.75}>
+                          <Stack direction="row" spacing={1} alignItems="center">
+                            <FontAwesomeIcon icon={faEye} style={{ color: 'white', fontSize: '0.85rem' }} />
+                            <Typography variant="body2" sx={{ color: 'white', fontWeight: 600 }}>
+                              Linked Observation
+                            </Typography>
+                            {obs?.rating && (
+                              <Chip
+                                label={ObservationRatingShortLabels[obs.rating]}
+                                size="small"
+                                color="primary"
+                                sx={{ height: 20, fontSize: '0.7rem' }}
+                              />
+                            )}
+                          </Stack>
+                          {obs ? (
+                            <>
+                              <Typography variant="body2" sx={{ color: 'grey.300', lineHeight: 1.4 }}>
+                                {obs.content.length > 150 ? obs.content.slice(0, 150) + '...' : obs.content}
+                              </Typography>
+                              {obs.createdByName && (
+                                <Typography variant="caption" sx={{ color: 'grey.500' }}>
+                                  By {obs.createdByName}
+                                </Typography>
+                              )}
+                              <CobraLinkButton
+                                size="small"
+                                onClick={() => navigate(`/exercises/${exerciseId}/observations`)}
+                                sx={{ width: 'fit-content', color: 'primary.light', p: 0, minWidth: 'auto' }}
+                              >
+                                View Observations
+                              </CobraLinkButton>
+                            </>
+                          ) : (
+                            <CobraLinkButton
+                              size="small"
+                              onClick={() => navigate(`/exercises/${exerciseId}/observations`)}
+                              sx={{ width: 'fit-content', color: 'primary.light', p: 0, minWidth: 'auto' }}
+                            >
+                              View Observations
+                            </CobraLinkButton>
+                          )}
+                        </Stack>
+                      </Box>
+                    )
+                  })()}
                   {previewPhoto.latitude && previewPhoto.longitude && (
                     <Typography variant="caption" sx={{ color: 'grey.500' }}>
                       Location: {previewPhoto.latitude.toFixed(6)}, {previewPhoto.longitude.toFixed(6)}
