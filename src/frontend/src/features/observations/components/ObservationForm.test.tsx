@@ -4,7 +4,7 @@
  * Tests for the observation form with inject selector dropdown.
  */
 
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi } from 'vitest'
 import { screen, fireEvent, within } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { ObservationForm } from './ObservationForm'
@@ -414,6 +414,7 @@ describe('ObservationForm', () => {
         expect.objectContaining({
           capabilityIds: ['cap-1'],
         }),
+        undefined,
       )
     })
 
@@ -446,6 +447,7 @@ describe('ObservationForm', () => {
         expect.not.objectContaining({
           capabilityIds: expect.anything(),
         }),
+        undefined,
       )
     })
   })

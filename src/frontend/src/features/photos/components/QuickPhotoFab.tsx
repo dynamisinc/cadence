@@ -16,10 +16,10 @@
  * @see docs/features/field-operations/photo-capture/S01-quick-photo-capture.md
  */
 
-import { FC, useState, useCallback } from 'react'
+import { type FC, useState, useCallback } from 'react'
 import { Fab, CircularProgress } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCamera, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faCamera } from '@fortawesome/free-solid-svg-icons'
 import { useCamera } from '../hooks/useCamera'
 import { useImageCompression } from '../hooks/useImageCompression'
 import { usePhotos } from '../hooks/usePhotos'

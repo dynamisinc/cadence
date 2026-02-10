@@ -39,7 +39,6 @@ import {
   faHome,
   faTrash,
   faRotateLeft,
-  faImages,
   faChevronLeft,
   faChevronRight,
   faTimes,
@@ -52,7 +51,6 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
-import type { DeletedPhotoDto } from '../types'
 
 export const PhotoTrashPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
@@ -89,12 +87,12 @@ export const PhotoTrashPage = () => {
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'Photo Gallery', path: `/exercises/${exerciseId}/photos` },
-          { label: 'Trash' },
-        ]
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'Photo Gallery', path: `/exercises/${exerciseId}/photos` },
+        { label: 'Trash' },
+      ]
       : undefined,
   )
 

@@ -8,7 +8,7 @@
  * @module features/photos/components
  */
 
-import { type FC, useEffect, useRef } from 'react'
+import { type FC, useEffect, useMemo } from 'react'
 import { Box, IconButton, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
@@ -39,23 +39,18 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
   pendingFiles = [],
   onPendingFilesChange,
 }) => {
-  // Track object URLs for pending file previews so we can revoke them
-  const previewUrlsRef = useRef<Map<File, string>>(new Map())
+  // Compute preview URLs from pending files (safe to use during render)
+  const previewUrls = useMemo(
+    () => pendingFiles.map(file => URL.createObjectURL(file)),
+    [pendingFiles],
+  )
 
-  // Clean up object URLs on unmount
+  // Clean up object URLs when pending files change or on unmount
   useEffect(() => {
     return () => {
-      previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
-      previewUrlsRef.current.clear()
+      previewUrls.forEach(url => URL.revokeObjectURL(url))
     }
-  }, [])
-
-  const getPreviewUrl = (file: File): string => {
-    if (!previewUrlsRef.current.has(file)) {
-      previewUrlsRef.current.set(file, URL.createObjectURL(file))
-    }
-    return previewUrlsRef.current.get(file)!
-  }
+  }, [previewUrls])
 
   // Stage file locally - parent handles upload on submit
   const handleFileSelected = (file: File) => {
@@ -63,12 +58,6 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
   }
 
   const handleRemovePendingFile = (index: number) => {
-    const file = pendingFiles[index]
-    const url = previewUrlsRef.current.get(file)
-    if (url) {
-      URL.revokeObjectURL(url)
-      previewUrlsRef.current.delete(file)
-    }
     onPendingFilesChange?.(pendingFiles.filter((_, i) => i !== index))
   }
 
@@ -99,7 +88,7 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
         {/* Existing Photo Thumbnails (already saved) */}
         {hasExistingPhotos && photos
           .sort((a, b) => a.displayOrder - b.displayOrder)
-          .map((photo) => (
+          .map(photo => (
             <Box
               key={photo.id}
               component="img"
@@ -125,7 +114,7 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
           >
             <Box
               component="img"
-              src={getPreviewUrl(file)}
+              src={previewUrls[index]}
               alt={file.name}
               sx={{
                 height: 60,

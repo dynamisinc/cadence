@@ -6,14 +6,13 @@
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { QuickPhotoFab } from './QuickPhotoFab'
 import { ExerciseStatus } from '@/types'
 
 // Mock the photo hooks
 vi.mock('../hooks/useCamera', () => ({
-  useCamera: vi.fn((onFileSelected) => ({
+  useCamera: vi.fn(_onFileSelected => ({
     fileInputRef: { current: null },
     isCapturing: false,
     openCamera: vi.fn(),

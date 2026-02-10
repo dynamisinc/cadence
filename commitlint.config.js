@@ -44,6 +44,7 @@ module.exports = {
         'hseep-roles',
         'field-operations',
         'photo-capture',
+        'photos',
         // Infrastructure
         'agent',
         'migrations',

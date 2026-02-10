@@ -28,7 +28,7 @@ interface PhotoCaptureProps {
 }
 
 export const PhotoCapture = ({
-  exerciseId,
+  exerciseId: _exerciseId,
   onPhotoCaptured,
   scenarioTime = null,
   isUploading = false,

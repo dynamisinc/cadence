@@ -64,11 +64,11 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
   // Mutation for uploading photos
   const uploadMutation = useMutation({
     mutationFn: (formData: FormData) => photoService.uploadPhoto(exerciseId, formData),
-    onSuccess: (newPhoto) => {
+    onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
       toast.success('Photo uploaded')
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err instanceof Error ? err.message : 'Failed to upload photo')
     },
   })
@@ -76,13 +76,13 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
   // Mutation for quick photo (upload + auto-create observation)
   const quickPhotoMutation = useMutation({
     mutationFn: (formData: FormData) => photoService.quickPhoto(exerciseId, formData),
-    onSuccess: (result) => {
+    onSuccess: () => {
       // Invalidate both photos and observations queries
       queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
       queryClient.invalidateQueries({ queryKey: ['observations', 'exercise', exerciseId] })
       toast.success('Quick photo captured')
     },
-    onError: (err) => {
+    onError: err => {
       toast.error(err instanceof Error ? err.message : 'Failed to save quick photo')
     },
   })
@@ -90,7 +90,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
   // Mutation for deleting photos with optimistic updates
   const deleteMutation = useMutation({
     mutationFn: (photoId: string) => photoService.deletePhoto(exerciseId, photoId),
-    onMutate: async (deletedId) => {
+    onMutate: async deletedId => {
       // Cancel pending queries to avoid race conditions
       await queryClient.cancelQueries({ queryKey: [...photosQueryKey(exerciseId), query] })
 
@@ -102,7 +102,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       // Apply optimistic update - immediately remove from list
       queryClient.setQueryData<PhotoListResponse>(
         [...photosQueryKey(exerciseId), query],
-        (old) => {
+        old => {
           if (!old) return old
           return {
             ...old,
@@ -147,7 +147,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       // Apply optimistic update
       queryClient.setQueryData<PhotoListResponse>(
         [...photosQueryKey(exerciseId), query],
-        (old) => {
+        old => {
           if (!old) return old
           return {
             ...old,
@@ -209,7 +209,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     // Store photo blob in IndexedDB (converting to base64 for storage)
     const file = formData.get('photo') as Blob
     const reader = new FileReader()
-    const photoData = await new Promise<string>((resolve) => {
+    const photoData = await new Promise<string>(resolve => {
       reader.onloadend = () => resolve(reader.result as string)
       reader.readAsDataURL(file)
     })
@@ -274,7 +274,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
 
     const file = formData.get('photo') as Blob
     const reader = new FileReader()
-    const photoData = await new Promise<string>((resolve) => {
+    const photoData = await new Promise<string>(resolve => {
       reader.onloadend = () => resolve(reader.result as string)
       reader.readAsDataURL(file)
     })
@@ -346,7 +346,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     // Apply optimistic update (remove from list)
     queryClient.setQueryData<PhotoListResponse>(
       [...photosQueryKey(exerciseId), query],
-      (old) => {
+      old => {
         if (!old) return old
         return {
           ...old,
@@ -404,7 +404,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     // Apply optimistic update
     queryClient.setQueryData<PhotoListResponse>(
       [...photosQueryKey(exerciseId), query],
-      (old) => {
+      old => {
         if (!old) return old
         return {
           ...old,

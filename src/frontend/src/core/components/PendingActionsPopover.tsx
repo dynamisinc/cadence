@@ -76,6 +76,26 @@ const actionConfigs: Record<PendingActionType, ActionConfig> = {
     label: 'Delete Observation',
     color: '#ef4444', // red
   },
+  UPLOAD_PHOTO: {
+    icon: faPlus,
+    label: 'Upload Photo',
+    color: '#22c55e', // green
+  },
+  QUICK_PHOTO: {
+    icon: faPlus,
+    label: 'Quick Photo',
+    color: '#22c55e', // green
+  },
+  UPDATE_PHOTO: {
+    icon: faPen,
+    label: 'Update Photo',
+    color: '#8b5cf6', // purple
+  },
+  DELETE_PHOTO: {
+    icon: faTrash,
+    label: 'Delete Photo',
+    color: '#ef4444', // red
+  },
 }
 
 const getActionDescription = (action: PendingAction): string => {
@@ -91,6 +111,12 @@ const getActionDescription = (action: PendingAction): string => {
       return `"${((payload.content as string) || '').substring(0, 30)}${((payload.content as string) || '').length > 30 ? '...' : ''}"`
     case 'DELETE_OBSERVATION':
       return `Observation ${payload.observationId || 'Unknown'}`
+    case 'UPLOAD_PHOTO':
+    case 'QUICK_PHOTO':
+      return `Photo ${payload.tempId || payload.tempPhotoId || 'pending'}`
+    case 'UPDATE_PHOTO':
+    case 'DELETE_PHOTO':
+      return `Photo ${payload.photoId || 'Unknown'}`
     default:
       return 'Unknown action'
   }

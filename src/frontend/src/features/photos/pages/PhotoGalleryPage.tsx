@@ -20,7 +20,7 @@
  * @module features/photos/pages
  */
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -51,11 +51,8 @@ import {
   faTrash,
   faEye,
 } from '@fortawesome/free-solid-svg-icons'
-import { useQueryClient } from '@tanstack/react-query'
-
 import { useExercise } from '../../exercises/hooks'
-import { usePhotos, photosQueryKey } from '../hooks/usePhotos'
-import { PhotoThumbnail } from '../components/PhotoThumbnail'
+import { usePhotos } from '../hooks/usePhotos'
 import { CobraTextField, CobraLinkButton, CobraDeleteButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
@@ -72,13 +69,11 @@ type LinkedFilterValue = 'all' | 'linked' | 'unlinked'
 export const PhotoGalleryPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
   const theme = useTheme()
 
   // Responsive breakpoints
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'))
   const isTablet = useMediaQuery(theme.breakpoints.between('sm', 'md'))
-  const isDesktop = useMediaQuery(theme.breakpoints.up('md'))
 
   // Determine grid columns based on screen size
   const gridColumns = isMobile ? 2 : isTablet ? 3 : 4
@@ -132,11 +127,11 @@ export const PhotoGalleryPage = () => {
   useBreadcrumbs(
     exercise
       ? [
-          { label: 'Home', path: '/', icon: faHome },
-          { label: 'Exercises', path: '/exercises' },
-          { label: exercise.name, path: `/exercises/${exerciseId}` },
-          { label: 'Photo Gallery' },
-        ]
+        { label: 'Home', path: '/', icon: faHome },
+        { label: 'Exercises', path: '/exercises' },
+        { label: exercise.name, path: `/exercises/${exerciseId}` },
+        { label: 'Photo Gallery' },
+      ]
       : undefined,
   )
 

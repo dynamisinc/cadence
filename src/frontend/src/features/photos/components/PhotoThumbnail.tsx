@@ -8,7 +8,7 @@
  * @module features/photos/components
  */
 
-import { Box, IconButton } from '@mui/material'
+import { Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudArrowUp } from '@fortawesome/free-solid-svg-icons'
 import type { PhotoDto } from '../types'
@@ -58,10 +58,10 @@ export const PhotoThumbnail = ({
         cursor: onClick ? 'pointer' : 'default',
         '&:hover': onClick
           ? {
-              opacity: 0.9,
-              transform: 'scale(1.02)',
-              transition: 'all 0.2s ease-in-out',
-            }
+            opacity: 0.9,
+            transform: 'scale(1.02)',
+            transition: 'all 0.2s ease-in-out',
+          }
           : undefined,
       }}
       onClick={onClick}

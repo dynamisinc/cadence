@@ -66,18 +66,18 @@ interface ObservationFormProps {
 }
 
 export const ObservationForm = ({
-  exerciseId,
+  exerciseId: _exerciseId,
   inject,
   injects = [],
   capabilities = [],
   targetCapabilityIds = [],
   initialValues,
   observation,
-  scenarioTime,
+  scenarioTime: _scenarioTime,
   onSubmit,
   onCancel,
   isSubmitting = false,
-  onPhotoAdded,
+  onPhotoAdded: _onPhotoAdded,
 }: ObservationFormProps) => {
   // Rating starts as null for new observations (requires active selection)
   const [rating, setRating] = useState<ObservationRating | null>(

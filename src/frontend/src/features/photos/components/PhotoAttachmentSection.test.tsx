@@ -5,16 +5,15 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { screen, waitFor } from '@testing-library/react'
+import { screen } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
-import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { PhotoAttachmentSection } from './PhotoAttachmentSection'
 import type { PhotoTagDto } from '../../observations/types'
 
 // Mock the photo hooks
 vi.mock('../hooks/useCamera', () => ({
-  useCamera: vi.fn((onFileSelected) => ({
+  useCamera: vi.fn(onFileSelected => ({
     fileInputRef: { current: null },
     isCapturing: false,
     openCamera: vi.fn(),
@@ -60,7 +59,7 @@ const createQueryClient = () => new QueryClient({
   },
 })
 
-const createWrapper = (queryClient: QueryClient) => {
+const _createWrapper = (queryClient: QueryClient) => {
   return ({ children }: { children: React.ReactNode }) => (
     <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
   )
@@ -86,12 +85,11 @@ describe('PhotoAttachmentSection', () => {
     vi.clearAllMocks()
   })
 
-  it('renders nothing when no observationId is provided', () => {
+  it('renders nothing when onPendingFilesChange is not provided', () => {
     const queryClient = createQueryClient()
     const { container } = render(
       <QueryClientProvider client={queryClient}>
         <PhotoAttachmentSection
-          exerciseId="ex-1"
           photos={mockPhotos}
         />
       </QueryClientProvider>,
@@ -100,19 +98,18 @@ describe('PhotoAttachmentSection', () => {
     expect(container.firstChild).toBeNull()
   })
 
-  it('renders section with Add Photo button when observationId is provided', () => {
+  it('renders section with Add Photo button when onPendingFilesChange is provided', () => {
     const queryClient = createQueryClient()
     render(
       <QueryClientProvider client={queryClient}>
         <PhotoAttachmentSection
-          exerciseId="ex-1"
-          observationId="obs-1"
           photos={[]}
+          onPendingFilesChange={vi.fn()}
         />
       </QueryClientProvider>,
     )
 
-    expect(screen.getByText('Attached Photos')).toBeInTheDocument()
+    expect(screen.getByText('Attach Photos (Optional)')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: /add photo/i })).toBeInTheDocument()
   })
 
@@ -121,9 +118,8 @@ describe('PhotoAttachmentSection', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <PhotoAttachmentSection
-          exerciseId="ex-1"
-          observationId="obs-1"
           photos={mockPhotos}
+          onPendingFilesChange={vi.fn()}
         />
       </QueryClientProvider>,
     )
@@ -134,36 +130,13 @@ describe('PhotoAttachmentSection', () => {
     expect(images[1]).toHaveAttribute('src', 'https://example.com/thumb2.jpg')
   })
 
-  it('allows clicking photo thumbnails', async () => {
-    const user = userEvent.setup()
-    const consoleSpy = vi.spyOn(console, 'log').mockImplementation(() => {})
-    const queryClient = createQueryClient()
-
-    render(
-      <QueryClientProvider client={queryClient}>
-        <PhotoAttachmentSection
-          exerciseId="ex-1"
-          observationId="obs-1"
-          photos={mockPhotos}
-        />
-      </QueryClientProvider>,
-    )
-
-    const firstImage = screen.getAllByRole('img')[0]
-    await user.click(firstImage)
-
-    expect(consoleSpy).toHaveBeenCalledWith('Photo clicked:', 'photo-1')
-    consoleSpy.mockRestore()
-  })
-
   it('shows "Attached Photos" label when photos exist', () => {
     const queryClient = createQueryClient()
     render(
       <QueryClientProvider client={queryClient}>
         <PhotoAttachmentSection
-          exerciseId="ex-1"
-          observationId="obs-1"
           photos={mockPhotos}
+          onPendingFilesChange={vi.fn()}
         />
       </QueryClientProvider>,
     )
@@ -176,9 +149,8 @@ describe('PhotoAttachmentSection', () => {
     render(
       <QueryClientProvider client={queryClient}>
         <PhotoAttachmentSection
-          exerciseId="ex-1"
-          observationId="obs-1"
           photos={mockPhotos}
+          onPendingFilesChange={vi.fn()}
         />
       </QueryClientProvider>,
     )
