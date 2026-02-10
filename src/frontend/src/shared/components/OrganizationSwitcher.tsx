@@ -115,8 +115,8 @@ export const OrganizationSwitcher: FC = () => {
           px: 1,
         }}
       >
-        <FontAwesomeIcon icon={faBuilding} size="sm" />
-        <Typography variant="body2" fontWeight={500} color="inherit">
+        <FontAwesomeIcon icon={faBuilding} size="sm" style={{ color: '#ffffff' }} />
+        <Typography variant="body2" fontWeight={500} sx={{ color: '#ffffff' }}>
           {currentOrg?.name || 'No Organization'}
         </Typography>
       </Box>

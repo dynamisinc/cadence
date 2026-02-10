@@ -29,7 +29,18 @@ public record InvitationDto(
     string? OrganizationName = null,
     bool? EmailSent = null,
     string? EmailError = null,
-    bool AccountExists = false
+    bool AccountExists = false,
+    List<PendingExerciseInfoDto>? PendingExercises = null
+);
+
+/// <summary>
+/// Info about an exercise the invited user will be assigned to upon acceptance.
+/// </summary>
+public record PendingExerciseInfoDto(
+    string ExerciseName,
+    string ExerciseRole,
+    string ExerciseType,
+    DateOnly? ScheduledDate
 );
 
 /// <summary>

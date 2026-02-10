@@ -34,6 +34,8 @@ import {
   faCheckCircle,
   faExclamationTriangle,
   faSpinner,
+  faBuilding,
+  faClipboardList,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import { AuthLayout } from '@/features/auth/components/AuthLayout'
@@ -344,7 +346,7 @@ export const InviteAcceptPage: FC = () => {
       <AuthLayout title="You're Invited!">
         <Stack spacing={3}>
           <Alert severity="info">
-            You've been invited to join an organization.
+            You've been invited to join <strong>{invitation.organizationName || 'an organization'}</strong>.
             {invitation.accountExists
               ? ' Sign in to accept this invitation.'
               : ' Create an account to get started.'}
@@ -352,6 +354,23 @@ export const InviteAcceptPage: FC = () => {
 
           <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Stack spacing={1.5}>
+              {invitation.organizationName && (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <FontAwesomeIcon icon={faBuilding} style={{ color: '#666' }} />
+                    <Box sx={{ flex: 1 }}>
+                      <Typography variant="caption" color="text.secondary">
+                        Organization
+                      </Typography>
+                      <Typography variant="body2" fontWeight={500}>
+                        {invitation.organizationName}
+                      </Typography>
+                    </Box>
+                  </Box>
+                  <Divider />
+                </>
+              )}
+
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                 <FontAwesomeIcon icon={faEnvelope} style={{ color: '#666' }} />
                 <Box sx={{ flex: 1 }}>
@@ -391,6 +410,30 @@ export const InviteAcceptPage: FC = () => {
             </Stack>
           </Paper>
 
+          {invitation.pendingExercises && invitation.pendingExercises.length > 0 && (
+            <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+                <FontAwesomeIcon icon={faClipboardList} style={{ color: '#666' }} />
+                <Typography variant="subtitle2">
+                  Exercise Assignments
+                </Typography>
+              </Box>
+              <Stack spacing={1}>
+                {invitation.pendingExercises.map((ex, idx) => (
+                  <Box key={idx} sx={{ pl: 3.5 }}>
+                    <Typography variant="body2" fontWeight={500}>
+                      {ex.exerciseName}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {ex.exerciseRole} &middot; {ex.exerciseType}
+                      {ex.scheduledDate && ` \u00B7 ${new Date(ex.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+          )}
+
           {invitation.accountExists ? (
             <>
               <CobraPrimaryButton onClick={handleSignIn} fullWidth>
@@ -420,11 +463,28 @@ export const InviteAcceptPage: FC = () => {
     <AuthLayout title="You're Invited!">
       <Stack spacing={3}>
         <Alert severity="success">
-          You've been invited to join an organization
+          You've been invited to join <strong>{invitation.organizationName || 'an organization'}</strong>
         </Alert>
 
         <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
           <Stack spacing={1.5}>
+            {invitation.organizationName && (
+              <>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                  <FontAwesomeIcon icon={faBuilding} style={{ color: '#666' }} />
+                  <Box sx={{ flex: 1 }}>
+                    <Typography variant="caption" color="text.secondary">
+                      Organization
+                    </Typography>
+                    <Typography variant="body2" fontWeight={500}>
+                      {invitation.organizationName}
+                    </Typography>
+                  </Box>
+                </Box>
+                <Divider />
+              </>
+            )}
+
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
               <FontAwesomeIcon icon={faEnvelope} style={{ color: '#666' }} />
               <Box sx={{ flex: 1 }}>
@@ -463,6 +523,30 @@ export const InviteAcceptPage: FC = () => {
             </Box>
           </Stack>
         </Paper>
+
+        {invitation.pendingExercises && invitation.pendingExercises.length > 0 && (
+          <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
+              <FontAwesomeIcon icon={faClipboardList} style={{ color: '#666' }} />
+              <Typography variant="subtitle2">
+                Exercise Assignments
+              </Typography>
+            </Box>
+            <Stack spacing={1}>
+              {invitation.pendingExercises.map((ex, idx) => (
+                <Box key={idx} sx={{ pl: 3.5 }}>
+                  <Typography variant="body2" fontWeight={500}>
+                    {ex.exerciseName}
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary">
+                    {ex.exerciseRole} &middot; {ex.exerciseType}
+                    {ex.scheduledDate && ` \u00B7 ${new Date(ex.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                  </Typography>
+                </Box>
+              ))}
+            </Stack>
+          </Paper>
+        )}
 
         {/* Check email match warning */}
         {user && invitation.email.toLowerCase() !== user.email.toLowerCase() && (
