@@ -5,6 +5,13 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.4.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.3.0...frontend-v2.4.0) (2026-02-10)
+
+
+### Features
+
+* **bulk-participant-import:** implement bulk participant import with drag-drop and pending invitations ([653a2bb](https://github.com/dynamisinc/cadence/commit/653a2bb58708b609e748cfce3affd7e066508f0b))
+
 ## [2.3.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.2.0...frontend-v2.3.0) (2026-02-09)
 
 
