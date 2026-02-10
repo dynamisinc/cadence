@@ -201,12 +201,35 @@ export const ObservationsPage = () => {
     setSearchQuery('')
   }
 
+  // Upload staged photos for an observation
+  const uploadPendingPhotos = async (observationId: string, pendingPhotos: File[]) => {
+    for (const file of pendingPhotos) {
+      try {
+        const { compressed } = await compressImage(file)
+        const formData = new FormData()
+        formData.append('photo', compressed, file.name)
+        formData.append('capturedAt', new Date().toISOString())
+        if (displayTime) formData.append('scenarioTime', displayTime)
+        formData.append('observationId', observationId)
+        await uploadPhoto(formData)
+      } catch (error) {
+        console.error('Failed to upload staged photo:', error)
+      }
+    }
+    // Refresh observations to show attached photos
+    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
+  }
+
   // Handlers
   const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0], pendingPhotos?: File[]) => {
     setIsSubmitting(true)
     try {
       if (editingObservation) {
         await updateObservation(editingObservation.id, data)
+        // Upload any staged photos after the update succeeds
+        if (pendingPhotos?.length && !editingObservation.id.startsWith('temp-')) {
+          await uploadPendingPhotos(editingObservation.id, pendingPhotos)
+        }
         setEditingObservation(null)
       } else {
         const newObservation = await createObservation(data)
@@ -214,21 +237,7 @@ export const ObservationsPage = () => {
 
         // Upload any staged photos after the observation is created
         if (pendingPhotos?.length && newObservation?.id && !newObservation.id.startsWith('temp-')) {
-          for (const file of pendingPhotos) {
-            try {
-              const { compressed } = await compressImage(file)
-              const formData = new FormData()
-              formData.append('photo', compressed, file.name)
-              formData.append('capturedAt', new Date().toISOString())
-              if (displayTime) formData.append('scenarioTime', displayTime)
-              formData.append('observationId', newObservation.id)
-              await uploadPhoto(formData)
-            } catch (error) {
-              console.error('Failed to upload staged photo:', error)
-            }
-          }
-          // Refresh observations to show attached photos
-          queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
+          await uploadPendingPhotos(newObservation.id, pendingPhotos)
         }
       }
     } finally {
@@ -607,14 +616,10 @@ export const ObservationsPage = () => {
                   injectId: editingObservation.injectId ?? undefined,
                   capabilityIds: editingObservation.capabilities.map(c => c.id),
                 }}
-                observation={editingObservation}
+                observation={observations.find(o => o.id === editingObservation.id) ?? editingObservation}
                 onSubmit={handleSubmitObservation}
                 onCancel={handleCancelEdit}
                 isSubmitting={isSubmitting}
-                onPhotoAdded={() => {
-                  // Refresh the observation to show new photo
-                  queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
-                }}
               />
             )}
           </Box>

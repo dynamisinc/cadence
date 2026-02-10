@@ -2,67 +2,47 @@
  * PhotoAttachmentSection Component
  *
  * Horizontal scrolling strip of photo thumbnails for observation forms.
- * Allows adding new photos and displays existing ones.
- * Supports two modes:
- * - Edit mode (has observationId): uploads photos immediately to API
- * - Create/staging mode (no observationId): collects files locally for upload after creation
+ * Allows selecting new photos and displays existing ones.
+ * Always stages files locally - the parent is responsible for uploading on form submit.
  *
  * @module features/photos/components
  */
 
-import { type FC, useState, useEffect, useRef } from 'react'
-import { Box, CircularProgress, IconButton, Typography } from '@mui/material'
+import { type FC, useEffect, useRef } from 'react'
+import { Box, IconButton, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 
 import { CobraSecondaryButton } from '../../../theme/styledComponents'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
 import { useCamera } from '../hooks/useCamera'
-import { useImageCompression } from '../hooks/useImageCompression'
-import { usePhotos } from '../hooks/usePhotos'
 import type { PhotoTagDto } from '../../observations/types'
 
 interface PhotoAttachmentSectionProps {
-  /** The exercise this observation belongs to */
-  exerciseId: string
-  /** The observation ID (when editing an existing observation) */
-  observationId?: string
-  /** Current photos attached to the observation */
+  /** Current photos already saved on the observation */
   photos: PhotoTagDto[]
-  /** Called after a photo is successfully added */
-  onPhotoAdded?: () => void
-  /** Scenario time to stamp the photo with (optional) */
-  scenarioTime?: string | null
-  /** Staged files for creation mode (no observationId yet) */
+  /** Staged files awaiting upload on form submit */
   pendingFiles?: File[]
-  /** Called when staged files change in creation mode */
+  /** Called when staged files change */
   onPendingFilesChange?: (files: File[]) => void
 }
 
 /**
  * Photo attachment section for observation forms
  *
- * Displays a horizontal scrollable row of thumbnails with an "Add Photo" button.
- * In edit mode (observationId present), uploads photos immediately.
- * In create mode (no observationId), stages files locally for later upload.
+ * Displays a horizontal scrollable row of existing thumbnails plus local file previews,
+ * with an "Add Photo" button. All new photos are staged locally and only uploaded
+ * when the parent form is submitted.
  */
 export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
-  exerciseId,
-  observationId,
   photos,
-  onPhotoAdded,
-  scenarioTime,
   pendingFiles = [],
   onPendingFilesChange,
 }) => {
-  const [isUploading, setIsUploading] = useState(false)
-  const { compressImage } = useImageCompression()
-  const { uploadPhoto } = usePhotos(exerciseId)
-
   // Track object URLs for pending file previews so we can revoke them
   const previewUrlsRef = useRef<Map<File, string>>(new Map())
 
-  // Clean up object URLs on unmount or when pendingFiles change
+  // Clean up object URLs on unmount
   useEffect(() => {
     return () => {
       previewUrlsRef.current.forEach(url => URL.revokeObjectURL(url))
@@ -77,33 +57,9 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
     return previewUrlsRef.current.get(file)!
   }
 
-  // Handle file selection - either upload immediately or stage locally
-  const handleFileSelected = async (file: File) => {
-    if (observationId) {
-      // Edit mode: upload immediately
-      try {
-        setIsUploading(true)
-        const { compressed } = await compressImage(file)
-
-        const formData = new FormData()
-        formData.append('photo', compressed, file.name)
-        formData.append('capturedAt', new Date().toISOString())
-        if (scenarioTime) {
-          formData.append('scenarioTime', scenarioTime)
-        }
-        formData.append('observationId', observationId)
-
-        await uploadPhoto(formData)
-        onPhotoAdded?.()
-      } catch (error) {
-        console.error('Failed to upload photo:', error)
-      } finally {
-        setIsUploading(false)
-      }
-    } else {
-      // Create/staging mode: collect file locally
-      onPendingFilesChange?.([...pendingFiles, file])
-    }
+  // Stage file locally - parent handles upload on submit
+  const handleFileSelected = (file: File) => {
+    onPendingFilesChange?.([...pendingFiles, file])
   }
 
   const handleRemovePendingFile = (index: number) => {
@@ -121,17 +77,14 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
   const hasPendingFiles = pendingFiles.length > 0
   const hasExistingPhotos = photos.length > 0
 
-  // Show section if there's an observationId (edit mode) or pending files or we're in create mode with the callback
-  const isCreateMode = !observationId && !!onPendingFilesChange
-
-  if (!observationId && !isCreateMode) {
+  if (!onPendingFilesChange) {
     return null
   }
 
   return (
     <Box sx={{ py: 1 }}>
       <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-        {isCreateMode ? 'Attach Photos (Optional)' : 'Attached Photos'}
+        {hasExistingPhotos ? 'Attached Photos' : 'Attach Photos (Optional)'}
       </Typography>
 
       <Box
@@ -143,7 +96,7 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
           pb: 1,
         }}
       >
-        {/* Existing Photo Thumbnails (edit mode) */}
+        {/* Existing Photo Thumbnails (already saved) */}
         {hasExistingPhotos && photos
           .sort((a, b) => a.displayOrder - b.displayOrder)
           .map((photo) => (
@@ -159,20 +112,12 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
                 borderRadius: 1,
                 border: 1,
                 borderColor: 'divider',
-                cursor: 'pointer',
                 flexShrink: 0,
-                '&:hover': {
-                  opacity: 0.8,
-                },
-              }}
-              onClick={() => {
-                // TODO: Open PhotoPreview in future
-                console.log('Photo clicked:', photo.id)
               }}
             />
           ))}
 
-        {/* Pending File Previews (create mode) */}
+        {/* Pending File Previews (not yet uploaded) */}
         {hasPendingFiles && pendingFiles.map((file, index) => (
           <Box
             key={`pending-${index}`}
@@ -197,12 +142,14 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
               onClick={() => handleRemovePendingFile(index)}
               sx={{
                 position: 'absolute',
-                top: -8,
-                right: -8,
+                top: 2,
+                right: 2,
                 bgcolor: 'error.main',
                 color: 'white',
-                width: 20,
-                height: 20,
+                width: 18,
+                height: 18,
+                minWidth: 0,
+                p: 0,
                 '&:hover': { bgcolor: 'error.dark' },
               }}
             >
@@ -215,21 +162,14 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
         <CobraSecondaryButton
           size="small"
           onClick={openGallery}
-          disabled={isUploading}
-          startIcon={
-            isUploading ? (
-              <CircularProgress size={16} />
-            ) : (
-              <FontAwesomeIcon icon={faPlus} />
-            )
-          }
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
           sx={{
             flexShrink: 0,
             height: 60,
             minWidth: 100,
           }}
         >
-          {isUploading ? 'Uploading...' : 'Add Photo'}
+          Add Photo
         </CobraSecondaryButton>
 
         {/* Hidden file input */}

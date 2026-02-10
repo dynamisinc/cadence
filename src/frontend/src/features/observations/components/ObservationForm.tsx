@@ -161,8 +161,7 @@ export const ObservationForm = ({
       capabilityIds: selectedCapabilityIds.length > 0 ? selectedCapabilityIds : undefined,
     }
 
-    // Pass pending photos for post-creation upload (only in create mode)
-    const photosToUpload = !observation && pendingPhotos.length > 0 ? pendingPhotos : undefined
+    const photosToUpload = pendingPhotos.length > 0 ? pendingPhotos : undefined
     await onSubmit(data, photosToUpload)
   }
 
@@ -240,13 +239,9 @@ export const ObservationForm = ({
 
         {/* Photo Attachments */}
         <PhotoAttachmentSection
-          exerciseId={exerciseId}
-          observationId={observation?.id}
           photos={observation?.photos ?? []}
-          scenarioTime={scenarioTime}
-          onPhotoAdded={onPhotoAdded}
           pendingFiles={pendingPhotos}
-          onPendingFilesChange={!observation ? setPendingPhotos : undefined}
+          onPendingFilesChange={setPendingPhotos}
         />
 
         {/* Recommendation (Optional) */}

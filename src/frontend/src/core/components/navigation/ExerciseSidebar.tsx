@@ -147,8 +147,20 @@ export const ExerciseSidebar: React.FC<ExerciseSidebarProps> = ({
       return location.pathname === itemPath || location.pathname === `${itemPath}/`
     }
 
-    // Other items match by prefix
-    return location.pathname.startsWith(itemPath)
+    // Exact match always wins
+    if (location.pathname === itemPath) return true
+
+    // Prefix match, but only if no sibling item has a more specific match
+    if (location.pathname.startsWith(itemPath + '/')) {
+      const hasMoreSpecificMatch = menuItems.some(
+        other => other.id !== item.id
+          && other.path.startsWith(item.path + '/')
+          && location.pathname.startsWith(buildExerciseMenuPath(currentExercise.id, other.path)),
+      )
+      return !hasMoreSpecificMatch
+    }
+
+    return false
   }
 
   // Don't render if no exercise context
