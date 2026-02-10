@@ -1,4 +1,5 @@
 using Cadence.Core.Constants;
+using Cadence.Core.Features.BulkParticipantImport.Models.Entities;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.SystemSettings.Models.Entities;
 using Cadence.Core.Hubs;
@@ -127,6 +128,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     // System configuration
     public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
 
+    // Bulk Participant Import entities
+    public DbSet<PendingExerciseAssignment> PendingExerciseAssignments => Set<PendingExerciseAssignment>();
+    public DbSet<BulkImportRecord> BulkImportRecords => Set<BulkImportRecord>();
+    public DbSet<BulkImportRowResult> BulkImportRowResults => Set<BulkImportRowResult>();
+
     // =========================================================================
     // Model Configuration
     // =========================================================================
@@ -233,6 +239,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // System configuration
         ConfigureSystemSettings(modelBuilder);
+
+        // Bulk Participant Import entities
+        ConfigurePendingExerciseAssignment(modelBuilder);
+        ConfigureBulkImportRecord(modelBuilder);
+        ConfigureBulkImportRowResult(modelBuilder);
     }
 
     /// <summary>
@@ -1479,6 +1490,93 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.DefaultSenderAddress).HasMaxLength(200);
             entity.Property(e => e.DefaultSenderName).HasMaxLength(100);
             entity.Property(e => e.UpdatedBy).HasMaxLength(450);
+        });
+    }
+
+    // =========================================================================
+    // Bulk Participant Import Entity Configurations
+    // =========================================================================
+
+    private static void ConfigurePendingExerciseAssignment(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<PendingExerciseAssignment>(entity =>
+        {
+            entity.Property(e => e.ExerciseRole).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.OrganizationInviteId);
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => new { e.ExerciseId, e.Status });
+
+            // Relationship to OrganizationInvite
+            entity.HasOne(e => e.OrganizationInvite)
+                .WithMany(i => i.PendingExerciseAssignments)
+                .HasForeignKey(e => e.OrganizationInviteId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to Exercise
+            entity.HasOne(e => e.Exercise)
+                .WithMany()
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+            // Relationship to BulkImportRecord (optional)
+            entity.HasOne(e => e.BulkImportRecord)
+                .WithMany(r => r.PendingAssignments)
+                .HasForeignKey(e => e.BulkImportRecordId)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureBulkImportRecord(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BulkImportRecord>(entity =>
+        {
+            entity.Property(e => e.ImportedById).HasMaxLength(450).IsRequired();
+            entity.Property(e => e.FileName).HasMaxLength(255).IsRequired();
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.ExerciseId);
+            entity.HasIndex(e => new { e.ExerciseId, e.ImportedAt });
+
+            // Relationship to Exercise
+            entity.HasOne(e => e.Exercise)
+                .WithMany()
+                .HasForeignKey(e => e.ExerciseId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Relationship to ImportedBy user
+            entity.HasOne(e => e.ImportedBy)
+                .WithMany()
+                .HasForeignKey(e => e.ImportedById)
+                .IsRequired(false)
+                .OnDelete(DeleteBehavior.NoAction);
+        });
+    }
+
+    private static void ConfigureBulkImportRowResult(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<BulkImportRowResult>(entity =>
+        {
+            entity.Property(e => e.Email).HasMaxLength(200).IsRequired();
+            entity.Property(e => e.ExerciseRole).HasMaxLength(50);
+            entity.Property(e => e.DisplayName).HasMaxLength(200);
+            entity.Property(e => e.Classification).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20);
+            entity.Property(e => e.ErrorMessage).HasMaxLength(500);
+            entity.Property(e => e.PreviousExerciseRole).HasMaxLength(50);
+
+            // Indexes for efficient queries
+            entity.HasIndex(e => e.BulkImportRecordId);
+            entity.HasIndex(e => new { e.BulkImportRecordId, e.Classification });
+
+            // Relationship to BulkImportRecord
+            entity.HasOne(e => e.BulkImportRecord)
+                .WithMany(r => r.RowResults)
+                .HasForeignKey(e => e.BulkImportRecordId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 

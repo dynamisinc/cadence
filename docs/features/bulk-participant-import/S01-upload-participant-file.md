@@ -1,5 +1,8 @@
 # Story: S01 - Upload Participant File
 
+**Feature:** bulk-participant-import
+**Status:** 🚧 In Progress
+
 ## User Story
 
 **As an** Exercise Director or OrgManager,
@@ -16,11 +19,19 @@ The system must accept both CSV and XLSX formats since agencies use different to
 
 ### File Upload
 
-- [ ] **Given** I am on the exercise participants screen, **when** I have the role of Exercise Director or OrgManager (or higher), **then** I see a "Bulk Import" button
-- [ ] **Given** I click "Bulk Import", **when** the upload dialog opens, **then** I can select a .csv or .xlsx file from my device
-- [ ] **Given** I select a file, **when** the file is larger than 10 MB, **then** the upload is rejected with a clear error message
+- [x] **Given** I am on the exercise participants screen, **when** I have the role of Exercise Director or OrgManager (or higher), **then** I see a "Bulk Import" button
+  - Test: `ParticipantList.tsx` - Bulk Import button rendered when `canEdit` is true
+  - Completed: 2026-02-09
+- [x] **Given** I click "Bulk Import", **when** the upload dialog opens, **then** I can select a .csv or .xlsx file from my device
+  - Test: `BulkImportDialog.tsx` - Dialog renders with file input supporting .csv and .xlsx
+  - Completed: 2026-02-09
+- [x] **Given** I select a file, **when** the file is larger than 10 MB, **then** the upload is rejected with a clear error message
+  - Test: `ImportUploadStep.tsx::validateFile` - File size validation with MAX_FILE_SIZE_BYTES
+  - Completed: 2026-02-09
 - [ ] **Given** I select a file, **when** the file contains more than 500 rows, **then** the upload is rejected with a row count limit message
-- [ ] **Given** I select a file, **when** the file is not .csv or .xlsx format, **then** the upload is rejected with a format error
+- [x] **Given** I select a file, **when** the file is not .csv or .xlsx format, **then** the upload is rejected with a format error
+  - Test: `ImportUploadStep.tsx::validateFile` - Extension validation against SUPPORTED_EXTENSIONS
+  - Completed: 2026-02-09
 
 ### Column Detection and Mapping
 
@@ -47,7 +58,7 @@ The system must accept both CSV and XLSX formats since agencies use different to
 
 ## Out of Scope
 
-- Drag-and-drop file upload (future enhancement)
+- ~~Drag-and-drop file upload (future enhancement)~~ **MOVED TO IN SCOPE** - Implemented in commit 6eb6d16
 - Import from external directories (Active Directory, LDAP)
 - Multi-exercise bulk import (one exercise per upload)
 - Custom column mapping UI (auto-detection only for MVP)
@@ -113,3 +124,36 @@ The system must accept both CSV and XLSX formats since agencies use different to
 - File parsing should happen server-side to validate data against existing users/memberships
 - Consider a session-based import flow (similar to inject import) to preserve parsed data between upload and preview steps
 - The exercise must be in Draft or Active status to accept bulk imports
+
+## Implementation Notes
+
+**Added during development (2026-02-09):**
+
+### Drag-and-Drop Upload Implemented
+- Frontend component `ImportUploadStep.tsx` now supports drag-and-drop file selection
+- Implements `onDragEnter`, `onDragOver`, `onDragLeave`, and `onDrop` event handlers
+- Visual feedback with border color change and background highlight during drag
+- File validation occurs before upload for both drag-drop and browse selection
+- Previously marked as "Out of Scope" but implemented as part of initial work
+
+### Components Created
+- `BulkImportDialog.tsx` - Main dialog wrapper with wizard flow orchestration
+- `ImportUploadStep.tsx` - File upload area with drag-drop and validation
+- `ImportPreview.tsx` - Preview and validation screen (placeholder)
+- `ImportResults.tsx` - Results summary screen (placeholder)
+- `PendingInvitationsList.tsx` - Displays pending invitations on participants page
+
+### File Validation
+- Client-side validation checks file extension (.csv, .xlsx) and size (10 MB max)
+- Constants defined: `MAX_FILE_SIZE_MB = 10`, `SUPPORTED_EXTENSIONS = ['.csv', '.xlsx']`
+- Validation error messages displayed inline in upload area
+- Row count validation (500 max) needs backend implementation
+
+### Template Download
+- Template download links displayed in upload step
+- `bulkImportService.getTemplateUrl(exerciseId, format)` generates download URLs
+- Both CSV and XLSX formats available (S06 partial implementation)
+
+## Test Coverage
+- Frontend: `src/frontend/src/features/exercises/components/bulk-import/` components
+- Backend: Needs implementation for file parsing and row-level validation

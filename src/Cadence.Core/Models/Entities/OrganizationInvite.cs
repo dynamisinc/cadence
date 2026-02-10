@@ -81,4 +81,10 @@ public class OrganizationInvite : BaseEntity, IOrganizationScoped
     /// The user who created this invite.
     /// </summary>
     public ApplicationUser CreatedByUser { get; set; } = null!;
+
+    /// <summary>
+    /// Pending exercise assignments that will activate when this invite is accepted.
+    /// </summary>
+    public ICollection<Features.BulkParticipantImport.Models.Entities.PendingExerciseAssignment> PendingExerciseAssignments { get; set; }
+        = new List<Features.BulkParticipantImport.Models.Entities.PendingExerciseAssignment>();
 }

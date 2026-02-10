@@ -1,6 +1,7 @@
 using Cadence.Core.Data.Interceptors;
 using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
+using Cadence.Core.Features.BulkParticipantImport.Services;
 using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Features.DeliveryMethods.Services;
 using Cadence.Core.Features.ExcelExport.Services;
@@ -69,6 +70,11 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IOrganizationService, OrganizationService>();
         services.AddScoped<IMembershipService, MembershipService>();
         services.AddScoped<IOrganizationInvitationService, OrganizationInvitationService>();
+
+        // Bulk Participant Import Services
+        services.AddScoped<IParticipantFileParser, ParticipantFileParser>();
+        services.AddScoped<IParticipantClassificationService, ParticipantClassificationService>();
+        services.AddScoped<IBulkParticipantImportService, BulkParticipantImportService>();
 
         // EEG (Exercise Evaluation Guide) Services
         services.AddScoped<ICapabilityTargetService, CapabilityTargetService>();

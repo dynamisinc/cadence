@@ -22,6 +22,7 @@ public static class EmailTemplateRegistrar
 
         // Organization invitation templates
         RegisterOrganizationInviteTemplate(store);
+        RegisterOrganizationInviteWithExercisesTemplate(store);
         RegisterWelcomeToOrgTemplate(store);
 
         // Exercise invitation templates
@@ -329,6 +330,46 @@ Hi,
 {{InviterName}} has invited you to join {{OrganizationName}} on Cadence, the exercise management platform.
 
 Accept your invitation: {{InviteUrl}}
+
+This invitation expires on {{ExpiresAt}}.
+
+If you weren't expecting this invitation, you can safely ignore this email.
+
+---
+Cadence - Exercise Management Platform"
+        ));
+    }
+
+    private static void RegisterOrganizationInviteWithExercisesTemplate(InMemoryEmailTemplateStore store)
+    {
+        store.AddTemplate(new EmailTemplate(
+            TemplateId: "OrganizationInviteWithExercises",
+            SubjectTemplate: "You're invited to {{OrganizationName}} for upcoming exercises",
+            HtmlContent: @"<h2 style=""color: #1a237e; margin-top: 0;"">You're Invited to Participate!</h2>
+<p>Hi,</p>
+<p><strong>{{InviterName}}</strong> has invited you to join <strong>{{OrganizationName}}</strong> on Cadence and participate in the following exercise(s):</p>
+<div style=""margin: 24px 0; padding: 16px; background-color: #e3f2fd; border-left: 4px solid #1a237e; border-radius: 4px;"">
+  <h3 style=""color: #1a237e; margin-top: 0;"">Your Exercise Assignments</h3>
+  {{PendingExercisesHtml}}
+</div>
+<p>To access exercise materials and prepare for your role, you'll need to accept this invitation.</p>
+<p style=""text-align: center; margin: 32px 0;"">
+  <a href=""{{InviteUrl}}"" style=""background-color: #1a237e; color: #ffffff; padding: 12px 32px; text-decoration: none; border-radius: 4px; display: inline-block; font-weight: bold;"">Accept Invitation &amp; View Exercises</a>
+</p>
+<p>This invitation expires on {{ExpiresAt}}.</p>
+<p style=""color: #666666; font-size: 14px;"">If you weren't expecting this invitation, you can safely ignore this email.</p>",
+            PlainTextContent: @"You're Invited to Participate!
+
+Hi,
+
+{{InviterName}} has invited you to join {{OrganizationName}} on Cadence and participate in the following exercise(s):
+
+YOUR EXERCISE ASSIGNMENTS
+{{PendingExercisesText}}
+
+To access exercise materials and prepare for your role, you'll need to accept this invitation.
+
+Accept invitation and view exercises: {{InviteUrl}}
 
 This invitation expires on {{ExpiresAt}}.
 
