@@ -7,7 +7,7 @@
  * @module features/photos
  */
 
-import { FC } from 'react'
+import type { FC } from 'react'
 import { Box, Divider } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {

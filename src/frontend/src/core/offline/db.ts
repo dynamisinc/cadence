@@ -351,7 +351,7 @@ export async function pruneOldCache(daysOld: number = 7): Promise<void> {
 
   await db.transaction(
     'rw',
-    [db.exercises, db.phases, db.injects, db.observations, db.syncMetadata],
+    [db.exercises, db.phases, db.injects, db.observations, db.photos, db.syncMetadata],
     async () => {
       // Get exercises older than cutoff
       const oldExercises = await db.exercises.where('cachedAt').below(cutoff).toArray()

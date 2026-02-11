@@ -8,7 +8,8 @@
  * @module features/photos
  */
 
-import { FC, useState, useRef, useEffect, useCallback, KeyboardEvent } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
+import type { FC, KeyboardEvent } from 'react'
 import { Dialog, Box } from '@mui/material'
 import { Stage, Layer, Ellipse, Arrow, Text, Rect } from 'react-konva'
 import type { KonvaEventObject } from 'konva/lib/Node'
