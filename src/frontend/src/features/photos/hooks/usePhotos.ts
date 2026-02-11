@@ -217,6 +217,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
                   ...photo,
                   observationId: request.observationId ?? photo.observationId,
                   displayOrder: request.displayOrder ?? photo.displayOrder,
+                  annotationsJson: request.annotationsJson !== undefined ? request.annotationsJson : photo.annotationsJson,
                   updatedAt: new Date().toISOString(),
                 }
                 : photo,
@@ -228,6 +229,8 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       return { previousData }
     },
     onSuccess: () => {
+      // Invalidate to refetch fresh data (e.g. after annotation save)
+      queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
       toast.success('Photo updated')
     },
     onError: (err, _variables, context) => {
