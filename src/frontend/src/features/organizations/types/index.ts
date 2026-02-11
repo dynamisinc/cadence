@@ -86,6 +86,13 @@ export interface UpdateMemberRoleRequest {
 
 export type InvitationStatus = 'Pending' | 'Used' | 'Expired' | 'Cancelled'
 
+export interface PendingExerciseInfo {
+  exerciseName: string;
+  exerciseRole: string;
+  exerciseType: string;
+  scheduledDate?: string;
+}
+
 export interface Invitation {
   id: string;
   email: string;
@@ -101,6 +108,7 @@ export interface Invitation {
   emailSent?: boolean | null;
   emailError?: string | null;
   accountExists?: boolean;
+  pendingExercises?: PendingExerciseInfo[];
 }
 
 export interface CreateInvitationRequest {

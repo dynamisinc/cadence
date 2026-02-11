@@ -243,7 +243,25 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         var accountExists = await _context.ApplicationUsers
             .AnyAsync(u => u.Email == invite.Email);
 
-        return MapToDtoSync(invite) with { AccountExists = accountExists };
+        // Load pending exercise assignments so the invite page can show
+        // which exercises the user will be assigned to upon acceptance.
+        var pendingExercises = await _context.PendingExerciseAssignments
+            .Include(pa => pa.Exercise)
+            .Where(pa => pa.OrganizationInviteId == invite.Id
+                      && pa.Status == PendingAssignmentStatus.Pending
+                      && !pa.Exercise.IsDeleted)
+            .Select(pa => new PendingExerciseInfoDto(
+                pa.Exercise.Name,
+                pa.ExerciseRole.ToString(),
+                pa.Exercise.ExerciseType.ToString(),
+                pa.Exercise.ScheduledDate))
+            .ToListAsync();
+
+        return MapToDtoSync(invite) with
+        {
+            AccountExists = accountExists,
+            PendingExercises = pendingExercises.Count > 0 ? pendingExercises : null
+        };
     }
 
     public async Task AcceptInvitationAsync(string code, string userId)

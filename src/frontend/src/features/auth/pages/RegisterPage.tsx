@@ -156,8 +156,10 @@ export const RegisterPage: FC = () => {
         // Auto-accept invitation if registering from an invite link
         if (inviteCode) {
           try {
+            // Refresh token first so the accept call has a valid JWT
+            await refreshAccessToken()
             await organizationService.acceptInvitation(inviteCode)
-            // Refresh token so JWT picks up the new org context
+            // Refresh again so JWT picks up the new org context
             await refreshAccessToken()
             toast.success(`Welcome! You've joined ${inviteOrgName || 'the organization'}`)
           } catch {
@@ -213,6 +215,13 @@ export const RegisterPage: FC = () => {
     <AuthLayout title="Create Account">
       <form onSubmit={handleSubmit}>
         <Stack spacing={CobraStyles.Spacing.FormFields}>
+          {/* Invite context banner */}
+          {inviteOrgName && (
+            <Alert severity="info">
+              Create an account to join <strong>{inviteOrgName}</strong>
+            </Alert>
+          )}
+
           {/* First User Admin Welcome Message (S03) */}
           {isFirstUser && (
             <Alert severity="success">
