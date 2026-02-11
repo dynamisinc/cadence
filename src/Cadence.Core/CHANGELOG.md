@@ -2,6 +2,24 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.4.0](https://github.com/dynamisinc/cadence/compare/api-v3.3.0...api-v3.4.0) (2026-02-11)
+
+
+### Features
+
+* **field-operations:** add photo capture, gallery, and observation enhancements ([2e691a0](https://github.com/dynamisinc/cadence/commit/2e691a01108fb594a346d5b03c282d0d69f1d0b8))
+* **photos:** add photo capture, gallery, deletion, and recycle bin ([05b7a20](https://github.com/dynamisinc/cadence/commit/05b7a2034c4cf67df2ba53ec123e0f1045960b6d))
+
+
+### Bug Fixes
+
+* **photos:** address code review findings for photo feature ([04a51e7](https://github.com/dynamisinc/cadence/commit/04a51e7bc4e542efc30b0a3446b44f70f441f0f9))
+
+
+### Performance Improvements
+
+* **observations:** optimize queries with projection and composite indexes ([6f3e474](https://github.com/dynamisinc/cadence/commit/6f3e474b183bf97b530d4dea9fe8c790eb3b711b))
+
 ## [3.3.0](https://github.com/dynamisinc/cadence/compare/api-v3.2.0...api-v3.3.0) (2026-02-10)
 
 

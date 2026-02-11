@@ -5,6 +5,23 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.4.0...frontend-v2.5.0) (2026-02-11)
+
+
+### Features
+
+* **field-operations:** add photo capture, gallery, and observation enhancements ([2e691a0](https://github.com/dynamisinc/cadence/commit/2e691a01108fb594a346d5b03c282d0d69f1d0b8))
+* **photos:** add inline photo gallery to observation list ([5303730](https://github.com/dynamisinc/cadence/commit/53037303bb18d9940b56c27f6c3f27ad67677b89))
+* **photos:** add photo capture, gallery, deletion, and recycle bin ([05b7a20](https://github.com/dynamisinc/cadence/commit/05b7a2034c4cf67df2ba53ec123e0f1045960b6d))
+* **photos:** show observation details on linked photo gallery items ([231fffb](https://github.com/dynamisinc/cadence/commit/231fffb437cc9aa2b1fd253681d4248d7d9d0e81))
+
+
+### Bug Fixes
+
+* **photos:** address code review findings for photo feature ([04a51e7](https://github.com/dynamisinc/cadence/commit/04a51e7bc4e542efc30b0a3446b44f70f441f0f9))
+* **photos:** resolve CI lint, type, and test errors for photo feature ([8a123bd](https://github.com/dynamisinc/cadence/commit/8a123bd29aefb522398f3371884ca4b046cc86dd))
+* **photos:** stage photos locally and upload only on form submit ([454ae7e](https://github.com/dynamisinc/cadence/commit/454ae7e74d130c47db86170889cc794dc2071ca1))
+
 ## [2.4.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.3.0...frontend-v2.4.0) (2026-02-10)
 
 
