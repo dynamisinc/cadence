@@ -49,6 +49,7 @@ import {
   faTimes,
   faTrash,
   faEye,
+  faPenNib,
 } from '@fortawesome/free-solid-svg-icons'
 import { useExercise } from '../../exercises/hooks'
 import { usePhotos } from '../hooks/usePhotos'
@@ -60,7 +61,10 @@ import { useObservations } from '../../observations/hooks/useObservations'
 import { ObservationRatingShortLabels } from '../../../types'
 import type { ObservationDto } from '../../observations/types'
 import type { PhotoListQuery } from '../types'
+import type { Annotation } from '../types/annotations'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
+import { AnnotationOverlay, parseAnnotationsJson } from '../components/AnnotationOverlay'
+import { AnnotationEditor } from '../components/AnnotationEditor'
 
 // Filter chip options
 type LinkedFilterValue = 'all' | 'linked' | 'unlinked'
@@ -101,7 +105,7 @@ export const PhotoGalleryPage = () => {
   )
 
   // Fetch photos with filters
-  const { photos, totalCount, isLoading, error, deletePhoto, isDeleting } = usePhotos(exerciseId!, query)
+  const { photos, totalCount, isLoading, error, deletePhoto, updatePhoto, isDeleting } = usePhotos(exerciseId!, query)
 
   // Fetch observations for linked photo details
   const { observations } = useObservations(exerciseId!)
@@ -118,6 +122,7 @@ export const PhotoGalleryPage = () => {
   // Preview state
   const [previewPhotoId, setPreviewPhotoId] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
+  const [annotationEditorOpen, setAnnotationEditorOpen] = useState(false)
 
   // Calculate total pages
   const totalPages = Math.ceil(totalCount / pageSize)
@@ -185,6 +190,14 @@ export const PhotoGalleryPage = () => {
   // Handle page change
   const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
     setPage(value)
+  }
+
+  // Handle annotation save
+  const handleAnnotationSave = async (savedAnnotations: Annotation[]) => {
+    if (!previewPhotoId) return
+    setAnnotationEditorOpen(false)
+    const annotationsJson = savedAnnotations.length > 0 ? JSON.stringify(savedAnnotations) : null
+    await updatePhoto(previewPhotoId, { annotationsJson })
   }
 
   // Loading state
@@ -370,6 +383,28 @@ export const PhotoGalleryPage = () => {
                     }}
                   />
 
+                  {/* Annotation indicator badge */}
+                  {photo.annotationsJson && photo.annotationsJson !== '[]' && (
+                    <Box
+                      sx={{
+                        position: 'absolute',
+                        top: 4,
+                        left: 4,
+                        bgcolor: 'error.main',
+                        color: 'white',
+                        borderRadius: '50%',
+                        width: 22,
+                        height: 22,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        boxShadow: 1,
+                      }}
+                    >
+                      <FontAwesomeIcon icon={faPenNib} style={{ fontSize: '0.6rem' }} />
+                    </Box>
+                  )}
+
                   {/* Overlay gradient with metadata */}
                   <Box
                     sx={{
@@ -511,18 +546,47 @@ export const PhotoGalleryPage = () => {
                 </CobraIconButton>
               )}
 
-              {/* Full-size image */}
-              <Box
-                component="img"
-                src={previewPhoto.blobUri}
-                alt={previewPhoto.fileName}
-                sx={{
-                  width: '100%',
-                  height: 'auto',
-                  maxHeight: '80vh',
-                  objectFit: 'contain',
-                }}
-              />
+              {/* Annotate button */}
+              {!previewPhoto.id.startsWith('temp-') && (
+                <CobraIconButton
+                  onClick={() => setAnnotationEditorOpen(true)}
+                  aria-label={parseAnnotationsJson(previewPhoto.annotationsJson).length > 0 ? 'Edit annotations' : 'Add annotations'}
+                  sx={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 64,
+                    color: 'white',
+                    bgcolor: parseAnnotationsJson(previewPhoto.annotationsJson).length > 0 ? 'error.main' : 'rgba(0, 0, 0, 0.5)',
+                    '&:hover': {
+                      bgcolor: parseAnnotationsJson(previewPhoto.annotationsJson).length > 0 ? 'error.dark' : 'rgba(0, 0, 0, 0.7)',
+                    },
+                    zIndex: 1,
+                  }}
+                >
+                  <FontAwesomeIcon icon={faPenNib} />
+                </CobraIconButton>
+              )}
+
+              {/* Full-size image with annotation overlay */}
+              <Box sx={{ position: 'relative' }}>
+                <Box
+                  component="img"
+                  src={previewPhoto.blobUri}
+                  alt={previewPhoto.fileName}
+                  sx={{
+                    width: '100%',
+                    height: 'auto',
+                    maxHeight: '80vh',
+                    objectFit: 'contain',
+                  }}
+                />
+                {(() => {
+                  const previewAnnotations = parseAnnotationsJson(previewPhoto.annotationsJson)
+                  return previewAnnotations.length > 0 ? (
+                    <AnnotationOverlay annotations={previewAnnotations} width={0} height={0} />
+                  ) : null
+                })()}
+              </Box>
 
               {/* Photo metadata */}
               <Box sx={{ p: 2, bgcolor: 'rgba(0, 0, 0, 0.8)' }}>
@@ -616,6 +680,17 @@ export const PhotoGalleryPage = () => {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Annotation Editor Dialog */}
+      {previewPhoto && (
+        <AnnotationEditor
+          open={annotationEditorOpen}
+          photoUrl={previewPhoto.blobUri}
+          existingAnnotations={parseAnnotationsJson(previewPhoto.annotationsJson)}
+          onSave={handleAnnotationSave}
+          onCancel={() => setAnnotationEditorOpen(false)}
+        />
+      )}
 
       {/* Delete Confirmation Dialog */}
       <ConfirmDialog

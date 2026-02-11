@@ -106,6 +106,24 @@ public class ExercisePhoto : BaseEntity, IOrganizationScoped
     public PhotoStatus Status { get; set; } = PhotoStatus.Draft;
 
     // =========================================================================
+    // Offline Sync
+    // =========================================================================
+
+    /// <summary>
+    /// Client-generated idempotency key to prevent duplicate uploads on retry.
+    /// Used by offline sync to detect re-uploads after network failure.
+    /// Nullable - only set for offline-originating uploads.
+    /// </summary>
+    public string? IdempotencyKey { get; set; }
+
+    /// <summary>
+    /// JSON-serialized annotation data (circles, arrows, text overlays).
+    /// Stored as relative coordinates (0-1 range) for cross-device rendering.
+    /// Max 8000 characters. Null if no annotations.
+    /// </summary>
+    public string? AnnotationsJson { get; set; }
+
+    // =========================================================================
     // Navigation Properties
     // =========================================================================
 

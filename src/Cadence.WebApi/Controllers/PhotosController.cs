@@ -67,6 +67,13 @@ public class PhotosController : ControllerBase
         {
             var capturedById = GetCurrentUserId();
 
+            // Extract idempotency key from header if present
+            var idempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                metadata.IdempotencyKey = idempotencyKey;
+            }
+
             await using var photoStream = photo.OpenReadStream();
             await using var thumbnailStream = thumbnail != null && thumbnail.Length > 0
                 ? thumbnail.OpenReadStream()
@@ -224,6 +231,13 @@ public class PhotosController : ControllerBase
         try
         {
             var capturedById = GetCurrentUserId();
+
+            // Extract idempotency key from header if present
+            var idempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault();
+            if (!string.IsNullOrWhiteSpace(idempotencyKey))
+            {
+                metadata.IdempotencyKey = idempotencyKey;
+            }
 
             await using var photoStream = photo.OpenReadStream();
             await using var thumbnailStream = thumbnail != null && thumbnail.Length > 0

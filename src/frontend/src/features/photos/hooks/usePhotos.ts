@@ -8,10 +8,17 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
+import { useEffect, useState, useRef } from 'react'
 import { toast } from 'react-toastify'
 import { photoService } from '../services/photoService'
 import { useConnectivity } from '../../../core/contexts'
 import { addPendingAction } from '../../../core/offline'
+import {
+  cachePhotoBlob,
+  getCachedPhotosByExercise,
+  cachedPhotoToDto,
+} from '../../../core/offline/photoCacheService'
+import type { CachedPhoto } from '../../../core/offline/db'
 import type {
   PhotoDto,
   PhotoListQuery,
@@ -19,6 +26,11 @@ import type {
   UpdatePhotoRequest,
   QuickPhotoResponse,
 } from '../types'
+
+/** Generate a UUID-like idempotency key */
+function generateIdempotencyKey(): string {
+  return `${Date.now()}-${crypto.randomUUID()}`
+}
 
 /** Query key for photos list by exercise */
 export const photosQueryKey = (exerciseId: string) =>
@@ -49,6 +61,12 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
   // Consider offline if not fully connected
   const isEffectivelyOnline = connectivityState === 'online'
 
+  // State for locally cached pending photos
+  const [localPhotos, setLocalPhotos] = useState<PhotoDto[]>([])
+
+  // Track object URLs for cleanup
+  const objectUrlsRef = useRef<string[]>([])
+
   // Query for fetching photos
   const {
     data,
@@ -60,6 +78,48 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     queryFn: () => photoService.getPhotos(exerciseId, query),
     enabled: !!exerciseId,
   })
+
+  // Load pending photos from IndexedDB on mount
+  useEffect(() => {
+    const loadLocalPhotos = async () => {
+      if (!exerciseId) return
+
+      try {
+        const cachedPhotos = await getCachedPhotosByExercise(exerciseId)
+
+        // Filter for pending/failed photos only
+        const pendingPhotos = cachedPhotos.filter(
+          p => p.syncStatus === 'pending' || p.syncStatus === 'failed',
+        )
+
+        // Convert to DTOs and track object URLs for cleanup
+        const photoDtos = pendingPhotos.map(cached => {
+          const dto = cachedPhotoToDto(cached)
+          // Track all object URLs created
+          objectUrlsRef.current.push(...dto._localObjectUrls)
+          return dto
+        })
+
+        setLocalPhotos(photoDtos)
+      } catch (err) {
+        console.error('Failed to load cached photos:', err)
+      }
+    }
+
+    loadLocalPhotos()
+
+    // Cleanup: revoke all object URLs on unmount
+    return () => {
+      objectUrlsRef.current.forEach(url => {
+        try {
+          URL.revokeObjectURL(url)
+        } catch (e) {
+          // Ignore revoke errors
+        }
+      })
+      objectUrlsRef.current = []
+    }
+  }, [exerciseId])
 
   // Mutation for uploading photos
   const uploadMutation = useMutation({
@@ -186,67 +246,82 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
 
   /**
    * Upload photo with offline support
-   * When offline: queues action and stores photo in IndexedDB
+   * When offline: stores blob in IndexedDB photos table and queues lightweight action
    * When online: sends directly to API
    */
   const uploadPhoto = async (formData: FormData): Promise<PhotoDto> => {
     if (isEffectivelyOnline) {
-      // Online: send directly to API
       return uploadMutation.mutateAsync(formData)
     }
 
-    // Offline: queue action for later sync
-    // Extract metadata from FormData
-    const metadata = {
-      capturedAt: formData.get('capturedAt') as string,
-      scenarioTime: formData.get('scenarioTime') as string | null,
-      latitude: formData.get('latitude') ? parseFloat(formData.get('latitude') as string) : null,
-      longitude: formData.get('longitude') ? parseFloat(formData.get('longitude') as string) : null,
-      locationAccuracy: formData.get('locationAccuracy') ? parseFloat(formData.get('locationAccuracy') as string) : null,
-      observationId: formData.get('observationId') as string | null,
-    }
-
-    // Store photo blob in IndexedDB (converting to base64 for storage)
-    const file = formData.get('photo') as Blob
-    const reader = new FileReader()
-    const photoData = await new Promise<string>(resolve => {
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.readAsDataURL(file)
-    })
+    // Offline: store blob in dedicated photos table, queue lightweight action
+    const photoBlob = formData.get('photo') as Blob
+    const thumbnailBlob = (formData.get('thumbnail') as Blob) ?? photoBlob
+    const capturedAt = formData.get('capturedAt') as string
+    const scenarioTime = formData.get('scenarioTime') as string | null
+    const latitude = formData.get('latitude') ? parseFloat(formData.get('latitude') as string) : null
+    const longitude = formData.get('longitude') ? parseFloat(formData.get('longitude') as string) : null
+    const locationAccuracy = formData.get('locationAccuracy') ? parseFloat(formData.get('locationAccuracy') as string) : null
+    const observationId = formData.get('observationId') as string | null
 
     const tempId = `temp-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const idempotencyKey = generateIdempotencyKey()
 
+    // Store blob in dedicated photos table (efficient binary storage)
+    const cachedPhoto: CachedPhoto = {
+      id: tempId,
+      exerciseId,
+      blob: photoBlob,
+      thumbnailBlob,
+      fileName: 'offline-photo.jpg',
+      fileSizeBytes: photoBlob.size,
+      syncStatus: 'pending',
+      idempotencyKey,
+      capturedAt,
+      scenarioTime,
+      latitude,
+      longitude,
+      locationAccuracy,
+      observationId,
+      cachedAt: new Date(),
+      isQuickPhoto: false,
+    }
+    await cachePhotoBlob(cachedPhoto)
+
+    // Queue lightweight action (no blob data, just a reference)
     await addPendingAction({
       type: 'UPLOAD_PHOTO',
       exerciseId,
       payload: {
-        photoData,
-        metadata,
-        tempId,
+        localPhotoId: tempId,
+        idempotencyKey,
       },
     })
 
     incrementPendingCount()
     toast.info('Photo saved offline. Will sync when connection restores.')
 
-    // Return optimistic photo
+    // Return optimistic photo with object URL for display
+    const blobUrl = URL.createObjectURL(photoBlob)
+    const thumbnailUrl = URL.createObjectURL(thumbnailBlob)
     return {
       id: tempId,
       exerciseId,
-      observationId: metadata.observationId,
+      observationId,
       capturedById: 'offline-user',
       capturedByName: 'You (offline)',
       fileName: 'offline-photo.jpg',
-      blobUri: photoData,
-      thumbnailUri: photoData,
-      fileSizeBytes: file.size,
-      capturedAt: metadata.capturedAt,
-      scenarioTime: metadata.scenarioTime,
-      latitude: metadata.latitude,
-      longitude: metadata.longitude,
-      locationAccuracy: metadata.locationAccuracy,
+      blobUri: blobUrl,
+      thumbnailUri: thumbnailUrl,
+      fileSizeBytes: photoBlob.size,
+      capturedAt,
+      scenarioTime,
+      latitude,
+      longitude,
+      locationAccuracy,
       displayOrder: 0,
       status: 'Draft',
+      annotationsJson: null,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     }
@@ -254,41 +329,55 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
 
   /**
    * Quick photo capture with offline support
-   * When offline: queues action and stores photo in IndexedDB
+   * When offline: stores blob in IndexedDB photos table and queues lightweight action
    * When online: sends directly to API
    */
   const quickPhoto = async (formData: FormData): Promise<QuickPhotoResponse> => {
     if (isEffectivelyOnline) {
-      // Online: send directly to API
       return quickPhotoMutation.mutateAsync(formData)
     }
 
-    // Offline: queue action for later sync
-    const metadata = {
-      capturedAt: formData.get('capturedAt') as string,
-      scenarioTime: formData.get('scenarioTime') as string | null,
-      latitude: formData.get('latitude') ? parseFloat(formData.get('latitude') as string) : null,
-      longitude: formData.get('longitude') ? parseFloat(formData.get('longitude') as string) : null,
-      locationAccuracy: formData.get('locationAccuracy') ? parseFloat(formData.get('locationAccuracy') as string) : null,
-    }
-
-    const file = formData.get('photo') as Blob
-    const reader = new FileReader()
-    const photoData = await new Promise<string>(resolve => {
-      reader.onloadend = () => resolve(reader.result as string)
-      reader.readAsDataURL(file)
-    })
+    // Offline: store blob in dedicated photos table, queue lightweight action
+    const photoBlob = formData.get('photo') as Blob
+    const thumbnailBlob = (formData.get('thumbnail') as Blob) ?? photoBlob
+    const capturedAt = formData.get('capturedAt') as string
+    const scenarioTime = formData.get('scenarioTime') as string | null
+    const latitude = formData.get('latitude') ? parseFloat(formData.get('latitude') as string) : null
+    const longitude = formData.get('longitude') ? parseFloat(formData.get('longitude') as string) : null
+    const locationAccuracy = formData.get('locationAccuracy') ? parseFloat(formData.get('locationAccuracy') as string) : null
 
     const tempPhotoId = `temp-photo-${Date.now()}-${Math.random().toString(36).slice(2)}`
     const tempObsId = `temp-obs-${Date.now()}-${Math.random().toString(36).slice(2)}`
+    const idempotencyKey = generateIdempotencyKey()
 
+    // Store blob in dedicated photos table
+    const cachedPhoto: CachedPhoto = {
+      id: tempPhotoId,
+      exerciseId,
+      blob: photoBlob,
+      thumbnailBlob,
+      fileName: 'offline-photo.jpg',
+      fileSizeBytes: photoBlob.size,
+      syncStatus: 'pending',
+      idempotencyKey,
+      capturedAt,
+      scenarioTime,
+      latitude,
+      longitude,
+      locationAccuracy,
+      cachedAt: new Date(),
+      isQuickPhoto: true,
+      tempObservationId: tempObsId,
+    }
+    await cachePhotoBlob(cachedPhoto)
+
+    // Queue lightweight action (no blob data, just a reference)
     await addPendingAction({
       type: 'QUICK_PHOTO',
       exerciseId,
       payload: {
-        photoData,
-        metadata,
-        tempPhotoId,
+        localPhotoId: tempPhotoId,
+        idempotencyKey,
         tempObsId,
       },
     })
@@ -296,7 +385,9 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     incrementPendingCount()
     toast.info('Quick photo saved offline. Will sync when connection restores.')
 
-    // Return optimistic response
+    // Return optimistic response with object URL for display
+    const blobUrl = URL.createObjectURL(photoBlob)
+    const thumbnailUrl = URL.createObjectURL(thumbnailBlob)
     return {
       photo: {
         id: tempPhotoId,
@@ -305,16 +396,17 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
         capturedById: 'offline-user',
         capturedByName: 'You (offline)',
         fileName: 'offline-photo.jpg',
-        blobUri: photoData,
-        thumbnailUri: photoData,
-        fileSizeBytes: file.size,
-        capturedAt: metadata.capturedAt,
-        scenarioTime: metadata.scenarioTime,
-        latitude: metadata.latitude,
-        longitude: metadata.longitude,
-        locationAccuracy: metadata.locationAccuracy,
+        blobUri: blobUrl,
+        thumbnailUri: thumbnailUrl,
+        fileSizeBytes: photoBlob.size,
+        capturedAt,
+        scenarioTime,
+        latitude,
+        longitude,
+        locationAccuracy,
         displayOrder: 0,
         status: 'Draft',
+        annotationsJson: null,
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       },
@@ -421,9 +513,18 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     return optimisticPhoto
   }
 
+  // Merge local pending photos with server photos
+  // Pending photos appear first (newest first)
+  const mergedPhotos = [
+    ...localPhotos.sort((a, b) =>
+      new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime()
+    ),
+    ...(data?.photos ?? []),
+  ]
+
   return {
-    photos: data?.photos ?? [],
-    totalCount: data?.totalCount ?? 0,
+    photos: mergedPhotos,
+    totalCount: (data?.totalCount ?? 0) + localPhotos.length,
     page: data?.page ?? 1,
     pageSize: data?.pageSize ?? 20,
     isLoading,

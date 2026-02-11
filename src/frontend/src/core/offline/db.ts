@@ -93,6 +93,55 @@ export interface CachedObservation {
   tempId?: string
 }
 
+/** Sync status for cached photo blobs */
+export type PhotoSyncStatus = 'pending' | 'uploading' | 'synced' | 'failed'
+
+/** Cached photo blob with sync tracking */
+export interface CachedPhoto {
+  /** Local UUID (matches tempId used in pending actions) */
+  id: string
+  /** Exercise this photo belongs to */
+  exerciseId: string
+  /** Full-size compressed photo blob */
+  blob: Blob
+  /** 300px thumbnail blob */
+  thumbnailBlob: Blob
+  /** Original file name */
+  fileName: string
+  /** File size in bytes */
+  fileSizeBytes: number
+  /** Upload sync status */
+  syncStatus: PhotoSyncStatus
+  /** Client-generated idempotency key for duplicate prevention */
+  idempotencyKey: string
+  /** Wall clock UTC when captured */
+  capturedAt: string
+  /** Scenario time when captured (if clock was running) */
+  scenarioTime?: string | null
+  /** GPS latitude */
+  latitude?: number | null
+  /** GPS longitude */
+  longitude?: number | null
+  /** GPS accuracy in meters */
+  locationAccuracy?: number | null
+  /** Observation ID if linked */
+  observationId?: string | null
+  /** Server-assigned photo ID after successful sync */
+  serverPhotoId?: string | null
+  /** Server blob URI after successful sync */
+  serverBlobUri?: string | null
+  /** Server thumbnail URI after successful sync */
+  serverThumbnailUri?: string | null
+  /** When this was cached locally */
+  cachedAt: Date
+  /** Error message if sync failed */
+  error?: string | null
+  /** Whether this was a quick photo (creates observation) */
+  isQuickPhoto: boolean
+  /** Temp observation ID for quick photos */
+  tempObservationId?: string | null
+}
+
 /** Types of actions that can be queued */
 export type PendingActionType =
   | 'FIRE_INJECT'
@@ -140,24 +189,30 @@ export class CadenceDatabase extends Dexie {
   observations!: Table<CachedObservation, string>
   pendingActions!: Table<PendingAction, number>
   syncMetadata!: Table<SyncMetadata, string>
+  photos!: Table<CachedPhoto, string>
 
   constructor() {
     super('CadenceDB')
 
     // Schema version 1
     this.version(1).stores({
-      // Primary key is 'id', indexes on updatedAt for sorting
       exercises: 'id, updatedAt, cachedAt',
-      // Primary key is 'id', compound index on exerciseId for queries
       phases: 'id, exerciseId, updatedAt',
-      // Primary key is 'id', indexes for querying by exercise and status
       injects: 'id, exerciseId, mselId, status, updatedAt, pendingSync',
-      // Primary key is 'id', indexes for querying by exercise and inject
       observations: 'id, exerciseId, injectId, updatedAt, pendingSync, tempId',
-      // Auto-increment primary key, indexes for status and exercise
       pendingActions: '++id, exerciseId, status, type, timestamp',
-      // Primary key is 'key'
       syncMetadata: 'key, lastSyncAt',
+    })
+
+    // Schema version 2 - Add dedicated photo blob storage
+    this.version(2).stores({
+      exercises: 'id, updatedAt, cachedAt',
+      phases: 'id, exerciseId, updatedAt',
+      injects: 'id, exerciseId, mselId, status, updatedAt, pendingSync',
+      observations: 'id, exerciseId, injectId, updatedAt, pendingSync, tempId',
+      pendingActions: '++id, exerciseId, status, type, timestamp',
+      syncMetadata: 'key, lastSyncAt',
+      photos: 'id, exerciseId, syncStatus, capturedAt, cachedAt, idempotencyKey',
     })
   }
 }
@@ -178,12 +233,13 @@ export const db = new CadenceDatabase()
 export async function clearExerciseCache(exerciseId: string): Promise<void> {
   await db.transaction(
     'rw',
-    [db.exercises, db.phases, db.injects, db.observations, db.syncMetadata],
+    [db.exercises, db.phases, db.injects, db.observations, db.photos, db.syncMetadata],
     async () => {
       await db.exercises.delete(exerciseId)
       await db.phases.where('exerciseId').equals(exerciseId).delete()
       await db.injects.where('exerciseId').equals(exerciseId).delete()
       await db.observations.where('exerciseId').equals(exerciseId).delete()
+      await db.photos.where('exerciseId').equals(exerciseId).delete()
       await db.syncMetadata.delete(`exercise-${exerciseId}`)
     },
   )
@@ -195,12 +251,13 @@ export async function clearExerciseCache(exerciseId: string): Promise<void> {
 export async function clearAllCache(): Promise<void> {
   await db.transaction(
     'rw',
-    [db.exercises, db.phases, db.injects, db.observations, db.pendingActions, db.syncMetadata],
+    [db.exercises, db.phases, db.injects, db.observations, db.photos, db.pendingActions, db.syncMetadata],
     async () => {
       await db.exercises.clear()
       await db.phases.clear()
       await db.injects.clear()
       await db.observations.clear()
+      await db.photos.clear()
       await db.pendingActions.clear()
       await db.syncMetadata.clear()
     },

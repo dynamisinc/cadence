@@ -56,6 +56,25 @@ public class PhotoService : IPhotoService
                 $"Cannot upload photos. Exercise is {exercise.Status}. Photos can only be uploaded during active or paused exercises.");
         }
 
+        // Check for duplicate upload via idempotency key
+        if (!string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
+            var existingPhoto = await _context.ExercisePhotos
+                .Include(p => p.CapturedByUser)
+                .FirstOrDefaultAsync(p =>
+                    p.ExerciseId == exerciseId &&
+                    p.CapturedById == capturedById &&
+                    p.IdempotencyKey == request.IdempotencyKey, ct);
+
+            if (existingPhoto != null)
+            {
+                _logger.LogInformation(
+                    "Duplicate upload detected for idempotency key {Key}. Returning existing photo {PhotoId}.",
+                    request.IdempotencyKey, existingPhoto.Id);
+                return existingPhoto.ToDto();
+            }
+        }
+
         // Validate observation exists if specified
         if (request.ObservationId.HasValue)
         {
@@ -85,7 +104,8 @@ public class PhotoService : IPhotoService
             Longitude = request.Longitude,
             LocationAccuracy = request.LocationAccuracy,
             DisplayOrder = 0,
-            Status = PhotoStatus.Draft
+            Status = PhotoStatus.Draft,
+            IdempotencyKey = request.IdempotencyKey
         };
 
         // Build blob paths
@@ -244,6 +264,11 @@ public class PhotoService : IPhotoService
             photo.DisplayOrder = request.DisplayOrder.Value;
         }
 
+        if (request.AnnotationsJson != null)
+        {
+            photo.AnnotationsJson = request.AnnotationsJson;
+        }
+
         await _context.SaveChangesAsync(ct);
 
         _logger.LogInformation(
@@ -311,6 +336,25 @@ public class PhotoService : IPhotoService
                 $"Cannot capture photos. Exercise is {exercise.Status}. Photos can only be captured during active or paused exercises.");
         }
 
+        // Check for duplicate upload via idempotency key
+        if (!string.IsNullOrWhiteSpace(request.IdempotencyKey))
+        {
+            var existingPhoto = await _context.ExercisePhotos
+                .Include(p => p.CapturedByUser)
+                .FirstOrDefaultAsync(p =>
+                    p.ExerciseId == exerciseId &&
+                    p.CapturedById == capturedById &&
+                    p.IdempotencyKey == request.IdempotencyKey, ct);
+
+            if (existingPhoto != null)
+            {
+                _logger.LogInformation(
+                    "Duplicate quick photo detected for idempotency key {Key}. Returning existing photo {PhotoId}.",
+                    request.IdempotencyKey, existingPhoto.Id);
+                return new QuickPhotoResponse(existingPhoto.ToDto(), existingPhoto.ObservationId ?? Guid.Empty);
+            }
+        }
+
         // Create draft observation
         var observation = new Observation
         {
@@ -343,7 +387,8 @@ public class PhotoService : IPhotoService
             Latitude = request.Latitude,
             Longitude = request.Longitude,
             LocationAccuracy = request.LocationAccuracy,
-            ObservationId = observation.Id
+            ObservationId = observation.Id,
+            IdempotencyKey = request.IdempotencyKey
         };
 
         var photoDto = await UploadPhotoAsync(

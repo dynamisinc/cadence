@@ -5,11 +5,12 @@
  * Shows photo metadata (captured by, timestamp, location).
  * Supports keyboard navigation (arrows, escape).
  * Uses COBRA styled buttons and FontAwesome icons.
+ * Displays annotation overlay for photos with annotations.
  *
  * @module features/photos/components
  */
 
-import { useEffect } from 'react'
+import { useEffect, useState, useRef, useCallback } from 'react'
 import {
   Dialog,
   Box,
@@ -23,10 +24,14 @@ import {
   faChevronLeft,
   faChevronRight,
   faLocationDot,
+  faPenNib,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraIconButton } from '@/theme/styledComponents'
 import { formatDateTime } from '@/shared/utils/dateUtils'
+import { AnnotationOverlay, parseAnnotationsJson } from './AnnotationOverlay'
+import { AnnotationEditor } from './AnnotationEditor'
 import type { PhotoDto } from '../types'
+import type { Annotation } from '../types/annotations'
 
 interface PhotoPreviewProps {
   /** List of photos to preview */
@@ -39,6 +44,8 @@ interface PhotoPreviewProps {
   onClose: () => void
   /** Called when user navigates to different photo */
   onNavigate: (index: number) => void
+  /** Called when user saves annotations for a photo */
+  onAnnotationSave?: (photoId: string, annotations: Annotation[]) => void
 }
 
 /**
@@ -56,10 +63,68 @@ export const PhotoPreview = ({
   open,
   onClose,
   onNavigate,
+  onAnnotationSave,
 }: PhotoPreviewProps) => {
   const photo = photos[currentIndex]
   const hasPrevious = currentIndex > 0
   const hasNext = currentIndex < photos.length - 1
+
+  // Annotation editor state
+  const [editorOpen, setEditorOpen] = useState(false)
+
+  // Track image dimensions for annotation overlay
+  const imageRef = useRef<HTMLImageElement>(null)
+  const [imageDimensions, setImageDimensions] = useState({ width: 0, height: 0 })
+
+  /**
+   * Update image dimensions when image loads or changes
+   */
+  useEffect(() => {
+    const img = imageRef.current
+    if (!img) return
+
+    const updateDimensions = () => {
+      setImageDimensions({
+        width: img.clientWidth,
+        height: img.clientHeight,
+      })
+    }
+
+    // Set initial dimensions
+    if (img.complete) {
+      updateDimensions()
+    }
+
+    // Listen for load events (when photo changes)
+    img.addEventListener('load', updateDimensions)
+
+    // Listen for window resize
+    const handleResize = () => {
+      updateDimensions()
+    }
+    window.addEventListener('resize', handleResize)
+
+    return () => {
+      img.removeEventListener('load', updateDimensions)
+      window.removeEventListener('resize', handleResize)
+    }
+  }, [photo.id]) // Reset when photo changes
+
+  // Parse annotations for current photo
+  const annotations = parseAnnotationsJson(photo.annotationsJson)
+
+  /** Open the annotation editor */
+  const handleAnnotateClick = useCallback(() => {
+    setEditorOpen(true)
+  }, [])
+
+  /** Save annotations from editor */
+  const handleAnnotationSave = useCallback((newAnnotations: Annotation[]) => {
+    setEditorOpen(false)
+    if (onAnnotationSave && photo) {
+      onAnnotationSave(photo.id, newAnnotations)
+    }
+  }, [onAnnotationSave, photo])
 
   /**
    * Handle keyboard navigation
@@ -102,15 +167,34 @@ export const PhotoPreview = ({
         },
       }}
     >
-      {/* Close button */}
+      {/* Top bar: Annotate + Close buttons */}
       <Box
         sx={{
           position: 'absolute',
           top: 16,
           right: 16,
           zIndex: 1,
+          display: 'flex',
+          gap: 1,
         }}
       >
+        {/* Annotate button - only for non-pending photos */}
+        {onAnnotationSave && !photo.id.startsWith('temp-') && (
+          <CobraIconButton
+            onClick={handleAnnotateClick}
+            aria-label={annotations.length > 0 ? 'Edit annotations' : 'Add annotations'}
+            sx={{
+              color: 'white',
+              bgcolor: annotations.length > 0 ? 'error.main' : 'rgba(0, 0, 0, 0.5)',
+              '&:hover': {
+                bgcolor: annotations.length > 0 ? 'error.dark' : 'rgba(0, 0, 0, 0.7)',
+              },
+            }}
+          >
+            <FontAwesomeIcon icon={faPenNib} />
+          </CobraIconButton>
+        )}
+
         <CobraIconButton
           onClick={onClose}
           aria-label="Close preview"
@@ -172,17 +256,38 @@ export const PhotoPreview = ({
             </Box>
           )}
 
-          {/* Photo */}
+          {/* Photo with annotation overlay */}
           <Box
-            component="img"
-            src={photo.blobUri}
-            alt={photo.fileName}
             sx={{
+              position: 'relative',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
               maxWidth: '100%',
               maxHeight: '100%',
-              objectFit: 'contain',
             }}
-          />
+          >
+            <Box
+              ref={imageRef}
+              component="img"
+              src={photo.blobUri}
+              alt={photo.fileName}
+              sx={{
+                maxWidth: '100%',
+                maxHeight: '100%',
+                objectFit: 'contain',
+              }}
+            />
+
+            {/* Annotation overlay */}
+            {annotations.length > 0 && (
+              <AnnotationOverlay
+                annotations={annotations}
+                width={imageDimensions.width}
+                height={imageDimensions.height}
+              />
+            )}
+          </Box>
 
           {/* Next button */}
           {hasNext && (
@@ -274,6 +379,17 @@ export const PhotoPreview = ({
           </Stack>
         </Box>
       </Box>
+
+      {/* Annotation editor dialog */}
+      {photo && (
+        <AnnotationEditor
+          open={editorOpen}
+          photoUrl={photo.blobUri}
+          existingAnnotations={annotations}
+          onSave={handleAnnotationSave}
+          onCancel={() => setEditorOpen(false)}
+        />
+      )}
     </Dialog>
   )
 }
