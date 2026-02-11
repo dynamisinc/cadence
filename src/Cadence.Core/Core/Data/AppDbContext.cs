@@ -889,6 +889,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.ObservedAt);
             entity.HasIndex(e => e.CreatedByUserId);
 
+            // Composite index for the most common query: list observations by exercise, filtered by soft delete, ordered by time
+            entity.HasIndex(e => new { e.ExerciseId, e.IsDeleted, e.ObservedAt })
+                .HasDatabaseName("IX_Observations_ExerciseId_IsDeleted_ObservedAt");
+
             entity.HasOne(e => e.Exercise)
                 .WithMany(ex => ex.Observations)
                 .HasForeignKey(e => e.ExerciseId)
@@ -1602,6 +1606,10 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.HasIndex(e => e.ObservationId);
             entity.HasIndex(e => e.CapturedById);
             entity.HasIndex(e => new { e.ExerciseId, e.CapturedAt });
+
+            // Composite index for loading photos by observation with soft-delete filter and display ordering
+            entity.HasIndex(e => new { e.ObservationId, e.IsDeleted, e.DisplayOrder })
+                .HasDatabaseName("IX_ExercisePhotos_ObservationId_IsDeleted_DisplayOrder");
 
             // Relationships
             entity.HasOne(e => e.Exercise)

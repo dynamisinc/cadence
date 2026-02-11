@@ -2,6 +2,7 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.Notifications.Models.DTOs;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Observations.Models.DTOs;
+using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Features.Photos.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -38,47 +39,129 @@ public class ObservationService : IObservationService
     /// <inheritdoc />
     public async Task<IEnumerable<ObservationDto>> GetObservationsByExerciseAsync(Guid exerciseId)
     {
-        var observations = await _context.Observations
-            .Include(o => o.CreatedByUser)
-            .Include(o => o.Inject)
-            .Include(o => o.ObservationCapabilities)
-                .ThenInclude(oc => oc.Capability)
-            .Include(o => o.Photos)
+        return await _context.Observations
+            .AsNoTracking()
             .Where(o => o.ExerciseId == exerciseId)
             .OrderByDescending(o => o.ObservedAt)
+            .Select(o => new ObservationDto(
+                o.Id,
+                o.ExerciseId,
+                o.InjectId,
+                o.ObjectiveId,
+                o.Content,
+                o.Rating,
+                o.Recommendation,
+                o.ObservedAt,
+                o.Location,
+                o.Status,
+                o.CreatedAt,
+                o.UpdatedAt,
+                o.CreatedBy,
+                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
+                o.Inject != null ? o.Inject.Title : null,
+                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
+                o.ObservationCapabilities
+                    .Select(oc => new CapabilityTagDto(
+                        oc.Capability.Id,
+                        oc.Capability.Name,
+                        oc.Capability.Category))
+                    .ToList(),
+                o.Photos
+                    .Where(p => !p.IsDeleted)
+                    .OrderBy(p => p.DisplayOrder)
+                    .Select(p => new PhotoTagDto(
+                        p.Id,
+                        p.ThumbnailUri,
+                        p.CapturedAt,
+                        p.DisplayOrder))
+                    .ToList()
+            ))
             .ToListAsync();
-
-        return observations.Select(o => o.ToDto());
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<ObservationDto>> GetObservationsByInjectAsync(Guid injectId)
     {
-        var observations = await _context.Observations
-            .Include(o => o.CreatedByUser)
-            .Include(o => o.Inject)
-            .Include(o => o.ObservationCapabilities)
-                .ThenInclude(oc => oc.Capability)
-            .Include(o => o.Photos)
+        return await _context.Observations
+            .AsNoTracking()
             .Where(o => o.InjectId == injectId)
             .OrderByDescending(o => o.ObservedAt)
+            .Select(o => new ObservationDto(
+                o.Id,
+                o.ExerciseId,
+                o.InjectId,
+                o.ObjectiveId,
+                o.Content,
+                o.Rating,
+                o.Recommendation,
+                o.ObservedAt,
+                o.Location,
+                o.Status,
+                o.CreatedAt,
+                o.UpdatedAt,
+                o.CreatedBy,
+                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
+                o.Inject != null ? o.Inject.Title : null,
+                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
+                o.ObservationCapabilities
+                    .Select(oc => new CapabilityTagDto(
+                        oc.Capability.Id,
+                        oc.Capability.Name,
+                        oc.Capability.Category))
+                    .ToList(),
+                o.Photos
+                    .Where(p => !p.IsDeleted)
+                    .OrderBy(p => p.DisplayOrder)
+                    .Select(p => new PhotoTagDto(
+                        p.Id,
+                        p.ThumbnailUri,
+                        p.CapturedAt,
+                        p.DisplayOrder))
+                    .ToList()
+            ))
             .ToListAsync();
-
-        return observations.Select(o => o.ToDto());
     }
 
     /// <inheritdoc />
     public async Task<ObservationDto?> GetObservationAsync(Guid id)
     {
-        var observation = await _context.Observations
-            .Include(o => o.CreatedByUser)
-            .Include(o => o.Inject)
-            .Include(o => o.ObservationCapabilities)
-                .ThenInclude(oc => oc.Capability)
-            .Include(o => o.Photos)
-            .FirstOrDefaultAsync(o => o.Id == id);
-
-        return observation?.ToDto();
+        return await _context.Observations
+            .AsNoTracking()
+            .Where(o => o.Id == id)
+            .Select(o => new ObservationDto(
+                o.Id,
+                o.ExerciseId,
+                o.InjectId,
+                o.ObjectiveId,
+                o.Content,
+                o.Rating,
+                o.Recommendation,
+                o.ObservedAt,
+                o.Location,
+                o.Status,
+                o.CreatedAt,
+                o.UpdatedAt,
+                o.CreatedBy,
+                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
+                o.Inject != null ? o.Inject.Title : null,
+                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
+                o.ObservationCapabilities
+                    .Select(oc => new CapabilityTagDto(
+                        oc.Capability.Id,
+                        oc.Capability.Name,
+                        oc.Capability.Category))
+                    .ToList(),
+                o.Photos
+                    .Where(p => !p.IsDeleted)
+                    .OrderBy(p => p.DisplayOrder)
+                    .Select(p => new PhotoTagDto(
+                        p.Id,
+                        p.ThumbnailUri,
+                        p.CapturedAt,
+                        p.DisplayOrder))
+                    .ToList()
+            ))
+            .FirstOrDefaultAsync();
     }
 
     /// <inheritdoc />
@@ -140,23 +223,44 @@ public class ObservationService : IObservationService
             "Created observation {ObservationId} for exercise {ExerciseId}",
             observation.Id, exerciseId);
 
-        // Reload with navigation properties
-        await _context.Entry(observation)
-            .Reference(o => o.CreatedByUser)
-            .LoadAsync();
-        await _context.Entry(observation)
-            .Reference(o => o.Inject)
-            .LoadAsync();
-        await _context.Entry(observation)
-            .Collection(o => o.ObservationCapabilities)
-            .Query()
-            .Include(oc => oc.Capability)
-            .LoadAsync();
-        await _context.Entry(observation)
-            .Collection(o => o.Photos)
-            .LoadAsync();
-
-        var dto = observation.ToDto();
+        // Reload as a single projected query instead of multiple round-trips
+        var dto = await _context.Observations
+            .AsNoTracking()
+            .Where(o => o.Id == observation.Id)
+            .Select(o => new ObservationDto(
+                o.Id,
+                o.ExerciseId,
+                o.InjectId,
+                o.ObjectiveId,
+                o.Content,
+                o.Rating,
+                o.Recommendation,
+                o.ObservedAt,
+                o.Location,
+                o.Status,
+                o.CreatedAt,
+                o.UpdatedAt,
+                o.CreatedBy,
+                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
+                o.Inject != null ? o.Inject.Title : null,
+                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
+                o.ObservationCapabilities
+                    .Select(oc => new CapabilityTagDto(
+                        oc.Capability.Id,
+                        oc.Capability.Name,
+                        oc.Capability.Category))
+                    .ToList(),
+                o.Photos
+                    .Where(p => !p.IsDeleted)
+                    .OrderBy(p => p.DisplayOrder)
+                    .Select(p => new PhotoTagDto(
+                        p.Id,
+                        p.ThumbnailUri,
+                        p.CapturedAt,
+                        p.DisplayOrder))
+                    .ToList()
+            ))
+            .FirstAsync();
 
         // Broadcast to all connected clients
         await _hubContext.NotifyObservationAdded(exerciseId, dto);
@@ -206,10 +310,7 @@ public class ObservationService : IObservationService
     public async Task<ObservationDto?> UpdateObservationAsync(Guid id, UpdateObservationRequest request, string modifiedBy)
     {
         var observation = await _context.Observations
-            .Include(o => o.CreatedByUser)
-            .Include(o => o.Inject)
             .Include(o => o.Exercise)
-            .Include(o => o.Photos)
             .FirstOrDefaultAsync(o => o.Id == id);
 
         if (observation == null)
@@ -291,24 +392,44 @@ public class ObservationService : IObservationService
 
         _logger.LogInformation("Updated observation {ObservationId}", id);
 
-        // Reload inject navigation if it changed
-        await _context.Entry(observation)
-            .Reference(o => o.Inject)
-            .LoadAsync();
-
-        // Reload capabilities
-        await _context.Entry(observation)
-            .Collection(o => o.ObservationCapabilities)
-            .Query()
-            .Include(oc => oc.Capability)
-            .LoadAsync();
-
-        // Reload photos
-        await _context.Entry(observation)
-            .Collection(o => o.Photos)
-            .LoadAsync();
-
-        var dto = observation.ToDto();
+        // Reload as a single projected query instead of multiple round-trips
+        var dto = await _context.Observations
+            .AsNoTracking()
+            .Where(o => o.Id == observation.Id)
+            .Select(o => new ObservationDto(
+                o.Id,
+                o.ExerciseId,
+                o.InjectId,
+                o.ObjectiveId,
+                o.Content,
+                o.Rating,
+                o.Recommendation,
+                o.ObservedAt,
+                o.Location,
+                o.Status,
+                o.CreatedAt,
+                o.UpdatedAt,
+                o.CreatedBy,
+                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
+                o.Inject != null ? o.Inject.Title : null,
+                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
+                o.ObservationCapabilities
+                    .Select(oc => new CapabilityTagDto(
+                        oc.Capability.Id,
+                        oc.Capability.Name,
+                        oc.Capability.Category))
+                    .ToList(),
+                o.Photos
+                    .Where(p => !p.IsDeleted)
+                    .OrderBy(p => p.DisplayOrder)
+                    .Select(p => new PhotoTagDto(
+                        p.Id,
+                        p.ThumbnailUri,
+                        p.CapturedAt,
+                        p.DisplayOrder))
+                    .ToList()
+            ))
+            .FirstAsync();
 
         // Broadcast to all connected clients
         await _hubContext.NotifyObservationUpdated(observation.ExerciseId, dto);
