@@ -79,7 +79,8 @@
       "Bash(az webapp log config:*)",
       "Bash(wc:*)",
       "Bash(tail:*)",
-      "Bash(gh pr comment:*)"
+      "Bash(gh pr comment:*)",
+      "Bash(git worktree remove:*)"
     ],
     "deny": [],
     "ask": [],
