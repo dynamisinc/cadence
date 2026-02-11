@@ -386,134 +386,134 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
               pointerEvents: 'all',
             }}
           >
-              <Stage
-                width={stageDimensions.width}
-                height={stageDimensions.height}
-                onPointerDown={handlePointerDown}
-                onPointerMove={handlePointerMove}
-                onPointerUp={handlePointerUp}
-                onClick={handleStageClick}
-              >
-                <Layer>
-                  {/* Render existing annotations */}
-                  {annotations.map(annotation => {
-                    if (annotation.type === 'circle') {
-                      const [cx, cy] = relativeToPixel(
-                        annotation.cx,
-                        annotation.cy,
-                        stageDimensions.width,
-                        stageDimensions.height,
-                      )
-                      const [rx, ry] = relativeToPixel(
-                        annotation.rx,
-                        annotation.ry,
-                        stageDimensions.width,
-                        stageDimensions.height,
-                      )
+            <Stage
+              width={stageDimensions.width}
+              height={stageDimensions.height}
+              onPointerDown={handlePointerDown}
+              onPointerMove={handlePointerMove}
+              onPointerUp={handlePointerUp}
+              onClick={handleStageClick}
+            >
+              <Layer>
+                {/* Render existing annotations */}
+                {annotations.map(annotation => {
+                  if (annotation.type === 'circle') {
+                    const [cx, cy] = relativeToPixel(
+                      annotation.cx,
+                      annotation.cy,
+                      stageDimensions.width,
+                      stageDimensions.height,
+                    )
+                    const [rx, ry] = relativeToPixel(
+                      annotation.rx,
+                      annotation.ry,
+                      stageDimensions.width,
+                      stageDimensions.height,
+                    )
 
-                      return (
-                        <Ellipse
+                    return (
+                      <Ellipse
+                        key={annotation.id}
+                        x={cx}
+                        y={cy}
+                        radiusX={rx}
+                        radiusY={ry}
+                        stroke={ANNOTATION_STYLE.strokeColor}
+                        strokeWidth={ANNOTATION_STYLE.strokeWidth}
+                      />
+                    )
+                  } else if (annotation.type === 'arrow') {
+                    const [x1, y1] = relativeToPixel(
+                      annotation.x1,
+                      annotation.y1,
+                      stageDimensions.width,
+                      stageDimensions.height,
+                    )
+                    const [x2, y2] = relativeToPixel(
+                      annotation.x2,
+                      annotation.y2,
+                      stageDimensions.width,
+                      stageDimensions.height,
+                    )
+
+                    return (
+                      <Arrow
+                        key={annotation.id}
+                        points={[x1, y1, x2, y2]}
+                        stroke={ANNOTATION_STYLE.strokeColor}
+                        fill={ANNOTATION_STYLE.strokeColor}
+                        strokeWidth={ANNOTATION_STYLE.strokeWidth}
+                        pointerLength={10}
+                        pointerWidth={10}
+                      />
+                    )
+                  } else if (annotation.type === 'text') {
+                    const [x, y] = relativeToPixel(
+                      annotation.x,
+                      annotation.y,
+                      stageDimensions.width,
+                      stageDimensions.height,
+                    )
+
+                    return (
+                      <>
+                        <Rect
+                          key={`${annotation.id}-bg`}
+                          x={x}
+                          y={y - ANNOTATION_STYLE.textFontSize}
+                          width={annotation.content.length * ANNOTATION_STYLE.textFontSize * 0.6}
+                          height={ANNOTATION_STYLE.textFontSize + 8}
+                          fill={ANNOTATION_STYLE.textBgColor}
+                        />
+                        <Text
                           key={annotation.id}
-                          x={cx}
-                          y={cy}
-                          radiusX={rx}
-                          radiusY={ry}
-                          stroke={ANNOTATION_STYLE.strokeColor}
-                          strokeWidth={ANNOTATION_STYLE.strokeWidth}
-                        />
-                      )
-                    } else if (annotation.type === 'arrow') {
-                      const [x1, y1] = relativeToPixel(
-                        annotation.x1,
-                        annotation.y1,
-                        stageDimensions.width,
-                        stageDimensions.height,
-                      )
-                      const [x2, y2] = relativeToPixel(
-                        annotation.x2,
-                        annotation.y2,
-                        stageDimensions.width,
-                        stageDimensions.height,
-                      )
-
-                      return (
-                        <Arrow
-                          key={annotation.id}
-                          points={[x1, y1, x2, y2]}
-                          stroke={ANNOTATION_STYLE.strokeColor}
+                          x={x}
+                          y={y - ANNOTATION_STYLE.textFontSize + 4}
+                          text={annotation.content}
+                          fontSize={ANNOTATION_STYLE.textFontSize}
                           fill={ANNOTATION_STYLE.strokeColor}
-                          strokeWidth={ANNOTATION_STYLE.strokeWidth}
-                          pointerLength={10}
-                          pointerWidth={10}
+                          fontFamily="Arial"
                         />
-                      )
-                    } else if (annotation.type === 'text') {
-                      const [x, y] = relativeToPixel(
-                        annotation.x,
-                        annotation.y,
-                        stageDimensions.width,
-                        stageDimensions.height,
-                      )
+                      </>
+                    )
+                  }
+                  return null
+                })}
 
-                      return (
-                        <>
-                          <Rect
-                            key={`${annotation.id}-bg`}
-                            x={x}
-                            y={y - ANNOTATION_STYLE.textFontSize}
-                            width={annotation.content.length * ANNOTATION_STYLE.textFontSize * 0.6}
-                            height={ANNOTATION_STYLE.textFontSize + 8}
-                            fill={ANNOTATION_STYLE.textBgColor}
-                          />
-                          <Text
-                            key={annotation.id}
-                            x={x}
-                            y={y - ANNOTATION_STYLE.textFontSize + 4}
-                            text={annotation.content}
-                            fontSize={ANNOTATION_STYLE.textFontSize}
-                            fill={ANNOTATION_STYLE.strokeColor}
-                            fontFamily="Arial"
-                          />
-                        </>
-                      )
-                    }
-                    return null
-                  })}
-
-                  {/* Render preview shape while drawing */}
-                  {previewShape && (
-                    <>
-                      {previewShape.type === 'circle' && (
-                        <Ellipse
-                          x={(previewShape.start.x + previewShape.current.x) / 2}
-                          y={(previewShape.start.y + previewShape.current.y) / 2}
-                          radiusX={Math.abs(previewShape.current.x - previewShape.start.x) / 2}
-                          radiusY={Math.abs(previewShape.current.y - previewShape.start.y) / 2}
-                          stroke={ANNOTATION_STYLE.strokeColor}
-                          strokeWidth={ANNOTATION_STYLE.strokeWidth}
-                          opacity={0.6}
-                        />
-                      )}
-                      {previewShape.type === 'arrow' && (
-                        <Arrow
-                          points={[
-                            previewShape.start.x,
-                            previewShape.start.y,
-                            previewShape.current.x,
-                            previewShape.current.y,
-                          ]}
-                          stroke={ANNOTATION_STYLE.strokeColor}
-                          fill={ANNOTATION_STYLE.strokeColor}
-                          strokeWidth={ANNOTATION_STYLE.strokeWidth}
-                          pointerLength={10}
-                          pointerWidth={10}
-                          opacity={0.6}
-                        />
-                      )}
-                    </>
-                  )}
-                </Layer>
-              </Stage>
+                {/* Render preview shape while drawing */}
+                {previewShape && (
+                  <>
+                    {previewShape.type === 'circle' && (
+                      <Ellipse
+                        x={(previewShape.start.x + previewShape.current.x) / 2}
+                        y={(previewShape.start.y + previewShape.current.y) / 2}
+                        radiusX={Math.abs(previewShape.current.x - previewShape.start.x) / 2}
+                        radiusY={Math.abs(previewShape.current.y - previewShape.start.y) / 2}
+                        stroke={ANNOTATION_STYLE.strokeColor}
+                        strokeWidth={ANNOTATION_STYLE.strokeWidth}
+                        opacity={0.6}
+                      />
+                    )}
+                    {previewShape.type === 'arrow' && (
+                      <Arrow
+                        points={[
+                          previewShape.start.x,
+                          previewShape.start.y,
+                          previewShape.current.x,
+                          previewShape.current.y,
+                        ]}
+                        stroke={ANNOTATION_STYLE.strokeColor}
+                        fill={ANNOTATION_STYLE.strokeColor}
+                        strokeWidth={ANNOTATION_STYLE.strokeWidth}
+                        pointerLength={10}
+                        pointerWidth={10}
+                        opacity={0.6}
+                      />
+                    )}
+                  </>
+                )}
+              </Layer>
+            </Stage>
           </Box>
         )}
 
