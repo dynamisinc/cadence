@@ -5,6 +5,14 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.5.1](https://github.com/dynamisinc/cadence/compare/frontend-v2.5.0...frontend-v2.5.1) (2026-02-11)
+
+
+### Bug Fixes
+
+* **invitation:** show org name, exercises on invite page and fix registration UX ([e805b99](https://github.com/dynamisinc/cadence/commit/e805b99a8f052dd045c5249353bd6645de99a3fe))
+* **invitations:** show org name, exercises, and fix registration UX ([252ee2f](https://github.com/dynamisinc/cadence/commit/252ee2fc0794ee8393623458a06f24dcb6094b36))
+
 ## [2.5.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.4.0...frontend-v2.5.0) (2026-02-11)
 
 
