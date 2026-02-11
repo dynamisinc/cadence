@@ -5,6 +5,20 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.5.1...frontend-v2.6.0) (2026-02-11)
+
+
+### Features
+
+* **photos:** add offline photo queue and annotation editor (S05, S06) ([4386f91](https://github.com/dynamisinc/cadence/commit/4386f91124e14ad239461735aa751e146e2cdd77))
+* **photos:** offline photo queue and annotation editor (S05, S06) ([0440cad](https://github.com/dynamisinc/cadence/commit/0440cad0af6e9fdf70858a73d6171513f3badfef))
+
+
+### Bug Fixes
+
+* **photos:** fix annotation drawing and gallery refresh after save ([cbfc264](https://github.com/dynamisinc/cadence/commit/cbfc264d694790059ad70d246c0f00ddcc4c6c72))
+* **photos:** fix type-only imports and missing photos table in pruneOldCache transaction ([626efcc](https://github.com/dynamisinc/cadence/commit/626efcc14c1570d7b1d3bc34b593e29896923416))
+
 ## [2.5.1](https://github.com/dynamisinc/cadence/compare/frontend-v2.5.0...frontend-v2.5.1) (2026-02-11)
 
 
