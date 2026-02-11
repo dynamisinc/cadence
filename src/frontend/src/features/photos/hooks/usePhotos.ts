@@ -113,7 +113,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       objectUrlsRef.current.forEach(url => {
         try {
           URL.revokeObjectURL(url)
-        } catch (e) {
+        } catch {
           // Ignore revoke errors
         }
       })
@@ -517,7 +517,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
   // Pending photos appear first (newest first)
   const mergedPhotos = [
     ...localPhotos.sort((a, b) =>
-      new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime()
+      new Date(b.capturedAt).getTime() - new Date(a.capturedAt).getTime(),
     ),
     ...(data?.photos ?? []),
   ]

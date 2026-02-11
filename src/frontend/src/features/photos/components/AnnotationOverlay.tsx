@@ -25,20 +25,6 @@ interface AnnotationOverlayProps {
 }
 
 /**
- * Parse annotations from JSON string
- * Returns empty array if JSON is invalid or empty
- */
-export function parseAnnotationsJson(json: string | null | undefined): Annotation[] {
-  if (!json) return []
-  try {
-    const parsed = JSON.parse(json)
-    return Array.isArray(parsed) ? parsed : []
-  } catch {
-    return []
-  }
-}
-
-/**
  * Render a circle annotation as an SVG ellipse
  */
 const renderCircle = (annotation: CircleAnnotation) => {
@@ -118,7 +104,7 @@ const renderText = (annotation: TextAnnotation) => {
 /**
  * AnnotationOverlay - SVG overlay for rendering read-only annotations
  */
-export const AnnotationOverlay = memo(({ annotations, width, height }: AnnotationOverlayProps) => {
+export const AnnotationOverlay = memo(({ annotations, width: _width, height: _height }: AnnotationOverlayProps) => {
   // Don't render if no annotations
   if (!annotations || annotations.length === 0) {
     return null
@@ -168,7 +154,7 @@ export const AnnotationOverlay = memo(({ annotations, width, height }: Annotatio
       </defs>
 
       {/* Render all annotations */}
-      {annotations.map((annotation) => {
+      {annotations.map(annotation => {
         switch (annotation.type) {
           case 'circle':
             return renderCircle(annotation)

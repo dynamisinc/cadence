@@ -63,7 +63,8 @@ import type { ObservationDto } from '../../observations/types'
 import type { PhotoListQuery } from '../types'
 import type { Annotation } from '../types/annotations'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
-import { AnnotationOverlay, parseAnnotationsJson } from '../components/AnnotationOverlay'
+import { AnnotationOverlay } from '../components/AnnotationOverlay'
+import { parseAnnotationsJson } from '../utils/parseAnnotations'
 import { AnnotationEditor } from '../components/AnnotationEditor'
 
 // Filter chip options

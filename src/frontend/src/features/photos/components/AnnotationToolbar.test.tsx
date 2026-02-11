@@ -11,6 +11,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen } from '@/test/testUtils'
 import userEvent from '@testing-library/user-event'
 import { AnnotationToolbar } from './AnnotationToolbar'
+import type { AnnotationTool } from '../types/annotations'
 
 describe('AnnotationToolbar', () => {
   const mockOnToolChange = vi.fn()
@@ -19,7 +20,7 @@ describe('AnnotationToolbar', () => {
   const mockOnCancel = vi.fn()
 
   const defaultProps = {
-    activeTool: null as any,
+    activeTool: null as AnnotationTool | null,
     onToolChange: mockOnToolChange,
     onUndo: mockOnUndo,
     onDone: mockOnDone,

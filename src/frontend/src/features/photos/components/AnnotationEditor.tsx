@@ -54,7 +54,7 @@ const pixelToRelative = (
   px: number,
   py: number,
   stageWidth: number,
-  stageHeight: number
+  stageHeight: number,
 ): [number, number] => {
   return [px / stageWidth, py / stageHeight]
 }
@@ -66,7 +66,7 @@ const relativeToPixel = (
   rx: number,
   ry: number,
   stageWidth: number,
-  stageHeight: number
+  stageHeight: number,
 ): [number, number] => {
   return [rx * stageWidth, ry * stageHeight]
 }
@@ -149,7 +149,7 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
    * Pushes current state to undo stack before making changes
    */
   const pushUndo = () => {
-    setUndoStack((prev) => [...prev, annotations])
+    setUndoStack(prev => [...prev, annotations])
   }
 
   /**
@@ -160,7 +160,7 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
 
     const previousState = undoStack[undoStack.length - 1]
     setAnnotations(previousState)
-    setUndoStack((prev) => prev.slice(0, -1))
+    setUndoStack(prev => prev.slice(0, -1))
   }
 
   /**
@@ -240,13 +240,13 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
         ry,
       }
 
-      setAnnotations((prev) => [...prev, newAnnotation])
+      setAnnotations(prev => [...prev, newAnnotation])
     } else if (activeTool === 'arrow') {
       const [x1, y1] = pixelToRelative(
         drawStart.current.x,
         drawStart.current.y,
         stageDimensions.width,
-        stageDimensions.height
+        stageDimensions.height,
       )
       const [x2, y2] = pixelToRelative(pos.x, pos.y, stageDimensions.width, stageDimensions.height)
 
@@ -259,7 +259,7 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
         y2,
       }
 
-      setAnnotations((prev) => [...prev, newAnnotation])
+      setAnnotations(prev => [...prev, newAnnotation])
     }
 
     // Reset drawing state
@@ -312,7 +312,7 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
       content: textInput.value.slice(0, 100), // Max 100 characters
     }
 
-    setAnnotations((prev) => [...prev, newAnnotation])
+    setAnnotations(prev => [...prev, newAnnotation])
     setTextInput({ visible: false, x: 0, y: 0, value: '' })
   }
 
@@ -395,19 +395,19 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
             >
               <Layer>
                 {/* Render existing annotations */}
-                {annotations.map((annotation) => {
+                {annotations.map(annotation => {
                   if (annotation.type === 'circle') {
                     const [cx, cy] = relativeToPixel(
                       annotation.cx,
                       annotation.cy,
                       stageDimensions.width,
-                      stageDimensions.height
+                      stageDimensions.height,
                     )
                     const [rx, ry] = relativeToPixel(
                       annotation.rx,
                       annotation.ry,
                       stageDimensions.width,
-                      stageDimensions.height
+                      stageDimensions.height,
                     )
 
                     return (
@@ -426,13 +426,13 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
                       annotation.x1,
                       annotation.y1,
                       stageDimensions.width,
-                      stageDimensions.height
+                      stageDimensions.height,
                     )
                     const [x2, y2] = relativeToPixel(
                       annotation.x2,
                       annotation.y2,
                       stageDimensions.width,
-                      stageDimensions.height
+                      stageDimensions.height,
                     )
 
                     return (
@@ -451,7 +451,7 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
                       annotation.x,
                       annotation.y,
                       stageDimensions.width,
-                      stageDimensions.height
+                      stageDimensions.height,
                     )
 
                     return (
@@ -522,7 +522,7 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
             autoFocus
             type="text"
             value={textInput.value}
-            onChange={(e) => setTextInput((prev) => ({ ...prev, value: e.target.value }))}
+            onChange={e => setTextInput(prev => ({ ...prev, value: e.target.value }))}
             onKeyDown={handleTextKeyDown}
             onBlur={handleTextSubmit}
             maxLength={100}
