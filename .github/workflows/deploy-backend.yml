@@ -192,12 +192,13 @@ jobs:
         run: |
           WEBAPP_URL="${{ steps.deploy-webapi.outputs.webapp-url }}"
           echo "Checking liveness at: ${WEBAPP_URL}/api/health/live"
-          echo "Waiting 60 seconds for app to warm up..."
-          sleep 60
+          echo "Waiting 30 seconds for app to start..."
+          sleep 30
 
-          for i in 1 2 3 4 5; do
-            echo "Health check attempt $i..."
-            response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${WEBAPP_URL}/api/health/live" || echo "000")
+          MAX_ATTEMPTS=12
+          for i in $(seq 1 $MAX_ATTEMPTS); do
+            echo "Health check attempt $i/$MAX_ATTEMPTS..."
+            response=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 "${WEBAPP_URL}/api/health/live" 2>/dev/null) || response="000"
             if [ "$response" = "200" ]; then
               echo "Health check passed!"
               exit 0
@@ -206,7 +207,9 @@ jobs:
             sleep 15
           done
 
-          echo "Health check failed after 5 attempts"
+          echo "Health check failed after $MAX_ATTEMPTS attempts"
+          echo "Final response from readiness endpoint:"
+          curl -sv --max-time 15 "${WEBAPP_URL}/api/health/ready" 2>&1 || true
           exit 1
 
   skip-deploy:
