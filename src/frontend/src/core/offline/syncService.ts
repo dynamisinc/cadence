@@ -15,6 +15,11 @@ import {
   type PendingActionType,
 } from './db'
 import { updateCachedInject, updateCachedObservation, deleteCachedObservation } from './cacheService'
+import {
+  getCachedPhoto,
+  updateCachedPhotoSyncStatus,
+  markPhotoSynced,
+} from './photoCacheService'
 import { injectService } from '../../features/injects/services/injectService'
 import { observationService } from '../../features/observations/services/observationService'
 import { photoService } from '../../features/photos/services/photoService'
@@ -47,6 +52,8 @@ export interface SyncProgress {
   current: number
   total: number
   conflicts: ConflictInfo[]
+  /** Photo-specific sync progress (only during blob upload phase) */
+  photoSyncProgress?: { current: number; total: number }
 }
 
 // ============================================================================
@@ -110,28 +117,18 @@ interface DeleteObservationPayload {
 }
 
 interface UploadPhotoPayload {
-  photoData: string // base64 data URL
-  metadata: {
-    capturedAt: string
-    scenarioTime?: string | null
-    latitude?: number | null
-    longitude?: number | null
-    locationAccuracy?: number | null
-    observationId?: string | null
-  }
-  tempId: string
+  /** Reference to cached photo in IndexedDB photos table */
+  localPhotoId: string
+  /** Idempotency key for duplicate prevention on retry */
+  idempotencyKey: string
 }
 
 interface QuickPhotoPayload {
-  photoData: string // base64 data URL
-  metadata: {
-    capturedAt: string
-    scenarioTime?: string | null
-    latitude?: number | null
-    longitude?: number | null
-    locationAccuracy?: number | null
-  }
-  tempPhotoId: string
+  /** Reference to cached photo in IndexedDB photos table */
+  localPhotoId: string
+  /** Idempotency key for duplicate prevention on retry */
+  idempotencyKey: string
+  /** Temp observation ID for the auto-created observation */
   tempObsId: string
 }
 
@@ -246,16 +243,30 @@ async function processAction(action: PendingAction): Promise<void> {
     }
 
     case 'UPLOAD_PHOTO': {
-      const { photoData, metadata } = payload as UploadPhotoPayload
-      const formData = buildPhotoFormData(photoData, metadata)
-      await photoService.uploadPhoto(exerciseId, formData)
+      const { localPhotoId, idempotencyKey } = payload as UploadPhotoPayload
+      const cached = await getCachedPhoto(localPhotoId)
+      if (!cached) {
+        throw new Error(`Cached photo not found: ${localPhotoId}`)
+      }
+      await updateCachedPhotoSyncStatus(localPhotoId, 'uploading')
+      const formData = buildPhotoFormDataFromBlob(cached)
+      const serverPhoto = await photoService.uploadPhoto(exerciseId, formData, idempotencyKey)
+      // Mark as synced and retain local cache
+      await markPhotoSynced(localPhotoId, serverPhoto)
       break
     }
 
     case 'QUICK_PHOTO': {
-      const { photoData, metadata } = payload as QuickPhotoPayload
-      const formData = buildPhotoFormData(photoData, metadata)
-      await photoService.quickPhoto(exerciseId, formData)
+      const { localPhotoId, idempotencyKey } = payload as QuickPhotoPayload
+      const cached = await getCachedPhoto(localPhotoId)
+      if (!cached) {
+        throw new Error(`Cached photo not found: ${localPhotoId}`)
+      }
+      await updateCachedPhotoSyncStatus(localPhotoId, 'uploading')
+      const formData = buildPhotoFormDataFromBlob(cached)
+      const result = await photoService.quickPhoto(exerciseId, formData, idempotencyKey)
+      // Mark as synced and retain local cache
+      await markPhotoSynced(localPhotoId, result.photo)
       break
     }
 
@@ -295,38 +306,27 @@ async function processAction(action: PendingAction): Promise<void> {
 // ============================================================================
 
 /**
- * Convert a base64 data URL back to a File and build FormData for upload
+ * Build FormData for upload from a CachedPhoto blob (no base64 conversion needed)
  */
-function buildPhotoFormData(
-  photoData: string,
-  metadata: {
-    capturedAt: string
-    scenarioTime?: string | null
-    latitude?: number | null
-    longitude?: number | null
-    locationAccuracy?: number | null
-    observationId?: string | null
-  },
+function buildPhotoFormDataFromBlob(
+  cached: import('./db').CachedPhoto,
 ): FormData {
-  // Convert base64 data URL to Blob
-  const byteString = atob(photoData.split(',')[1])
-  const mimeString = photoData.split(',')[0].split(':')[1].split(';')[0]
-  const ab = new ArrayBuffer(byteString.length)
-  const ia = new Uint8Array(ab)
-  for (let i = 0; i < byteString.length; i++) {
-    ia[i] = byteString.charCodeAt(i)
-  }
-  const blob = new Blob([ab], { type: mimeString })
-  const file = new File([blob], 'offline-photo.jpg', { type: mimeString })
-
+  const file = new File([cached.blob], cached.fileName, { type: cached.blob.type || 'image/jpeg' })
   const formData = new FormData()
   formData.append('photo', file)
-  formData.append('capturedAt', metadata.capturedAt)
-  if (metadata.scenarioTime) formData.append('scenarioTime', metadata.scenarioTime)
-  if (metadata.latitude != null) formData.append('latitude', String(metadata.latitude))
-  if (metadata.longitude != null) formData.append('longitude', String(metadata.longitude))
-  if (metadata.locationAccuracy != null) formData.append('locationAccuracy', String(metadata.locationAccuracy))
-  if (metadata.observationId) formData.append('observationId', metadata.observationId)
+
+  // Add thumbnail if different from photo
+  if (cached.thumbnailBlob !== cached.blob) {
+    const thumbnail = new File([cached.thumbnailBlob], `thumb-${cached.fileName}`, { type: cached.thumbnailBlob.type || 'image/jpeg' })
+    formData.append('thumbnail', thumbnail)
+  }
+
+  formData.append('capturedAt', cached.capturedAt)
+  if (cached.scenarioTime) formData.append('scenarioTime', cached.scenarioTime)
+  if (cached.latitude != null) formData.append('latitude', String(cached.latitude))
+  if (cached.longitude != null) formData.append('longitude', String(cached.longitude))
+  if (cached.locationAccuracy != null) formData.append('locationAccuracy', String(cached.locationAccuracy))
+  if (cached.observationId) formData.append('observationId', cached.observationId)
   return formData
 }
 
@@ -410,11 +410,59 @@ function extractConflictInfo(action: PendingAction, error: unknown): ConflictInf
 }
 
 // ============================================================================
+// Sync Ordering & Backoff
+// ============================================================================
+
+/** Action types that involve blob uploads (processed after data actions) */
+const BLOB_ACTION_TYPES: PendingActionType[] = ['UPLOAD_PHOTO', 'QUICK_PHOTO']
+
+/** Max retry count for photo uploads (more generous than data actions) */
+const PHOTO_MAX_RETRIES = 8
+
+/** Max retry count for data actions */
+const DATA_MAX_RETRIES = 5
+
+/**
+ * Calculate exponential backoff delay: 1s, 2s, 4s, 8s, 16s, capped at 30s
+ */
+export function calculateBackoffDelay(retryCount: number, maxDelayMs: number = 30000): number {
+  const delay = Math.min(1000 * Math.pow(2, retryCount), maxDelayMs)
+  return delay
+}
+
+/**
+ * Partition actions into data-first and blob-second phases
+ * Data actions (observations, inject status) sync before blob actions (photos)
+ * to guarantee referential integrity.
+ */
+function partitionActions(actions: PendingAction[]): {
+  dataActions: PendingAction[]
+  blobActions: PendingAction[]
+} {
+  const dataActions: PendingAction[] = []
+  const blobActions: PendingAction[] = []
+
+  for (const action of actions) {
+    if (BLOB_ACTION_TYPES.includes(action.type)) {
+      blobActions.push(action)
+    } else {
+      dataActions.push(action)
+    }
+  }
+
+  return { dataActions, blobActions }
+}
+
+// ============================================================================
 // Main Sync Function
 // ============================================================================
 
 /**
- * Sync all pending actions with the server
+ * Sync all pending actions with the server.
+ *
+ * Processes in two phases:
+ * 1. Data actions (observations, inject status) - ensures referential integrity
+ * 2. Blob actions (photo uploads) - processed chronologically with backoff retry
  *
  * @param exerciseId Optional - only sync actions for this exercise
  * @param onProgress Optional callback for progress updates
@@ -438,6 +486,8 @@ export async function syncPendingActions(
   syncAbortController = new AbortController()
 
   const actions = await getPendingActions(exerciseId)
+  const { dataActions, blobActions } = partitionActions(actions)
+
   const result: SyncResult = {
     totalActions: actions.length,
     succeeded: 0,
@@ -446,62 +496,43 @@ export async function syncPendingActions(
   }
 
   const conflicts: ConflictInfo[] = []
+  let processedCount = 0
 
-  for (let i = 0; i < actions.length; i++) {
-    // Check for cancellation
-    if (syncAbortController.signal.aborted) {
-      break
-    }
+  // Phase 1: Process data actions first (observations, inject status, photo metadata)
+  for (const action of dataActions) {
+    if (syncAbortController.signal.aborted) break
 
-    const action = actions[i]
-
-    // Report progress
+    processedCount++
     if (onProgress) {
       onProgress({
         status: 'syncing',
-        current: i + 1,
+        current: processedCount,
         total: actions.length,
         conflicts,
       })
     }
 
-    try {
-      // Mark as syncing
-      await updatePendingActionStatus(action.id!, 'syncing')
+    await processActionWithRetry(action, DATA_MAX_RETRIES, result, conflicts)
+  }
 
-      // Process the action
-      await processAction(action)
+  // Phase 2: Process blob actions (photo uploads) chronologically
+  for (let i = 0; i < blobActions.length; i++) {
+    if (syncAbortController.signal.aborted) break
 
-      // Success - remove from queue
-      await deletePendingAction(action.id!)
-      result.succeeded++
-    } catch (error) {
-      const errorMessage = getErrorMessage(error)
+    const action = blobActions[i]
+    processedCount++
 
-      if (isConflictError(error)) {
-        // Conflict - mark as failed and record conflict info
-        await updatePendingActionStatus(action.id!, 'failed', errorMessage)
-        conflicts.push(extractConflictInfo(action, error))
-        result.failed++
-        result.failedActions.push({ ...action, status: 'failed', error: errorMessage })
-      } else if (isServerError(error)) {
-        // Server error - keep for retry with backoff
-        await incrementRetryCount(action.id!)
-        await updatePendingActionStatus(action.id!, 'pending', errorMessage)
-
-        // If too many retries, mark as failed
-        if (action.retryCount >= 5) {
-          await updatePendingActionStatus(action.id!, 'failed', errorMessage)
-          result.failed++
-          result.failedActions.push({ ...action, status: 'failed', error: errorMessage })
-        }
-      } else {
-        // Client error (4xx) - mark as failed, don't retry
-        await updatePendingActionStatus(action.id!, 'failed', errorMessage)
-        result.failed++
-        result.failedActions.push({ ...action, status: 'failed', error: errorMessage })
-      }
+    if (onProgress) {
+      onProgress({
+        status: 'syncing',
+        current: processedCount,
+        total: actions.length,
+        conflicts,
+        photoSyncProgress: { current: i + 1, total: blobActions.length },
+      })
     }
+
+    await processActionWithRetry(action, PHOTO_MAX_RETRIES, result, conflicts)
   }
 
   // Determine final status
@@ -522,11 +553,68 @@ export async function syncPendingActions(
       current: actions.length,
       total: actions.length,
       conflicts,
+      photoSyncProgress: blobActions.length > 0
+        ? { current: blobActions.length, total: blobActions.length }
+        : undefined,
     })
   }
 
   syncAbortController = null
   return result
+}
+
+/**
+ * Process a single action with error handling, backoff retry, and conflict detection
+ */
+async function processActionWithRetry(
+  action: PendingAction,
+  maxRetries: number,
+  result: SyncResult,
+  conflicts: ConflictInfo[],
+): Promise<void> {
+  try {
+    await updatePendingActionStatus(action.id!, 'syncing')
+    await processAction(action)
+    await deletePendingAction(action.id!)
+    result.succeeded++
+  } catch (error) {
+    const errorMessage = getErrorMessage(error)
+
+    if (isConflictError(error)) {
+      await updatePendingActionStatus(action.id!, 'failed', errorMessage)
+      conflicts.push(extractConflictInfo(action, error))
+      result.failed++
+      result.failedActions.push({ ...action, status: 'failed', error: errorMessage })
+    } else if (isServerError(error)) {
+      await incrementRetryCount(action.id!)
+      const newRetryCount = action.retryCount + 1
+
+      if (newRetryCount >= maxRetries) {
+        await updatePendingActionStatus(action.id!, 'failed', errorMessage)
+        result.failed++
+        result.failedActions.push({ ...action, status: 'failed', error: errorMessage })
+        // Mark cached photo as failed if applicable
+        if (action.type === 'UPLOAD_PHOTO' || action.type === 'QUICK_PHOTO') {
+          const payload = action.payload as { localPhotoId: string }
+          await updateCachedPhotoSyncStatus(payload.localPhotoId, 'failed', errorMessage)
+        }
+      } else {
+        await updatePendingActionStatus(action.id!, 'pending', errorMessage)
+        // Apply exponential backoff delay before next action
+        const delay = calculateBackoffDelay(newRetryCount)
+        await new Promise(resolve => setTimeout(resolve, delay))
+      }
+    } else {
+      await updatePendingActionStatus(action.id!, 'failed', errorMessage)
+      result.failed++
+      result.failedActions.push({ ...action, status: 'failed', error: errorMessage })
+      // Mark cached photo as failed if applicable
+      if (action.type === 'UPLOAD_PHOTO' || action.type === 'QUICK_PHOTO') {
+        const payload = action.payload as { localPhotoId: string }
+        await updateCachedPhotoSyncStatus(payload.localPhotoId, 'failed', errorMessage)
+      }
+    }
+  }
 }
 
 /**
@@ -574,6 +662,14 @@ export async function discardAction(actionId: number): Promise<void> {
         break
       }
       // DELETE_OBSERVATION - nothing to revert (already deleted locally)
+      case 'UPLOAD_PHOTO':
+      case 'QUICK_PHOTO': {
+        const payload = action.payload as { localPhotoId: string }
+        // Remove the cached photo blob since we're discarding the action
+        const { deleteCachedPhoto } = await import('./photoCacheService')
+        await deleteCachedPhoto(payload.localPhotoId)
+        break
+      }
     }
 
     await deletePendingAction(actionId)

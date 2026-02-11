@@ -27,11 +27,15 @@ export const photoService = {
    * - locationAccuracy?: number (optional)
    * - observationId?: string (optional)
    */
-  uploadPhoto: async (exerciseId: string, formData: FormData): Promise<PhotoDto> => {
+  uploadPhoto: async (exerciseId: string, formData: FormData, idempotencyKey?: string): Promise<PhotoDto> => {
+    const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' }
+    if (idempotencyKey) {
+      headers['X-Idempotency-Key'] = idempotencyKey
+    }
     const response = await apiClient.post<PhotoDto>(
       `/exercises/${exerciseId}/photos`,
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
+      { headers },
     )
     return response.data
   },
@@ -95,11 +99,16 @@ export const photoService = {
   quickPhoto: async (
     exerciseId: string,
     formData: FormData,
+    idempotencyKey?: string,
   ): Promise<QuickPhotoResponse> => {
+    const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' }
+    if (idempotencyKey) {
+      headers['X-Idempotency-Key'] = idempotencyKey
+    }
     const response = await apiClient.post<QuickPhotoResponse>(
       `/exercises/${exerciseId}/photos/quick`,
       formData,
-      { headers: { 'Content-Type': 'multipart/form-data' } },
+      { headers },
     )
     return response.data
   },

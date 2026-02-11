@@ -3,6 +3,7 @@ param webAppName string
 param appInsightsConnectionString string
 param signalRConnectionString string
 param sqlConnectionString string
+param storageConnectionString string
 param tags object = {}
 
 resource hostingPlan 'Microsoft.Web/serverfarms@2022-09-01' = {
@@ -40,6 +41,14 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
         {
           name: 'Azure__SignalR__ConnectionString'
           value: signalRConnectionString
+        }
+        {
+          name: 'Azure__BlobStorage__ConnectionString'
+          value: storageConnectionString
+        }
+        {
+          name: 'Azure__BlobStorage__PhotoContainerName'
+          value: 'exercise-photos'
         }
         {
           name: 'ASPNETCORE_ENVIRONMENT'

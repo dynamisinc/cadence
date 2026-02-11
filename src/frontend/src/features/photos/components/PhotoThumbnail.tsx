@@ -3,6 +3,7 @@
  *
  * Displays a photo thumbnail with optional sync status indicator.
  * Shows upload status for photos pending sync (temp IDs starting with "temp-").
+ * Shows annotation indicator for photos with annotations.
  * Uses COBRA spacing and FontAwesome icons.
  *
  * @module features/photos/components
@@ -10,7 +11,7 @@
 
 import { Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCloudArrowUp } from '@fortawesome/free-solid-svg-icons'
+import { faCloudArrowUp, faPenNib } from '@fortawesome/free-solid-svg-icons'
 import type { PhotoDto } from '../types'
 
 interface PhotoThumbnailProps {
@@ -48,6 +49,7 @@ export const PhotoThumbnail = ({
 }: PhotoThumbnailProps) => {
   const thumbnailSize = getThumbnailSize(size)
   const isPending = photo.id.startsWith('temp-')
+  const hasAnnotations = photo.annotationsJson && photo.annotationsJson !== '[]'
 
   return (
     <Box
@@ -100,6 +102,28 @@ export const PhotoThumbnail = ({
           }}
         >
           <FontAwesomeIcon icon={faCloudArrowUp} size="xs" />
+        </Box>
+      )}
+
+      {/* Annotation indicator */}
+      {hasAnnotations && (
+        <Box
+          sx={{
+            position: 'absolute',
+            bottom: 4,
+            right: 4,
+            bgcolor: 'error.main',
+            color: 'white',
+            borderRadius: '50%',
+            width: 20,
+            height: 20,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            boxShadow: 1,
+          }}
+        >
+          <FontAwesomeIcon icon={faPenNib} size="2xs" />
         </Box>
       )}
     </Box>

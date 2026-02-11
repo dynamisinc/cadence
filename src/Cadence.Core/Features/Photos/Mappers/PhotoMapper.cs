@@ -30,6 +30,7 @@ public static class PhotoMapper
         entity.LocationAccuracy,
         entity.DisplayOrder,
         entity.Status.ToString(),
+        entity.AnnotationsJson,
         entity.CreatedAt,
         entity.UpdatedAt
     );

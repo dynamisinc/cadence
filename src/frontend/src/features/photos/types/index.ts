@@ -28,6 +28,7 @@ export interface PhotoDto {
   locationAccuracy: number | null
   displayOrder: number
   status: PhotoStatus
+  annotationsJson: string | null
   createdAt: string // DateTime as ISO string
   updatedAt: string // DateTime as ISO string
 }
@@ -42,6 +43,7 @@ export interface UploadPhotoRequest {
   longitude?: number | null
   locationAccuracy?: number | null
   observationId?: string | null
+  idempotencyKey?: string | null
 }
 
 /**
@@ -50,6 +52,7 @@ export interface UploadPhotoRequest {
 export interface UpdatePhotoRequest {
   observationId?: string | null
   displayOrder?: number | null
+  annotationsJson?: string | null
 }
 
 /**
@@ -73,6 +76,7 @@ export interface QuickPhotoRequest {
   latitude?: number | null
   longitude?: number | null
   locationAccuracy?: number | null
+  idempotencyKey?: string | null
 }
 
 /**
@@ -113,3 +117,13 @@ export interface DeletedPhotoDto {
   deletedAt: string | null
   deletedBy: string | null
 }
+
+// Annotation types
+export type {
+  Annotation,
+  AnnotationTool,
+  CircleAnnotation,
+  ArrowAnnotation,
+  TextAnnotation,
+} from './annotations'
+export { ANNOTATION_STYLE } from './annotations'

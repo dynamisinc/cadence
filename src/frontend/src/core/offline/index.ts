@@ -18,6 +18,8 @@ export {
   type PendingActionType,
   type PendingActionStatus,
   type SyncMetadata,
+  type CachedPhoto,
+  type PhotoSyncStatus,
   clearExerciseCache,
   clearAllCache,
   getPendingActionCount,
@@ -51,6 +53,21 @@ export {
   isCacheStale,
 } from './cacheService'
 
+// Photo Cache Service
+export {
+  cachePhotoBlob,
+  getCachedPhoto,
+  getCachedPhotosByExercise,
+  getPendingPhotos,
+  getPendingPhotoCount,
+  updateCachedPhotoSyncStatus,
+  markPhotoSynced,
+  deleteCachedPhoto,
+  clearSyncedPhotos,
+  cachedPhotoToDto,
+  getPhotoStorageUsage,
+} from './photoCacheService'
+
 // Sync Service
 export {
   syncPendingActions,
@@ -58,6 +75,7 @@ export {
   discardAction,
   getSyncStatus,
   cancelSync,
+  calculateBackoffDelay,
   type SyncResult,
   type SyncProgress,
   type SyncStatus,

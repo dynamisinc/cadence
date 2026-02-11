@@ -93,6 +93,7 @@ module webApp 'modules/webapp.bicep' = if (hostingModel == 'webapi' || hostingMo
     appInsightsConnectionString: appInsights.outputs.connectionString
     signalRConnectionString: signalR.outputs.connectionString
     sqlConnectionString: database.outputs.connectionString
+    storageConnectionString: storage.outputs.connectionString
     tags: tags
   }
 }

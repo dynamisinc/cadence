@@ -20,6 +20,7 @@ public record PhotoDto(
     double? LocationAccuracy,
     int DisplayOrder,
     string Status,
+    string? AnnotationsJson,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -91,6 +92,12 @@ public class UploadPhotoRequest
     /// Photos can exist unlinked for later association.
     /// </summary>
     public Guid? ObservationId { get; init; }
+
+    /// <summary>
+    /// Client-generated idempotency key to prevent duplicate uploads on retry.
+    /// Optional - only set for offline-originating uploads.
+    /// </summary>
+    public string? IdempotencyKey { get; set; }
 }
 
 /// <summary>
@@ -108,6 +115,12 @@ public class UpdatePhotoRequest
     /// Display order within an observation's photo collection.
     /// </summary>
     public int? DisplayOrder { get; init; }
+
+    /// <summary>
+    /// JSON-serialized annotation data (circles, arrows, text overlays).
+    /// Stored as relative coordinates (0-1 range) for cross-device rendering.
+    /// </summary>
+    public string? AnnotationsJson { get; init; }
 }
 
 /// <summary>
@@ -178,6 +191,12 @@ public class QuickPhotoRequest
     /// GPS accuracy in meters. Optional.
     /// </summary>
     public double? LocationAccuracy { get; init; }
+
+    /// <summary>
+    /// Client-generated idempotency key to prevent duplicate uploads on retry.
+    /// Optional - only set for offline-originating uploads.
+    /// </summary>
+    public string? IdempotencyKey { get; set; }
 }
 
 /// <summary>

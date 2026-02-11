@@ -15,10 +15,8 @@ namespace Cadence.Core.Migrations
                 table: "ExercisePhotos",
                 column: "OrganizationId");
 
-            migrationBuilder.CreateIndex(
-                name: "IX_ExercisePhotos_ObservationId_IsDeleted_DisplayOrder",
-                table: "ExercisePhotos",
-                columns: new[] { "ObservationId", "IsDeleted", "DisplayOrder" });
+            // IX_ExercisePhotos_ObservationId_IsDeleted_DisplayOrder already created
+            // by OptimizeObservationPhotoIndexes migration - removed duplicate
 
             migrationBuilder.AddForeignKey(
                 name: "FK_ExercisePhotos_Organizations_OrganizationId",
@@ -35,9 +33,8 @@ namespace Cadence.Core.Migrations
                 name: "FK_ExercisePhotos_Organizations_OrganizationId",
                 table: "ExercisePhotos");
 
-            migrationBuilder.DropIndex(
-                name: "IX_ExercisePhotos_ObservationId_IsDeleted_DisplayOrder",
-                table: "ExercisePhotos");
+            // IX_ExercisePhotos_ObservationId_IsDeleted_DisplayOrder is owned by
+            // OptimizeObservationPhotoIndexes migration - not dropped here
 
             migrationBuilder.DropIndex(
                 name: "IX_ExercisePhotos_OrganizationId",

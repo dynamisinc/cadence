@@ -144,9 +144,6 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     {
         base.OnModelCreating(modelBuilder);
 
-        // Apply all configurations from the current assembly
-        modelBuilder.ApplyConfigurationsFromAssembly(typeof(AppDbContext).Assembly);
-
         // Configure global settings for all entities
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {
@@ -927,6 +924,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Composite primary key
             entity.HasKey(e => new { e.InjectId, e.ObjectiveId });
 
+            // Matching query filter for required Inject navigation (Inject has soft-delete filter)
+            entity.HasQueryFilter(e => !e.Inject.IsDeleted);
+
             // Indexes for efficient queries
             entity.HasIndex(e => e.InjectId);
             entity.HasIndex(e => e.ObjectiveId);
@@ -1093,7 +1093,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 
-    private static void ConfigureClockEvent(ModelBuilder modelBuilder)
+    private void ConfigureClockEvent(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ClockEvent>(entity =>
         {
@@ -1106,6 +1106,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .HasConversion(
                     v => v.Ticks,
                     v => TimeSpan.FromTicks(v));
+
+            // Matching query filter for required Exercise navigation (Exercise has soft-delete + org filters)
+            entity.HasQueryFilter(e =>
+                !e.Exercise.IsDeleted &&
+                (BypassOrgFilter || e.Exercise.OrganizationId == OrgIdForFilter));
 
             // Indexes for efficient queries
             entity.HasIndex(e => e.ExerciseId);
@@ -1173,12 +1178,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 
-    private static void ConfigureObservationCapability(ModelBuilder modelBuilder)
+    private void ConfigureObservationCapability(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ObservationCapability>(entity =>
         {
             // Composite primary key
             entity.HasKey(e => new { e.ObservationId, e.CapabilityId });
+
+            // Matching query filter for required Capability navigation (Capability has org filter)
+            entity.HasQueryFilter(e =>
+                BypassOrgFilter || e.Capability.OrganizationId == OrgIdForFilter);
 
             // Index on CapabilityId for reverse lookups (finding observations by capability)
             entity.HasIndex(e => e.CapabilityId);
@@ -1196,12 +1205,16 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 
-    private static void ConfigureExerciseTargetCapability(ModelBuilder modelBuilder)
+    private void ConfigureExerciseTargetCapability(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<ExerciseTargetCapability>(entity =>
         {
             // Composite primary key
             entity.HasKey(e => new { e.ExerciseId, e.CapabilityId });
+
+            // Matching query filter for required Capability navigation (Capability has org filter)
+            entity.HasQueryFilter(e =>
+                BypassOrgFilter || e.Capability.OrganizationId == OrgIdForFilter);
 
             // Index on CapabilityId for reverse lookups (finding exercises by capability)
             entity.HasIndex(e => e.CapabilityId);
@@ -1362,12 +1375,17 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         });
     }
 
-    private static void ConfigureInjectCriticalTask(ModelBuilder modelBuilder)
+    private void ConfigureInjectCriticalTask(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<InjectCriticalTask>(entity =>
         {
             // Composite primary key
             entity.HasKey(e => new { e.InjectId, e.CriticalTaskId });
+
+            // Matching query filter for required CriticalTask navigation (CriticalTask has soft-delete + org filters)
+            entity.HasQueryFilter(e =>
+                !e.CriticalTask.IsDeleted &&
+                (BypassOrgFilter || e.CriticalTask.OrganizationId == OrgIdForFilter));
 
             // Audit fields for HSEEP compliance
             entity.Property(e => e.CreatedBy).HasMaxLength(450).IsRequired();
@@ -1600,12 +1618,20 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.ThumbnailUri).HasMaxLength(2000).IsRequired();
             entity.Property(e => e.CapturedById).HasMaxLength(450).IsRequired();
             entity.Property(e => e.Status).HasConversion<string>().HasMaxLength(20).HasDefaultValue(PhotoStatus.Draft);
+            entity.Property(e => e.IdempotencyKey).HasMaxLength(100);
+            entity.Property(e => e.AnnotationsJson).HasMaxLength(8000);
 
             // Indexes for efficient queries
             entity.HasIndex(e => e.ExerciseId);
             entity.HasIndex(e => e.ObservationId);
             entity.HasIndex(e => e.CapturedById);
             entity.HasIndex(e => new { e.ExerciseId, e.CapturedAt });
+
+            // Unique index for idempotency: one key per exercise per user (where not null)
+            entity.HasIndex(e => new { e.ExerciseId, e.CapturedById, e.IdempotencyKey })
+                .IsUnique()
+                .HasFilter("[IdempotencyKey] IS NOT NULL")
+                .HasDatabaseName("IX_ExercisePhotos_Idempotency");
 
             // Composite index for loading photos by observation with soft-delete filter and display ordering
             entity.HasIndex(e => new { e.ObservationId, e.IsDeleted, e.DisplayOrder })
