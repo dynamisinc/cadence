@@ -1623,6 +1623,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
                 .IsRequired(false)
                 .OnDelete(DeleteBehavior.NoAction);
 
+            // Organization relationship for data isolation
+            entity.HasOne(e => e.Organization)
+                .WithMany()
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.NoAction);
+
             // User who captured the photo - references ApplicationUser (ASP.NET Core Identity)
             entity.HasOne(e => e.CapturedByUser)
                 .WithMany()

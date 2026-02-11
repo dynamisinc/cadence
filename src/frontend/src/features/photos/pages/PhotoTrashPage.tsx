@@ -32,7 +32,6 @@ import {
   useMediaQuery,
   Dialog,
   DialogContent,
-  IconButton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -46,7 +45,7 @@ import {
 
 import { useExercise } from '../../exercises/hooks'
 import { usePhotoAdmin } from '../hooks/usePhotoAdmin'
-import { CobraLinkButton, CobraPrimaryButton, CobraDeleteButton } from '../../../theme/styledComponents'
+import { CobraIconButton, CobraLinkButton, CobraPrimaryButton, CobraDeleteButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
@@ -344,7 +343,7 @@ export const PhotoTrashPage = () => {
           {previewPhoto && (
             <>
               {/* Close button */}
-              <IconButton
+              <CobraIconButton
                 onClick={handleClosePreview}
                 sx={{
                   position: 'absolute',
@@ -357,11 +356,11 @@ export const PhotoTrashPage = () => {
                 }}
               >
                 <FontAwesomeIcon icon={faTimes} />
-              </IconButton>
+              </CobraIconButton>
 
               {/* Previous button */}
               {currentIndex > 0 && (
-                <IconButton
+                <CobraIconButton
                   onClick={handlePreviousPhoto}
                   sx={{
                     position: 'absolute',
@@ -375,12 +374,12 @@ export const PhotoTrashPage = () => {
                   }}
                 >
                   <FontAwesomeIcon icon={faChevronLeft} />
-                </IconButton>
+                </CobraIconButton>
               )}
 
               {/* Next button */}
               {currentIndex < deletedPhotos.length - 1 && (
-                <IconButton
+                <CobraIconButton
                   onClick={handleNextPhoto}
                   sx={{
                     position: 'absolute',
@@ -394,7 +393,7 @@ export const PhotoTrashPage = () => {
                   }}
                 >
                   <FontAwesomeIcon icon={faChevronRight} />
-                </IconButton>
+                </CobraIconButton>
               )}
 
               {/* Full-size image */}

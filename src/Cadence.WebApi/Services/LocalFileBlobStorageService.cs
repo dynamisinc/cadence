@@ -33,6 +33,12 @@ public class LocalFileBlobStorageService : IBlobStorageService
     public async Task<string> UploadAsync(Stream stream, string blobPath, string contentType, CancellationToken ct = default)
     {
         var filePath = Path.Combine(_basePath, blobPath.Replace('/', Path.DirectorySeparatorChar));
+        var fullPath = Path.GetFullPath(filePath);
+        if (!fullPath.StartsWith(Path.GetFullPath(_basePath), StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException("Invalid blob path: resolved path is outside the storage directory.");
+        }
+
         var directory = Path.GetDirectoryName(filePath)!;
         Directory.CreateDirectory(directory);
 
@@ -59,6 +65,12 @@ public class LocalFileBlobStorageService : IBlobStorageService
 
         var relativePath = blobUri[(uploadsIndex + "/uploads/".Length)..];
         var filePath = Path.Combine(_basePath, relativePath.Replace('/', Path.DirectorySeparatorChar));
+        var fullPath = Path.GetFullPath(filePath);
+        if (!fullPath.StartsWith(Path.GetFullPath(_basePath), StringComparison.OrdinalIgnoreCase))
+        {
+            _logger.LogWarning("[BlobStorage] Path traversal attempt blocked - URI: {BlobUri}", blobUri);
+            return Task.FromResult(false);
+        }
 
         if (File.Exists(filePath))
         {

@@ -115,6 +115,11 @@ public class ExercisePhoto : BaseEntity, IOrganizationScoped
     public Exercise Exercise { get; set; } = null!;
 
     /// <summary>
+    /// The organization this photo belongs to. Required by IOrganizationScoped.
+    /// </summary>
+    public Organization Organization { get; set; } = null!;
+
+    /// <summary>
     /// The observation this photo is attached to (if any).
     /// </summary>
     public Observation? Observation { get; set; }

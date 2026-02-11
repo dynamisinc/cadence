@@ -9,11 +9,11 @@
  */
 
 import { type FC, useEffect, useMemo } from 'react'
-import { Box, IconButton, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faXmark } from '@fortawesome/free-solid-svg-icons'
 
-import { CobraSecondaryButton } from '../../../theme/styledComponents'
+import { CobraIconButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
 import { useCamera } from '../hooks/useCamera'
 import type { PhotoTagDto } from '../../observations/types'
@@ -126,7 +126,7 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
                 flexShrink: 0,
               }}
             />
-            <IconButton
+            <CobraIconButton
               size="small"
               onClick={() => handleRemovePendingFile(index)}
               sx={{
@@ -143,7 +143,7 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
               }}
             >
               <FontAwesomeIcon icon={faXmark} style={{ fontSize: 10 }} />
-            </IconButton>
+            </CobraIconButton>
           </Box>
         ))}
 

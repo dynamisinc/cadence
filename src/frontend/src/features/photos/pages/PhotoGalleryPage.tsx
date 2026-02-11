@@ -35,7 +35,6 @@ import {
   useMediaQuery,
   Dialog,
   DialogContent,
-  IconButton,
   Pagination,
   Tooltip,
 } from '@mui/material'
@@ -53,7 +52,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useExercise } from '../../exercises/hooks'
 import { usePhotos } from '../hooks/usePhotos'
-import { CobraTextField, CobraLinkButton, CobraDeleteButton } from '../../../theme/styledComponents'
+import { CobraIconButton, CobraTextField, CobraLinkButton, CobraDeleteButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
@@ -459,7 +458,7 @@ export const PhotoGalleryPage = () => {
           {previewPhoto && (
             <>
               {/* Close button */}
-              <IconButton
+              <CobraIconButton
                 onClick={handleClosePreview}
                 sx={{
                   position: 'absolute',
@@ -472,11 +471,11 @@ export const PhotoGalleryPage = () => {
                 }}
               >
                 <FontAwesomeIcon icon={faTimes} />
-              </IconButton>
+              </CobraIconButton>
 
               {/* Previous button */}
               {currentIndex > 0 && (
-                <IconButton
+                <CobraIconButton
                   onClick={handlePreviousPhoto}
                   sx={{
                     position: 'absolute',
@@ -490,12 +489,12 @@ export const PhotoGalleryPage = () => {
                   }}
                 >
                   <FontAwesomeIcon icon={faChevronLeft} />
-                </IconButton>
+                </CobraIconButton>
               )}
 
               {/* Next button */}
               {currentIndex < photos.length - 1 && (
-                <IconButton
+                <CobraIconButton
                   onClick={handleNextPhoto}
                   sx={{
                     position: 'absolute',
@@ -509,7 +508,7 @@ export const PhotoGalleryPage = () => {
                   }}
                 >
                   <FontAwesomeIcon icon={faChevronRight} />
-                </IconButton>
+                </CobraIconButton>
               )}
 
               {/* Full-size image */}
