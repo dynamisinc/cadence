@@ -225,16 +225,16 @@ function ReleaseCard({ release }: ReleaseCardProps) {
         </Box>
 
         {release.features.length > 0 && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="body2" fontWeight="medium" gutterBottom>
-              Features
-            </Typography>
-            <List dense disablePadding>
+          <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+              <FontAwesomeIcon icon={faStar} size="sm" color="#4caf50" />
+              <Typography variant="subtitle2" fontWeight="bold">
+                Features
+              </Typography>
+            </Box>
+            <List dense disablePadding sx={{ pl: 0.5 }}>
               {release.features.map((feature, i) => (
                 <ListItem key={i} disableGutters sx={{ py: 0.25 }}>
-                  <ListItemIcon sx={{ minWidth: 24 }}>
-                    <FontAwesomeIcon icon={faStar} size="xs" color="#4caf50" />
-                  </ListItemIcon>
                   <ListItemText
                     primary={feature}
                     primaryTypographyProps={{ variant: 'body2' }}
@@ -246,16 +246,16 @@ function ReleaseCard({ release }: ReleaseCardProps) {
         )}
 
         {release.fixes.length > 0 && (
-          <Box sx={{ mb: 1 }}>
-            <Typography variant="body2" fontWeight="medium" gutterBottom>
-              Fixes
-            </Typography>
-            <List dense disablePadding>
+          <Box sx={{ mb: 1.5 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+              <FontAwesomeIcon icon={faBug} size="sm" color="#ff9800" />
+              <Typography variant="subtitle2" fontWeight="bold">
+                Fixes
+              </Typography>
+            </Box>
+            <List dense disablePadding sx={{ pl: 0.5 }}>
               {release.fixes.map((fix, i) => (
                 <ListItem key={i} disableGutters sx={{ py: 0.25 }}>
-                  <ListItemIcon sx={{ minWidth: 24 }}>
-                    <FontAwesomeIcon icon={faBug} size="xs" color="#ff9800" />
-                  </ListItemIcon>
                   <ListItemText
                     primary={fix}
                     primaryTypographyProps={{ variant: 'body2' }}
@@ -268,19 +268,15 @@ function ReleaseCard({ release }: ReleaseCardProps) {
 
         {release.breaking && release.breaking.length > 0 && (
           <Box>
-            <Typography variant="body2" fontWeight="medium" gutterBottom>
-              Breaking Changes
-            </Typography>
-            <List dense disablePadding>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
+              <FontAwesomeIcon icon={faTriangleExclamation} size="sm" color="#f44336" />
+              <Typography variant="subtitle2" fontWeight="bold">
+                Breaking Changes
+              </Typography>
+            </Box>
+            <List dense disablePadding sx={{ pl: 0.5 }}>
               {release.breaking.map((change, i) => (
                 <ListItem key={i} disableGutters sx={{ py: 0.25 }}>
-                  <ListItemIcon sx={{ minWidth: 24 }}>
-                    <FontAwesomeIcon
-                      icon={faTriangleExclamation}
-                      size="xs"
-                      color="#f44336"
-                    />
-                  </ListItemIcon>
                   <ListItemText
                     primary={change}
                     primaryTypographyProps={{ variant: 'body2' }}
