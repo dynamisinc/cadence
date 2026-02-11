@@ -50,6 +50,7 @@ import {
 import { UserListPage } from './features/users'
 import { CapabilityLibraryPage } from './features/capabilities'
 import { MyAssignmentsPage } from './features/assignments'
+import { PhotoGalleryPage, PhotoTrashPage } from './features/photos/pages'
 import {
   OrganizationListPage,
   CreateOrganizationPage,
@@ -348,6 +349,8 @@ const router = createBrowserRouter([
           { path: 'injects/:injectId/edit', element: <EditInjectPage /> },
           { path: 'observations', element: <ObservationsPage /> },
           { path: 'eeg-entries', element: <EegEntriesPage /> },
+          { path: 'photos', element: <PhotoGalleryPage /> },
+          { path: 'photos/trash', element: <PhotoTrashPage /> },
           { path: 'participants', element: <ExerciseParticipantsPage /> },
           { path: 'reports', element: <ReportsPage /> },
           { path: 'metrics', element: <ExerciseMetricsPage /> },

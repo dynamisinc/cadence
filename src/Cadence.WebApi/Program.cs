@@ -4,6 +4,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.RateLimiting;
+using Azure.Storage.Blobs;
 using Cadence.Core.Data;
 using Cadence.Core.Extensions;
 using Cadence.Core.Features.Authentication.Models;
@@ -108,6 +109,30 @@ try
     if (useAzureSignalR && !string.IsNullOrEmpty(azureSignalRConnectionString))
     {
         signalRBuilder.AddAzureSignalR(azureSignalRConnectionString);
+    }
+
+    // Add Blob Storage for photo uploads
+    var blobStorageConnectionString = builder.Configuration["Azure:BlobStorage:ConnectionString"];
+    var blobStorageProvider = builder.Configuration["Azure:BlobStorage:Provider"];
+    if (string.Equals(blobStorageProvider, "Local", StringComparison.OrdinalIgnoreCase))
+    {
+        // Explicit local file system provider (set Provider=Local to avoid Azurite dependency)
+        builder.Services.AddScoped<Cadence.Core.Features.Photos.Services.IBlobStorageService, LocalFileBlobStorageService>();
+        Log.Information("Blob storage: Local file system (wwwroot/uploads/)");
+    }
+    else if (!string.IsNullOrWhiteSpace(blobStorageConnectionString))
+    {
+        // Azure Blob Storage (Azurite for dev, Azure Storage for production)
+        builder.Services.AddSingleton(sp => new BlobServiceClient(blobStorageConnectionString));
+        builder.Services.AddScoped<Cadence.Core.Features.Photos.Services.IBlobStorageService, AzureBlobStorageService>();
+        Log.Information("Blob storage: " +
+            (blobStorageConnectionString.Contains("UseDevelopmentStorage=true") ? "Azurite (local)" : "Azure Storage"));
+    }
+    else
+    {
+        // No connection string - fall back to local file system
+        builder.Services.AddScoped<Cadence.Core.Features.Photos.Services.IBlobStorageService, LocalFileBlobStorageService>();
+        Log.Information("Blob storage: Local file system (no connection string)");
     }
 
     // Add ASP.NET Core Identity
@@ -291,6 +316,14 @@ try
     app.MapScalarApiReference();
 
     app.UseHttpsRedirection();
+
+    // Serve local photo uploads in development (wwwroot/uploads/)
+    var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
+    Directory.CreateDirectory(uploadsRoot);
+    app.UseStaticFiles(new StaticFileOptions
+    {
+        FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(uploadsRoot)
+    });
 
     app.UseCors();
 

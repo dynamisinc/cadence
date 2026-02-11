@@ -3,6 +3,7 @@ using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Injects.Models.DTOs;
 using Cadence.Core.Features.Observations.Models.DTOs;
+using Cadence.Core.Features.Photos.Models.DTOs;
 
 namespace Cadence.Core.Hubs;
 
@@ -122,4 +123,19 @@ public interface IExerciseHubContext
     /// Notify clients that an EEG entry was deleted.
     /// </summary>
     Task NotifyEegEntryDeleted(Guid exerciseId, Guid entryId);
+
+    /// <summary>
+    /// Notify clients that a new photo was added to the exercise.
+    /// </summary>
+    Task NotifyPhotoAdded(Guid exerciseId, PhotoDto photo);
+
+    /// <summary>
+    /// Notify clients that a photo was updated (e.g., linked to observation).
+    /// </summary>
+    Task NotifyPhotoUpdated(Guid exerciseId, PhotoDto photo);
+
+    /// <summary>
+    /// Notify clients that a photo was deleted.
+    /// </summary>
+    Task NotifyPhotoDeleted(Guid exerciseId, Guid photoId);
 }

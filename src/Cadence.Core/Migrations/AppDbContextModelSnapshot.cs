@@ -1330,6 +1330,113 @@ namespace Cadence.Core.Migrations
                     b.ToTable("ExerciseParticipants");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.ExercisePhoto", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("BlobUri")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("CapturedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CapturedById")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("CreatedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<DateTime?>("DeletedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DeletedBy")
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DisplayOrder")
+                        .HasColumnType("int");
+
+                    b.Property<Guid>("ExerciseId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("FileName")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<long>("FileSizeBytes")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsDeleted")
+                        .HasColumnType("bit");
+
+                    b.Property<double?>("Latitude")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("LocationAccuracy")
+                        .HasColumnType("float");
+
+                    b.Property<double?>("Longitude")
+                        .HasColumnType("float");
+
+                    b.Property<string>("ModifiedBy")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<Guid?>("ObservationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("OrganizationId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime?>("ScenarioTime")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Draft");
+
+                    b.Property<string>("ThumbnailUri")
+                        .IsRequired()
+                        .HasMaxLength(2000)
+                        .HasColumnType("nvarchar(2000)");
+
+                    b.Property<DateTime>("UpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CapturedById");
+
+                    b.HasIndex("ExerciseId");
+
+                    b.HasIndex("ObservationId");
+
+                    b.HasIndex("OrganizationId");
+
+                    b.HasIndex("ExerciseId", "CapturedAt");
+
+                    b.HasIndex("ObservationId", "IsDeleted", "DisplayOrder")
+                        .HasDatabaseName("IX_ExercisePhotos_ObservationId_IsDeleted_DisplayOrder");
+
+                    b.ToTable("ExercisePhotos");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExerciseTargetCapability", b =>
                 {
                     b.Property<Guid>("ExerciseId")
@@ -2160,6 +2267,13 @@ namespace Cadence.Core.Migrations
                         .HasMaxLength(2000)
                         .HasColumnType("nvarchar(2000)");
 
+                    b.Property<string>("Status")
+                        .IsRequired()
+                        .ValueGeneratedOnAdd()
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)")
+                        .HasDefaultValue("Complete");
+
                     b.Property<DateTime>("UpdatedAt")
                         .HasColumnType("datetime2");
 
@@ -2174,6 +2288,9 @@ namespace Cadence.Core.Migrations
                     b.HasIndex("ObjectiveId");
 
                     b.HasIndex("ObservedAt");
+
+                    b.HasIndex("ExerciseId", "IsDeleted", "ObservedAt")
+                        .HasDatabaseName("IX_Observations_ExerciseId_IsDeleted_ObservedAt");
 
                     b.ToTable("Observations");
                 });
@@ -3137,6 +3254,39 @@ namespace Cadence.Core.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Models.Entities.ExercisePhoto", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "CapturedByUser")
+                        .WithMany()
+                        .HasForeignKey("CapturedById")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Exercise", "Exercise")
+                        .WithMany("Photos")
+                        .HasForeignKey("ExerciseId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Cadence.Core.Models.Entities.Observation", "Observation")
+                        .WithMany("Photos")
+                        .HasForeignKey("ObservationId")
+                        .OnDelete(DeleteBehavior.NoAction);
+
+                    b.HasOne("Cadence.Core.Models.Entities.Organization", "Organization")
+                        .WithMany()
+                        .HasForeignKey("OrganizationId")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.Navigation("CapturedByUser");
+
+                    b.Navigation("Exercise");
+
+                    b.Navigation("Observation");
+
+                    b.Navigation("Organization");
+                });
+
             modelBuilder.Entity("Cadence.Core.Models.Entities.ExerciseTargetCapability", b =>
                 {
                     b.HasOne("Cadence.Core.Models.Entities.Capability", "Capability")
@@ -3614,6 +3764,8 @@ namespace Cadence.Core.Migrations
 
                     b.Navigation("Phases");
 
+                    b.Navigation("Photos");
+
                     b.Navigation("TargetCapabilities");
                 });
 
@@ -3647,6 +3799,8 @@ namespace Cadence.Core.Migrations
             modelBuilder.Entity("Cadence.Core.Models.Entities.Observation", b =>
                 {
                     b.Navigation("ObservationCapabilities");
+
+                    b.Navigation("Photos");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Organization", b =>

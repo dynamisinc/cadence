@@ -12,8 +12,15 @@ public class Observation : BaseEntity, IOrganizationScoped
     // =========================================================================
 
     /// <summary>
-    /// The observation content. Required, 1-4000 characters.
-    /// Describes what the evaluator observed.
+    /// Observation lifecycle status. Draft observations are auto-created by Quick Photo
+    /// and completed when the user adds description and rating.
+    /// Defaults to Complete for backwards compatibility with existing observations.
+    /// </summary>
+    public ObservationStatus Status { get; set; } = ObservationStatus.Complete;
+
+    /// <summary>
+    /// The observation content. Required for Complete observations, optional for Draft.
+    /// 1-4000 characters when provided.
     /// </summary>
     public string Content { get; set; } = string.Empty;
 
@@ -104,4 +111,9 @@ public class Observation : BaseEntity, IOrganizationScoped
     /// Core capabilities tagged on this observation (many-to-many).
     /// </summary>
     public ICollection<ObservationCapability> ObservationCapabilities { get; set; } = new List<ObservationCapability>();
+
+    /// <summary>
+    /// Photos attached to this observation as visual evidence.
+    /// </summary>
+    public ICollection<ExercisePhoto> Photos { get; set; } = new List<ExercisePhoto>();
 }

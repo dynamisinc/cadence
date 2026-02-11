@@ -3,6 +3,7 @@ using Cadence.Core.Features.Notifications.Models.DTOs;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.Core.Features.Photos.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.Core.Tests.Helpers;
@@ -17,12 +18,14 @@ public class ObservationServiceTests
 {
     private readonly Mock<IExerciseHubContext> _hubContextMock;
     private readonly Mock<INotificationService> _notificationServiceMock;
+    private readonly Mock<IPhotoService> _photoServiceMock;
     private readonly Mock<ILogger<ObservationService>> _loggerMock;
 
     public ObservationServiceTests()
     {
         _hubContextMock = new Mock<IExerciseHubContext>();
         _notificationServiceMock = new Mock<INotificationService>();
+        _photoServiceMock = new Mock<IPhotoService>();
         _loggerMock = new Mock<ILogger<ObservationService>>();
     }
 
@@ -132,7 +135,7 @@ public class ObservationServiceTests
 
     private ObservationService CreateService(AppDbContext context)
     {
-        return new ObservationService(context, _hubContextMock.Object, _notificationServiceMock.Object, _loggerMock.Object);
+        return new ObservationService(context, _hubContextMock.Object, _notificationServiceMock.Object, _photoServiceMock.Object, _loggerMock.Object);
     }
 
     #region GetObservationsByExerciseAsync Tests

@@ -34,15 +34,21 @@ import {
   faTimes,
   faEye,
   faClipboardCheck,
+  faCamera,
+  faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useExercise } from '../../exercises/hooks'
+import { useExerciseClock } from '../../exercise-clock'
 import { useExerciseRole } from '../../auth'
 import { ObservationForm } from '../components/ObservationForm'
 import { ObservationList } from '../components/ObservationList'
 import { useObservations, observationsQueryKey } from '../hooks/useObservations'
 import { useInjects } from '../../injects/hooks'
+import { usePhotos } from '../../photos/hooks'
+import { useCamera } from '../../photos/hooks/useCamera'
+import { useImageCompression } from '../../photos/hooks/useImageCompression'
 import { useExerciseSignalR } from '../../../shared/hooks'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../../exercises/hooks/useExerciseTargetCapabilities'
@@ -79,6 +85,9 @@ export const ObservationsPage = () => {
   const { injects } = useInjects(exerciseId!)
   const { capabilities } = useCapabilities(false) // Active capabilities only
   const { targetCapabilities } = useExerciseTargetCapabilities(exerciseId)
+  const { displayTime } = useExerciseClock(exerciseId!)
+  const { quickPhoto, uploadPhoto } = usePhotos(exerciseId!)
+  const { compressImage } = useImageCompression()
 
   // UI state
   const [showCreateDialog, setShowCreateDialog] = useState(false)
@@ -86,6 +95,7 @@ export const ObservationsPage = () => {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [showEegEntryForm, setShowEegEntryForm] = useState(false)
+  const [isCapturingPhoto, setIsCapturingPhoto] = useState(false)
 
   // Filter state
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
@@ -191,16 +201,44 @@ export const ObservationsPage = () => {
     setSearchQuery('')
   }
 
+  // Upload staged photos for an observation
+  const uploadPendingPhotos = async (observationId: string, pendingPhotos: File[]) => {
+    for (const file of pendingPhotos) {
+      try {
+        const { compressed } = await compressImage(file)
+        const formData = new FormData()
+        formData.append('photo', compressed, file.name)
+        formData.append('capturedAt', new Date().toISOString())
+        if (displayTime) formData.append('scenarioTime', displayTime)
+        formData.append('observationId', observationId)
+        await uploadPhoto(formData)
+      } catch (error) {
+        console.error('Failed to upload staged photo:', error)
+      }
+    }
+    // Refresh observations to show attached photos
+    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
+  }
+
   // Handlers
-  const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0]) => {
+  const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0], pendingPhotos?: File[]) => {
     setIsSubmitting(true)
     try {
       if (editingObservation) {
         await updateObservation(editingObservation.id, data)
+        // Upload any staged photos after the update succeeds
+        if (pendingPhotos?.length && !editingObservation.id.startsWith('temp-')) {
+          await uploadPendingPhotos(editingObservation.id, pendingPhotos)
+        }
         setEditingObservation(null)
       } else {
-        await createObservation(data)
+        const newObservation = await createObservation(data)
         setShowCreateDialog(false)
+
+        // Upload any staged photos after the observation is created
+        if (pendingPhotos?.length && newObservation?.id && !newObservation.id.startsWith('temp-')) {
+          await uploadPendingPhotos(newObservation.id, pendingPhotos)
+        }
       }
     } finally {
       setIsSubmitting(false)
@@ -233,6 +271,54 @@ export const ObservationsPage = () => {
     // Invalidate EEG entry queries to refresh dashboard
     queryClient.invalidateQueries({ queryKey: eegEntryKeys.all })
   }
+
+  // Quick Photo handler
+  const handleQuickPhotoFile = useCallback(
+    async (file: File) => {
+      setIsCapturingPhoto(true)
+      try {
+        const { compressed } = await compressImage(file)
+
+        // Get GPS location (best-effort)
+        let latitude: number | undefined
+        let longitude: number | undefined
+        let locationAccuracy: number | undefined
+        if (navigator.geolocation) {
+          try {
+            const pos = await new Promise<GeolocationPosition>((resolve, reject) =>
+              navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy: true,
+                timeout: 5000,
+                maximumAge: 0,
+              }),
+            )
+            latitude = pos.coords.latitude
+            longitude = pos.coords.longitude
+            locationAccuracy = pos.coords.accuracy
+          } catch {
+            // Location unavailable - continue without it
+          }
+        }
+
+        const formData = new FormData()
+        formData.append('photo', compressed, 'quick-photo.jpg')
+        formData.append('capturedAt', new Date().toISOString())
+        if (displayTime) formData.append('scenarioTime', displayTime)
+        if (latitude != null) formData.append('latitude', latitude.toString())
+        if (longitude != null) formData.append('longitude', longitude.toString())
+        if (locationAccuracy != null) formData.append('locationAccuracy', locationAccuracy.toString())
+
+        await quickPhoto(formData)
+      } catch (error) {
+        console.error('Quick photo capture failed:', error)
+      } finally {
+        setIsCapturingPhoto(false)
+      }
+    },
+    [compressImage, displayTime, quickPhoto],
+  )
+
+  const { fileInputRef: quickPhotoInputRef, openCamera: openQuickPhotoCamera, handleFileChange: handleQuickPhotoChange } = useCamera(handleQuickPhotoFile)
 
   // Keyboard shortcut: Ctrl+O to open create dialog
   useEffect(() => {
@@ -301,6 +387,16 @@ export const ObservationsPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
+      {/* Hidden file input for quick photo capture */}
+      <input
+        ref={quickPhotoInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        hidden
+        onChange={handleQuickPhotoChange}
+      />
+
       {/* Header */}
       <Stack
         direction="row"
@@ -327,6 +423,18 @@ export const ObservationsPage = () => {
                 onClick={() => setShowCreateDialog(true)}
               >
                 Add Observation
+              </CobraPrimaryButton>
+              <CobraPrimaryButton
+                startIcon={
+                  isCapturingPhoto
+                    ? <FontAwesomeIcon icon={faSpinner} spin />
+                    : <FontAwesomeIcon icon={faCamera} />
+                }
+                onClick={openQuickPhotoCamera}
+                disabled={isCapturingPhoto}
+                variant="outlined"
+              >
+                {isCapturingPhoto ? 'Capturing...' : 'Quick Photo'}
               </CobraPrimaryButton>
               <CobraPrimaryButton
                 startIcon={<FontAwesomeIcon icon={faClipboardCheck} />}
@@ -473,6 +581,7 @@ export const ObservationsPage = () => {
         <DialogContent>
           <Box sx={{ pt: 1 }}>
             <ObservationForm
+              exerciseId={exerciseId!}
               injects={injects}
               capabilities={capabilities}
               targetCapabilityIds={targetCapabilities.map(c => c.id)}
@@ -496,6 +605,7 @@ export const ObservationsPage = () => {
           <Box sx={{ pt: 1 }}>
             {editingObservation && (
               <ObservationForm
+                exerciseId={exerciseId!}
                 injects={injects}
                 capabilities={capabilities}
                 targetCapabilityIds={targetCapabilities.map(c => c.id)}
@@ -506,6 +616,7 @@ export const ObservationsPage = () => {
                   injectId: editingObservation.injectId ?? undefined,
                   capabilityIds: editingObservation.capabilities.map(c => c.id),
                 }}
+                observation={observations.find(o => o.id === editingObservation.id) ?? editingObservation}
                 onSubmit={handleSubmitObservation}
                 onCancel={handleCancelEdit}
                 isSubmitting={isSubmitting}

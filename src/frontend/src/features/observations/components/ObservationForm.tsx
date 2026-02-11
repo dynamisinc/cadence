@@ -26,11 +26,14 @@ import {
 } from '../../../theme/styledComponents'
 import { ObservationRating, InjectStatus, getObservationRatingLabel } from '../../../types'
 import type { InjectDto } from '../../injects/types'
-import type { CreateObservationRequest, UpdateObservationRequest } from '../types'
+import type { CreateObservationRequest, UpdateObservationRequest, ObservationDto } from '../types'
 import type { CapabilityDto } from '../../capabilities/types'
 import { ObservationCapabilitySelector } from './ObservationCapabilitySelector'
+import { PhotoAttachmentSection } from '../../photos/components/PhotoAttachmentSection'
 
 interface ObservationFormProps {
+  /** Exercise ID for photo uploads */
+  exerciseId: string
   /** Inject to link observation to (optional) */
   inject?: InjectDto | null
   /** Available injects for selection */
@@ -48,23 +51,33 @@ interface ObservationFormProps {
     injectId?: string
     capabilityIds?: string[]
   }
-  /** Called on submit */
-  onSubmit: (data: CreateObservationRequest | UpdateObservationRequest) => Promise<void>
+  /** Current observation (for editing with photos) */
+  observation?: ObservationDto
+  /** Scenario time to stamp photos with */
+  scenarioTime?: string | null
+  /** Called on submit (pendingPhotos provided in create mode for post-creation upload) */
+  onSubmit: (data: CreateObservationRequest | UpdateObservationRequest, pendingPhotos?: File[]) => Promise<void>
   /** Called on cancel */
   onCancel: () => void
   /** Is form submitting? */
   isSubmitting?: boolean
+  /** Called when a photo is added (to refresh observation) */
+  onPhotoAdded?: () => void
 }
 
 export const ObservationForm = ({
+  exerciseId: _exerciseId,
   inject,
   injects = [],
   capabilities = [],
   targetCapabilityIds = [],
   initialValues,
+  observation,
+  scenarioTime: _scenarioTime,
   onSubmit,
   onCancel,
   isSubmitting = false,
+  onPhotoAdded: _onPhotoAdded,
 }: ObservationFormProps) => {
   // Rating starts as null for new observations (requires active selection)
   const [rating, setRating] = useState<ObservationRating | null>(
@@ -79,6 +92,7 @@ export const ObservationForm = ({
   const [selectedCapabilityIds, setSelectedCapabilityIds] = useState<string[]>(
     initialValues?.capabilityIds ?? [],
   )
+  const [pendingPhotos, setPendingPhotos] = useState<File[]>([])
 
   // Ref for auto-focusing the content input
   const contentInputRef = useRef<HTMLTextAreaElement>(null)
@@ -147,7 +161,8 @@ export const ObservationForm = ({
       capabilityIds: selectedCapabilityIds.length > 0 ? selectedCapabilityIds : undefined,
     }
 
-    await onSubmit(data)
+    const photosToUpload = pendingPhotos.length > 0 ? pendingPhotos : undefined
+    await onSubmit(data, photosToUpload)
   }
 
   // Require both content and rating selection
@@ -220,6 +235,13 @@ export const ObservationForm = ({
           required
           fullWidth
           inputRef={contentInputRef}
+        />
+
+        {/* Photo Attachments */}
+        <PhotoAttachmentSection
+          photos={observation?.photos ?? []}
+          pendingFiles={pendingPhotos}
+          onPendingFilesChange={setPendingPhotos}
         />
 
         {/* Recommendation (Optional) */}

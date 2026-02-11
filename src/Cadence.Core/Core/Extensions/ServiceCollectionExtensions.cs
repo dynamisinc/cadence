@@ -19,6 +19,7 @@ using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.Photos.Services;
 using Cadence.Core.Features.SystemSettings.Services;
 using FluentValidation;
 using Microsoft.Extensions.Caching.Memory;
@@ -41,6 +42,7 @@ public static class ServiceCollectionExtensions
         // Add Feature Services
         services.AddScoped<IObjectiveService, ObjectiveService>();
         services.AddScoped<IObservationService, ObservationService>();
+        services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IInjectService, InjectService>();
         services.AddScoped<IInjectReadinessService, InjectReadinessService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();

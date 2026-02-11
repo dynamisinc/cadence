@@ -17,7 +17,9 @@ import {
 import { updateCachedInject, updateCachedObservation, deleteCachedObservation } from './cacheService'
 import { injectService } from '../../features/injects/services/injectService'
 import { observationService } from '../../features/observations/services/observationService'
+import { photoService } from '../../features/photos/services/photoService'
 import type { ObservationRating } from '../../types'
+import type { UpdatePhotoRequest } from '../../features/photos/types'
 
 // ============================================================================
 // Types
@@ -105,6 +107,41 @@ interface UpdateObservationPayload {
 
 interface DeleteObservationPayload {
   observationId: string
+}
+
+interface UploadPhotoPayload {
+  photoData: string // base64 data URL
+  metadata: {
+    capturedAt: string
+    scenarioTime?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    locationAccuracy?: number | null
+    observationId?: string | null
+  }
+  tempId: string
+}
+
+interface QuickPhotoPayload {
+  photoData: string // base64 data URL
+  metadata: {
+    capturedAt: string
+    scenarioTime?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    locationAccuracy?: number | null
+  }
+  tempPhotoId: string
+  tempObsId: string
+}
+
+interface UpdatePhotoPayload {
+  photoId: string
+  changes: UpdatePhotoRequest
+}
+
+interface DeletePhotoPayload {
+  photoId: string
 }
 
 /**
@@ -208,9 +245,89 @@ async function processAction(action: PendingAction): Promise<void> {
       break
     }
 
+    case 'UPLOAD_PHOTO': {
+      const { photoData, metadata } = payload as UploadPhotoPayload
+      const formData = buildPhotoFormData(photoData, metadata)
+      await photoService.uploadPhoto(exerciseId, formData)
+      break
+    }
+
+    case 'QUICK_PHOTO': {
+      const { photoData, metadata } = payload as QuickPhotoPayload
+      const formData = buildPhotoFormData(photoData, metadata)
+      await photoService.quickPhoto(exerciseId, formData)
+      break
+    }
+
+    case 'UPDATE_PHOTO': {
+      const { photoId, changes } = payload as UpdatePhotoPayload
+      try {
+        await photoService.updatePhoto(exerciseId, photoId, changes)
+      } catch (error) {
+        if (isNotFoundError(error)) {
+          throw error
+        }
+        throw error
+      }
+      break
+    }
+
+    case 'DELETE_PHOTO': {
+      const { photoId } = payload as DeletePhotoPayload
+      try {
+        await photoService.deletePhoto(exerciseId, photoId)
+      } catch (error) {
+        // 404 is OK - photo was already deleted
+        if (!isNotFoundError(error)) {
+          throw error
+        }
+      }
+      break
+    }
+
     default:
       throw new Error(`Unknown action type: ${type}`)
   }
+}
+
+// ============================================================================
+// Photo Helpers
+// ============================================================================
+
+/**
+ * Convert a base64 data URL back to a File and build FormData for upload
+ */
+function buildPhotoFormData(
+  photoData: string,
+  metadata: {
+    capturedAt: string
+    scenarioTime?: string | null
+    latitude?: number | null
+    longitude?: number | null
+    locationAccuracy?: number | null
+    observationId?: string | null
+  },
+): FormData {
+  // Convert base64 data URL to Blob
+  const byteString = atob(photoData.split(',')[1])
+  const mimeString = photoData.split(',')[0].split(':')[1].split(';')[0]
+  const ab = new ArrayBuffer(byteString.length)
+  const ia = new Uint8Array(ab)
+  for (let i = 0; i < byteString.length; i++) {
+    ia[i] = byteString.charCodeAt(i)
+  }
+  const blob = new Blob([ab], { type: mimeString })
+  const file = new File([blob], 'offline-photo.jpg', { type: mimeString })
+
+  const formData = new FormData()
+  formData.append('photo', file)
+  formData.append('capturedAt', metadata.capturedAt)
+  if (metadata.scenarioTime) formData.append('scenarioTime', metadata.scenarioTime)
+  if (metadata.latitude != null) formData.append('latitude', String(metadata.latitude))
+  if (metadata.longitude != null) formData.append('longitude', String(metadata.longitude))
+  if (metadata.locationAccuracy != null) formData.append('locationAccuracy', String(metadata.locationAccuracy))
+  if (metadata.observationId) formData.append('observationId', metadata.observationId)
+  return formData
 }
 
 // ============================================================================

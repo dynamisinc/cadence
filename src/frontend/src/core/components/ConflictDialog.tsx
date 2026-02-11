@@ -39,6 +39,10 @@ const actionLabels: Record<PendingActionType, { label: string; icon: typeof faBo
   CREATE_OBSERVATION: { label: 'Create Observation', icon: faPlus },
   UPDATE_OBSERVATION: { label: 'Update Observation', icon: faPen },
   DELETE_OBSERVATION: { label: 'Delete Observation', icon: faTrash },
+  UPLOAD_PHOTO: { label: 'Upload Photo', icon: faPlus },
+  QUICK_PHOTO: { label: 'Quick Photo', icon: faPlus },
+  UPDATE_PHOTO: { label: 'Update Photo', icon: faPen },
+  DELETE_PHOTO: { label: 'Delete Photo', icon: faTrash },
 }
 
 interface ConflictDialogProps {

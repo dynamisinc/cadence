@@ -262,6 +262,20 @@ public enum TimelineMode
 // =============================================================================
 
 /// <summary>
+/// Observation lifecycle status. Draft observations are auto-created by Quick Photo
+/// and completed when the user adds description and rating.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum ObservationStatus
+{
+    /// <summary>Incomplete observation - photo captured but details not yet added.</summary>
+    Draft = 0,
+
+    /// <summary>Fully documented observation with description and rating.</summary>
+    Complete = 1
+}
+
+/// <summary>
 /// HSEEP performance rating scale (P/S/M/U) for evaluator observations.
 /// </summary>
 public enum ObservationRating
@@ -277,6 +291,23 @@ public enum ObservationRating
 
     /// <summary>U - Unable to be performed. The targets/objectives were not achieved.</summary>
     Unsatisfactory
+}
+
+// =============================================================================
+// Photo Enums
+// =============================================================================
+
+/// <summary>
+/// Photo lifecycle status.
+/// </summary>
+[System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter))]
+public enum PhotoStatus
+{
+    /// <summary>Photo captured but not yet confirmed/reviewed.</summary>
+    Draft = 0,
+
+    /// <summary>Photo confirmed and fully associated.</summary>
+    Complete = 1
 }
 
 // =============================================================================

@@ -11,6 +11,42 @@ import { ObservationForm } from './ObservationForm'
 import { InjectStatus, InjectType, TriggerType } from '../../../types'
 import type { InjectDto } from '../../injects/types'
 
+// Mock the photo hooks used by PhotoAttachmentSection
+vi.mock('../../photos/hooks/useCamera', () => ({
+  useCamera: vi.fn(() => ({
+    fileInputRef: { current: null },
+    isCapturing: false,
+    openCamera: vi.fn(),
+    openGallery: vi.fn(),
+    handleFileChange: vi.fn(),
+    resetCapture: vi.fn(),
+  })),
+}))
+
+vi.mock('../../photos/hooks/useImageCompression', () => ({
+  useImageCompression: vi.fn(() => ({
+    compressImage: vi.fn(async (file: File) => ({
+      compressed: new Blob(['compressed'], { type: 'image/jpeg' }),
+      thumbnail: new Blob(['thumbnail'], { type: 'image/jpeg' }),
+      originalFileName: file.name,
+      fileSizeBytes: 1024,
+    })),
+  })),
+}))
+
+vi.mock('../../photos/hooks/usePhotos', () => ({
+  usePhotos: vi.fn(() => ({
+    uploadPhoto: vi.fn(),
+  })),
+}))
+
+vi.mock('../../../core/contexts', () => ({
+  useConnectivity: vi.fn(() => ({
+    connectivityState: 'online',
+    incrementPendingCount: vi.fn(),
+  })),
+}))
+
 // Helper to create mock inject
 const createMockInject = (
   overrides: Partial<InjectDto> = {},
@@ -96,6 +132,7 @@ describe('ObservationForm', () => {
 
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           injects={injects}
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
@@ -149,6 +186,7 @@ describe('ObservationForm', () => {
 
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           injects={injects}
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
@@ -180,6 +218,7 @@ describe('ObservationForm', () => {
 
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           injects={injects}
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
@@ -201,6 +240,7 @@ describe('ObservationForm', () => {
     it('renders observation content field', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
         />,
@@ -212,6 +252,7 @@ describe('ObservationForm', () => {
     it('renders rating dropdown', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
         />,
@@ -223,6 +264,7 @@ describe('ObservationForm', () => {
     it('disables save button when content is empty', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
         />,
@@ -234,6 +276,7 @@ describe('ObservationForm', () => {
     it('enables save button when content has text and rating is selected', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
         />,
@@ -257,6 +300,7 @@ describe('ObservationForm', () => {
 
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           onSubmit={vi.fn()}
           onCancel={onCancel}
         />,
@@ -270,6 +314,7 @@ describe('ObservationForm', () => {
     it('does not show inject dropdown when no injects provided', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           injects={[]}
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
@@ -311,6 +356,7 @@ describe('ObservationForm', () => {
     it('shows capability selector when capabilities are provided', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           capabilities={mockCapabilities}
           targetCapabilityIds={['cap-1']}
           onSubmit={vi.fn()}
@@ -325,6 +371,7 @@ describe('ObservationForm', () => {
     it('does not show capability selector when no capabilities provided', () => {
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           capabilities={[]}
           onSubmit={vi.fn()}
           onCancel={vi.fn()}
@@ -339,6 +386,7 @@ describe('ObservationForm', () => {
 
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           capabilities={mockCapabilities}
           targetCapabilityIds={['cap-1']}
           onSubmit={onSubmit}
@@ -366,6 +414,7 @@ describe('ObservationForm', () => {
         expect.objectContaining({
           capabilityIds: ['cap-1'],
         }),
+        undefined,
       )
     })
 
@@ -374,6 +423,7 @@ describe('ObservationForm', () => {
 
       render(
         <ObservationForm
+          exerciseId="exercise-1"
           capabilities={mockCapabilities}
           targetCapabilityIds={['cap-1']}
           onSubmit={onSubmit}
@@ -397,6 +447,7 @@ describe('ObservationForm', () => {
         expect.not.objectContaining({
           capabilityIds: expect.anything(),
         }),
+        undefined,
       )
     })
   })

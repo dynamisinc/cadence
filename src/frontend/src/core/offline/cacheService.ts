@@ -347,6 +347,8 @@ export function cachedObservationToDto(
     injectTitle: null,
     injectNumber: null,
     capabilities: [], // Not tracked in cache
+    status: 'Draft',
+    photos: [],
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
     pendingSync: cached.pendingSync,

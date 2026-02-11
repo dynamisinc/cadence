@@ -23,15 +23,20 @@ import {
   FormControl,
   InputLabel,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from '@mui/material'
 import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPen, faTrash, faSpinner } from '@fortawesome/free-solid-svg-icons'
+import { faPen, faTrash, faSpinner, faCamera, faXmark, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
 
 import { RatingBadge } from './RatingBadge'
+import { formatDateTime } from '../../../shared/utils/dateUtils'
 import { ObservationRating, ObservationRatingLabels } from '../../../types'
 import type { ObservationDto } from '../types'
+import type { PhotoTagDto } from '../types'
 
 interface ObservationListProps {
   observations: ObservationDto[]
@@ -66,6 +71,10 @@ export const ObservationList = ({
 }: ObservationListProps) => {
   // Filter state
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
+
+  // Photo gallery state
+  const [galleryPhotos, setGalleryPhotos] = useState<PhotoTagDto[] | null>(null)
+  const [galleryIndex, setGalleryIndex] = useState(0)
 
   const formatTime = (dateStr: string) => {
     try {
@@ -270,6 +279,28 @@ export const ObservationList = ({
                             General observation
                           </Typography>
                         )}
+                        {/* Photo indicator */}
+                        {observation.photos?.length > 0 && (
+                          <Tooltip title={`${observation.photos.length} photo${observation.photos.length === 1 ? '' : 's'} - click to view`}>
+                            <Stack
+                              direction="row"
+                              spacing={0.5}
+                              alignItems="center"
+                              onClick={() => {
+                                setGalleryPhotos(observation.photos)
+                                setGalleryIndex(0)
+                              }}
+                              sx={{ cursor: 'pointer', '&:hover': { opacity: 0.7 } }}
+                              role="button"
+                              aria-label={`View ${observation.photos.length} photo${observation.photos.length === 1 ? '' : 's'}`}
+                            >
+                              <FontAwesomeIcon icon={faCamera} size="xs" color="#757575" />
+                              <Typography variant="caption" color="text.secondary">
+                                {observation.photos.length}
+                              </Typography>
+                            </Stack>
+                          </Tooltip>
+                        )}
                       </Stack>
 
                       {/* Observation content */}
@@ -320,6 +351,91 @@ export const ObservationList = ({
           </List>
         </Paper>
       )}
+
+      {/* Photo Gallery Dialog */}
+      <Dialog
+        open={!!galleryPhotos}
+        onClose={() => setGalleryPhotos(null)}
+        maxWidth="md"
+        fullWidth
+      >
+        {galleryPhotos && galleryPhotos.length > 0 && (
+          <>
+            <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Typography variant="h6">
+                Photo {galleryIndex + 1} of {galleryPhotos.length}
+              </Typography>
+              <IconButton onClick={() => setGalleryPhotos(null)} size="small">
+                <FontAwesomeIcon icon={faXmark} />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ p: 0, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {/* Main image */}
+              <Box
+                component="img"
+                src={galleryPhotos[galleryIndex]?.thumbnailUri}
+                alt={`Photo ${galleryIndex + 1}`}
+                sx={{
+                  maxWidth: '100%',
+                  maxHeight: '60vh',
+                  objectFit: 'contain',
+                  display: 'block',
+                }}
+              />
+
+              {/* Caption */}
+              <Typography variant="caption" color="text.secondary" sx={{ py: 1 }}>
+                {formatDateTime(galleryPhotos[galleryIndex]?.capturedAt)}
+              </Typography>
+
+              {/* Navigation */}
+              {galleryPhotos.length > 1 && (
+                <Stack direction="row" spacing={2} alignItems="center" sx={{ pb: 2 }}>
+                  <IconButton
+                    onClick={() => setGalleryIndex(i => (i - 1 + galleryPhotos.length) % galleryPhotos.length)}
+                    size="small"
+                  >
+                    <FontAwesomeIcon icon={faChevronLeft} />
+                  </IconButton>
+
+                  {/* Thumbnail strip */}
+                  <Stack direction="row" spacing={1}>
+                    {galleryPhotos
+                      .sort((a, b) => a.displayOrder - b.displayOrder)
+                      .map((photo, idx) => (
+                        <Box
+                          key={photo.id}
+                          component="img"
+                          src={photo.thumbnailUri}
+                          alt={`Thumbnail ${idx + 1}`}
+                          onClick={() => setGalleryIndex(idx)}
+                          sx={{
+                            width: 48,
+                            height: 48,
+                            objectFit: 'cover',
+                            borderRadius: 1,
+                            cursor: 'pointer',
+                            border: 2,
+                            borderColor: idx === galleryIndex ? 'primary.main' : 'transparent',
+                            opacity: idx === galleryIndex ? 1 : 0.6,
+                            '&:hover': { opacity: 1 },
+                          }}
+                        />
+                      ))}
+                  </Stack>
+
+                  <IconButton
+                    onClick={() => setGalleryIndex(i => (i + 1) % galleryPhotos.length)}
+                    size="small"
+                  >
+                    <FontAwesomeIcon icon={faChevronRight} />
+                  </IconButton>
+                </Stack>
+              )}
+            </DialogContent>
+          </>
+        )}
+      </Dialog>
     </Box>
   )
 }
