@@ -2,6 +2,19 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.5.0](https://github.com/dynamisinc/cadence/compare/api-v3.4.1...api-v3.5.0) (2026-02-11)
+
+
+### Features
+
+* **photos:** add offline photo queue and annotation editor (S05, S06) ([4386f91](https://github.com/dynamisinc/cadence/commit/4386f91124e14ad239461735aa751e146e2cdd77))
+* **photos:** offline photo queue and annotation editor (S05, S06) ([0440cad](https://github.com/dynamisinc/cadence/commit/0440cad0af6e9fdf70858a73d6171513f3badfef))
+
+
+### Bug Fixes
+
+* **database:** resolve startup crash from duplicate index and query filter warnings ([503223c](https://github.com/dynamisinc/cadence/commit/503223c9e0f7d948f28b497f426aa6fba904aac6))
+
 ## [3.4.1](https://github.com/dynamisinc/cadence/compare/api-v3.4.0...api-v3.4.1) (2026-02-11)
 
 
