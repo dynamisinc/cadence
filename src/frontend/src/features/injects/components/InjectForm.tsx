@@ -13,10 +13,12 @@ import {
   Chip,
   Collapse,
   IconButton,
+  Alert,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown, faChevronRight, faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@/shared/utils/notify'
+import { formatDateTime } from '@/shared/utils/dateUtils'
 import { SuggestionTextField } from '@/shared/components/SuggestionTextField'
 import {
   useSourceSuggestions,
@@ -480,6 +482,27 @@ export const InjectForm = ({
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
+      {/* Rejection feedback banner (shown when editing a previously rejected inject) */}
+      {inject?.rejectionReason && (
+        <Alert
+          severity="warning"
+          icon={<FontAwesomeIcon icon={faExclamationTriangle} />}
+          sx={{ mb: 2 }}
+        >
+          <Typography variant="subtitle2" fontWeight={600}>
+            Revision Needed
+          </Typography>
+          {inject.rejectedByName && inject.rejectedAt && (
+            <Typography variant="caption" display="block" color="text.secondary">
+              Rejected by {inject.rejectedByName} on {formatDateTime(inject.rejectedAt)}
+            </Typography>
+          )}
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {inject.rejectionReason}
+          </Typography>
+        </Alert>
+      )}
+
       <Stack spacing={2}>
         {/* 1. Title */}
         <Grid container>

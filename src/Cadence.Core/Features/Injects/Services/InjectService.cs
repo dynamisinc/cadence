@@ -445,6 +445,10 @@ public class InjectService : IInjectService
         var injects = await _context.Injects
             .Include(i => i.Phase)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
             .ToListAsync(cancellationToken);
 
@@ -583,6 +587,10 @@ public class InjectService : IInjectService
         var injects = await _context.Injects
             .Include(i => i.Phase)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
             .ToListAsync(cancellationToken);
 
@@ -723,6 +731,10 @@ public class InjectService : IInjectService
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == injectId && i.MselId == exercise.ActiveMselId, cancellationToken)
             ?? throw new KeyNotFoundException($"Inject {injectId} not found in exercise's active MSEL.");
 

@@ -324,6 +324,14 @@ export const InjectDetailDrawer = ({
                     <Chip label={inject.phaseName} size="small" />
                   </Stack>
                 )}
+                {inject.triggerType && inject.triggerType !== 'Manual' && (
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+                      Trigger:
+                    </Typography>
+                    <Chip label={inject.triggerType} size="small" variant="outlined" />
+                  </Stack>
+                )}
               </Stack>
             </Box>
 
@@ -568,6 +576,21 @@ export const InjectDetailDrawer = ({
                       )
                     })}
                   </Stack>
+                </Box>
+              </>
+            )}
+
+            {/* Linked Critical Tasks */}
+            {inject.linkedCriticalTaskCount > 0 && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Critical Tasks
+                  </Typography>
+                  <Typography variant="body2">
+                    {inject.linkedCriticalTaskCount} linked task{inject.linkedCriticalTaskCount !== 1 ? 's' : ''}
+                  </Typography>
                 </Box>
               </>
             )}

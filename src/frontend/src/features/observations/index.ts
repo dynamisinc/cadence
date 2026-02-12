@@ -10,6 +10,7 @@ export { observationService } from './services/observationService'
 
 // Hooks
 export { useObservations, observationsQueryKey, observationsByInjectQueryKey } from './hooks/useObservations'
+export { useInjectObservations } from './hooks/useInjectObservations'
 
 // Components
 export { ObservationForm, ObservationList, RatingBadge } from './components'

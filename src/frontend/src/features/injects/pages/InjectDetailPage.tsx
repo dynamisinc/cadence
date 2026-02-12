@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
+  Alert,
   Box,
   Typography,
   Stack,
@@ -33,6 +34,8 @@ import {
   faRoad,
   faUserTie,
   faFlag,
+  faListCheck,
+  faHourglass,
 } from '@fortawesome/free-solid-svg-icons'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
 
@@ -52,12 +55,16 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { useApprovalSettings } from '../../exercises/hooks/useApprovalSettings'
 import { useAuth } from '../../../contexts'
-import { InjectStatus, DeliveryMethod } from '../../../types'
+import { InjectStatus, DeliveryMethod, TriggerType } from '../../../types'
 import {
   formatScenarioTime,
   formatScheduledTime,
   calculateVariance,
 } from '../types'
+import { ExpectedOutcomesList } from '../../expected-outcomes'
+import { useInjectObservations } from '../../observations/hooks/useInjectObservations'
+import { useInjectHistory } from '../hooks/useInjectHistory'
+import { StatusHistoryTimeline } from '../components/StatusHistoryTimeline'
 
 /**
  * Inject Detail Page (S03)
@@ -84,6 +91,15 @@ export const InjectDetailPage = () => {
   const canFireInjects = can('fire_inject')
   const canDelete = can('edit_inject')
   const canApprove = can('approve_inject') // Exercise Directors and above
+
+  // Observations linked to this inject
+  const { observations: injectObservations } = useInjectObservations(injectId || '')
+
+  // Status change history (audit trail)
+  const { history: statusHistory, loading: historyLoading } = useInjectHistory(
+    exerciseId || '',
+    injectId || '',
+  )
 
   // Approval settings and current user
   const { settings: approvalSettings } = useApprovalSettings(exerciseId || '')
@@ -348,6 +364,55 @@ export const InjectDetailPage = () => {
         </Stack>
       </Stack>
 
+      {/* Approval Workflow Banners */}
+      {approvalEnabled && inject.rejectionReason && (
+        <Alert severity="warning" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Previously Rejected
+          </Typography>
+          {inject.rejectedByName && inject.rejectedAt && (
+            <Typography variant="caption" display="block" color="text.secondary">
+              Rejected by {inject.rejectedByName} on {formatDateTime(inject.rejectedAt)}
+            </Typography>
+          )}
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {inject.rejectionReason}
+          </Typography>
+        </Alert>
+      )}
+
+      {approvalEnabled && inject.approvedByName && inject.approvedAt && inject.status !== InjectStatus.Draft && (
+        <Alert severity="success" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Approved
+          </Typography>
+          <Typography variant="caption" display="block" color="text.secondary">
+            Approved by {inject.approvedByName} on {formatDateTime(inject.approvedAt)}
+          </Typography>
+          {inject.approverNotes && (
+            <Typography variant="body2" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+              {inject.approverNotes}
+            </Typography>
+          )}
+        </Alert>
+      )}
+
+      {approvalEnabled && inject.revertReason && (
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <Typography variant="subtitle2" fontWeight={600}>
+            Approval Reverted
+          </Typography>
+          {inject.revertedByName && inject.revertedAt && (
+            <Typography variant="caption" display="block" color="text.secondary">
+              Reverted by {inject.revertedByName} on {formatDateTime(inject.revertedAt)}
+            </Typography>
+          )}
+          <Typography variant="body2" sx={{ mt: 0.5 }}>
+            {inject.revertReason}
+          </Typography>
+        </Alert>
+      )}
+
       <Grid container spacing={3}>
         {/* Left Column - Main Content */}
         <Grid size={{ xs: 12, md: 8 }}>
@@ -381,6 +446,36 @@ export const InjectDetailPage = () => {
                   </Box>
                 </Stack>
               </Grid>
+              {inject.deliveryTime && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <FontAwesomeIcon icon={faHourglass} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Delivery Offset
+                      </Typography>
+                      <Typography variant="body1" fontFamily="monospace">
+                        {inject.deliveryTime}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Grid>
+              )}
+              {inject.readyAt && (
+                <Grid size={{ xs: 12, sm: 6 }}>
+                  <Stack direction="row" spacing={1} alignItems="center">
+                    <FontAwesomeIcon icon={faClock} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '1rem' }} />
+                    <Box>
+                      <Typography variant="caption" color="text.secondary">
+                        Ready At
+                      </Typography>
+                      <Typography variant="body1">
+                        {formatDateTime(inject.readyAt)}
+                      </Typography>
+                    </Box>
+                  </Stack>
+                </Grid>
+              )}
             </Grid>
 
             {/* Fired/Skipped Info */}
@@ -607,6 +702,49 @@ export const InjectDetailPage = () => {
               </Typography>
             </Paper>
           )}
+
+          {/* Expected Outcomes */}
+          <Box sx={{ mb: 3 }}>
+            <ExpectedOutcomesList
+              injectId={inject.id}
+              isEditable={false}
+              defaultExpanded={false}
+            />
+          </Box>
+
+          {/* Observations linked to this inject */}
+          {injectObservations.length > 0 && (
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                OBSERVATIONS ({injectObservations.length})
+              </Typography>
+              <Stack spacing={2}>
+                {injectObservations.map(obs => (
+                  <Box
+                    key={obs.id}
+                    sx={{
+                      pl: 2,
+                      borderLeft: 3,
+                      borderColor: 'divider',
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
+                      {obs.content}
+                    </Typography>
+                    {obs.recommendation && (
+                      <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, fontStyle: 'italic' }}>
+                        Recommendation: {obs.recommendation}
+                      </Typography>
+                    )}
+                    <Typography variant="caption" color="text.secondary">
+                      {obs.createdByName ?? 'Unknown'} &middot; {formatDateTime(obs.observedAt)}
+                      {obs.rating && ` · ${obs.rating}`}
+                    </Typography>
+                  </Box>
+                ))}
+              </Stack>
+            </Paper>
+          )}
         </Grid>
 
         {/* Right Column - Metadata */}
@@ -626,6 +764,17 @@ export const InjectDetailPage = () => {
                 </Typography>
               </Box>
 
+              {inject.sourceReference && (
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Source Reference
+                  </Typography>
+                  <Typography variant="body2" fontFamily="monospace">
+                    {inject.sourceReference}
+                  </Typography>
+                </Box>
+              )}
+
               <Box>
                 <Typography variant="caption" color="text.secondary">
                   Phase
@@ -641,6 +790,15 @@ export const InjectDetailPage = () => {
                 </Typography>
                 <Typography variant="body1">{inject.injectType}</Typography>
               </Box>
+
+              {inject.triggerType && inject.triggerType !== TriggerType.Manual && (
+                <Box>
+                  <Typography variant="caption" color="text.secondary">
+                    Trigger Type
+                  </Typography>
+                  <Typography variant="body1">{inject.triggerType}</Typography>
+                </Box>
+              )}
 
               <Box>
                 <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
@@ -687,6 +845,20 @@ export const InjectDetailPage = () => {
                 )}
               </Box>
 
+              {inject.linkedCriticalTaskCount > 0 && (
+                <Box>
+                  <Stack direction="row" spacing={1} alignItems="center" mb={0.5}>
+                    <FontAwesomeIcon icon={faListCheck} style={{ color: 'rgba(0, 0, 0, 0.54)', fontSize: '0.875rem' }} />
+                    <Typography variant="caption" color="text.secondary">
+                      Linked Critical Tasks
+                    </Typography>
+                  </Stack>
+                  <Typography variant="body2">
+                    {inject.linkedCriticalTaskCount} task{inject.linkedCriticalTaskCount !== 1 ? 's' : ''} linked
+                  </Typography>
+                </Box>
+              )}
+
               {inject.triggerCondition && (
                 <Box>
                   <Typography variant="caption" color="text.secondary">
@@ -717,6 +889,16 @@ export const InjectDetailPage = () => {
                   {formatDateTime(inject.updatedAt)}
                 </Typography>
               </Box>
+
+              {statusHistory.length > 0 && (
+                <>
+                  <Divider />
+                  <StatusHistoryTimeline
+                    history={statusHistory}
+                    loading={historyLoading}
+                  />
+                </>
+              )}
             </Stack>
           </Paper>
         </Grid>

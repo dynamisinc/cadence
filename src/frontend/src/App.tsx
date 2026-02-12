@@ -49,6 +49,7 @@ import {
 } from './features/auth'
 import { UserListPage } from './features/users'
 import { CapabilityLibraryPage } from './features/capabilities'
+import { SuggestionManagementPage } from './features/autocomplete'
 import { MyAssignmentsPage } from './features/assignments'
 import { PhotoGalleryPage, PhotoTrashPage } from './features/photos/pages'
 import {
@@ -316,6 +317,14 @@ const router = createBrowserRouter([
         element: (
           <OrgAdminRoute>
             <CapabilityLibraryPage />
+          </OrgAdminRoute>
+        ),
+      },
+      {
+        path: 'organization/suggestions',
+        element: (
+          <OrgAdminRoute>
+            <SuggestionManagementPage />
           </OrgAdminRoute>
         ),
       },

@@ -57,6 +57,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IExpectedOutcomeService, ExpectedOutcomeService>();
         services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
         services.AddScoped<IAutocompleteService, AutocompleteService>();
+        services.AddScoped<IOrganizationSuggestionService, OrganizationSuggestionService>();
         services.AddScoped<IExcelImportService, ExcelImportService>();
         services.AddScoped<IExcelExportService, ExcelExportService>();
         services.AddScoped<IUserService, UserService>();
