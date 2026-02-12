@@ -316,11 +316,15 @@ public class ExerciseParticipantService : IExerciseParticipantService
 
         return new ExerciseParticipantDto
         {
+            ParticipantId = participant.Id.ToString(),
             UserId = participant.UserId,
             Email = user.Email ?? string.Empty,
             DisplayName = user.DisplayName,
             SystemRole = user.SystemRole.ToString(),
-            ExerciseRole = roleString
+            ExerciseRole = roleString,
+            EffectiveRole = roleString,
+            AddedAt = participant.AssignedAt.ToString("o"),
+            AddedBy = participant.AssignedById
         };
     }
 
