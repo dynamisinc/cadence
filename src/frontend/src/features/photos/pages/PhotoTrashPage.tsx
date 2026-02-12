@@ -18,7 +18,7 @@
  * @module features/photos/pages
  */
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -106,17 +106,17 @@ export const PhotoTrashPage = () => {
     [deletedPhotos, previewPhotoId],
   )
 
-  const handlePreviousPhoto = () => {
+  const handlePreviousPhoto = useCallback(() => {
     if (currentIndex > 0) {
       setPreviewPhotoId(deletedPhotos[currentIndex - 1].id)
     }
-  }
+  }, [currentIndex, deletedPhotos])
 
-  const handleNextPhoto = () => {
+  const handleNextPhoto = useCallback(() => {
     if (currentIndex < deletedPhotos.length - 1) {
       setPreviewPhotoId(deletedPhotos[currentIndex + 1].id)
     }
-  }
+  }, [currentIndex, deletedPhotos])
 
   const handleClosePreview = () => {
     setPreviewPhotoId(null)
@@ -138,7 +138,7 @@ export const PhotoTrashPage = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [previewPhotoId, currentIndex, deletedPhotos])
+  }, [previewPhotoId, handleNextPhoto, handlePreviousPhoto])
 
   // Handle restore
   const handleRestore = async () => {

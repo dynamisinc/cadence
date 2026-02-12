@@ -251,7 +251,10 @@ export async function clearExerciseCache(exerciseId: string): Promise<void> {
 export async function clearAllCache(): Promise<void> {
   await db.transaction(
     'rw',
-    [db.exercises, db.phases, db.injects, db.observations, db.photos, db.pendingActions, db.syncMetadata],
+    [
+      db.exercises, db.phases, db.injects, db.observations,
+      db.photos, db.pendingActions, db.syncMetadata,
+    ],
     async () => {
       await db.exercises.clear()
       await db.phases.clear()

@@ -104,7 +104,9 @@ const renderText = (annotation: TextAnnotation) => {
 /**
  * AnnotationOverlay - SVG overlay for rendering read-only annotations
  */
-export const AnnotationOverlay = memo(({ annotations, width: _width, height: _height }: AnnotationOverlayProps) => {
+export const AnnotationOverlay = memo((
+  { annotations, width: _width, height: _height }: AnnotationOverlayProps,
+) => {
   // Don't render if no annotations
   if (!annotations || annotations.length === 0) {
     return null

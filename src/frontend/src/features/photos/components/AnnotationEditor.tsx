@@ -229,8 +229,12 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
       const radiusX = Math.abs(pos.x - drawStart.current.x) / 2
       const radiusY = Math.abs(pos.y - drawStart.current.y) / 2
 
-      const [cx, cy] = pixelToRelative(centerX, centerY, stageDimensions.width, stageDimensions.height)
-      const [rx, ry] = pixelToRelative(radiusX, radiusY, stageDimensions.width, stageDimensions.height)
+      const [cx, cy] = pixelToRelative(
+        centerX, centerY, stageDimensions.width, stageDimensions.height,
+      )
+      const [rx, ry] = pixelToRelative(
+        radiusX, radiusY, stageDimensions.width, stageDimensions.height,
+      )
 
       const newAnnotation: CircleAnnotation = {
         type: 'circle',
@@ -303,7 +307,9 @@ export const AnnotationEditor: FC<AnnotationEditorProps> = ({
 
     pushUndo()
 
-    const [x, y] = pixelToRelative(textInput.x, textInput.y, stageDimensions.width, stageDimensions.height)
+    const [x, y] = pixelToRelative(
+      textInput.x, textInput.y, stageDimensions.width, stageDimensions.height,
+    )
 
     const newAnnotation: TextAnnotation = {
       type: 'text',

@@ -13,7 +13,7 @@
  * @see email-communications/EM-03-S01-invite-existing-members.md
  */
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import type { FC } from 'react'
 import {
   Dialog,
@@ -84,7 +84,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
     if (open) {
       loadOrgMembers()
     }
-  }, [open, exerciseId, currentParticipants])
+  }, [open, exerciseId, currentParticipants, loadOrgMembers])
 
   // Reset state when dialog closes
   useEffect(() => {
@@ -94,7 +94,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
     }
   }, [open])
 
-  const loadOrgMembers = async () => {
+  const loadOrgMembers = useCallback(async () => {
     try {
       setLoading(true)
       setError(null)
@@ -122,7 +122,7 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
     } finally {
       setLoading(false)
     }
-  }
+  }, [currentParticipants])
 
   const handleToggleSelect = (userId: string) => {
     setMembers(prev =>

@@ -80,7 +80,11 @@ export const ImportResults = ({
       <Alert severity="success" sx={{ mb: 3 }}>
         <Typography variant="h6">Import completed successfully</Typography>
         <Typography variant="body2">
-          Processed {result.assignedCount + result.updatedCount + result.invitedCount + result.errorCount + result.skippedCount} rows
+          Processed {
+            result.assignedCount + result.updatedCount
+            + result.invitedCount + result.errorCount
+            + result.skippedCount
+          } rows
         </Typography>
       </Alert>
 

@@ -20,7 +20,7 @@
  * @module features/photos/pages
  */
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo, useEffect, useCallback } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -106,7 +106,9 @@ export const PhotoGalleryPage = () => {
   )
 
   // Fetch photos with filters
-  const { photos, totalCount, isLoading, error, deletePhoto, updatePhoto, isDeleting } = usePhotos(exerciseId!, query)
+  const {
+    photos, totalCount, isLoading, error, deletePhoto, updatePhoto, isDeleting,
+  } = usePhotos(exerciseId!, query)
 
   // Fetch observations for linked photo details
   const { observations } = useObservations(exerciseId!)
@@ -154,17 +156,17 @@ export const PhotoGalleryPage = () => {
     [photos, previewPhotoId],
   )
 
-  const handlePreviousPhoto = () => {
+  const handlePreviousPhoto = useCallback(() => {
     if (currentIndex > 0) {
       setPreviewPhotoId(photos[currentIndex - 1].id)
     }
-  }
+  }, [currentIndex, photos])
 
-  const handleNextPhoto = () => {
+  const handleNextPhoto = useCallback(() => {
     if (currentIndex < photos.length - 1) {
       setPreviewPhotoId(photos[currentIndex + 1].id)
     }
-  }
+  }, [currentIndex, photos])
 
   const handleClosePreview = () => {
     setPreviewPhotoId(null)
@@ -186,7 +188,7 @@ export const PhotoGalleryPage = () => {
 
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [previewPhotoId, currentIndex, photos])
+  }, [previewPhotoId, handleNextPhoto, handlePreviousPhoto])
 
   // Handle page change
   const handlePageChange = (_event: React.ChangeEvent<unknown>, value: number) => {
@@ -663,7 +665,8 @@ export const PhotoGalleryPage = () => {
                   })()}
                   {previewPhoto.latitude && previewPhoto.longitude && (
                     <Typography variant="caption" sx={{ color: 'grey.500' }}>
-                      Location: {previewPhoto.latitude.toFixed(6)}, {previewPhoto.longitude.toFixed(6)}
+                      Location: {previewPhoto.latitude.toFixed(6)},{' '}
+                      {previewPhoto.longitude.toFixed(6)}
                       {previewPhoto.locationAccuracy && ` (±${Math.round(previewPhoto.locationAccuracy)}m)`}
                     </Typography>
                   )}

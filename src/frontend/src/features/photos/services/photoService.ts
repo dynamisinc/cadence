@@ -27,7 +27,9 @@ export const photoService = {
    * - locationAccuracy?: number (optional)
    * - observationId?: string (optional)
    */
-  uploadPhoto: async (exerciseId: string, formData: FormData, idempotencyKey?: string): Promise<PhotoDto> => {
+  uploadPhoto: async (
+    exerciseId: string, formData: FormData, idempotencyKey?: string,
+  ): Promise<PhotoDto> => {
     const headers: Record<string, string> = { 'Content-Type': 'multipart/form-data' }
     if (idempotencyKey) {
       headers['X-Idempotency-Key'] = idempotencyKey

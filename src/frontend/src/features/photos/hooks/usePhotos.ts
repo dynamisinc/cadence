@@ -217,7 +217,8 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
                   ...photo,
                   observationId: request.observationId ?? photo.observationId,
                   displayOrder: request.displayOrder ?? photo.displayOrder,
-                  annotationsJson: request.annotationsJson !== undefined ? request.annotationsJson : photo.annotationsJson,
+                  annotationsJson: request.annotationsJson !== undefined
+                    ? request.annotationsJson : photo.annotationsJson,
                   updatedAt: new Date().toISOString(),
                 }
                 : photo,

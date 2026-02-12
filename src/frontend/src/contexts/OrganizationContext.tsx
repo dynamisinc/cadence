@@ -125,7 +125,8 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
   // Derive loading: true if actively fetching OR haven't fetched for the current token yet.
   // This is computed during render (not in an effect), so PendingUserGuard sees
   // isLoading=true immediately when isAuthenticated transitions to true.
-  const isLoading = isFetching || (isAuthenticated && lastFetchedTokenRef.current !== (accessToken ?? null))
+  const isLoading = isFetching
+    || (isAuthenticated && lastFetchedTokenRef.current !== (accessToken ?? null))
 
   /**
    * Fetch user's organization memberships

@@ -75,7 +75,8 @@ describe('InviteMembersDialog', () => {
     vi.mocked(organizationService.getCurrentOrgMembers).mockResolvedValue(mockOrgMembers)
   })
 
-  // EM-03-S01 AC1: Given I'm an Exercise Director, when I view exercise participants, then I can "Invite Members"
+  // EM-03-S01 AC1: Given I'm an Exercise Director, when I view
+  // exercise participants, then I can "Invite Members"
   it('should render dialog with title and instructions', async () => {
     render(
       <InviteMembersDialog
@@ -96,7 +97,8 @@ describe('InviteMembersDialog', () => {
     })
   })
 
-  // EM-03-S01 AC2: Given invite dialog, when opened, then I see organization members not yet in exercise
+  // EM-03-S01 AC2: Given invite dialog, when opened, then I see
+  // organization members not yet in exercise
   it('should load and display organization members not in exercise', async () => {
     render(
       <InviteMembersDialog
@@ -194,7 +196,8 @@ describe('InviteMembersDialog', () => {
     expect(roleCombobox).toHaveTextContent('Controller')
   })
 
-  // EM-03-S01 AC4: Given multiple members selected, when inviting, then all receive individual emails
+  // EM-03-S01 AC4: Given multiple members selected, when inviting,
+  // then all receive individual emails
   it('should allow selecting multiple members', async () => {
     const user = userEvent.setup()
 

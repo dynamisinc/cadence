@@ -392,7 +392,9 @@ export const ObservationList = ({
               {galleryPhotos.length > 1 && (
                 <Stack direction="row" spacing={2} alignItems="center" sx={{ pb: 2 }}>
                   <IconButton
-                    onClick={() => setGalleryIndex(i => (i - 1 + galleryPhotos.length) % galleryPhotos.length)}
+                    onClick={() => setGalleryIndex(
+                      i => (i - 1 + galleryPhotos.length) % galleryPhotos.length,
+                    )}
                     size="small"
                   >
                     <FontAwesomeIcon icon={faChevronLeft} />

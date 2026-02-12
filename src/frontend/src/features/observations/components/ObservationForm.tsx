@@ -56,7 +56,10 @@ interface ObservationFormProps {
   /** Scenario time to stamp photos with */
   scenarioTime?: string | null
   /** Called on submit (pendingPhotos provided in create mode for post-creation upload) */
-  onSubmit: (data: CreateObservationRequest | UpdateObservationRequest, pendingPhotos?: File[]) => Promise<void>
+  onSubmit: (
+    data: CreateObservationRequest | UpdateObservationRequest,
+    pendingPhotos?: File[],
+  ) => Promise<void>
   /** Called on cancel */
   onCancel: () => void
   /** Is form submitting? */

@@ -221,7 +221,10 @@ export const ObservationsPage = () => {
   }
 
   // Handlers
-  const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0], pendingPhotos?: File[]) => {
+  const handleSubmitObservation = async (
+    data: Parameters<typeof createObservation>[0],
+    pendingPhotos?: File[],
+  ) => {
     setIsSubmitting(true)
     try {
       if (editingObservation) {
@@ -318,7 +321,11 @@ export const ObservationsPage = () => {
     [compressImage, displayTime, quickPhoto],
   )
 
-  const { fileInputRef: quickPhotoInputRef, openCamera: openQuickPhotoCamera, handleFileChange: handleQuickPhotoChange } = useCamera(handleQuickPhotoFile)
+  const {
+    fileInputRef: quickPhotoInputRef,
+    openCamera: openQuickPhotoCamera,
+    handleFileChange: handleQuickPhotoChange,
+  } = useCamera(handleQuickPhotoFile)
 
   // Keyboard shortcut: Ctrl+O to open create dialog
   useEffect(() => {
@@ -616,7 +623,10 @@ export const ObservationsPage = () => {
                   injectId: editingObservation.injectId ?? undefined,
                   capabilityIds: editingObservation.capabilities.map(c => c.id),
                 }}
-                observation={observations.find(o => o.id === editingObservation.id) ?? editingObservation}
+                observation={
+                  observations.find(o => o.id === editingObservation.id)
+                  ?? editingObservation
+                }
                 onSubmit={handleSubmitObservation}
                 onCancel={handleCancelEdit}
                 isSubmitting={isSubmitting}

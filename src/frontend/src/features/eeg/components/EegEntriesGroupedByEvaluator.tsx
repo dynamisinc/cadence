@@ -299,7 +299,11 @@ export const EegEntriesGroupedByEvaluator = ({
       {/* Evaluator Groups */}
       <Stack spacing={2}>
         {evaluatorGroups.map(evalGroup => (
-          <Accordion key={evalGroup.evaluatorId} defaultExpanded={false} slotProps={{ transition: { unmountOnExit: true } }}>
+          <Accordion
+            key={evalGroup.evaluatorId}
+            defaultExpanded={false}
+            slotProps={{ transition: { unmountOnExit: true } }}
+          >
             <AccordionSummary
               expandIcon={<FontAwesomeIcon icon={faChevronDown} />}
               aria-label={`Expand ${evalGroup.evaluatorName} entries`}

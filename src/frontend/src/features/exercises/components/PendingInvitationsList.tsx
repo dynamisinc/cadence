@@ -192,8 +192,14 @@ export const PendingInvitationsList = ({
                     <Box sx={{ ml: 4, mt: 1 }}>
                       <CobraSecondaryButton
                         size="small"
-                        onClick={() => handleResend(assignment.organizationInviteId, assignment.email)}
-                        disabled={isResending || resendingId === assignment.organizationInviteId}
+                        onClick={() => handleResend(
+                          assignment.organizationInviteId,
+                          assignment.email,
+                        )}
+                        disabled={
+                          isResending
+                          || resendingId === assignment.organizationInviteId
+                        }
                       >
                         {resendingId === assignment.organizationInviteId ? (
                           <>

@@ -106,6 +106,7 @@ export const ExerciseForm = ({
   })
 
   // Watch fields for reactivity
+  // eslint-disable-next-line react-hooks/incompatible-library
   const nameValue = watch('name')
   const exerciseTypeValue = watch('exerciseType')
   const deliveryModeValue = watch('deliveryMode')

@@ -9,7 +9,6 @@ import {
   CardContent,
   List,
   ListItem,
-  ListItemIcon,
   ListItemText,
   Skeleton,
   Alert,
