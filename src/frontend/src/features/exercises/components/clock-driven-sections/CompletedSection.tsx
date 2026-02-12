@@ -34,6 +34,7 @@ import {
 import type { InjectDto } from '../../../injects/types'
 import { InjectStatus } from '../../../../types'
 import { formatDeliveryTime, parseDeliveryTime, formatScenarioTime } from '../../../injects/types'
+import { formatTime } from '@/shared/utils/dateUtils'
 
 interface CompletedSectionProps {
   /** Released and deferred injects */
@@ -195,10 +196,7 @@ export const CompletedSection = ({
                         />
                         {actionTime && (
                           <Typography variant="caption" color="text.secondary">
-                            {new Date(actionTime).toLocaleTimeString([], {
-                              hour: '2-digit',
-                              minute: '2-digit',
-                            })}
+                            {formatTime(actionTime)}
                           </Typography>
                         )}
                         {actionBy && (

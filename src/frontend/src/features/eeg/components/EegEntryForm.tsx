@@ -23,7 +23,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faLightbulb } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@/shared/utils/notify'
-import { format, parseISO } from 'date-fns'
+import { parseUtcDate, formatTime } from '@/shared/utils/dateUtils'
 
 import {
   CobraPrimaryButton,
@@ -94,7 +94,7 @@ const getCurrentLocalDatetime = () => {
 
 // Helper to convert UTC ISO string to local datetime-local format
 const utcToLocalDatetimeInput = (utcStr: string) => {
-  const date = parseISO(utcStr.endsWith('Z') ? utcStr : `${utcStr}Z`)
+  const date = parseUtcDate(utcStr)
   const year = date.getFullYear()
   const month = String(date.getMonth() + 1).padStart(2, '0')
   const day = String(date.getDate()).padStart(2, '0')
@@ -385,7 +385,7 @@ export const EegEntryForm = ({
           <Typography variant="h6">{isEditMode ? 'Edit EEG Entry' : '+ EEG Entry'}</Typography>
           {isEditMode && editEntry && (
             <Typography variant="body2" color="text.secondary">
-              Originally recorded: {format(parseISO(editEntry.recordedAt.endsWith('Z') ? editEntry.recordedAt : `${editEntry.recordedAt}Z`), 'h:mm a')} by{' '}
+              Originally recorded: {formatTime(editEntry.recordedAt)} by{' '}
               {editEntry.evaluatorName ?? 'Unknown'}
             </Typography>
           )}

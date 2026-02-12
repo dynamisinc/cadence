@@ -20,7 +20,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faLink } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatDateTime } from '@/shared/utils/dateUtils'
 
 import {
   CobraPrimaryButton,
@@ -77,18 +77,6 @@ export const EntryDetailDialog = ({
   onInjectClick?: (injectId: string) => void
 }) => {
   if (!entry) return null
-
-  // Helper function to format dates consistently using date-fns
-  // Ensures UTC dates are properly converted to local time
-  const formatDateTime = (dateStr: string) => {
-    try {
-      // Append 'Z' if not present to ensure parseISO treats the date as UTC
-      const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`
-      return format(parseISO(utcDateStr), 'MMM d, yyyy h:mm a')
-    } catch {
-      return dateStr
-    }
-  }
 
   // Use backend-provided wasEdited flag
   const wasEdited = entry.wasEdited

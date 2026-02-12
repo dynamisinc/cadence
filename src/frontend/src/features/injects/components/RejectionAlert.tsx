@@ -11,6 +11,7 @@ import { Alert, AlertTitle, Typography } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faExclamationTriangle } from '@fortawesome/free-solid-svg-icons'
 import type { InjectDto } from '../types'
+import { formatDateTime } from '../../../shared/utils/dateUtils'
 
 interface RejectionAlertProps {
   /** The inject with potential rejection info */
@@ -20,17 +21,10 @@ interface RejectionAlertProps {
 /**
  * Format a date string for display
  */
-const formatDate = (dateString: string | null): string => {
+const formatDateTimeSafe = (dateString: string | null): string => {
   if (!dateString) return ''
   try {
-    const date = new Date(dateString)
-    return date.toLocaleDateString(undefined, {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    return formatDateTime(dateString)
   } catch {
     return ''
   }
@@ -64,7 +58,7 @@ export const RejectionAlert = ({ inject }: RejectionAlertProps) => {
       </Typography>
       {inject.rejectedAt && (
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          Rejected on {formatDate(inject.rejectedAt)}
+          Rejected on {formatDateTimeSafe(inject.rejectedAt)}
         </Typography>
       )}
     </Alert>

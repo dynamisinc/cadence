@@ -45,6 +45,7 @@ import { organizationService } from '../services/organizationService'
 import type { Invitation } from '../types'
 import { getOrgRoleLabel } from '../types'
 import { notify } from '@/shared/utils/notify'
+import { formatDate } from '@/shared/utils/dateUtils'
 
 type PageState =
   | 'loading'
@@ -426,7 +427,7 @@ export const InviteAcceptPage: FC = () => {
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {ex.exerciseRole} &middot; {ex.exerciseType}
-                      {ex.scheduledDate && ` \u00B7 ${new Date(ex.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                      {ex.scheduledDate && ` \u00B7 ${formatDate(ex.scheduledDate)}`}
                     </Typography>
                   </Box>
                 ))}
@@ -540,7 +541,7 @@ export const InviteAcceptPage: FC = () => {
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {ex.exerciseRole} &middot; {ex.exerciseType}
-                    {ex.scheduledDate && ` \u00B7 ${new Date(ex.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                    {ex.scheduledDate && ` \u00B7 ${formatDate(ex.scheduledDate)}`}
                   </Typography>
                 </Box>
               ))}

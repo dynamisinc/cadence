@@ -39,6 +39,7 @@ import {
 import { StatusChip } from '@/shared/components'
 import { useBreadcrumbs } from '@/core/contexts'
 import { notify } from '@/shared/utils/notify'
+import { formatDate } from '@/shared/utils/dateUtils'
 import CobraStyles from '@/theme/CobraStyles'
 
 export const OrganizationDetailsPage: FC = () => {
@@ -207,7 +208,7 @@ export const OrganizationDetailsPage: FC = () => {
                 Created
               </Typography>
               <Typography variant="body1">
-                {new Date(organization.createdAt).toLocaleDateString()}
+                {formatDate(organization.createdAt)}
               </Typography>
             </Box>
           </Paper>

@@ -18,6 +18,7 @@ import { useNavigate } from 'react-router-dom'
 import type { AssignmentDto, AssignmentSectionType } from '../types'
 import { getDefaultRouteForRole, getRoleLabel, getRoleColor } from '../utils/roleRouting'
 import CobraStyles from '@/theme/CobraStyles'
+import { formatDate as sharedFormatDate } from '@/shared/utils/dateUtils'
 
 interface AssignmentCardProps {
   assignment: AssignmentDto
@@ -42,12 +43,7 @@ function formatElapsedTime(seconds: number | null): string {
  * Format date for display.
  */
 function formatDate(dateString: string): string {
-  const date = new Date(dateString)
-  return date.toLocaleDateString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-  })
+  return sharedFormatDate(dateString)
 }
 
 /**

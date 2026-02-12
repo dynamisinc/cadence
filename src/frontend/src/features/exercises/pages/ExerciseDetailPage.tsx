@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical, faGear, faClipboardCheck } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatDate } from '../../../shared/utils/dateUtils'
 
 import {
   useExercise,
@@ -294,9 +294,9 @@ export const ExerciseDetailPage = () => {
     return exercise.status !== ExerciseStatus.Archived
   }, [exercise, can])
 
-  const formatDate = (dateStr: string) => {
+  const formatDateLong = (dateStr: string) => {
     try {
-      return format(parseISO(dateStr), 'MMMM d, yyyy')
+      return formatDate(dateStr)
     } catch {
       return dateStr
     }
@@ -586,7 +586,7 @@ export const ExerciseDetailPage = () => {
                           Date
                         </Typography>
                         <Typography variant="body2">
-                          {formatDate(exercise.scheduledDate)}
+                          {formatDateLong(exercise.scheduledDate)}
                         </Typography>
                       </Grid>
 
@@ -734,12 +734,12 @@ export const ExerciseDetailPage = () => {
                           }}
                         >
                           <Typography variant="caption" color="text.secondary">
-                            Created {format(parseISO(exercise.createdAt), 'MMM d, yyyy')}
+                            Created {formatDate(exercise.createdAt)}
                             {exercise.updatedAt !== exercise.createdAt && (
                               <>
                                 {' · '}
                                 Last updated{' '}
-                                {format(parseISO(exercise.updatedAt), 'MMM d, yyyy')}
+                                {formatDate(exercise.updatedAt)}
                               </>
                             )}
                           </Typography>

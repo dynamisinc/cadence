@@ -25,7 +25,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEnvelope, faXmark } from '@fortawesome/free-solid-svg-icons'
 import type { Invitation } from '../types'
 import { getOrgRoleLabel } from '../types'
-import { format } from 'date-fns'
+import { formatDateTime } from '@/shared/utils/dateUtils'
 
 interface InvitationsTableProps {
   invitations: Invitation[];
@@ -55,9 +55,9 @@ export const InvitationsTable: FC<InvitationsTableProps> = ({
     }
   }
 
-  const formatDate = (dateString: string) => {
+  const formatDateSafe = (dateString: string) => {
     try {
-      return format(new Date(dateString), 'MMM d, yyyy h:mm a')
+      return formatDateTime(dateString)
     } catch {
       return dateString
     }
@@ -115,12 +115,12 @@ export const InvitationsTable: FC<InvitationsTableProps> = ({
               </TableCell>
               <TableCell>
                 <Typography variant="body2" color="text.secondary">
-                  {formatDate(invitation.createdAt)}
+                  {formatDateSafe(invitation.createdAt)}
                 </Typography>
               </TableCell>
               <TableCell>
                 <Typography variant="body2" color="text.secondary">
-                  {formatDate(invitation.expiresAt)}
+                  {formatDateSafe(invitation.expiresAt)}
                 </Typography>
               </TableCell>
               <TableCell>

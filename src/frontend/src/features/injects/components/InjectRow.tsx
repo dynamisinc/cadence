@@ -38,6 +38,7 @@ import { InjectStatusChip, InjectTypeChip } from './'
 import { InjectStatus, DeliveryMethod } from '../../../types'
 import type { InjectDto } from '../types'
 import { formatOffset, formatScheduledTime, formatScenarioTime, formatTimeRemaining, DUE_SOON_THRESHOLD_MS } from '../types'
+import { formatTime } from '../../../shared/utils/dateUtils'
 
 // Pulse animation for due soon indicator
 const pulse = keyframes`
@@ -135,8 +136,7 @@ export const InjectRow = ({
   // Format fired/skipped time for display
   const formatActionTime = (isoString: string | null): string => {
     if (!isoString) return ''
-    const date = new Date(isoString)
-    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    return formatTime(isoString)
   }
 
   return (

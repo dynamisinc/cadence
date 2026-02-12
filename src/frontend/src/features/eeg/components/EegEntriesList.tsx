@@ -32,7 +32,7 @@ import {
   faXmark,
   faLink,
 } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatTime, formatDateTime } from '@/shared/utils/dateUtils'
 
 import {
   CobraPrimaryButton,
@@ -115,18 +115,6 @@ const EntryDetailDialog = ({
   onInjectClick?: (injectId: string) => void
 }) => {
   if (!entry) return null
-
-  // Helper function to format dates consistently using date-fns
-  // Ensures UTC dates are properly converted to local time
-  const formatDateTime = (dateStr: string) => {
-    try {
-      // Append 'Z' if not present to ensure parseISO treats the date as UTC
-      const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`
-      return format(parseISO(utcDateStr), 'MMM d, yyyy h:mm a')
-    } catch {
-      return dateStr
-    }
-  }
 
   // Use backend-provided wasEdited flag
   const wasEdited = entry.wasEdited
@@ -550,10 +538,7 @@ export const EegEntriesList = ({
       {/* Entries List */}
       <Stack spacing={1}>
         {sortedEntries.map(entry => {
-          // Helper to ensure dates are parsed as UTC
-          const parseAsUtc = (dateStr: string) => parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
-          // Format time using date-fns for consistent timezone handling
-          const timeStr = format(parseAsUtc(entry.observedAt), 'h:mm a')
+          const timeStr = formatTime(entry.observedAt)
 
           return (
             <Paper

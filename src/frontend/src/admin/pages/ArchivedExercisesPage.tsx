@@ -40,7 +40,7 @@ import {
   faTrash,
   faEllipsisVertical,
 } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatDate } from '@/shared/utils/dateUtils'
 import { notify } from '@/shared/utils/notify'
 
 import {
@@ -250,10 +250,10 @@ export const ArchivedExercisesPage = () => {
     setSelectedIds(new Set())
   }
 
-  const formatDate = (dateStr: string | null) => {
+  const formatDateSafe = (dateStr: string | null) => {
     if (!dateStr) return '-'
     try {
-      return format(parseISO(dateStr), 'MMM d, yyyy')
+      return formatDate(dateStr)
     } catch {
       return dateStr
     }
@@ -422,10 +422,10 @@ export const ArchivedExercisesPage = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">{formatDate(exercise.archivedAt)}</Typography>
+                    <Typography variant="body2">{formatDateSafe(exercise.archivedAt)}</Typography>
                   </TableCell>
                   <TableCell>
-                    <Typography variant="body2">{formatDate(exercise.scheduledDate)}</Typography>
+                    <Typography variant="body2">{formatDateSafe(exercise.scheduledDate)}</Typography>
                   </TableCell>
                   <TableCell align="right">
                     <IconButton

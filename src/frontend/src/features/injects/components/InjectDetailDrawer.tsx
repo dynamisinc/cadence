@@ -48,6 +48,7 @@ import { InjectStatus, DeliveryMethod } from '../../../types'
 import type { InjectDto } from '../types'
 import { formatScheduledTime, formatScenarioTime, formatOffset } from '../types'
 import type { ObjectiveSummaryDto } from '../../objectives/types'
+import { formatDateTime } from '../../../shared/utils/dateUtils'
 
 interface InjectDetailDrawerProps {
   /** The inject to display, or null to close drawer */
@@ -175,13 +176,7 @@ export const InjectDetailDrawer = ({
   // Format fired/skipped time for display
   const formatActionTime = (isoString: string | null): string => {
     if (!isoString) return ''
-    const date = new Date(isoString)
-    return date.toLocaleString([], {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    return formatDateTime(isoString)
   }
 
   return (

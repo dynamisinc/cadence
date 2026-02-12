@@ -35,6 +35,7 @@ import {
   faFire,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { formatDateTime as sharedFormatDateTime, formatTime as sharedFormatTime } from '@/shared/utils/dateUtils'
 import { useTimelineSummary } from '../hooks/useTimelineSummary'
 import { parseTimeSpan, formatDuration } from '../types'
 import type {
@@ -58,30 +59,19 @@ const formatTimeSpan = (timeSpan: string | null | undefined): string => {
 }
 
 /**
- * Format datetime to locale string
+ * Format datetime with null handling
  */
 const formatDateTime = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'N/A'
-  const date = new Date(dateStr)
-  return date.toLocaleString(undefined, {
-    month: 'short',
-    day: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit',
-  })
+  return sharedFormatDateTime(dateStr)
 }
 
 /**
- * Format time only
+ * Format time only with null handling
  */
 const formatTime = (dateStr: string | null | undefined): string => {
   if (!dateStr) return 'N/A'
-  const date = new Date(dateStr)
-  return date.toLocaleTimeString(undefined, {
-    hour: '2-digit',
-    minute: '2-digit',
-    second: '2-digit',
-  })
+  return sharedFormatTime(dateStr)
 }
 
 /**

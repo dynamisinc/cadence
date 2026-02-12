@@ -17,6 +17,7 @@ import {
   faBell,
 } from '@fortawesome/free-solid-svg-icons'
 import type { NotificationDto, NotificationType } from '../types'
+import { formatDate } from '@/shared/utils/dateUtils'
 
 interface NotificationItemProps {
   notification: NotificationDto
@@ -65,7 +66,7 @@ function formatTimeAgo(dateString: string): string {
   if (diffMin < 60) return diffMin + 'm ago'
   if (diffHour < 24) return diffHour + 'h ago'
   if (diffDay < 7) return diffDay + 'd ago'
-  return date.toLocaleDateString()
+  return formatDate(dateString)
 }
 
 export function NotificationItem({ notification, onClick }: NotificationItemProps) {

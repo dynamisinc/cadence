@@ -16,6 +16,7 @@ import {
   CobraSecondaryButton,
   CobraTextField,
 } from '@/theme/styledComponents'
+import { formatDateTime } from '@/shared/utils/dateUtils'
 import { useSystemSettings, useUpdateSystemSettings } from '../hooks/useSystemSettings'
 import { notify } from '@/shared/utils/notify'
 
@@ -153,7 +154,7 @@ export const SystemSettingsAdmin: FC = () => {
 
           {settings?.updatedAt && (
             <Typography variant="caption" color="text.secondary">
-              Last updated: {new Date(settings.updatedAt).toLocaleString()}
+              Last updated: {formatDateTime(settings.updatedAt)}
               {settings.updatedBy && ` by ${settings.updatedBy}`}
             </Typography>
           )}

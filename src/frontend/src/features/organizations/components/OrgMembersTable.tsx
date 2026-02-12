@@ -25,6 +25,7 @@ import { faTrash, faUserPlus } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
 import { ConfirmDialog } from '@/shared/components/ConfirmDialog'
 import type { OrgMember, OrgRole } from '../types'
+import { formatDate } from '@/shared/utils/dateUtils'
 
 interface OrgMembersTableProps {
   members: OrgMember[];
@@ -130,7 +131,7 @@ export const OrgMembersTable: FC<OrgMembersTableProps> = ({
                   </Select>
                 </TableCell>
                 <TableCell>
-                  {new Date(member.joinedAt).toLocaleDateString()}
+                  {formatDate(member.joinedAt)}
                 </TableCell>
                 <TableCell align="right">
                   <IconButton

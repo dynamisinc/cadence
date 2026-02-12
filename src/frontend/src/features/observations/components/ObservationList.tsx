@@ -30,10 +30,8 @@ import {
 import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faSpinner, faCamera, faXmark, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
-
 import { RatingBadge } from './RatingBadge'
-import { formatDateTime } from '../../../shared/utils/dateUtils'
+import { formatDateTime, formatTime } from '../../../shared/utils/dateUtils'
 import { ObservationRating, ObservationRatingLabels } from '../../../types'
 import type { ObservationDto } from '../types'
 import type { PhotoTagDto } from '../types'
@@ -75,14 +73,6 @@ export const ObservationList = ({
   // Photo gallery state
   const [galleryPhotos, setGalleryPhotos] = useState<PhotoTagDto[] | null>(null)
   const [galleryIndex, setGalleryIndex] = useState(0)
-
-  const formatTime = (dateStr: string) => {
-    try {
-      return format(parseISO(dateStr), 'h:mm a')
-    } catch {
-      return ''
-    }
-  }
 
   // Apply filters using useMemo for performance (only when filter bar is shown)
   const filteredObservations = useMemo(() => {

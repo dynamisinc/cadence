@@ -31,7 +31,7 @@ import {
   faXmark,
   faLink,
 } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatTime, formatDateTime } from '@/shared/utils/dateUtils'
 
 import {
   CobraPrimaryButton,
@@ -151,9 +151,7 @@ const EntryCard = ({
   entry: EegEntryDto
   onClick: () => void
 }) => {
-  const parseAsUtc = (dateStr: string) =>
-    parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
-  const timeStr = format(parseAsUtc(entry.observedAt), 'h:mm a')
+  const timeStr = formatTime(entry.observedAt)
 
   return (
     <Paper
@@ -234,15 +232,6 @@ const EntryDetailDialog = ({
   onInjectClick?: (injectId: string) => void
 }) => {
   if (!entry) return null
-
-  const formatDateTime = (dateStr: string) => {
-    try {
-      const utcDateStr = dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`
-      return format(parseISO(utcDateStr), 'MMM d, yyyy h:mm a')
-    } catch {
-      return dateStr
-    }
-  }
 
   return (
     <Dialog open={open} onClose={onClose} maxWidth="sm" fullWidth>
