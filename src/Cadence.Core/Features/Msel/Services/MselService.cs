@@ -83,13 +83,13 @@ public class MselService : IMselService
     {
         var injects = msel.Injects.ToList();
         var totalInjects = injects.Count;
-        var pendingCount = injects.Count(i => i.Status == InjectStatus.Draft);
-        var firedCount = injects.Count(i => i.Status == InjectStatus.Released);
-        var skippedCount = injects.Count(i => i.Status == InjectStatus.Deferred);
+        var draftCount = injects.Count(i => i.Status == InjectStatus.Draft);
+        var releasedCount = injects.Count(i => i.Status == InjectStatus.Released);
+        var deferredCount = injects.Count(i => i.Status == InjectStatus.Deferred);
 
         // Calculate completion percentage
         var completionPercentage = totalInjects > 0
-            ? (int)Math.Round((double)(firedCount + skippedCount) / totalInjects * 100)
+            ? (int)Math.Round((double)(releasedCount + deferredCount) / totalInjects * 100)
             : 0;
 
         // Find last modified inject
@@ -111,9 +111,9 @@ public class MselService : IMselService
             IsActive = msel.IsActive,
             ExerciseId = msel.ExerciseId,
             TotalInjects = totalInjects,
-            PendingCount = pendingCount,
-            FiredCount = firedCount,
-            SkippedCount = skippedCount,
+            DraftCount = draftCount,
+            ReleasedCount = releasedCount,
+            DeferredCount = deferredCount,
             CompletionPercentage = completionPercentage,
             PhaseCount = exercise.Phases.Count(p => !p.IsDeleted),
             ObjectiveCount = exercise.Objectives.Count(o => !o.IsDeleted),
