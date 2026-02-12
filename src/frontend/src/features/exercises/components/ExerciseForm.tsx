@@ -13,7 +13,7 @@ import {
   FormControlLabel,
   Switch,
   Typography,
-  Paper,
+  Grid,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
@@ -168,9 +168,9 @@ export const ExerciseForm = ({
 
   return (
     <form onSubmit={onFormSubmit}>
-      <Stack spacing={CobraStyles.Spacing.FormFields}>
-        {/* Name Field */}
-        <Box>
+      <Box sx={{ maxWidth: 800 }}>
+        <Stack spacing={1.25}>
+          {/* Row 1: Name (full width) */}
           <Controller
             name="name"
             control={control}
@@ -191,228 +191,227 @@ export const ExerciseForm = ({
               />
             )}
           />
-        </Box>
 
-        {/* Exercise Type */}
-        <Controller
-          name="exerciseType"
-          control={control}
-          render={({ field }) => (
-            <FormControl
-              fullWidth
-              size="small"
-              required
-              error={!!errors.exerciseType}
-              disabled={isFieldDisabled('exerciseType')}
-            >
-              <InputLabel id="exercise-type-label">Exercise Type</InputLabel>
-              <Select
-                {...field}
-                labelId="exercise-type-label"
-                label="Exercise Type"
-              >
-                {EXERCISE_TYPES.map(type => (
-                  <MenuItem key={type} value={type}>
-                    {type} - {getExerciseTypeFullName(type)}
-                  </MenuItem>
-                ))}
-              </Select>
-              {errors.exerciseType && (
-                <FormHelperText>{errors.exerciseType.message}</FormHelperText>
-              )}
-              {isFieldDisabled('exerciseType') && (
-                <FormHelperText>Cannot modify during active exercise</FormHelperText>
-              )}
-            </FormControl>
-          )}
-        />
+          {/* Row 2: Exercise Type + Exercise Director (side by side) */}
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 5 }}>
+              <Controller
+                name="exerciseType"
+                control={control}
+                render={({ field }) => (
+                  <FormControl
+                    fullWidth
+                    size="small"
+                    required
+                    error={!!errors.exerciseType}
+                    disabled={isFieldDisabled('exerciseType')}
+                  >
+                    <InputLabel id="exercise-type-label">Exercise Type</InputLabel>
+                    <Select
+                      {...field}
+                      labelId="exercise-type-label"
+                      label="Exercise Type"
+                    >
+                      {EXERCISE_TYPES.map(type => (
+                        <MenuItem key={type} value={type}>
+                          {type} - {getExerciseTypeFullName(type)}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                    {errors.exerciseType && (
+                      <FormHelperText>{errors.exerciseType.message}</FormHelperText>
+                    )}
+                    {isFieldDisabled('exerciseType') && (
+                      <FormHelperText>Cannot modify during active exercise</FormHelperText>
+                    )}
+                  </FormControl>
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 7 }}>
+              <Controller
+                name="directorId"
+                control={control}
+                render={({ field }) => (
+                  <UserAutocomplete
+                    value={selectedDirector}
+                    onChange={user => {
+                      setSelectedDirector(user)
+                      field.onChange(user?.id || '')
+                      setValue('directorId', user?.id || '', { shouldDirty: true })
+                    }}
+                    label="Exercise Director (Optional)"
+                    helperText={
+                      errors.directorId?.message ||
+                      (isEdit
+                        ? 'Change the assigned Exercise Director'
+                        : 'Defaults to you if not specified')
+                    }
+                    error={!!errors.directorId}
+                    disabled={isFieldDisabled('directorId' as keyof CreateExerciseFormValues)}
+                    filterToDirectorEligible={true}
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
 
-        {/* Exercise Director (Optional) */}
-        <Controller
-          name="directorId"
-          control={control}
-          render={({ field }) => (
-            <UserAutocomplete
-              value={selectedDirector}
-              onChange={user => {
-                setSelectedDirector(user)
-                field.onChange(user?.id || '')
-                setValue('directorId', user?.id || '', { shouldDirty: true })
-              }}
-              label="Exercise Director (Optional)"
-              helperText={
-                errors.directorId?.message ||
-                (isEdit
-                  ? 'Change the assigned Exercise Director'
-                  : 'Defaults to you if not specified')
-              }
-              error={!!errors.directorId}
-              disabled={isFieldDisabled('directorId' as keyof CreateExerciseFormValues)}
-              filterToDirectorEligible={true}
-            />
-          )}
-        />
-
-        {/* Timing Configuration (CLK-03) */}
-        {exerciseTypeValue && (
-          <TimingConfigurationSection
-            deliveryMode={deliveryModeValue}
-            timelineMode={timelineModeValue}
-            clockMultiplier={clockMultiplierValue ?? 1}
-            exerciseType={exerciseTypeValue}
-            isLocked={exercise?.status === ExerciseStatus.Active}
-            onChange={(field, value) => {
-              setValue(
-                field as keyof CreateExerciseFormValues,
-                value as CreateExerciseFormValues[keyof CreateExerciseFormValues],
-                { shouldDirty: true },
-              )
-            }}
-            errors={{
-              deliveryMode: errors.deliveryMode?.message,
-              timelineMode: errors.timelineMode?.message,
-              clockMultiplier: errors.clockMultiplier?.message,
-            }}
-          />
-        )}
-
-        {/* Scheduled Date */}
-        <Controller
-          name="scheduledDate"
-          control={control}
-          render={({ field }) => (
-            <CobraTextField
-              {...field}
-              label="Scheduled Date"
-              type="date"
-              error={!!errors.scheduledDate}
-              helperText={
-                errors.scheduledDate?.message ||
-                (isFieldDisabled('scheduledDate')
-                  ? 'Cannot modify during active exercise'
-                  : undefined)
-              }
-              fullWidth
-              required
-              disabled={isFieldDisabled('scheduledDate')}
-              slotProps={{
-                inputLabel: { shrink: true },
-              }}
-            />
-          )}
-        />
-
-        {/* Start/End Time (row) */}
-        <Stack direction="row" spacing={2}>
+          {/* Row 3: Description (full width) */}
           <Controller
-            name="startTime"
+            name="description"
             control={control}
             render={({ field }) => (
               <CobraTextField
                 {...field}
-                label="Start Time"
-                type="time"
+                label="Description"
+                error={!!errors.description}
+                helperText={errors.description?.message}
                 fullWidth
-                disabled={isFieldDisabled('startTime')}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
+                multiline
+                rows={4}
+                disabled={isFieldDisabled('description')}
               />
             )}
           />
+
+          {/* Row 4: Scheduling - Date | Start | End | TimeZone */}
+          <Grid container spacing={2}>
+            <Grid size={{ xs: 12, sm: 3 }}>
+              <Controller
+                name="scheduledDate"
+                control={control}
+                render={({ field }) => (
+                  <CobraTextField
+                    {...field}
+                    label="Scheduled Date"
+                    type="date"
+                    error={!!errors.scheduledDate}
+                    helperText={
+                      errors.scheduledDate?.message ||
+                      (isFieldDisabled('scheduledDate')
+                        ? 'Cannot modify during active exercise'
+                        : undefined)
+                    }
+                    fullWidth
+                    required
+                    disabled={isFieldDisabled('scheduledDate')}
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 2.5 }}>
+              <Controller
+                name="startTime"
+                control={control}
+                render={({ field }) => (
+                  <CobraTextField
+                    {...field}
+                    label="Start Time"
+                    type="time"
+                    fullWidth
+                    disabled={isFieldDisabled('startTime')}
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 6, sm: 2.5 }}>
+              <Controller
+                name="endTime"
+                control={control}
+                render={({ field }) => (
+                  <CobraTextField
+                    {...field}
+                    label="End Time"
+                    type="time"
+                    error={!!errors.endTime}
+                    helperText={errors.endTime?.message}
+                    fullWidth
+                    disabled={isFieldDisabled('endTime')}
+                    slotProps={{
+                      inputLabel: { shrink: true },
+                    }}
+                  />
+                )}
+              />
+            </Grid>
+            <Grid size={{ xs: 12, sm: 4 }}>
+              <Controller
+                name="timeZoneId"
+                control={control}
+                render={({ field }) => (
+                  <Autocomplete
+                    size="small"
+                    options={TIME_ZONES}
+                    getOptionLabel={(option: TimeZoneOption) => option.label}
+                    groupBy={(option: TimeZoneOption) => option.region}
+                    value={getTimeZoneOption(field.value)}
+                    onChange={(_, newValue) => {
+                      field.onChange(newValue?.id ?? getBrowserTimeZone())
+                    }}
+                    isOptionEqualToValue={(option, value) => option.id === value.id}
+                    disabled={isFieldDisabled('timeZoneId')}
+                    renderInput={params => (
+                      <CobraTextField
+                        {...params}
+                        label="Time Zone"
+                        required
+                        error={!!errors.timeZoneId}
+                        helperText={errors.timeZoneId?.message || 'All times are in this zone'}
+                      />
+                    )}
+                    disableClearable
+                  />
+                )}
+              />
+            </Grid>
+          </Grid>
+
+          {/* Row 5: Location (full width) */}
           <Controller
-            name="endTime"
+            name="location"
             control={control}
             render={({ field }) => (
               <CobraTextField
                 {...field}
-                label="End Time"
-                type="time"
-                error={!!errors.endTime}
-                helperText={errors.endTime?.message}
+                label="Location"
+                error={!!errors.location}
+                helperText={errors.location?.message}
                 fullWidth
-                disabled={isFieldDisabled('endTime')}
-                slotProps={{
-                  inputLabel: { shrink: true },
-                }}
+                disabled={isFieldDisabled('location')}
               />
             )}
           />
-        </Stack>
 
-        {/* Time Zone */}
-        <Controller
-          name="timeZoneId"
-          control={control}
-          render={({ field }) => (
-            <Autocomplete
-              size="small"
-              options={TIME_ZONES}
-              getOptionLabel={(option: TimeZoneOption) => option.label}
-              groupBy={(option: TimeZoneOption) => option.region}
-              value={getTimeZoneOption(field.value)}
-              onChange={(_, newValue) => {
-                field.onChange(newValue?.id ?? getBrowserTimeZone())
+          {/* Timing Configuration (CLK-03) */}
+          {exerciseTypeValue && (
+            <TimingConfigurationSection
+              deliveryMode={deliveryModeValue}
+              timelineMode={timelineModeValue}
+              clockMultiplier={clockMultiplierValue ?? 1}
+              exerciseType={exerciseTypeValue}
+              isLocked={exercise?.status === ExerciseStatus.Active}
+              onChange={(field, value) => {
+                setValue(
+                  field as keyof CreateExerciseFormValues,
+                  value as CreateExerciseFormValues[keyof CreateExerciseFormValues],
+                  { shouldDirty: true },
+                )
               }}
-              isOptionEqualToValue={(option, value) => option.id === value.id}
-              disabled={isFieldDisabled('timeZoneId')}
-              renderInput={params => (
-                <CobraTextField
-                  {...params}
-                  label="Time Zone"
-                  required
-                  error={!!errors.timeZoneId}
-                  helperText={errors.timeZoneId?.message || 'All times are in this zone'}
-                />
-              )}
-              disableClearable
+              errors={{
+                deliveryMode: errors.deliveryMode?.message,
+                timelineMode: errors.timelineMode?.message,
+                clockMultiplier: errors.clockMultiplier?.message,
+              }}
             />
           )}
-        />
 
-        {/* Description */}
-        <Controller
-          name="description"
-          control={control}
-          render={({ field }) => (
-            <CobraTextField
-              {...field}
-              label="Description"
-              error={!!errors.description}
-              helperText={errors.description?.message}
-              fullWidth
-              multiline
-              rows={4}
-              disabled={isFieldDisabled('description')}
-            />
-          )}
-        />
-
-        {/* Location */}
-        <Controller
-          name="location"
-          control={control}
-          render={({ field }) => (
-            <CobraTextField
-              {...field}
-              label="Location"
-              error={!!errors.location}
-              helperText={errors.location?.message}
-              fullWidth
-              disabled={isFieldDisabled('location')}
-            />
-          )}
-        />
-
-        {/* Practice Mode */}
-        <Paper
-          variant="outlined"
-          sx={{
-            p: 2,
-            backgroundColor: 'grey.50',
-            borderColor: 'grey.300',
-          }}
-        >
+          {/* Practice Mode */}
           <Controller
             name="isPracticeMode"
             control={control}
@@ -432,44 +431,44 @@ export const ExerciseForm = ({
                     <Typography variant="body2" fontWeight={500}>
                       Practice Mode
                     </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      — Excluded from production reports
+                    </Typography>
                   </Box>
                 }
               />
             )}
           />
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5, ml: 6 }}>
-            Practice exercises are excluded from production reports and analytics
-          </Typography>
-        </Paper>
 
-        {/* Target Capabilities (S04) */}
-        <Controller
-          name="targetCapabilityIds"
-          control={control}
-          render={({ field }) => (
-            <TargetCapabilitiesSelector
-              organizationId="00000000-0000-0000-0000-000000000001"
-              selectedIds={field.value || []}
-              onChange={field.onChange}
-              disabled={isFieldDisabled('targetCapabilityIds' as keyof CreateExerciseFormValues)}
-            />
-          )}
-        />
+          {/* Target Capabilities (full width) */}
+          <Controller
+            name="targetCapabilityIds"
+            control={control}
+            render={({ field }) => (
+              <TargetCapabilitiesSelector
+                organizationId="00000000-0000-0000-0000-000000000001"
+                selectedIds={field.value || []}
+                onChange={field.onChange}
+                disabled={isFieldDisabled('targetCapabilityIds' as keyof CreateExerciseFormValues)}
+              />
+            )}
+          />
 
-        {/* Form Actions */}
-        <Stack direction="row" justifyContent="flex-end" spacing={2} pt={2}>
-          <CobraLinkButton onClick={onCancel} disabled={isSubmitting}>
-            Cancel
-          </CobraLinkButton>
-          <CobraPrimaryButton type="submit" disabled={isSubmitting}>
-            {isSubmitting
-              ? 'Saving...'
-              : isEdit
-                ? 'Save Changes'
-                : 'Create Exercise'}
-          </CobraPrimaryButton>
+          {/* Form Actions */}
+          <Stack direction="row" justifyContent="flex-end" spacing={2}>
+            <CobraLinkButton onClick={onCancel} disabled={isSubmitting}>
+              Cancel
+            </CobraLinkButton>
+            <CobraPrimaryButton type="submit" disabled={isSubmitting}>
+              {isSubmitting
+                ? 'Saving...'
+                : isEdit
+                  ? 'Save Changes'
+                  : 'Create Exercise'}
+            </CobraPrimaryButton>
+          </Stack>
         </Stack>
-      </Stack>
+      </Box>
     </form>
   )
 }

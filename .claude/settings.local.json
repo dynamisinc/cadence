@@ -80,7 +80,8 @@
       "Bash(wc:*)",
       "Bash(tail:*)",
       "Bash(gh pr comment:*)",
-      "Bash(git worktree remove:*)"
+      "Bash(git worktree remove:*)",
+      "mcp__plugin_playwright_playwright__browser_resize"
     ],
     "deny": [],
     "ask": [],

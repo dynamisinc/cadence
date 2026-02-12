@@ -56,8 +56,8 @@ const SettingsSection = ({
   icon: typeof faClock
   children: React.ReactNode
 }) => (
-  <Box sx={{ py: 2 }}>
-    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
+  <Box sx={{ py: 1.5 }}>
+    <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1.5 }}>
       <Box sx={{ color: 'text.secondary', width: 20, textAlign: 'center' }}>
         <FontAwesomeIcon icon={icon} />
       </Box>
@@ -269,7 +269,7 @@ export const ExerciseSettingsPage = () => {
       <Grid container spacing={2} alignItems="stretch">
         {/* Clock Speed — half width on md+, full width on smaller */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ p: 3, height: '100%' }}>
+          <Paper sx={{ p: 2, height: '100%' }}>
             <SettingsSection title="Clock Speed" icon={faClock}>
               <FormControl component="fieldset" fullWidth>
                 <FormLabel sx={{ mb: 1 }}>
@@ -305,7 +305,7 @@ export const ExerciseSettingsPage = () => {
 
         {/* Auto-Fire — half width on md+, full width on smaller */}
         <Grid size={{ xs: 12, md: 6 }}>
-          <Paper sx={{ p: 3, height: '100%' }}>
+          <Paper sx={{ p: 2, height: '100%' }}>
             <SettingsSection title="Auto-Fire" icon={faPlay}>
               <Box
                 sx={{
@@ -342,7 +342,7 @@ export const ExerciseSettingsPage = () => {
         {/* Inject Approval — full width */}
         {exerciseId && (
           <Grid size={12}>
-            <Paper sx={{ p: 3 }}>
+            <Paper sx={{ p: 2 }}>
               <SettingsSection title="Inject Approval" icon={faShieldHalved}>
                 <ExerciseApprovalToggle exerciseId={exerciseId} />
               </SettingsSection>
@@ -352,7 +352,7 @@ export const ExerciseSettingsPage = () => {
 
         {/* Confirmation Dialogs — full width on all screen sizes */}
         <Grid size={12}>
-          <Paper sx={{ p: 3 }}>
+          <Paper sx={{ p: 2 }}>
             <SettingsSection title="Confirmation Dialogs" icon={faCircleCheck}>
               <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1 }}>
                 Show confirmation dialog before these actions

@@ -490,7 +490,7 @@ export const ExerciseDetailPage = () => {
 
       {/* Content */}
       {isEditing ? (
-        <Paper sx={{ p: 3 }}>
+        <Paper sx={{ p: 2 }}>
           <ExerciseForm
             exercise={exercise}
             onSubmit={handleSubmit}

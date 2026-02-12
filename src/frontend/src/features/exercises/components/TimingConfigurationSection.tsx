@@ -135,9 +135,9 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
 
   // Editable state UI
   return (
-    <Stack direction="row" spacing={4} sx={{ flexWrap: 'wrap' }}>
+    <Stack direction="row" spacing={2} sx={{ flexWrap: 'wrap' }}>
       {/* Delivery Mode Section */}
-      <FormControl component="fieldset" error={!!errors.deliveryMode} sx={{ minWidth: 280 }}>
+      <FormControl component="fieldset" error={!!errors.deliveryMode} sx={{ minWidth: 240, flex: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <FormLabel component="legend" sx={{ mb: 0 }}>
             How will injects be delivered?
@@ -150,6 +150,7 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
         </Box>
 
         <RadioGroup
+          row
           value={deliveryMode}
           onChange={e => onChange('deliveryMode', e.target.value as DeliveryMode)}
           aria-labelledby="delivery-mode-label"
@@ -190,7 +191,7 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
 
       {/* Timeline Mode Section - Only shown for Clock-driven */}
       {showTimelineOptions && (
-        <FormControl component="fieldset" error={!!errors.timelineMode} sx={{ minWidth: 280 }}>
+        <FormControl component="fieldset" error={!!errors.timelineMode} sx={{ minWidth: 240, flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <FormLabel component="legend" sx={{ mb: 0 }}>
               What timeline will the exercise use?
@@ -259,7 +260,7 @@ export const TimingConfigurationSection: FC<TimingConfigurationSectionProps> = (
 
       {/* Clock Speed Section - Only shown for Clock-driven */}
       {showTimelineOptions && (
-        <FormControl component="fieldset" error={!!errors.clockMultiplier} sx={{ minWidth: 280 }}>
+        <FormControl component="fieldset" error={!!errors.clockMultiplier} sx={{ minWidth: 240, flex: 1 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
             <FormLabel component="legend" sx={{ mb: 0 }}>
               Clock Speed
