@@ -334,7 +334,7 @@ features/
 // 1. Imports (grouped: react, third-party, local)
 import { useState, useEffect, useCallback } from 'react';
 import { Box, Typography, CircularProgress } from '@mui/material';
-import { toast } from 'react-toastify';
+import { notify } from '@/shared/utils/notify';
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents';
 import CobraStyles from '@/theme/CobraStyles';
 import { useNotes } from '../hooks/useNotes';
@@ -361,7 +361,7 @@ export const NotesPage: React.FC<NotesPageProps> = ({ initialFilter = '' }) => {
     try {
       await createNote(data);
       setDialogOpen(false);
-      toast.success('Note created');
+      notify.success('Note created');
     } catch {
       // Error handling in hook
     }
@@ -445,7 +445,7 @@ import { Button, ButtonProps } from '@mui/material';
 ```typescript
 // hooks/useNotes.ts
 import { useState, useCallback, useEffect } from 'react';
-import { toast } from 'react-toastify';
+import { notify } from '@/shared/utils/notify';
 import { notesService } from '../services/notesService';
 import type { NoteDto, CreateNoteDto } from '../types';
 
@@ -465,7 +465,7 @@ export const useNotes = () => {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load notes';
       setError(message);
-      toast.error(message);
+      notify.error(message);
     } finally {
       setLoading(false);
     }
@@ -480,7 +480,7 @@ export const useNotes = () => {
       return created;
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to create note';
-      toast.error(message);
+      notify.error(message);
       throw err;
     } finally {
       setLoading(false);
@@ -719,21 +719,35 @@ Empty states should be visually engaging with clear calls to action:
 
 #### 6. Toast Notifications
 
-Use consistent toast patterns for user feedback:
+**NEVER import `toast` from `react-toastify` directly. ALWAYS use the `notify` wrapper.**
+
+The `notify` utility provides automatic deduplication - if the same toast (by `toastId` or message text) fires within 3 seconds, duplicates are suppressed. This prevents toast pile-up during reconnection cycles and rapid mutations.
 
 ```typescript
-import { toast } from 'react-toastify';
+import { notify } from '@/shared/utils/notify';
 
 // Success after mutation
-toast.success('Item created');
-toast.success('Changes saved');
+notify.success('Item created');
+notify.success('Changes saved');
 
 // Error handling in mutations
 onError: (err) => {
   const message = err instanceof Error ? err.message : 'Operation failed';
-  toast.error(message);
+  notify.error(message);
 }
+
+// Use toastId for connection/status toasts to prevent stacking
+notify.warning('Connection lost...', { toastId: 'connection-status', autoClose: false });
+
+// Dismiss-and-replace pattern for evolving status
+notify.dismiss('connection-status');
+notify.success('Connection restored', { toastId: 'connection-restored', autoClose: 2000 });
 ```
+
+**Toast strategy:**
+- **Feature toasts** (CRUD success/error): Use `notify.success`/`notify.error` with default auto-close. Dedup handles rapid duplicates automatically.
+- **Connection toasts**: Use stable `toastId` + `autoClose: false` for persistent warnings. Dismiss and replace on restore.
+- **Max 3 visible**: `ToastContainer` limits visible toasts. Excess toasts queue automatically.
 
 #### UX Pattern Checklist
 
