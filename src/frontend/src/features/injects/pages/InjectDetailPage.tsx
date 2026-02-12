@@ -33,7 +33,7 @@ import {
   faUserTie,
   faFlag,
 } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatDateTime } from '../../../shared/utils/dateUtils'
 
 import { useInject } from '../hooks/useInject'
 import { useInjects } from '../hooks/useInjects'
@@ -151,14 +151,6 @@ export const InjectDetailPage = () => {
 
   const handleDeleteCancel = () => {
     setDeleteDialogOpen(false)
-  }
-
-  const formatDateTime = (isoString: string) => {
-    try {
-      return format(parseISO(isoString), "MMM d, yyyy 'at' h:mm a")
-    } catch {
-      return isoString
-    }
   }
 
   const getDeliveryMethodLabel = (method: DeliveryMethod | null): string => {
