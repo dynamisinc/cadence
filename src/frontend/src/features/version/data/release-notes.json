@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.6.2",
+    "date": "2026-02-12",
+    "features": [],
+    "fixes": [
+      "frontend: resolve all eslint warnings and errors"
+    ]
+  },
+  {
+    "version": "2.6.1",
+    "date": "2026-02-11",
+    "features": [],
+    "fixes": [
+      "version: parse all releases from CHANGELOG.md and improve About page headers"
+    ]
+  },
+  {
     "version": "2.6.0",
     "date": "2026-02-11",
     "features": [

@@ -79,21 +79,6 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  // Load organization members when dialog opens
-  useEffect(() => {
-    if (open) {
-      loadOrgMembers()
-    }
-  }, [open, exerciseId, currentParticipants, loadOrgMembers])
-
-  // Reset state when dialog closes
-  useEffect(() => {
-    if (!open) {
-      setMembers([])
-      setError(null)
-    }
-  }, [open])
-
   const loadOrgMembers = useCallback(async () => {
     try {
       setLoading(true)
@@ -123,6 +108,21 @@ export const InviteMembersDialog: FC<InviteMembersDialogProps> = ({
       setLoading(false)
     }
   }, [currentParticipants])
+
+  // Load organization members when dialog opens
+  useEffect(() => {
+    if (open) {
+      loadOrgMembers()
+    }
+  }, [open, exerciseId, currentParticipants, loadOrgMembers])
+
+  // Reset state when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setMembers([])
+      setError(null)
+    }
+  }, [open])
 
   const handleToggleSelect = (userId: string) => {
     setMembers(prev =>
