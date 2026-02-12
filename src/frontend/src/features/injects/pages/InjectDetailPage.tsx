@@ -28,6 +28,7 @@ import {
   faFileLines,
   faHome,
   faCrosshairs,
+  faCopy,
   faLocationDot,
   faRoad,
   faUserTie,
@@ -112,6 +113,14 @@ export const InjectDetailPage = () => {
 
   const handleEditClick = () => {
     navigate(`/exercises/${exerciseId}/injects/${injectId}/edit`)
+  }
+
+  const handleDuplicateClick = () => {
+    if (inject) {
+      navigate(`/exercises/${exerciseId}/injects/new`, {
+        state: { duplicateFrom: inject }
+      })
+    }
   }
 
   const handleFireClick = async () => {
@@ -317,9 +326,18 @@ export const InjectDetailPage = () => {
           )}
 
           {canFireInjects && (
-            <IconButton onClick={handleEditClick} size="small">
-              <FontAwesomeIcon icon={faPen} />
-            </IconButton>
+            <>
+              <Tooltip title="Edit inject">
+                <IconButton onClick={handleEditClick} size="small">
+                  <FontAwesomeIcon icon={faPen} />
+                </IconButton>
+              </Tooltip>
+              <Tooltip title="Duplicate inject">
+                <IconButton onClick={handleDuplicateClick} size="small">
+                  <FontAwesomeIcon icon={faCopy} />
+                </IconButton>
+              </Tooltip>
+            </>
           )}
 
           {canDelete && (

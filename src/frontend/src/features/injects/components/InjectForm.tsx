@@ -8,12 +8,24 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Divider,
   Grid,
   Autocomplete,
   Chip,
+  Collapse,
+  IconButton,
 } from '@mui/material'
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@/shared/utils/notify'
+import { SuggestionTextField } from '@/shared/components/SuggestionTextField'
+import {
+  useSourceSuggestions,
+  useTargetSuggestions,
+  useTrackSuggestions,
+  useLocationNameSuggestions,
+  useLocationTypeSuggestions,
+  useResponsibleControllerSuggestions,
+} from '@/features/autocomplete'
 
 import {
   CobraPrimaryButton,
@@ -45,10 +57,14 @@ interface InjectFormProps {
   phases?: PhaseDto[]
   /** Called when form is submitted */
   onSubmit: (request: CreateInjectRequest | UpdateInjectRequest) => Promise<void>
+  /** Called when "Create & Add Another" is clicked (create mode only) */
+  onSubmitAndContinue?: (request: CreateInjectRequest) => Promise<void>
   /** Called when cancel is clicked */
   onCancel: () => void
   /** Whether the form is currently submitting */
   isSubmitting?: boolean
+  /** Pre-filled values for duplicate mode (create only) */
+  initialValues?: Partial<InjectFormValues>
 }
 
 const INITIAL_VALUES: InjectFormValues = {
@@ -86,14 +102,18 @@ const INITIAL_VALUES: InjectFormValues = {
  * - All inject fields including dual time tracking
  * - Field validation with error messages
  * - Edit mode with pre-populated values
+ * - Collapsible Advanced section for less-used fields
+ * - "Create & Add Another" for batch inject authoring
  */
 export const InjectForm = ({
   exerciseId,
   inject,
   phases = [],
   onSubmit,
+  onSubmitAndContinue,
   onCancel,
   isSubmitting = false,
+  initialValues,
 }: InjectFormProps) => {
   const isEditMode = !!inject
   const { summaries: objectives } = useObjectiveSummaries(exerciseId)
@@ -111,6 +131,25 @@ export const InjectForm = ({
   const [values, setValues] = useState<InjectFormValues>(INITIAL_VALUES)
   const [errors, setErrors] = useState<Partial<Record<keyof InjectFormValues, string>>>({})
   const [touched, setTouched] = useState<Partial<Record<keyof InjectFormValues, boolean>>>({})
+
+  // Advanced section collapse state
+  const [advancedExpanded, setAdvancedExpanded] = useState(false)
+
+  // Autocomplete filter state
+  const [sourceFilter, setSourceFilter] = useState('')
+  const [targetFilter, setTargetFilter] = useState('')
+  const [trackFilter, setTrackFilter] = useState('')
+  const [locationNameFilter, setLocationNameFilter] = useState('')
+  const [locationTypeFilter, setLocationTypeFilter] = useState('')
+  const [controllerFilter, setControllerFilter] = useState('')
+
+  // Autocomplete suggestions
+  const { data: sourceSuggestions = [], isLoading: sourceLoading } = useSourceSuggestions(exerciseId, sourceFilter)
+  const { data: targetSuggestions = [], isLoading: targetLoading } = useTargetSuggestions(exerciseId, targetFilter)
+  const { data: trackSuggestions = [], isLoading: trackLoading } = useTrackSuggestions(exerciseId, trackFilter)
+  const { data: locationNameSuggestions = [], isLoading: locationNameLoading } = useLocationNameSuggestions(exerciseId, locationNameFilter)
+  const { data: locationTypeSuggestions = [], isLoading: locationTypeLoading } = useLocationTypeSuggestions(exerciseId, locationTypeFilter)
+  const { data: controllerSuggestions = [], isLoading: controllerLoading } = useResponsibleControllerSuggestions(exerciseId, controllerFilter)
 
   // Find if selected delivery method is "Other"
   const selectedDeliveryMethod = deliveryMethods.find(dm => dm.id === values.deliveryMethodId)
@@ -154,8 +193,49 @@ export const InjectForm = ({
         locationType: inject.locationType ?? '',
         track: inject.track ?? '',
       })
+
+      // Auto-expand Advanced section if any advanced field has data
+      const shouldExpand =
+        (inject.triggerType != null && inject.triggerType !== TriggerType.Manual) ||
+        !!inject.responsibleController ||
+        !!inject.track ||
+        !!inject.locationName ||
+        !!inject.locationType ||
+        !!inject.controllerNotes ||
+        !!inject.triggerCondition ||
+        !!inject.sourceReference
+      setAdvancedExpanded(shouldExpand)
     }
   }, [inject])
+
+  // Initialize form from initialValues (duplicate mode)
+  useEffect(() => {
+    if (initialValues && !inject) {
+      setValues(prev => ({ ...prev, ...initialValues }))
+      const shouldExpand =
+        !!initialValues.responsibleController ||
+        !!initialValues.track ||
+        !!initialValues.locationName ||
+        !!initialValues.locationType ||
+        !!initialValues.controllerNotes ||
+        !!initialValues.triggerCondition ||
+        !!initialValues.sourceReference ||
+        (initialValues.triggerType != null && initialValues.triggerType !== TriggerType.Manual)
+      if (shouldExpand) setAdvancedExpanded(true)
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Auto-expand Advanced when inject type changes to conditional types
+  useEffect(() => {
+    if (
+      values.injectType === InjectType.Contingency ||
+      values.injectType === InjectType.Adaptive ||
+      values.injectType === InjectType.Complexity
+    ) {
+      setAdvancedExpanded(true)
+    }
+  }, [values.injectType])
 
   const handleChange = (field: keyof InjectFormValues) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement> | { target: { value: unknown } },
@@ -164,6 +244,13 @@ export const InjectForm = ({
     setValues(prev => ({ ...prev, [field]: value }))
 
     // Clear error when field is modified
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: undefined }))
+    }
+  }
+
+  const handleAutocompleteChange = (field: keyof InjectFormValues) => (val: string) => {
+    setValues(prev => ({ ...prev, [field]: val }))
     if (errors[field]) {
       setErrors(prev => ({ ...prev, [field]: undefined }))
     }
@@ -318,41 +405,50 @@ export const InjectForm = ({
     return { isValid: errorMessages.length === 0, errorMessages }
   }
 
+  const buildRequest = (): CreateInjectRequest | UpdateInjectRequest => ({
+    title: values.title.trim(),
+    description: values.description.trim(),
+    scheduledTime: `${values.scheduledTime}:00`, // Add seconds
+    scenarioDay: values.scenarioDay ? parseInt(values.scenarioDay, 10) : null,
+    scenarioTime: values.scenarioTime ? `${values.scenarioTime}:00` : null,
+    target: values.target.trim(),
+    source: values.source.trim() || null,
+    deliveryMethod: (values.deliveryMethod as DeliveryMethod) || null,
+    deliveryMethodId: values.deliveryMethodId || null,
+    deliveryMethodOther: values.deliveryMethodOther.trim() || null,
+    injectType: values.injectType,
+    expectedAction: values.expectedAction.trim() || null,
+    controllerNotes: values.controllerNotes.trim() || null,
+    triggerCondition: values.triggerCondition.trim() || null,
+    phaseId: values.phaseId || null,
+    objectiveIds: values.objectiveIds.length > 0 ? values.objectiveIds : null,
+    // Phase G fields
+    sourceReference: values.sourceReference.trim() || null,
+    priority: values.priority ? parseInt(values.priority, 10) : null,
+    triggerType: values.triggerType,
+    responsibleController: values.responsibleController.trim() || null,
+    locationName: values.locationName.trim() || null,
+    locationType: values.locationType.trim() || null,
+    track: values.track.trim() || null,
+  })
+
+  const resetForm = () => {
+    setValues(INITIAL_VALUES)
+    setErrors({})
+    setTouched({})
+    setSelectedTaskIds([])
+    setTasksModified(false)
+    setAdvancedExpanded(false)
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
     const { isValid, errorMessages } = validateForm()
     if (!isValid) {
-      // Show toast with first error message
       notify.error(errorMessages[0] || 'Please fix the validation errors')
       return
-    }
-
-    const request: CreateInjectRequest | UpdateInjectRequest = {
-      title: values.title.trim(),
-      description: values.description.trim(),
-      scheduledTime: `${values.scheduledTime}:00`, // Add seconds
-      scenarioDay: values.scenarioDay ? parseInt(values.scenarioDay, 10) : null,
-      scenarioTime: values.scenarioTime ? `${values.scenarioTime}:00` : null,
-      target: values.target.trim(),
-      source: values.source.trim() || null,
-      deliveryMethod: (values.deliveryMethod as DeliveryMethod) || null,
-      deliveryMethodId: values.deliveryMethodId || null,
-      deliveryMethodOther: values.deliveryMethodOther.trim() || null,
-      injectType: values.injectType,
-      expectedAction: values.expectedAction.trim() || null,
-      controllerNotes: values.controllerNotes.trim() || null,
-      triggerCondition: values.triggerCondition.trim() || null,
-      phaseId: values.phaseId || null,
-      objectiveIds: values.objectiveIds.length > 0 ? values.objectiveIds : null,
-      // Phase G fields
-      sourceReference: values.sourceReference.trim() || null,
-      priority: values.priority ? parseInt(values.priority, 10) : null,
-      triggerType: values.triggerType,
-      responsibleController: values.responsibleController.trim() || null,
-      locationName: values.locationName.trim() || null,
-      locationType: values.locationType.trim() || null,
-      track: values.track.trim() || null,
     }
 
     // Save critical task links if modified (edit mode only)
@@ -360,7 +456,22 @@ export const InjectForm = ({
       await setLinkedTasks(selectedTaskIds)
     }
 
-    await onSubmit(request)
+    await onSubmit(buildRequest())
+  }
+
+  const handleSubmitAndContinue = async (e: React.MouseEvent) => {
+    e.preventDefault()
+
+    const { isValid, errorMessages } = validateForm()
+    if (!isValid) {
+      notify.error(errorMessages[0] || 'Please fix the validation errors')
+      return
+    }
+
+    if (onSubmitAndContinue) {
+      await onSubmitAndContinue(buildRequest() as CreateInjectRequest)
+      resetForm()
+    }
   }
 
   const getFieldError = (field: keyof InjectFormValues) => {
@@ -369,29 +480,47 @@ export const InjectForm = ({
 
   return (
     <Box component="form" onSubmit={handleSubmit}>
-      <Stack spacing={3}>
-        {/* Title */}
+      <Stack spacing={2}>
+        {/* 1. Title */}
+        <Grid container>
+          <Grid size={{ xs: 12, md: 8 }}>
+            <CobraTextField
+              label="Title"
+              value={values.title}
+              onChange={handleChange('title')}
+              onBlur={handleBlur('title')}
+              error={!!getFieldError('title')}
+              helperText={getFieldError('title') || `Brief description (${values.title.length}/${INJECT_FIELD_LIMITS.title.max})`}
+              required
+              fullWidth
+              placeholder="e.g., County issues mandatory evacuation order"
+            />
+          </Grid>
+        </Grid>
+
+        {/* 2. Description (moved up from old CONTENT section) */}
         <CobraTextField
-          label="Title"
-          value={values.title}
-          onChange={handleChange('title')}
-          onBlur={handleBlur('title')}
-          error={!!getFieldError('title')}
-          helperText={getFieldError('title') || `Brief description (${values.title.length}/${INJECT_FIELD_LIMITS.title.max})`}
+          label="Description"
+          value={values.description}
+          onChange={handleChange('description')}
+          onBlur={handleBlur('description')}
+          error={!!getFieldError('description')}
+          helperText={getFieldError('description') || `Full inject content (${values.description.length}/${INJECT_FIELD_LIMITS.description.max})`}
           required
           fullWidth
-          placeholder="e.g., County issues mandatory evacuation order"
+          multiline
+          rows={isEditMode ? 4 : 3}
+          placeholder="Describe what happens in this inject..."
         />
 
-        {/* Time Section */}
+        {/* 3. Timing Section */}
         <Box>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            TIME
+            TIMING
           </Typography>
-          <Divider sx={{ mb: 2 }} />
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 3, md: 2 }}>
               <CobraTextField
                 label="Scheduled Time"
                 type="time"
@@ -407,7 +536,7 @@ export const InjectForm = ({
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 3 }}>
+            <Grid size={{ xs: 6, sm: 2, md: 1.5 }}>
               <CobraTextField
                 label="Scenario Day"
                 type="number"
@@ -422,7 +551,7 @@ export const InjectForm = ({
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 3 }}>
+            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
               <CobraTextField
                 label="Scenario Time"
                 type="time"
@@ -438,32 +567,37 @@ export const InjectForm = ({
           </Grid>
         </Box>
 
-        {/* Targeting Section */}
+        {/* 4. Delivery Section */}
         <Box>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            TARGETING
+            DELIVERY
           </Typography>
-          <Divider sx={{ mb: 2 }} />
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <CobraTextField
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+              <SuggestionTextField
                 label="From (Source)"
                 value={values.source}
-                onChange={handleChange('source')}
+                onChange={handleAutocompleteChange('source')}
                 onBlur={handleBlur('source')}
+                suggestions={sourceSuggestions}
+                isLoading={sourceLoading}
+                onFilterChange={setSourceFilter}
                 error={!!getFieldError('source')}
                 helperText={getFieldError('source') || 'Simulated sender'}
                 fullWidth
                 placeholder="e.g., County Emergency Manager"
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <CobraTextField
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+              <SuggestionTextField
                 label="To (Target)"
                 value={values.target}
-                onChange={handleChange('target')}
+                onChange={handleAutocompleteChange('target')}
                 onBlur={handleBlur('target')}
+                suggestions={targetSuggestions}
+                isLoading={targetLoading}
+                onFilterChange={setTargetFilter}
                 error={!!getFieldError('target')}
                 helperText={getFieldError('target')}
                 required
@@ -471,7 +605,7 @@ export const InjectForm = ({
                 placeholder="e.g., EOC Director"
               />
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Delivery Method</InputLabel>
                 <Select
@@ -505,93 +639,28 @@ export const InjectForm = ({
           </Grid>
         </Box>
 
-        {/* Location & Track Section (Phase G) */}
+        {/* 5. Expected Action */}
+        <CobraTextField
+          label="Expected Action"
+          value={values.expectedAction}
+          onChange={handleChange('expectedAction')}
+          onBlur={handleBlur('expectedAction')}
+          error={!!getFieldError('expectedAction')}
+          helperText={getFieldError('expectedAction') || 'What players should do in response'}
+          fullWidth
+          multiline
+          rows={3}
+          placeholder="e.g., Acknowledge order, activate evacuation plan..."
+        />
+
+        {/* 6. Classification Section */}
         <Box>
           <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            LOCATION & TRACK
+            CLASSIFICATION
           </Typography>
-          <Divider sx={{ mb: 2 }} />
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <CobraTextField
-                label="Location Name"
-                value={values.locationName}
-                onChange={handleChange('locationName')}
-                fullWidth
-                placeholder="e.g., Main EOC, Stadium A"
-                helperText="Where this inject takes place"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <CobraTextField
-                label="Location Type"
-                value={values.locationType}
-                onChange={handleChange('locationType')}
-                fullWidth
-                placeholder="e.g., EOC, Hospital, Field"
-                helperText="Category of location"
-              />
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <CobraTextField
-                label="Track"
-                value={values.track}
-                onChange={handleChange('track')}
-                fullWidth
-                placeholder="e.g., LAFD, LAPD, EOC"
-                helperText="Agency grouping"
-              />
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* Content Section */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            CONTENT
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-
-          <Stack spacing={2}>
-            <CobraTextField
-              label="Description"
-              value={values.description}
-              onChange={handleChange('description')}
-              onBlur={handleBlur('description')}
-              error={!!getFieldError('description')}
-              helperText={getFieldError('description') || `Full inject content (${values.description.length}/${INJECT_FIELD_LIMITS.description.max})`}
-              required
-              fullWidth
-              multiline
-              rows={4}
-              placeholder="Describe what happens in this inject..."
-            />
-
-            <CobraTextField
-              label="Expected Action"
-              value={values.expectedAction}
-              onChange={handleChange('expectedAction')}
-              onBlur={handleBlur('expectedAction')}
-              error={!!getFieldError('expectedAction')}
-              helperText={getFieldError('expectedAction') || 'What players should do in response'}
-              fullWidth
-              multiline
-              rows={3}
-              placeholder="e.g., Acknowledge order, activate evacuation plan..."
-            />
-          </Stack>
-        </Box>
-
-        {/* Organization Section */}
-        <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            ORGANIZATION
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
-
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 4 }}>
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Inject Type</InputLabel>
                 <Select
@@ -609,46 +678,7 @@ export const InjectForm = ({
                 </FormHelperText>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Trigger Type</InputLabel>
-                <Select
-                  value={values.triggerType}
-                  onChange={handleChange('triggerType')}
-                  label="Trigger Type"
-                >
-                  <MenuItem value={TriggerType.Manual}>Manual</MenuItem>
-                  <MenuItem value={TriggerType.Scheduled}>Scheduled</MenuItem>
-                  <MenuItem value={TriggerType.Conditional}>Conditional</MenuItem>
-                </Select>
-                <FormHelperText>
-                  How this inject is triggered
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 4 }}>
-              <FormControl fullWidth size="small">
-                <InputLabel>Priority</InputLabel>
-                <Select
-                  value={values.priority}
-                  onChange={handleChange('priority')}
-                  label="Priority"
-                >
-                  <MenuItem value="">
-                    <em>Not set</em>
-                  </MenuItem>
-                  <MenuItem value="1">1 - Critical</MenuItem>
-                  <MenuItem value="2">2 - High</MenuItem>
-                  <MenuItem value="3">3 - Medium</MenuItem>
-                  <MenuItem value="4">4 - Low</MenuItem>
-                  <MenuItem value="5">5 - Informational</MenuItem>
-                </Select>
-                <FormHelperText>
-                  Importance level
-                </FormHelperText>
-              </FormControl>
-            </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size="small">
                 <InputLabel>Phase</InputLabel>
                 <Select
@@ -670,15 +700,27 @@ export const InjectForm = ({
                 </FormHelperText>
               </FormControl>
             </Grid>
-            <Grid size={{ xs: 12, sm: 6 }}>
-              <CobraTextField
-                label="Responsible Controller"
-                value={values.responsibleController}
-                onChange={handleChange('responsibleController')}
-                fullWidth
-                placeholder="e.g., John Smith, Fire Lead"
-                helperText="Who is responsible for firing this inject"
-              />
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+              <FormControl fullWidth size="small">
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={values.priority}
+                  onChange={handleChange('priority')}
+                  label="Priority"
+                >
+                  <MenuItem value="">
+                    <em>Not set</em>
+                  </MenuItem>
+                  <MenuItem value="1">1 - Critical</MenuItem>
+                  <MenuItem value="2">2 - High</MenuItem>
+                  <MenuItem value="3">3 - Medium</MenuItem>
+                  <MenuItem value="4">4 - Low</MenuItem>
+                  <MenuItem value="5">5 - Informational</MenuItem>
+                </Select>
+                <FormHelperText>
+                  Importance level
+                </FormHelperText>
+              </FormControl>
             </Grid>
             <Grid size={{ xs: 12 }}>
               <Autocomplete
@@ -733,77 +775,179 @@ export const InjectForm = ({
               </Grid>
             )}
           </Grid>
-
-          {(values.injectType === InjectType.Contingency ||
-            values.injectType === InjectType.Adaptive ||
-            values.injectType === InjectType.Complexity) && (
-            <Box sx={{ mt: 2 }}>
-              <CobraTextField
-                label="Trigger Condition"
-                value={values.triggerCondition}
-                onChange={handleChange('triggerCondition')}
-                onBlur={handleBlur('triggerCondition')}
-                error={!!getFieldError('triggerCondition')}
-                helperText={getFieldError('triggerCondition') || 'When to fire this inject'}
-                fullWidth
-                multiline
-                rows={2}
-                placeholder="e.g., Use if players are ahead of schedule or evacuation discussion is too smooth"
-              />
-            </Box>
-          )}
         </Box>
 
-        {/* Controller Notes */}
+        {/* 7. Advanced Section (collapsible) */}
         <Box>
-          <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-            CONTROLLER NOTES (Internal)
-          </Typography>
-          <Divider sx={{ mb: 2 }} />
+          <Box
+            display="flex"
+            alignItems="center"
+            gap={1}
+            onClick={() => setAdvancedExpanded(!advancedExpanded)}
+            sx={{
+              cursor: 'pointer',
+              userSelect: 'none',
+              '&:hover': { opacity: 0.8 },
+            }}
+          >
+            <IconButton
+              size="small"
+              onClick={e => {
+                e.stopPropagation()
+                setAdvancedExpanded(!advancedExpanded)
+              }}
+              aria-label={advancedExpanded ? 'Collapse Advanced' : 'Expand Advanced'}
+              aria-expanded={advancedExpanded}
+            >
+              <FontAwesomeIcon
+                icon={advancedExpanded ? faChevronDown : faChevronRight}
+                style={{ fontSize: '0.875rem' }}
+              />
+            </IconButton>
+            <Typography variant="subtitle2" color="text.secondary">
+              ADVANCED
+            </Typography>
+          </Box>
 
-          <CobraTextField
-            label="Controller Notes"
-            value={values.controllerNotes}
-            onChange={handleChange('controllerNotes')}
-            onBlur={handleBlur('controllerNotes')}
-            error={!!getFieldError('controllerNotes')}
-            helperText={getFieldError('controllerNotes') || 'Private guidance for the person delivering this inject'}
-            fullWidth
-            multiline
-            rows={3}
-            placeholder="e.g., Deliver with urgency. Have evacuation zone map ready."
-          />
+          <Collapse in={advancedExpanded}>
+            <Box sx={{ mt: 1.5 }}>
+              <Grid container spacing={2}>
+                <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+                  <FormControl fullWidth size="small">
+                    <InputLabel>Trigger Type</InputLabel>
+                    <Select
+                      value={values.triggerType}
+                      onChange={handleChange('triggerType')}
+                      label="Trigger Type"
+                    >
+                      <MenuItem value={TriggerType.Manual}>Manual</MenuItem>
+                      <MenuItem value={TriggerType.Scheduled}>Scheduled</MenuItem>
+                      <MenuItem value={TriggerType.Conditional}>Conditional</MenuItem>
+                    </Select>
+                    <FormHelperText>
+                      How this inject is triggered
+                    </FormHelperText>
+                  </FormControl>
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+                  <SuggestionTextField
+                    label="Responsible Controller"
+                    value={values.responsibleController}
+                    onChange={handleAutocompleteChange('responsibleController')}
+                    suggestions={controllerSuggestions}
+                    isLoading={controllerLoading}
+                    onFilterChange={setControllerFilter}
+                    fullWidth
+                    placeholder="e.g., John Smith, Fire Lead"
+                    helperText="Who is responsible for firing this inject"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 4, md: 3 }}>
+                  <SuggestionTextField
+                    label="Track"
+                    value={values.track}
+                    onChange={handleAutocompleteChange('track')}
+                    suggestions={trackSuggestions}
+                    isLoading={trackLoading}
+                    onFilterChange={setTrackFilter}
+                    fullWidth
+                    placeholder="e.g., LAFD, LAPD, EOC"
+                    helperText="Agency grouping"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <SuggestionTextField
+                    label="Location Name"
+                    value={values.locationName}
+                    onChange={handleAutocompleteChange('locationName')}
+                    suggestions={locationNameSuggestions}
+                    isLoading={locationNameLoading}
+                    onFilterChange={setLocationNameFilter}
+                    fullWidth
+                    placeholder="e.g., Main EOC, Stadium A"
+                    helperText="Where this inject takes place"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12, sm: 6, md: 4 }}>
+                  <SuggestionTextField
+                    label="Location Type"
+                    value={values.locationType}
+                    onChange={handleAutocompleteChange('locationType')}
+                    suggestions={locationTypeSuggestions}
+                    isLoading={locationTypeLoading}
+                    onFilterChange={setLocationTypeFilter}
+                    fullWidth
+                    placeholder="e.g., EOC, Hospital, Field"
+                    helperText="Category of location"
+                  />
+                </Grid>
+                <Grid size={{ xs: 12 }}>
+                  <CobraTextField
+                    label="Controller Notes"
+                    value={values.controllerNotes}
+                    onChange={handleChange('controllerNotes')}
+                    onBlur={handleBlur('controllerNotes')}
+                    error={!!getFieldError('controllerNotes')}
+                    helperText={getFieldError('controllerNotes') || 'Private guidance for the person delivering this inject'}
+                    fullWidth
+                    multiline
+                    rows={3}
+                    placeholder="e.g., Deliver with urgency. Have evacuation zone map ready."
+                  />
+                </Grid>
+                {(values.injectType === InjectType.Contingency ||
+                  values.injectType === InjectType.Adaptive ||
+                  values.injectType === InjectType.Complexity) && (
+                  <Grid size={{ xs: 12 }}>
+                    <CobraTextField
+                      label="Trigger Condition"
+                      value={values.triggerCondition}
+                      onChange={handleChange('triggerCondition')}
+                      onBlur={handleBlur('triggerCondition')}
+                      error={!!getFieldError('triggerCondition')}
+                      helperText={getFieldError('triggerCondition') || 'When to fire this inject'}
+                      fullWidth
+                      multiline
+                      rows={2}
+                      placeholder="e.g., Use if players are ahead of schedule or evacuation discussion is too smooth"
+                    />
+                  </Grid>
+                )}
+                {isEditMode && values.sourceReference && (
+                  <Grid size={{ xs: 12 }}>
+                    <CobraTextField
+                      label="Source Reference"
+                      value={values.sourceReference}
+                      onChange={handleChange('sourceReference')}
+                      fullWidth
+                      disabled
+                      helperText="Original ID from imported file (read-only)"
+                    />
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+          </Collapse>
         </Box>
 
-        {/* Expected Outcomes (only in edit mode) */}
+        {/* 8. Expected Outcomes (only in edit mode) */}
         {isEditMode && inject && (
           <ExpectedOutcomesList injectId={inject.id} isEditable={true} />
         )}
 
-        {/* Import Reference (Phase G) */}
-        {isEditMode && values.sourceReference && (
-          <Box>
-            <Typography variant="subtitle2" color="text.secondary" gutterBottom>
-              IMPORT REFERENCE
-            </Typography>
-            <Divider sx={{ mb: 2 }} />
-
-            <CobraTextField
-              label="Source Reference"
-              value={values.sourceReference}
-              onChange={handleChange('sourceReference')}
-              fullWidth
-              disabled
-              helperText="Original ID from imported file (read-only)"
-            />
-          </Box>
-        )}
-
-        {/* Form Actions */}
+        {/* 9. Form Actions */}
         <Stack direction="row" spacing={2} justifyContent="flex-end">
           <CobraSecondaryButton onClick={onCancel} disabled={isSubmitting}>
             Cancel
           </CobraSecondaryButton>
+          {!isEditMode && onSubmitAndContinue && (
+            <CobraSecondaryButton
+              onClick={handleSubmitAndContinue}
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? 'Creating...' : 'Create & Add Another'}
+            </CobraSecondaryButton>
+          )}
           <CobraPrimaryButton type="submit" disabled={isSubmitting}>
             {isSubmitting
               ? isEditMode

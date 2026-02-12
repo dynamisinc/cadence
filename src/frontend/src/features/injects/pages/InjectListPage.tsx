@@ -35,6 +35,7 @@ import {
   faFileExport,
   faPen,
   faTrash,
+  faCopy,
 } from '@fortawesome/free-solid-svg-icons'
 
 /** Minimum time to show the saving indicator (ms) */
@@ -291,6 +292,13 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     navigate(`/exercises/${exerciseId}/injects/${injectId}/edit`)
   }
 
+  const handleDuplicateClick = (e: React.MouseEvent, inject: InjectDto) => {
+    e.stopPropagation()
+    navigate(`/exercises/${exerciseId}/injects/new`, {
+      state: { duplicateFrom: inject }
+    })
+  }
+
   const handleDeleteClick = (e: React.MouseEvent, inject: InjectDto) => {
     e.stopPropagation()
     setDeleteInjectData({ id: inject.id, title: inject.title })
@@ -498,6 +506,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onFire={handleFireClick}
           onSkip={handleSkipClick}
           onEdit={handleEditClick}
+          onDuplicate={handleDuplicateClick}
           onDelete={handleDeleteClick}
           onReorder={reorderInjects}
           onEditPhase={handleEditPhase}
@@ -537,6 +546,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           onFire={handleFireClick}
           onSkip={handleSkipClick}
           onEdit={handleEditClick}
+          onDuplicate={handleDuplicateClick}
           onDelete={handleDeleteClick}
           onReorder={reorderInjects}
           isFiring={isFiring}
@@ -753,6 +763,7 @@ interface GroupedInjectViewProps {
   onFire: (e: React.MouseEvent, id: string) => void
   onSkip: (e: React.MouseEvent, id: string) => void
   onEdit: (e: React.MouseEvent, id: string) => void
+  onDuplicate: (e: React.MouseEvent, inject: InjectDto) => void
   onDelete: (e: React.MouseEvent, inject: InjectDto) => void
   onReorder: (injectIds: string[]) => Promise<void>
   onEditPhase: (phase: PhaseDto) => void
@@ -791,6 +802,7 @@ const GroupedInjectView = ({
   onFire,
   onSkip,
   onEdit,
+  onDuplicate,
   onDelete,
   onReorder,
   onEditPhase,
@@ -912,6 +924,7 @@ const GroupedInjectView = ({
                       onFire={e => onFire(e, inject.id)}
                       onSkip={e => onSkip(e, inject.id)}
                       onEdit={e => onEdit(e, inject.id)}
+                      onDuplicate={e => onDuplicate(e, inject)}
                       onDelete={e => onDelete(e, inject)}
                       isFiring={isFiring}
                       isSkipping={isSkipping}
@@ -933,6 +946,7 @@ const GroupedInjectView = ({
                     onFire={e => onFire(e, inject.id)}
                     onSkip={e => onSkip(e, inject.id)}
                     onEdit={e => onEdit(e, inject.id)}
+                    onDuplicate={e => onDuplicate(e, inject)}
                     onDelete={e => onDelete(e, inject)}
                     isFiring={isFiring}
                     isSkipping={isSkipping}
@@ -1018,6 +1032,7 @@ interface FlatInjectListProps {
   onFire: (e: React.MouseEvent, id: string) => void
   onSkip: (e: React.MouseEvent, id: string) => void
   onEdit: (e: React.MouseEvent, id: string) => void
+  onDuplicate: (e: React.MouseEvent, inject: InjectDto) => void
   onDelete: (e: React.MouseEvent, inject: InjectDto) => void
   onReorder: (injectIds: string[]) => Promise<void>
   isFiring: boolean
@@ -1046,6 +1061,7 @@ const FlatInjectList = ({
   onFire,
   onSkip,
   onEdit,
+  onDuplicate,
   onDelete,
   onReorder,
   isFiring,
@@ -1149,6 +1165,7 @@ const FlatInjectList = ({
                   onFire={e => onFire(e, inject.id)}
                   onSkip={e => onSkip(e, inject.id)}
                   onEdit={e => onEdit(e, inject.id)}
+                  onDuplicate={e => onDuplicate(e, inject)}
                   onDelete={e => onDelete(e, inject)}
                   isFiring={isFiring}
                   isSkipping={isSkipping}
@@ -1171,6 +1188,7 @@ const FlatInjectList = ({
                 onFire={e => onFire(e, inject.id)}
                 onSkip={e => onSkip(e, inject.id)}
                 onEdit={e => onEdit(e, inject.id)}
+                onDuplicate={e => onDuplicate(e, inject)}
                 onDelete={e => onDelete(e, inject)}
                 isFiring={isFiring}
                 isSkipping={isSkipping}
@@ -1214,6 +1232,7 @@ interface InjectRowCellsProps {
   onFire: (e: React.MouseEvent) => void
   onSkip: (e: React.MouseEvent) => void
   onEdit: (e: React.MouseEvent) => void
+  onDuplicate: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
   isFiring: boolean
   isSkipping: boolean
@@ -1238,6 +1257,7 @@ const InjectRowCells = ({
   onFire,
   onSkip,
   onEdit,
+  onDuplicate,
   onDelete,
   isFiring,
   isSkipping,
@@ -1392,6 +1412,15 @@ const InjectRowCells = ({
                     <FontAwesomeIcon icon={faPen} size="sm" />
                   </IconButton>
                 </Tooltip>
+                <Tooltip title="Duplicate inject">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={onDuplicate}
+                  >
+                    <FontAwesomeIcon icon={faCopy} size="sm" />
+                  </IconButton>
+                </Tooltip>
                 <Tooltip title="Delete inject">
                   <IconButton
                     size="small"
@@ -1418,6 +1447,7 @@ interface InjectRowProps {
   onFire: (e: React.MouseEvent) => void
   onSkip: (e: React.MouseEvent) => void
   onEdit: (e: React.MouseEvent) => void
+  onDuplicate: (e: React.MouseEvent) => void
   onDelete: (e: React.MouseEvent) => void
   isFiring: boolean
   isSkipping: boolean
@@ -1438,6 +1468,7 @@ const InjectRow = ({
   onFire,
   onSkip,
   onEdit,
+  onDuplicate,
   onDelete,
   isFiring,
   isSkipping,
@@ -1599,6 +1630,15 @@ const InjectRow = ({
                     onClick={onEdit}
                   >
                     <FontAwesomeIcon icon={faPen} size="sm" />
+                  </IconButton>
+                </Tooltip>
+                <Tooltip title="Duplicate inject">
+                  <IconButton
+                    size="small"
+                    color="primary"
+                    onClick={onDuplicate}
+                  >
+                    <FontAwesomeIcon icon={faCopy} size="sm" />
                   </IconButton>
                 </Tooltip>
                 <Tooltip title="Delete inject">
