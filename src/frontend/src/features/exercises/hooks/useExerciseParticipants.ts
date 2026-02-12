@@ -8,7 +8,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { participantService } from '../services/participantService'
 import { setupProgressQueryKey } from './useSetupProgress'
 import type {
@@ -77,7 +77,7 @@ export const useExerciseParticipants = (exerciseId: string) => {
       )
       // Invalidate setup progress since participant count affects it
       queryClient.invalidateQueries({ queryKey: setupProgressQueryKey(exerciseId) })
-      toast.success('Participant added')
+      notify.success('Participant added')
     },
     onError: (err, _variables, context) => {
       // Rollback on error
@@ -85,7 +85,7 @@ export const useExerciseParticipants = (exerciseId: string) => {
         queryClient.setQueryData(queryKey, context.previousParticipants)
       }
       const message = err instanceof Error ? err.message : 'Failed to add participant'
-      toast.error(message)
+      notify.error(message)
       // Note: Don't re-throw here - mutateAsync already propagates the error
     },
   })
@@ -112,14 +112,14 @@ export const useExerciseParticipants = (exerciseId: string) => {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey })
-      toast.success('Role updated')
+      notify.success('Role updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousParticipants) {
         queryClient.setQueryData(queryKey, context.previousParticipants)
       }
       const message = err instanceof Error ? err.message : 'Failed to update role'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -141,14 +141,14 @@ export const useExerciseParticipants = (exerciseId: string) => {
     onSuccess: () => {
       // Invalidate setup progress since participant count affects it
       queryClient.invalidateQueries({ queryKey: setupProgressQueryKey(exerciseId) })
-      toast.success('Participant removed')
+      notify.success('Participant removed')
     },
     onError: (err, _variables, context) => {
       if (context?.previousParticipants) {
         queryClient.setQueryData(queryKey, context.previousParticipants)
       }
       const message = err instanceof Error ? err.message : 'Failed to remove participant'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { EditOrganizationPage } from './EditOrganizationPage'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import type { Organization, OrgMember } from '../types'
 
 // Mock dependencies
@@ -86,8 +86,8 @@ vi.mock('@/shared/components', () => ({
   StatusChip: ({ status }: any) => <span>{status}</span>,
 }))
 
-vi.mock('react-toastify', () => ({
-  toast: {
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     error: vi.fn(),
   },
@@ -346,7 +346,7 @@ describe('EditOrganizationPage', () => {
       await user.click(saveButton)
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Organization updated successfully')
+        expect(notify.success).toHaveBeenCalledWith('Organization updated successfully')
       })
     })
 
@@ -363,7 +363,7 @@ describe('EditOrganizationPage', () => {
       await user.click(saveButton)
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Update failed')
+        expect(notify.error).toHaveBeenCalledWith('Update failed')
       })
     })
 
@@ -426,7 +426,7 @@ describe('EditOrganizationPage', () => {
       expect(confirmSpy).toHaveBeenCalled()
       expect(mockArchiveAsync).toHaveBeenCalledWith('org-1')
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Organization archived')
+        expect(notify.success).toHaveBeenCalledWith('Organization archived')
       })
     })
 
@@ -454,7 +454,7 @@ describe('EditOrganizationPage', () => {
 
       expect(mockDeactivateAsync).toHaveBeenCalledWith('org-1')
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Organization deactivated')
+        expect(notify.success).toHaveBeenCalledWith('Organization deactivated')
       })
     })
 
@@ -474,7 +474,7 @@ describe('EditOrganizationPage', () => {
 
       expect(mockRestoreAsync).toHaveBeenCalledWith('org-1')
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Organization restored to active')
+        expect(notify.success).toHaveBeenCalledWith('Organization restored to active')
       })
     })
   })
@@ -507,7 +507,7 @@ describe('EditOrganizationPage', () => {
           email: 'test@example.com',
           role: 'OrgUser',
         })
-        expect(toast.success).toHaveBeenCalledWith('Member added successfully')
+        expect(notify.success).toHaveBeenCalledWith('Member added successfully')
       })
     })
 
@@ -525,7 +525,7 @@ describe('EditOrganizationPage', () => {
           membershipId: 'mem-1',
           role: 'OrgAdmin',
         })
-        expect(toast.success).toHaveBeenCalledWith('Member role updated')
+        expect(notify.success).toHaveBeenCalledWith('Member role updated')
       })
     })
 
@@ -540,7 +540,7 @@ describe('EditOrganizationPage', () => {
 
       await waitFor(() => {
         expect(mockRemoveMemberAsync).toHaveBeenCalledWith('mem-1')
-        expect(toast.success).toHaveBeenCalledWith('Member removed')
+        expect(notify.success).toHaveBeenCalledWith('Member removed')
       })
     })
   })

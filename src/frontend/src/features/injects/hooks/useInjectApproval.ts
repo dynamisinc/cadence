@@ -6,7 +6,7 @@
  */
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { injectService } from '../services/injectService'
 import { InjectStatus } from '../../../types'
 import { injectKeys } from './useInjects'
@@ -64,7 +64,7 @@ export const useInjectApproval = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['exercises', exerciseId, 'approval-status'],
       })
-      toast.success('Inject submitted for approval')
+      notify.success('Inject submitted for approval')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -72,7 +72,7 @@ export const useInjectApproval = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to submit inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -119,7 +119,7 @@ export const useInjectApproval = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['exercises', exerciseId, 'approval-status'],
       })
-      toast.success('Inject approved')
+      notify.success('Inject approved')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -127,7 +127,7 @@ export const useInjectApproval = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to approve inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -175,7 +175,7 @@ export const useInjectApproval = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['exercises', exerciseId, 'approval-status'],
       })
-      toast.success('Inject rejected')
+      notify.success('Inject rejected')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -183,7 +183,7 @@ export const useInjectApproval = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reject inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -203,12 +203,12 @@ export const useInjectApproval = (exerciseId: string) => {
         result.skippedCount > 0
           ? `${result.approvedCount} approved, ${result.skippedCount} skipped`
           : `${result.approvedCount} injects approved`
-      toast.success(message)
+      notify.success(message)
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to batch approve'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -228,12 +228,12 @@ export const useInjectApproval = (exerciseId: string) => {
         result.skippedCount > 0
           ? `${result.rejectedCount} rejected, ${result.skippedCount} skipped`
           : `${result.rejectedCount} injects rejected`
-      toast.success(message)
+      notify.success(message)
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to batch reject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -281,7 +281,7 @@ export const useInjectApproval = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['exercises', exerciseId, 'approval-status'],
       })
-      toast.success('Approval reverted')
+      notify.success('Approval reverted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -289,7 +289,7 @@ export const useInjectApproval = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to revert approval'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

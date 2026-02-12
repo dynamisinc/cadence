@@ -39,7 +39,7 @@ import {
   faFileLines,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import {
   CobraDeleteButton,
   CobraSecondaryButton,
@@ -125,7 +125,7 @@ export const DeleteExerciseDialog = ({
       // Also remove from single exercise cache
       queryClient.removeQueries({ queryKey: ['exercise', exercise.id] })
 
-      toast.success('Exercise permanently deleted')
+      notify.success('Exercise permanently deleted')
       onDeleted()
       onClose()
     } catch (err: unknown) {

@@ -22,7 +22,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark, faLightbulb } from '@fortawesome/free-solid-svg-icons'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { format, parseISO } from 'date-fns'
 
 import {
@@ -305,13 +305,13 @@ export const EegEntryForm = ({
   const handleSubmit = async (continueEntry: boolean = false) => {
     const { isValid, errorMessages } = validateForm()
     if (!isValid) {
-      toast.error(errorMessages[0] || 'Please fix the validation errors')
+      notify.error(errorMessages[0] || 'Please fix the validation errors')
       return
     }
 
     // Show warning for short observations
     if (values.observationText.length < OBSERVATION_MIN_LENGTH) {
-      toast.warn('Consider adding more detail to your observation')
+      notify.warning('Consider adding more detail to your observation')
     }
 
     try {
@@ -324,7 +324,7 @@ export const EegEntryForm = ({
           observedAt: values.observedAt ? localDatetimeInputToIso(values.observedAt) : undefined,
         }
         await updateEegEntry(editEntry.id, updateRequest)
-        toast.success('EEG entry updated')
+        notify.success('EEG entry updated')
         onSaved?.()
         onClose?.()
       } else {
@@ -337,7 +337,7 @@ export const EegEntryForm = ({
           observedAt: values.observedAt ? localDatetimeInputToIso(values.observedAt) : undefined,
         }
         await createEntry(values.criticalTaskId, request)
-        toast.success('EEG entry saved')
+        notify.success('EEG entry saved')
 
         if (continueEntry) {
           // Reset form but keep capability target and triggering inject, reset time to now

@@ -45,7 +45,7 @@ import {
   InviteMemberDialog,
   InvitationsTable,
 } from '../components'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import CobraStyles from '@/theme/CobraStyles'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
 
@@ -75,12 +75,12 @@ export const OrganizationMembersPage: FC = () => {
   const handleAddMember = async (email: string, role: string) => {
     try {
       await addMember.mutateAsync({ email, role: role as 'OrgAdmin' | 'OrgManager' | 'OrgUser' })
-      toast.success('Member added successfully')
+      notify.success('Member added successfully')
       setAddMemberDialogOpen(false)
     } catch (error: unknown) {
       console.error('[OrganizationMembersPage] Failed to add member:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to add member'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
       throw error // Re-throw so dialog knows the operation failed
     }
   }
@@ -91,22 +91,22 @@ export const OrganizationMembersPage: FC = () => {
         membershipId,
         role: newRole as 'OrgAdmin' | 'OrgManager' | 'OrgUser',
       })
-      toast.success('Member role updated')
+      notify.success('Member role updated')
     } catch (error: unknown) {
       console.error('[OrganizationMembersPage] Failed to update role:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to update role'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
   const handleRemoveMember = async (membershipId: string) => {
     try {
       await removeMember.mutateAsync(membershipId)
-      toast.success('Member removed')
+      notify.success('Member removed')
     } catch (error: unknown) {
       console.error('[OrganizationMembersPage] Failed to remove member:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to remove member'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -117,15 +117,15 @@ export const OrganizationMembersPage: FC = () => {
         role: role as 'OrgAdmin' | 'OrgManager' | 'OrgUser',
       })
       if (response.emailSent === false) {
-        toast.warning(`Invitation created for ${email}, but the email could not be delivered. You may need to resend.`)
+        notify.warning(`Invitation created for ${email}, but the email could not be delivered. You may need to resend.`)
       } else {
-        toast.success(`Invitation sent to ${email}`)
+        notify.success(`Invitation sent to ${email}`)
       }
       setInviteMemberDialogOpen(false)
     } catch (error: unknown) {
       console.error('[OrganizationMembersPage] Failed to send invitation:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to send invitation'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
       throw error // Re-throw so dialog knows the operation failed
     }
   }
@@ -134,25 +134,25 @@ export const OrganizationMembersPage: FC = () => {
     try {
       const response = await resendInvitation.mutateAsync(invitationId)
       if (response.emailSent === false) {
-        toast.warning('Invitation updated but the email could not be delivered. Check your email configuration.')
+        notify.warning('Invitation updated but the email could not be delivered. Check your email configuration.')
       } else {
-        toast.success(`Invitation resent to ${response.email}`)
+        notify.success(`Invitation resent to ${response.email}`)
       }
     } catch (error: unknown) {
       console.error('[OrganizationMembersPage] Failed to resend invitation:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to resend invitation'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
   const handleCancelInvitation = async (invitationId: string) => {
     try {
       await cancelInvitation.mutateAsync(invitationId)
-      toast.success('Invitation cancelled')
+      notify.success('Invitation cancelled')
     } catch (error: unknown) {
       console.error('[OrganizationMembersPage] Failed to cancel invitation:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to cancel invitation'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 

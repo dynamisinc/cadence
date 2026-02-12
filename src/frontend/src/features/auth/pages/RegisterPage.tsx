@@ -34,7 +34,7 @@ import { PasswordRequirements } from '../components/PasswordRequirements'
 import { useAuth } from '../../../contexts/AuthContext'
 import { validatePassword, isPasswordValid } from '../types'
 import { organizationService } from '../../organizations/services/organizationService'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 /**
  * Registration page for creating new user accounts
@@ -161,7 +161,7 @@ export const RegisterPage: FC = () => {
             await organizationService.acceptInvitation(inviteCode)
             // Refresh again so JWT picks up the new org context
             await refreshAccessToken()
-            toast.success(`Welcome! You've joined ${inviteOrgName || 'the organization'}`)
+            notify.success(`Welcome! You've joined ${inviteOrgName || 'the organization'}`)
           } catch {
             // If accept fails (e.g., already used), continue — user can retry from invite page
           }

@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { injectService } from '../services/injectService'
 import { criticalTaskKeys } from '../../eeg/hooks/useCriticalTasks'
 
@@ -47,12 +47,12 @@ export const useLinkedCriticalTasks = (exerciseId: string, injectId?: string) =>
       queryClient.invalidateQueries({ queryKey })
       // Also invalidate critical task queries to update inject counts
       queryClient.invalidateQueries({ queryKey: criticalTaskKeys.all })
-      toast.success('Linked Critical Tasks updated')
+      notify.success('Linked Critical Tasks updated')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to update linked critical tasks'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

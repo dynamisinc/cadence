@@ -29,7 +29,7 @@ import React, {
   useMemo,
   type ReactNode,
 } from 'react'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { useQueryClient } from '@tanstack/react-query'
 import { useConnectivity } from './ConnectivityContext'
 import {
@@ -140,18 +140,18 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
         setConflicts(latestProgress.conflicts)
 
         if (result.succeeded === 0) {
-          toast.error(`Sync failed. ${result.failed} action(s) could not be synced.`, {
+          notify.error(`Sync failed. ${result.failed} action(s) could not be synced.`, {
             toastId: 'sync-result',
             autoClose: 5000,
           })
         } else {
-          toast.warning(
+          notify.warning(
             `Partial sync: ${result.succeeded} of ${result.totalActions} action(s) synced. ${result.failed} failed.`,
             { toastId: 'sync-result', autoClose: 5000 },
           )
         }
       } else if (result.succeeded > 0) {
-        toast.success(`All ${result.succeeded} change(s) synced successfully!`, {
+        notify.success(`All ${result.succeeded} change(s) synced successfully!`, {
           toastId: 'sync-result',
           autoClose: 3000,
         })
@@ -164,7 +164,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
       return result
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      toast.error(`Sync error: ${errorMessage}`, { toastId: 'sync-error', autoClose: 5000 })
+      notify.error(`Sync error: ${errorMessage}`, { toastId: 'sync-error', autoClose: 5000 })
       setSyncStatus('failed')
       return {
         totalActions: 0,
@@ -201,7 +201,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
         try {
           const count = await getPendingActionCount()
           if (count > 0 && isMountedRef.current) {
-            toast.info(`Syncing ${count} pending change(s)...`, { toastId: 'sync-progress', autoClose: 2000 })
+            notify.info(`Syncing ${count} pending change(s)...`, { toastId: 'sync-progress', autoClose: 2000 })
             await sync()
           }
         } catch (error) {
@@ -247,7 +247,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
           const count = await getPendingActionCount()
           if (count > 0 && isMountedRef.current) {
             hasSyncedOnMountRef.current = true
-            toast.info(`Found ${count} pending change(s). Syncing...`, { toastId: 'sync-progress', autoClose: 2000 })
+            notify.info(`Found ${count} pending change(s). Syncing...`, { toastId: 'sync-progress', autoClose: 2000 })
             await sync()
           } else {
             // No pending changes, mark as synced so we don't check again

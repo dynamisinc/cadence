@@ -7,12 +7,12 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { useExerciseParticipants } from './useExerciseParticipants'
 import { participantService } from '../services/participantService'
 import { createTestWrapper } from '../../../test/testWrapper'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import type { ExerciseParticipantDto } from '../types'
 
 vi.mock('../services/participantService')
-vi.mock('react-toastify', () => ({
-  toast: {
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     error: vi.fn(),
   },
@@ -107,7 +107,7 @@ describe('useExerciseParticipants', () => {
       await result.current.addParticipant({ userId: 'u1', role: 'Controller' })
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Participant added')
+        expect(notify.success).toHaveBeenCalledWith('Participant added')
       })
 
       expect(participantService.addParticipant).toHaveBeenCalledWith(exerciseId, {
@@ -137,7 +137,7 @@ describe('useExerciseParticipants', () => {
       }
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('User already assigned')
+        expect(notify.error).toHaveBeenCalledWith('User already assigned')
       })
     })
   })
@@ -180,7 +180,7 @@ describe('useExerciseParticipants', () => {
       await result.current.updateParticipantRole('u1', { role: 'Evaluator' })
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Role updated')
+        expect(notify.success).toHaveBeenCalledWith('Role updated')
       })
 
       expect(participantService.updateParticipantRole).toHaveBeenCalledWith(
@@ -221,7 +221,7 @@ describe('useExerciseParticipants', () => {
       await result.current.removeParticipant('u1')
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Participant removed')
+        expect(notify.success).toHaveBeenCalledWith('Participant removed')
       })
 
       expect(participantService.removeParticipant).toHaveBeenCalledWith(

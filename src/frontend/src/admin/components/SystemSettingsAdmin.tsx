@@ -17,7 +17,7 @@ import {
   CobraTextField,
 } from '@/theme/styledComponents'
 import { useSystemSettings, useUpdateSystemSettings } from '../hooks/useSystemSettings'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 export const SystemSettingsAdmin: FC = () => {
   const { data: settings, isLoading, error } = useSystemSettings()
@@ -55,12 +55,12 @@ export const SystemSettingsAdmin: FC = () => {
         defaultSenderAddress: null,
         defaultSenderName: defaultSenderName.trim() || null,
       })
-      toast.success('System settings updated')
+      notify.success('System settings updated')
       setHasChanges(false)
     } catch (err: unknown) {
       console.error('[SystemSettingsAdmin] Failed to update:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to update settings'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 

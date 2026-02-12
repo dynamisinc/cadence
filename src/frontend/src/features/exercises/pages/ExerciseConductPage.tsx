@@ -11,7 +11,7 @@
 
 import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import {
   Box,
   Typography,
@@ -362,30 +362,30 @@ export const ExerciseConductPage = () => {
           ? `Exercise clock was started while you were offline. Current time: ${currentTimeStr}`
           : 'Exercise clock resumed while you were offline. ' +
             `Clock jumped forward by ${timeDeltaFormatted}. Current time: ${currentTimeStr}`
-        toast.warning(message, { autoClose: false })
+        notify.warning(message, { autoClose: false })
       } else if (
         currentState === ExerciseClockState.Paused &&
         previousState === ExerciseClockState.Running
       ) {
-        toast.warning(
+        notify.warning(
           `Exercise clock was paused while you were offline at ${formatElapsedTime(currentElapsedMs)}.`,
           { autoClose: 8000 },
         )
       } else if (currentState === ExerciseClockState.Stopped) {
-        toast.warning(
+        notify.warning(
           'Exercise was stopped while you were offline. The exercise has ended.',
           { autoClose: false },
         )
       }
     } else if (currentState === ExerciseClockState.Running && timeDeltaMs > 5000) {
       // Same state but significant time jump (>5 seconds) while offline
-      toast.warning(
+      notify.warning(
         `Clock synchronized. Time jumped forward by ${timeDeltaFormatted}. Current time: ${formatElapsedTime(currentElapsedMs)}`,
         { autoClose: false },
       )
     } else if (!previousState && currentState === ExerciseClockState.Running) {
       // First time connecting and clock is already running
-      toast.info(
+      notify.info(
         `Exercise clock is running. Current time: ${formatElapsedTime(currentElapsedMs)}`,
         { autoClose: 5000 },
       )

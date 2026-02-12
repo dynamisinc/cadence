@@ -26,7 +26,7 @@ import {
   verticalListSortingStrategy,
 } from '@dnd-kit/sortable'
 import { Box, Typography, Portal } from '@mui/material'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import type { InjectDto } from '../../types'
 
 /** Minimum time to show the saving indicator (ms) */
@@ -118,7 +118,7 @@ export const SortableInjectList = ({
         // Rollback on failure
         setItems(injects)
         const message = error instanceof Error ? error.message : 'Failed to reorder injects'
-        toast.error(message)
+        notify.error(message)
       }
 
       // Hide indicator after minimum time (don't use finally to avoid race conditions)

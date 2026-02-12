@@ -25,7 +25,7 @@ import { CobraPrimaryButton } from '@/theme/styledComponents'
 import { useOrganization } from '@/contexts/OrganizationContext'
 import { useAuth } from '@/contexts/AuthContext'
 import { organizationService } from '@/features/organizations/services/organizationService'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 /**
  * Display role label in user-friendly format
@@ -99,7 +99,7 @@ export const OrganizationSwitcher: FC = () => {
       // Page will reload after successful switch
     } catch (error) {
       console.error('[OrganizationSwitcher] Failed to switch organization:', error)
-      toast.error('Failed to switch organization. Please try again.')
+      notify.error('Failed to switch organization. Please try again.')
       setIsSwitching(false)
     }
   }

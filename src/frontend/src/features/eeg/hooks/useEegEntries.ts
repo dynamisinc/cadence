@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { eegEntryService } from '../services/eegService'
 import { criticalTaskKeys } from './useCriticalTasks'
 import type {
@@ -81,7 +81,7 @@ export const useEegEntries = (exerciseId: string, queryParams?: EegEntryQueryPar
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create EEG entry'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -149,12 +149,12 @@ export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
         predicate: query =>
           query.queryKey[0] === 'eeg-entries' && query.queryKey[1] === 'coverage',
       })
-      toast.success('EEG Entry recorded')
+      notify.success('EEG Entry recorded')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create EEG entry'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -189,7 +189,7 @@ export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
         predicate: query =>
           query.queryKey[0] === 'eeg-entries' && query.queryKey[1] === 'coverage',
       })
-      toast.success('EEG Entry updated')
+      notify.success('EEG Entry updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
@@ -197,7 +197,7 @@ export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update EEG entry'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -223,7 +223,7 @@ export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
         predicate: query =>
           query.queryKey[0] === 'eeg-entries' && query.queryKey[1] === 'coverage',
       })
-      toast.success('EEG Entry deleted')
+      notify.success('EEG Entry deleted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
@@ -231,7 +231,7 @@ export const useEegEntriesByTask = (exerciseId: string, taskId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete EEG entry'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

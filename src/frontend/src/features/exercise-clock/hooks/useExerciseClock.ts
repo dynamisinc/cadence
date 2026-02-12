@@ -7,7 +7,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { clockService } from '../services/clockService'
 import { ExerciseClockState } from '../../../types'
 import type { ClockStateDto } from '../types'
@@ -132,7 +132,7 @@ export const useExerciseClock = (exerciseId: string) => {
     },
     onSuccess: newState => {
       updateClockState(newState)
-      toast.success('Exercise clock started')
+      notify.success('Exercise clock started')
     },
     onError: (err, _variables, context) => {
       // Rollback to previous state
@@ -140,7 +140,7 @@ export const useExerciseClock = (exerciseId: string) => {
         queryClient.setQueryData(clockQueryKey(exerciseId), context.previousState)
       }
       const message = err instanceof Error ? err.message : 'Failed to start clock'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -176,7 +176,7 @@ export const useExerciseClock = (exerciseId: string) => {
     },
     onSuccess: newState => {
       updateClockState(newState)
-      toast.success('Exercise clock paused')
+      notify.success('Exercise clock paused')
     },
     onError: (err, _variables, context) => {
       // Rollback to previous state
@@ -184,7 +184,7 @@ export const useExerciseClock = (exerciseId: string) => {
         queryClient.setQueryData(clockQueryKey(exerciseId), context.previousState)
       }
       const message = err instanceof Error ? err.message : 'Failed to pause clock'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -193,11 +193,11 @@ export const useExerciseClock = (exerciseId: string) => {
     mutationFn: () => clockService.stopClock(exerciseId),
     onSuccess: newState => {
       updateClockState(newState)
-      toast.success('Exercise completed')
+      notify.success('Exercise completed')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to stop clock'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -206,11 +206,11 @@ export const useExerciseClock = (exerciseId: string) => {
     mutationFn: () => clockService.resetClock(exerciseId),
     onSuccess: newState => {
       updateClockState(newState)
-      toast.success('Exercise clock reset')
+      notify.success('Exercise clock reset')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to reset clock'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

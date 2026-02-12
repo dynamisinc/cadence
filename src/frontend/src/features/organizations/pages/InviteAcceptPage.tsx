@@ -44,7 +44,7 @@ import { useOrganization } from '@/contexts/OrganizationContext'
 import { organizationService } from '../services/organizationService'
 import type { Invitation } from '../types'
 import { getOrgRoleLabel } from '../types'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 type PageState =
   | 'loading'
@@ -132,7 +132,7 @@ export const InviteAcceptPage: FC = () => {
       await organizationService.acceptInvitation(code)
       console.log('[InviteAcceptPage] Invitation accepted successfully')
       setState('accepted')
-      toast.success(`Welcome! You've joined ${invitation?.organizationName || 'the organization'}`)
+      notify.success(`Welcome! You've joined ${invitation?.organizationName || 'the organization'}`)
 
       // Refresh token so JWT picks up the new org context.
       // OrganizationContext will auto-refresh memberships when the new token propagates.
@@ -158,7 +158,7 @@ export const InviteAcceptPage: FC = () => {
         setState('error')
         const errorMsg = axiosError.response?.data?.message || 'Failed to accept invitation'
         setErrorMessage(errorMsg)
-        toast.error(errorMsg)
+        notify.error(errorMsg)
       }
     }
   }

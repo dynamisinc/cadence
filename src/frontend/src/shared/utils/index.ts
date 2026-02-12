@@ -3,3 +3,4 @@
  */
 
 export * from './dateUtils'
+export { notify } from './notify'

@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { injectService } from '../services/injectService'
 import { useConnectivity } from '../../../core/contexts'
 import { addPendingAction } from '../../../core/offline'
@@ -59,12 +59,12 @@ export const useInjects = (exerciseId: string) => {
         ...old,
         newInject,
       ])
-      toast.success('Inject created')
+      notify.success('Inject created')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -106,7 +106,7 @@ export const useInjects = (exerciseId: string) => {
         injectKeys.detail(exerciseId, updatedInject.id),
         updatedInject,
       )
-      toast.success('Inject updated')
+      notify.success('Inject updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -114,7 +114,7 @@ export const useInjects = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -152,7 +152,7 @@ export const useInjects = (exerciseId: string) => {
         injectKeys.detail(exerciseId, firedInject.id),
         firedInject,
       )
-      toast.success('Inject fired')
+      notify.success('Inject fired')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -160,7 +160,7 @@ export const useInjects = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to fire inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -199,7 +199,7 @@ export const useInjects = (exerciseId: string) => {
         injectKeys.detail(exerciseId, skippedInject.id),
         skippedInject,
       )
-      toast.success('Inject skipped')
+      notify.success('Inject skipped')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -207,7 +207,7 @@ export const useInjects = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to skip inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -250,7 +250,7 @@ export const useInjects = (exerciseId: string) => {
         injectKeys.detail(exerciseId, resetInject.id),
         resetInject,
       )
-      toast.success('Inject reset to draft')
+      notify.success('Inject reset to draft')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -258,7 +258,7 @@ export const useInjects = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reset inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -276,7 +276,7 @@ export const useInjects = (exerciseId: string) => {
       return { previousInjects }
     },
     onSuccess: () => {
-      toast.success('Inject deleted')
+      notify.success('Inject deleted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousInjects) {
@@ -284,7 +284,7 @@ export const useInjects = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete inject'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -319,7 +319,7 @@ export const useInjects = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reorder injects'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -410,7 +410,7 @@ export const useInjects = (exerciseId: string) => {
     )
 
     incrementPendingCount()
-    toast.info('Inject fired offline. Will sync when connection restores.')
+    notify.info('Inject fired offline. Will sync when connection restores.')
 
     return optimisticInject
   }
@@ -462,7 +462,7 @@ export const useInjects = (exerciseId: string) => {
     )
 
     incrementPendingCount()
-    toast.info('Inject skipped offline. Will sync when connection restores.')
+    notify.info('Inject skipped offline. Will sync when connection restores.')
 
     return optimisticInject
   }
@@ -514,7 +514,7 @@ export const useInjects = (exerciseId: string) => {
     )
 
     incrementPendingCount()
-    toast.info('Inject reset queued. Will sync when connection restores.')
+    notify.info('Inject reset queued. Will sync when connection restores.')
 
     return optimisticInject
   }

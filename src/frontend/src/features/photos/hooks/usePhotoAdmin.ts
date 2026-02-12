@@ -8,7 +8,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { photoService } from '../services/photoService'
 import { photosQueryKey } from './usePhotos'
 import type { DeletedPhotoDto } from '../types'
@@ -40,10 +40,10 @@ export const usePhotoAdmin = (exerciseId: string) => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deletedPhotosQueryKey(exerciseId) })
       queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
-      toast.success('Photo restored')
+      notify.success('Photo restored')
     },
     onError: (err: Error) => {
-      toast.error(err.message || 'Failed to restore photo')
+      notify.error(err.message || 'Failed to restore photo')
     },
   })
 
@@ -52,10 +52,10 @@ export const usePhotoAdmin = (exerciseId: string) => {
     mutationFn: (photoId: string) => photoService.permanentDeletePhoto(exerciseId, photoId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: deletedPhotosQueryKey(exerciseId) })
-      toast.success('Photo permanently deleted')
+      notify.success('Photo permanently deleted')
     },
     onError: (err: Error) => {
-      toast.error(err.message || 'Failed to permanently delete photo')
+      notify.error(err.message || 'Failed to permanently delete photo')
     },
   })
 

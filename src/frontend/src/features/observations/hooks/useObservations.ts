@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { observationService } from '../services/observationService'
 import { useConnectivity } from '../../../core/contexts'
 import { addPendingAction } from '../../../core/offline'
@@ -121,7 +121,7 @@ export const useObservations = (exerciseId: string) => {
           queryKey: observationsByInjectQueryKey(newObservation.injectId),
         })
       }
-      toast.success('Observation recorded')
+      notify.success('Observation recorded')
     },
     onError: (err, _request, context) => {
       // Rollback to previous state
@@ -133,7 +133,7 @@ export const useObservations = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to create observation'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -180,7 +180,7 @@ export const useObservations = (exerciseId: string) => {
             obs.id === updatedObservation.id ? updatedObservation : obs,
           ),
       )
-      toast.success('Observation updated')
+      notify.success('Observation updated')
     },
     onError: (err, _variables, context) => {
       // Rollback to previous state
@@ -192,7 +192,7 @@ export const useObservations = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update observation'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -217,7 +217,7 @@ export const useObservations = (exerciseId: string) => {
       return { previousObservations }
     },
     onSuccess: () => {
-      toast.success('Observation deleted')
+      notify.success('Observation deleted')
     },
     onError: (err, _deletedId, context) => {
       // Rollback to previous state
@@ -229,7 +229,7 @@ export const useObservations = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete observation'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -289,7 +289,7 @@ export const useObservations = (exerciseId: string) => {
     )
 
     incrementPendingCount()
-    toast.info('Observation saved offline. Will sync when connection restores.')
+    notify.info('Observation saved offline. Will sync when connection restores.')
 
     return optimisticObservation
   }
@@ -351,7 +351,7 @@ export const useObservations = (exerciseId: string) => {
     )
 
     incrementPendingCount()
-    toast.info('Changes saved offline. Will sync when connection restores.')
+    notify.info('Changes saved offline. Will sync when connection restores.')
 
     return optimisticObservation
   }
@@ -385,7 +385,7 @@ export const useObservations = (exerciseId: string) => {
     )
 
     incrementPendingCount()
-    toast.info('Deletion queued. Will sync when connection restores.')
+    notify.info('Deletion queued. Will sync when connection restores.')
   }
 
   return {

@@ -48,7 +48,7 @@ import {
   useRestoreOrganization,
 } from '../hooks/useOrganizations'
 import { StatusChip } from '@/shared/components'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import type { OrgStatus, OrgRole } from '../types'
 import { organizationService } from '../services/organizationService'
 import {
@@ -102,7 +102,7 @@ export const EditOrganizationPage: FC = () => {
       organizationService.addMember(id!, { email, role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organization-members', id] })
-      toast.success('Member added successfully')
+      notify.success('Member added successfully')
     },
   })
 
@@ -112,7 +112,7 @@ export const EditOrganizationPage: FC = () => {
       organizationService.updateMemberRole(id!, membershipId, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organization-members', id] })
-      toast.success('Member role updated')
+      notify.success('Member role updated')
     },
   })
 
@@ -122,7 +122,7 @@ export const EditOrganizationPage: FC = () => {
       organizationService.removeMember(id!, membershipId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['organization-members', id] })
-      toast.success('Member removed')
+      notify.success('Member removed')
     },
   })
 
@@ -151,7 +151,7 @@ export const EditOrganizationPage: FC = () => {
     e.preventDefault()
 
     if (!id || !name.trim()) {
-      toast.error('Organization name is required')
+      notify.error('Organization name is required')
       return
     }
 
@@ -164,12 +164,12 @@ export const EditOrganizationPage: FC = () => {
           contactEmail: contactEmail.trim() || undefined,
         },
       })
-      toast.success('Organization updated successfully')
+      notify.success('Organization updated successfully')
       setHasChanges(false)
     } catch (error: unknown) {
       console.error('[EditOrganizationPage] Failed to update:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to update organization'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -181,11 +181,11 @@ export const EditOrganizationPage: FC = () => {
 
     try {
       await archiveOrg.mutateAsync(id)
-      toast.success('Organization archived')
+      notify.success('Organization archived')
     } catch (error: unknown) {
       console.error('[EditOrganizationPage] Failed to archive:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to archive organization'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -197,11 +197,11 @@ export const EditOrganizationPage: FC = () => {
 
     try {
       await deactivateOrg.mutateAsync(id)
-      toast.success('Organization deactivated')
+      notify.success('Organization deactivated')
     } catch (error: unknown) {
       console.error('[EditOrganizationPage] Failed to deactivate:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to deactivate organization'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -210,11 +210,11 @@ export const EditOrganizationPage: FC = () => {
 
     try {
       await restoreOrg.mutateAsync(id)
-      toast.success('Organization restored to active')
+      notify.success('Organization restored to active')
     } catch (error: unknown) {
       console.error('[EditOrganizationPage] Failed to restore:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to restore organization'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -415,7 +415,7 @@ export const EditOrganizationPage: FC = () => {
           <Grid size={12}>
             <ApprovalPermissionsSettings
               organizationId={id}
-              onSaved={() => toast.success('Approval permissions saved')}
+              onSaved={() => notify.success('Approval permissions saved')}
             />
           </Grid>
         )}

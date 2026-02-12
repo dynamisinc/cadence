@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { capabilityService } from '../services/capabilityService'
 import type { CapabilityDto, CreateCapabilityRequest, UpdateCapabilityRequest } from '../types'
 
@@ -72,12 +72,12 @@ export const useCapabilities = (
       if (!includeInactive) {
         queryClient.invalidateQueries({ queryKey: capabilityKeys.list(true, organizationId) })
       }
-      toast.success('Capability created')
+      notify.success('Capability created')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create capability'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -107,7 +107,7 @@ export const useCapabilities = (
       )
       // Invalidate both lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: capabilityKeys.all })
-      toast.success('Capability updated')
+      notify.success('Capability updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousCapabilities) {
@@ -115,7 +115,7 @@ export const useCapabilities = (
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update capability'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -141,7 +141,7 @@ export const useCapabilities = (
     onSuccess: () => {
       // Invalidate both lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: capabilityKeys.all })
-      toast.success('Capability deactivated')
+      notify.success('Capability deactivated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousCapabilities) {
@@ -149,7 +149,7 @@ export const useCapabilities = (
       }
       const message =
         err instanceof Error ? err.message : 'Failed to deactivate capability'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -172,7 +172,7 @@ export const useCapabilities = (
     onSuccess: () => {
       // Invalidate both lists to ensure consistency
       queryClient.invalidateQueries({ queryKey: capabilityKeys.all })
-      toast.success('Capability reactivated')
+      notify.success('Capability reactivated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousCapabilities) {
@@ -180,7 +180,7 @@ export const useCapabilities = (
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reactivate capability'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

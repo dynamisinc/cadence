@@ -13,7 +13,7 @@ import {
   Autocomplete,
   Chip,
 } from '@mui/material'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 import {
   CobraPrimaryButton,
@@ -324,7 +324,7 @@ export const InjectForm = ({
     const { isValid, errorMessages } = validateForm()
     if (!isValid) {
       // Show toast with first error message
-      toast.error(errorMessages[0] || 'Please fix the validation errors')
+      notify.error(errorMessages[0] || 'Please fix the validation errors')
       return
     }
 

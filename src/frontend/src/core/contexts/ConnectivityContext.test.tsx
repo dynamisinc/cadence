@@ -6,9 +6,9 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import { ConnectivityProvider, useConnectivity } from './ConnectivityContext'
 
-// Mock react-toastify
-vi.mock('react-toastify', () => ({
-  toast: {
+// Mock notify wrapper
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     error: vi.fn(),
     warning: vi.fn(),

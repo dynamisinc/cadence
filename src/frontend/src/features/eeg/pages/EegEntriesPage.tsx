@@ -46,7 +46,7 @@ import {
   faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 import { useExercise } from '../../exercises/hooks'
 import { useExerciseRole } from '../../auth'
@@ -214,10 +214,10 @@ export const EegEntriesPage = () => {
       await eegEntryService.delete(exerciseId!, entryId)
       queryClient.invalidateQueries({ queryKey: eegEntryKeys.byExercise(exerciseId!) })
       queryClient.invalidateQueries({ queryKey: eegEntryKeys.coverage(exerciseId!) })
-      toast.success('EEG entry deleted')
+      notify.success('EEG entry deleted')
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to delete EEG entry'
-      toast.error(message)
+      notify.error(message)
     } finally {
       setDeletingId(null)
     }

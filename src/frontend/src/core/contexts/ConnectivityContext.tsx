@@ -24,7 +24,7 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { checkApiHealth } from '../services/api'
 
 /** How often to check API health when browser reports online (ms) */
@@ -115,7 +115,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
 
     // Show persistent warning when API becomes unreachable
     if (!isHealthy && wasReachable) {
-      toast.error('Cannot reach server. Changes will sync when connection restores.', {
+      notify.error('Cannot reach server. Changes will sync when connection restores.', {
         toastId: 'connection-status',
         autoClose: false,
       })
@@ -123,8 +123,8 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
 
     // Dismiss warning and show brief success when API becomes reachable again
     if (isHealthy && !wasReachable) {
-      toast.dismiss('connection-status')
-      toast.success('Server connection restored', {
+      notify.dismiss('connection-status')
+      notify.success('Server connection restored', {
         toastId: 'connection-restored',
         autoClose: 2000,
       })
@@ -209,7 +209,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     const handleOffline = () => {
       setIsOnline(false)
       setIsApiReachable(false)
-      toast.error('You are offline. Changes will sync when connection restores.', {
+      notify.error('You are offline. Changes will sync when connection restores.', {
         toastId: 'connection-status',
         autoClose: false,
       })
@@ -230,13 +230,13 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       // Only show toasts if state actually changed and we're in an exercise
       if (isInExercise && prevState !== state && prevState !== null) {
         if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
-          toast.dismiss('signalr-status')
-          toast.success('Real-time connection restored', {
+          notify.dismiss('signalr-status')
+          notify.success('Real-time connection restored', {
             toastId: 'signalr-restored',
             autoClose: 2000,
           })
         } else if ((state === 'disconnected' || state === 'error') && prevState === 'connected') {
-          toast.warning('Real-time connection lost. Attempting to reconnect...', {
+          notify.warning('Real-time connection lost. Attempting to reconnect...', {
             toastId: 'signalr-status',
             autoClose: false,
           })

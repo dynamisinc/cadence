@@ -41,7 +41,7 @@ import {
   faEllipsisVertical,
 } from '@fortawesome/free-solid-svg-icons'
 import { format, parseISO } from 'date-fns'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 import {
   CobraPrimaryButton,
@@ -132,10 +132,10 @@ export const ArchivedExercisesPage = () => {
     mutationFn: (id: string) => exerciseService.unarchiveExercise(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['exercises'] })
-      toast.success('Exercise restored successfully')
+      notify.success('Exercise restored successfully')
     },
     onError: () => {
-      toast.error('Failed to restore exercise')
+      notify.error('Failed to restore exercise')
     },
   })
 
@@ -239,7 +239,7 @@ export const ArchivedExercisesPage = () => {
   const handleDeleteComplete = () => {
     queryClient.invalidateQueries({ queryKey: ['exercises'] })
     setDeleteDialogExercise(null)
-    toast.success('Exercise permanently deleted')
+    notify.success('Exercise permanently deleted')
   }
 
   const handleBulkRestore = async () => {
