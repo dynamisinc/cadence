@@ -296,17 +296,19 @@ export const useInjects = (exerciseId: string) => {
       await queryClient.cancelQueries({ queryKey })
       const previousInjects = queryClient.getQueryData<InjectDto[]>(queryKey)
 
-      // Optimistically update the cache with new order
+      // Optimistically update the cache with new order and renumbered injects
       queryClient.setQueryData<InjectDto[]>(queryKey, old => {
         if (!old) return old
-        // Create a map of id -> new sequence
+        // Create a map of id -> new position (1-based)
         const orderMap = new Map(injectIds.map((id, index) => [id, index + 1]))
-        // Update sequence values and sort
+        // Update sequence and injectNumber values, then sort
         return old
-          .map(inject => ({
-            ...inject,
-            sequence: orderMap.get(inject.id) ?? inject.sequence,
-          }))
+          .map(inject => {
+            const newPos = orderMap.get(inject.id)
+            return newPos !== undefined
+              ? { ...inject, sequence: newPos, injectNumber: newPos }
+              : inject
+          })
           .sort((a, b) => a.sequence - b.sequence)
       })
 

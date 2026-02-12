@@ -173,13 +173,22 @@ public class InjectService : IInjectService
             }
         }
 
-        // Update sequence values based on the new order
+        // Two-phase update to avoid unique constraint violation on (MselId, InjectNumber).
+        // Phase 1: Set InjectNumber to negative temporary values to clear the unique index.
+        for (int i = 0; i < injectIdsList.Count; i++)
+        {
+            var inject = injectDict[injectIdsList[i]];
+            inject.InjectNumber = -(i + 1);
+        }
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Phase 2: Set the real sequence and inject number values.
         for (int i = 0; i < injectIdsList.Count; i++)
         {
             var inject = injectDict[injectIdsList[i]];
             inject.Sequence = i + 1;
+            inject.InjectNumber = i + 1;
         }
-
         await _context.SaveChangesAsync(cancellationToken);
 
         // Broadcast SignalR notification for inject reorder
