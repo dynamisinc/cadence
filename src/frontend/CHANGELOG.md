@@ -5,6 +5,13 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.6.2](https://github.com/dynamisinc/cadence/compare/frontend-v2.6.1...frontend-v2.6.2) (2026-02-12)
+
+
+### Bug Fixes
+
+* **frontend:** resolve all eslint warnings and errors ([a2bc4ef](https://github.com/dynamisinc/cadence/commit/a2bc4ef0e364536c4f45943dc58acdfa28c4d75f))
+
 ## [2.6.1](https://github.com/dynamisinc/cadence/compare/frontend-v2.6.0...frontend-v2.6.1) (2026-02-11)
 
 
