@@ -49,6 +49,11 @@ function dedupedToast(method: ToastMethod, message: string, options?: ToastOptio
   return method(message, options)
 }
 
+/** @internal Clear dedup state - only for use in tests */
+export function _resetNotifyForTesting() {
+  recentToasts.clear()
+}
+
 export const notify = {
   success: (message: string, options?: ToastOptions) => dedupedToast(toast.success, message, options),
   error: (message: string, options?: ToastOptions) => dedupedToast(toast.error, message, options),
