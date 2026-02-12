@@ -117,6 +117,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     // Show toast when API becomes unreachable (only if we thought we were online)
     if (!isHealthy && wasReachable && !hasShownOfflineToast) {
       toast.error('🔴 Cannot reach server. Changes will sync when connection restores.', {
+        toastId: 'connectivity-api-offline',
         autoClose: 5000,
       })
       setHasShownOfflineToast(true)
@@ -125,6 +126,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     // Show toast when API becomes reachable again
     if (isHealthy && !wasReachable) {
       toast.success('🟢 Server connection restored', {
+        toastId: 'connectivity-api-online',
         autoClose: 3000,
       })
       setHasShownOfflineToast(false)
@@ -211,6 +213,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       setIsApiReachable(false)
       if (!hasShownOfflineToast) {
         toast.error('🔴 You are offline. Changes will sync when connection restores.', {
+          toastId: 'connectivity-browser-offline',
           autoClose: 5000,
         })
         setHasShownOfflineToast(true)
@@ -233,10 +236,12 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       if (isInExercise && prevState !== state && prevState !== null) {
         if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
           toast.success('🟢 Real-time connection restored', {
+            toastId: 'connectivity-signalr-online',
             autoClose: 3000,
           })
         } else if ((state === 'disconnected' || state === 'error') && prevState === 'connected') {
           toast.warning('🟡 Real-time connection lost. Attempting to reconnect...', {
+            toastId: 'connectivity-signalr-offline',
             autoClose: 4000,
           })
         }
