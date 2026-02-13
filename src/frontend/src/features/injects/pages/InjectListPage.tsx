@@ -295,7 +295,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const handleDuplicateClick = (e: React.MouseEvent, inject: InjectDto) => {
     e.stopPropagation()
     navigate(`/exercises/${exerciseId}/injects/new`, {
-      state: { duplicateFrom: inject }
+      state: { duplicateFrom: inject },
     })
   }
 

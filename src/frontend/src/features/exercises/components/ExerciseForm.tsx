@@ -18,7 +18,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faScrewdriverWrench } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraPrimaryButton, CobraLinkButton } from '../../../theme/styledComponents'
-import CobraStyles from '../../../theme/CobraStyles'
 import { ExerciseType, DeliveryMode, TimelineMode, ExerciseStatus } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import { createExerciseSchema, EXERCISE_FIELD_LIMITS, type CreateExerciseFormValues } from '../types/validation'

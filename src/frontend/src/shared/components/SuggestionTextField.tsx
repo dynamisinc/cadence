@@ -81,7 +81,7 @@ export const SuggestionTextField: FC<SuggestionTextFieldProps> = ({
       loading={isLoading}
       noOptionsText="No suggestions"
       size="small"
-      renderInput={(params) => (
+      renderInput={params => (
         <CobraTextField
           {...params}
           label={label}

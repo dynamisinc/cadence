@@ -134,7 +134,7 @@ export const InjectDetailPage = () => {
   const handleDuplicateClick = () => {
     if (inject) {
       navigate(`/exercises/${exerciseId}/injects/new`, {
-        state: { duplicateFrom: inject }
+        state: { duplicateFrom: inject },
       })
     }
   }
