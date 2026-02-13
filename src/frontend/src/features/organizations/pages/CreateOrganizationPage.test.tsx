@@ -14,7 +14,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { CreateOrganizationPage } from './CreateOrganizationPage'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 // Mock dependencies
 vi.mock('react-router-dom', () => ({
@@ -26,8 +26,8 @@ vi.mock('../hooks/useOrganizations', () => ({
   useCheckSlug: vi.fn(),
 }))
 
-vi.mock('react-toastify', () => ({
-  toast: {
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     error: vi.fn(),
   },
@@ -298,7 +298,7 @@ describe('CreateOrganizationPage', () => {
 
       await user.click(submitButton)
 
-      expect(toast.error).toHaveBeenCalledWith('Please fill in all required fields')
+      expect(notify.error).toHaveBeenCalledWith('Please fill in all required fields')
     })
 
     it('shows error toast when submitting with unavailable slug', async () => {
@@ -319,7 +319,7 @@ describe('CreateOrganizationPage', () => {
 
       await user.click(submitButton)
 
-      expect(toast.error).toHaveBeenCalledWith('Please choose a different slug')
+      expect(notify.error).toHaveBeenCalledWith('Please choose a different slug')
     })
   })
 
@@ -399,7 +399,7 @@ describe('CreateOrganizationPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith('Organization created successfully')
+        expect(notify.success).toHaveBeenCalledWith('Organization created successfully')
         expect(mockNavigate).toHaveBeenCalledWith('/admin/organizations')
       })
     })
@@ -430,7 +430,7 @@ describe('CreateOrganizationPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Organization already exists')
+        expect(notify.error).toHaveBeenCalledWith('Organization already exists')
       })
     })
 
@@ -453,7 +453,7 @@ describe('CreateOrganizationPage', () => {
       await user.click(submitButton)
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalledWith('Failed to create organization')
+        expect(notify.error).toHaveBeenCalledWith('Failed to create organization')
       })
     })
 

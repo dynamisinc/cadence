@@ -38,7 +38,8 @@ import {
 } from '../hooks/useOrganizations'
 import { StatusChip } from '@/shared/components'
 import { useBreadcrumbs } from '@/core/contexts'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
+import { formatDate } from '@/shared/utils/dateUtils'
 import CobraStyles from '@/theme/CobraStyles'
 
 export const OrganizationDetailsPage: FC = () => {
@@ -82,7 +83,7 @@ export const OrganizationDetailsPage: FC = () => {
     e.preventDefault()
 
     if (!name.trim()) {
-      toast.error('Organization name is required')
+      notify.error('Organization name is required')
       return
     }
 
@@ -92,12 +93,12 @@ export const OrganizationDetailsPage: FC = () => {
         description: description.trim() || undefined,
         contactEmail: contactEmail.trim() || undefined,
       })
-      toast.success('Organization updated successfully')
+      notify.success('Organization updated successfully')
       setHasChanges(false)
     } catch (error: unknown) {
       console.error('[OrganizationDetailsPage] Failed to update:', error)
       const errorMessage = error instanceof Error ? error.message : 'Failed to update organization'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -207,7 +208,7 @@ export const OrganizationDetailsPage: FC = () => {
                 Created
               </Typography>
               <Typography variant="body1">
-                {new Date(organization.createdAt).toLocaleDateString()}
+                {formatDate(organization.createdAt)}
               </Typography>
             </Box>
           </Paper>

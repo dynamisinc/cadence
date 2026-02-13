@@ -86,10 +86,10 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees all 17 menu items', () => {
+      it('sees all 18 menu items', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(17)
+        expect(result.current.filteredItems).toHaveLength(18)
       })
 
       it('sees all menu items in correct order', () => {
@@ -106,6 +106,7 @@ describe('useFilteredMenu', () => {
           'org-members',
           'org-approval',
           'org-capabilities',
+          'org-suggestions',
           'org-archived',
           'org-settings',
           'admin',
@@ -150,11 +151,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 13 menu items (conduct+analysis+org+settings)', () => {
-        // ExerciseDirector w/OrgAdmin: 4 conduct + 2 analysis + 6 org + 1 settings = 13
+      it('sees 14 menu items (conduct+analysis+org+settings)', () => {
+        // ExerciseDirector w/OrgAdmin: 4 conduct + 2 analysis + 7 org + 1 settings = 14
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(13)
+        expect(result.current.filteredItems).toHaveLength(14)
       })
 
       it('does NOT see Templates', () => {
@@ -210,11 +211,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 11 menu items (conduct + org items + settings)', () => {
-        // Controller with OrgAdmin role sees: 4 conduct + 6 org + 1 settings = 11
+      it('sees 12 menu items (conduct + org items + settings)', () => {
+        // Controller with OrgAdmin role sees: 4 conduct + 7 org + 1 settings = 12
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(11)
+        expect(result.current.filteredItems).toHaveLength(12)
       })
 
       it('sees My Assignments', () => {
@@ -281,11 +282,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 10 menu items (conduct + observations + org items + settings)', () => {
-        // Evaluator with OrgAdmin role sees: 2 conduct + 1 analysis + 6 org + 1 settings = 10
+      it('sees 11 menu items (conduct + observations + org items + settings)', () => {
+        // Evaluator with OrgAdmin role sees: 2 conduct + 1 analysis + 7 org + 1 settings = 11
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(10)
+        expect(result.current.filteredItems).toHaveLength(11)
       })
 
       it('sees My Assignments', () => {
@@ -345,11 +346,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 9 menu items (conduct + org items + settings)', () => {
-        // Observer with OrgAdmin role sees: 2 conduct + 6 org + 1 settings = 9
+      it('sees 10 menu items (conduct + org items + settings)', () => {
+        // Observer with OrgAdmin role sees: 2 conduct + 7 org + 1 settings = 10
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(9)
+        expect(result.current.filteredItems).toHaveLength(10)
       })
 
       it('sees My Assignments', () => {
@@ -656,10 +657,10 @@ describe('useFilteredMenu', () => {
       expect(result.current.groupedBySection.analysis).toHaveLength(2)
     })
 
-    it('ORGANIZATION section has 6 items for Admin', () => {
+    it('ORGANIZATION section has 7 items for Admin', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.groupedBySection.organization).toHaveLength(6)
+      expect(result.current.groupedBySection.organization).toHaveLength(7)
     })
 
     it('SYSTEM section has 5 items for Admin', () => {
@@ -821,8 +822,8 @@ describe('useFilteredMenu', () => {
 
         const { result } = renderHook(() => useFilteredMenu())
 
-        // Observer with OrgAdmin: 2 conduct + 6 org + 1 settings = 9
-        expect(result.current.filteredItems).toHaveLength(9)
+        // Observer with OrgAdmin: 2 conduct + 7 org + 1 settings = 10
+        expect(result.current.filteredItems).toHaveLength(10)
       })
     })
   })
@@ -933,33 +934,33 @@ describe('useFilteredMenu', () => {
     it('works with empty options object', () => {
       const { result } = renderHook(() => useFilteredMenu({}))
 
-      expect(result.current.filteredItems).toHaveLength(17)
+      expect(result.current.filteredItems).toHaveLength(18)
     })
 
     it('works with no options (undefined)', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.filteredItems).toHaveLength(17)
+      expect(result.current.filteredItems).toHaveLength(18)
     })
 
     it('works with null exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
-      expect(result.current.filteredItems).toHaveLength(17)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with undefined exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: undefined }))
 
-      expect(result.current.filteredItems).toHaveLength(17)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with valid exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: 'valid-id' }))
 
-      expect(result.current.filteredItems).toHaveLength(17)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
 
@@ -968,7 +969,7 @@ describe('useFilteredMenu', () => {
         useFilteredMenu({ exerciseId: '550e8400-e29b-41d4-a716-446655440000' }),
       )
 
-      expect(result.current.filteredItems).toHaveLength(17)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
   })

@@ -24,7 +24,7 @@ import React, {
   useRef,
   type ReactNode,
 } from 'react'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { checkApiHealth } from '../services/api'
 
 /** How often to check API health when browser reports online (ms) */
@@ -89,7 +89,6 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
   const [signalRState, setSignalRStateInternal] = useState<SignalRState | null>(null)
   const [isInExercise, setIsInExercise] = useState(false)
   const [pendingCount, setPendingCountInternal] = useState(0)
-  const [hasShownOfflineToast, setHasShownOfflineToast] = useState(false)
   const healthCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isMountedRef = useRef(true)
 
@@ -114,24 +113,25 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
 
     setIsApiReachable(isHealthy)
 
-    // Show toast when API becomes unreachable (only if we thought we were online)
-    if (!isHealthy && wasReachable && !hasShownOfflineToast) {
-      toast.error('🔴 Cannot reach server. Changes will sync when connection restores.', {
-        autoClose: 5000,
+    // Show persistent warning when API becomes unreachable
+    if (!isHealthy && wasReachable) {
+      notify.error('Cannot reach server. Changes will sync when connection restores.', {
+        toastId: 'connection-status',
+        autoClose: false,
       })
-      setHasShownOfflineToast(true)
     }
 
-    // Show toast when API becomes reachable again
+    // Dismiss warning and show brief success when API becomes reachable again
     if (isHealthy && !wasReachable) {
-      toast.success('🟢 Server connection restored', {
-        autoClose: 3000,
+      notify.dismiss('connection-status')
+      notify.success('Server connection restored', {
+        toastId: 'connection-restored',
+        autoClose: 2000,
       })
-      setHasShownOfflineToast(false)
     }
 
     return isHealthy
-  }, [isApiReachable, hasShownOfflineToast])
+  }, [isApiReachable])
 
   // Start/restart health check interval
   const startHealthCheckInterval = useCallback((interval: number) => {
@@ -209,12 +209,10 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     const handleOffline = () => {
       setIsOnline(false)
       setIsApiReachable(false)
-      if (!hasShownOfflineToast) {
-        toast.error('🔴 You are offline. Changes will sync when connection restores.', {
-          autoClose: 5000,
-        })
-        setHasShownOfflineToast(true)
-      }
+      notify.error('You are offline. Changes will sync when connection restores.', {
+        toastId: 'connection-status',
+        autoClose: false,
+      })
     }
 
     window.addEventListener('online', handleOnline)
@@ -224,7 +222,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       window.removeEventListener('online', handleOnline)
       window.removeEventListener('offline', handleOffline)
     }
-  }, [hasShownOfflineToast, performHealthCheck])
+  }, [performHealthCheck])
 
   // Show toast when SignalR state changes (only when in exercise)
   const setSignalRState = useCallback((state: SignalRState | null) => {
@@ -232,12 +230,15 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       // Only show toasts if state actually changed and we're in an exercise
       if (isInExercise && prevState !== state && prevState !== null) {
         if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
-          toast.success('🟢 Real-time connection restored', {
-            autoClose: 3000,
+          notify.dismiss('signalr-status')
+          notify.success('Real-time connection restored', {
+            toastId: 'signalr-restored',
+            autoClose: 2000,
           })
         } else if ((state === 'disconnected' || state === 'error') && prevState === 'connected') {
-          toast.warning('🟡 Real-time connection lost. Attempting to reconnect...', {
-            autoClose: 4000,
+          notify.warning('Real-time connection lost. Attempting to reconnect...', {
+            toastId: 'signalr-status',
+            autoClose: false,
           })
         }
       }

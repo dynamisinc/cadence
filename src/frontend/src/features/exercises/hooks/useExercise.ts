@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { exerciseService } from '../services/exerciseService'
 import { exercisesQueryKey } from './useExercises'
 import { setupProgressQueryKey } from './useSetupProgress'
@@ -86,7 +86,7 @@ export const useExercise = (id: string | undefined) => {
       }
       // Invalidate setup progress to reflect scheduling changes
       queryClient.invalidateQueries({ queryKey: setupProgressQueryKey(id!) })
-      toast.success('Exercise updated')
+      notify.success('Exercise updated')
     },
     onError: (err, _variables, context) => {
       // Rollback to previous state
@@ -98,7 +98,7 @@ export const useExercise = (id: string | undefined) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

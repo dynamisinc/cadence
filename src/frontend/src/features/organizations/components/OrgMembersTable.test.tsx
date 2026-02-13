@@ -11,6 +11,7 @@ import { render, screen, waitFor, within } from '@/test/testUtils'
 import userEvent from '@testing-library/user-event'
 import { OrgMembersTable } from './OrgMembersTable'
 import type { OrgMember } from '../types'
+import { formatDate } from '@/shared/utils/dateUtils'
 
 // Mock ConfirmDialog
 vi.mock('@/shared/components/ConfirmDialog', () => ({
@@ -158,10 +159,10 @@ describe('OrgMembersTable', () => {
         />,
       )
 
-      // Join dates should be formatted as locale date strings
-      const date1 = new Date('2024-01-01T00:00:00Z').toLocaleDateString()
-      const date2 = new Date('2024-01-02T00:00:00Z').toLocaleDateString()
-      const date3 = new Date('2024-01-03T00:00:00Z').toLocaleDateString()
+      // Join dates should be formatted using the shared formatDate utility
+      const date1 = formatDate('2024-01-01T00:00:00Z')
+      const date2 = formatDate('2024-01-02T00:00:00Z')
+      const date3 = formatDate('2024-01-03T00:00:00Z')
 
       expect(screen.getByText(date1)).toBeInTheDocument()
       expect(screen.getByText(date2)).toBeInTheDocument()

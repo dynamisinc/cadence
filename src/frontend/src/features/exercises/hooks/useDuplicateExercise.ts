@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { useNavigate } from 'react-router-dom'
 import { exerciseService } from '../services/exerciseService'
 import { exercisesQueryKey } from './useExercises'
@@ -39,7 +39,7 @@ export const useDuplicateExercise = (options?: {
         newExercise,
       )
 
-      toast.success(`Exercise duplicated: ${newExercise.name}`)
+      notify.success(`Exercise duplicated: ${newExercise.name}`)
 
       if (navigateOnSuccess) {
         navigate(`/exercises/${newExercise.id}`)
@@ -48,7 +48,7 @@ export const useDuplicateExercise = (options?: {
     onError: (err: Error) => {
       const message =
         err instanceof Error ? err.message : 'Failed to duplicate exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

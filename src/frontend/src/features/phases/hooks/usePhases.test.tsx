@@ -18,9 +18,9 @@ vi.mock('../services/phaseService', () => ({
   },
 }))
 
-// Mock react-toastify
-vi.mock('react-toastify', () => ({
-  toast: {
+// Mock notify
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     error: vi.fn(),
   },

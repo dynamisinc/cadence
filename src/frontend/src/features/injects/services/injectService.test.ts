@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { injectService } from './injectService'
 import { apiClient } from '../../../core/services/api'
 import { InjectType, InjectStatus, DeliveryMethod } from '../../../types'
-import type { InjectDto, CreateInjectRequest, SkipInjectRequest } from '../types'
+import type { InjectDto, InjectStatusHistoryDto, CreateInjectRequest, SkipInjectRequest } from '../types'
 
 // Mock the API client
 vi.mock('../../../core/services/api', () => ({
@@ -57,6 +57,23 @@ const mockInject: InjectDto = {
   locationName: null,
   locationType: null,
   track: null,
+  // Approval workflow fields
+  submittedByUserId: null,
+  submittedByName: null,
+  submittedAt: null,
+  approvedByUserId: null,
+  approvedByName: null,
+  approvedAt: null,
+  approverNotes: null,
+  rejectedByUserId: null,
+  rejectedByName: null,
+  rejectedAt: null,
+  rejectionReason: null,
+  revertedByUserId: null,
+  revertedByName: null,
+  revertedAt: null,
+  revertReason: null,
+  linkedCriticalTaskCount: 0,
 }
 
 describe('injectService', () => {
@@ -148,6 +165,43 @@ describe('injectService', () => {
       await injectService.deleteInject('exercise-1', '123')
 
       expect(apiClient.delete).toHaveBeenCalledWith('/exercises/exercise-1/injects/123')
+    })
+  })
+
+  describe('getInjectHistory', () => {
+    it('fetches status history for an inject', async () => {
+      const mockHistory: InjectStatusHistoryDto[] = [
+        {
+          id: 'hist-1',
+          injectId: '123',
+          fromStatus: 'Draft',
+          toStatus: 'Submitted',
+          changedByUserId: 'user-1',
+          changedByName: 'Jane Controller',
+          changedAt: '2024-01-01T10:00:00Z',
+          notes: null,
+        },
+        {
+          id: 'hist-2',
+          injectId: '123',
+          fromStatus: 'Submitted',
+          toStatus: 'Approved',
+          changedByUserId: 'user-2',
+          changedByName: 'John Director',
+          changedAt: '2024-01-01T11:00:00Z',
+          notes: 'Looks good',
+        },
+      ]
+      vi.mocked(apiClient.get).mockResolvedValue({ data: mockHistory })
+
+      const result = await injectService.getInjectHistory('exercise-1', '123')
+
+      expect(apiClient.get).toHaveBeenCalledWith(
+        '/exercises/exercise-1/injects/123/history',
+      )
+      expect(result).toEqual(mockHistory)
+      expect(result).toHaveLength(2)
+      expect(result[1].notes).toBe('Looks good')
     })
   })
 })

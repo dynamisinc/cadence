@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { objectiveService } from '../services/objectiveService'
 import { setupProgressQueryKey } from '../../exercises/hooks/useSetupProgress'
 import type {
@@ -56,12 +56,12 @@ export const useObjectives = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: setupProgressQueryKey(exerciseId),
       })
-      toast.success('Objective created')
+      notify.success('Objective created')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create objective'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -101,7 +101,7 @@ export const useObjectives = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: setupProgressQueryKey(exerciseId),
       })
-      toast.success('Objective updated')
+      notify.success('Objective updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousObjectives) {
@@ -109,7 +109,7 @@ export const useObjectives = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update objective'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -134,7 +134,7 @@ export const useObjectives = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: setupProgressQueryKey(exerciseId),
       })
-      toast.success('Objective deleted')
+      notify.success('Objective deleted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousObjectives) {
@@ -142,7 +142,7 @@ export const useObjectives = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete objective'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

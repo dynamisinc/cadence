@@ -6,6 +6,11 @@ namespace Cadence.Core.Features.Exercises.Models.DTOs;
 public record ExerciseParticipantDto
 {
     /// <summary>
+    /// Participant record ID (ExerciseParticipant.Id).
+    /// </summary>
+    public string ParticipantId { get; init; } = string.Empty;
+
+    /// <summary>
     /// User ID (ApplicationUser.Id string).
     /// </summary>
     public string UserId { get; init; } = string.Empty;
@@ -29,6 +34,21 @@ public record ExerciseParticipantDto
     /// User's HSEEP role in this specific exercise.
     /// </summary>
     public string ExerciseRole { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Effective role (same as ExerciseRole for participants).
+    /// </summary>
+    public string EffectiveRole { get; init; } = string.Empty;
+
+    /// <summary>
+    /// When this participant was added to the exercise.
+    /// </summary>
+    public string AddedAt { get; init; } = string.Empty;
+
+    /// <summary>
+    /// Who added this participant (nullable).
+    /// </summary>
+    public string? AddedBy { get; init; }
 }
 
 /// <summary>

@@ -8,7 +8,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { useQueryClient } from '@tanstack/react-query'
 import { useConnectivity } from '../contexts'
 import {
@@ -99,17 +99,19 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
         setConflicts(latestConflicts)
 
         if (result.succeeded === 0) {
-          toast.error(`Sync failed. ${result.failed} action(s) could not be synced.`, {
+          notify.error(`Sync failed. ${result.failed} action(s) could not be synced.`, {
+            toastId: 'sync-result',
             autoClose: 5000,
           })
         } else {
-          toast.warning(
+          notify.warning(
             `Partial sync: ${result.succeeded} of ${result.totalActions} action(s) synced. ${result.failed} failed.`,
-            { autoClose: 5000 },
+            { toastId: 'sync-result', autoClose: 5000 },
           )
         }
       } else if (result.succeeded > 0) {
-        toast.success(`All ${result.succeeded} change(s) synced successfully!`, {
+        notify.success(`All ${result.succeeded} change(s) synced successfully!`, {
+          toastId: 'sync-result',
           autoClose: 3000,
         })
       }
@@ -126,7 +128,7 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
       return result
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-      toast.error(`Sync error: ${errorMessage}`, { autoClose: 5000 })
+      notify.error(`Sync error: ${errorMessage}`, { toastId: 'sync-error', autoClose: 5000 })
       setSyncStatus('failed')
       return {
         totalActions: 0,
@@ -161,7 +163,7 @@ export const useOfflineSync = (options: UseOfflineSyncOptions = {}): UseOfflineS
       syncTimeoutRef.current = setTimeout(async () => {
         const count = await getPendingActionCount(exerciseId)
         if (count > 0) {
-          toast.info(`Syncing ${count} pending change(s)...`, { autoClose: 2000 })
+          notify.info(`Syncing ${count} pending change(s)...`, { toastId: 'sync-progress', autoClose: 2000 })
           await sync()
         }
         wasOfflineRef.current = false

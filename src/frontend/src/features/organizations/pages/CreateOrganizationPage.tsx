@@ -25,7 +25,7 @@ import { faCheck, faTimes, faArrowLeft, faSave } from '@fortawesome/free-solid-s
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
 import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { debounce } from 'lodash'
 
 /**
@@ -89,12 +89,12 @@ export const CreateOrganizationPage: FC = () => {
     e.preventDefault()
 
     if (!name.trim() || !slug.trim() || !firstAdminEmail.trim()) {
-      toast.error('Please fill in all required fields')
+      notify.error('Please fill in all required fields')
       return
     }
 
     if (slugCheck && !slugCheck.available) {
-      toast.error('Please choose a different slug')
+      notify.error('Please choose a different slug')
       return
     }
 
@@ -106,12 +106,12 @@ export const CreateOrganizationPage: FC = () => {
         contactEmail: contactEmail.trim() || undefined,
         firstAdminEmail: firstAdminEmail.trim(),
       })
-      toast.success('Organization created successfully')
+      notify.success('Organization created successfully')
       navigate('/admin/organizations')
     } catch (error: unknown) {
       console.error('[CreateOrganizationPage] Failed to create:', error)
       const axiosError = error as { response?: { data?: { message?: string } } }
-      toast.error(axiosError.response?.data?.message || 'Failed to create organization')
+      notify.error(axiosError.response?.data?.message || 'Failed to create organization')
     }
   }
 

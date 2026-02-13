@@ -46,19 +46,19 @@ public record MselSummaryDto
     public int TotalInjects { get; init; }
 
     /// <summary>
-    /// Number of injects with Pending status.
+    /// Number of injects with Draft status.
     /// </summary>
-    public int PendingCount { get; init; }
+    public int DraftCount { get; init; }
 
     /// <summary>
-    /// Number of injects with Fired status.
+    /// Number of injects with Released status.
     /// </summary>
-    public int FiredCount { get; init; }
+    public int ReleasedCount { get; init; }
 
     /// <summary>
-    /// Number of injects with Skipped status.
+    /// Number of injects with Deferred status.
     /// </summary>
-    public int SkippedCount { get; init; }
+    public int DeferredCount { get; init; }
 
     /// <summary>
     /// Percentage of injects that have been fired or skipped (0-100).

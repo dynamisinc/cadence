@@ -30,7 +30,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldHalved, faSave, faUndo, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { faHome } from '@fortawesome/free-solid-svg-icons'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import {
   ApprovalRoles,
@@ -188,11 +188,11 @@ export const OrganizationApprovalPage: FC = () => {
           selfApprovalPolicy,
         })
       }
-      toast.success('Approval settings saved')
+      notify.success('Approval settings saved')
     } catch (err) {
       console.error('[OrganizationApprovalPage] Failed to save:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to save settings'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 

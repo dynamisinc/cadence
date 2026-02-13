@@ -21,7 +21,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
-import { format, parseISO } from 'date-fns'
+import { formatTime } from '@/shared/utils/dateUtils'
 
 import {
   PerformanceRating,
@@ -125,9 +125,7 @@ const EntryCard = ({
   entry: EegEntryDto
   onClick: () => void
 }) => {
-  const parseAsUtc = (dateStr: string) =>
-    parseISO(dateStr.endsWith('Z') ? dateStr : `${dateStr}Z`)
-  const timeStr = format(parseAsUtc(entry.observedAt), 'h:mm a')
+  const timeStr = formatTime(entry.observedAt)
 
   return (
     <Paper

@@ -173,13 +173,22 @@ public class InjectService : IInjectService
             }
         }
 
-        // Update sequence values based on the new order
+        // Two-phase update to avoid unique constraint violation on (MselId, InjectNumber).
+        // Phase 1: Set InjectNumber to negative temporary values to clear the unique index.
+        for (int i = 0; i < injectIdsList.Count; i++)
+        {
+            var inject = injectDict[injectIdsList[i]];
+            inject.InjectNumber = -(i + 1);
+        }
+        await _context.SaveChangesAsync(cancellationToken);
+
+        // Phase 2: Set the real sequence and inject number values.
         for (int i = 0; i < injectIdsList.Count; i++)
         {
             var inject = injectDict[injectIdsList[i]];
             inject.Sequence = i + 1;
+            inject.InjectNumber = i + 1;
         }
-
         await _context.SaveChangesAsync(cancellationToken);
 
         // Broadcast SignalR notification for inject reorder
@@ -436,6 +445,10 @@ public class InjectService : IInjectService
         var injects = await _context.Injects
             .Include(i => i.Phase)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
             .ToListAsync(cancellationToken);
 
@@ -574,6 +587,10 @@ public class InjectService : IInjectService
         var injects = await _context.Injects
             .Include(i => i.Phase)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
             .ToListAsync(cancellationToken);
 
@@ -714,6 +731,10 @@ public class InjectService : IInjectService
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == injectId && i.MselId == exercise.ActiveMselId, cancellationToken)
             ?? throw new KeyNotFoundException($"Inject {injectId} not found in exercise's active MSEL.");
 

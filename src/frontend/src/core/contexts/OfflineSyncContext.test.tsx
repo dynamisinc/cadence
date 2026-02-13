@@ -15,9 +15,9 @@ import {
 } from './OfflineSyncContext'
 import { clearAllCache } from '../offline/db'
 
-// Mock react-toastify
-vi.mock('react-toastify', () => ({
-  toast: {
+// Mock notify wrapper
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     warning: vi.fn(),
     error: vi.fn(),
@@ -277,7 +277,7 @@ describe('OfflineSyncContext', () => {
 
   describe('toast notifications', () => {
     it('shows success toast when all actions succeed', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       const user = userEvent.setup()
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 3,
@@ -291,7 +291,7 @@ describe('OfflineSyncContext', () => {
       await user.click(screen.getByTestId('sync-btn'))
 
       await waitFor(() => {
-        expect(toast.success).toHaveBeenCalledWith(
+        expect(notify.success).toHaveBeenCalledWith(
           'All 3 change(s) synced successfully!',
           expect.any(Object),
         )
@@ -299,7 +299,7 @@ describe('OfflineSyncContext', () => {
     })
 
     it('shows warning toast for partial sync', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       const user = userEvent.setup()
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 3,
@@ -313,12 +313,12 @@ describe('OfflineSyncContext', () => {
       await user.click(screen.getByTestId('sync-btn'))
 
       await waitFor(() => {
-        expect(toast.warning).toHaveBeenCalled()
+        expect(notify.warning).toHaveBeenCalled()
       })
     })
 
     it('shows error toast when all actions fail', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       const user = userEvent.setup()
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 2,
@@ -332,7 +332,7 @@ describe('OfflineSyncContext', () => {
       await user.click(screen.getByTestId('sync-btn'))
 
       await waitFor(() => {
-        expect(toast.error).toHaveBeenCalled()
+        expect(notify.error).toHaveBeenCalled()
       })
     })
   })

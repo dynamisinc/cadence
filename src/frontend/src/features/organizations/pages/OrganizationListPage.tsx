@@ -35,6 +35,7 @@ import { faPlus, faSearch, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
 import { useOrganizations } from '../hooks/useOrganizations'
+import { formatDate } from '@/shared/utils/dateUtils'
 import { StatusChip } from '@/shared/components/StatusChip'
 import type { OrgStatus } from '../types'
 
@@ -68,12 +69,12 @@ export const OrganizationListPage: FC = () => {
     navigate(`/admin/organizations/${id}`)
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    })
+  const formatDateSafe = (dateString: string) => {
+    try {
+      return formatDate(dateString)
+    } catch {
+      return dateString
+    }
   }
 
   if (error) {
@@ -250,7 +251,7 @@ export const OrganizationListPage: FC = () => {
                   </TableCell>
                   <TableCell align="right">{org.userCount}</TableCell>
                   <TableCell align="right">{org.exerciseCount}</TableCell>
-                  <TableCell>{formatDate(org.createdAt)}</TableCell>
+                  <TableCell>{formatDateSafe(org.createdAt)}</TableCell>
                 </TableRow>
               ))
             )}

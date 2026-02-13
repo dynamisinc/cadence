@@ -30,6 +30,7 @@ import {
   faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { formatDate } from '@/shared/utils/dateUtils'
 import { getPendingActions, type PendingAction, type PendingActionType } from '../offline/db'
 import { useOfflineSyncContext } from '../contexts/OfflineSyncContext'
 
@@ -131,7 +132,7 @@ const formatTimestamp = (date: Date): string => {
   if (minutes < 1) return 'Just now'
   if (minutes < 60) return `${minutes}m ago`
   if (hours < 24) return `${hours}h ago`
-  return new Date(date).toLocaleDateString()
+  return formatDate(new Date(date).toISOString())
 }
 
 export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({

@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { exerciseService } from '../services/exerciseService'
 import type {
   ApprovalSettingsDto,
@@ -68,7 +68,7 @@ export const useApprovalSettings = (exerciseId: string) => {
     },
     onSuccess: updatedSettings => {
       queryClient.setQueryData(queryKey, updatedSettings)
-      toast.success('Approval settings updated')
+      notify.success('Approval settings updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousSettings) {
@@ -76,7 +76,7 @@ export const useApprovalSettings = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update approval settings'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

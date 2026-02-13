@@ -30,6 +30,7 @@ import { useReleaseNotes } from '../hooks/useReleaseNotes'
 import { useApiVersion } from '../hooks/useApiVersion'
 import { useBreadcrumbs } from '@/core/contexts'
 import CobraStyles from '@/theme/CobraStyles'
+import { formatDate } from '@/shared/utils/dateUtils'
 import type { ReleaseNote } from '../types'
 
 const INITIAL_RELEASES_SHOWN = 5
@@ -294,11 +295,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
 
 function formatBuildDate(isoDate: string): string {
   try {
-    return new Date(isoDate).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    return formatDate(isoDate)
   } catch {
     return isoDate
   }
@@ -306,11 +303,7 @@ function formatBuildDate(isoDate: string): string {
 
 function formatReleaseDate(date: string): string {
   try {
-    return new Date(date).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-    })
+    return formatDate(date)
   } catch {
     return date
   }

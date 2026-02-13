@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { exerciseService } from '../services/exerciseService'
 import { ExerciseStatus } from '../../../types'
 import type {
@@ -102,7 +102,7 @@ export const useExercises = () => {
         const withoutOptimistic = old.filter(e => !e.id.startsWith('temp-'))
         return [newExercise, ...withoutOptimistic]
       })
-      toast.success('Exercise created')
+      notify.success('Exercise created')
     },
     onError: (err, _variables, context) => {
       // Rollback to previous state
@@ -111,7 +111,7 @@ export const useExercises = () => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to create exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -160,7 +160,7 @@ export const useExercises = () => {
         ),
       )
       queryClient.setQueryData(['exercise', updatedExercise.id], updatedExercise)
-      toast.success('Exercise updated')
+      notify.success('Exercise updated')
     },
     onError: (err, { id }, context) => {
       // Rollback to previous state
@@ -172,7 +172,7 @@ export const useExercises = () => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

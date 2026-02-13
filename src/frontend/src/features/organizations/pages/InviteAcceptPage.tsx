@@ -44,7 +44,8 @@ import { useOrganization } from '@/contexts/OrganizationContext'
 import { organizationService } from '../services/organizationService'
 import type { Invitation } from '../types'
 import { getOrgRoleLabel } from '../types'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
+import { formatDate } from '@/shared/utils/dateUtils'
 
 type PageState =
   | 'loading'
@@ -132,7 +133,7 @@ export const InviteAcceptPage: FC = () => {
       await organizationService.acceptInvitation(code)
       console.log('[InviteAcceptPage] Invitation accepted successfully')
       setState('accepted')
-      toast.success(`Welcome! You've joined ${invitation?.organizationName || 'the organization'}`)
+      notify.success(`Welcome! You've joined ${invitation?.organizationName || 'the organization'}`)
 
       // Refresh token so JWT picks up the new org context.
       // OrganizationContext will auto-refresh memberships when the new token propagates.
@@ -158,7 +159,7 @@ export const InviteAcceptPage: FC = () => {
         setState('error')
         const errorMsg = axiosError.response?.data?.message || 'Failed to accept invitation'
         setErrorMessage(errorMsg)
-        toast.error(errorMsg)
+        notify.error(errorMsg)
       }
     }
   }
@@ -426,7 +427,7 @@ export const InviteAcceptPage: FC = () => {
                     </Typography>
                     <Typography variant="caption" color="text.secondary">
                       {ex.exerciseRole} &middot; {ex.exerciseType}
-                      {ex.scheduledDate && ` \u00B7 ${new Date(ex.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                      {ex.scheduledDate && ` \u00B7 ${formatDate(ex.scheduledDate)}`}
                     </Typography>
                   </Box>
                 ))}
@@ -540,7 +541,7 @@ export const InviteAcceptPage: FC = () => {
                   </Typography>
                   <Typography variant="caption" color="text.secondary">
                     {ex.exerciseRole} &middot; {ex.exerciseType}
-                    {ex.scheduledDate && ` \u00B7 ${new Date(ex.scheduledDate).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}`}
+                    {ex.scheduledDate && ` \u00B7 ${formatDate(ex.scheduledDate)}`}
                   </Typography>
                 </Box>
               ))}

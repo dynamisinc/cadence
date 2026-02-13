@@ -90,11 +90,19 @@ jobs:
         with:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
+      - name: Get version from manifest
+        id: version
+        run: |
+          VERSION=$(jq -r '."src/Cadence.Core"' .release-please-manifest.json)
+          SHA=$(git rev-parse --short HEAD)
+          echo "full=${VERSION}+${SHA}" >> $GITHUB_OUTPUT
+          echo "API version: ${VERSION}+${SHA}"
+
       - name: Restore dependencies
         run: dotnet restore ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj
 
       - name: Build
-        run: dotnet build ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --no-restore
+        run: dotnet build ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --no-restore /p:InformationalVersion=${{ steps.version.outputs.full }}
 
       - name: Run Core tests
         run: dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj --configuration Release --verbosity normal
@@ -103,7 +111,7 @@ jobs:
         run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --configuration Release --verbosity normal
 
       - name: Publish
-        run: dotnet publish ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --output ./publish/webapi
+        run: dotnet publish ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --output ./publish/webapi /p:InformationalVersion=${{ steps.version.outputs.full }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

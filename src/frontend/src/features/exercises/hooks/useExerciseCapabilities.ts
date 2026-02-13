@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { exerciseCapabilityService } from '../services/exerciseCapabilityService'
 
 /** Query key factory for exercise capabilities */
@@ -54,11 +54,11 @@ export const useSetExerciseCapabilities = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: exerciseCapabilityKeys.summary(exerciseId),
       })
-      toast.success('Target capabilities updated')
+      notify.success('Target capabilities updated')
     },
     onError: (err: Error) => {
       const message = err.message || 'Failed to update target capabilities'
-      toast.error(message)
+      notify.error(message)
     },
   })
 }

@@ -11,9 +11,9 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { useOfflineSync } from './useOfflineSync'
 import { clearAllCache } from './db'
 
-// Mock react-toastify
-vi.mock('react-toastify', () => ({
-  toast: {
+// Mock notify wrapper
+vi.mock('@/shared/utils/notify', () => ({
+  notify: {
     success: vi.fn(),
     warning: vi.fn(),
     error: vi.fn(),
@@ -223,7 +223,7 @@ describe('useOfflineSync', () => {
 
   describe('toast notifications', () => {
     it('shows success toast when all actions succeed', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 3,
         succeeded: 3,
@@ -237,14 +237,14 @@ describe('useOfflineSync', () => {
         await result.current.sync()
       })
 
-      expect(toast.success).toHaveBeenCalledWith(
+      expect(notify.success).toHaveBeenCalledWith(
         'All 3 change(s) synced successfully!',
         expect.any(Object),
       )
     })
 
     it('shows warning toast for partial sync', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 3,
         succeeded: 2,
@@ -258,14 +258,14 @@ describe('useOfflineSync', () => {
         await result.current.sync()
       })
 
-      expect(toast.warning).toHaveBeenCalledWith(
+      expect(notify.warning).toHaveBeenCalledWith(
         'Partial sync: 2 of 3 action(s) synced. 1 failed.',
         expect.any(Object),
       )
     })
 
     it('shows error toast when all actions fail', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 2,
         succeeded: 0,
@@ -279,14 +279,14 @@ describe('useOfflineSync', () => {
         await result.current.sync()
       })
 
-      expect(toast.error).toHaveBeenCalledWith(
+      expect(notify.error).toHaveBeenCalledWith(
         'Sync failed. 2 action(s) could not be synced.',
         expect.any(Object),
       )
     })
 
     it('shows error toast on sync exception', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       mockSyncPendingActions.mockRejectedValue(new Error('Network error'))
 
       const { result } = renderHook(() => useOfflineSync(), { wrapper })
@@ -295,14 +295,14 @@ describe('useOfflineSync', () => {
         await result.current.sync()
       })
 
-      expect(toast.error).toHaveBeenCalledWith(
+      expect(notify.error).toHaveBeenCalledWith(
         'Sync error: Network error',
         expect.any(Object),
       )
     })
 
     it('does not show toast when no actions to sync', async () => {
-      const { toast } = await import('react-toastify')
+      const { notify } = await import('@/shared/utils/notify')
       mockSyncPendingActions.mockResolvedValue({
         totalActions: 0,
         succeeded: 0,
@@ -316,9 +316,9 @@ describe('useOfflineSync', () => {
         await result.current.sync()
       })
 
-      expect(toast.success).not.toHaveBeenCalled()
-      expect(toast.warning).not.toHaveBeenCalled()
-      expect(toast.error).not.toHaveBeenCalled()
+      expect(notify.success).not.toHaveBeenCalled()
+      expect(notify.warning).not.toHaveBeenCalled()
+      expect(notify.error).not.toHaveBeenCalled()
     })
   })
 

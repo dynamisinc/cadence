@@ -48,6 +48,7 @@ import { InjectStatus, DeliveryMethod } from '../../../types'
 import type { InjectDto } from '../types'
 import { formatScheduledTime, formatScenarioTime, formatOffset } from '../types'
 import type { ObjectiveSummaryDto } from '../../objectives/types'
+import { formatDateTime } from '../../../shared/utils/dateUtils'
 
 interface InjectDetailDrawerProps {
   /** The inject to display, or null to close drawer */
@@ -175,13 +176,7 @@ export const InjectDetailDrawer = ({
   // Format fired/skipped time for display
   const formatActionTime = (isoString: string | null): string => {
     if (!isoString) return ''
-    const date = new Date(isoString)
-    return date.toLocaleString([], {
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    })
+    return formatDateTime(isoString)
   }
 
   return (
@@ -327,6 +322,14 @@ export const InjectDetailDrawer = ({
                       Phase:
                     </Typography>
                     <Chip label={inject.phaseName} size="small" />
+                  </Stack>
+                )}
+                {inject.triggerType && inject.triggerType !== 'Manual' && (
+                  <Stack direction="row" spacing={2} alignItems="center">
+                    <Typography variant="body2" color="text.secondary" sx={{ minWidth: 80 }}>
+                      Trigger:
+                    </Typography>
+                    <Chip label={inject.triggerType} size="small" variant="outlined" />
                   </Stack>
                 )}
               </Stack>
@@ -573,6 +576,21 @@ export const InjectDetailDrawer = ({
                       )
                     })}
                   </Stack>
+                </Box>
+              </>
+            )}
+
+            {/* Linked Critical Tasks */}
+            {inject.linkedCriticalTaskCount > 0 && (
+              <>
+                <Divider />
+                <Box>
+                  <Typography variant="subtitle2" color="text.secondary" gutterBottom>
+                    Critical Tasks
+                  </Typography>
+                  <Typography variant="body2">
+                    {inject.linkedCriticalTaskCount} linked task{inject.linkedCriticalTaskCount !== 1 ? 's' : ''}
+                  </Typography>
                 </Box>
               </>
             )}

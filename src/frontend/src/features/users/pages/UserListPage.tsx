@@ -56,6 +56,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraIconButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { formatDate } from '../../../shared/utils/dateUtils'
 import { userService } from '../services/userService'
 import type { UserDto, UserMembershipDto } from '../types'
 import { EditUserDialog } from '../components/EditUserDialog'
@@ -551,7 +552,7 @@ export const UserListPage: FC = () => {
                     <TableCell>
                       <Typography variant="caption" color="text.secondary">
                         {user.lastLoginAt
-                          ? new Date(user.lastLoginAt).toLocaleDateString()
+                          ? formatDate(user.lastLoginAt)
                           : 'Never'}
                       </Typography>
                     </TableCell>
@@ -663,7 +664,7 @@ export const UserListPage: FC = () => {
                                     </TableCell>
                                     <TableCell>
                                       <Typography variant="caption" color="text.secondary">
-                                        {new Date(membership.joinedAt).toLocaleDateString()}
+                                        {formatDate(membership.joinedAt)}
                                       </Typography>
                                     </TableCell>
                                     <TableCell align="right">

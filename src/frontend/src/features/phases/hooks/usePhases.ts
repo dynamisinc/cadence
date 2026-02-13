@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { phaseService } from '../services/phaseService'
 import type {
   PhaseDto,
@@ -47,12 +47,12 @@ export const usePhases = (exerciseId: string) => {
         ...old,
         newPhase,
       ])
-      toast.success('Phase created')
+      notify.success('Phase created')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create phase'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -85,7 +85,7 @@ export const usePhases = (exerciseId: string) => {
           phase.id === updatedPhase.id ? updatedPhase : phase,
         ),
       )
-      toast.success('Phase updated')
+      notify.success('Phase updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousPhases) {
@@ -93,7 +93,7 @@ export const usePhases = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update phase'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -115,7 +115,7 @@ export const usePhases = (exerciseId: string) => {
       queryClient.invalidateQueries({
         queryKey: ['exercises', exerciseId, 'injects'],
       })
-      toast.success('Phase deleted')
+      notify.success('Phase deleted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousPhases) {
@@ -123,7 +123,7 @@ export const usePhases = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete phase'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -152,7 +152,7 @@ export const usePhases = (exerciseId: string) => {
     },
     onSuccess: updatedPhases => {
       queryClient.setQueryData<PhaseDto[]>(queryKey, updatedPhases)
-      toast.success('Phases reordered')
+      notify.success('Phases reordered')
     },
     onError: (err, _variables, context) => {
       if (context?.previousPhases) {
@@ -160,7 +160,7 @@ export const usePhases = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reorder phases'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { exerciseService } from '../services/exerciseService'
 import { exercisesQueryKey } from './useExercises'
 import type { ExerciseDto } from '../types'
@@ -52,11 +52,11 @@ export const useExerciseStatus = (exerciseId: string) => {
     mutationFn: () => exerciseService.activateExercise(exerciseId),
     onSuccess: updatedExercise => {
       updateExerciseInCache(updatedExercise)
-      toast.success('Exercise activated')
+      notify.success('Exercise activated')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to activate exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -65,11 +65,11 @@ export const useExerciseStatus = (exerciseId: string) => {
     mutationFn: () => exerciseService.pauseExercise(exerciseId),
     onSuccess: updatedExercise => {
       updateExerciseInCache(updatedExercise)
-      toast.success('Exercise paused')
+      notify.success('Exercise paused')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to pause exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -78,11 +78,11 @@ export const useExerciseStatus = (exerciseId: string) => {
     mutationFn: () => exerciseService.resumeExercise(exerciseId),
     onSuccess: updatedExercise => {
       updateExerciseInCache(updatedExercise)
-      toast.success('Exercise resumed')
+      notify.success('Exercise resumed')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to resume exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -91,11 +91,11 @@ export const useExerciseStatus = (exerciseId: string) => {
     mutationFn: () => exerciseService.completeExercise(exerciseId),
     onSuccess: updatedExercise => {
       updateExerciseInCache(updatedExercise)
-      toast.success('Exercise completed')
+      notify.success('Exercise completed')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to complete exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -104,11 +104,11 @@ export const useExerciseStatus = (exerciseId: string) => {
     mutationFn: () => exerciseService.archiveExercise(exerciseId),
     onSuccess: updatedExercise => {
       updateExerciseInCache(updatedExercise)
-      toast.success('Exercise archived')
+      notify.success('Exercise archived')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to archive exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -117,11 +117,11 @@ export const useExerciseStatus = (exerciseId: string) => {
     mutationFn: () => exerciseService.unarchiveExercise(exerciseId),
     onSuccess: updatedExercise => {
       updateExerciseInCache(updatedExercise)
-      toast.success('Exercise unarchived')
+      notify.success('Exercise unarchived')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to unarchive exercise'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -137,11 +137,11 @@ export const useExerciseStatus = (exerciseId: string) => {
       queryClient.invalidateQueries({ queryKey: ['observations', 'exercise', exerciseId] })
       // Also invalidate MSEL summary since inject counts changed
       queryClient.invalidateQueries({ queryKey: ['msel-summary', exerciseId] })
-      toast.success('Exercise reverted to draft')
+      notify.success('Exercise reverted to draft')
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to revert exercise to draft'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

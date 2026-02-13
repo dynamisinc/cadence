@@ -9,7 +9,7 @@
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, useRef } from 'react'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { photoService } from '../services/photoService'
 import { useConnectivity } from '../../../core/contexts'
 import { addPendingAction } from '../../../core/offline'
@@ -126,10 +126,10 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     mutationFn: (formData: FormData) => photoService.uploadPhoto(exerciseId, formData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
-      toast.success('Photo uploaded')
+      notify.success('Photo uploaded')
     },
     onError: err => {
-      toast.error(err instanceof Error ? err.message : 'Failed to upload photo')
+      notify.error(err instanceof Error ? err.message : 'Failed to upload photo')
     },
   })
 
@@ -140,10 +140,10 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       // Invalidate both photos and observations queries
       queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
       queryClient.invalidateQueries({ queryKey: ['observations', 'exercise', exerciseId] })
-      toast.success('Quick photo captured')
+      notify.success('Quick photo captured')
     },
     onError: err => {
-      toast.error(err instanceof Error ? err.message : 'Failed to save quick photo')
+      notify.error(err instanceof Error ? err.message : 'Failed to save quick photo')
     },
   })
 
@@ -175,7 +175,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       return { previousData }
     },
     onSuccess: () => {
-      toast.success('Photo deleted')
+      notify.success('Photo deleted')
     },
     onError: (err, _deletedId, context) => {
       // Rollback to previous state
@@ -187,7 +187,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete photo'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -232,7 +232,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     onSuccess: () => {
       // Invalidate to refetch fresh data (e.g. after annotation save)
       queryClient.invalidateQueries({ queryKey: photosQueryKey(exerciseId) })
-      toast.success('Photo updated')
+      notify.success('Photo updated')
     },
     onError: (err, _variables, context) => {
       // Rollback to previous state
@@ -244,7 +244,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update photo'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -303,7 +303,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     })
 
     incrementPendingCount()
-    toast.info('Photo saved offline. Will sync when connection restores.')
+    notify.info('Photo saved offline. Will sync when connection restores.')
 
     // Return optimistic photo with object URL for display
     const blobUrl = URL.createObjectURL(photoBlob)
@@ -387,7 +387,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     })
 
     incrementPendingCount()
-    toast.info('Quick photo saved offline. Will sync when connection restores.')
+    notify.info('Quick photo saved offline. Will sync when connection restores.')
 
     // Return optimistic response with object URL for display
     const blobUrl = URL.createObjectURL(photoBlob)
@@ -453,7 +453,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     )
 
     incrementPendingCount()
-    toast.info('Deletion queued. Will sync when connection restores.')
+    notify.info('Deletion queued. Will sync when connection restores.')
   }
 
   /**
@@ -512,7 +512,7 @@ export const usePhotos = (exerciseId: string, query?: PhotoListQuery) => {
     )
 
     incrementPendingCount()
-    toast.info('Changes saved offline. Will sync when connection restores.')
+    notify.info('Changes saved offline. Will sync when connection restores.')
 
     return optimisticPhoto
   }

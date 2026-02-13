@@ -446,3 +446,21 @@ export const APPROVAL_FIELD_LIMITS = {
   rejectionReason: { min: 10, max: 1000 },
   revertReason: { min: 10, max: 1000 },
 }
+
+// =============================================================================
+// Status History Types
+// =============================================================================
+
+/**
+ * Inject status change history entry (audit trail)
+ */
+export interface InjectStatusHistoryDto {
+  id: string
+  injectId: string
+  fromStatus: string
+  toStatus: string
+  changedByUserId: string
+  changedByName: string | null
+  changedAt: string // DateTime as ISO string
+  notes: string | null
+}

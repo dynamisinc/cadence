@@ -136,6 +136,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
     public DbSet<BulkImportRecord> BulkImportRecords => Set<BulkImportRecord>();
     public DbSet<BulkImportRowResult> BulkImportRowResults => Set<BulkImportRowResult>();
 
+    // Autocomplete suggestion management
+    public DbSet<OrganizationSuggestion> OrganizationSuggestions => Set<OrganizationSuggestion>();
+
     // =========================================================================
     // Model Configuration
     // =========================================================================
@@ -203,6 +206,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
         ConfigureOrganizationMembership(modelBuilder);
         ConfigureOrganizationInvite(modelBuilder);
         ConfigureAgency(modelBuilder);
+        ConfigureOrganizationSuggestion(modelBuilder);
         ConfigureApplicationUser(modelBuilder);
         ConfigureRefreshToken(modelBuilder);
         ConfigurePasswordResetToken(modelBuilder);
@@ -424,6 +428,27 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Relationship
             entity.HasOne(e => e.Organization)
                 .WithMany(o => o.Agencies)
+                .HasForeignKey(e => e.OrganizationId)
+                .OnDelete(DeleteBehavior.Cascade);
+        });
+    }
+
+    private static void ConfigureOrganizationSuggestion(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<OrganizationSuggestion>(entity =>
+        {
+            entity.Property(e => e.FieldName).HasMaxLength(50).IsRequired();
+            entity.Property(e => e.Value).HasMaxLength(500).IsRequired();
+
+            // Unique constraint: one value per field per organization
+            entity.HasIndex(e => new { e.OrganizationId, e.FieldName, e.Value }).IsUnique();
+
+            // Index for common query: get active suggestions for a field
+            entity.HasIndex(e => new { e.OrganizationId, e.FieldName, e.IsActive, e.SortOrder });
+
+            // Relationship
+            entity.HasOne(e => e.Organization)
+                .WithMany()
                 .HasForeignKey(e => e.OrganizationId)
                 .OnDelete(DeleteBehavior.Cascade);
         });

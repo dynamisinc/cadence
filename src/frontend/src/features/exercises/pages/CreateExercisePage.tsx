@@ -19,7 +19,7 @@ import { exerciseCapabilityService } from '../services/exerciseCapabilityService
 import CobraStyles from '../../../theme/CobraStyles'
 import { useUnsavedChangesWarning } from '../../../shared/hooks'
 import type { CreateExerciseFormValues, CreateExerciseRequest, ExerciseDto } from '../types'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { ImportWizard } from '../../excel-import/components'
 
@@ -82,7 +82,7 @@ export const CreateExercisePage = () => {
         )
       }
 
-      toast.success('Exercise created')
+      notify.success('Exercise created')
       // Clear dirty state since exercise was saved successfully
       setIsDirty(false)
       // Show post-create dialog offering MSEL import
@@ -91,7 +91,7 @@ export const CreateExercisePage = () => {
     } catch (err) {
       const message =
         err instanceof Error ? err.message : 'Failed to create exercise'
-      toast.error(message)
+      notify.error(message)
     } finally {
       setIsSubmitting(false)
     }
@@ -126,7 +126,7 @@ export const CreateExercisePage = () => {
         Create Exercise
       </Typography>
 
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 2 }}>
         <ExerciseForm
           onSubmit={handleSubmit}
           onCancel={handleCancel}

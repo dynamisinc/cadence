@@ -146,14 +146,18 @@ public class InjectsController : ControllerBase
                 i.LocationType,
                 i.Track,
                 i.SubmittedByUserId,
+                SubmittedByName = i.SubmittedByUser != null ? i.SubmittedByUser.DisplayName : null,
                 i.SubmittedAt,
                 i.ApprovedByUserId,
+                ApprovedByName = i.ApprovedByUser != null ? i.ApprovedByUser.DisplayName : null,
                 i.ApprovedAt,
                 i.ApproverNotes,
                 i.RejectedByUserId,
+                RejectedByName = i.RejectedByUser != null ? i.RejectedByUser.DisplayName : null,
                 i.RejectedAt,
                 i.RejectionReason,
                 i.RevertedByUserId,
+                RevertedByName = i.RevertedByUser != null ? i.RevertedByUser.DisplayName : null,
                 i.RevertedAt,
                 i.RevertReason,
                 i.ModifiedBy
@@ -226,14 +230,18 @@ public class InjectsController : ControllerBase
             i.LocationType,
             i.Track,
             i.SubmittedByUserId,
+            i.SubmittedByName,
             i.SubmittedAt,
             i.ApprovedByUserId,
+            i.ApprovedByName,
             i.ApprovedAt,
             i.ApproverNotes,
             i.RejectedByUserId,
+            i.RejectedByName,
             i.RejectedAt,
             i.RejectionReason,
             i.RevertedByUserId,
+            i.RevertedByName,
             i.RevertedAt,
             i.RevertReason,
             i.ModifiedBy,
@@ -262,6 +270,11 @@ public class InjectsController : ControllerBase
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
             .Include(i => i.LinkedCriticalTasks)
+            .Include(i => i.DeliveryMethodLookup)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -270,6 +283,47 @@ public class InjectsController : ControllerBase
         }
 
         return Ok(inject.ToDto());
+    }
+
+    /// <summary>
+    /// Get status change history for an inject (audit trail).
+    /// </summary>
+    [HttpGet("{id:guid}/history")]
+    [AuthorizeExerciseAccess]
+    public async Task<ActionResult<IEnumerable<InjectStatusHistoryDto>>> GetInjectHistory(
+        Guid exerciseId, Guid id)
+    {
+        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        if (exercise == null)
+        {
+            return NotFound(new { message = "Exercise not found" });
+        }
+
+        // Verify inject belongs to this exercise
+        var injectExists = await _context.Injects
+            .AnyAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
+        if (!injectExists)
+        {
+            return NotFound(new { message = "Inject not found" });
+        }
+
+        var history = await _context.InjectStatusHistories
+            .Include(h => h.ChangedByUser)
+            .Where(h => h.InjectId == id)
+            .OrderByDescending(h => h.ChangedAt)
+            .Select(h => new InjectStatusHistoryDto(
+                h.Id,
+                h.InjectId,
+                h.FromStatus,
+                h.ToStatus,
+                h.ChangedByUserId,
+                h.ChangedByUser != null ? h.ChangedByUser.DisplayName : null,
+                h.ChangedAt,
+                h.Notes
+            ))
+            .ToListAsync();
+
+        return Ok(history);
     }
 
     /// <summary>
@@ -385,6 +439,10 @@ public class InjectsController : ControllerBase
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -532,6 +590,10 @@ public class InjectsController : ControllerBase
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -605,6 +667,10 @@ public class InjectsController : ControllerBase
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)
@@ -670,6 +736,10 @@ public class InjectsController : ControllerBase
             .Include(i => i.FiredByUser)
             .Include(i => i.SkippedByUser)
             .Include(i => i.InjectObjectives)
+            .Include(i => i.SubmittedByUser)
+            .Include(i => i.ApprovedByUser)
+            .Include(i => i.RejectedByUser)
+            .Include(i => i.RevertedByUser)
             .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
 
         if (inject == null)

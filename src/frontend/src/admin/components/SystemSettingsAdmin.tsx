@@ -16,8 +16,9 @@ import {
   CobraSecondaryButton,
   CobraTextField,
 } from '@/theme/styledComponents'
+import { formatDateTime } from '@/shared/utils/dateUtils'
 import { useSystemSettings, useUpdateSystemSettings } from '../hooks/useSystemSettings'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 
 export const SystemSettingsAdmin: FC = () => {
   const { data: settings, isLoading, error } = useSystemSettings()
@@ -55,12 +56,12 @@ export const SystemSettingsAdmin: FC = () => {
         defaultSenderAddress: null,
         defaultSenderName: defaultSenderName.trim() || null,
       })
-      toast.success('System settings updated')
+      notify.success('System settings updated')
       setHasChanges(false)
     } catch (err: unknown) {
       console.error('[SystemSettingsAdmin] Failed to update:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to update settings'
-      toast.error(errorMessage)
+      notify.error(errorMessage)
     }
   }
 
@@ -153,7 +154,7 @@ export const SystemSettingsAdmin: FC = () => {
 
           {settings?.updatedAt && (
             <Typography variant="caption" color="text.secondary">
-              Last updated: {new Date(settings.updatedAt).toLocaleString()}
+              Last updated: {formatDateTime(settings.updatedAt)}
               {settings.updatedBy && ` by ${settings.updatedBy}`}
             </Typography>
           )}

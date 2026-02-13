@@ -27,6 +27,7 @@ import {
   faUserShield,
   faPuzzlePiece,
   faBoxArchive,
+  faLightbulb,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
@@ -190,6 +191,15 @@ export const MENU_ITEMS: MenuItem[] = [
     label: 'Capability Library',
     icon: faPuzzlePiece,
     path: '/organization/capabilities',
+    section: 'organization',
+    allowedRoles: ALL_HSEEP_ROLES,
+    allowedOrgRoles: ORG_ADMIN_ROLES,
+  },
+  {
+    id: 'org-suggestions',
+    label: 'Autocomplete',
+    icon: faLightbulb,
+    path: '/organization/suggestions',
     section: 'organization',
     allowedRoles: ALL_HSEEP_ROLES,
     allowedOrgRoles: ORG_ADMIN_ROLES,

@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { capabilityService } from '../services/capabilityService'
 import { capabilityKeys } from './useCapabilities'
 import type { ImportLibraryResult } from '../types'
@@ -51,17 +51,17 @@ export const useImportLibrary = (organizationId?: string) => {
 
       // Show success message with import details
       if (result.skippedDuplicates > 0) {
-        toast.success(
+        notify.success(
           `Imported ${result.imported} capabilities (${result.skippedDuplicates} skipped as duplicates)`,
           { autoClose: 5000 },
         )
       } else {
-        toast.success(`Imported ${result.imported} capabilities`, { autoClose: 3000 })
+        notify.success(`Imported ${result.imported} capabilities`, { autoClose: 3000 })
       }
     },
     onError: err => {
       const message = err instanceof Error ? err.message : 'Failed to import library'
-      toast.error(message)
+      notify.error(message)
     },
   })
 }

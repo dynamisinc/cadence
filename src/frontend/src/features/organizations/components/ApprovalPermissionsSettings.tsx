@@ -26,7 +26,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldHalved, faSave, faUndo } from '@fortawesome/free-solid-svg-icons'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import {
   ApprovalRoles,
@@ -56,7 +56,7 @@ interface ApprovalPermissionsSettingsProps {
  * @example
  * <ApprovalPermissionsSettings
  *   organizationId={orgId}
- *   onSaved={() => toast.success('Permissions updated')}
+ *   onSaved={() => notify.success('Permissions updated')}
  * />
  */
 export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> = ({
@@ -140,10 +140,10 @@ export const ApprovalPermissionsSettings: FC<ApprovalPermissionsSettingsProps> =
         },
       })
       setHasChanges(false)
-      toast.success('Approval settings saved')
+      notify.success('Approval settings saved')
       onSaved?.()
     } catch {
-      toast.error('Failed to save approval settings')
+      notify.error('Failed to save approval settings')
     }
   }
 

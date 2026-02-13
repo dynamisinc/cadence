@@ -838,6 +838,33 @@ import {
 </CobraPrimaryButton>
 ```
 
+### Toast Notifications
+
+**NEVER import `toast` from `react-toastify` directly. ALWAYS use the `notify` wrapper.**
+
+```typescript
+// ❌ NEVER DO THIS
+import { toast } from 'react-toastify';
+toast.success('Item created');
+
+// ✅ ALWAYS DO THIS
+import { notify } from '@/shared/utils/notify';
+notify.success('Item created');
+```
+
+The `notify` wrapper provides automatic **time-window deduplication** - duplicate toasts within 3 seconds are suppressed. The `ToastContainer` is also limited to **3 visible toasts** max.
+
+For connection/status toasts, use stable `toastId` values and the dismiss-and-replace pattern:
+
+```typescript
+// Persistent warning (stays until dismissed)
+notify.warning('Connection lost...', { toastId: 'connection-status', autoClose: false });
+
+// On restore: dismiss warning, show brief success
+notify.dismiss('connection-status');
+notify.success('Connection restored', { toastId: 'connection-restored', autoClose: 2000 });
+```
+
 ---
 
 ## Adding New Features
@@ -949,6 +976,9 @@ A: **No.** Always use COBRA styled components from `@/theme/styledComponents`.
 
 **Q: What icon library should I use?**
 A: **FontAwesome only.** Never use `@mui/icons-material`. Import icons from `@fortawesome/free-solid-svg-icons` and use the `FontAwesomeIcon` component from `@fortawesome/react-fontawesome`.
+
+**Q: How should I show toast notifications?**
+A: **Use `notify` from `@/shared/utils/notify`.** Never import `toast` from `react-toastify` directly. The `notify` wrapper provides automatic deduplication to prevent toast pile-up.
 
 **Q: Where do I put business logic?**
 A: Backend: `Services/` layer in Core. Frontend: Custom hooks (`hooks/`).

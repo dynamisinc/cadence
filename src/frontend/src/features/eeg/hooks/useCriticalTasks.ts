@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { criticalTaskService } from '../services/eegService'
 import { capabilityTargetKeys } from './useCapabilityTargets'
 import type {
@@ -67,12 +67,12 @@ export const useCriticalTasks = (exerciseId: string, targetId: string) => {
       }))
       // Invalidate parent capability target to update task count
       queryClient.invalidateQueries({ queryKey: capabilityTargetKeys.all })
-      toast.success('Critical Task created')
+      notify.success('Critical Task created')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create critical task'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -102,7 +102,7 @@ export const useCriticalTasks = (exerciseId: string, targetId: string) => {
           task.id === updatedTask.id ? updatedTask : task,
         ),
       }))
-      toast.success('Critical Task updated')
+      notify.success('Critical Task updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
@@ -110,7 +110,7 @@ export const useCriticalTasks = (exerciseId: string, targetId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update critical task'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -131,7 +131,7 @@ export const useCriticalTasks = (exerciseId: string, targetId: string) => {
     onSuccess: () => {
       // Invalidate parent capability target to update task count
       queryClient.invalidateQueries({ queryKey: capabilityTargetKeys.all })
-      toast.success('Critical Task deleted')
+      notify.success('Critical Task deleted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
@@ -139,7 +139,7 @@ export const useCriticalTasks = (exerciseId: string, targetId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete critical task'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -172,7 +172,7 @@ export const useCriticalTasks = (exerciseId: string, targetId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reorder critical tasks'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -286,12 +286,12 @@ export const useLinkedInjects = (exerciseId: string, taskId: string) => {
       queryClient.invalidateQueries({ queryKey })
       // Also invalidate critical task queries to update inject counts
       queryClient.invalidateQueries({ queryKey: criticalTaskKeys.all })
-      toast.success('Linked injects updated')
+      notify.success('Linked injects updated')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to update linked injects'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

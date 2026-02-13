@@ -6,7 +6,7 @@
  */
 
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
-import { toast } from 'react-toastify'
+import { notify } from '@/shared/utils/notify'
 import { capabilityTargetService } from '../services/eegService'
 import type {
   CapabilityTargetDto,
@@ -57,12 +57,12 @@ export const useCapabilityTargets = (exerciseId: string) => {
         items: [...(old?.items ?? []), newTarget],
         totalCount: (old?.totalCount ?? 0) + 1,
       }))
-      toast.success('Capability Target created')
+      notify.success('Capability Target created')
     },
     onError: err => {
       const message =
         err instanceof Error ? err.message : 'Failed to create capability target'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -92,7 +92,7 @@ export const useCapabilityTargets = (exerciseId: string) => {
           target.id === updatedTarget.id ? updatedTarget : target,
         ),
       }))
-      toast.success('Capability Target updated')
+      notify.success('Capability Target updated')
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
@@ -100,7 +100,7 @@ export const useCapabilityTargets = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to update capability target'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -119,7 +119,7 @@ export const useCapabilityTargets = (exerciseId: string) => {
       return { previousData }
     },
     onSuccess: () => {
-      toast.success('Capability Target deleted')
+      notify.success('Capability Target deleted')
     },
     onError: (err, _variables, context) => {
       if (context?.previousData) {
@@ -127,7 +127,7 @@ export const useCapabilityTargets = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to delete capability target'
-      toast.error(message)
+      notify.error(message)
     },
   })
 
@@ -160,7 +160,7 @@ export const useCapabilityTargets = (exerciseId: string) => {
       }
       const message =
         err instanceof Error ? err.message : 'Failed to reorder capability targets'
-      toast.error(message)
+      notify.error(message)
     },
   })
 

@@ -7,6 +7,7 @@
 import { apiClient } from '../../../core/services/api'
 import type {
   InjectDto,
+  InjectStatusHistoryDto,
   CreateInjectRequest,
   UpdateInjectRequest,
   FireInjectRequest,
@@ -271,6 +272,19 @@ export const injectService = {
       `/exercises/${exerciseId}/injects/${injectId}/critical-tasks`,
       { criticalTaskIds },
     )
+  },
+
+  /**
+   * Get status change history for an inject (audit trail)
+   */
+  getInjectHistory: async (
+    exerciseId: string,
+    injectId: string,
+  ): Promise<InjectStatusHistoryDto[]> => {
+    const response = await apiClient.get<InjectStatusHistoryDto[]>(
+      `/exercises/${exerciseId}/injects/${injectId}/history`,
+    )
+    return response.data
   },
 }
 
