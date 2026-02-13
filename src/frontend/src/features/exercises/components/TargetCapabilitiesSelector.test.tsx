@@ -150,6 +150,9 @@ describe('TargetCapabilitiesSelector', () => {
       { wrapper: createWrapper() },
     )
 
+    // Expand the section first (collapsed by default when no selections)
+    await user.click(screen.getByText('Target Capabilities'))
+
     // Find and click an unselected capability chip
     const responseSection = screen.getByText('Response').parentElement!
     const chipInSection = within(responseSection).getAllByRole('button')[0]
