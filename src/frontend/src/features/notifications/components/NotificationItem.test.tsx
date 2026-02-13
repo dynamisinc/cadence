@@ -9,6 +9,7 @@ import { screen, fireEvent } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { NotificationItem } from './NotificationItem'
 import type { NotificationDto, NotificationType } from '../types'
+import { formatDate } from '@/shared/utils/dateUtils'
 
 // Helper to create mock notification
 const createMockNotification = (
@@ -95,7 +96,7 @@ describe('NotificationItem', () => {
       })
       renderItem(notification)
       // Check that it shows a date (not time ago format)
-      expect(screen.getByText(oldDate.toLocaleDateString())).toBeInTheDocument()
+      expect(screen.getByText(formatDate(oldDate.toISOString()))).toBeInTheDocument()
     })
   })
 

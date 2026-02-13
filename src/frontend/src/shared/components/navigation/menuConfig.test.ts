@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 17 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(17)
+    it('has exactly 18 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(18)
     })
 
     it('all items have required properties', () => {
@@ -80,9 +80,9 @@ describe('menuConfig', () => {
       expect(analysisItems).toHaveLength(2)
     })
 
-    it('ORGANIZATION section has 6 items', () => {
+    it('ORGANIZATION section has 7 items', () => {
       const orgItems = MENU_ITEMS.filter(item => item.section === 'organization')
-      expect(orgItems).toHaveLength(6)
+      expect(orgItems).toHaveLength(7)
     })
 
     it('SYSTEM section has 5 items', () => {
@@ -435,20 +435,20 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 17 items', () => {
+      it('can see all 18 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(17)
+        expect(visibleItems).toHaveLength(18)
       })
     })
 
     describe('ExerciseDirector', () => {
-      it('can see 13 items (all except Admin, Templates, Users, Organizations)', () => {
+      it('can see 14 items (all except Admin, Templates, Users, Organizations)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.ExerciseDirector),
         )
-        expect(visibleItems).toHaveLength(13)
+        expect(visibleItems).toHaveLength(14)
       })
 
       it('cannot see Admin', () => {
@@ -468,11 +468,11 @@ describe('menuConfig', () => {
     })
 
     describe('Controller', () => {
-      it('can see 11 items (conduct + org + settings)', () => {
+      it('can see 12 items (conduct + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Controller),
         )
-        expect(visibleItems).toHaveLength(11)
+        expect(visibleItems).toHaveLength(12)
       })
 
       it('can see My Assignments, Exercises, Control Room, Inject Queue, Settings', () => {
@@ -499,11 +499,11 @@ describe('menuConfig', () => {
     })
 
     describe('Evaluator', () => {
-      it('can see 10 items (conduct + observations + org + settings)', () => {
+      it('can see 11 items (conduct + observations + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Evaluator),
         )
-        expect(visibleItems).toHaveLength(10)
+        expect(visibleItems).toHaveLength(11)
       })
 
       it('can see My Assignments, Exercises, Observations, Settings', () => {
@@ -529,11 +529,11 @@ describe('menuConfig', () => {
     })
 
     describe('Observer', () => {
-      it('can see 9 items (conduct + org + settings)', () => {
+      it('can see 10 items (conduct + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Observer),
         )
-        expect(visibleItems).toHaveLength(9)
+        expect(visibleItems).toHaveLength(10)
       })
 
       it('can see My Assignments, Exercises, org items, and Settings', () => {
@@ -544,8 +544,8 @@ describe('menuConfig', () => {
         expect(ids).toContain('my-assignments')
         expect(ids).toContain('exercises')
         expect(ids).toContain('settings')
-        // Also includes 6 org-* items
-        expect(ids).toHaveLength(9)
+        // Also includes 7 org-* items
+        expect(ids).toHaveLength(10)
       })
     })
   })

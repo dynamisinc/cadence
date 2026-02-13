@@ -92,7 +92,6 @@ export const SuggestionTextField: FC<SuggestionTextFieldProps> = ({
           placeholder={placeholder}
           onBlur={onBlur}
           slotProps={{
-            ...params.slotProps,
             input: {
               ...params.InputProps,
               endAdornment: (
