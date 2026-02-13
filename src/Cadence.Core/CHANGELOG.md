@@ -2,6 +2,20 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.6.0](https://github.com/dynamisinc/cadence/compare/api-v3.5.0...api-v3.6.0) (2026-02-13)
+
+
+### Features
+
+* add org-level autocomplete suggestion management and inject detail enhancements ([be774c2](https://github.com/dynamisinc/cadence/commit/be774c27576db39a54f9c8e050359336351ccfed))
+
+
+### Bug Fixes
+
+* **api:** add missing fields to ExerciseParticipantDto ([f02e8bc](https://github.com/dynamisinc/cadence/commit/f02e8bce1fd7d0613efff863fa295edc1767f016))
+* **api:** align MselSummaryDto property names with InjectStatus enum ([88e70e6](https://github.com/dynamisinc/cadence/commit/88e70e691d07847d66f45a50d8c4eaf19850b9cb))
+* renumber injects on MSEL reorder so # stays ascending ([ecb3a02](https://github.com/dynamisinc/cadence/commit/ecb3a02eb0053b8821fd3e0413f18d4f63e5c1c1))
+
 ## [3.5.0](https://github.com/dynamisinc/cadence/compare/api-v3.4.1...api-v3.5.0) (2026-02-11)
 
 

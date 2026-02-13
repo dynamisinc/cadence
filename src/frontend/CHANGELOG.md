@@ -5,6 +5,27 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.7.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.6.3...frontend-v2.7.0) (2026-02-13)
+
+
+### Features
+
+* add org-level autocomplete suggestion management and inject detail enhancements ([be774c2](https://github.com/dynamisinc/cadence/commit/be774c27576db39a54f9c8e050359336351ccfed))
+* **ui:** add notify wrapper with time-window dedup, migrate all toast calls ([d89c0bb](https://github.com/dynamisinc/cadence/commit/d89c0bb581001fb762473acc7c35744c326b3bf8))
+* **ui:** restructure inject form layout, add autocomplete and duplicate support ([592fa0d](https://github.com/dynamisinc/cadence/commit/592fa0dafa710551fce2bad0139d998a4820bcde))
+
+
+### Bug Fixes
+
+* renumber injects on MSEL reorder so # stays ascending ([ecb3a02](https://github.com/dynamisinc/cadence/commit/ecb3a02eb0053b8821fd3e0413f18d4f63e5c1c1))
+* **tests:** update menu order and expand collapsed section in tests ([c293601](https://github.com/dynamisinc/cadence/commit/c293601367d0f9ff77ded878ca766bf52e95f1d5))
+* **ui:** add toast dedup via toastId and limit max visible toasts to 3 ([baf86b7](https://github.com/dynamisinc/cadence/commit/baf86b7dbe8e9db964c3bd03bcb38d7ea66b4d0b))
+* **ui:** consolidate connection toasts into single evolving notification ([04c9af5](https://github.com/dynamisinc/cadence/commit/04c9af5359341575f2ac4fb6fd49034e9ee8645f))
+* **ui:** improve exercise form layout for laptop/tablet viewports ([0dd0806](https://github.com/dynamisinc/cadence/commit/0dd08067d9994066eee219beaae73cceb74d0e05))
+* **ui:** migrate all date formatting to shared dateUtils for UTC-aware display ([57183a6](https://github.com/dynamisinc/cadence/commit/57183a64d0734790bb5d205792582b55c0bb0d60))
+* **ui:** use shared dateUtils for inject timestamps to respect timezones ([3ed9e4f](https://github.com/dynamisinc/cadence/commit/3ed9e4f2323c0bcc388433a202c8b08cc1b8e7d0))
+* update tests for new menu item counts and shared date formatting ([c31e07e](https://github.com/dynamisinc/cadence/commit/c31e07e05e27f40e313737b077446c4e8f1187da))
+
 ## [2.6.3](https://github.com/dynamisinc/cadence/compare/frontend-v2.6.2...frontend-v2.6.3) (2026-02-12)
 
 
