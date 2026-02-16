@@ -111,12 +111,10 @@ describe('InviteMembersDialog', () => {
       { wrapper: themeWrapper },
     )
 
+    // Wait for members to load and render
     await waitFor(() => {
-      expect(organizationService.getCurrentOrgMembers).toHaveBeenCalled()
+      expect(screen.getByText('Alice Smith')).toBeInTheDocument()
     })
-
-    // All 3 org members should be shown (none are in currentParticipants)
-    expect(screen.getByText('Alice Smith')).toBeInTheDocument()
     expect(screen.getByText('Bob Jones')).toBeInTheDocument()
     expect(screen.getByText('Charlie Brown')).toBeInTheDocument()
   })
@@ -148,15 +146,15 @@ describe('InviteMembersDialog', () => {
       { wrapper: themeWrapper },
     )
 
+    // Wait for members to load and render
     await waitFor(() => {
-      expect(organizationService.getCurrentOrgMembers).toHaveBeenCalled()
+      expect(screen.getByText('Bob Jones')).toBeInTheDocument()
     })
 
     // Alice should NOT appear (she's already a participant)
     expect(screen.queryByText('alice@example.com')).not.toBeInTheDocument()
 
-    // Bob and Charlie should still appear
-    expect(screen.getByText('Bob Jones')).toBeInTheDocument()
+    // Charlie should still appear
     expect(screen.getByText('Charlie Brown')).toBeInTheDocument()
   })
 
