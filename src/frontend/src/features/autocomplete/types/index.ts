@@ -4,6 +4,7 @@ export interface OrganizationSuggestionDto {
   value: string
   sortOrder: number
   isActive: boolean
+  isBlocked: boolean
   createdAt: string
   updatedAt: string
 }
@@ -37,6 +38,11 @@ export interface BulkCreateSuggestionsResult {
   totalProvided: number
   created: number
   skippedDuplicates: number
+}
+
+export interface BlockSuggestionRequest {
+  fieldName: SuggestionFieldName
+  value: string
 }
 
 export const SUGGESTION_FIELDS: {

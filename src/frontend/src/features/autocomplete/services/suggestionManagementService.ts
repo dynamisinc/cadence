@@ -5,6 +5,7 @@ import type {
   UpdateSuggestionRequest,
   BulkCreateSuggestionsRequest,
   BulkCreateSuggestionsResult,
+  BlockSuggestionRequest,
 } from '../types'
 
 const BASE_URL = '/organizations/current/suggestions'
@@ -53,6 +54,28 @@ export const reorderSuggestions = async (
   await api.put(`${BASE_URL}/reorder?fieldName=${fieldName}`, orderedIds)
 }
 
+export const getHistoricalValues = async (
+  fieldName: string,
+  limit = 50,
+): Promise<string[]> => {
+  const params = new URLSearchParams()
+  params.append('fieldName', fieldName)
+  params.append('limit', limit.toString())
+  const response = await api.get<string[]>(`${BASE_URL}/historical?${params}`)
+  return response.data
+}
+
+export const blockValue = async (
+  request: BlockSuggestionRequest,
+): Promise<OrganizationSuggestionDto> => {
+  const response = await api.post<OrganizationSuggestionDto>(`${BASE_URL}/block`, request)
+  return response.data
+}
+
+export const unblockValue = async (id: string): Promise<void> => {
+  await api.delete(`${BASE_URL}/block/${id}`)
+}
+
 export const suggestionManagementService = {
   getSuggestions,
   createSuggestion,
@@ -60,4 +83,7 @@ export const suggestionManagementService = {
   deleteSuggestion,
   bulkCreateSuggestions,
   reorderSuggestions,
+  getHistoricalValues,
+  blockValue,
+  unblockValue,
 }
