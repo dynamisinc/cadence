@@ -1,20 +1,29 @@
 using Cadence.Core.Data;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.Core.Features.Authorization.Services;
 
 /// <summary>
-/// Resolves effective permissions for users by checking both system-level roles
-/// (ApplicationUser.SystemRole) and exercise-specific roles (ExerciseParticipant.Role).
+/// Resolves effective permissions for users by checking system-level roles
+/// (ApplicationUser.SystemRole), organization roles (OrgRole), and
+/// exercise-specific roles (ExerciseParticipant.Role).
+///
+/// Escalation rules:
+/// - System Admins always have Administrator-equivalent access to all exercises.
+/// - OrgAdmin/OrgManager get ExerciseDirector-equivalent access to exercises in their org.
+/// - The effective role is the highest of: exercise role, mapped system role, mapped org role.
 /// </summary>
 public class RoleResolver : IRoleResolver
 {
     private readonly AppDbContext _context;
+    private readonly ICurrentOrganizationContext _orgContext;
 
-    public RoleResolver(AppDbContext context)
+    public RoleResolver(AppDbContext context, ICurrentOrganizationContext orgContext)
     {
         _context = context;
+        _orgContext = orgContext;
     }
 
     /// <inheritdoc />
@@ -43,6 +52,17 @@ public class RoleResolver : IRoleResolver
             return true;
         }
 
+        // OrgAdmin/OrgManager can access all exercises in their organization
+        if (_orgContext.CurrentOrgRole is OrgRole.OrgAdmin or OrgRole.OrgManager)
+        {
+            var exerciseBelongsToOrg = await _context.Exercises
+                .AnyAsync(e => e.Id == exerciseId && e.OrganizationId == _orgContext.CurrentOrganizationId && !e.IsDeleted);
+            if (exerciseBelongsToOrg)
+            {
+                return true;
+            }
+        }
+
         // Other users must be assigned as participants
         var isParticipant = await _context.ExerciseParticipants
             .AnyAsync(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted);
@@ -66,18 +86,21 @@ public class RoleResolver : IRoleResolver
             return true;
         }
 
+        // Compute org-level escalation (OrgAdmin/OrgManager -> ExerciseDirector)
+        var orgEquivalentRole = MapOrgRoleToExerciseRole(_orgContext.CurrentOrgRole);
+
         // Check exercise-specific role
         var participant = await _context.ExerciseParticipants
             .Where(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted)
             .FirstOrDefaultAsync();
 
-        if (participant == null)
-        {
-            return false;
-        }
+        // Take the highest role from exercise role and org-mapped role
+        var effectiveHierarchy = Math.Max(
+            participant != null ? GetRoleHierarchyValue(participant.Role) : 0,
+            orgEquivalentRole.HasValue ? GetRoleHierarchyValue(orgEquivalentRole.Value) : 0
+        );
 
-        // Compare role hierarchy
-        return GetRoleHierarchyValue(participant.Role) >= GetRoleHierarchyValue(minimumRole);
+        return effectiveHierarchy >= GetRoleHierarchyValue(minimumRole);
     }
 
     /// <inheritdoc />
@@ -85,6 +108,20 @@ public class RoleResolver : IRoleResolver
     {
         var user = await _context.ApplicationUsers.FindAsync(userId);
         return user?.SystemRole;
+    }
+
+    /// <summary>
+    /// Map organization roles to exercise role equivalents for escalation.
+    /// OrgAdmin/OrgManager get ExerciseDirector-equivalent access.
+    /// </summary>
+    private static ExerciseRole? MapOrgRoleToExerciseRole(OrgRole? orgRole)
+    {
+        return orgRole switch
+        {
+            OrgRole.OrgAdmin => ExerciseRole.ExerciseDirector,
+            OrgRole.OrgManager => ExerciseRole.ExerciseDirector,
+            _ => null
+        };
     }
 
     /// <summary>

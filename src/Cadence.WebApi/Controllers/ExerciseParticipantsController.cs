@@ -1,5 +1,6 @@
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -29,6 +30,7 @@ public class ExerciseParticipantsController : ControllerBase
     /// Shows exercise-specific roles and effective roles.
     /// </summary>
     [HttpGet]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<List<ExerciseParticipantDto>>> GetParticipants(Guid exerciseId)
     {
         var participants = await _participantService.GetParticipantsAsync(exerciseId);
@@ -39,6 +41,7 @@ public class ExerciseParticipantsController : ControllerBase
     /// Get a specific participant for an exercise.
     /// </summary>
     [HttpGet("{userId}")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<ExerciseParticipantDto>> GetParticipant(Guid exerciseId, string userId)
     {
         var participant = await _participantService.GetParticipantAsync(exerciseId, userId);
@@ -57,6 +60,7 @@ public class ExerciseParticipantsController : ControllerBase
     /// Only Administrators and Exercise Directors can add participants.
     /// </summary>
     [HttpPost]
+    [AuthorizeExerciseDirector]
     public async Task<ActionResult<ExerciseParticipantDto>> AddParticipant(
         Guid exerciseId,
         [FromBody] AddParticipantRequest request)
@@ -94,6 +98,7 @@ public class ExerciseParticipantsController : ControllerBase
     /// Only Administrators and Exercise Directors can update participant roles.
     /// </summary>
     [HttpPut("{userId}/role")]
+    [AuthorizeExerciseDirector]
     public async Task<ActionResult<ExerciseParticipantDto>> UpdateParticipantRole(
         Guid exerciseId,
         string userId,
@@ -124,6 +129,7 @@ public class ExerciseParticipantsController : ControllerBase
     /// Only Administrators and Exercise Directors can remove participants.
     /// </summary>
     [HttpDelete("{userId}")]
+    [AuthorizeExerciseDirector]
     public async Task<IActionResult> RemoveParticipant(Guid exerciseId, string userId)
     {
         try
@@ -148,6 +154,7 @@ public class ExerciseParticipantsController : ControllerBase
     /// Only Administrators and Exercise Directors can bulk update participants.
     /// </summary>
     [HttpPut]
+    [AuthorizeExerciseDirector]
     public async Task<ActionResult<List<ExerciseParticipantDto>>> BulkUpdateParticipants(
         Guid exerciseId,
         [FromBody] BulkUpdateParticipantsRequest request)
