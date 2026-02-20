@@ -47,6 +47,7 @@ export interface ExerciseDto {
   confirmFireInject: boolean
   confirmSkipInject: boolean
   confirmClockControl: boolean
+  maxDuration: string | null // TimeSpan as HH:MM:SS or d.HH:MM:SS
   // Summary counts (for list views)
   injectCount: number
   firedInjectCount: number
@@ -263,6 +264,7 @@ export interface ExerciseSettingsDto {
   confirmFireInject: boolean
   confirmSkipInject: boolean
   confirmClockControl: boolean
+  maxDuration: string | null // TimeSpan as HH:MM:SS or d.HH:MM:SS
 }
 
 /**
@@ -274,6 +276,7 @@ export interface UpdateExerciseSettingsRequest {
   confirmFireInject?: boolean
   confirmSkipInject?: boolean
   confirmClockControl?: boolean
+  maxDuration?: string // TimeSpan as HH:MM:SS format
 }
 
 /**

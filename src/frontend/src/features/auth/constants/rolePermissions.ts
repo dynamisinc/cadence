@@ -23,6 +23,7 @@ export type Permission =
   | 'delete_exercise'
   | 'start_clock'
   | 'pause_clock'
+  | 'set_clock_time'
 
 /**
  * Exercise roles matching backend ExerciseRole enum
@@ -61,6 +62,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
     'edit_exercise',
     'start_clock',
     'pause_clock',
+    'set_clock_time',
   ],
 
   Administrator: [
@@ -75,6 +77,7 @@ export const ROLE_PERMISSIONS: Record<ExerciseRole, Permission[]> = {
     'delete_exercise',
     'start_clock',
     'pause_clock',
+    'set_clock_time',
   ],
 }
 

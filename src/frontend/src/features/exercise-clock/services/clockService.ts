@@ -61,6 +61,18 @@ export const clockService = {
     )
     return response.data
   },
+
+  /**
+   * Manually set the exercise clock elapsed time
+   * Only allowed when clock is paused. Restricted to Exercise Director+ roles.
+   */
+  setClockTime: async (exerciseId: string, elapsedTime: string): Promise<ClockStateDto> => {
+    const response = await apiClient.post<ClockStateDto>(
+      `/exercises/${exerciseId}/clock/set-time`,
+      { elapsedTime },
+    )
+    return response.data
+  },
 }
 
 export default clockService

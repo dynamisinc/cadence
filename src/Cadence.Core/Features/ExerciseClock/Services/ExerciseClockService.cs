@@ -13,6 +13,12 @@ namespace Cadence.Core.Features.ExerciseClock.Services;
 /// </summary>
 public class ExerciseClockService : IExerciseClockService
 {
+    /// <summary>Default max duration when none is configured (72 hours).</summary>
+    public static readonly TimeSpan DefaultMaxDuration = TimeSpan.FromHours(72);
+
+    /// <summary>Absolute maximum duration that can never be exceeded (2 weeks / 336 hours).</summary>
+    public static readonly TimeSpan AbsoluteMaxDuration = TimeSpan.FromDays(14);
+
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
     private readonly IInjectReadinessService _injectReadinessService;
@@ -61,6 +67,15 @@ public class ExerciseClockService : IExerciseClockService
         if (exercise.ClockState == ExerciseClockState.Running)
         {
             throw new InvalidOperationException("Clock is already running");
+        }
+
+        // Validate max duration not already exceeded (when resuming from pause)
+        var effectiveMax = GetEffectiveMaxDuration(exercise);
+        var currentElapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
+        if (currentElapsed >= effectiveMax)
+        {
+            throw new InvalidOperationException(
+                $"Exercise has reached its maximum duration of {effectiveMax.TotalHours:F0} hours. Reset the clock or increase the max duration to continue.");
         }
 
         // If starting from Draft, transition to Active
@@ -118,7 +133,19 @@ public class ExerciseClockService : IExerciseClockService
             ? DateTime.UtcNow - exercise.ClockStartedAt.Value
             : TimeSpan.Zero;
 
-        exercise.ClockElapsedBeforePause = (exercise.ClockElapsedBeforePause ?? TimeSpan.Zero) + elapsedSinceStart;
+        var totalElapsed = (exercise.ClockElapsedBeforePause ?? TimeSpan.Zero) + elapsedSinceStart;
+
+        // Clamp to max duration to prevent overshoot
+        var effectiveMax = GetEffectiveMaxDuration(exercise);
+        if (totalElapsed > effectiveMax)
+        {
+            _logger.LogWarning(
+                "Exercise {ExerciseId} elapsed time {Elapsed} exceeded max duration {MaxDuration}. Clamping.",
+                exerciseId, totalElapsed, effectiveMax);
+            totalElapsed = effectiveMax;
+        }
+
+        exercise.ClockElapsedBeforePause = totalElapsed;
         exercise.ClockState = ExerciseClockState.Paused;
         exercise.ClockStartedAt = null; // Clear start time when paused
 
@@ -219,6 +246,76 @@ public class ExerciseClockService : IExerciseClockService
         await _hubContext.NotifyClockStopped(exerciseId, clockState);
 
         return clockState;
+    }
+
+    /// <inheritdoc />
+    public async Task<ClockStateDto> SetClockTimeAsync(Guid exerciseId, TimeSpan elapsedTime, string setBy)
+    {
+        var exercise = await _context.Exercises
+                        .FirstOrDefaultAsync(e => e.Id == exerciseId);
+
+        if (exercise == null)
+        {
+            throw new InvalidOperationException($"Exercise {exerciseId} not found");
+        }
+
+        // Can only set time when clock is paused
+        if (exercise.ClockState != ExerciseClockState.Paused)
+        {
+            throw new InvalidOperationException(
+                $"Can only set clock time when paused. Current state: {exercise.ClockState}");
+        }
+
+        // Validate elapsed time is non-negative
+        if (elapsedTime < TimeSpan.Zero)
+        {
+            throw new InvalidOperationException("Elapsed time cannot be negative.");
+        }
+
+        // Validate against max duration
+        var effectiveMax = GetEffectiveMaxDuration(exercise);
+        if (elapsedTime > effectiveMax)
+        {
+            throw new InvalidOperationException(
+                $"Elapsed time cannot exceed the maximum duration of {effectiveMax.TotalHours:F0} hours.");
+        }
+
+        var previousElapsed = exercise.ClockElapsedBeforePause ?? TimeSpan.Zero;
+
+        // Set the new elapsed time (wall clock time, before multiplier)
+        exercise.ClockElapsedBeforePause = elapsedTime;
+
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation(
+            "Clock time manually set for exercise {ExerciseId}. Previous: {Previous}, New: {New}, SetBy: {SetBy}",
+            exerciseId, previousElapsed, elapsedTime, setBy);
+
+        var clockState = exercise.ToClockStateDto();
+
+        // Log the clock event
+        await LogClockEventAsync(
+            exerciseId,
+            ClockEventType.TimeSet,
+            setBy,
+            clockState.ElapsedTime,
+            $"Manual time set from {previousElapsed} to {elapsedTime}");
+
+        // Broadcast updated state (clock remains paused)
+        await _hubContext.NotifyClockPaused(exerciseId, clockState);
+
+        return clockState;
+    }
+
+    /// <summary>
+    /// Gets the effective max duration for an exercise.
+    /// Returns the configured MaxDuration if set, otherwise the default (72 hours).
+    /// Clamped to the absolute maximum (2 weeks).
+    /// </summary>
+    private static TimeSpan GetEffectiveMaxDuration(Exercise exercise)
+    {
+        var max = exercise.MaxDuration ?? DefaultMaxDuration;
+        return max > AbsoluteMaxDuration ? AbsoluteMaxDuration : max;
     }
 
     /// <summary>

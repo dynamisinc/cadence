@@ -33,8 +33,9 @@ import {
   faCircleCheck,
   faForward,
   faStopwatch,
+  faHourglass,
 } from '@fortawesome/free-solid-svg-icons'
-import { CobraSecondaryButton } from '@/theme/styledComponents'
+import { CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
 import { exerciseService } from '../services/exerciseService'
 import type { ExerciseSettingsDto, UpdateExerciseSettingsRequest } from '../types'
 import { CLOCK_MULTIPLIER_PRESETS } from '../types'
@@ -214,6 +215,27 @@ export const ExerciseSettingsDialog = ({
     updateSetting({ confirmClockControl: checked })
   }
 
+  // Parse max duration from TimeSpan string to hours
+  const getMaxDurationHours = (): number => {
+    if (!settings?.maxDuration) return 72 // default
+    const parts = settings.maxDuration.split(':')
+    if (parts.length < 3) return 72
+    let hours = 0
+    if (parts[0].includes('.')) {
+      const dayHour = parts[0].split('.')
+      hours = parseInt(dayHour[0], 10) * 24 + parseInt(dayHour[1], 10)
+    } else {
+      hours = parseInt(parts[0], 10)
+    }
+    return hours
+  }
+
+  const handleMaxDurationChange = (hours: number) => {
+    const clampedHours = Math.max(1, Math.min(336, hours))
+    const timeSpan = `${clampedHours.toString().padStart(2, '0')}:00:00`
+    updateSetting({ maxDuration: timeSpan })
+  }
+
   // Show loading state
   if (isLoading) {
     return (
@@ -308,6 +330,31 @@ export const ExerciseSettingsDialog = ({
               ))}
             </RadioGroup>
           </FormControl>
+        </SettingsSection>
+
+        <Divider />
+
+        {/* Max Duration Section */}
+        <SettingsSection title="Max Duration" icon={faHourglass}>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2, pl: 1 }}>
+            Maximum allowed wall clock time for this exercise. The clock will auto-pause when this limit is reached.
+            Absolute maximum: 336 hours (2 weeks).
+          </Typography>
+          <Box sx={{ pl: 1, display: 'flex', alignItems: 'center', gap: 1.5 }}>
+            <CobraTextField
+              label="Hours"
+              type="number"
+              value={getMaxDurationHours()}
+              onChange={e => handleMaxDurationChange(parseInt(e.target.value, 10) || 72)}
+              inputProps={{ min: 1, max: 336 }}
+              sx={{ width: 120 }}
+              size="small"
+              disabled={isSaving}
+            />
+            <Typography variant="body2" color="text.secondary">
+              hours
+            </Typography>
+          </Box>
         </SettingsSection>
 
         <Divider />

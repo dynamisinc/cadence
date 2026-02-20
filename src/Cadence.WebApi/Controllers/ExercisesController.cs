@@ -728,7 +728,8 @@ public class ExercisesController : ControllerBase
             exercise.AutoFireEnabled,
             exercise.ConfirmFireInject,
             exercise.ConfirmSkipInject,
-            exercise.ConfirmClockControl
+            exercise.ConfirmClockControl,
+            exercise.MaxDuration
         ));
     }
 
@@ -793,6 +794,22 @@ public class ExercisesController : ControllerBase
             exercise.ConfirmClockControl = request.ConfirmClockControl.Value;
         }
 
+        // Validate and update max duration
+        if (request.MaxDuration.HasValue)
+        {
+            if (request.MaxDuration.Value <= TimeSpan.Zero)
+            {
+                return BadRequest(new { message = "Max duration must be greater than zero." });
+            }
+
+            if (request.MaxDuration.Value > TimeSpan.FromDays(14))
+            {
+                return BadRequest(new { message = "Max duration cannot exceed 336 hours (2 weeks)." });
+            }
+
+            exercise.MaxDuration = request.MaxDuration.Value;
+        }
+
         await _context.SaveChangesAsync();
 
         _logger.LogInformation(
@@ -804,7 +821,8 @@ public class ExercisesController : ControllerBase
             exercise.AutoFireEnabled,
             exercise.ConfirmFireInject,
             exercise.ConfirmSkipInject,
-            exercise.ConfirmClockControl
+            exercise.ConfirmClockControl,
+            exercise.MaxDuration
         ));
     }
 

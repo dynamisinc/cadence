@@ -14,7 +14,7 @@ export { useStoryTime } from './hooks/useStoryTime'
 export type { UseStoryTimeOptions, UseStoryTimeResult } from './hooks/useStoryTime'
 
 // Components
-export { ClockDisplay, ClockControls, ExerciseProgress, StoryTimeDisplay, ClockControlConfirmationDialog } from './components'
+export { ClockDisplay, ClockControls, ExerciseProgress, StoryTimeDisplay, ClockControlConfirmationDialog, SetClockTimeDialog } from './components'
 export type { ClockAction } from './components'
 
 // Utilities

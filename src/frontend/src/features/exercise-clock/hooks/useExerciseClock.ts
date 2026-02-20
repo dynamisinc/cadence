@@ -13,6 +13,9 @@ import { ExerciseClockState } from '../../../types'
 import type { ClockStateDto } from '../types'
 import { parseElapsedTime, formatElapsedTime } from '../types'
 
+/** Default max duration in milliseconds (72 hours) */
+const DEFAULT_MAX_DURATION_MS = 72 * 60 * 60 * 1000
+
 /**
  * Format milliseconds to elapsed time string for DTO (HH:MM:SS)
  */
@@ -36,6 +39,8 @@ export const useExerciseClock = (exerciseId: string) => {
   const [elapsedTimeMs, setElapsedTimeMs] = useState(0)
   // Ref to track current elapsed time for optimistic pause
   const elapsedTimeMsRef = useRef(0)
+  // Ref to prevent multiple auto-pause triggers
+  const autoPauseTriggeredRef = useRef(false)
 
   // Keep ref in sync with state (in effect, not during render)
   useEffect(() => {
@@ -54,6 +59,18 @@ export const useExerciseClock = (exerciseId: string) => {
     enabled: !!exerciseId,
     refetchInterval: false, // We'll handle real-time updates ourselves
   })
+
+  // Calculate max duration in ms from clock state
+  const maxDurationMs = clockState?.maxDuration
+    ? parseElapsedTime(clockState.maxDuration)
+    : DEFAULT_MAX_DURATION_MS
+
+  // Reset auto-pause flag when clock state changes (e.g., clock is resumed)
+  useEffect(() => {
+    if (clockState?.state !== ExerciseClockState.Running) {
+      autoPauseTriggeredRef.current = false
+    }
+  }, [clockState?.state])
 
   // Real-time clock display update
   useEffect(() => {
@@ -78,6 +95,26 @@ export const useExerciseClock = (exerciseId: string) => {
         // Apply multiplier to get additional scenario time
         const additionalScenarioTime = wallClockElapsed * clockMultiplier
         const totalElapsed = baseElapsed + additionalScenarioTime
+
+        // Check max duration (compare wall clock elapsed, not scenario time)
+        // maxDuration from server is already in wall clock time (pre-multiplier)
+        // But elapsedTime from server includes multiplier, so we need to compare scenario time
+        // against max duration converted to scenario time
+        const maxDurationScenarioMs = maxDurationMs * clockMultiplier
+        if (totalElapsed >= maxDurationScenarioMs && !autoPauseTriggeredRef.current) {
+          autoPauseTriggeredRef.current = true
+          // Auto-pause: trigger pause via API
+          clockService.pauseClock(exerciseId).then(newState => {
+            queryClient.setQueryData(clockQueryKey(exerciseId), newState)
+            queryClient.invalidateQueries({ queryKey: ['exercise', exerciseId] })
+            queryClient.invalidateQueries({ queryKey: ['exercises'] })
+            notify.warning('Exercise clock auto-paused: maximum duration reached')
+          }).catch(() => {
+            // Silently fail - next tick will retry or user can manually pause
+            autoPauseTriggeredRef.current = false
+          })
+        }
+
         setDisplayTime(formatElapsedTime(totalElapsed))
         setElapsedTimeMs(totalElapsed)
       }
@@ -90,7 +127,7 @@ export const useExerciseClock = (exerciseId: string) => {
       setDisplayTime(formatElapsedTime(baseElapsed))
       setElapsedTimeMs(baseElapsed)
     }
-  }, [clockState])
+  }, [clockState, exerciseId, maxDurationMs, queryClient])
 
   // Helper to update clock state in cache
   const updateClockState = useCallback(
@@ -125,6 +162,7 @@ export const useExerciseClock = (exerciseId: string) => {
         exerciseStartTime: previousState?.exerciseStartTime ?? null,
         capturedAt: now,
         clockMultiplier: previousState?.clockMultiplier ?? 1,
+        maxDuration: previousState?.maxDuration ?? null,
       }
 
       queryClient.setQueryData(clockQueryKey(exerciseId), optimisticState)
@@ -169,6 +207,7 @@ export const useExerciseClock = (exerciseId: string) => {
         exerciseStartTime: previousState?.exerciseStartTime ?? null,
         capturedAt: now,
         clockMultiplier: previousState?.clockMultiplier ?? 1,
+        maxDuration: previousState?.maxDuration ?? null,
       }
 
       queryClient.setQueryData(clockQueryKey(exerciseId), optimisticState)
@@ -214,6 +253,19 @@ export const useExerciseClock = (exerciseId: string) => {
     },
   })
 
+  // Mutation for manually setting clock time
+  const setTimeMutation = useMutation({
+    mutationFn: (elapsedTime: string) => clockService.setClockTime(exerciseId, elapsedTime),
+    onSuccess: newState => {
+      updateClockState(newState)
+      notify.success('Exercise clock time updated')
+    },
+    onError: err => {
+      const message = err instanceof Error ? err.message : 'Failed to set clock time'
+      notify.error(message)
+    },
+  })
+
   // Wrapper functions
   const startClock = async () => {
     return startMutation.mutateAsync()
@@ -231,6 +283,15 @@ export const useExerciseClock = (exerciseId: string) => {
     return resetMutation.mutateAsync()
   }
 
+  const setClockTime = async (elapsedTime: string) => {
+    return setTimeMutation.mutateAsync(elapsedTime)
+  }
+
+  // Compute whether we're at or past max duration
+  const clockMultiplier = clockState?.clockMultiplier ?? 1
+  const maxDurationScenarioMs = maxDurationMs * clockMultiplier
+  const isAtMaxDuration = elapsedTimeMs >= maxDurationScenarioMs
+
   return {
     clockState,
     displayTime,
@@ -246,10 +307,14 @@ export const useExerciseClock = (exerciseId: string) => {
     pauseClock,
     stopClock,
     resetClock,
+    setClockTime,
+    maxDurationMs,
+    isAtMaxDuration,
     isStarting: startMutation.isPending,
     isPausing: pauseMutation.isPending,
     isStopping: stopMutation.isPending,
     isResetting: resetMutation.isPending,
+    isSettingTime: setTimeMutation.isPending,
   }
 }
 

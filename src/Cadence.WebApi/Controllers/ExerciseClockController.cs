@@ -139,6 +139,34 @@ public class ExerciseClockController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Manually set the exercise clock elapsed time.
+    /// Only allowed when clock is paused. Restricted to Exercise Director+ roles.
+    /// </summary>
+    [HttpPost("set-time")]
+    [AuthorizeExerciseDirector]
+    public async Task<ActionResult<ClockStateDto>> SetClockTime(
+        Guid exerciseId,
+        [FromBody] SetClockTimeRequest request)
+    {
+        try
+        {
+            var setBy = GetCurrentUserId();
+
+            var clockState = await _clockService.SetClockTimeAsync(exerciseId, request.ElapsedTime, setBy);
+
+            _logger.LogInformation(
+                "Clock time manually set for exercise {ExerciseId} to {ElapsedTime}",
+                exerciseId, request.ElapsedTime);
+
+            return Ok(clockState);
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
     // =========================================================================
     // Private Helpers
     // =========================================================================
