@@ -84,6 +84,7 @@ export function cachedExerciseToDto(cached: CachedExercise): ExerciseDto {
     confirmFireInject: true,
     confirmSkipInject: true,
     confirmClockControl: false,
+    maxDuration: null,
     // Summary counts - not tracked in cache, use defaults
     injectCount: 0,
     firedInjectCount: 0,
