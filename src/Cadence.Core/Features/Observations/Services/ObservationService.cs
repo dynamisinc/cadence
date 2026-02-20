@@ -20,26 +20,44 @@ public class ObservationService : IObservationService
     private readonly IExerciseHubContext _hubContext;
     private readonly INotificationService _notificationService;
     private readonly IPhotoService _photoService;
+    private readonly IBlobStorageService _blobStorageService;
     private readonly ILogger<ObservationService> _logger;
+    private static readonly TimeSpan SasExpiry = TimeSpan.FromHours(1);
 
     public ObservationService(
         AppDbContext context,
         IExerciseHubContext hubContext,
         INotificationService notificationService,
         IPhotoService photoService,
+        IBlobStorageService blobStorageService,
         ILogger<ObservationService> logger)
     {
         _context = context;
         _hubContext = hubContext;
         _notificationService = notificationService;
         _photoService = photoService;
+        _blobStorageService = blobStorageService;
         _logger = logger;
+    }
+
+    private ObservationDto WithResolvedPhotoUrls(ObservationDto dto)
+    {
+        if (dto.Photos.Count == 0)
+            return dto;
+
+        return dto with
+        {
+            Photos = dto.Photos.Select(p => p with
+            {
+                ThumbnailUri = _blobStorageService.GetReadUri(p.ThumbnailUri, SasExpiry)
+            }).ToList()
+        };
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<ObservationDto>> GetObservationsByExerciseAsync(Guid exerciseId)
     {
-        return await _context.Observations
+        var observations = await _context.Observations
             .AsNoTracking()
             .Where(o => o.ExerciseId == exerciseId)
             .OrderByDescending(o => o.ObservedAt)
@@ -77,12 +95,14 @@ public class ObservationService : IObservationService
                     .ToList()
             ))
             .ToListAsync();
+
+        return observations.Select(WithResolvedPhotoUrls);
     }
 
     /// <inheritdoc />
     public async Task<IEnumerable<ObservationDto>> GetObservationsByInjectAsync(Guid injectId)
     {
-        return await _context.Observations
+        var observations = await _context.Observations
             .AsNoTracking()
             .Where(o => o.InjectId == injectId)
             .OrderByDescending(o => o.ObservedAt)
@@ -120,12 +140,14 @@ public class ObservationService : IObservationService
                     .ToList()
             ))
             .ToListAsync();
+
+        return observations.Select(WithResolvedPhotoUrls);
     }
 
     /// <inheritdoc />
     public async Task<ObservationDto?> GetObservationAsync(Guid id)
     {
-        return await _context.Observations
+        var dto = await _context.Observations
             .AsNoTracking()
             .Where(o => o.Id == id)
             .Select(o => new ObservationDto(
@@ -162,6 +184,8 @@ public class ObservationService : IObservationService
                     .ToList()
             ))
             .FirstOrDefaultAsync();
+
+        return dto != null ? WithResolvedPhotoUrls(dto) : null;
     }
 
     /// <inheritdoc />
@@ -261,6 +285,8 @@ public class ObservationService : IObservationService
                     .ToList()
             ))
             .FirstAsync();
+
+        dto = WithResolvedPhotoUrls(dto);
 
         // Broadcast to all connected clients
         await _hubContext.NotifyObservationAdded(exerciseId, dto);
@@ -430,6 +456,8 @@ public class ObservationService : IObservationService
                     .ToList()
             ))
             .FirstAsync();
+
+        dto = WithResolvedPhotoUrls(dto);
 
         // Broadcast to all connected clients
         await _hubContext.NotifyObservationUpdated(observation.ExerciseId, dto);

@@ -19,6 +19,7 @@ public class ObservationServiceTests
     private readonly Mock<IExerciseHubContext> _hubContextMock;
     private readonly Mock<INotificationService> _notificationServiceMock;
     private readonly Mock<IPhotoService> _photoServiceMock;
+    private readonly Mock<IBlobStorageService> _blobStorageMock;
     private readonly Mock<ILogger<ObservationService>> _loggerMock;
 
     public ObservationServiceTests()
@@ -26,7 +27,13 @@ public class ObservationServiceTests
         _hubContextMock = new Mock<IExerciseHubContext>();
         _notificationServiceMock = new Mock<INotificationService>();
         _photoServiceMock = new Mock<IPhotoService>();
+        _blobStorageMock = new Mock<IBlobStorageService>();
         _loggerMock = new Mock<ILogger<ObservationService>>();
+
+        // Default: GetReadUri returns input URI unchanged (like local storage)
+        _blobStorageMock
+            .Setup(x => x.GetReadUri(It.IsAny<string>(), It.IsAny<TimeSpan>()))
+            .Returns((string uri, TimeSpan _) => uri);
     }
 
     private (AppDbContext context, Organization org, Exercise exercise) CreateTestContext()
@@ -135,7 +142,7 @@ public class ObservationServiceTests
 
     private ObservationService CreateService(AppDbContext context)
     {
-        return new ObservationService(context, _hubContextMock.Object, _notificationServiceMock.Object, _photoServiceMock.Object, _loggerMock.Object);
+        return new ObservationService(context, _hubContextMock.Object, _notificationServiceMock.Object, _photoServiceMock.Object, _blobStorageMock.Object, _loggerMock.Object);
     }
 
     #region GetObservationsByExerciseAsync Tests

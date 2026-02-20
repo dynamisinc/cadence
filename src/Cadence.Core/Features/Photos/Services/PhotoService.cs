@@ -19,6 +19,7 @@ public class PhotoService : IPhotoService
     private readonly IBlobStorageService _blobStorageService;
     private readonly IExerciseHubContext _hubContext;
     private readonly ILogger<PhotoService> _logger;
+    private static readonly TimeSpan SasExpiry = TimeSpan.FromHours(1);
 
     public PhotoService(
         AppDbContext context,
@@ -31,6 +32,18 @@ public class PhotoService : IPhotoService
         _hubContext = hubContext;
         _logger = logger;
     }
+
+    private PhotoDto WithResolvedUrls(PhotoDto dto) => dto with
+    {
+        BlobUri = _blobStorageService.GetReadUri(dto.BlobUri, SasExpiry),
+        ThumbnailUri = _blobStorageService.GetReadUri(dto.ThumbnailUri, SasExpiry)
+    };
+
+    private DeletedPhotoDto WithResolvedUrls(DeletedPhotoDto dto) => dto with
+    {
+        BlobUri = _blobStorageService.GetReadUri(dto.BlobUri, SasExpiry),
+        ThumbnailUri = _blobStorageService.GetReadUri(dto.ThumbnailUri, SasExpiry)
+    };
 
     /// <inheritdoc />
     public async Task<PhotoDto> UploadPhotoAsync(
@@ -71,7 +84,7 @@ public class PhotoService : IPhotoService
                 _logger.LogInformation(
                     "Duplicate upload detected for idempotency key {Key}. Returning existing photo {PhotoId}.",
                     request.IdempotencyKey, existingPhoto.Id);
-                return existingPhoto.ToDto();
+                return WithResolvedUrls(existingPhoto.ToDto());
             }
         }
 
@@ -151,7 +164,7 @@ public class PhotoService : IPhotoService
             .Reference(p => p.CapturedByUser)
             .LoadAsync(ct);
 
-        var dto = photo.ToDto();
+        var dto = WithResolvedUrls(photo.ToDto());
 
         // Broadcast to all connected clients
         await _hubContext.NotifyPhotoAdded(exerciseId, dto);
@@ -208,7 +221,7 @@ public class PhotoService : IPhotoService
             .Take(query.PageSize)
             .ToListAsync(ct);
 
-        var photoDtos = photos.Select(p => p.ToDto());
+        var photoDtos = photos.Select(p => WithResolvedUrls(p.ToDto()));
 
         return new PhotoListResponse(
             photoDtos,
@@ -224,7 +237,7 @@ public class PhotoService : IPhotoService
             .Include(p => p.CapturedByUser)
             .FirstOrDefaultAsync(p => p.Id == photoId, ct);
 
-        return photo?.ToDto();
+        return photo != null ? WithResolvedUrls(photo.ToDto()) : null;
     }
 
     /// <inheritdoc />
@@ -275,7 +288,7 @@ public class PhotoService : IPhotoService
             "Photo {PhotoId} updated by {UserId}",
             photoId, modifiedBy);
 
-        var dto = photo.ToDto();
+        var dto = WithResolvedUrls(photo.ToDto());
 
         // Broadcast to all connected clients
         await _hubContext.NotifyPhotoUpdated(photo.ExerciseId, dto);
@@ -351,7 +364,7 @@ public class PhotoService : IPhotoService
                 _logger.LogInformation(
                     "Duplicate quick photo detected for idempotency key {Key}. Returning existing photo {PhotoId}.",
                     request.IdempotencyKey, existingPhoto.Id);
-                return new QuickPhotoResponse(existingPhoto.ToDto(), existingPhoto.ObservationId ?? Guid.Empty);
+                return new QuickPhotoResponse(WithResolvedUrls(existingPhoto.ToDto()), existingPhoto.ObservationId ?? Guid.Empty);
             }
         }
 
@@ -414,6 +427,18 @@ public class PhotoService : IPhotoService
 
         var observationDto = observation.ToDto();
 
+        // Resolve blob URIs to SAS URLs for photo tags in the observation
+        if (observationDto.Photos.Count > 0)
+        {
+            observationDto = observationDto with
+            {
+                Photos = observationDto.Photos.Select(p => p with
+                {
+                    ThumbnailUri = _blobStorageService.GetReadUri(p.ThumbnailUri, SasExpiry)
+                }).ToList()
+            };
+        }
+
         // Broadcast observation added (photo added was already broadcast in UploadPhotoAsync)
         await _hubContext.NotifyObservationAdded(exerciseId, observationDto);
 
@@ -435,7 +460,7 @@ public class PhotoService : IPhotoService
             .OrderByDescending(p => p.DeletedAt)
             .ToListAsync(ct);
 
-        return photos.Select(p => p.ToDeletedDto());
+        return photos.Select(p => WithResolvedUrls(p.ToDeletedDto()));
     }
 
     /// <inheritdoc />
@@ -462,7 +487,7 @@ public class PhotoService : IPhotoService
             "Restored photo {PhotoId} by {UserId}",
             photoId, restoredBy);
 
-        var dto = photo.ToDto();
+        var dto = WithResolvedUrls(photo.ToDto());
         await _hubContext.NotifyPhotoAdded(photo.ExerciseId, dto);
 
         return dto;
