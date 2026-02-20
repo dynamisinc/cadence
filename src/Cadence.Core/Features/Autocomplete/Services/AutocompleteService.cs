@@ -90,18 +90,25 @@ public class AutocompleteService : IAutocompleteService
         if (managedSuggestions.Count >= limit)
             return managedSuggestions.Take(limit).ToList();
 
+        // 1.5. Get blocked values to suppress from historical results
+        var blockedValues = await _context.OrganizationSuggestions
+            .Where(s => s.OrganizationId == organizationId && s.FieldName == fieldName && s.IsBlocked)
+            .Select(s => s.Value)
+            .ToListAsync();
+        var blockedSet = new HashSet<string>(blockedValues, StringComparer.OrdinalIgnoreCase);
+
         // 2. Get historical suggestions from inject data
         var historicalSuggestions = await GetHistoricalSuggestionsAsync(
             organizationId, fieldSelector, filter, limit);
 
-        // 3. Merge: managed first, then historical (deduplicated)
+        // 3. Merge: managed first, then historical (deduplicated, blocked excluded)
         var managedSet = new HashSet<string>(managedSuggestions, StringComparer.OrdinalIgnoreCase);
         var merged = new List<string>(managedSuggestions);
 
         foreach (var historical in historicalSuggestions)
         {
             if (merged.Count >= limit) break;
-            if (!managedSet.Contains(historical))
+            if (!managedSet.Contains(historical) && !blockedSet.Contains(historical))
             {
                 merged.Add(historical);
             }
@@ -161,5 +168,40 @@ public class AutocompleteService : IAutocompleteService
             .ToListAsync();
 
         return suggestions;
+    }
+
+    /// <inheritdoc />
+    public async Task<List<string>> GetHistoricalValuesAsync(Guid organizationId, string fieldName, int limit = 50)
+    {
+        if (!SuggestionFieldNames.IsValid(fieldName))
+            throw new ArgumentException($"Invalid field name: {fieldName}", nameof(fieldName));
+
+        // Map field name to inject property selector
+        Expression<Func<InjectEntity, string?>> fieldSelector = fieldName switch
+        {
+            SuggestionFieldNames.Source => i => i.Source,
+            SuggestionFieldNames.Target => i => i.Target,
+            SuggestionFieldNames.Track => i => i.Track,
+            SuggestionFieldNames.LocationName => i => i.LocationName,
+            SuggestionFieldNames.LocationType => i => i.LocationType,
+            SuggestionFieldNames.ResponsibleController => i => i.ResponsibleController,
+            _ => throw new ArgumentException($"Invalid field name: {fieldName}")
+        };
+
+        // Get all historical values (no filter)
+        var allHistorical = await GetHistoricalSuggestionsAsync(
+            organizationId, fieldSelector, null, limit + 100);
+
+        // Exclude curated and blocked values
+        var excludedValues = await _context.OrganizationSuggestions
+            .Where(s => s.OrganizationId == organizationId && s.FieldName == fieldName)
+            .Select(s => s.Value)
+            .ToListAsync();
+        var excludedSet = new HashSet<string>(excludedValues, StringComparer.OrdinalIgnoreCase);
+
+        return allHistorical
+            .Where(v => !excludedSet.Contains(v))
+            .Take(limit)
+            .ToList();
     }
 }

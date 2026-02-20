@@ -6,6 +6,7 @@ public record OrganizationSuggestionDto(
     string Value,
     int SortOrder,
     bool IsActive,
+    bool IsBlocked,
     DateTime CreatedAt,
     DateTime UpdatedAt
 );
@@ -35,3 +36,9 @@ public record BulkCreateSuggestionsResult(
     int Created,
     int SkippedDuplicates
 );
+
+public class BlockSuggestionRequest
+{
+    public string FieldName { get; init; } = string.Empty;
+    public string Value { get; init; } = string.Empty;
+}

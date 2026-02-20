@@ -33,6 +33,12 @@ public class OrganizationSuggestion : BaseEntity, IOrganizationScoped
     /// </summary>
     public bool IsActive { get; set; } = true;
 
+    /// <summary>
+    /// Whether this entry blocks a historical value from appearing in autocomplete.
+    /// When true, the Value is suppressed from historical suggestions.
+    /// </summary>
+    public bool IsBlocked { get; set; } = false;
+
     // Navigation
     public Organization Organization { get; set; } = null!;
 }

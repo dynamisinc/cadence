@@ -35,4 +35,10 @@ public interface IAutocompleteService
     /// Gets responsible controller suggestions for an organization, ordered by usage frequency.
     /// </summary>
     Task<List<string>> GetResponsibleControllerSuggestionsAsync(Guid organizationId, string? filter = null, int limit = 20);
+
+    /// <summary>
+    /// Gets historical values for a field, excluding curated and blocked values.
+    /// Used by the management page to show blockable historical suggestions.
+    /// </summary>
+    Task<List<string>> GetHistoricalValuesAsync(Guid organizationId, string fieldName, int limit = 50);
 }
