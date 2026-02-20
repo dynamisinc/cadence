@@ -45,6 +45,7 @@ module.exports = {
         'field-operations',
         'photo-capture',
         'photos',
+        'delivery-methods',
         // Infrastructure
         'agent',
         'migrations',

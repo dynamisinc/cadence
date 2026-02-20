@@ -28,6 +28,7 @@ import {
   faPuzzlePiece,
   faBoxArchive,
   faLightbulb,
+  faPaperPlane,
 } from '@fortawesome/free-solid-svg-icons'
 import { HseepRole, SystemRole } from '../../../types'
 import type { MenuItem } from './types'
@@ -260,6 +261,15 @@ export const MENU_ITEMS: MenuItem[] = [
     label: 'Organizations',
     icon: faBuilding,
     path: '/admin/organizations',
+    section: 'system',
+    allowedRoles: ADMIN_ROLES,
+    allowedSystemRoles: [SystemRole.Admin],
+  },
+  {
+    id: 'delivery-methods',
+    label: 'Delivery Methods',
+    icon: faPaperPlane,
+    path: '/admin/delivery-methods',
     section: 'system',
     allowedRoles: ADMIN_ROLES,
     allowedSystemRoles: [SystemRole.Admin],

@@ -15,6 +15,29 @@ public record DeliveryMethodDto(
 );
 
 /// <summary>
+/// Request DTO for creating a new delivery method. Admin only.
+/// </summary>
+public class CreateDeliveryMethodRequest
+{
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public int SortOrder { get; init; } = 0;
+    public bool IsOther { get; init; } = false;
+}
+
+/// <summary>
+/// Request DTO for updating an existing delivery method. Admin only.
+/// </summary>
+public class UpdateDeliveryMethodRequest
+{
+    public string Name { get; init; } = string.Empty;
+    public string? Description { get; init; }
+    public int SortOrder { get; init; } = 0;
+    public bool IsActive { get; init; } = true;
+    public bool IsOther { get; init; } = false;
+}
+
+/// <summary>
 /// Extension methods for mapping between DeliveryMethodLookup entity and DTOs.
 /// </summary>
 public static class DeliveryMethodMapper
