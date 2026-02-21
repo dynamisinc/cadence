@@ -47,6 +47,7 @@ import { useExercise } from '../../exercises/hooks'
 import { usePhotoAdmin } from '../hooks/usePhotoAdmin'
 import { CobraIconButton, CobraLinkButton, CobraPrimaryButton, CobraDeleteButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { formatDateTime } from '../../../shared/utils/dateUtils'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
@@ -197,24 +198,20 @@ export const PhotoTrashPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Stack direction="row" spacing={1} alignItems="center">
-          <FontAwesomeIcon icon={faTrash} />
-          <Typography variant="h4">Photo Trash</Typography>
+      <PageHeader
+        title="Photo Trash"
+        icon={faTrash}
+        chips={
           <Typography variant="body2" color="text.secondary">
             ({deletedPhotos.length} {deletedPhotos.length === 1 ? 'photo' : 'photos'})
           </Typography>
-        </Stack>
-        <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}/photos`)}>
-          Back to Photos
-        </CobraLinkButton>
-      </Stack>
+        }
+        actions={
+          <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}/photos`)}>
+            Back to Photos
+          </CobraLinkButton>
+        }
+      />
 
       {/* Main content area */}
       <Paper sx={{ p: 3, minHeight: 400 }}>

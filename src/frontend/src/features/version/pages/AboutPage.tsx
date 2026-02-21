@@ -12,7 +12,6 @@ import {
   ListItemText,
   Skeleton,
   Alert,
-  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -25,6 +24,7 @@ import {
   faHome,
   faCircleInfo,
 } from '@fortawesome/free-solid-svg-icons'
+import { PageHeader } from '@/shared/components'
 import { appVersion } from '@/config/version'
 import { useReleaseNotes } from '../hooks/useReleaseNotes'
 import { useApiVersion } from '../hooks/useApiVersion'
@@ -58,26 +58,7 @@ export function AboutPage() {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            width: 40,
-            height: 40,
-            borderRadius: 2,
-            backgroundColor: 'primary.main',
-            color: 'primary.contrastText',
-          }}
-        >
-          <FontAwesomeIcon icon={faCircleInfo} />
-        </Box>
-        <Typography variant="h5" component="h1">
-          About Cadence
-        </Typography>
-      </Stack>
+      <PageHeader title="About Cadence" icon={faCircleInfo} />
 
       {/* Version info card */}
       <Paper sx={{ p: 3, mb: 4 }} variant="outlined">

@@ -22,6 +22,7 @@ import type { CreateExerciseFormValues, CreateExerciseRequest, ExerciseDto } fro
 import { notify } from '@/shared/utils/notify'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { ImportWizard } from '../../excel-import/components'
+import { PageHeader } from '@/shared/components'
 
 /**
  * Create Exercise Page (S01)
@@ -122,9 +123,7 @@ export const CreateExercisePage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      <Typography variant="h5" component="h1" gutterBottom>
-        Create Exercise
-      </Typography>
+      <PageHeader title="Create Exercise" />
 
       <Paper sx={{ p: 2 }}>
         <ExerciseForm

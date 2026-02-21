@@ -16,7 +16,6 @@ import {
   FormControlLabel,
   Radio,
   Divider,
-  Stack,
   Alert,
   CircularProgress,
   Grid,
@@ -43,6 +42,7 @@ import { useBreadcrumbs } from '@/core/contexts'
 import { VersionInfoCard } from '@/features/version'
 import { EmailNotificationsSection } from '../components/EmailNotificationsSection'
 import type { ThemePreference, DisplayDensity, TimeFormat } from '../types'
+import { PageHeader } from '@/shared/components'
 
 /**
  * Section wrapper for consistent styling
@@ -151,28 +151,11 @@ export const UserSettingsPage = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 32,
-          }}
-        >
-          <FontAwesomeIcon icon={faGear} />
-        </Box>
-        <Box>
-          <Typography variant="h4" fontWeight={600}>
-            My Preferences
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Customize your experience with display and behavior preferences.
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="My Preferences"
+        icon={faGear}
+        subtitle="Customize your experience with display and behavior preferences."
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>

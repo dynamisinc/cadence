@@ -25,6 +25,7 @@ import {
   CobraSecondaryButton,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
 import { TriggerType } from '../../../types'
 import type { CreateInjectRequest, InjectDto, InjectFormValues } from '../types'
 
@@ -128,31 +129,12 @@ export const CreateInjectPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        marginBottom={1}
-      >
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton onClick={handleBackClick} size="small">
-            <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
-          <Typography variant="h5" component="h1">
-            {isDuplicate ? 'New Inject (from duplicate)' : 'New Inject'}
-          </Typography>
-        </Stack>
-      </Stack>
-
-      {/* Exercise name subtitle */}
-      <Typography variant="body2" color="text.secondary" marginBottom={3}>
-        {exerciseLoading ? (
-          <Skeleton width={200} />
-        ) : (
-          exercise?.name || 'Exercise'
-        )}
-      </Typography>
+      <PageHeader
+        title={isDuplicate ? 'New Inject (from duplicate)' : 'New Inject'}
+        showBackButton
+        onBackClick={handleBackClick}
+        subtitle={exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}
+      />
 
       {/* Form */}
       <Paper sx={{ p: 3 }}>

@@ -28,6 +28,7 @@ import {
 import CobraStyles from '@/theme/CobraStyles'
 import { CobraPrimaryButton, CobraLinkButton } from '@/theme/styledComponents'
 import { useBreadcrumbs } from '@/core/contexts'
+import { PageHeader } from '@/shared/components'
 import { useExercise, useMselSummary } from '../hooks'
 import {
   useExportMsel,
@@ -147,23 +148,18 @@ export const ReportsPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack direction="row" justifyContent="space-between" alignItems="center" mb={3}>
-        <Box>
-          <Typography variant="h5" component="h1">
-            Reports & Export
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Export exercise data for analysis and documentation
-          </Typography>
-        </Box>
-        <CobraLinkButton
-          startIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-          onClick={() => navigate(`/exercises/${exerciseId}`)}
-        >
-          Back to Exercise
-        </CobraLinkButton>
-      </Stack>
+      <PageHeader
+        title="Reports & Export"
+        subtitle="Export exercise data for analysis and documentation"
+        actions={
+          <CobraLinkButton
+            startIcon={<FontAwesomeIcon icon={faArrowLeft} />}
+            onClick={() => navigate(`/exercises/${exerciseId}`)}
+          >
+            Back to Exercise
+          </CobraLinkButton>
+        }
+      />
 
       {/* Error Alert */}
       {error && (

@@ -23,7 +23,6 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -58,6 +57,8 @@ import {
   ApprovalPermissionsSettings,
 } from '../components'
 import CobraStyles from '@/theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
+import { Stack } from '@mui/material'
 
 /** Valid status values */
 const VALID_STATUSES: OrgStatus[] = ['Active', 'Archived', 'Inactive']
@@ -257,29 +258,12 @@ export const EditOrganizationPage: FC = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 32,
-          }}
-        >
-          <FontAwesomeIcon icon={faBuilding} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h4" fontWeight={600}>
-            Edit Organization
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {organization.name} — Manage organization settings, members, and permissions
-          </Typography>
-        </Box>
-        <StatusChip status={status} />
-      </Stack>
+      <PageHeader
+        title="Edit Organization"
+        icon={faBuilding}
+        subtitle={`${organization.name} — Manage organization settings, members, and permissions`}
+        actions={<StatusChip status={status} />}
+      />
 
       {/* Responsive Grid Layout */}
       <Grid container spacing={2} alignItems="stretch">

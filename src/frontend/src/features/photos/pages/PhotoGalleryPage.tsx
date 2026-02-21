@@ -66,6 +66,7 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { AnnotationOverlay } from '../components/AnnotationOverlay'
 import { parseAnnotationsJson } from '../utils/parseAnnotations'
 import { AnnotationEditor } from '../components/AnnotationEditor'
+import { PageHeader } from '@/shared/components'
 
 // Filter chip options
 type LinkedFilterValue = 'all' | 'linked' | 'unlinked'
@@ -242,24 +243,20 @@ export const PhotoGalleryPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-      >
-        <Stack direction="row" spacing={1} alignItems="center">
-          <FontAwesomeIcon icon={faImages} />
-          <Typography variant="h4">Photo Gallery</Typography>
+      <PageHeader
+        title="Photo Gallery"
+        icon={faImages}
+        chips={
           <Typography variant="body2" color="text.secondary">
             ({totalCount} {totalCount === 1 ? 'photo' : 'photos'})
           </Typography>
-        </Stack>
-        <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
-          Back to Exercise
-        </CobraLinkButton>
-      </Stack>
+        }
+        actions={
+          <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
+            Back to Exercise
+          </CobraLinkButton>
+        }
+      />
 
       {/* Filter Bar */}
       <Paper sx={{ p: 2, mb: 3 }}>

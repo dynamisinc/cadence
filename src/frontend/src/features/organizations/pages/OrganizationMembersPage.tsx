@@ -48,6 +48,7 @@ import {
 import { notify } from '@/shared/utils/notify'
 import CobraStyles from '@/theme/CobraStyles'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { PageHeader } from '@/shared/components'
 
 export const OrganizationMembersPage: FC = () => {
   const { currentOrg } = useOrganization()
@@ -175,28 +176,12 @@ export const OrganizationMembersPage: FC = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header - compact */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 28,
-          }}
-        >
-          <FontAwesomeIcon icon={faUsers} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" fontWeight={600}>
-            Organization Members
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Manage members of {currentOrg?.name || 'your organization'}
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Organization Members"
+        icon={faUsers}
+        subtitle={`Manage members of ${currentOrg?.name || 'your organization'}`}
+        mb={2}
+      />
 
       {/* Members Table */}
       <Paper sx={{ p: 3, mb: 3 }}>

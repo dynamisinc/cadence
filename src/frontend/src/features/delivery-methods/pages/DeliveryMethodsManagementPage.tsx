@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import {
   Box,
-  Typography,
   Paper,
   Stack,
   Alert,
@@ -14,6 +13,7 @@ import CobraStyles from '@/theme/CobraStyles'
 import { useAllDeliveryMethods } from '../hooks/useDeliveryMethodManagement'
 import { DeliveryMethodTable } from '../components/DeliveryMethodTable'
 import { AddDeliveryMethodDialog } from '../components/AddDeliveryMethodDialog'
+import { PageHeader } from '@/shared/components'
 
 export const DeliveryMethodsManagementPage = () => {
   const [showAddDialog, setShowAddDialog] = useState(false)
@@ -37,28 +37,12 @@ export const DeliveryMethodsManagementPage = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 28,
-          }}
-        >
-          <FontAwesomeIcon icon={faPaperPlane} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" fontWeight={600}>
-            Delivery Methods
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Manage system-wide delivery methods available in the inject form
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Delivery Methods"
+        icon={faPaperPlane}
+        subtitle="Manage system-wide delivery methods available in the inject form"
+        mb={2}
+      />
 
       <Paper sx={{ p: 2.5 }}>
         {/* Action buttons */}

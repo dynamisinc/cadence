@@ -18,6 +18,7 @@ import {
   Alert,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { PageHeader } from '@/shared/components'
 import {
   faFire,
   faClipboardList,
@@ -97,18 +98,11 @@ export const ExerciseMetricsPage = () => {
 
   return (
     <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <FontAwesomeIcon icon={faChartBar} size="lg" />
-        <Box>
-          <Typography variant="h5" fontWeight="bold">
-            Exercise Metrics
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {exercise.name}
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Exercise Metrics"
+        icon={faChartBar}
+        subtitle={exercise.name}
+      />
 
       {/* Tabs */}
       <Paper elevation={0} sx={{ borderBottom: 1, borderColor: 'divider', mb: 0 }}>

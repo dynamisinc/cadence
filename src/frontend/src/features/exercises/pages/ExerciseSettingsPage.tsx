@@ -18,7 +18,6 @@ import {
   Radio,
   Switch,
   Divider,
-  Stack,
   Alert,
   CircularProgress,
   Grid,
@@ -45,6 +44,7 @@ import { ExerciseApprovalToggle } from '../components/ExerciseApprovalToggle'
 import { exerciseService } from '../services/exerciseService'
 import type { ExerciseSettingsDto, UpdateExerciseSettingsRequest } from '../types'
 import { CLOCK_MULTIPLIER_PRESETS } from '../types'
+import { PageHeader } from '@/shared/components'
 
 /**
  * Section wrapper for consistent styling
@@ -258,28 +258,11 @@ export const ExerciseSettingsPage = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 32,
-          }}
-        >
-          <FontAwesomeIcon icon={faGear} />
-        </Box>
-        <Box>
-          <Typography variant="h4" fontWeight={600}>
-            Exercise Settings
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {exercise?.name} — Configure clock speed, auto-fire, and confirmation dialogs.
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Exercise Settings"
+        icon={faGear}
+        subtitle={`${exercise?.name} — Configure clock speed, auto-fire, and confirmation dialogs.`}
+      />
 
       {error && (
         <Alert severity="error" sx={{ mb: 3 }}>

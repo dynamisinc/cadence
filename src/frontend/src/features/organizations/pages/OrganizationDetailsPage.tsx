@@ -17,7 +17,6 @@ import {
   Alert,
   CircularProgress,
   Grid,
-  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -41,6 +40,8 @@ import { useBreadcrumbs } from '@/core/contexts'
 import { notify } from '@/shared/utils/notify'
 import { formatDate } from '@/shared/utils/dateUtils'
 import CobraStyles from '@/theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
+import { Stack } from '@mui/material'
 
 export const OrganizationDetailsPage: FC = () => {
   const { data: organization, isLoading, error } = useCurrentOrganization()
@@ -139,29 +140,13 @@ export const OrganizationDetailsPage: FC = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header - compact */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 28,
-          }}
-        >
-          <FontAwesomeIcon icon={faBuilding} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" fontWeight={600}>
-            Organization Details
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            View and update your organization information
-          </Typography>
-        </Box>
-        <StatusChip status={organization.status} />
-      </Stack>
+      <PageHeader
+        title="Organization Details"
+        icon={faBuilding}
+        subtitle="View and update your organization information"
+        actions={<StatusChip status={organization.status} />}
+        mb={2}
+      />
 
       {/* Content */}
       <Grid container spacing={2}>

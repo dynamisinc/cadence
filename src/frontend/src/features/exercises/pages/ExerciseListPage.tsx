@@ -14,6 +14,7 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { useSystemPermissions } from '../../../shared/hooks'
 import { ExerciseStatus } from '../../../types'
 import { ImportWizard } from '../../excel-import/components'
+import { PageHeader } from '@/shared/components'
 
 /**
  * Exercise List Page (S03)
@@ -92,26 +93,17 @@ export const ExerciseListPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        marginBottom={3}
-      >
-        <Typography variant="h5" component="h1">
-          Exercises
-        </Typography>
-
-        {canManage && (
+      <PageHeader
+        title="Exercises"
+        actions={canManage ? (
           <CobraPrimaryButton
             startIcon={<FontAwesomeIcon icon={faPlus} />}
             onClick={handleCreateClick}
           >
             Create Exercise
           </CobraPrimaryButton>
-        )}
-      </Stack>
+        ) : undefined}
+      />
 
       {/* Search and Filters */}
       <Stack

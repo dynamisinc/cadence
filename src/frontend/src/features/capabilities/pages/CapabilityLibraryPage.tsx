@@ -32,6 +32,7 @@ import type { CapabilityDto, CreateCapabilityRequest, UpdateCapabilityRequest } 
 import CapabilityList from '../components/CapabilityList'
 import CapabilityDialog from '../components/CapabilityDialog'
 import ImportLibraryMenu from '../components/ImportLibraryMenu'
+import { PageHeader } from '@/shared/components'
 
 /**
  * Main capability library management page
@@ -119,29 +120,11 @@ export const CapabilityLibraryPage = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={2} alignItems="flex-start" sx={{ mb: 3 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 32,
-          }}
-        >
-          <FontAwesomeIcon icon={faShieldHalved} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h4" fontWeight={600}>
-            Capability Library
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Define the capabilities your organization can evaluate during exercises.
-            These can be tagged to observations for performance tracking.
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Capability Library"
+        icon={faShieldHalved}
+        subtitle="Define the capabilities your organization can evaluate during exercises. These can be tagged to observations for performance tracking."
+      />
 
       {/* Error display */}
       {error && (

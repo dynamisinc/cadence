@@ -24,6 +24,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCheck, faTimes, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
+import { PageHeader } from '@/shared/components'
 import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations'
 import { notify } from '@/shared/utils/notify'
 import { debounce } from 'lodash'
@@ -120,18 +121,11 @@ export const CreateOrganizationPage: FC = () => {
 
   return (
     <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 3 }}>
-        <CobraSecondaryButton
-          startIcon={<FontAwesomeIcon icon={faArrowLeft} />}
-          onClick={() => navigate('/admin/organizations')}
-        >
-          Back
-        </CobraSecondaryButton>
-        <Typography variant="h4" component="h1">
-          Create Organization
-        </Typography>
-      </Box>
+      <PageHeader
+        title="Create Organization"
+        showBackButton
+        onBackClick={() => navigate('/admin/organizations')}
+      />
 
       <Paper sx={{ p: 3 }}>
         <form onSubmit={handleSubmit}>

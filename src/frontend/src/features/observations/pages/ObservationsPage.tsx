@@ -60,6 +60,7 @@ import {
   CobraTextField,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { ExerciseStatus, ObservationRating, ObservationRatingLabels } from '../../../types'
 import type { ObservationDto } from '../types'
@@ -404,38 +405,31 @@ export const ObservationsPage = () => {
         onChange={handleQuickPhotoChange}
       />
 
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 3 }}
-        flexWrap="wrap"
-        gap={2}
-      >
-        <Stack direction="row" alignItems="center" spacing={2}>
-          <FontAwesomeIcon icon={faEye} size="lg" />
-          <Typography variant="h5">Observations</Typography>
+      <PageHeader
+        title="Observations"
+        icon={faEye}
+        chips={
           <Chip
             label={`${observations.length} total`}
             size="small"
             variant="outlined"
           />
-        </Stack>
-        <Stack direction="row" spacing={2}>
-          {canAddObservations && (
-            <>
-              <CobraPrimaryButton
-                startIcon={<FontAwesomeIcon icon={faPlus} />}
-                onClick={() => setShowCreateDialog(true)}
-              >
-                Add Observation
-              </CobraPrimaryButton>
-              <CobraPrimaryButton
-                startIcon={
-                  isCapturingPhoto
-                    ? <FontAwesomeIcon icon={faSpinner} spin />
-                    : <FontAwesomeIcon icon={faCamera} />
+        }
+        actions={
+          <>
+            {canAddObservations && (
+              <>
+                <CobraPrimaryButton
+                  startIcon={<FontAwesomeIcon icon={faPlus} />}
+                  onClick={() => setShowCreateDialog(true)}
+                >
+                  Add Observation
+                </CobraPrimaryButton>
+                <CobraPrimaryButton
+                  startIcon={
+                    isCapturingPhoto
+                      ? <FontAwesomeIcon icon={faSpinner} spin />
+                      : <FontAwesomeIcon icon={faCamera} />
                 }
                 onClick={openQuickPhotoCamera}
                 disabled={isCapturingPhoto}
@@ -455,8 +449,9 @@ export const ObservationsPage = () => {
           <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
             Back to Exercise
           </CobraLinkButton>
-        </Stack>
-      </Stack>
+        </>
+        }
+      />
 
       {/* Keyboard shortcut hint */}
       {canAddObservations && (

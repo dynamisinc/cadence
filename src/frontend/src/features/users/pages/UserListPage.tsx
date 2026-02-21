@@ -56,6 +56,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraIconButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
 import { formatDate } from '../../../shared/utils/dateUtils'
 import { userService } from '../services/userService'
 import type { UserDto, UserMembershipDto } from '../types'
@@ -363,10 +364,7 @@ export const UserListPage: FC = () => {
 
   return (
     <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Typography variant="h5" sx={{ mb: 2, fontWeight: 600 }}>
-        User Management
-      </Typography>
+      <PageHeader title="User Management" />
 
       {/* Error display */}
       {errorMessage && (

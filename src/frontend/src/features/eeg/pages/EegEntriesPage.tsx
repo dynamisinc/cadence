@@ -72,6 +72,7 @@ import {
   PERFORMANCE_RATING_SHORT_LABELS,
   type EegEntryDto,
 } from '../types'
+import { PageHeader } from '@/shared/components'
 
 type RatingFilterValue = 'all' | PerformanceRating
 type TabValue = 'entries' | 'coverage'
@@ -263,22 +264,11 @@ export const EegEntriesPage = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        sx={{ mb: 2 }}
-      >
-        <Box>
-          <Typography variant="h4" fontWeight={600}>
-            EEG Entries
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            Exercise Evaluation Guide entries for {exercise.name}
-          </Typography>
-        </Box>
-        <Stack direction="row" spacing={2}>
+      <PageHeader
+        title="EEG Entries"
+        subtitle={`Exercise Evaluation Guide entries for ${exercise.name}`}
+        actions={
+          <Stack direction="row" spacing={2}>
           {/* Show Generate button only on Coverage tab */}
           {activeTab === 'coverage' && (
             <CobraSecondaryButton
@@ -304,8 +294,10 @@ export const EegEntriesPage = () => {
               Add Entry
             </CobraPrimaryButton>
           )}
-        </Stack>
-      </Stack>
+          </Stack>
+        }
+        mb={2}
+      />
 
       {/* Tab Navigation */}
       <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>

@@ -11,7 +11,6 @@ import {
   Box,
   Typography,
   Paper,
-  Stack,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCog, faBuilding } from '@fortawesome/free-solid-svg-icons'
@@ -19,6 +18,7 @@ import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { useOrganization } from '@/contexts/OrganizationContext'
 import { useBreadcrumbs } from '@/core/contexts'
 import CobraStyles from '@/theme/CobraStyles'
+import { PageHeader } from '@/shared/components'
 
 export const OrganizationSettingsPage: FC = () => {
   const { currentOrg } = useOrganization()
@@ -32,28 +32,12 @@ export const OrganizationSettingsPage: FC = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header - compact */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 28,
-          }}
-        >
-          <FontAwesomeIcon icon={faCog} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" fontWeight={600}>
-            Organization Settings
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            General settings for {currentOrg?.name || 'your organization'}
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Organization Settings"
+        icon={faCog}
+        subtitle={`General settings for ${currentOrg?.name || 'your organization'}`}
+        mb={2}
+      />
 
       {/* Placeholder Content */}
       <Paper sx={{ p: 4, textAlign: 'center' }}>

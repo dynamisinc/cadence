@@ -11,6 +11,7 @@ import { useBreadcrumbs } from '@/core/contexts'
 import { useMyAssignments } from '../hooks/useMyAssignments'
 import { AssignmentSection } from '../components/AssignmentSection'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { PageHeader } from '@/shared/components'
 import CobraStyles from '@/theme/CobraStyles'
 
 export function MyAssignmentsPage() {
@@ -26,10 +27,7 @@ export function MyAssignmentsPage() {
   if (isLoading) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
-          <FontAwesomeIcon icon={faUserClock} size="lg" />
-          <Typography variant="h5" component="h1">My Assignments</Typography>
-        </Box>
+        <PageHeader title="My Assignments" icon={faUserClock} />
         <AssignmentSection
           title="Active Now"
           type="active"
@@ -50,10 +48,7 @@ export function MyAssignmentsPage() {
   if (isError) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
-          <FontAwesomeIcon icon={faUserClock} size="lg" />
-          <Typography variant="h5" component="h1">My Assignments</Typography>
-        </Box>
+        <PageHeader title="My Assignments" icon={faUserClock} />
         <Alert
           severity="error"
           action={
@@ -78,10 +73,7 @@ export function MyAssignmentsPage() {
   if (hasNoAssignments) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
-          <FontAwesomeIcon icon={faUserClock} size="lg" />
-          <Typography variant="h5" component="h1">My Assignments</Typography>
-        </Box>
+        <PageHeader title="My Assignments" icon={faUserClock} />
         <Box
           display="flex"
           flexDirection="column"

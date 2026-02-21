@@ -34,6 +34,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPlus, faSearch, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
+import { PageHeader } from '@/shared/components'
 import { useOrganizations } from '../hooks/useOrganizations'
 import { formatDate } from '@/shared/utils/dateUtils'
 import { StatusChip } from '@/shared/components/StatusChip'
@@ -89,19 +90,18 @@ export const OrganizationListPage: FC = () => {
 
   return (
     <Box sx={{ p: 3 }}>
-      {/* Header */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-        <Typography variant="h4" component="h1">
-          <FontAwesomeIcon icon={faBuilding} style={{ marginRight: 12 }} />
-          Organization Management
-        </Typography>
-        <CobraPrimaryButton
-          startIcon={<FontAwesomeIcon icon={faPlus} />}
-          onClick={() => navigate('/admin/organizations/new')}
-        >
-          Create Organization
-        </CobraPrimaryButton>
-      </Box>
+      <PageHeader
+        title="Organization Management"
+        icon={faBuilding}
+        actions={
+          <CobraPrimaryButton
+            startIcon={<FontAwesomeIcon icon={faPlus} />}
+            onClick={() => navigate('/admin/organizations/new')}
+          >
+            Create Organization
+          </CobraPrimaryButton>
+        }
+      />
 
       {/* Filters */}
       <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>

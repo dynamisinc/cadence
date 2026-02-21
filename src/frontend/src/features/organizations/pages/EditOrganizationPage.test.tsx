@@ -84,6 +84,13 @@ vi.mock('../components', () => ({
 
 vi.mock('@/shared/components', () => ({
   StatusChip: ({ status }: any) => <span>{status}</span>,
+  PageHeader: ({ title, subtitle, actions }: any) => (
+    <div>
+      <h1>{title}</h1>
+      {subtitle && <p>{subtitle}</p>}
+      {actions}
+    </div>
+  ),
 }))
 
 vi.mock('@/shared/utils/notify', () => ({

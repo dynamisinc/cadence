@@ -79,6 +79,7 @@ import { formatScenarioTime, formatScheduledTime } from '../types'
 import { isGroupExpanded } from '../utils/groupUtils'
 import { ImportWizard } from '../../excel-import/components'
 import { ExportDialog } from '../../excel-export/components'
+import { PageHeader } from '@/shared/components'
 
 /**
  * Check if the current sort order allows drag-and-drop reordering.
@@ -374,24 +375,13 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack
-        direction="row"
-        justifyContent="space-between"
-        alignItems="center"
-        marginBottom={1}
-      >
-        <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton onClick={handleBackClick} size="small">
-            <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
-          <Typography variant="h5" component="h1">
-            MSEL
-          </Typography>
-        </Stack>
-
-        {(canFireInjects || canManage) && (
-          <Stack direction="row" spacing={1}>
+      <PageHeader
+        title="MSEL"
+        showBackButton
+        onBackClick={handleBackClick}
+        subtitle={exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}
+        actions={(canFireInjects || canManage) ? (
+          <>
             <CobraSecondaryButton
               startIcon={<FontAwesomeIcon icon={faFileImport} />}
               onClick={() => setImportWizardOpen(true)}
@@ -416,14 +406,9 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
             >
               New Inject
             </CobraPrimaryButton>
-          </Stack>
-        )}
-      </Stack>
-
-      {/* Exercise name subtitle */}
-      <Typography variant="body2" color="text.secondary" marginBottom={2}>
-        {exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}
-      </Typography>
+          </>
+        ) : undefined}
+      />
 
       {/* Approval Status Header (S06) - Shows approval progress if enabled */}
       <ApprovalStatusHeader exerciseId={exerciseId} showDetails />

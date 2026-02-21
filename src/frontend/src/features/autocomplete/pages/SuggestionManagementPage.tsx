@@ -22,6 +22,7 @@ import { SuggestionTable } from '../components/SuggestionTable'
 import { AddSuggestionDialog } from '../components/AddSuggestionDialog'
 import { BulkPasteDialog } from '../components/BulkPasteDialog'
 import { HistoricalValuesSection } from '../components/HistoricalValuesSection'
+import { PageHeader } from '@/shared/components'
 
 export const SuggestionManagementPage = () => {
   const { currentOrg } = useOrganization()
@@ -62,28 +63,12 @@ export const SuggestionManagementPage = () => {
 
   return (
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
-      {/* Header */}
-      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 2 }}>
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            color: 'primary.main',
-            fontSize: 28,
-          }}
-        >
-          <FontAwesomeIcon icon={faLightbulb} />
-        </Box>
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h5" fontWeight={600}>
-            Autocomplete Suggestions
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
-            Manage curated suggestions for {currentOrg?.name || 'your organization'}
-          </Typography>
-        </Box>
-      </Stack>
+      <PageHeader
+        title="Autocomplete Suggestions"
+        icon={faLightbulb}
+        subtitle={`Manage curated suggestions for ${currentOrg?.name || 'your organization'}`}
+        mb={2}
+      />
 
       <Paper sx={{ p: 0 }}>
         {/* Field Tabs */}
