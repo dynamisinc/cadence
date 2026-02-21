@@ -5,6 +5,23 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.8.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.7.1...frontend-v2.8.0) (2026-02-21)
+
+
+### Features
+
+* **autocomplete:** add block/unblock UI and historical values management ([e4eeaa1](https://github.com/dynamisinc/cadence/commit/e4eeaa1cdf22ffa8751ba5e226eb89c9b839027a))
+* **clock:** add max duration and manual time setting ([de6a434](https://github.com/dynamisinc/cadence/commit/de6a434499f90840359de6ed8282a81fa2ae5d04))
+* **delivery-methods:** add SysAdmin management UI for delivery methods ([3799423](https://github.com/dynamisinc/cadence/commit/37994237d4b9388c0b332b005ee1c1d31e843bc2))
+* UAT cleanup - clock, delivery methods, autocomplete, auth & photo fixes ([b08516a](https://github.com/dynamisinc/cadence/commit/b08516a12c1c1ba58862b06a1f1c5da5af86599e))
+
+
+### Bug Fixes
+
+* **auth:** escalate sys/org admin permissions above limited exercise roles ([e40b7f6](https://github.com/dynamisinc/cadence/commit/e40b7f69113dec1980147b0f1edce2e9c3e44927))
+* **tests:** update menu tests for delivery-methods item ([25e366e](https://github.com/dynamisinc/cadence/commit/25e366ecf4f43135d221a7d9863013b32217b7b1))
+* **ui:** add missing maxDuration property to exercise DTOs ([98296a5](https://github.com/dynamisinc/cadence/commit/98296a5b87b6ab626389fc5008b68946c47de36e))
+
 ## [2.7.1](https://github.com/dynamisinc/cadence/compare/frontend-v2.7.0...frontend-v2.7.1) (2026-02-16)
 
 
