@@ -22,6 +22,8 @@ describe('ConnectionStatusIndicator', () => {
   it('renders nothing when online in compact mode with no pending', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'online',
+      isInExercise: false,
+      isSignalRJoined: false,
       pendingCount: 0,
     })
 
@@ -32,6 +34,8 @@ describe('ConnectionStatusIndicator', () => {
   it('shows indicator when offline', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'offline',
+      isInExercise: false,
+      isSignalRJoined: false,
       pendingCount: 0,
     })
 
@@ -46,6 +50,8 @@ describe('ConnectionStatusIndicator', () => {
   it('shows connecting state', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'connecting',
+      isInExercise: true,
+      isSignalRJoined: false,
       pendingCount: 0,
     })
 
@@ -57,6 +63,8 @@ describe('ConnectionStatusIndicator', () => {
   it('shows reconnecting state', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'reconnecting',
+      isInExercise: true,
+      isSignalRJoined: false,
       pendingCount: 0,
     })
 
@@ -68,6 +76,8 @@ describe('ConnectionStatusIndicator', () => {
   it('shows pending count when there are pending actions', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'offline',
+      isInExercise: false,
+      isSignalRJoined: false,
       pendingCount: 3,
     })
 
@@ -79,6 +89,8 @@ describe('ConnectionStatusIndicator', () => {
   it('shows pending count even when online', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'online',
+      isInExercise: false,
+      isSignalRJoined: false,
       pendingCount: 2,
     })
 
@@ -92,6 +104,8 @@ describe('ConnectionStatusIndicator', () => {
   it('shows full indicator when not in compact mode', () => {
     mockUseConnectivity.mockReturnValue({
       connectivityState: 'online',
+      isInExercise: false,
+      isSignalRJoined: false,
       pendingCount: 0,
     })
 
@@ -99,5 +113,34 @@ describe('ConnectionStatusIndicator', () => {
 
     const indicator = screen.getByTestId('connection-status-indicator')
     expect(indicator).toBeInTheDocument()
+  })
+
+  it('shows Live state when in exercise, connected, and joined', () => {
+    mockUseConnectivity.mockReturnValue({
+      connectivityState: 'online',
+      isInExercise: true,
+      isSignalRJoined: true,
+      pendingCount: 0,
+    })
+
+    render(<ConnectionStatusIndicator compact />)
+
+    const indicator = screen.getByTestId('connection-status-indicator')
+    expect(indicator).toBeInTheDocument()
+    expect(indicator).toHaveAttribute('data-status', 'live')
+    expect(screen.getByText('Live')).toBeInTheDocument()
+  })
+
+  it('does not show Live when connected but not joined', () => {
+    mockUseConnectivity.mockReturnValue({
+      connectivityState: 'online',
+      isInExercise: true,
+      isSignalRJoined: false,
+      pendingCount: 0,
+    })
+
+    // In compact mode, online without pending should be hidden
+    const { container } = render(<ConnectionStatusIndicator compact />)
+    expect(container.firstChild).toBeNull()
   })
 })

@@ -5,6 +5,7 @@
  * - Browser online/offline status
  * - API server reachability (via health check)
  * - SignalR connection state (when in exercise conduct)
+ * - SignalR joined state (whether joined exercise group)
  * - Pending sync count
  * - Toast notifications for connection changes
  *
@@ -59,12 +60,16 @@ interface ConnectivityContextValue {
   signalRState: SignalRState | null
   /** Whether we're in an exercise context */
   isInExercise: boolean
+  /** Whether joined the exercise SignalR group */
+  isSignalRJoined: boolean
   /** Number of pending offline actions */
   pendingCount: number
   /** Update SignalR state (called by useExerciseSignalR) */
   setSignalRState: (state: SignalRState | null) => void
   /** Set whether we're in an exercise context */
   setIsInExercise: (inExercise: boolean) => void
+  /** Set whether joined the exercise SignalR group */
+  setIsSignalRJoined: (joined: boolean) => void
   /** Update pending count */
   setPendingCount: (count: number) => void
   /** Increment pending count */
@@ -88,11 +93,24 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
   const [isApiReachable, setIsApiReachable] = useState<boolean>(true) // Assume online initially
   const [signalRState, setSignalRStateInternal] = useState<SignalRState | null>(null)
   const [isInExercise, setIsInExercise] = useState(false)
+  const [isSignalRJoined, setIsSignalRJoined] = useState(false)
   const [pendingCount, setPendingCountInternal] = useState(0)
   const healthCheckIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null)
   const isMountedRef = useRef(true)
 
-  // Perform health check
+  // Use ref for isInExercise inside setSignalRState to avoid dependency cycle
+  const isInExerciseRef = useRef(isInExercise)
+  useEffect(() => {
+    isInExerciseRef.current = isInExercise
+  }, [isInExercise])
+
+  // Use ref for isApiReachable inside performHealthCheck to avoid stale closure
+  const isApiReachableRef = useRef(isApiReachable)
+  useEffect(() => {
+    isApiReachableRef.current = isApiReachable
+  }, [isApiReachable])
+
+  // Perform health check — stable callback (no state in deps)
   const performHealthCheck = useCallback(async (): Promise<boolean> => {
     // Skip health check if browser reports offline
     if (!navigator.onLine) {
@@ -109,7 +127,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       return isHealthy
     }
 
-    const wasReachable = isApiReachable
+    const wasReachable = isApiReachableRef.current
 
     setIsApiReachable(isHealthy)
 
@@ -131,7 +149,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     }
 
     return isHealthy
-  }, [isApiReachable])
+  }, []) // No deps — uses refs for mutable state
 
   // Start/restart health check interval
   const startHealthCheckInterval = useCallback((interval: number) => {
@@ -149,7 +167,8 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     performHealthCheck()
 
     // Start periodic health checks
-    startHealthCheckInterval(HEALTH_CHECK_INTERVAL)
+    const interval = isApiReachable ? HEALTH_CHECK_INTERVAL : HEALTH_CHECK_INTERVAL_OFFLINE
+    startHealthCheckInterval(interval)
 
     return () => {
       isMountedRef.current = false
@@ -157,7 +176,9 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
         clearInterval(healthCheckIntervalRef.current)
       }
     }
-  }, [performHealthCheck, startHealthCheckInterval])
+  // performHealthCheck and startHealthCheckInterval are now stable (no state deps)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Adjust health check interval based on connectivity state
   useEffect(() => {
@@ -224,11 +245,11 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     }
   }, [performHealthCheck])
 
-  // Show toast when SignalR state changes (only when in exercise)
+  // Stable setSignalRState — uses ref for isInExercise to avoid dependency cycle
   const setSignalRState = useCallback((state: SignalRState | null) => {
     setSignalRStateInternal(prevState => {
       // Only show toasts if state actually changed and we're in an exercise
-      if (isInExercise && prevState !== state && prevState !== null) {
+      if (isInExerciseRef.current && prevState !== state && prevState !== null) {
         if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
           notify.dismiss('signalr-status')
           notify.success('Real-time connection restored', {
@@ -244,7 +265,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       }
       return state
     })
-  }, [isInExercise])
+  }, []) // No deps — uses ref for isInExercise
 
   const setPendingCount = useCallback((count: number) => {
     setPendingCountInternal(Math.max(0, count))
@@ -265,9 +286,11 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       connectivityState,
       signalRState,
       isInExercise,
+      isSignalRJoined,
       pendingCount,
       setSignalRState,
       setIsInExercise,
+      setIsSignalRJoined,
       setPendingCount,
       incrementPendingCount,
       decrementPendingCount,
@@ -279,6 +302,7 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
       connectivityState,
       signalRState,
       isInExercise,
+      isSignalRJoined,
       pendingCount,
       setSignalRState,
       setPendingCount,

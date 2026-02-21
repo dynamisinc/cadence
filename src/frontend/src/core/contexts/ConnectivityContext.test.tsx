@@ -12,6 +12,7 @@ vi.mock('@/shared/utils/notify', () => ({
     success: vi.fn(),
     error: vi.fn(),
     warning: vi.fn(),
+    dismiss: vi.fn(),
   },
 }))
 
@@ -27,9 +28,11 @@ const TestComponent = () => {
     connectivityState,
     signalRState,
     isInExercise,
+    isSignalRJoined,
     pendingCount,
     setSignalRState,
     setIsInExercise,
+    setIsSignalRJoined,
     setPendingCount,
     incrementPendingCount,
     decrementPendingCount,
@@ -41,11 +44,15 @@ const TestComponent = () => {
       <div data-testid="connectivityState">{connectivityState}</div>
       <div data-testid="signalRState">{signalRState ?? 'null'}</div>
       <div data-testid="isInExercise">{String(isInExercise)}</div>
+      <div data-testid="isSignalRJoined">{String(isSignalRJoined)}</div>
       <div data-testid="pendingCount">{pendingCount}</div>
       <button onClick={() => setSignalRState('connected')}>Set Connected</button>
       <button onClick={() => setSignalRState('disconnected')}>Set Disconnected</button>
+      <button onClick={() => setSignalRState('connecting')}>Set Connecting</button>
       <button onClick={() => setIsInExercise(true)}>Enter Exercise</button>
       <button onClick={() => setIsInExercise(false)}>Exit Exercise</button>
+      <button onClick={() => setIsSignalRJoined(true)}>Set Joined</button>
+      <button onClick={() => setIsSignalRJoined(false)}>Set Not Joined</button>
       <button onClick={() => setPendingCount(5)}>Set Pending 5</button>
       <button onClick={incrementPendingCount}>Increment</button>
       <button onClick={decrementPendingCount}>Decrement</button>
@@ -199,5 +206,56 @@ describe('ConnectivityContext', () => {
     expect(screen.getByTestId('isInExercise').textContent).toBe('false')
     // SignalR state should remain until explicitly cleared
     expect(screen.getByTestId('connectivityState').textContent).toBe('online')
+  })
+
+  it('tracks isSignalRJoined state', async () => {
+    render(
+      <ConnectivityProvider>
+        <TestComponent />
+      </ConnectivityProvider>,
+    )
+
+    expect(screen.getByTestId('isSignalRJoined').textContent).toBe('false')
+
+    await act(async () => {
+      screen.getByText('Set Joined').click()
+    })
+
+    expect(screen.getByTestId('isSignalRJoined').textContent).toBe('true')
+
+    await act(async () => {
+      screen.getByText('Set Not Joined').click()
+    })
+
+    expect(screen.getByTestId('isSignalRJoined').textContent).toBe('false')
+  })
+
+  it('setSignalRState is stable across isInExercise changes', async () => {
+    let capturedSetSignalRState: ReturnType<typeof useConnectivity>['setSignalRState'] | null = null
+    const StabilityTestComponent = () => {
+      const { setSignalRState, setIsInExercise } = useConnectivity()
+      capturedSetSignalRState = setSignalRState
+      return (
+        <div>
+          <button onClick={() => setIsInExercise(true)}>Enter</button>
+          <button onClick={() => setIsInExercise(false)}>Exit</button>
+        </div>
+      )
+    }
+
+    render(
+      <ConnectivityProvider>
+        <StabilityTestComponent />
+      </ConnectivityProvider>,
+    )
+
+    const firstRef = capturedSetSignalRState
+
+    await act(async () => {
+      screen.getByText('Enter').click()
+    })
+
+    // setSignalRState should be the same reference (stable) even after isInExercise changed
+    expect(capturedSetSignalRState).toBe(firstRef)
   })
 })

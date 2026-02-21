@@ -33,8 +33,6 @@ import {
   faPlus,
   faChevronDown,
   faChevronUp,
-  faWifi,
-  faTriangleExclamation,
   faGaugeHigh,
   faBookOpen,
   faGrip,
@@ -403,7 +401,7 @@ export const ExerciseConductPage = () => {
   }, [exerciseId, queryClient])
 
   // Connect to SignalR
-  const { connectionState, isJoined, error: signalRError } = useExerciseSignalR({
+  const { connectionState, isJoined } = useExerciseSignalR({
     exerciseId: exerciseId!,
     onInjectFired: handleInjectFired,
     onInjectStatusChanged: handleInjectStatusChanged,
@@ -419,7 +417,7 @@ export const ExerciseConductPage = () => {
   })
 
   // Sync SignalR state with global connectivity context
-  const { setSignalRState, setIsInExercise } = useConnectivity()
+  const { setSignalRState, setIsInExercise, setIsSignalRJoined } = useConnectivity()
   const previousConnectionStateRef = useRef<typeof connectionState | null>(null)
 
   useEffect(() => {
@@ -428,12 +426,16 @@ export const ExerciseConductPage = () => {
     return () => {
       setIsInExercise(false)
       setSignalRState(null)
+      setIsSignalRJoined(false)
     }
-  }, [setIsInExercise, setSignalRState])
+  // setSignalRState, setIsInExercise, setIsSignalRJoined are stable (no state deps)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   useEffect(() => {
-    // Report SignalR connection state to global context
+    // Report SignalR connection state and join status to global context
     setSignalRState(connectionState)
+    setIsSignalRJoined(isJoined)
 
     const wasConnected = previousConnectionStateRef.current === 'connected'
     const isNowDisconnected = connectionState === 'disconnected' ||
@@ -458,7 +460,7 @@ export const ExerciseConductPage = () => {
     }
 
     previousConnectionStateRef.current = connectionState
-  }, [connectionState, setSignalRState, handleReconnected, elapsedTimeMs])
+  }, [connectionState, isJoined, setSignalRState, setIsSignalRJoined, handleReconnected, elapsedTimeMs])
 
   // Permission checks using role-based access control
   const canControl = useMemo(() => {
@@ -837,29 +839,7 @@ export const ExerciseConductPage = () => {
               </ToggleButtonGroup>
             )}
 
-            {/* Connection status indicator */}
-            <Stack direction="row" spacing={1} alignItems="center">
-              {connectionState === 'connected' && isJoined ? (
-                <Box sx={{ color: 'success.main' }}>
-                  <FontAwesomeIcon icon={faWifi} />
-                </Box>
-              ) : connectionState === 'error' || signalRError ? (
-                <Box sx={{ color: 'error.main' }}>
-                  <FontAwesomeIcon icon={faTriangleExclamation} />
-                </Box>
-              ) : (
-                <CircularProgress size={16} />
-              )}
-              <Typography variant="caption" color="text.secondary">
-                {connectionState === 'connected' && isJoined
-                  ? 'Live'
-                  : connectionState === 'connecting'
-                    ? 'Connecting...'
-                    : connectionState === 'reconnecting'
-                      ? 'Reconnecting...'
-                      : signalRError || 'Disconnected'}
-              </Typography>
-            </Stack>
+            {/* Connection status is shown in the AppHeader via ConnectionStatusIndicator */}
 
             {/* Exercise Settings */}
             <Tooltip title="Exercise Settings" arrow>

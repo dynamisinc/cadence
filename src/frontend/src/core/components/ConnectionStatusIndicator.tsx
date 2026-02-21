@@ -2,7 +2,8 @@
  * ConnectionStatusIndicator Component
  *
  * Visual indicator showing current connectivity state:
- * - Green: Connected/Online
+ * - Green "Live": In exercise, SignalR connected and joined
+ * - Green: Connected/Online (hidden in compact mode)
  * - Yellow/Orange: Connecting/Reconnecting
  * - Red: Offline/Disconnected
  *
@@ -18,6 +19,7 @@ import {
   faWifi,
   faSpinner,
   faTriangleExclamation,
+  faTowerBroadcast,
 } from '@fortawesome/free-solid-svg-icons'
 import { useConnectivity, type ConnectivityState } from '../contexts/ConnectivityContext'
 import { PendingActionsPopover } from './PendingActionsPopover'
@@ -31,7 +33,14 @@ interface StatusConfig {
   tooltip: string
 }
 
-const statusConfigs: Record<ConnectivityState, StatusConfig> = {
+const statusConfigs: Record<ConnectivityState | 'live', StatusConfig> = {
+  live: {
+    color: '#22c55e', // green-500
+    bgColor: 'rgba(34, 197, 94, 0.1)',
+    icon: faTowerBroadcast,
+    label: 'Live',
+    tooltip: 'Connected to exercise — receiving real-time updates',
+  },
   online: {
     color: '#22c55e', // green-500
     bgColor: 'rgba(34, 197, 94, 0.1)',
@@ -75,16 +84,20 @@ export const ConnectionStatusIndicator: React.FC<ConnectionStatusIndicatorProps>
   compact = true,
   className,
 }) => {
-  const { connectivityState, pendingCount } = useConnectivity()
-  const config = statusConfigs[connectivityState]
+  const { connectivityState, isInExercise, isSignalRJoined, pendingCount } = useConnectivity()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
-  // In compact mode, don't show anything when online with no pending
-  if (compact && connectivityState === 'online' && pendingCount === 0) {
+  // Show "Live" when in exercise, connected, and joined the exercise group
+  const isLive = isInExercise && connectivityState === 'online' && isSignalRJoined
+  const displayState = isLive ? 'live' : connectivityState
+  const config = statusConfigs[displayState]
+
+  // In compact mode, hide when online (not in exercise) with no pending
+  if (compact && displayState === 'online' && pendingCount === 0) {
     return null
   }
 
-  const showLabel = !compact || connectivityState !== 'online'
+  const showLabel = !compact || displayState !== 'online'
   const showPending = pendingCount > 0
   const isClickable = pendingCount > 0
   const popoverOpen = Boolean(anchorEl)
@@ -108,7 +121,7 @@ export const ConnectionStatusIndicator: React.FC<ConnectionStatusIndicatorProps>
       <Tooltip title={tooltipText} arrow>
         <Chip
           data-testid="connection-status-indicator"
-          data-status={connectivityState}
+          data-status={displayState}
           onClick={handleClick}
           icon={
             <FontAwesomeIcon
