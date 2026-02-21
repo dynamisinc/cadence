@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 18 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(18)
+    it('has exactly 19 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(19)
     })
 
     it('all items have required properties', () => {
@@ -85,9 +85,9 @@ describe('menuConfig', () => {
       expect(orgItems).toHaveLength(7)
     })
 
-    it('SYSTEM section has 5 items', () => {
+    it('SYSTEM section has 6 items', () => {
       const systemItems = MENU_ITEMS.filter(item => item.section === 'system')
-      expect(systemItems).toHaveLength(5)
+      expect(systemItems).toHaveLength(6)
     })
 
     it('CONDUCT section contains correct items', () => {
@@ -113,6 +113,7 @@ describe('menuConfig', () => {
       expect(ids).toContain('templates')
       expect(ids).toContain('users')
       expect(ids).toContain('organizations')
+      expect(ids).toContain('delivery-methods')
       expect(ids).toContain('settings')
     })
   })
@@ -435,11 +436,11 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 18 items', () => {
+      it('can see all 19 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(18)
+        expect(visibleItems).toHaveLength(19)
       })
     })
 
@@ -628,7 +629,7 @@ describe('menuConfig', () => {
 
       it('returns correct items for SYSTEM section', () => {
         const items = getMenuItemsBySection('system')
-        expect(items).toHaveLength(5)
+        expect(items).toHaveLength(6)
         items.forEach(item => {
           expect(item.section).toBe('system')
         })
@@ -677,12 +678,13 @@ describe('menuConfig', () => {
       expect(MENU_ITEMS[11].id).toBe('org-archived')
       expect(MENU_ITEMS[12].id).toBe('org-settings')
 
-      // SYSTEM items last (13-17)
+      // SYSTEM items last (13-18)
       expect(MENU_ITEMS[13].id).toBe('admin')
       expect(MENU_ITEMS[14].id).toBe('templates')
       expect(MENU_ITEMS[15].id).toBe('users')
       expect(MENU_ITEMS[16].id).toBe('organizations')
-      expect(MENU_ITEMS[17].id).toBe('settings')
+      expect(MENU_ITEMS[17].id).toBe('delivery-methods')
+      expect(MENU_ITEMS[18].id).toBe('settings')
     })
   })
 })
