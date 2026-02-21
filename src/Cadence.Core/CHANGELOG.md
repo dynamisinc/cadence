@@ -2,6 +2,23 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.7.0](https://github.com/dynamisinc/cadence/compare/api-v3.6.0...api-v3.7.0) (2026-02-21)
+
+
+### Features
+
+* **autocomplete:** add block/unblock UI and historical values management ([e4eeaa1](https://github.com/dynamisinc/cadence/commit/e4eeaa1cdf22ffa8751ba5e226eb89c9b839027a))
+* **autocomplete:** add suggestion blocklist for suppressing historical values ([77e723f](https://github.com/dynamisinc/cadence/commit/77e723f7dbb0680a0f9d014d053fbaff606efe14))
+* **clock:** add max duration and manual time setting ([de6a434](https://github.com/dynamisinc/cadence/commit/de6a434499f90840359de6ed8282a81fa2ae5d04))
+* **delivery-methods:** add SysAdmin management UI for delivery methods ([3799423](https://github.com/dynamisinc/cadence/commit/37994237d4b9388c0b332b005ee1c1d31e843bc2))
+* UAT cleanup - clock, delivery methods, autocomplete, auth & photo fixes ([b08516a](https://github.com/dynamisinc/cadence/commit/b08516a12c1c1ba58862b06a1f1c5da5af86599e))
+
+
+### Bug Fixes
+
+* **auth:** escalate sys/org admin permissions above limited exercise roles ([e40b7f6](https://github.com/dynamisinc/cadence/commit/e40b7f69113dec1980147b0f1edce2e9c3e44927))
+* **photos:** resolve blob URIs to SAS URLs before returning to clients ([f0347ae](https://github.com/dynamisinc/cadence/commit/f0347aefa435e16323f25441fc7c218b84d76acd))
+
 ## [3.6.0](https://github.com/dynamisinc/cadence/compare/api-v3.5.0...api-v3.6.0) (2026-02-13)
 
 
