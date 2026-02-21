@@ -11,6 +11,7 @@ public static class OrganizationSuggestionMapper
         entity.Value,
         entity.SortOrder,
         entity.IsActive,
+        entity.IsBlocked,
         entity.CreatedAt,
         entity.UpdatedAt
     );

@@ -1,13 +1,13 @@
 /**
  * ClockControls Component
  *
- * Control buttons for the exercise clock (Start, Pause, Stop).
+ * Control buttons for the exercise clock (Start, Pause, Stop, Set Time).
  * Uses COBRA styled buttons and FontAwesome icons.
  */
 
 import { Box, Tooltip } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlay, faPause, faStop, faRotateLeft } from '@fortawesome/free-solid-svg-icons'
+import { faPlay, faPause, faStop, faRotateLeft, faPenToSquare } from '@fortawesome/free-solid-svg-icons'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -21,6 +21,8 @@ interface ClockControlsProps {
   onPause: () => void
   onStop: () => void
   onReset?: () => void
+  onSetTime?: () => void
+  canSetTime?: boolean
   isStarting?: boolean
   isPausing?: boolean
   isStopping?: boolean
@@ -36,6 +38,8 @@ export const ClockControls = ({
   onPause,
   onStop,
   onReset,
+  onSetTime,
+  canSetTime = false,
   isStarting = false,
   isPausing = false,
   isStopping = false,
@@ -103,6 +107,22 @@ export const ClockControls = ({
             >
               {isStopping ? 'Stopping...' : 'Stop'}
             </CobraDeleteButton>
+          </span>
+        </Tooltip>
+      )}
+
+      {/* Set Time Button - only when paused and user has director+ permission */}
+      {isPaused && canSetTime && onSetTime && (
+        <Tooltip title="Set clock time (Director only)">
+          <span>
+            <CobraSecondaryButton
+              onClick={onSetTime}
+              disabled={disabled}
+              size={buttonSize}
+              startIcon={<FontAwesomeIcon icon={faPenToSquare} />}
+            >
+              Set Time
+            </CobraSecondaryButton>
           </span>
         </Tooltip>
       )}

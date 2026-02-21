@@ -8,9 +8,20 @@ import { renderHook, waitFor } from '@testing-library/react'
 import { useExerciseRole } from './useExerciseRole'
 import { roleResolutionService } from '../services/roleResolutionService'
 import { useAuth } from '@/contexts/AuthContext'
+import { useOrganization } from '@/contexts/OrganizationContext'
 
 vi.mock('../services/roleResolutionService')
 vi.mock('@/contexts/AuthContext')
+vi.mock('@/contexts/OrganizationContext')
+
+const defaultOrgContext = {
+  currentOrg: { id: 'org1', name: 'Test Org', slug: 'test-org', role: 'OrgUser' },
+  memberships: [],
+  isLoading: false,
+  isPending: false,
+  switchOrganization: vi.fn(),
+  refreshMemberships: vi.fn(),
+}
 
 describe('useExerciseRole', () => {
   const mockUser = {
@@ -33,6 +44,7 @@ describe('useExerciseRole', () => {
       logout: vi.fn(),
       refreshAccessToken: vi.fn(),
     })
+    vi.mocked(useOrganization).mockReturnValue(defaultOrgContext)
   })
 
   it('returns system role when user has no exercise role', async () => {
@@ -69,7 +81,7 @@ describe('useExerciseRole', () => {
     expect(result.current.exerciseRole).toBe('Controller')
   })
 
-  it('exercise role overrides system role', async () => {
+  it('system admin escalates above limited exercise role', async () => {
     const exerciseId = '123e4567-e89b-12d3-a456-426614174000'
     const adminUser = {
       ...mockUser,
@@ -96,10 +108,76 @@ describe('useExerciseRole', () => {
       expect(result.current.isLoading).toBe(false)
     })
 
-    // Exercise role should override system role
-    expect(result.current.effectiveRole).toBe('Observer')
+    // System Admin role should escalate above Observer exercise role
+    expect(result.current.effectiveRole).toBe('Administrator')
     expect(result.current.systemRole).toBe('Admin')
     expect(result.current.exerciseRole).toBe('Observer')
+    expect(result.current.can('manage_participants')).toBe(true)
+  })
+
+  it('org admin escalates above limited exercise role', async () => {
+    const exerciseId = '123e4567-e89b-12d3-a456-426614174000'
+    vi.mocked(useOrganization).mockReturnValue({
+      ...defaultOrgContext,
+      currentOrg: { id: 'org1', name: 'Test Org', slug: 'test-org', role: 'OrgAdmin' },
+    })
+    vi.mocked(roleResolutionService.getUserExerciseRole).mockResolvedValueOnce('Controller')
+
+    const { result } = renderHook(() => useExerciseRole(exerciseId))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.effectiveRole).toBe('ExerciseDirector')
+    expect(result.current.can('manage_participants')).toBe(true)
+  })
+
+  it('org manager escalates above limited exercise role', async () => {
+    const exerciseId = '123e4567-e89b-12d3-a456-426614174000'
+    vi.mocked(useOrganization).mockReturnValue({
+      ...defaultOrgContext,
+      currentOrg: { id: 'org1', name: 'Test Org', slug: 'test-org', role: 'OrgManager' },
+    })
+    vi.mocked(roleResolutionService.getUserExerciseRole).mockResolvedValueOnce('Observer')
+
+    const { result } = renderHook(() => useExerciseRole(exerciseId))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.effectiveRole).toBe('ExerciseDirector')
+    expect(result.current.can('manage_participants')).toBe(true)
+  })
+
+  it('org user does not escalate exercise role', async () => {
+    const exerciseId = '123e4567-e89b-12d3-a456-426614174000'
+    vi.mocked(roleResolutionService.getUserExerciseRole).mockResolvedValueOnce('Controller')
+
+    const { result } = renderHook(() => useExerciseRole(exerciseId))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.effectiveRole).toBe('Controller')
+    expect(result.current.can('manage_participants')).toBe(false)
+  })
+
+  it('exercise director role is not downgraded by lower org role', async () => {
+    const exerciseId = '123e4567-e89b-12d3-a456-426614174000'
+    // OrgUser but ExerciseDirector in exercise
+    vi.mocked(roleResolutionService.getUserExerciseRole).mockResolvedValueOnce('ExerciseDirector')
+
+    const { result } = renderHook(() => useExerciseRole(exerciseId))
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false)
+    })
+
+    expect(result.current.effectiveRole).toBe('ExerciseDirector')
+    expect(result.current.can('manage_participants')).toBe(true)
   })
 
   it('can check permissions via can function', async () => {

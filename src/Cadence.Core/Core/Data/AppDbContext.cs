@@ -581,6 +581,12 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             // Exercise settings (S03-S05)
             entity.Property(e => e.ClockMultiplier).HasColumnType("decimal(4,2)").HasDefaultValue(1.0m);
 
+            // Store MaxDuration as bigint (ticks) to support durations > 24 hours
+            entity.Property(e => e.MaxDuration)
+                .HasConversion(
+                    v => v.HasValue ? v.Value.Ticks : (long?)null,
+                    v => v.HasValue ? TimeSpan.FromTicks(v.Value) : null);
+
             entity.HasIndex(e => new { e.OrganizationId, e.Status });
             entity.HasIndex(e => e.ScheduledDate);
 

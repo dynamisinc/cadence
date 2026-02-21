@@ -40,6 +40,7 @@ export const useExerciseSettings = (exerciseId: string | undefined) => {
     confirmFireInject: true,
     confirmSkipInject: true,
     confirmClockControl: true,
+    maxDuration: null,
   }
 
   return {

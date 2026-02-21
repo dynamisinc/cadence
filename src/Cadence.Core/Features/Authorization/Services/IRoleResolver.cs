@@ -22,6 +22,7 @@ public interface IRoleResolver
     /// <summary>
     /// Check if user can access an exercise.
     /// Admins can access all exercises regardless of assignment.
+    /// OrgAdmin/OrgManager can access all exercises in their current organization.
     /// Other users must be explicitly assigned as participants.
     /// </summary>
     /// <param name="userId">ApplicationUser.Id (string)</param>
@@ -34,7 +35,10 @@ public interface IRoleResolver
     /// Role hierarchy (lowest to highest):
     /// Observer &lt; Evaluator &lt; Controller &lt; ExerciseDirector &lt; Administrator
     ///
-    /// System Admins always have full access equivalent to Administrator.
+    /// Escalation rules:
+    /// - System Admins always have full access equivalent to Administrator.
+    /// - OrgAdmin/OrgManager get ExerciseDirector-equivalent access in their org.
+    /// - The effective role is the highest of: exercise role and mapped org role.
     /// </summary>
     /// <param name="userId">ApplicationUser.Id (string)</param>
     /// <param name="exerciseId">Exercise ID</param>

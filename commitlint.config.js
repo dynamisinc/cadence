@@ -45,6 +45,8 @@ module.exports = {
         'field-operations',
         'photo-capture',
         'photos',
+        'delivery-methods',
+        'autocomplete',
         // Infrastructure
         'agent',
         'migrations',

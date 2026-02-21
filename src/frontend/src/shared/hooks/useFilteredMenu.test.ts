@@ -86,10 +86,10 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees all 18 menu items', () => {
+      it('sees all 19 menu items', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(18)
+        expect(result.current.filteredItems).toHaveLength(19)
       })
 
       it('sees all menu items in correct order', () => {
@@ -113,6 +113,7 @@ describe('useFilteredMenu', () => {
           'templates',
           'users',
           'organizations',
+          'delivery-methods',
           'settings',
         ])
       })
@@ -641,6 +642,7 @@ describe('useFilteredMenu', () => {
         'templates',
         'users',
         'organizations',
+        'delivery-methods',
         'settings',
       ])
     })
@@ -663,10 +665,10 @@ describe('useFilteredMenu', () => {
       expect(result.current.groupedBySection.organization).toHaveLength(7)
     })
 
-    it('SYSTEM section has 5 items for Admin', () => {
+    it('SYSTEM section has 6 items for Admin', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.groupedBySection.system).toHaveLength(5)
+      expect(result.current.groupedBySection.system).toHaveLength(6)
     })
 
     it('returns sections in correct order (conduct, analysis, organization, system)', () => {
@@ -934,33 +936,33 @@ describe('useFilteredMenu', () => {
     it('works with empty options object', () => {
       const { result } = renderHook(() => useFilteredMenu({}))
 
-      expect(result.current.filteredItems).toHaveLength(18)
+      expect(result.current.filteredItems).toHaveLength(19)
     })
 
     it('works with no options (undefined)', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.filteredItems).toHaveLength(18)
+      expect(result.current.filteredItems).toHaveLength(19)
     })
 
     it('works with null exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
-      expect(result.current.filteredItems).toHaveLength(18)
+      expect(result.current.filteredItems).toHaveLength(19)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with undefined exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: undefined }))
 
-      expect(result.current.filteredItems).toHaveLength(18)
+      expect(result.current.filteredItems).toHaveLength(19)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with valid exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: 'valid-id' }))
 
-      expect(result.current.filteredItems).toHaveLength(18)
+      expect(result.current.filteredItems).toHaveLength(19)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
 
@@ -969,7 +971,7 @@ describe('useFilteredMenu', () => {
         useFilteredMenu({ exerciseId: '550e8400-e29b-41d4-a716-446655440000' }),
       )
 
-      expect(result.current.filteredItems).toHaveLength(18)
+      expect(result.current.filteredItems).toHaveLength(19)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
   })

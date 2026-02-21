@@ -62,7 +62,7 @@ import { ExerciseStatus, InjectStatus, ExerciseClockState, DeliveryMode } from '
 import { EffectiveRoleBadge, useExerciseRole } from '@/features/auth'
 
 // Feature imports
-import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime, ClockControlConfirmationDialog, type ClockAction } from '../../exercise-clock'
+import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime, ClockControlConfirmationDialog, SetClockTimeDialog, type ClockAction } from '../../exercise-clock'
 import { ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset, FireConfirmationDialog, SkipConfirmationDialog } from '../../injects'
 import {
   ObservationForm,
@@ -99,10 +99,13 @@ export const ExerciseConductPage = () => {
     pauseClock,
     stopClock,
     resetClock,
+    setClockTime,
+    maxDurationMs,
     isStarting,
     isPausing,
     isStopping,
     isResetting,
+    isSettingTime,
   } = useExerciseClock(exerciseId!)
   const {
     injects,
@@ -146,6 +149,7 @@ export const ExerciseConductPage = () => {
   const [fireConfirmInject, setFireConfirmInject] = useState<InjectDto | null>(null)
   const [skipConfirmInject, setSkipConfirmInject] = useState<InjectDto | null>(null)
   const [clockConfirmAction, setClockConfirmAction] = useState<ClockAction | null>(null)
+  const [showSetTimeDialog, setShowSetTimeDialog] = useState(false)
   const [pendingSkipInjectId, setPendingSkipInjectId] = useState<string | null>(null)
 
   // User-level "don't ask again" flags with localStorage persistence (per-exercise)
@@ -462,6 +466,11 @@ export const ExerciseConductPage = () => {
     return exercise?.status === ExerciseStatus.Active && can('fire_inject')
   }, [exercise, can])
 
+  const canSetTime = useMemo(() => {
+    // Exercise Directors and above can set clock time when paused
+    return can('set_clock_time')
+  }, [can])
+
   const canAddObservations = useMemo(() => {
     // Evaluators can add observations during active exercises
     return exercise?.status === ExerciseStatus.Active && can('add_observation')
@@ -705,6 +714,11 @@ export const ExerciseConductPage = () => {
   const handlePauseWithConfirmation = useCallback(() => {
     handleClockAction('pause')
   }, [handleClockAction])
+
+  const handleSetTimeConfirm = useCallback(async (elapsedTime: string) => {
+    await setClockTime(elapsedTime)
+    setShowSetTimeDialog(false)
+  }, [setClockTime])
 
   // Loading state
   if (exerciseLoading && !exercise) {
@@ -966,6 +980,8 @@ export const ExerciseConductPage = () => {
                           onPause={handlePauseWithConfirmation}
                           onStop={handleStopClick}
                           onReset={resetClock}
+                          onSetTime={() => setShowSetTimeDialog(true)}
+                          canSetTime={canSetTime}
                           isStarting={isStarting}
                           isPausing={isPausing}
                           isStopping={isStopping}
@@ -1223,6 +1239,16 @@ export const ExerciseConductPage = () => {
         onConfirm={handleClockConfirmed}
         onCancel={handleClockCancelled}
         onDontAskAgain={handleSkipClockConfirmation}
+      />
+
+      {/* Set Clock Time Dialog */}
+      <SetClockTimeDialog
+        open={showSetTimeDialog}
+        currentTime={displayTime}
+        maxDurationHours={maxDurationMs / (60 * 60 * 1000)}
+        onConfirm={handleSetTimeConfirm}
+        onCancel={() => setShowSetTimeDialog(false)}
+        isLoading={isSettingTime}
       />
 
       {/* Exercise Settings Dialog */}

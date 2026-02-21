@@ -209,6 +209,13 @@ public class Exercise : BaseEntity, IOrganizationScoped
     /// </summary>
     public bool ConfirmClockControl { get; set; } = true;
 
+    /// <summary>
+    /// Maximum allowed duration for exercise conduct (wall clock time).
+    /// When elapsed time reaches this limit, the clock is auto-paused.
+    /// Null means use default (72 hours). Absolute cap is 336 hours (2 weeks).
+    /// </summary>
+    public TimeSpan? MaxDuration { get; set; }
+
     // =========================================================================
     // Governance Properties (Inject Approval Workflow)
     // =========================================================================

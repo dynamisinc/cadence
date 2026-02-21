@@ -22,6 +22,11 @@ public class PhotoServiceTests
         _blobStorageMock = new Mock<IBlobStorageService>();
         _hubContextMock = new Mock<IExerciseHubContext>();
         _loggerMock = new Mock<ILogger<PhotoService>>();
+
+        // Default: GetReadUri returns input URI unchanged (like local storage)
+        _blobStorageMock
+            .Setup(x => x.GetReadUri(It.IsAny<string>(), It.IsAny<TimeSpan>()))
+            .Returns((string uri, TimeSpan _) => uri);
     }
 
     #region Helper Methods

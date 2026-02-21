@@ -19,15 +19,18 @@ namespace Cadence.WebApi.Controllers;
 public class OrganizationSuggestionsController : ControllerBase
 {
     private readonly IOrganizationSuggestionService _service;
+    private readonly IAutocompleteService _autocompleteService;
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<OrganizationSuggestionsController> _logger;
 
     public OrganizationSuggestionsController(
         IOrganizationSuggestionService service,
+        IAutocompleteService autocompleteService,
         ICurrentOrganizationContext orgContext,
         ILogger<OrganizationSuggestionsController> logger)
     {
         _service = service;
+        _autocompleteService = autocompleteService;
         _orgContext = orgContext;
         _logger = logger;
     }
@@ -197,5 +200,72 @@ public class OrganizationSuggestionsController : ControllerBase
         {
             return BadRequest(new { message = ex.Message });
         }
+    }
+
+    /// <summary>
+    /// Get historical values for a field, excluding curated and blocked values.
+    /// Used by the management page to show blockable historical suggestions.
+    /// </summary>
+    [HttpGet("historical")]
+    public async Task<ActionResult<IEnumerable<string>>> GetHistoricalValues(
+        [FromQuery] string fieldName, [FromQuery] int limit = 50)
+    {
+        var orgId = GetCurrentOrganizationId();
+        if (orgId == null)
+            return NotFound(new { message = "No organization context" });
+
+        if (!SuggestionFieldNames.IsValid(fieldName))
+            return BadRequest(new { message = $"Invalid field name: {fieldName}" });
+
+        var values = await _autocompleteService.GetHistoricalValuesAsync(orgId.Value, fieldName, limit);
+        return Ok(values);
+    }
+
+    /// <summary>
+    /// Block a historical value from appearing in autocomplete suggestions.
+    /// </summary>
+    [HttpPost("block")]
+    public async Task<ActionResult<OrganizationSuggestionDto>> BlockValue(
+        [FromBody] BlockSuggestionRequest request)
+    {
+        var orgId = GetCurrentOrganizationId();
+        if (orgId == null)
+            return NotFound(new { message = "No organization context" });
+
+        try
+        {
+            var blocked = await _service.BlockValueAsync(orgId.Value, request);
+
+            _logger.LogInformation(
+                "Blocked value '{Value}' for field {FieldName} in organization {OrgId}",
+                request.Value, request.FieldName, orgId.Value);
+
+            return Ok(blocked);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
+        catch (InvalidOperationException ex)
+        {
+            return Conflict(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
+    /// Unblock a previously blocked value.
+    /// </summary>
+    [HttpDelete("block/{id:guid}")]
+    public async Task<IActionResult> UnblockValue(Guid id)
+    {
+        var orgId = GetCurrentOrganizationId();
+        if (orgId == null)
+            return NotFound(new { message = "No organization context" });
+
+        var unblocked = await _service.UnblockAsync(orgId.Value, id);
+        if (!unblocked)
+            return NotFound(new { message = "Blocked value not found" });
+
+        return NoContent();
     }
 }

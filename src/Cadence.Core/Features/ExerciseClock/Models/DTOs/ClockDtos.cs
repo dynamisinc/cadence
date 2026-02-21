@@ -55,7 +55,13 @@ public record ClockStateDto(
     /// Clock multiplier for scenario time progression.
     /// Default 1.0 means real-time. 2.0 means scenario time runs 2x faster than wall clock.
     /// </summary>
-    decimal ClockMultiplier = 1.0m
+    decimal ClockMultiplier = 1.0m,
+
+    /// <summary>
+    /// Maximum allowed duration for exercise conduct (wall clock time).
+    /// Null if no explicit limit is configured (default 72 hours applies).
+    /// </summary>
+    TimeSpan? MaxDuration = null
 );
 
 /// <summary>
@@ -115,7 +121,21 @@ public static class ClockMapper
             startedByName,
             DateTime.UtcNow,
             exercise.StartTime,
-            exercise.ClockMultiplier
+            exercise.ClockMultiplier,
+            exercise.MaxDuration
         );
     }
+}
+
+/// <summary>
+/// Request DTO for manually setting the exercise clock elapsed time.
+/// Only allowed when the clock is paused.
+/// </summary>
+public class SetClockTimeRequest
+{
+    /// <summary>
+    /// The new elapsed time to set (wall clock time, before multiplier).
+    /// Must be non-negative and within the exercise's max duration.
+    /// </summary>
+    public TimeSpan ElapsedTime { get; init; }
 }

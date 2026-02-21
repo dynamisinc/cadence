@@ -1,8 +1,10 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.Authorization.Services;
+using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.Core.Tests.Helpers;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 
 namespace Cadence.Core.Tests.Features.Authorization.Services;
 
@@ -13,6 +15,7 @@ namespace Cadence.Core.Tests.Features.Authorization.Services;
 public class RoleResolverTests : IDisposable
 {
     private readonly AppDbContext _context;
+    private readonly Mock<ICurrentOrganizationContext> _orgContextMock;
     private readonly RoleResolver _resolver;
     private readonly Guid _organizationId = Guid.NewGuid();
 
@@ -32,7 +35,11 @@ public class RoleResolverTests : IDisposable
     public RoleResolverTests()
     {
         _context = TestDbContextFactory.Create();
-        _resolver = new RoleResolver(_context);
+        _orgContextMock = new Mock<ICurrentOrganizationContext>();
+        // Default: OrgUser with correct org (no escalation)
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgUser);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+        _resolver = new RoleResolver(_context, _orgContextMock.Object);
         SeedTestData();
     }
 
@@ -382,6 +389,41 @@ public class RoleResolverTests : IDisposable
         Assert.False(result);
     }
 
+    [Fact]
+    public async Task CanAccessExerciseAsync_OrgAdmin_NotParticipant_CanAccessOrgExercise()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgAdmin);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+
+        // regularUser is not assigned to the exercise
+        var result = await _resolver.CanAccessExerciseAsync(_regularUserId, _exerciseId);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task CanAccessExerciseAsync_OrgManager_NotParticipant_CanAccessOrgExercise()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgManager);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+
+        var result = await _resolver.CanAccessExerciseAsync(_regularUserId, _exerciseId);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task CanAccessExerciseAsync_OrgAdmin_DifferentOrg_CannotAccessExercise()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgAdmin);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(Guid.NewGuid()); // Different org
+
+        // regularUser is not assigned, and org doesn't match
+        var result = await _resolver.CanAccessExerciseAsync(_regularUserId, _exerciseId);
+
+        Assert.False(result);
+    }
+
     #endregion
 
     // =========================================================================
@@ -475,6 +517,87 @@ public class RoleResolverTests : IDisposable
         Assert.True(await _resolver.HasExerciseRoleAsync(_directorUserId, _exerciseId, ExerciseRole.Controller));
         Assert.True(await _resolver.HasExerciseRoleAsync(_directorUserId, _exerciseId, ExerciseRole.ExerciseDirector));
         Assert.False(await _resolver.HasExerciseRoleAsync(_directorUserId, _exerciseId, ExerciseRole.Administrator));
+    }
+
+    #endregion
+
+    // =========================================================================
+    // Org Role Escalation Tests
+    // =========================================================================
+    #region Org Role Escalation Tests
+
+    [Fact]
+    public async Task HasExerciseRoleAsync_OrgAdmin_AssignedAsController_GetsExerciseDirectorAccess()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgAdmin);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+
+        // Controller is assigned but OrgAdmin should escalate to ExerciseDirector
+        var result = await _resolver.HasExerciseRoleAsync(
+            _controllerUserId, _exerciseId, ExerciseRole.ExerciseDirector);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task HasExerciseRoleAsync_OrgManager_AssignedAsObserver_GetsExerciseDirectorAccess()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgManager);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+
+        var result = await _resolver.HasExerciseRoleAsync(
+            _observerUserId, _exerciseId, ExerciseRole.ExerciseDirector);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task HasExerciseRoleAsync_OrgAdmin_NotParticipant_GetsExerciseDirectorAccess()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgAdmin);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+
+        // regularUser is not assigned to the exercise at all
+        var result = await _resolver.HasExerciseRoleAsync(
+            _regularUserId, _exerciseId, ExerciseRole.ExerciseDirector);
+
+        Assert.True(result);
+    }
+
+    [Fact]
+    public async Task HasExerciseRoleAsync_OrgAdmin_CannotGetAdministratorAccess()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgAdmin);
+        _orgContextMock.Setup(x => x.CurrentOrganizationId).Returns(_organizationId);
+
+        // OrgAdmin escalates to ExerciseDirector, NOT Administrator
+        var result = await _resolver.HasExerciseRoleAsync(
+            _regularUserId, _exerciseId, ExerciseRole.Administrator);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task HasExerciseRoleAsync_OrgUser_NoEscalation()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns(OrgRole.OrgUser);
+
+        // Observer should NOT get escalated just because they're OrgUser
+        var result = await _resolver.HasExerciseRoleAsync(
+            _observerUserId, _exerciseId, ExerciseRole.ExerciseDirector);
+
+        Assert.False(result);
+    }
+
+    [Fact]
+    public async Task HasExerciseRoleAsync_NullOrgRole_NoEscalation()
+    {
+        _orgContextMock.Setup(x => x.CurrentOrgRole).Returns((OrgRole?)null);
+
+        var result = await _resolver.HasExerciseRoleAsync(
+            _observerUserId, _exerciseId, ExerciseRole.ExerciseDirector);
+
+        Assert.False(result);
     }
 
     #endregion

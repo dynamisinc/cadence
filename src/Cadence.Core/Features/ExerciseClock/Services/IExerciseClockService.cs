@@ -35,4 +35,13 @@ public interface IExerciseClockService
     /// Only allowed when exercise is in Draft status or clock is Stopped.
     /// </summary>
     Task<ClockStateDto> ResetClockAsync(Guid exerciseId, string resetBy);
+
+    /// <summary>
+    /// Manually set the exercise clock elapsed time.
+    /// Only allowed when clock is Paused. Restricted to ExerciseDirector+ roles.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID.</param>
+    /// <param name="elapsedTime">New wall clock elapsed time (before multiplier). Must be non-negative and within max duration.</param>
+    /// <param name="setBy">ApplicationUser ID who is setting the time.</param>
+    Task<ClockStateDto> SetClockTimeAsync(Guid exerciseId, TimeSpan elapsedTime, string setBy);
 }

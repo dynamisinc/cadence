@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useMemo, useState } from 'react'
 import {
   Box,
   Typography,
@@ -7,6 +7,7 @@ import {
   Tab,
   Stack,
   Alert,
+  Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLightbulb, faPlus, faFileImport, faHome, faBuilding } from '@fortawesome/free-solid-svg-icons'
@@ -20,6 +21,7 @@ import { useFieldSuggestions } from '../hooks/useSuggestionManagement'
 import { SuggestionTable } from '../components/SuggestionTable'
 import { AddSuggestionDialog } from '../components/AddSuggestionDialog'
 import { BulkPasteDialog } from '../components/BulkPasteDialog'
+import { HistoricalValuesSection } from '../components/HistoricalValuesSection'
 
 export const SuggestionManagementPage = () => {
   const { currentOrg } = useOrganization()
@@ -30,7 +32,17 @@ export const SuggestionManagementPage = () => {
   const activeField = SUGGESTION_FIELDS[activeTab]
   const fieldName: SuggestionFieldName = activeField.name
 
-  const { data: suggestions = [], isLoading, error } = useFieldSuggestions(fieldName)
+  const { data: allSuggestions = [], isLoading, error } = useFieldSuggestions(fieldName)
+
+  // Split curated suggestions from blocked entries
+  const suggestions = useMemo(
+    () => allSuggestions.filter(s => !s.isBlocked),
+    [allSuggestions],
+  )
+  const blockedSuggestions = useMemo(
+    () => allSuggestions.filter(s => s.isBlocked),
+    [allSuggestions],
+  )
 
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
@@ -112,6 +124,20 @@ export const SuggestionManagementPage = () => {
             suggestions={suggestions}
             fieldName={fieldName}
             isLoading={isLoading}
+          />
+
+          {/* Historical values section */}
+          <Divider sx={{ my: 3 }} />
+          <Typography variant="subtitle1" fontWeight={600} sx={{ mb: 1 }}>
+            Historical Values
+          </Typography>
+          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 2 }}>
+            Values auto-learned from past injects. Block unwanted values to hide them from
+            autocomplete suggestions.
+          </Typography>
+          <HistoricalValuesSection
+            fieldName={fieldName}
+            blockedSuggestions={blockedSuggestions}
           />
         </Box>
       </Paper>

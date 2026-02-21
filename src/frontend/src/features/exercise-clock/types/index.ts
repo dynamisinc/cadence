@@ -20,6 +20,7 @@ export interface ClockStateDto {
   capturedAt: string // DateTime as ISO string
   exerciseStartTime: string | null // TimeOnly as HH:MM:SS - planned exercise start time
   clockMultiplier: number // 1.0 = real-time, 2.0 = scenario time runs 2x faster
+  maxDuration: string | null // TimeSpan as HH:MM:SS or d.HH:MM:SS - max allowed wall clock duration
 }
 
 /**

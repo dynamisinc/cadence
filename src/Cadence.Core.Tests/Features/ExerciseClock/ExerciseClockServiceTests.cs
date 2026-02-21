@@ -800,4 +800,290 @@ public class ExerciseClockServiceTests
     }
 
     #endregion
+
+    #region SetClockTimeAsync Tests
+
+    [Fact]
+    public async Task SetClockTimeAsync_ExerciseNotFound_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var context = TestDbContextFactory.Create();
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.SetClockTimeAsync(Guid.NewGuid(), TimeSpan.FromHours(1), userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*not found*");
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ClockRunning_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Running);
+        exercise.ClockStartedAt = DateTime.UtcNow;
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(1), userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*paused*");
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ClockStopped_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Stopped);
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(1), userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*paused*");
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_NegativeTime_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(1);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(-1), userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*negative*");
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ExceedsMaxDuration_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(1);
+        exercise.MaxDuration = TimeSpan.FromHours(48);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(50), userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*maximum duration*");
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ValidTime_SetsElapsedTime()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(10);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var result = await service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(5), userId);
+
+        // Assert
+        var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
+        updatedExercise!.ClockElapsedBeforePause.Should().Be(TimeSpan.FromHours(5));
+        result.State.Should().Be(ExerciseClockState.Paused);
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ValidTime_LogsTimeSetEvent()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(1);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        await service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(2), userId);
+
+        // Assert
+        var clockEvent = context.ClockEvents
+            .FirstOrDefault(e => e.ExerciseId == exercise.Id && e.EventType == ClockEventType.TimeSet);
+        clockEvent.Should().NotBeNull();
+        clockEvent!.UserId.Should().Be(userId);
+        clockEvent.Notes.Should().Contain("Manual time set");
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ValidTime_BroadcastsClockPausedEvent()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(1);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        await service.SetClockTimeAsync(exercise.Id, TimeSpan.FromHours(2), userId);
+
+        // Assert
+        _hubContextMock.Verify(
+            h => h.NotifyClockPaused(exercise.Id, It.Is<ClockStateDto>(dto =>
+                dto.ExerciseId == exercise.Id &&
+                dto.State == ExerciseClockState.Paused)),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task SetClockTimeAsync_ZeroTime_Succeeds()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(10);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var result = await service.SetClockTimeAsync(exercise.Id, TimeSpan.Zero, userId);
+
+        // Assert
+        var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
+        updatedExercise!.ClockElapsedBeforePause.Should().Be(TimeSpan.Zero);
+    }
+
+    #endregion
+
+    #region Max Duration Tests
+
+    [Fact]
+    public async Task StartClockAsync_ElapsedExceedsMaxDuration_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.MaxDuration = TimeSpan.FromHours(24);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(24);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.StartClockAsync(exercise.Id, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*maximum duration*");
+    }
+
+    [Fact]
+    public async Task StartClockAsync_ElapsedBelowMaxDuration_Succeeds()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        exercise.MaxDuration = TimeSpan.FromHours(24);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(23);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var result = await service.StartClockAsync(exercise.Id, userId);
+
+        // Assert
+        result.State.Should().Be(ExerciseClockState.Running);
+    }
+
+    [Fact]
+    public async Task PauseClockAsync_ElapsedExceedsMaxDuration_ClampsToMax()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Running);
+        exercise.MaxDuration = TimeSpan.FromHours(1);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromMinutes(50);
+        // Started 20 minutes ago, so total = 50 + 20 = 70 minutes, exceeding 60 min max
+        exercise.ClockStartedAt = DateTime.UtcNow.AddMinutes(-20);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var result = await service.PauseClockAsync(exercise.Id, userId);
+
+        // Assert
+        var updatedExercise = await context.Exercises.FindAsync(exercise.Id);
+        updatedExercise!.ClockElapsedBeforePause.Should().Be(TimeSpan.FromHours(1));
+    }
+
+    [Fact]
+    public async Task StartClockAsync_NoMaxDurationSet_UsesDefaultOf72Hours()
+    {
+        // Arrange
+        var (context, _, exercise) = CreateTestContext(
+            status: ExerciseStatus.Active,
+            clockState: ExerciseClockState.Paused);
+        // No MaxDuration set - should use default of 72 hours
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(72);
+        await context.SaveChangesAsync();
+
+        var service = CreateService(context);
+        var userId = Guid.NewGuid().ToString();
+
+        // Act
+        var act = () => service.StartClockAsync(exercise.Id, userId);
+
+        // Assert
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*maximum duration*");
+    }
+
+    #endregion
 }

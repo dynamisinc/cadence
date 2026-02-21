@@ -5,10 +5,12 @@ import type {
   CreateSuggestionRequest,
   UpdateSuggestionRequest,
   BulkCreateSuggestionsRequest,
+  BlockSuggestionRequest,
   SuggestionFieldName,
 } from '../types'
 
 const QUERY_KEY = 'org-suggestions'
+const HISTORICAL_QUERY_KEY = 'org-suggestions-historical'
 
 /**
  * Fetch all managed suggestions for a field in the current organization.
@@ -109,6 +111,59 @@ export const useBulkCreateSuggestions = () => {
       const message =
         error.response?.data?.message || error.message || 'Failed to import suggestions'
       notify.error(message)
+    },
+  })
+}
+
+/**
+ * Fetch historical values for a field, excluding curated and blocked values.
+ */
+export const useHistoricalValues = (fieldName: SuggestionFieldName | null) => {
+  return useQuery({
+    queryKey: [HISTORICAL_QUERY_KEY, fieldName],
+    queryFn: () => suggestionManagementService.getHistoricalValues(fieldName!),
+    enabled: !!fieldName,
+  })
+}
+
+/**
+ * Block a historical value from appearing in autocomplete.
+ */
+export const useBlockValue = (fieldName: SuggestionFieldName) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (request: BlockSuggestionRequest) =>
+      suggestionManagementService.blockValue(request),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [HISTORICAL_QUERY_KEY, fieldName] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, fieldName] })
+      queryClient.invalidateQueries({ queryKey: ['autocomplete'] })
+      notify.success('Value blocked')
+    },
+    onError: (error: Error & { response?: { data?: { message?: string } } }) => {
+      const message = error.response?.data?.message || error.message || 'Failed to block value'
+      notify.error(message)
+    },
+  })
+}
+
+/**
+ * Unblock a previously blocked value.
+ */
+export const useUnblockValue = (fieldName: SuggestionFieldName) => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (id: string) => suggestionManagementService.unblockValue(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [HISTORICAL_QUERY_KEY, fieldName] })
+      queryClient.invalidateQueries({ queryKey: [QUERY_KEY, fieldName] })
+      queryClient.invalidateQueries({ queryKey: ['autocomplete'] })
+      notify.success('Value unblocked')
+    },
+    onError: () => {
+      notify.error('Failed to unblock value')
     },
   })
 }

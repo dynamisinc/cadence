@@ -82,6 +82,7 @@ export const useExercises = () => {
         confirmFireInject: true,
         confirmSkipInject: true,
         confirmClockControl: false,
+        maxDuration: null,
         // Summary counts - new exercise has no injects
         injectCount: 0,
         firedInjectCount: 0,

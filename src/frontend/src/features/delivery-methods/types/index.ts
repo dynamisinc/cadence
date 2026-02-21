@@ -18,6 +18,27 @@ export interface DeliveryMethodDto {
 }
 
 /**
+ * Request to create a new delivery method (admin only)
+ */
+export interface CreateDeliveryMethodRequest {
+  name: string
+  description?: string | null
+  sortOrder?: number
+  isOther?: boolean
+}
+
+/**
+ * Request to update an existing delivery method (admin only)
+ */
+export interface UpdateDeliveryMethodRequest {
+  name: string
+  description?: string | null
+  sortOrder: number
+  isActive: boolean
+  isOther: boolean
+}
+
+/**
  * Get display name for a delivery method
  * If it's the "Other" option and custom text is provided, show the custom text
  */

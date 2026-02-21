@@ -50,6 +50,7 @@ import {
 import { UserListPage } from './features/users'
 import { CapabilityLibraryPage } from './features/capabilities'
 import { SuggestionManagementPage } from './features/autocomplete'
+import { DeliveryMethodsManagementPage } from './features/delivery-methods'
 import { MyAssignmentsPage } from './features/assignments'
 import { PhotoGalleryPage, PhotoTrashPage } from './features/photos/pages'
 import {
@@ -421,6 +422,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute requiredRole={SystemRole.Admin}>
             <EditOrganizationPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/delivery-methods',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <DeliveryMethodsManagementPage />
           </ProtectedRoute>
         ),
       },

@@ -46,4 +46,15 @@ public interface IOrganizationSuggestionService
     /// Reorder suggestions within a field.
     /// </summary>
     Task ReorderSuggestionsAsync(Guid organizationId, string fieldName, List<Guid> orderedIds);
+
+    /// <summary>
+    /// Block a historical value from appearing in autocomplete suggestions.
+    /// Creates an OrganizationSuggestion with IsBlocked=true, IsActive=false.
+    /// </summary>
+    Task<OrganizationSuggestionDto> BlockValueAsync(Guid organizationId, BlockSuggestionRequest request);
+
+    /// <summary>
+    /// Unblock a previously blocked value by deleting the blocked entry.
+    /// </summary>
+    Task<bool> UnblockAsync(Guid organizationId, Guid id);
 }

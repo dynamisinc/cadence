@@ -12,7 +12,10 @@ public enum ClockEventType
     Paused,
 
     /// <summary>Clock was stopped (any state → Stopped, typically when exercise ends).</summary>
-    Stopped
+    Stopped,
+
+    /// <summary>Clock elapsed time was manually set by a director/admin while paused.</summary>
+    TimeSet
 }
 
 /// <summary>

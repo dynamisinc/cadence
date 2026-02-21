@@ -110,6 +110,12 @@ public class UpdateExerciseSettingsRequest
     /// Whether to show confirmation for clock control actions.
     /// </summary>
     public bool? ConfirmClockControl { get; init; }
+
+    /// <summary>
+    /// Maximum allowed duration for exercise conduct (wall clock time).
+    /// Null means no change. Must be positive and &lt;= 336 hours (2 weeks).
+    /// </summary>
+    public TimeSpan? MaxDuration { get; init; }
 }
 
 /// <summary>
@@ -120,7 +126,8 @@ public record ExerciseSettingsDto(
     bool AutoFireEnabled,
     bool ConfirmFireInject,
     bool ConfirmSkipInject,
-    bool ConfirmClockControl
+    bool ConfirmClockControl,
+    TimeSpan? MaxDuration
 );
 
 /// <summary>
@@ -163,6 +170,7 @@ public record ExerciseDto(
     bool ConfirmFireInject,
     bool ConfirmSkipInject,
     bool ConfirmClockControl,
+    TimeSpan? MaxDuration,
     // Summary counts (for list views)
     int InjectCount = 0,
     int FiredInjectCount = 0
@@ -215,6 +223,7 @@ public static class ExerciseMapper
         entity.ConfirmFireInject,
         entity.ConfirmSkipInject,
         entity.ConfirmClockControl,
+        entity.MaxDuration,
         injectCount,
         firedInjectCount
     );

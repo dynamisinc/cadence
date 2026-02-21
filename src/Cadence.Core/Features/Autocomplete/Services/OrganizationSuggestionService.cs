@@ -209,4 +209,61 @@ public class OrganizationSuggestionService : IOrganizationSuggestionService
 
         await _context.SaveChangesAsync();
     }
+
+    public async Task<OrganizationSuggestionDto> BlockValueAsync(
+        Guid organizationId, BlockSuggestionRequest request)
+    {
+        if (!SuggestionFieldNames.IsValid(request.FieldName))
+            throw new ArgumentException($"Invalid field name: {request.FieldName}");
+
+        var trimmedValue = request.Value.Trim();
+        if (string.IsNullOrEmpty(trimmedValue))
+            throw new ArgumentException("Value cannot be empty.");
+
+        // Check if already blocked or exists as a curated suggestion
+        var existing = await _context.OrganizationSuggestions
+            .FirstOrDefaultAsync(s => s.OrganizationId == organizationId
+                                   && s.FieldName == request.FieldName
+                                   && s.Value.ToLower() == trimmedValue.ToLower());
+
+        if (existing != null)
+        {
+            if (existing.IsBlocked)
+                throw new InvalidOperationException($"Value '{trimmedValue}' is already blocked.");
+
+            throw new InvalidOperationException($"Value '{trimmedValue}' exists as a curated suggestion. Delete it instead.");
+        }
+
+        var blocked = new OrganizationSuggestion
+        {
+            OrganizationId = organizationId,
+            FieldName = request.FieldName,
+            Value = trimmedValue,
+            SortOrder = 0,
+            IsActive = false,
+            IsBlocked = true,
+        };
+
+        _context.OrganizationSuggestions.Add(blocked);
+        await _context.SaveChangesAsync();
+
+        return blocked.ToDto();
+    }
+
+    public async Task<bool> UnblockAsync(Guid organizationId, Guid id)
+    {
+        var suggestion = await _context.OrganizationSuggestions
+            .FirstOrDefaultAsync(s => s.OrganizationId == organizationId
+                                   && s.Id == id
+                                   && s.IsBlocked);
+
+        if (suggestion == null)
+            return false;
+
+        suggestion.IsDeleted = true;
+        suggestion.DeletedAt = DateTime.UtcNow;
+        await _context.SaveChangesAsync();
+
+        return true;
+    }
 }
