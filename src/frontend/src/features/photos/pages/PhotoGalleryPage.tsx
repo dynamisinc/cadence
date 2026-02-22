@@ -246,6 +246,7 @@ export const PhotoGalleryPage = () => {
       <PageHeader
         title="Photo Gallery"
         icon={faImages}
+        subtitle="Browse and annotate photos captured during exercise conduct"
         chips={
           <Typography variant="body2" color="text.secondary">
             ({totalCount} {totalCount === 1 ? 'photo' : 'photos'})

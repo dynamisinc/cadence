@@ -123,7 +123,7 @@ export const CreateExercisePage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      <PageHeader title="Create Exercise" />
+      <PageHeader title="Create Exercise" subtitle="Define a new exercise with type, schedule, and settings" />
 
       <Paper sx={{ p: 2 }}>
         <ExerciseForm

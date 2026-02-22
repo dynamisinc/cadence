@@ -54,10 +54,13 @@ import {
   faPlus,
   faTrash,
   faUsers,
+  faHome,
+  faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraIconButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { PageHeader } from '@/shared/components'
+import { useBreadcrumbs } from '@/core/contexts'
 import { formatDate } from '../../../shared/utils/dateUtils'
 import { userService } from '../services/userService'
 import type { UserDto, UserMembershipDto } from '../types'
@@ -96,6 +99,12 @@ const getRoleColor = (role: string) => {
  * Administrators only
  */
 export const UserListPage: FC = () => {
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'System Settings', path: '/admin', icon: faShieldHalved },
+    { label: 'Users' },
+  ])
+
   const [users, setUsers] = useState<UserDto[]>([])
   const [pagination, setPagination] = useState({
     page: 0, // 0-indexed for TablePagination
@@ -364,8 +373,8 @@ export const UserListPage: FC = () => {
   }
 
   return (
-    <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
-      <PageHeader title="User Management" icon={faUsers} />
+    <Box padding={CobraStyles.Padding.MainWindow}>
+      <PageHeader title="User Management" icon={faUsers} subtitle="View and manage platform users, roles, and organization memberships" />
 
       {/* Error display */}
       {errorMessage && (

@@ -179,7 +179,7 @@ export const OrganizationMembersPage: FC = () => {
       <PageHeader
         title="Organization Members"
         icon={faUsers}
-        subtitle={`Manage members of ${currentOrg?.name || 'your organization'}`}
+        subtitle={`Manage members and invitations for ${currentOrg?.name || 'your organization'}`}
         mb={2}
       />
 

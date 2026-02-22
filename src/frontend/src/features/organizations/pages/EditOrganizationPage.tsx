@@ -31,6 +31,8 @@ import {
   faUsers,
   faClipboard,
   faBuilding,
+  faHome,
+  faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
@@ -58,6 +60,7 @@ import {
 } from '../components'
 import CobraStyles from '@/theme/CobraStyles'
 import { PageHeader } from '@/shared/components'
+import { useBreadcrumbs } from '@/core/contexts'
 import { Stack } from '@mui/material'
 
 /** Valid status values */
@@ -83,6 +86,13 @@ export const EditOrganizationPage: FC = () => {
   const archiveOrg = useArchiveOrganization()
   const deactivateOrg = useDeactivateOrganization()
   const restoreOrg = useRestoreOrganization()
+
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'System Settings', path: '/admin', icon: faShieldHalved },
+    { label: 'Organizations', path: '/admin/organizations', icon: faBuilding },
+    { label: organization?.name || 'Edit' },
+  ])
 
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
@@ -261,7 +271,7 @@ export const EditOrganizationPage: FC = () => {
       <PageHeader
         title="Edit Organization"
         icon={faBuilding}
-        subtitle={`${organization.name} — Manage organization settings, members, and permissions`}
+        subtitle="Manage organization details, members, and permissions"
         actions={<StatusChip status={status} />}
       />
 

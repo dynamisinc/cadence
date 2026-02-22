@@ -21,6 +21,7 @@ import {
   Alert,
   CircularProgress,
   Grid,
+  Stack,
   useMediaQuery,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -261,7 +262,7 @@ export const ExerciseSettingsPage = () => {
       <PageHeader
         title="Exercise Settings"
         icon={faGear}
-        subtitle={`${exercise?.name} — Configure clock speed, auto-fire, and confirmation dialogs.`}
+        subtitle={`Configure clock speed, auto-fire, and confirmations for ${exercise?.name}`}
       />
 
       {error && (

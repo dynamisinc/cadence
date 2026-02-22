@@ -78,7 +78,7 @@ export const ExerciseMetricsPage = () => {
 
   if (isLoading) {
     return (
-      <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
+      <Box padding={CobraStyles.Padding.MainWindow}>
         <Skeleton variant="text" width={300} height={40} />
         <Skeleton variant="rectangular" height={48} sx={{ mt: 2 }} />
         <Skeleton variant="rectangular" height={400} sx={{ mt: 2 }} />
@@ -88,7 +88,7 @@ export const ExerciseMetricsPage = () => {
 
   if (error || !exercise) {
     return (
-      <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
+      <Box padding={CobraStyles.Padding.MainWindow}>
         <Alert severity="error">
           Failed to load exercise. Please try again.
         </Alert>
@@ -97,11 +97,11 @@ export const ExerciseMetricsPage = () => {
   }
 
   return (
-    <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
+    <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="Exercise Metrics"
         icon={faChartBar}
-        subtitle={exercise.name}
+        subtitle={`After-action review data for ${exercise.name}`}
       />
 
       {/* Tabs */}

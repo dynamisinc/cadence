@@ -96,6 +96,7 @@ export const ExerciseListPage = () => {
       <PageHeader
         title="Exercises"
         icon={faFolderOpen}
+        subtitle="View, search, and manage your organization's exercises"
         actions={canManage ? (
           <CobraPrimaryButton
             startIcon={<FontAwesomeIcon icon={faPlus} />}

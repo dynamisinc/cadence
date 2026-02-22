@@ -39,6 +39,8 @@ import {
   faRotateLeft,
   faTrash,
   faEllipsisVertical,
+  faHome,
+  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 import { formatDate } from '@/shared/utils/dateUtils'
 import { notify } from '@/shared/utils/notify'
@@ -49,6 +51,7 @@ import {
 } from '../../theme/styledComponents'
 import CobraStyles from '../../theme/CobraStyles'
 import { PageHeader } from '../../shared/components'
+import { useBreadcrumbs } from '@/core/contexts'
 import { exerciseService } from '../../features/exercises/services/exerciseService'
 import { RestoreExerciseDialog } from '../../features/exercises/components/RestoreExerciseDialog'
 import { DeleteExerciseDialog } from '../../features/exercises/components/DeleteExerciseDialog'
@@ -105,6 +108,12 @@ const getStatusColor = (
  * Archived Exercises Management Page
  */
 export const ArchivedExercisesPage = () => {
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'Organization', path: '/organization/details', icon: faBuilding },
+    { label: 'Archived Exercises' },
+  ])
+
   const queryClient = useQueryClient()
 
   // State
@@ -287,7 +296,7 @@ export const ArchivedExercisesPage = () => {
       <PageHeader
         title="Archived Exercises"
         icon={faBoxArchive}
-        subtitle="Manage archived exercises. Restore them to make them active again, or permanently delete them."
+        subtitle="Restore archived exercises or permanently delete them"
       />
 
       {/* Summary Stats */}

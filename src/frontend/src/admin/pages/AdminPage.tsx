@@ -12,15 +12,22 @@
 
 import React from 'react'
 import { Container, Stack, Paper } from '@mui/material'
-import { faGear } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faHome, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
 import { SystemSettingsAdmin } from '../components/SystemSettingsAdmin'
 import { PageHeader } from '@/shared/components'
+import { useBreadcrumbs } from '@/core/contexts'
+import CobraStyles from '@/theme/CobraStyles'
 
 export const AdminPage: React.FC = () => {
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'System Settings' },
+  ])
+
   return (
     <Container maxWidth={false} disableGutters data-testid="admin-page">
-      <Stack spacing={4} sx={{ p: 2 }}>
+      <Stack spacing={4} sx={{ p: CobraStyles.Padding.MainWindow }}>
         <PageHeader
           title="System Settings"
           icon={faGear}

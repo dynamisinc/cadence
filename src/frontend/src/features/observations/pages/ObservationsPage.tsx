@@ -408,6 +408,7 @@ export const ObservationsPage = () => {
       <PageHeader
         title="Observations"
         icon={faEye}
+        subtitle="Record and review evaluator observations for this exercise"
         chips={
           <Chip
             label={`${observations.length} total`}

@@ -73,6 +73,7 @@ import {
   type EegEntryDto,
 } from '../types'
 import { PageHeader } from '@/shared/components'
+import CobraStyles from '@/theme/CobraStyles'
 
 type RatingFilterValue = 'all' | PerformanceRating
 type TabValue = 'entries' | 'coverage'
@@ -263,7 +264,7 @@ export const EegEntriesPage = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="EEG Entries"
         icon={faClipboardCheck}

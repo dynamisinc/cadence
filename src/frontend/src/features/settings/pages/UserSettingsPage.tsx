@@ -19,6 +19,7 @@ import {
   Alert,
   CircularProgress,
   Grid,
+  Stack,
   useMediaQuery,
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -154,7 +155,7 @@ export const UserSettingsPage = () => {
       <PageHeader
         title="My Preferences"
         icon={faGear}
-        subtitle="Customize your experience with display and behavior preferences."
+        subtitle="Customize your display, time format, and notification preferences"
       />
 
       {error && (

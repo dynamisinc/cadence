@@ -22,6 +22,7 @@ import {
   faPuzzlePiece,
   faPlus,
   faHome,
+  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
 import CobraStyles from '@/theme/CobraStyles'
@@ -46,7 +47,7 @@ export const CapabilityLibraryPage = () => {
   // Set breadcrumbs
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
-    { label: 'Admin', path: '/admin' },
+    { label: 'Organization', path: '/organization/details', icon: faBuilding },
     { label: 'Capability Library' },
   ])
 
@@ -123,7 +124,7 @@ export const CapabilityLibraryPage = () => {
       <PageHeader
         title="Capability Library"
         icon={faPuzzlePiece}
-        subtitle="Define the capabilities your organization can evaluate during exercises. These can be tagged to observations for performance tracking."
+        subtitle="Define capabilities to evaluate during exercises"
       />
 
       {/* Error display */}

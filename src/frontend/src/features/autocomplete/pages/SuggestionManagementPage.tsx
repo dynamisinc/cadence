@@ -66,7 +66,7 @@ export const SuggestionManagementPage = () => {
       <PageHeader
         title="Autocomplete Suggestions"
         icon={faLightbulb}
-        subtitle={`Manage curated suggestions for ${currentOrg?.name || 'your organization'}`}
+        subtitle="Manage autocomplete values for inject form fields"
         mb={2}
       />
 

@@ -31,10 +31,12 @@ import {
   Skeleton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faSearch, faBuilding } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faSearch, faBuilding, faHome, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
 import { PageHeader } from '@/shared/components'
+import { useBreadcrumbs } from '@/core/contexts'
+import CobraStyles from '@/theme/CobraStyles'
 import { useOrganizations } from '../hooks/useOrganizations'
 import { formatDate } from '@/shared/utils/dateUtils'
 import { StatusChip } from '@/shared/components/StatusChip'
@@ -44,6 +46,12 @@ type SortField = 'name' | 'slug' | 'status' | 'userCount' | 'exerciseCount' | 'c
 type SortDirection = 'asc' | 'desc'
 
 export const OrganizationListPage: FC = () => {
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'System Settings', path: '/admin', icon: faShieldHalved },
+    { label: 'Organizations' },
+  ])
+
   const navigate = useNavigate()
   const [search, setSearch] = useState('')
   const [statusFilter, setStatusFilter] = useState<OrgStatus | ''>('')
@@ -80,7 +88,7 @@ export const OrganizationListPage: FC = () => {
 
   if (error) {
     return (
-      <Box sx={{ p: 3 }}>
+      <Box padding={CobraStyles.Padding.MainWindow}>
         <Typography color="error">
           Failed to load organizations. Please try again.
         </Typography>
@@ -89,10 +97,11 @@ export const OrganizationListPage: FC = () => {
   }
 
   return (
-    <Box sx={{ p: 3 }}>
+    <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="Organization Management"
         icon={faBuilding}
+        subtitle="View, create, and manage all organizations on the platform"
         actions={
           <CobraPrimaryButton
             startIcon={<FontAwesomeIcon icon={faPlus} />}

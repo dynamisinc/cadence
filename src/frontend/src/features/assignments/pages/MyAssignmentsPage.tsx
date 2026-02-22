@@ -27,7 +27,7 @@ export function MyAssignmentsPage() {
   if (isLoading) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faClipboardList} />
+        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
         <AssignmentSection
           title="Active Now"
           type="active"
@@ -48,7 +48,7 @@ export function MyAssignmentsPage() {
   if (isError) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faClipboardList} />
+        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
         <Alert
           severity="error"
           action={
@@ -73,7 +73,7 @@ export function MyAssignmentsPage() {
   if (hasNoAssignments) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faClipboardList} />
+        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
         <Box
           display="flex"
           flexDirection="column"
@@ -101,7 +101,7 @@ export function MyAssignmentsPage() {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      <PageHeader title="My Assignments" icon={faClipboardList} />
+      <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
 
       {/* Active Section - always show */}
       <AssignmentSection

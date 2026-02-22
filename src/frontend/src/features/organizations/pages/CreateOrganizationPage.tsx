@@ -21,10 +21,12 @@ import {
   CircularProgress,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faTimes, faArrowLeft, faSave } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTimes, faArrowLeft, faSave, faHome, faShieldHalved, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
 import { PageHeader } from '@/shared/components'
+import { useBreadcrumbs } from '@/core/contexts'
+import CobraStyles from '@/theme/CobraStyles'
 import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations'
 import { notify } from '@/shared/utils/notify'
 import { debounce } from 'lodash'
@@ -43,6 +45,13 @@ function generateSlug(name: string): string {
 }
 
 export const CreateOrganizationPage: FC = () => {
+  useBreadcrumbs([
+    { label: 'Home', path: '/', icon: faHome },
+    { label: 'System Settings', path: '/admin', icon: faShieldHalved },
+    { label: 'Organizations', path: '/admin/organizations', icon: faBuilding },
+    { label: 'Create' },
+  ])
+
   const navigate = useNavigate()
   const createOrg = useCreateOrganization()
 
@@ -120,14 +129,15 @@ export const CreateOrganizationPage: FC = () => {
   const canSubmit = name.trim() && slug.trim() && firstAdminEmail.trim() && isSlugValid
 
   return (
-    <Box sx={{ p: 3, maxWidth: 800, mx: 'auto' }}>
+    <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="Create Organization"
+        subtitle="Set up a new organization with an initial administrator"
         showBackButton
         onBackClick={() => navigate('/admin/organizations')}
       />
 
-      <Paper sx={{ p: 3 }}>
+      <Paper sx={{ p: 3, maxWidth: 800 }}>
         <form onSubmit={handleSubmit}>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             {/* Organization Name */}

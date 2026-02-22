@@ -201,6 +201,7 @@ export const PhotoTrashPage = () => {
       <PageHeader
         title="Photo Trash"
         icon={faTrash}
+        subtitle="Restore or permanently delete removed photos"
         chips={
           <Typography variant="body2" color="text.secondary">
             ({deletedPhotos.length} {deletedPhotos.length === 1 ? 'photo' : 'photos'})
