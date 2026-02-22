@@ -137,7 +137,6 @@ describe('FeatureFlagsAdmin', () => {
         templates: 'Active',
         reports: 'ComingSoon',
         controlRoom: 'Active',
-        injectQueue: 'ComingSoon',
       })
 
       renderWithProvider(<FeatureFlagsAdmin />)
@@ -153,13 +152,12 @@ describe('FeatureFlagsAdmin', () => {
   })
 
   describe('sections', () => {
-    it('renders conduct section with Control Room and Inject Queue', () => {
+    it('renders conduct section with Control Room', () => {
       renderWithProvider(<FeatureFlagsAdmin />)
 
       expect(screen.getByTestId('conduct-flags-section')).toBeInTheDocument()
       expect(screen.getByText('Conduct')).toBeInTheDocument()
       expect(screen.getByText('Control Room')).toBeInTheDocument()
-      expect(screen.getByText('Inject Queue')).toBeInTheDocument()
     })
 
     it('renders analysis section with Reports', () => {

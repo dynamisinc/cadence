@@ -25,8 +25,6 @@ export interface FeatureFlags {
   reports: FeatureFlagState;
   /** Control Room - Real-time exercise conduct dashboard */
   controlRoom: FeatureFlagState;
-  /** Inject Queue - Pending inject management view */
-  injectQueue: FeatureFlagState;
   /** Organization Settings - General organization configuration (OrgAdmin) */
   orgSettings: FeatureFlagState;
 }
@@ -57,12 +55,6 @@ export const featureFlagInfo: FeatureFlagInfo[] = [
     category: 'conduct',
   },
   {
-    key: 'injectQueue',
-    label: 'Inject Queue',
-    description: 'View and manage pending injects during exercise conduct',
-    category: 'conduct',
-  },
-  {
     key: 'reports',
     label: 'Organization Reports',
     description: 'Cross-exercise reporting and analytics at the organization level',
@@ -90,7 +82,6 @@ export const defaultFeatureFlags: FeatureFlags = {
   templates: 'Hidden',
   reports: 'Hidden',
   controlRoom: 'Hidden',
-  injectQueue: 'Hidden',
   orgSettings: 'Hidden',
 }
 

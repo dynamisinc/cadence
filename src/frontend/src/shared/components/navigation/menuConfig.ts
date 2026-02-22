@@ -15,7 +15,6 @@
 import {
   faClipboardList,
   faFolderOpen,
-  faListCheck,
   faBinoculars,
   faChartBar,
   faFileAlt,
@@ -86,8 +85,8 @@ const ORG_ADMIN_ROLES: OrgRole[] = ['OrgAdmin']
 /**
  * Complete menu configuration
  *
- * 10 menu items across 3 sections:
- * - CONDUCT (4): My Assignments, Exercises, Control Room, Inject Queue
+ * Menu items across 3 sections:
+ * - CONDUCT (3): My Assignments, Exercises, Control Room
  * - ANALYSIS (2): Observations, Reports
  * - SYSTEM (5): System Settings, Templates, Users, Organizations, My Preferences
  */
@@ -121,17 +120,6 @@ export const MENU_ITEMS: MenuItem[] = [
     requiresExerciseContext: true,
     disabledTooltip: 'Enter an exercise first',
     featureFlag: 'controlRoom',
-  },
-  {
-    id: 'inject-queue',
-    label: 'Inject Queue',
-    icon: faListCheck,
-    path: '/exercises/:id/queue',
-    section: 'conduct',
-    allowedRoles: CONTROL_ROLES,
-    requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
-    featureFlag: 'injectQueue',
   },
 
   // ============================================================================

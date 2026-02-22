@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 19 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(19)
+    it('has exactly 18 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(18)
     })
 
     it('all items have required properties', () => {
@@ -70,9 +70,9 @@ describe('menuConfig', () => {
   // Section Distribution Tests
   // ===========================================================================
   describe('Section distribution', () => {
-    it('CONDUCT section has 4 items', () => {
+    it('CONDUCT section has 3 items', () => {
       const conductItems = MENU_ITEMS.filter(item => item.section === 'conduct')
-      expect(conductItems).toHaveLength(4)
+      expect(conductItems).toHaveLength(3)
     })
 
     it('ANALYSIS section has 2 items', () => {
@@ -96,7 +96,6 @@ describe('menuConfig', () => {
       expect(ids).toContain('my-assignments')
       expect(ids).toContain('exercises')
       expect(ids).toContain('control-room')
-      expect(ids).toContain('inject-queue')
     })
 
     it('ANALYSIS section contains correct items', () => {
@@ -203,34 +202,6 @@ describe('menuConfig', () => {
 
       it('has disabled tooltip', () => {
         expect(item.disabledTooltip).toBe('Enter an exercise first')
-      })
-    })
-
-    describe('Inject Queue', () => {
-      const item = MENU_ITEMS.find(i => i.id === 'inject-queue')!
-
-      it('exists', () => {
-        expect(item).toBeDefined()
-      })
-
-      it('has parameterized path', () => {
-        expect(item.path).toBe('/exercises/:id/queue')
-      })
-
-      it('is in CONDUCT section', () => {
-        expect(item.section).toBe('conduct')
-      })
-
-      it('is visible to Admin, Director, and Controller only', () => {
-        expect(item.allowedRoles).toContain(HseepRole.Administrator)
-        expect(item.allowedRoles).toContain(HseepRole.ExerciseDirector)
-        expect(item.allowedRoles).toContain(HseepRole.Controller)
-        expect(item.allowedRoles).not.toContain(HseepRole.Evaluator)
-        expect(item.allowedRoles).not.toContain(HseepRole.Observer)
-      })
-
-      it('requires exercise context', () => {
-        expect(item.requiresExerciseContext).toBe(true)
       })
     })
 
@@ -436,20 +407,20 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 19 items', () => {
+      it('can see all 18 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(19)
+        expect(visibleItems).toHaveLength(18)
       })
     })
 
     describe('ExerciseDirector', () => {
-      it('can see 14 items (all except Admin, Templates, Users, Organizations)', () => {
+      it('can see 13 items (all except Admin, Templates, Users, Organizations)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.ExerciseDirector),
         )
-        expect(visibleItems).toHaveLength(14)
+        expect(visibleItems).toHaveLength(13)
       })
 
       it('cannot see Admin', () => {
@@ -469,14 +440,14 @@ describe('menuConfig', () => {
     })
 
     describe('Controller', () => {
-      it('can see 12 items (conduct + org + settings)', () => {
+      it('can see 11 items (conduct + org + settings)', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Controller),
         )
-        expect(visibleItems).toHaveLength(12)
+        expect(visibleItems).toHaveLength(11)
       })
 
-      it('can see My Assignments, Exercises, Control Room, Inject Queue, Settings', () => {
+      it('can see My Assignments, Exercises, Control Room, Settings', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Controller),
         )
@@ -484,7 +455,6 @@ describe('menuConfig', () => {
         expect(ids).toContain('my-assignments')
         expect(ids).toContain('exercises')
         expect(ids).toContain('control-room')
-        expect(ids).toContain('inject-queue')
         expect(ids).toContain('settings')
       })
 
@@ -523,10 +493,6 @@ describe('menuConfig', () => {
         expect(controlRoom.allowedRoles).not.toContain(HseepRole.Evaluator)
       })
 
-      it('cannot see Inject Queue', () => {
-        const injectQueue = MENU_ITEMS.find(i => i.id === 'inject-queue')!
-        expect(injectQueue.allowedRoles).not.toContain(HseepRole.Evaluator)
-      })
     })
 
     describe('Observer', () => {
@@ -555,16 +521,15 @@ describe('menuConfig', () => {
   // Exercise Context Requirements Tests
   // ===========================================================================
   describe('Exercise context requirements', () => {
-    it('3 items require exercise context', () => {
+    it('2 items require exercise context', () => {
       const contextRequired = MENU_ITEMS.filter(item => item.requiresExerciseContext)
-      expect(contextRequired).toHaveLength(3)
+      expect(contextRequired).toHaveLength(2)
     })
 
-    it('Control Room, Inject Queue, and Observations require context', () => {
+    it('Control Room and Observations require context', () => {
       const contextRequired = MENU_ITEMS.filter(item => item.requiresExerciseContext)
       const ids = contextRequired.map(item => item.id)
       expect(ids).toContain('control-room')
-      expect(ids).toContain('inject-queue')
       expect(ids).toContain('observations')
     })
 
@@ -613,7 +578,7 @@ describe('menuConfig', () => {
     describe('getMenuItemsBySection', () => {
       it('returns correct items for CONDUCT section', () => {
         const items = getMenuItemsBySection('conduct')
-        expect(items).toHaveLength(4)
+        expect(items).toHaveLength(3)
         items.forEach(item => {
           expect(item.section).toBe('conduct')
         })
@@ -659,32 +624,31 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Menu order', () => {
     it('items are in correct order by section', () => {
-      // CONDUCT items first (0-3)
+      // CONDUCT items first (0-2)
       expect(MENU_ITEMS[0].id).toBe('my-assignments')
       expect(MENU_ITEMS[1].id).toBe('exercises')
       expect(MENU_ITEMS[2].id).toBe('control-room')
-      expect(MENU_ITEMS[3].id).toBe('inject-queue')
 
-      // ANALYSIS items next (4-5)
-      expect(MENU_ITEMS[4].id).toBe('observations')
-      expect(MENU_ITEMS[5].id).toBe('reports')
+      // ANALYSIS items next (3-4)
+      expect(MENU_ITEMS[3].id).toBe('observations')
+      expect(MENU_ITEMS[4].id).toBe('reports')
 
-      // ORGANIZATION items (6-12)
-      expect(MENU_ITEMS[6].id).toBe('org-details')
-      expect(MENU_ITEMS[7].id).toBe('org-members')
-      expect(MENU_ITEMS[8].id).toBe('org-approval')
-      expect(MENU_ITEMS[9].id).toBe('org-capabilities')
-      expect(MENU_ITEMS[10].id).toBe('org-suggestions')
-      expect(MENU_ITEMS[11].id).toBe('org-archived')
-      expect(MENU_ITEMS[12].id).toBe('org-settings')
+      // ORGANIZATION items (5-11)
+      expect(MENU_ITEMS[5].id).toBe('org-details')
+      expect(MENU_ITEMS[6].id).toBe('org-members')
+      expect(MENU_ITEMS[7].id).toBe('org-approval')
+      expect(MENU_ITEMS[8].id).toBe('org-capabilities')
+      expect(MENU_ITEMS[9].id).toBe('org-suggestions')
+      expect(MENU_ITEMS[10].id).toBe('org-archived')
+      expect(MENU_ITEMS[11].id).toBe('org-settings')
 
-      // SYSTEM items last (13-18)
-      expect(MENU_ITEMS[13].id).toBe('admin')
-      expect(MENU_ITEMS[14].id).toBe('templates')
-      expect(MENU_ITEMS[15].id).toBe('users')
-      expect(MENU_ITEMS[16].id).toBe('organizations')
-      expect(MENU_ITEMS[17].id).toBe('delivery-methods')
-      expect(MENU_ITEMS[18].id).toBe('settings')
+      // SYSTEM items last (12-17)
+      expect(MENU_ITEMS[12].id).toBe('admin')
+      expect(MENU_ITEMS[13].id).toBe('templates')
+      expect(MENU_ITEMS[14].id).toBe('users')
+      expect(MENU_ITEMS[15].id).toBe('organizations')
+      expect(MENU_ITEMS[16].id).toBe('delivery-methods')
+      expect(MENU_ITEMS[17].id).toBe('settings')
     })
   })
 })

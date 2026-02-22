@@ -89,7 +89,7 @@ describe('useFilteredMenu', () => {
       it('sees all 19 menu items', () => {
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(19)
+        expect(result.current.filteredItems).toHaveLength(18)
       })
 
       it('sees all menu items in correct order', () => {
@@ -99,7 +99,6 @@ describe('useFilteredMenu', () => {
           'my-assignments',
           'exercises',
           'control-room',
-          'inject-queue',
           'observations',
           'reports',
           'org-details',
@@ -152,11 +151,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 14 menu items (conduct+analysis+org+settings)', () => {
-        // ExerciseDirector w/OrgAdmin: 4 conduct + 2 analysis + 7 org + 1 settings = 14
+      it('sees 13 menu items (conduct+analysis+org+settings)', () => {
+        // ExerciseDirector w/OrgAdmin: 3 conduct + 2 analysis + 7 org + 1 settings = 13
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(14)
+        expect(result.current.filteredItems).toHaveLength(13)
       })
 
       it('does NOT see Templates', () => {
@@ -212,11 +211,11 @@ describe('useFilteredMenu', () => {
         })
       })
 
-      it('sees 12 menu items (conduct + org items + settings)', () => {
-        // Controller with OrgAdmin role sees: 4 conduct + 7 org + 1 settings = 12
+      it('sees 11 menu items (conduct + org items + settings)', () => {
+        // Controller with OrgAdmin role sees: 3 conduct + 7 org + 1 settings = 11
         const { result } = renderHook(() => useFilteredMenu())
 
-        expect(result.current.filteredItems).toHaveLength(12)
+        expect(result.current.filteredItems).toHaveLength(11)
       })
 
       it('sees My Assignments', () => {
@@ -232,11 +231,6 @@ describe('useFilteredMenu', () => {
       it('sees Control Room', () => {
         const { result } = renderHook(() => useFilteredMenu())
         expect(result.current.filteredItems.find(i => i.id === 'control-room')).toBeDefined()
-      })
-
-      it('sees Inject Queue', () => {
-        const { result } = renderHook(() => useFilteredMenu())
-        expect(result.current.filteredItems.find(i => i.id === 'inject-queue')).toBeDefined()
       })
 
       it('sees Settings', () => {
@@ -315,11 +309,6 @@ describe('useFilteredMenu', () => {
         expect(result.current.filteredItems.find(i => i.id === 'control-room')).toBeUndefined()
       })
 
-      it('does NOT see Inject Queue', () => {
-        const { result } = renderHook(() => useFilteredMenu())
-        expect(result.current.filteredItems.find(i => i.id === 'inject-queue')).toBeUndefined()
-      })
-
       it('does NOT see Reports', () => {
         const { result } = renderHook(() => useFilteredMenu())
         expect(result.current.filteredItems.find(i => i.id === 'reports')).toBeUndefined()
@@ -372,11 +361,6 @@ describe('useFilteredMenu', () => {
       it('does NOT see Control Room', () => {
         const { result } = renderHook(() => useFilteredMenu())
         expect(result.current.filteredItems.find(i => i.id === 'control-room')).toBeUndefined()
-      })
-
-      it('does NOT see Inject Queue', () => {
-        const { result } = renderHook(() => useFilteredMenu())
-        expect(result.current.filteredItems.find(i => i.id === 'inject-queue')).toBeUndefined()
       })
 
       it('does NOT see Observations', () => {
@@ -446,18 +430,6 @@ describe('useFilteredMenu', () => {
         const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
         expect(result.current.getDisabledTooltip('control-room')).toBe('Enter an exercise first')
-      })
-
-      it('Inject Queue is disabled', () => {
-        const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
-
-        expect(result.current.isItemDisabled('inject-queue')).toBe(true)
-      })
-
-      it('Inject Queue has correct disabled tooltip', () => {
-        const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
-
-        expect(result.current.getDisabledTooltip('inject-queue')).toBe('Enter an exercise first')
       })
 
       it('Observations is disabled', () => {
@@ -533,14 +505,6 @@ describe('useFilteredMenu', () => {
         )
 
         expect(result.current.getDisabledTooltip('control-room')).toBeUndefined()
-      })
-
-      it('Inject Queue is enabled', () => {
-        const { result } = renderHook(() =>
-          useFilteredMenu({ exerciseId: 'exercise-123' }),
-        )
-
-        expect(result.current.isItemDisabled('inject-queue')).toBe(false)
       })
 
       it('Observations is enabled', () => {
@@ -621,7 +585,6 @@ describe('useFilteredMenu', () => {
         'my-assignments',
         'exercises',
         'control-room',
-        'inject-queue',
       ])
     })
 
@@ -647,10 +610,10 @@ describe('useFilteredMenu', () => {
       ])
     })
 
-    it('CONDUCT section has 4 items for Admin', () => {
+    it('CONDUCT section has 3 items for Admin', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.groupedBySection.conduct).toHaveLength(4)
+      expect(result.current.groupedBySection.conduct).toHaveLength(3)
     })
 
     it('ANALYSIS section has 2 items for Admin', () => {
@@ -877,13 +840,6 @@ describe('useFilteredMenu', () => {
       expect(item?.path).toBe('/exercises/:id/control')
     })
 
-    it('Inject Queue has parameterized path', () => {
-      const { result } = renderHook(() => useFilteredMenu())
-
-      const item = result.current.filteredItems.find(i => i.id === 'inject-queue')
-      expect(item?.path).toBe('/exercises/:id/queue')
-    })
-
     it('Observations has parameterized path', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
@@ -936,33 +892,33 @@ describe('useFilteredMenu', () => {
     it('works with empty options object', () => {
       const { result } = renderHook(() => useFilteredMenu({}))
 
-      expect(result.current.filteredItems).toHaveLength(19)
+      expect(result.current.filteredItems).toHaveLength(18)
     })
 
     it('works with no options (undefined)', () => {
       const { result } = renderHook(() => useFilteredMenu())
 
-      expect(result.current.filteredItems).toHaveLength(19)
+      expect(result.current.filteredItems).toHaveLength(18)
     })
 
     it('works with null exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: null }))
 
-      expect(result.current.filteredItems).toHaveLength(19)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with undefined exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: undefined }))
 
-      expect(result.current.filteredItems).toHaveLength(19)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(true)
     })
 
     it('works with valid exerciseId', () => {
       const { result } = renderHook(() => useFilteredMenu({ exerciseId: 'valid-id' }))
 
-      expect(result.current.filteredItems).toHaveLength(19)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
 
@@ -971,7 +927,7 @@ describe('useFilteredMenu', () => {
         useFilteredMenu({ exerciseId: '550e8400-e29b-41d4-a716-446655440000' }),
       )
 
-      expect(result.current.filteredItems).toHaveLength(19)
+      expect(result.current.filteredItems).toHaveLength(18)
       expect(result.current.isItemDisabled('control-room')).toBe(false)
     })
   })
@@ -1013,32 +969,32 @@ describe('useFilteredMenu', () => {
 
     testRolePermissions(
       HseepRole.Administrator,
-      ['my-assignments', 'exercises', 'control-room', 'inject-queue', 'observations', 'reports', 'admin', 'templates', 'users', 'settings'],
+      ['my-assignments', 'exercises', 'control-room', 'observations', 'reports', 'admin', 'templates', 'users', 'settings'],
       [],
     )
 
     testRolePermissions(
       HseepRole.ExerciseDirector,
-      ['my-assignments', 'exercises', 'control-room', 'inject-queue', 'observations', 'reports', 'settings'],
+      ['my-assignments', 'exercises', 'control-room', 'observations', 'reports', 'settings'],
       ['admin', 'templates', 'users'],
     )
 
     testRolePermissions(
       HseepRole.Controller,
-      ['my-assignments', 'exercises', 'control-room', 'inject-queue', 'settings'],
+      ['my-assignments', 'exercises', 'control-room', 'settings'],
       ['observations', 'reports', 'admin', 'templates', 'users'],
     )
 
     testRolePermissions(
       HseepRole.Evaluator,
       ['my-assignments', 'exercises', 'observations', 'settings'],
-      ['control-room', 'inject-queue', 'reports', 'admin', 'templates', 'users'],
+      ['control-room', 'reports', 'admin', 'templates', 'users'],
     )
 
     testRolePermissions(
       HseepRole.Observer,
       ['my-assignments', 'exercises', 'settings'],
-      ['control-room', 'inject-queue', 'observations', 'reports', 'admin', 'templates', 'users'],
+      ['control-room', 'observations', 'reports', 'admin', 'templates', 'users'],
     )
   })
 })

@@ -64,7 +64,6 @@ import {
   faClipboardList,
   faFolderOpen,
   faGamepad,
-  faListCheck,
   faBinoculars,
   faChartBar,
   faFileAlt,
@@ -99,16 +98,6 @@ const mockMenuItems = {
     label: 'Control Room',
     icon: faGamepad,
     path: '/exercises/:id/control',
-    section: 'conduct',
-    allowedRoles: [HseepRole.Administrator, HseepRole.ExerciseDirector, HseepRole.Controller],
-    requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
-  },
-  'inject-queue': {
-    id: 'inject-queue',
-    label: 'Inject Queue',
-    icon: faListCheck,
-    path: '/exercises/:id/queue',
     section: 'conduct',
     allowedRoles: [HseepRole.Administrator, HseepRole.ExerciseDirector, HseepRole.Controller],
     requiresExerciseContext: true,
@@ -233,7 +222,6 @@ describe('Sidebar', () => {
         'my-assignments',
         'exercises',
         'control-room',
-        'inject-queue',
         'observations',
         'reports',
         'templates',
@@ -351,13 +339,12 @@ describe('Sidebar', () => {
   // Menu Items Rendering Tests - Admin Role
   // ===========================================================================
   describe('Menu Items - Admin Role', () => {
-    it('Admin sees all 9 menu items', () => {
+    it('Admin sees all 8 menu items', () => {
       renderSidebar()
 
       expect(screen.getByTestId('nav-item-my-assignments')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-exercises')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-control-room')).toBeInTheDocument()
-      expect(screen.getByTestId('nav-item-inject-queue')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-observations')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-reports')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-templates')).toBeInTheDocument()
@@ -371,7 +358,6 @@ describe('Sidebar', () => {
       expect(screen.getByText('My Assignments')).toBeInTheDocument()
       expect(screen.getByText('Exercises')).toBeInTheDocument()
       expect(screen.getByText('Control Room')).toBeInTheDocument()
-      expect(screen.getByText('Inject Queue')).toBeInTheDocument()
       expect(screen.getByText('Observations')).toBeInTheDocument()
       expect(screen.getByText('Reports')).toBeInTheDocument()
       expect(screen.getByText('Templates')).toBeInTheDocument()
@@ -397,19 +383,17 @@ describe('Sidebar', () => {
           'my-assignments',
           'exercises',
           'control-room',
-          'inject-queue',
           'settings',
         ]),
       )
     })
 
-    it('Controller sees 5 menu items', () => {
+    it('Controller sees 4 menu items', () => {
       renderSidebar()
 
       expect(screen.getByTestId('nav-item-my-assignments')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-exercises')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-control-room')).toBeInTheDocument()
-      expect(screen.getByTestId('nav-item-inject-queue')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-settings')).toBeInTheDocument()
     })
 
@@ -468,11 +452,6 @@ describe('Sidebar', () => {
       expect(screen.queryByTestId('nav-item-control-room')).not.toBeInTheDocument()
     })
 
-    it('Evaluator does NOT see Inject Queue', () => {
-      renderSidebar()
-
-      expect(screen.queryByTestId('nav-item-inject-queue')).not.toBeInTheDocument()
-    })
   })
 
   // ===========================================================================
@@ -517,13 +496,6 @@ describe('Sidebar', () => {
       expect(controlRoom).toHaveAttribute('data-disabled', 'true')
     })
 
-    it('Inject Queue is disabled when not in exercise context', () => {
-      renderSidebar()
-
-      const injectQueue = screen.getByTestId('nav-item-inject-queue')
-      expect(injectQueue).toHaveAttribute('data-disabled', 'true')
-    })
-
     it('Observations is disabled when not in exercise context', () => {
       renderSidebar()
 
@@ -534,7 +506,7 @@ describe('Sidebar', () => {
     it('Control Room is enabled when in exercise context', () => {
       mockUseFilteredMenu.mockReturnValue(
         createMockFilteredMenu(
-          ['my-assignments', 'exercises', 'control-room', 'inject-queue', 'settings'],
+          ['my-assignments', 'exercises', 'control-room', 'settings'],
           { exerciseId: 'exercise-123' },
         ),
       )
@@ -664,7 +636,7 @@ describe('Sidebar', () => {
     it('navigates to exercise-specific route when in exercise context', () => {
       mockUseFilteredMenu.mockReturnValue(
         createMockFilteredMenu(
-          ['my-assignments', 'exercises', 'control-room', 'inject-queue', 'settings'],
+          ['my-assignments', 'exercises', 'control-room', 'settings'],
           { exerciseId: 'exercise-123' },
         ),
       )
@@ -826,7 +798,6 @@ describe('Sidebar', () => {
         'nav-item-my-assignments',
         'nav-item-exercises',
         'nav-item-control-room',
-        'nav-item-inject-queue',
         'nav-item-observations',
         'nav-item-reports',
         'nav-item-templates',

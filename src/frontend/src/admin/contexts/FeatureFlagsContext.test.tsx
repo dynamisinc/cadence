@@ -107,7 +107,6 @@ describe('FeatureFlagsContext', () => {
         templates: 'Active',
         reports: 'ComingSoon',
         controlRoom: 'Hidden',
-        injectQueue: 'Hidden',
       })
 
       render(
@@ -154,7 +153,6 @@ describe('FeatureFlagsContext', () => {
         templates: 'Active',
         reports: 'ComingSoon',
         controlRoom: 'ComingSoon',
-        injectQueue: 'Active',
       })
 
       render(
@@ -199,7 +197,6 @@ describe('FeatureFlagsContext', () => {
         templates: 'Hidden',
         reports: 'Hidden',
         controlRoom: 'ComingSoon',
-        injectQueue: 'Hidden',
       })
 
       render(
@@ -235,7 +232,6 @@ describe('FeatureFlagsContext', () => {
           templates: 'ComingSoon',
           reports: 'Hidden',
           controlRoom: 'Hidden',
-          injectQueue: 'Hidden',
         }),
       }
 
