@@ -53,6 +53,7 @@ import {
   faBuilding,
   faPlus,
   faTrash,
+  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraTextField, CobraIconButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
@@ -364,7 +365,7 @@ export const UserListPage: FC = () => {
 
   return (
     <Box sx={{ p: CobraStyles.Padding.MainWindow }}>
-      <PageHeader title="User Management" />
+      <PageHeader title="User Management" icon={faUsers} />
 
       {/* Error display */}
       {errorMessage && (

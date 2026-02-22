@@ -6,7 +6,7 @@
  */
 import { Box, Typography, Alert } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faUserClock, faHome } from '@fortawesome/free-solid-svg-icons'
+import { faClipboardList, faHome } from '@fortawesome/free-solid-svg-icons'
 import { useBreadcrumbs } from '@/core/contexts'
 import { useMyAssignments } from '../hooks/useMyAssignments'
 import { AssignmentSection } from '../components/AssignmentSection'
@@ -27,7 +27,7 @@ export function MyAssignmentsPage() {
   if (isLoading) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faUserClock} />
+        <PageHeader title="My Assignments" icon={faClipboardList} />
         <AssignmentSection
           title="Active Now"
           type="active"
@@ -48,7 +48,7 @@ export function MyAssignmentsPage() {
   if (isError) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faUserClock} />
+        <PageHeader title="My Assignments" icon={faClipboardList} />
         <Alert
           severity="error"
           action={
@@ -73,7 +73,7 @@ export function MyAssignmentsPage() {
   if (hasNoAssignments) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faUserClock} />
+        <PageHeader title="My Assignments" icon={faClipboardList} />
         <Box
           display="flex"
           flexDirection="column"
@@ -83,7 +83,7 @@ export function MyAssignmentsPage() {
           textAlign="center"
         >
           <FontAwesomeIcon
-            icon={faUserClock}
+            icon={faClipboardList}
             style={{ fontSize: '4rem', color: '#ccc', marginBottom: '1rem' }}
           />
           <Typography variant="h5" color="text.secondary" gutterBottom>
@@ -103,7 +103,7 @@ export function MyAssignmentsPage() {
     <Box padding={CobraStyles.Padding.MainWindow}>
       {/* Page Header */}
       <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
-        <FontAwesomeIcon icon={faUserClock} size="lg" />
+        <FontAwesomeIcon icon={faClipboardList} size="lg" />
         <Typography variant="h5" component="h1">My Assignments</Typography>
       </Box>
 

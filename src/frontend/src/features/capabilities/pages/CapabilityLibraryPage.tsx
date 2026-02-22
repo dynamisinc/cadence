@@ -19,7 +19,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
-  faShieldHalved,
+  faPuzzlePiece,
   faPlus,
   faHome,
 } from '@fortawesome/free-solid-svg-icons'
@@ -122,7 +122,7 @@ export const CapabilityLibraryPage = () => {
     <Box sx={{ padding: CobraStyles.Padding.MainWindow }}>
       <PageHeader
         title="Capability Library"
-        icon={faShieldHalved}
+        icon={faPuzzlePiece}
         subtitle="Define the capabilities your organization can evaluate during exercises. These can be tagged to observations for performance tracking."
       />
 

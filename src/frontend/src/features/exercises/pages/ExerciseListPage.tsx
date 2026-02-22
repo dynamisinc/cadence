@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Typography, Stack, Paper } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faPlus, faBan } from '@fortawesome/free-solid-svg-icons'
+import { faPlus, faBan, faFolderOpen } from '@fortawesome/free-solid-svg-icons'
 
 import { useExercises } from '../hooks'
 import { ExerciseTable } from '../components'
@@ -95,6 +95,7 @@ export const ExerciseListPage = () => {
     <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="Exercises"
+        icon={faFolderOpen}
         actions={canManage ? (
           <CobraPrimaryButton
             startIcon={<FontAwesomeIcon icon={faPlus} />}
