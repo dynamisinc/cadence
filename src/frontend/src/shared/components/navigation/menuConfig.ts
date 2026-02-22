@@ -15,13 +15,11 @@
 import {
   faClipboardList,
   faFolderOpen,
-  faBinoculars,
   faChartBar,
   faFileAlt,
   faUsers,
   faCog,
   faShieldHalved,
-  faDesktop,
   faBuilding,
   faUserShield,
   faPuzzlePiece,
@@ -42,24 +40,6 @@ const ALL_HSEEP_ROLES: HseepRole[] = [
   HseepRole.Controller,
   HseepRole.Evaluator,
   HseepRole.Observer,
-]
-
-/**
- * Roles that can access control/inject features
- */
-const CONTROL_ROLES: HseepRole[] = [
-  HseepRole.Administrator,
-  HseepRole.ExerciseDirector,
-  HseepRole.Controller,
-]
-
-/**
- * Roles that can access observation features
- */
-const OBSERVATION_ROLES: HseepRole[] = [
-  HseepRole.Administrator,
-  HseepRole.ExerciseDirector,
-  HseepRole.Evaluator,
 ]
 
 /**
@@ -86,9 +66,12 @@ const ORG_ADMIN_ROLES: OrgRole[] = ['OrgAdmin']
  * Complete menu configuration
  *
  * Menu items across 3 sections:
- * - CONDUCT (3): My Assignments, Exercises, Control Room
- * - ANALYSIS (2): Observations, Reports
- * - SYSTEM (5): System Settings, Templates, Users, Organizations, My Preferences
+ * - CONDUCT (2): My Assignments, Exercises
+ * - ANALYSIS (1): Reports
+ * - SYSTEM (6): System Settings, Templates, Users, Organizations, Delivery Methods, My Preferences
+ *
+ * Note: Exercise-scoped items (Control Room, Observations) are only shown
+ * in the exercise-specific sidebar (exerciseMenuConfig.ts), not here.
  */
 export const MENU_ITEMS: MenuItem[] = [
   // ============================================================================
@@ -110,31 +93,10 @@ export const MENU_ITEMS: MenuItem[] = [
     section: 'conduct',
     allowedRoles: ALL_HSEEP_ROLES,
   },
-  {
-    id: 'control-room',
-    label: 'Control Room',
-    icon: faDesktop,
-    path: '/exercises/:id/control',
-    section: 'conduct',
-    allowedRoles: CONTROL_ROLES,
-    requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
-    featureFlag: 'controlRoom',
-  },
 
   // ============================================================================
   // ANALYSIS Section - Post-exercise review and reporting
   // ============================================================================
-  {
-    id: 'observations',
-    label: 'Observations',
-    icon: faBinoculars,
-    path: '/exercises/:id/observations',
-    section: 'analysis',
-    allowedRoles: OBSERVATION_ROLES,
-    requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
-  },
   {
     id: 'reports',
     label: 'Reports',

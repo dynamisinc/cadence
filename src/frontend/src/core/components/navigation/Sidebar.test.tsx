@@ -63,8 +63,6 @@ vi.mock('../../../shared/hooks', async () => {
 import {
   faClipboardList,
   faFolderOpen,
-  faGamepad,
-  faBinoculars,
   faChartBar,
   faFileAlt,
   faUsers,
@@ -92,26 +90,6 @@ const mockMenuItems = {
     allowedRoles: [],
     requiresExerciseContext: false,
     disabledTooltip: undefined,
-  },
-  'control-room': {
-    id: 'control-room',
-    label: 'Control Room',
-    icon: faGamepad,
-    path: '/exercises/:id/control',
-    section: 'conduct',
-    allowedRoles: [HseepRole.Administrator, HseepRole.ExerciseDirector, HseepRole.Controller],
-    requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
-  },
-  'observations': {
-    id: 'observations',
-    label: 'Observations',
-    icon: faBinoculars,
-    path: '/exercises/:id/observations',
-    section: 'analysis',
-    allowedRoles: [HseepRole.Administrator, HseepRole.ExerciseDirector, HseepRole.Evaluator],
-    requiresExerciseContext: true,
-    disabledTooltip: 'Enter an exercise first',
   },
   'reports': {
     id: 'reports',
@@ -216,13 +194,11 @@ describe('Sidebar', () => {
     mockNavigate.mockClear();
     (useMediaQuery as ReturnType<typeof vi.fn>).mockReturnValue(false) // Desktop by default
 
-    // Default mock: Admin sees all items, not in exercise context
+    // Default mock: Admin sees all items
     mockUseFilteredMenu.mockReturnValue(
       createMockFilteredMenu([
         'my-assignments',
         'exercises',
-        'control-room',
-        'observations',
         'reports',
         'templates',
         'users',
@@ -339,13 +315,11 @@ describe('Sidebar', () => {
   // Menu Items Rendering Tests - Admin Role
   // ===========================================================================
   describe('Menu Items - Admin Role', () => {
-    it('Admin sees all 8 menu items', () => {
+    it('Admin sees all 6 menu items', () => {
       renderSidebar()
 
       expect(screen.getByTestId('nav-item-my-assignments')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-exercises')).toBeInTheDocument()
-      expect(screen.getByTestId('nav-item-control-room')).toBeInTheDocument()
-      expect(screen.getByTestId('nav-item-observations')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-reports')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-templates')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-users')).toBeInTheDocument()
@@ -357,8 +331,6 @@ describe('Sidebar', () => {
 
       expect(screen.getByText('My Assignments')).toBeInTheDocument()
       expect(screen.getByText('Exercises')).toBeInTheDocument()
-      expect(screen.getByText('Control Room')).toBeInTheDocument()
-      expect(screen.getByText('Observations')).toBeInTheDocument()
       expect(screen.getByText('Reports')).toBeInTheDocument()
       expect(screen.getByText('Templates')).toBeInTheDocument()
       expect(screen.getByText('Users')).toBeInTheDocument()
@@ -382,25 +354,17 @@ describe('Sidebar', () => {
         createMockFilteredMenu([
           'my-assignments',
           'exercises',
-          'control-room',
           'settings',
         ]),
       )
     })
 
-    it('Controller sees 4 menu items', () => {
+    it('Controller sees 3 menu items', () => {
       renderSidebar()
 
       expect(screen.getByTestId('nav-item-my-assignments')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-exercises')).toBeInTheDocument()
-      expect(screen.getByTestId('nav-item-control-room')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-settings')).toBeInTheDocument()
-    })
-
-    it('Controller does NOT see Observations', () => {
-      renderSidebar()
-
-      expect(screen.queryByTestId('nav-item-observations')).not.toBeInTheDocument()
     })
 
     it('Controller does NOT see Reports', () => {
@@ -431,25 +395,17 @@ describe('Sidebar', () => {
         createMockFilteredMenu([
           'my-assignments',
           'exercises',
-          'observations',
           'settings',
         ]),
       )
     })
 
-    it('Evaluator sees 4 menu items', () => {
+    it('Evaluator sees 3 menu items', () => {
       renderSidebar()
 
       expect(screen.getByTestId('nav-item-my-assignments')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-exercises')).toBeInTheDocument()
-      expect(screen.getByTestId('nav-item-observations')).toBeInTheDocument()
       expect(screen.getByTestId('nav-item-settings')).toBeInTheDocument()
-    })
-
-    it('Evaluator does NOT see Control Room', () => {
-      renderSidebar()
-
-      expect(screen.queryByTestId('nav-item-control-room')).not.toBeInTheDocument()
     })
 
   })
@@ -472,16 +428,10 @@ describe('Sidebar', () => {
       expect(screen.getByTestId('nav-item-settings')).toBeInTheDocument()
     })
 
-    it('Observer does NOT see Control Room', () => {
+    it('Observer does NOT see Reports', () => {
       renderSidebar()
 
-      expect(screen.queryByTestId('nav-item-control-room')).not.toBeInTheDocument()
-    })
-
-    it('Observer does NOT see Observations', () => {
-      renderSidebar()
-
-      expect(screen.queryByTestId('nav-item-observations')).not.toBeInTheDocument()
+      expect(screen.queryByTestId('nav-item-reports')).not.toBeInTheDocument()
     })
   })
 
@@ -489,58 +439,21 @@ describe('Sidebar', () => {
   // Disabled State Tests
   // ===========================================================================
   describe('Disabled State', () => {
-    it('Control Room is disabled when not in exercise context', () => {
-      renderSidebar()
-
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      expect(controlRoom).toHaveAttribute('data-disabled', 'true')
-    })
-
-    it('Observations is disabled when not in exercise context', () => {
-      renderSidebar()
-
-      const observations = screen.getByTestId('nav-item-observations')
-      expect(observations).toHaveAttribute('data-disabled', 'true')
-    })
-
-    it('Control Room is enabled when in exercise context', () => {
-      mockUseFilteredMenu.mockReturnValue(
-        createMockFilteredMenu(
-          ['my-assignments', 'exercises', 'control-room', 'settings'],
-          { exerciseId: 'exercise-123' },
-        ),
-      )
-
-      renderSidebar({}, '/exercises/exercise-123/control')
-
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      expect(controlRoom).toHaveAttribute('data-disabled', 'false')
-    })
-
-    it('disabled items do not navigate when clicked', () => {
-      renderSidebar()
-
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      fireEvent.click(controlRoom)
-
-      expect(mockNavigate).not.toHaveBeenCalled()
-    })
-
-    it('My Assignments is NOT disabled (no exercise context needed)', () => {
+    it('My Assignments is NOT disabled', () => {
       renderSidebar()
 
       const myAssignments = screen.getByTestId('nav-item-my-assignments')
       expect(myAssignments).toHaveAttribute('data-disabled', 'false')
     })
 
-    it('Exercises is NOT disabled (no exercise context needed)', () => {
+    it('Exercises is NOT disabled', () => {
       renderSidebar()
 
       const exercises = screen.getByTestId('nav-item-exercises')
       expect(exercises).toHaveAttribute('data-disabled', 'false')
     })
 
-    it('Settings is NOT disabled (no exercise context needed)', () => {
+    it('Settings is NOT disabled', () => {
       renderSidebar()
 
       const settings = screen.getByTestId('nav-item-settings')
@@ -633,21 +546,6 @@ describe('Sidebar', () => {
       expect(mockNavigate).toHaveBeenCalledWith('/users')
     })
 
-    it('navigates to exercise-specific route when in exercise context', () => {
-      mockUseFilteredMenu.mockReturnValue(
-        createMockFilteredMenu(
-          ['my-assignments', 'exercises', 'control-room', 'settings'],
-          { exerciseId: 'exercise-123' },
-        ),
-      )
-
-      renderSidebar({}, '/exercises/exercise-123/control')
-
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      fireEvent.click(controlRoom)
-
-      expect(mockNavigate).toHaveBeenCalledWith('/exercises/exercise-123/control')
-    })
   })
 
   // ===========================================================================
@@ -797,8 +695,6 @@ describe('Sidebar', () => {
       const items = [
         'nav-item-my-assignments',
         'nav-item-exercises',
-        'nav-item-control-room',
-        'nav-item-observations',
         'nav-item-reports',
         'nav-item-templates',
         'nav-item-users',
@@ -878,52 +774,4 @@ describe('Sidebar', () => {
     })
   })
 
-  // ===========================================================================
-  // Exercise Context Extraction Tests
-  // ===========================================================================
-  describe('Exercise Context Extraction', () => {
-    it('extracts exercise ID from /exercises/:id path', () => {
-      mockUseFilteredMenu.mockReturnValue(
-        createMockFilteredMenu(
-          ['my-assignments', 'exercises', 'control-room', 'settings'],
-          { exerciseId: 'abc-123' },
-        ),
-      )
-
-      renderSidebar({}, '/exercises/abc-123')
-
-      // Control room should be enabled because we're in exercise context
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      expect(controlRoom).toHaveAttribute('data-disabled', 'false')
-    })
-
-    it('extracts exercise ID from /exercises/:id/control path', () => {
-      mockUseFilteredMenu.mockReturnValue(
-        createMockFilteredMenu(
-          ['my-assignments', 'exercises', 'control-room', 'settings'],
-          { exerciseId: 'def-456' },
-        ),
-      )
-
-      renderSidebar({}, '/exercises/def-456/control')
-
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      expect(controlRoom).toHaveAttribute('data-disabled', 'false')
-    })
-
-    it('does not extract exercise ID from /exercises/new path', () => {
-      renderSidebar({}, '/exercises/new')
-
-      // Should remain disabled because "new" is not a valid exercise ID
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      expect(controlRoom).toHaveAttribute('data-disabled', 'true')
-    })
-
-    it('does not extract exercise ID from /exercises path', () => {
-      renderSidebar({}, '/exercises')
-
-      const controlRoom = screen.getByTestId('nav-item-control-room')
-      expect(controlRoom).toHaveAttribute('data-disabled', 'true')
-    })
-  })
 })
