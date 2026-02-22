@@ -64,6 +64,7 @@ export const DeliveryMethodsManagementPage = () => {
       <AddDeliveryMethodDialog
         open={showAddDialog}
         onClose={() => setShowAddDialog(false)}
+        otherExists={methods.some(m => m.isOther)}
       />
     </Box>
   )

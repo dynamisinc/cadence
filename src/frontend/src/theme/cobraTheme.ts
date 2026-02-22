@@ -288,6 +288,20 @@ export const cobraTheme = createTheme({
         size: 'small',
       },
     },
+    MuiTableHead: {
+      styleOverrides: {
+        root: {
+          backgroundColor: 'rgba(0, 0, 0, 0.04)',
+        },
+      },
+    },
+    MuiTableCell: {
+      styleOverrides: {
+        head: {
+          fontWeight: 600,
+        },
+      },
+    },
     MuiListItemIcon: {
       styleOverrides: {
         root: {
@@ -572,6 +586,20 @@ export function createCobraTheme(mode: 'light' | 'dark') {
       MuiButton: {
         defaultProps: {
           size: 'small',
+        },
+      },
+      MuiTableHead: {
+        styleOverrides: {
+          root: {
+            backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
+          },
+        },
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          head: {
+            fontWeight: 600,
+          },
         },
       },
       MuiListItemIcon: {

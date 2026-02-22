@@ -120,7 +120,6 @@ export function DeliveryMethodTable({ methods, isLoading }: DeliveryMethodTableP
             <TableRow>
               <TableCell>Name</TableCell>
               <TableCell>Description</TableCell>
-              <TableCell align="center" sx={{ width: 80 }}>Other</TableCell>
               <TableCell align="center" sx={{ width: 80 }}>Active</TableCell>
               <TableCell align="right" sx={{ width: 100 }}>Actions</TableCell>
             </TableRow>
@@ -142,7 +141,12 @@ export function DeliveryMethodTable({ methods, isLoading }: DeliveryMethodTableP
                       autoFocus
                     />
                   ) : (
-                    <Typography variant="body2">{method.name}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                      <Typography variant="body2">{method.name}</Typography>
+                      {method.isOther && (
+                        <Chip label="Other" size="small" variant="outlined" color="info" />
+                      )}
+                    </Box>
                   )}
                 </TableCell>
                 <TableCell>
@@ -162,11 +166,6 @@ export function DeliveryMethodTable({ methods, isLoading }: DeliveryMethodTableP
                     <Typography variant="body2" color="text.secondary">
                       {method.description || '\u2014'}
                     </Typography>
-                  )}
-                </TableCell>
-                <TableCell align="center">
-                  {method.isOther && (
-                    <Chip label="Other" size="small" variant="outlined" color="info" />
                   )}
                 </TableCell>
                 <TableCell align="center">

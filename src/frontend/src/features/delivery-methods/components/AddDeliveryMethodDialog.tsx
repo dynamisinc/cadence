@@ -13,9 +13,10 @@ import { useCreateDeliveryMethod } from '../hooks/useDeliveryMethodManagement'
 interface AddDeliveryMethodDialogProps {
   open: boolean
   onClose: () => void
+  otherExists: boolean
 }
 
-export function AddDeliveryMethodDialog({ open, onClose }: AddDeliveryMethodDialogProps) {
+export function AddDeliveryMethodDialog({ open, onClose, otherExists }: AddDeliveryMethodDialogProps) {
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isOther, setIsOther] = useState(false)
@@ -84,9 +85,12 @@ export function AddDeliveryMethodDialog({ open, onClose }: AddDeliveryMethodDial
             <Checkbox
               checked={isOther}
               onChange={e => setIsOther(e.target.checked)}
+              disabled={otherExists}
             />
           }
-          label="This is the 'Other' option (allows free-text input)"
+          label={otherExists
+            ? "An 'Other' delivery method already exists"
+            : "This is the 'Other' option (allows free-text input)"}
           sx={{ mt: 1 }}
         />
       </DialogContent>
