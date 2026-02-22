@@ -40,7 +40,7 @@ export const ExerciseHeader = ({
       marginBottom={marginBottom}
     >
       <Stack direction="row" spacing={2} alignItems="center">
-        <Typography variant="h5" component="h1">
+        <Typography variant="h5" component="h1" fontWeight={600}>
           {exercise.name}
         </Typography>
         {exercise.isPracticeMode && (

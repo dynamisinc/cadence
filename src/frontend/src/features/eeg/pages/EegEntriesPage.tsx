@@ -266,6 +266,7 @@ export const EegEntriesPage = () => {
     <Box sx={{ p: 3 }}>
       <PageHeader
         title="EEG Entries"
+        icon={faClipboardCheck}
         subtitle={`Exercise Evaluation Guide entries for ${exercise.name}`}
         actions={
           <Stack direction="row" spacing={2}>

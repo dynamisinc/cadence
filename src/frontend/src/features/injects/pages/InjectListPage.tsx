@@ -377,6 +377,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="MSEL"
+        icon={faListCheck}
         showBackButton
         onBackClick={handleBackClick}
         subtitle={exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}

@@ -24,6 +24,7 @@ import {
   faFileArchive,
   faClipboardList,
   faArrowLeft,
+  faChartBar,
 } from '@fortawesome/free-solid-svg-icons'
 import CobraStyles from '@/theme/CobraStyles'
 import { CobraPrimaryButton, CobraLinkButton } from '@/theme/styledComponents'
@@ -150,6 +151,7 @@ export const ReportsPage = () => {
     <Box padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="Reports & Export"
+        icon={faChartBar}
         subtitle="Export exercise data for analysis and documentation"
         actions={
           <CobraLinkButton

@@ -39,6 +39,7 @@ import {
   faWindowMaximize,
   faGear,
   faClipboardCheck,
+  faDesktop,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 
@@ -73,6 +74,7 @@ import { eegEntryKeys } from '../../eeg/hooks/useEegEntries'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
+import { PageHeader } from '@/shared/components'
 import { useObjectiveSummaries } from '../../objectives/hooks'
 import { QuickPhotoFab } from '../../photos'
 import type { ObservationDto } from '../../observations/types'
@@ -786,9 +788,18 @@ export const ExerciseConductPage = () => {
         boxSizing: 'border-box',
       }}
     >
-      {/* Header */}
+      {/* Page Header */}
+      <PageHeader
+        title="Exercise Conduct"
+        icon={faDesktop}
+        subtitle={exercise ? `Conduct ${exercise.name}` : undefined}
+        mb={2}
+      />
+
+      {/* Exercise Info Header */}
       <ExerciseHeader
         exercise={exercise}
+        marginBottom={3}
         actions={
           <>
             {/* User's Exercise Role Badge */}

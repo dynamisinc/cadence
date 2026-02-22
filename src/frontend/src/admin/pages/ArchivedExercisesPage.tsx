@@ -48,6 +48,7 @@ import {
   CobraTextField,
 } from '../../theme/styledComponents'
 import CobraStyles from '../../theme/CobraStyles'
+import { PageHeader } from '../../shared/components'
 import { exerciseService } from '../../features/exercises/services/exerciseService'
 import { RestoreExerciseDialog } from '../../features/exercises/components/RestoreExerciseDialog'
 import { DeleteExerciseDialog } from '../../features/exercises/components/DeleteExerciseDialog'
@@ -283,18 +284,11 @@ export const ArchivedExercisesPage = () => {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Header */}
-      <Stack direction="row" alignItems="center" spacing={2} marginBottom={1}>
-        <FontAwesomeIcon icon={faBoxArchive} size="lg" />
-        <Typography variant="h5" component="h1">
-          Archived Exercises
-        </Typography>
-      </Stack>
-
-      <Typography variant="body2" color="text.secondary" marginBottom={3}>
-        Manage archived exercises. Restore them to make them active again, or permanently delete
-        them.
-      </Typography>
+      <PageHeader
+        title="Archived Exercises"
+        icon={faBoxArchive}
+        subtitle="Manage archived exercises. Restore them to make them active again, or permanently delete them."
+      />
 
       {/* Summary Stats */}
       <Paper sx={{ p: 2, mb: 3, bgcolor: 'grey.50' }}>

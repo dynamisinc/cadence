@@ -11,28 +11,21 @@
  */
 
 import React from 'react'
-import { Container, Stack, Box, Paper, Typography } from '@mui/material'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
+import { Container, Stack, Paper } from '@mui/material'
 import { faGear } from '@fortawesome/free-solid-svg-icons'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
 import { SystemSettingsAdmin } from '../components/SystemSettingsAdmin'
+import { PageHeader } from '@/shared/components'
 
 export const AdminPage: React.FC = () => {
   return (
     <Container maxWidth={false} disableGutters data-testid="admin-page">
       <Stack spacing={4} sx={{ p: 2 }}>
-        {/* Page Header */}
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 1 }}>
-            <FontAwesomeIcon icon={faGear} size="lg" />
-            <Typography variant="h4" component="h1">
-              System Settings
-            </Typography>
-          </Box>
-          <Typography variant="body1" color="text.secondary">
-            Manage platform-wide configuration and feature availability
-          </Typography>
-        </Box>
+        <PageHeader
+          title="System Settings"
+          icon={faGear}
+          subtitle="Manage platform-wide configuration and feature availability"
+        />
 
         {/* System Settings Section */}
         <Paper sx={{ p: 3 }} data-testid="system-settings-section">

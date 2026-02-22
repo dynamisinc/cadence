@@ -101,11 +101,7 @@ export function MyAssignmentsPage() {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      {/* Page Header */}
-      <Box display="flex" alignItems="center" gap={2} marginBottom={3}>
-        <FontAwesomeIcon icon={faClipboardList} size="lg" />
-        <Typography variant="h5" component="h1">My Assignments</Typography>
-      </Box>
+      <PageHeader title="My Assignments" icon={faClipboardList} />
 
       {/* Active Section - always show */}
       <AssignmentSection

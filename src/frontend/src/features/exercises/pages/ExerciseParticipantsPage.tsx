@@ -14,7 +14,8 @@ import { useState, useCallback } from 'react'
 import type { FC } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Alert } from '@mui/material'
-import { faHome } from '@fortawesome/free-solid-svg-icons'
+import { faHome, faUsers } from '@fortawesome/free-solid-svg-icons'
+import { PageHeader } from '@/shared/components'
 import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
 import { InviteMembersDialog } from '../components/InviteMembersDialog'
@@ -198,6 +199,15 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
+      {/* Page Header - only show in standalone mode */}
+      {isStandalone && (
+        <PageHeader
+          title="Participants"
+          icon={faUsers}
+          subtitle={exercise ? `Manage participants for ${exercise.name}` : undefined}
+        />
+      )}
+
       {/* Error State */}
       {isError && (
         <Alert severity="error" sx={{ mb: 3 }}>
