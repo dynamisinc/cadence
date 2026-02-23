@@ -23,6 +23,15 @@ public class AssignmentServiceTests
         _context = TestDbContextFactory.Create();
         var logger = new Mock<ILogger<AssignmentService>>();
         _service = new AssignmentService(_context, logger.Object);
+
+        // Create the test organization entity
+        _context.Organizations.Add(new Organization
+        {
+            Id = _testOrganizationId,
+            Name = "Test Organization",
+            Slug = "test-org"
+        });
+        _context.SaveChanges();
     }
 
     /// <summary>
@@ -30,13 +39,14 @@ public class AssignmentServiceTests
     /// </summary>
     private async Task<Exercise> CreateExerciseAsync(
         ExerciseStatus status = ExerciseStatus.Draft,
-        string name = "Test Exercise")
+        string name = "Test Exercise",
+        Guid? organizationId = null)
     {
         var exercise = new Exercise
         {
             Id = Guid.NewGuid(),
             Name = name,
-            OrganizationId = _testOrganizationId,
+            OrganizationId = organizationId ?? _testOrganizationId,
             Status = status,
             ScheduledDate = DateOnly.FromDateTime(DateTime.UtcNow.AddDays(7)),
             ExerciseType = ExerciseType.TTX

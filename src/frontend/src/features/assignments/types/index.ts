@@ -40,6 +40,8 @@ export interface AssignmentDto {
   location: string | null
   /** Exercise time zone */
   timeZoneId: string
+  /** Name of the organization this exercise belongs to */
+  organizationName: string
 }
 
 /**
@@ -68,4 +70,5 @@ export interface AssignmentSectionProps {
   assignments: AssignmentDto[]
   isLoading?: boolean
   emptyMessage?: string
+  showOrganization?: boolean
 }

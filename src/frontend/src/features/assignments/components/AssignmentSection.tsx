@@ -56,6 +56,7 @@ export function AssignmentSection({
   assignments,
   isLoading = false,
   emptyMessage = 'No assignments',
+  showOrganization = false,
 }: AssignmentSectionProps) {
   // Completed section is collapsed by default
   const [isExpanded, setIsExpanded] = useState(type !== 'completed')
@@ -155,6 +156,7 @@ export function AssignmentSection({
               key={assignment.exerciseId}
               assignment={assignment}
               sectionType={type}
+              showOrganization={showOrganization}
             />
           ))}
       </Collapse>

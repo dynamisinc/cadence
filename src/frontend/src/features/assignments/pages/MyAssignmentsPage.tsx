@@ -4,6 +4,7 @@
  * Displays all exercise assignments for the current user,
  * grouped into Active, Upcoming, and Completed sections.
  */
+import { useMemo } from 'react'
 import { Box, Typography, Alert } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboardList, faHome } from '@fortawesome/free-solid-svg-icons'
@@ -22,6 +23,14 @@ export function MyAssignmentsPage() {
   ])
 
   const { data, isLoading, isError, error, refetch } = useMyAssignments()
+
+  // Show organization name on cards when assignments span multiple organizations
+  const hasMultipleOrgs = useMemo(() => {
+    if (!data) return false
+    const allAssignments = [...data.active, ...data.upcoming, ...data.completed]
+    const orgNames = new Set(allAssignments.map(a => a.organizationName))
+    return orgNames.size > 1
+  }, [data])
 
   // Loading state
   if (isLoading) {
@@ -109,6 +118,7 @@ export function MyAssignmentsPage() {
         type="active"
         assignments={data.active}
         emptyMessage="No exercises are currently in conduct."
+        showOrganization={hasMultipleOrgs}
       />
 
       {/* Upcoming Section - always show */}
@@ -117,6 +127,7 @@ export function MyAssignmentsPage() {
         type="upcoming"
         assignments={data.upcoming}
         emptyMessage="No upcoming exercises."
+        showOrganization={hasMultipleOrgs}
       />
 
       {/* Completed Section - always show (collapsed by default) */}
@@ -125,6 +136,7 @@ export function MyAssignmentsPage() {
         type="completed"
         assignments={data.completed}
         emptyMessage="No completed exercises."
+        showOrganization={hasMultipleOrgs}
       />
     </Box>
   )

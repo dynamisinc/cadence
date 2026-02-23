@@ -13,6 +13,7 @@ import {
   faMapMarkerAlt,
   faClock,
   faCheckCircle,
+  faBuilding,
 } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import type { AssignmentDto, AssignmentSectionType } from '../types'
@@ -23,6 +24,7 @@ import { formatDate as sharedFormatDate } from '@/shared/utils/dateUtils'
 interface AssignmentCardProps {
   assignment: AssignmentDto
   sectionType: AssignmentSectionType
+  showOrganization?: boolean
 }
 
 /**
@@ -64,7 +66,7 @@ function getClockStateDisplay(clockState: string | null): {
   }
 }
 
-export function AssignmentCard({ assignment, sectionType }: AssignmentCardProps) {
+export function AssignmentCard({ assignment, sectionType, showOrganization }: AssignmentCardProps) {
   const navigate = useNavigate()
 
   const handleClick = () => {
@@ -103,6 +105,17 @@ export function AssignmentCard({ assignment, sectionType }: AssignmentCardProps)
             mb={1}
           >
             <Box flex={1}>
+              {showOrganization && (
+                <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
+                  <FontAwesomeIcon
+                    icon={faBuilding}
+                    style={{ color: '#888', fontSize: '0.75rem' }}
+                  />
+                  <Typography variant="caption" color="text.secondary">
+                    {assignment.organizationName}
+                  </Typography>
+                </Box>
+              )}
               <Typography variant="h6" component="div" gutterBottom>
                 {assignment.exerciseName}
               </Typography>

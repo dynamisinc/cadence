@@ -30,6 +30,8 @@ public class AssignmentService : IAssignmentService
             .Include(p => p.Exercise)
                 .ThenInclude(e => e.ActiveMsel)
                     .ThenInclude(m => m!.Injects)
+            .Include(p => p.Exercise)
+                .ThenInclude(e => e.Organization)
             .Where(p => p.UserId == userId && !p.IsDeleted && !p.Exercise.IsDeleted)
             .ToListAsync(ct);
 
@@ -101,6 +103,8 @@ public class AssignmentService : IAssignmentService
             .Include(p => p.Exercise)
                 .ThenInclude(e => e.ActiveMsel)
                     .ThenInclude(m => m!.Injects)
+            .Include(p => p.Exercise)
+                .ThenInclude(e => e.Organization)
             .Where(p => p.UserId == userId && p.ExerciseId == exerciseId && !p.IsDeleted && !p.Exercise.IsDeleted)
             .FirstOrDefaultAsync(ct);
 
@@ -150,7 +154,8 @@ public class AssignmentService : IAssignmentService
             FiredInjects = injects.Count(i => !i.IsDeleted && i.Status == InjectStatus.Released),
             ReadyInjects = injects.Count(i => !i.IsDeleted && i.Status == InjectStatus.Synchronized),
             Location = exercise.Location,
-            TimeZoneId = exercise.TimeZoneId
+            TimeZoneId = exercise.TimeZoneId,
+            OrganizationName = exercise.Organization?.Name ?? string.Empty
         };
     }
 }

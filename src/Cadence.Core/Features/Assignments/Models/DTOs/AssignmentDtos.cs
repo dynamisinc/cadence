@@ -107,4 +107,9 @@ public record AssignmentDto
     /// Exercise time zone.
     /// </summary>
     public string TimeZoneId { get; init; } = "UTC";
+
+    /// <summary>
+    /// Name of the organization this exercise belongs to.
+    /// </summary>
+    public string OrganizationName { get; init; } = string.Empty;
 }
