@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Data;
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExcelImport.Models.DTOs;
 using Cadence.Core.Features.Injects.Services;
@@ -235,9 +236,40 @@ public class ExcelImportService : IExcelImportService
                     MselConfidence = 50
                 });
             }
+            else if (extension == ".xls")
+            {
+                // Handle legacy .xls files using ExcelDataReader
+                var dataSet = LegacyExcelReader.ReadToDataSet(memoryStream);
+
+                for (int i = 0; i < dataSet.Tables.Count; i++)
+                {
+                    var table = dataSet.Tables[i];
+                    var lastRow = LegacyExcelReader.GetLastUsedRow(table);
+                    var lastCol = Math.Min(LegacyExcelReader.GetLastUsedColumn(table) + 1, MaxColumns);
+
+                    var (looksLikeMsel, confidence, suggestedHeaderRow) = AnalyzeDataTableHeaders(table);
+
+                    worksheets.Add(new WorksheetInfoDto
+                    {
+                        Index = i,
+                        Name = table.TableName,
+                        RowCount = Math.Max(0, lastRow), // lastRow is 0-based
+                        ColumnCount = lastCol,
+                        LooksLikeMsel = looksLikeMsel,
+                        MselConfidence = confidence,
+                        SuggestedHeaderRow = suggestedHeaderRow,
+                        SuggestedDataStartRow = suggestedHeaderRow + 1
+                    });
+                }
+
+                if (worksheets.Count == 0)
+                {
+                    warnings.Add("The workbook contains no worksheets.");
+                }
+            }
             else
             {
-                // Handle Excel files
+                // Handle .xlsx files using ClosedXML
                 using var workbook = new XLWorkbook(memoryStream);
 
                 foreach (var worksheet in workbook.Worksheets)
@@ -321,6 +353,11 @@ public class ExcelImportService : IExcelImportService
         if (session.FileFormat == "csv")
         {
             return await ProcessCsvSelectionAsync(session, request);
+        }
+
+        if (session.FileFormat == "xls")
+        {
+            return await ProcessXlsSelectionAsync(session, request);
         }
 
         await using var fileStream = File.OpenRead(session.TempFilePath);
@@ -707,6 +744,74 @@ public class ExcelImportService : IExcelImportService
         });
     }
 
+    public Task<UpdateRowsResultDto> UpdateRowsAsync(UpdateRowsRequestDto request)
+    {
+        var session = GetSession(request.SessionId);
+
+        if (session.ValidationResults == null || session.Mappings == null)
+        {
+            throw new InvalidOperationException("No validation results. Please validate before updating rows.");
+        }
+
+        // Build rowNumber -> index lookup
+        var rowIndex = new Dictionary<int, int>();
+        for (int i = 0; i < session.ValidationResults.Count; i++)
+        {
+            rowIndex[session.ValidationResults[i].RowNumber] = i;
+        }
+
+        var updatedRows = new List<RowValidationResultDto>();
+        var affectedRowNumbers = request.Updates.Select(u => u.RowNumber).Distinct();
+
+        foreach (var rowNumber in affectedRowNumbers)
+        {
+            if (!rowIndex.TryGetValue(rowNumber, out var idx))
+                continue;
+
+            var existing = session.ValidationResults[idx];
+
+            // Apply value updates
+            foreach (var update in request.Updates.Where(u => u.RowNumber == rowNumber))
+            {
+                existing.Values[update.Field] = update.Value;
+            }
+
+            // Re-validate
+            var issues = ValidateSingleRow(existing.Values, session.Mappings);
+            var status = issues.Any(i => i.Severity == "Error")
+                ? "Error"
+                : issues.Any(i => i.Severity == "Warning")
+                    ? "Warning"
+                    : "Valid";
+
+            var newRow = new RowValidationResultDto
+            {
+                RowNumber = existing.RowNumber,
+                Status = status,
+                Values = existing.Values,
+                Issues = issues.Count > 0 ? issues : null
+            };
+
+            session.ValidationResults[idx] = newRow;
+            updatedRows.Add(newRow);
+        }
+
+        // Recompute counts
+        var validRows = session.ValidationResults.Count(r => r.Status == "Valid");
+        var errorRows = session.ValidationResults.Count(r => r.Status == "Error");
+        var warningRows = session.ValidationResults.Count(r => r.Status == "Warning");
+
+        return Task.FromResult(new UpdateRowsResultDto
+        {
+            SessionId = request.SessionId,
+            TotalRows = session.ValidationResults.Count,
+            ValidRows = validRows,
+            ErrorRows = errorRows,
+            WarningRows = warningRows,
+            UpdatedRows = updatedRows
+        });
+    }
+
     #region Private Methods
 
     private ImportSession GetSession(Guid sessionId)
@@ -744,6 +849,88 @@ public class ExcelImportService : IExcelImportService
             lines.Add(line);
         }
         return lines;
+    }
+
+    /// <summary>
+    /// Analyzes a DataTable (from .xls file) for MSEL-like header patterns.
+    /// Returns 1-based header row number for consistency with the rest of the code.
+    /// </summary>
+    private static (bool LooksLikeMsel, int Confidence, int SuggestedHeaderRow) AnalyzeDataTableHeaders(DataTable table)
+    {
+        var bestRow = 1; // 1-based
+        var bestConfidence = 0;
+        var bestMatches = 0;
+
+        var maxScanRow = Math.Min(10, table.Rows.Count);
+        var lastCol = Math.Min(LegacyExcelReader.GetLastUsedColumn(table) + 1, MaxColumns);
+
+        var keyPatterns = new[] { "title", "subject", "time", "dtg", "inject", "description", "text", "from", "to", "msel" };
+
+        for (int row = 0; row < maxScanRow; row++)
+        {
+            var headers = new List<string>();
+            var dataRow = table.Rows[row];
+            for (int col = 0; col < lastCol; col++)
+            {
+                headers.Add(LegacyExcelReader.GetCellString(dataRow, col).ToLowerInvariant());
+            }
+
+            var matchedPatterns = 0;
+            foreach (var pattern in keyPatterns)
+            {
+                if (headers.Any(h => h.Contains(pattern)))
+                {
+                    matchedPatterns++;
+                }
+            }
+
+            if (matchedPatterns > bestMatches)
+            {
+                bestMatches = matchedPatterns;
+                bestRow = row + 1; // Convert to 1-based
+                bestConfidence = (matchedPatterns * 100) / keyPatterns.Length;
+            }
+        }
+
+        return (bestMatches >= 2, Math.Min(100, bestConfidence + 20), bestRow);
+    }
+
+    /// <summary>
+    /// Gets column data (type, samples, fill rate) from a DataTable.
+    /// startRow is 0-based.
+    /// </summary>
+    private static (string DataType, IReadOnlyList<string?> SampleValues, int FillRate) GetDataTableColumnData(
+        DataTable table, int column, int startRow)
+    {
+        var samples = new List<string?>();
+        var types = new List<string>();
+        var filledCount = 0;
+        var lastRow = Math.Min(table.Rows.Count - 1, startRow + 100);
+
+        for (int row = startRow; row <= lastRow; row++)
+        {
+            var dataRow = table.Rows[row];
+            if (!LegacyExcelReader.IsCellEmpty(dataRow, column))
+            {
+                filledCount++;
+
+                if (samples.Count < 3)
+                {
+                    samples.Add(LegacyExcelReader.GetCellValue(dataRow, column)?.ToString());
+                }
+
+                types.Add(LegacyExcelReader.InferCellType(LegacyExcelReader.GetCellValue(dataRow, column)));
+            }
+        }
+
+        var totalRows = lastRow - startRow + 1;
+        var fillRate = totalRows > 0 ? (filledCount * 100) / totalRows : 0;
+
+        var dataType = types.Count > 0
+            ? types.GroupBy(t => t).OrderByDescending(g => g.Count()).First().Key
+            : "text";
+
+        return (dataType, samples, fillRate);
     }
 
     private static (bool LooksLikeMsel, int Confidence, int SuggestedHeaderRow) AnalyzeWorksheetHeaders(IXLWorksheet worksheet)
@@ -884,6 +1071,80 @@ public class ExcelImportService : IExcelImportService
         return (-1, 0);
     }
 
+    private async Task<WorksheetSelectionResultDto> ProcessXlsSelectionAsync(ImportSession session, SelectWorksheetRequestDto request)
+    {
+        await using var fileStream = File.OpenRead(session.TempFilePath);
+        var dataSet = LegacyExcelReader.ReadToDataSet(fileStream);
+        var table = dataSet.Tables[request.WorksheetIndex];
+        var worksheetInfo = session.Worksheets[request.WorksheetIndex];
+
+        // Get column information (HeaderRow is 1-based, DataTable is 0-based)
+        var columns = new List<ColumnInfoDto>();
+        var headerRowIndex = request.HeaderRow - 1;
+        var lastColumn = Math.Min(LegacyExcelReader.GetLastUsedColumn(table) + 1, MaxColumns);
+
+        if (headerRowIndex < table.Rows.Count)
+        {
+            var headerDataRow = table.Rows[headerRowIndex];
+
+            for (int col = 0; col < lastColumn; col++)
+            {
+                var headerText = LegacyExcelReader.GetCellString(headerDataRow, col);
+
+                if (string.IsNullOrEmpty(headerText))
+                {
+                    headerText = $"Column {GetColumnLetter(col + 1)}";
+                }
+
+                var columnData = GetDataTableColumnData(table, col, request.DataStartRow - 1);
+
+                columns.Add(new ColumnInfoDto
+                {
+                    Index = col,
+                    Letter = GetColumnLetter(col + 1),
+                    Header = headerText,
+                    DataType = columnData.DataType,
+                    SampleValues = columnData.SampleValues,
+                    FillRate = columnData.FillRate
+                });
+            }
+        }
+
+        // Get preview rows (DataStartRow is 1-based)
+        var previewRows = new List<Dictionary<string, object?>>();
+        var startRowIndex = request.DataStartRow - 1;
+        var lastDataRow = LegacyExcelReader.GetLastUsedRow(table);
+        var previewEnd = Math.Min(startRowIndex + request.PreviewRowCount - 1, lastDataRow);
+
+        for (int row = startRowIndex; row <= previewEnd; row++)
+        {
+            var dataRow = table.Rows[row];
+            var rowData = new Dictionary<string, object?>();
+            for (int col = 0; col < lastColumn && col < columns.Count; col++)
+            {
+                var header = columns[col].Header;
+                rowData[header] = LegacyExcelReader.GetCellValue(dataRow, col);
+            }
+            previewRows.Add(rowData);
+        }
+
+        // Update session
+        session.SelectedWorksheetIndex = request.WorksheetIndex;
+        session.HeaderRow = request.HeaderRow;
+        session.DataStartRow = request.DataStartRow;
+        session.Columns = columns;
+        session.CurrentStep = "SheetSelection";
+
+        return new WorksheetSelectionResultDto
+        {
+            SessionId = request.SessionId,
+            Worksheet = worksheetInfo,
+            Columns = columns,
+            PreviewRows = previewRows,
+            PreviewRowCount = previewRows.Count
+        };
+    }
+
     private async Task<WorksheetSelectionResultDto> ProcessCsvSelectionAsync(ImportSession session, SelectWorksheetRequestDto request)
     {
         var lines = await File.ReadAllLinesAsync(session.TempFilePath);
@@ -1000,6 +1261,38 @@ public class ExcelImportService : IExcelImportService
                 rows.Add(rowData);
             }
         }
+        else if (session.FileFormat == "xls")
+        {
+            if (!session.SelectedWorksheetIndex.HasValue)
+            {
+                throw new InvalidOperationException("Worksheet index not set for Excel file import");
+            }
+
+            await using var fileStream = File.OpenRead(session.TempFilePath);
+            var dataSet = LegacyExcelReader.ReadToDataSet(fileStream);
+            var table = dataSet.Tables[session.SelectedWorksheetIndex.Value];
+
+            // DataTable rows are 0-based; session.DataStartRow is 1-based
+            var startRowIndex = session.DataStartRow - 1;
+            var lastRowIndex = Math.Min(LegacyExcelReader.GetLastUsedRow(table), startRowIndex + MaxRows - 1);
+
+            for (int row = startRowIndex; row <= lastRowIndex; row++)
+            {
+                var dataRow = table.Rows[row];
+                var rowData = new Dictionary<string, object?>();
+
+                foreach (var mapping in mappings.Where(m => m.SourceColumnIndex.HasValue))
+                {
+                    rowData[mapping.CadenceField] = LegacyExcelReader.GetCellValue(dataRow, mapping.SourceColumnIndex!.Value);
+                }
+
+                // Skip rows where all mapped values are empty (legend rows, spacers)
+                if (rowData.Values.All(v => IsEmpty(v)))
+                    continue;
+
+                rows.Add(rowData);
+            }
+        }
         else
         {
             if (!session.SelectedWorksheetIndex.HasValue)
@@ -1043,111 +1336,7 @@ public class ExcelImportService : IExcelImportService
 
         foreach (var row in rows)
         {
-            var issues = new List<ValidationIssueDto>();
-
-            // Validate required fields
-            foreach (var mapping in mappings.Where(m => m.IsRequired))
-            {
-                if (!row.TryGetValue(mapping.CadenceField, out var value) || IsEmpty(value))
-                {
-                    issues.Add(new ValidationIssueDto
-                    {
-                        Field = mapping.CadenceField,
-                        Severity = "Error",
-                        Message = $"{mapping.DisplayName} is required",
-                        OriginalValue = value?.ToString()
-                    });
-                }
-            }
-
-            // Validate specific field formats
-            if (row.TryGetValue("ScheduledTime", out var timeValue) && !IsEmpty(timeValue))
-            {
-                if (!TimeParsingHelper.TryParseTime(timeValue, out _) && !TimeParsingHelper.TryParseDateTime(timeValue, out _))
-                {
-                    issues.Add(new ValidationIssueDto
-                    {
-                        Field = "ScheduledTime",
-                        Severity = "Error",
-                        Message = "Cannot parse time value",
-                        OriginalValue = timeValue?.ToString()
-                    });
-                }
-            }
-            else if (!row.ContainsKey("ScheduledTime") || IsEmpty(timeValue))
-            {
-                // ScheduledTime not mapped or empty - warn but allow import
-                var hasScheduledTimeMapping = mappings.Any(m => m.CadenceField == "ScheduledTime" && m.SourceColumnIndex.HasValue);
-                if (!hasScheduledTimeMapping || IsEmpty(timeValue))
-                {
-                    issues.Add(new ValidationIssueDto
-                    {
-                        Field = "ScheduledTime",
-                        Severity = "Warning",
-                        Message = "Scheduled Time is not provided. Will default to 00:00.",
-                        OriginalValue = null
-                    });
-                }
-            }
-
-            if (row.TryGetValue("Priority", out var priorityValue) && !IsEmpty(priorityValue))
-            {
-                if (!int.TryParse(priorityValue?.ToString(), out var priority) || priority < 1 || priority > 5)
-                {
-                    issues.Add(new ValidationIssueDto
-                    {
-                        Field = "Priority",
-                        Severity = "Warning",
-                        Message = "Priority should be between 1 and 5",
-                        OriginalValue = priorityValue?.ToString()
-                    });
-                }
-            }
-
-            // Validate InjectType - warn if value looks like TriggerType
-            if (row.TryGetValue("InjectType", out var injectTypeValue) && !IsEmpty(injectTypeValue))
-            {
-                var injectTypeStr = injectTypeValue?.ToString()?.Trim() ?? "";
-                if (!string.IsNullOrEmpty(injectTypeStr) && !InjectTypeSynonyms.ContainsKey(injectTypeStr))
-                {
-                    if (TriggerTypeLikeValues.Contains(injectTypeStr) || TriggerTypeSynonyms.ContainsKey(injectTypeStr))
-                    {
-                        issues.Add(new ValidationIssueDto
-                        {
-                            Field = "InjectType",
-                            Severity = "Warning",
-                            Message = "This value looks like a Trigger Type (e.g., Controller Action, Player Action). Consider mapping this column to Trigger Type instead.",
-                            OriginalValue = injectTypeStr
-                        });
-                    }
-                    else if (DeliveryMethodLikeValues.Contains(injectTypeStr))
-                    {
-                        issues.Add(new ValidationIssueDto
-                        {
-                            Field = "InjectType",
-                            Severity = "Warning",
-                            Message = "This value looks like a Delivery Method. Consider mapping this column to Delivery Method instead.",
-                            OriginalValue = injectTypeStr
-                        });
-                    }
-                }
-            }
-
-            // Validate TriggerType - warn if unrecognized
-            if (row.TryGetValue("TriggerType", out var triggerTypeValue) && !IsEmpty(triggerTypeValue))
-            {
-                var triggerTypeStr = triggerTypeValue?.ToString()?.Trim() ?? "";
-                if (!string.IsNullOrEmpty(triggerTypeStr) && !TriggerTypeSynonyms.ContainsKey(triggerTypeStr))
-                {
-                    issues.Add(new ValidationIssueDto
-                    {
-                        Field = "TriggerType",
-                        Severity = "Warning",
-                        Message = "Unrecognized trigger type value. Will default to Manual.",
-                        OriginalValue = triggerTypeStr
-                    });
-                }
-            }
+            var issues = ValidateSingleRow(row, mappings);
 
             var status = issues.Any(i => i.Severity == "Error")
                 ? "Error"
@@ -1165,6 +1354,123 @@ public class ExcelImportService : IExcelImportService
         }
 
         return results;
+    }
+
+    /// <summary>
+    /// Validates a single row of data against the configured mappings.
+    /// Returns a list of validation issues found.
+    /// </summary>
+    private static List<ValidationIssueDto> ValidateSingleRow(
+        Dictionary<string, object?> row,
+        IReadOnlyList<ColumnMappingDto> mappings)
+    {
+        var issues = new List<ValidationIssueDto>();
+
+        // Validate required fields
+        foreach (var mapping in mappings.Where(m => m.IsRequired))
+        {
+            if (!row.TryGetValue(mapping.CadenceField, out var value) || IsEmpty(value))
+            {
+                issues.Add(new ValidationIssueDto
+                {
+                    Field = mapping.CadenceField,
+                    Severity = "Error",
+                    Message = $"{mapping.DisplayName} is required",
+                    OriginalValue = value?.ToString()
+                });
+            }
+        }
+
+        // Validate specific field formats
+        if (row.TryGetValue("ScheduledTime", out var timeValue) && !IsEmpty(timeValue))
+        {
+            if (!TimeParsingHelper.TryParseTime(timeValue, out _) && !TimeParsingHelper.TryParseDateTime(timeValue, out _))
+            {
+                issues.Add(new ValidationIssueDto
+                {
+                    Field = "ScheduledTime",
+                    Severity = "Error",
+                    Message = "Cannot parse time value",
+                    OriginalValue = timeValue?.ToString()
+                });
+            }
+        }
+        else if (!row.ContainsKey("ScheduledTime") || IsEmpty(timeValue))
+        {
+            // ScheduledTime not mapped or empty - warn but allow import
+            var hasScheduledTimeMapping = mappings.Any(m => m.CadenceField == "ScheduledTime" && m.SourceColumnIndex.HasValue);
+            if (!hasScheduledTimeMapping || IsEmpty(timeValue))
+            {
+                issues.Add(new ValidationIssueDto
+                {
+                    Field = "ScheduledTime",
+                    Severity = "Warning",
+                    Message = "Scheduled Time is not provided. Will default to 00:00.",
+                    OriginalValue = null
+                });
+            }
+        }
+
+        if (row.TryGetValue("Priority", out var priorityValue) && !IsEmpty(priorityValue))
+        {
+            if (!int.TryParse(priorityValue?.ToString(), out var priority) || priority < 1 || priority > 5)
+            {
+                issues.Add(new ValidationIssueDto
+                {
+                    Field = "Priority",
+                    Severity = "Warning",
+                    Message = "Priority should be between 1 and 5",
+                    OriginalValue = priorityValue?.ToString()
+                });
+            }
+        }
+
+        // Validate InjectType - warn if value looks like TriggerType
+        if (row.TryGetValue("InjectType", out var injectTypeValue) && !IsEmpty(injectTypeValue))
+        {
+            var injectTypeStr = injectTypeValue?.ToString()?.Trim() ?? "";
+            if (!string.IsNullOrEmpty(injectTypeStr) && !InjectTypeSynonyms.ContainsKey(injectTypeStr))
+            {
+                if (TriggerTypeLikeValues.Contains(injectTypeStr) || TriggerTypeSynonyms.ContainsKey(injectTypeStr))
+                {
+                    issues.Add(new ValidationIssueDto
+                    {
+                        Field = "InjectType",
+                        Severity = "Warning",
+                        Message = "This value looks like a Trigger Type (e.g., Controller Action, Player Action). Consider mapping this column to Trigger Type instead.",
+                        OriginalValue = injectTypeStr
+                    });
+                }
+                else if (DeliveryMethodLikeValues.Contains(injectTypeStr))
+                {
+                    issues.Add(new ValidationIssueDto
+                    {
+                        Field = "InjectType",
+                        Severity = "Warning",
+                        Message = "This value looks like a Delivery Method. Consider mapping this column to Delivery Method instead.",
+                        OriginalValue = injectTypeStr
+                    });
+                }
+            }
+        }
+
+        // Validate TriggerType - warn if unrecognized
+        if (row.TryGetValue("TriggerType", out var triggerTypeValue) && !IsEmpty(triggerTypeValue))
+        {
+            var triggerTypeStr = triggerTypeValue?.ToString()?.Trim() ?? "";
+            if (!string.IsNullOrEmpty(triggerTypeStr) && !TriggerTypeSynonyms.ContainsKey(triggerTypeStr))
+            {
+                issues.Add(new ValidationIssueDto
+                {
+                    Field = "TriggerType",
+                    Severity = "Warning",
+                    Message = "Unrecognized trigger type value. Will default to Manual.",
+                    OriginalValue = triggerTypeStr
+                });
+            }
+        }
+
+        return issues;
     }
 
     private static bool IsEmpty(object? value)

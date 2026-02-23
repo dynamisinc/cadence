@@ -10,6 +10,8 @@ import type {
   SelectWorksheetRequest,
   ConfigureMappingsRequest,
   ExecuteImportRequest,
+  UpdateRowsRequest,
+  ValidationResult,
 } from '../types'
 
 const QUERY_KEY = 'excelImport'
@@ -100,6 +102,38 @@ export const useExecuteImport = () => {
       // Invalidate injects cache for the exercise
       queryClient.invalidateQueries({ queryKey: ['injects', variables.exerciseId] })
       queryClient.invalidateQueries({ queryKey: ['msel', variables.exerciseId] })
+    },
+  })
+}
+
+/**
+ * Hook to update rows and re-validate (for auto-fix and inline editing)
+ */
+export const useUpdateRows = () => {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (request: UpdateRowsRequest) => excelImportService.updateRows(request),
+    onSuccess: (data) => {
+      // Merge updated rows into the cached validation result
+      queryClient.setQueryData<ValidationResult>(
+        [QUERY_KEY, 'validation', data.sessionId],
+        (old) => {
+          if (!old) return old
+          const rowMap = new Map(old.rows.map(r => [r.rowNumber, r]))
+          for (const updated of data.updatedRows) {
+            rowMap.set(updated.rowNumber, updated)
+          }
+          return {
+            ...old,
+            totalRows: data.totalRows,
+            validRows: data.validRows,
+            errorRows: data.errorRows,
+            warningRows: data.warningRows,
+            rows: Array.from(rowMap.values()).sort((a, b) => a.rowNumber - b.rowNumber),
+          }
+        },
+      )
     },
   })
 }

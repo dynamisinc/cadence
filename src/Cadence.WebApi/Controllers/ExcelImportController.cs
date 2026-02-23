@@ -196,6 +196,37 @@ public class ExcelImportController : ControllerBase
     }
 
     /// <summary>
+    /// Update row values in a validation session and re-validate.
+    /// Used for auto-fix suggestions and inline cell editing.
+    /// </summary>
+    /// <param name="sessionId">The import session ID</param>
+    /// <param name="request">Row updates to apply</param>
+    /// <returns>Updated validation counts and re-validated rows</returns>
+    [HttpPatch("sessions/{sessionId:guid}/rows")]
+    [ProducesResponseType(typeof(UpdateRowsResultDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<ActionResult<UpdateRowsResultDto>> UpdateRows(
+        Guid sessionId,
+        [FromBody] UpdateRowsRequestDto request)
+    {
+        if (sessionId != request.SessionId)
+        {
+            return BadRequest(new { message = "Session ID in URL does not match request body" });
+        }
+
+        try
+        {
+            var result = await _service.UpdateRowsAsync(request);
+            return Ok(result);
+        }
+        catch (InvalidOperationException ex)
+        {
+            _logger.LogWarning(ex, "Error updating rows: {Message}", ex.Message);
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    /// <summary>
     /// Cancel an import session and clean up temporary files.
     /// </summary>
     /// <param name="sessionId">The import session ID</param>

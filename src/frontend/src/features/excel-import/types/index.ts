@@ -184,3 +184,50 @@ export const ImportWizardStep = {
 } as const
 
 export type ImportWizardStepType = (typeof ImportWizardStep)[keyof typeof ImportWizardStep]
+
+/**
+ * A single row value update for auto-fix or inline editing.
+ */
+export interface RowUpdate {
+  rowNumber: number
+  field: string
+  value: string | null
+}
+
+/**
+ * Request to update row values in a validation session.
+ */
+export interface UpdateRowsRequest {
+  sessionId: string
+  updates: RowUpdate[]
+}
+
+/**
+ * Response from updating rows - returns only changed rows + updated counts.
+ */
+export interface UpdateRowsResult {
+  sessionId: string
+  totalRows: number
+  validRows: number
+  errorRows: number
+  warningRows: number
+  updatedRows: RowValidationResult[]
+}
+
+/**
+ * An auto-fix suggestion computed from validation results.
+ */
+export interface AutoFixSuggestion {
+  /** Unique key for this suggestion type */
+  id: string
+  /** Human-readable description, e.g. "12 rows missing Title" */
+  description: string
+  /** What the fix does, e.g. "Use Description as Title" */
+  action: string
+  /** Number of affected rows */
+  affectedRows: number
+  /** The row updates to apply if the user accepts */
+  updates: RowUpdate[]
+  /** Severity of the issues this fixes */
+  severity: 'Error' | 'Warning'
+}

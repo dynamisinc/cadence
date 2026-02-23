@@ -1517,4 +1517,188 @@ public class ExcelImportServiceTests : IDisposable
     }
 
     #endregion
+
+    #region UpdateRowsAsync Tests
+
+    [Fact]
+    public async Task UpdateRows_UpdateTitleField_RevalidatesRowToValid()
+    {
+        // Arrange: Create a session with a row missing Title (Error)
+        var headers = new[] { "Title", "Description", "Scheduled Time" };
+        var dataRows = new[]
+        {
+            new object?[] { "", "Has a description", "09:00" }, // Missing Title -> Error
+            new object?[] { "Valid Inject", "Description", "10:00" },
+        };
+        var (sessionId, mappings) = await RunWizardThroughValidation(headers, dataRows);
+
+        // Verify initial state has 1 error row
+        var session = await _service.GetSessionStateAsync(sessionId);
+        session.Should().NotBeNull();
+
+        // Re-validate to check initial state
+        var initialValidation = await _service.ValidateImportAsync(new ConfigureMappingsRequestDto
+        {
+            SessionId = sessionId,
+            Mappings = mappings
+        });
+        initialValidation.ErrorRows.Should().Be(1);
+
+        // Act: Fix the missing Title
+        var result = await _service.UpdateRowsAsync(new UpdateRowsRequestDto
+        {
+            SessionId = sessionId,
+            Updates = new[]
+            {
+                new RowUpdateDto { RowNumber = 2, Field = "Title", Value = "Fixed Title" }
+            }
+        });
+
+        // Assert
+        result.ErrorRows.Should().Be(0);
+        result.UpdatedRows.Should().HaveCount(1);
+        result.UpdatedRows[0].RowNumber.Should().Be(2);
+        result.UpdatedRows[0].Status.Should().NotBe("Error");
+        result.UpdatedRows[0].Values["Title"].Should().Be("Fixed Title");
+    }
+
+    [Fact]
+    public async Task UpdateRows_UpdateScheduledTimeField_FixesTimeError()
+    {
+        var headers = new[] { "Title", "Scheduled Time" };
+        var dataRows = new[]
+        {
+            new object?[] { "Inject 1", "not-a-time" }, // Unparseable time -> Error
+        };
+        var (sessionId, mappings) = await RunWizardThroughValidation(headers, dataRows);
+
+        var initialValidation = await _service.ValidateImportAsync(new ConfigureMappingsRequestDto
+        {
+            SessionId = sessionId,
+            Mappings = mappings
+        });
+        initialValidation.ErrorRows.Should().Be(1);
+
+        // Act: Fix the unparseable time
+        var result = await _service.UpdateRowsAsync(new UpdateRowsRequestDto
+        {
+            SessionId = sessionId,
+            Updates = new[]
+            {
+                new RowUpdateDto { RowNumber = 2, Field = "ScheduledTime", Value = "00:00" }
+            }
+        });
+
+        // Assert: No more errors (time is now parseable)
+        result.ErrorRows.Should().Be(0);
+        result.UpdatedRows.Should().HaveCount(1);
+        result.UpdatedRows[0].Status.Should().Be("Valid");
+    }
+
+    [Fact]
+    public async Task UpdateRows_BulkUpdate_MultipleRows_RevalidatesAll()
+    {
+        var headers = new[] { "Title", "Description", "Scheduled Time" };
+        var dataRows = new[]
+        {
+            new object?[] { "", "Description 1", "09:00" }, // Missing Title
+            new object?[] { "Valid", "Description 2", "10:00" },
+            new object?[] { "", "Description 3", "11:00" }, // Missing Title
+        };
+        var (sessionId, mappings) = await RunWizardThroughValidation(headers, dataRows);
+
+        var initialValidation = await _service.ValidateImportAsync(new ConfigureMappingsRequestDto
+        {
+            SessionId = sessionId,
+            Mappings = mappings
+        });
+        initialValidation.ErrorRows.Should().Be(2);
+
+        // Act: Fix both missing titles at once (bulk auto-fix)
+        var result = await _service.UpdateRowsAsync(new UpdateRowsRequestDto
+        {
+            SessionId = sessionId,
+            Updates = new[]
+            {
+                new RowUpdateDto { RowNumber = 2, Field = "Title", Value = "Description 1" },
+                new RowUpdateDto { RowNumber = 4, Field = "Title", Value = "Description 3" },
+            }
+        });
+
+        // Assert
+        result.ErrorRows.Should().Be(0);
+        result.UpdatedRows.Should().HaveCount(2);
+        result.ValidRows.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task UpdateRows_NoValidationResults_ThrowsInvalidOperation()
+    {
+        // Arrange: Create session but don't run validation
+        var headers = new[] { "Title" };
+        var dataRows = new[] { new object?[] { "Inject 1" } };
+        var (sessionId, _, _) = await RunWizardThroughMappings(headers, dataRows);
+
+        // Act & Assert
+        var act = () => _service.UpdateRowsAsync(new UpdateRowsRequestDto
+        {
+            SessionId = sessionId,
+            Updates = new[] { new RowUpdateDto { RowNumber = 2, Field = "Title", Value = "Test" } }
+        });
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*validate*");
+    }
+
+    [Fact]
+    public async Task UpdateRows_InvalidRowNumber_SkipsGracefully()
+    {
+        var headers = new[] { "Title", "Scheduled Time" };
+        var dataRows = new[] { new object?[] { "Inject 1", "09:00" } };
+        var (sessionId, mappings) = await RunWizardThroughValidation(headers, dataRows);
+
+        // Act: Try to update a non-existent row
+        var result = await _service.UpdateRowsAsync(new UpdateRowsRequestDto
+        {
+            SessionId = sessionId,
+            Updates = new[] { new RowUpdateDto { RowNumber = 999, Field = "Title", Value = "Test" } }
+        });
+
+        // Assert: No rows updated, counts unchanged
+        result.UpdatedRows.Should().BeEmpty();
+        result.TotalRows.Should().Be(1);
+    }
+
+    [Fact]
+    public async Task UpdateRows_ReturnsOnlyUpdatedRows()
+    {
+        var headers = new[] { "Title", "Description", "Scheduled Time" };
+        var dataRows = new[]
+        {
+            new object?[] { "Inject 1", "Desc 1", "09:00" },
+            new object?[] { "", "Desc 2", "10:00" }, // Missing Title -> Error
+            new object?[] { "Inject 3", "Desc 3", "11:00" },
+        };
+        var (sessionId, mappings) = await RunWizardThroughValidation(headers, dataRows);
+
+        await _service.ValidateImportAsync(new ConfigureMappingsRequestDto
+        {
+            SessionId = sessionId,
+            Mappings = mappings
+        });
+
+        // Act: Fix only row 3 (the one with missing Title)
+        var result = await _service.UpdateRowsAsync(new UpdateRowsRequestDto
+        {
+            SessionId = sessionId,
+            Updates = new[] { new RowUpdateDto { RowNumber = 3, Field = "Title", Value = "Fixed" } }
+        });
+
+        // Assert: Only 1 row in response, not all 3
+        result.UpdatedRows.Should().HaveCount(1);
+        result.UpdatedRows[0].RowNumber.Should().Be(3);
+        result.TotalRows.Should().Be(3);
+    }
+
+    #endregion
 }
