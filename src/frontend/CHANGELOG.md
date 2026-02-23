@@ -5,6 +5,30 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.9.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.8.0...frontend-v2.9.0) (2026-02-23)
+
+
+### Features
+
+* **assignments:** show organization name on cards when user has multi-org assignments ([0c08379](https://github.com/dynamisinc/cadence/commit/0c08379b0ad7c8d21973e291e44f3c3b4a7d84d7))
+* **exercises:** add detailed fields to ExerciseDto and update ExerciseTable for expandable rows ([e1a9a90](https://github.com/dynamisinc/cadence/commit/e1a9a901459890f6ba8fa0d2f3c4d4cfe4b8ab9c))
+
+
+### Bug Fixes
+
+* **nav:** remove redundant Inject Queue sidebar item and feature flag ([afc0517](https://github.com/dynamisinc/cadence/commit/afc05171050a48744e8157c03e11f5dec90113e7))
+* **tests:** add BreadcrumbProvider to test-utils and mock useBreadcrumbs ([e6541ca](https://github.com/dynamisinc/cadence/commit/e6541ca7cff7d73cc029920fa94a4067e13910f3))
+* **tests:** add useBreadcrumbs mock to CreateOrganizationPage test ([de6e22d](https://github.com/dynamisinc/cadence/commit/de6e22dbf321bcbe12f4e66fb571dfcf2ba50637))
+* **tests:** update stale menu tests and add BreadcrumbProvider to test utils ([0d78a3f](https://github.com/dynamisinc/cadence/commit/0d78a3fd98bc7210c62b4418ebd475740dc4e439))
+* **ui:** align page header icons with sidebar menu icons ([ee6ed21](https://github.com/dynamisinc/cadence/commit/ee6ed21a7bf09c1b019cdfb02f8f0911f5976ce2))
+* **ui:** complete PageHeader standardization with missing icons ([0e36f1c](https://github.com/dynamisinc/cadence/commit/0e36f1c8596b91c853150f0f595da269160ecb4b))
+* **ui:** fix connectivity indicator stuck on connecting and consolidate to header ([116deb6](https://github.com/dynamisinc/cadence/commit/116deb6a41ec966bbb6c53ec8cf87e17b0b1784f))
+* **ui:** prevent "0" from rendering when no ready injects in exercise table ([502f895](https://github.com/dynamisinc/cadence/commit/502f895ea2c9e89f38dc6d0c96cbc7499303e53c))
+* **ui:** prevent empty organization name from rendering floating icon ([0f66e9a](https://github.com/dynamisinc/cadence/commit/0f66e9a9f38feb74385b621e3ddc716b543f583d))
+* **ui:** remove exercise-scoped items from global sidebar ([355c7d3](https://github.com/dynamisinc/cadence/commit/355c7d34ddbf238d5be959b5b5848cbb7b3af5d6))
+* **ui:** remove redundant Other column from delivery methods table ([2715658](https://github.com/dynamisinc/cadence/commit/2715658df051d6eab727f391aab2b931fdae24f8))
+* **ui:** standardize page header positioning, subtitles, and breadcrumbs ([bf50925](https://github.com/dynamisinc/cadence/commit/bf509258840acf2657052663c99afa69e13b371b))
+
 ## [2.8.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.7.1...frontend-v2.8.0) (2026-02-21)
 
 
