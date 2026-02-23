@@ -105,7 +105,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
             mb={1}
           >
             <Box flex={1}>
-              {showOrganization && (
+              {showOrganization && assignment.organizationName && (
                 <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
                   <FontAwesomeIcon
                     icon={faBuilding}
