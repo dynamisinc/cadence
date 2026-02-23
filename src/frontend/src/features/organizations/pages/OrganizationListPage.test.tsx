@@ -25,6 +25,10 @@ vi.mock('../hooks/useOrganizations', () => ({
   useOrganizations: vi.fn(),
 }))
 
+vi.mock('@/core/contexts', () => ({
+  useBreadcrumbs: vi.fn(),
+}))
+
 vi.mock('@/shared/components/StatusChip', () => ({
   StatusChip: ({ status }: any) => <span data-testid="status-chip">{status}</span>,
 }))
