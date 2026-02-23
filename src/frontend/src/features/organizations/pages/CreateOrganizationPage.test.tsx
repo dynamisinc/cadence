@@ -33,6 +33,21 @@ vi.mock('@/shared/utils/notify', () => ({
   },
 }))
 
+vi.mock('@/core/contexts', () => ({
+  useBreadcrumbs: vi.fn(),
+}))
+
+vi.mock('@/shared/components', () => ({
+  PageHeader: ({ title, subtitle, actions, showBackButton, onBackClick }: any) => (
+    <div>
+      {showBackButton && <button onClick={onBackClick}>Back</button>}
+      <h1>{title}</h1>
+      {subtitle && <p>{subtitle}</p>}
+      {actions}
+    </div>
+  ),
+}))
+
 // Mock styled components to avoid theme provider issues
 vi.mock('@/theme/styledComponents', () => ({
   CobraPrimaryButton: ({ children, ...props }: any) => <button {...props}>{children}</button>,
