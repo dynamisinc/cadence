@@ -99,22 +99,39 @@ public class ExercisesController : ControllerBase
             query = query.Where(e => e.Status != ExerciseStatus.Archived);
         }
 
-        // Project to include inject counts from active MSEL in a single query
+        // Project to include inject counts and detail fields from active MSEL in a single query
         var exercises = await query
+            .Include(e => e.Organization)
             .OrderByDescending(e => e.ScheduledDate)
             .Select(e => new
             {
                 Exercise = e,
+                OrganizationName = e.Organization.Name,
                 InjectCount = e.ActiveMselId != null
                     ? _context.Injects.Count(i => i.MselId == e.ActiveMselId)
                     : 0,
                 FiredInjectCount = e.ActiveMselId != null
                     ? _context.Injects.Count(i => i.MselId == e.ActiveMselId && i.Status == InjectStatus.Released)
-                    : 0
+                    : 0,
+                ReadyInjectCount = e.Status == ExerciseStatus.Active && e.ActiveMselId != null
+                    ? _context.Injects.Count(i => i.MselId == e.ActiveMselId && i.Status == InjectStatus.Synchronized)
+                    : 0,
+                ClockState = e.ClockState.ToString(),
+                ElapsedSeconds = e.ClockState == ExerciseClockState.Running && e.ClockStartedAt.HasValue
+                    ? (int)(DateTime.UtcNow - e.ClockStartedAt.Value).TotalSeconds + (e.ClockElapsedBeforePause.HasValue ? (int)e.ClockElapsedBeforePause.Value.TotalSeconds : 0)
+                    : e.ClockElapsedBeforePause.HasValue
+                        ? (int)e.ClockElapsedBeforePause.Value.TotalSeconds
+                        : 0
             })
             .ToListAsync();
 
-        return Ok(exercises.Select(x => x.Exercise.ToDto(x.InjectCount, x.FiredInjectCount)));
+        return Ok(exercises.Select(x => x.Exercise.ToDto(
+            x.InjectCount,
+            x.FiredInjectCount,
+            x.OrganizationName,
+            x.ClockState,
+            x.ElapsedSeconds,
+            x.ReadyInjectCount)));
     }
 
     /// <summary>

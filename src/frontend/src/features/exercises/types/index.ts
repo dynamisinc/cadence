@@ -51,6 +51,11 @@ export interface ExerciseDto {
   // Summary counts (for list views)
   injectCount: number
   firedInjectCount: number
+  // Expandable table details
+  organizationName?: string | null      // Organization name (multi-org only)
+  clockState?: string | null            // "Running", "Paused", "Stopped"
+  elapsedSeconds?: number               // Elapsed time for active exercises
+  readyInjectCount?: number             // Count of pending injects
 }
 
 /**

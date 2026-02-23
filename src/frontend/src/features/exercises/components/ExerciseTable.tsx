@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
 import {
   Box,
@@ -15,6 +15,7 @@ import {
   Skeleton,
   Chip,
   IconButton,
+  Collapse,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -24,10 +25,13 @@ import {
   faClipboardList,
   faListCheck,
   faFileImport,
+  faChevronDown,
+  faChevronRight,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { ExerciseStatusChip } from './ExerciseStatusChip'
 import { ExerciseTypeChip } from './ExerciseTypeChip'
+import { ExerciseDetailRow } from './ExerciseDetailRow'
 import { formatDate } from '../../../shared/utils/dateUtils'
 import { CobraPrimaryButton } from '../../../theme/styledComponents'
 import { ExerciseStatus } from '../../../types'
@@ -113,6 +117,21 @@ export const ExerciseTable = ({
   const [sortField, setSortField] = useState<SortField>('scheduledDate')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')
 
+  // Track which rows are expanded
+  const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set())
+
+  const toggleRow = (exerciseId: string) => {
+    setExpandedRows(prev => {
+      const next = new Set(prev)
+      if (next.has(exerciseId)) {
+        next.delete(exerciseId)
+      } else {
+        next.add(exerciseId)
+      }
+      return next
+    })
+  }
+
   // Fetch user's exercise role assignments
   useEffect(() => {
     if (!user?.id) return
@@ -138,6 +157,14 @@ export const ExerciseTable = ({
     })
     return map
   }, [exerciseAssignments])
+
+  // Determine if user has multiple organizations (show org names in detail rows)
+  const hasMultipleOrgs = useMemo(() => {
+    const orgNames = new Set(
+      exercises.map(e => e.organizationName).filter(Boolean)
+    )
+    return orgNames.size > 1
+  }, [exercises])
 
   // Status priority for default sorting (lower = higher priority)
   const getStatusPriority = (status: ExerciseStatus): number => {
@@ -271,6 +298,7 @@ export const ExerciseTable = ({
       <Table size={size}>
         <TableHead>
           <TableRow>
+            <TableCell width={48}>{/* Expand icon column */}</TableCell>
             <TableCell>
               {sortable ? (
                 <TableSortLabel
@@ -344,97 +372,135 @@ export const ExerciseTable = ({
         <TableBody>
           {displayedExercises.map(exercise => {
             const userRole = roleByExerciseId.get(exercise.id)
+            const isExpanded = expandedRows.has(exercise.id)
             const canImport =
               showImportButton &&
               canManage &&
               exercise.status === ExerciseStatus.Draft
 
             return (
-              <TableRow
-                key={exercise.id}
-                hover
-                onClick={() => handleRowClick(exercise.id)}
-                sx={{
-                  cursor: 'pointer',
-                  '& td': { py: size === 'small' ? 1.5 : 2 },
-                }}
-              >
-                <TableCell>
-                  <Typography
-                    variant={size === 'small' ? 'body2' : 'body1'}
-                    fontWeight={500}
+              <Fragment key={exercise.id}>
+                {/* Main row with chevron */}
+                <TableRow
+                  hover
+                  sx={{
+                    cursor: 'pointer',
+                    '& td': { py: size === 'small' ? 1.5 : 2 },
+                  }}
+                >
+                  {/* Chevron column */}
+                  <TableCell
+                    onClick={e => {
+                      e.stopPropagation()
+                      toggleRow(exercise.id)
+                    }}
                   >
-                    {exercise.name}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <ExerciseTypeChip type={exercise.exerciseType} />
-                </TableCell>
-                <TableCell>
-                  <ExerciseStatusChip status={exercise.status} />
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2">
-                    {formatDate(exercise.scheduledDate)}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  <Typography variant="body2" color="text.secondary">
-                    {exercise.firedInjectCount}/{exercise.injectCount}
-                  </Typography>
-                </TableCell>
-                <TableCell>
-                  {userRole ? (
-                    <Chip
-                      label={getRoleDisplayName(userRole)}
+                    <IconButton
                       size="small"
-                      color={getRoleColor(userRole)}
-                      sx={{
-                        fontWeight: 600,
-                        fontSize: size === 'small' ? '0.7rem' : '0.75rem',
-                      }}
-                    />
-                  ) : (
-                    <Typography
-                      variant="body2"
-                      color="text.secondary"
-                      fontStyle="italic"
+                      aria-label={isExpanded ? 'Collapse row' : 'Expand row'}
+                      aria-expanded={isExpanded}
                     >
-                      Not assigned
+                      <FontAwesomeIcon
+                        icon={isExpanded ? faChevronDown : faChevronRight}
+                        style={{ fontSize: '0.875rem', color: '#666' }}
+                      />
+                    </IconButton>
+                  </TableCell>
+
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    <Typography
+                      variant={size === 'small' ? 'body2' : 'body1'}
+                      fontWeight={500}
+                    >
+                      {exercise.name}
                     </Typography>
-                  )}
-                </TableCell>
-                <TableCell>
-                  {exercise.isPracticeMode && (
-                    <Tooltip title="Practice Mode - excluded from production reports">
-                      <Box component="span" sx={{ color: 'text.secondary' }}>
-                        <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
-                      </Box>
-                    </Tooltip>
-                  )}
-                </TableCell>
-                {showActionsColumn && (
-                  <TableCell align="right">
-                    {canImport && onImportClick && (
-                      <Tooltip title="Import MSEL from Excel">
-                        <IconButton
-                          size="small"
-                          onClick={e => onImportClick(exercise.id, e)}
-                          sx={{
-                            color: 'primary.main',
-                            '&:hover': {
-                              backgroundColor: 'primary.light',
-                              color: 'primary.dark',
-                            },
-                          }}
-                        >
-                          <FontAwesomeIcon icon={faFileImport} />
-                        </IconButton>
+                  </TableCell>
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    <ExerciseTypeChip type={exercise.exerciseType} />
+                  </TableCell>
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    <ExerciseStatusChip status={exercise.status} />
+                  </TableCell>
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    <Typography variant="body2">
+                      {formatDate(exercise.scheduledDate)}
+                    </Typography>
+                  </TableCell>
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    <Typography variant="body2" color="text.secondary">
+                      {exercise.firedInjectCount}/{exercise.injectCount}
+                    </Typography>
+                  </TableCell>
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    {userRole ? (
+                      <Chip
+                        label={getRoleDisplayName(userRole)}
+                        size="small"
+                        color={getRoleColor(userRole)}
+                        sx={{
+                          fontWeight: 600,
+                          fontSize: size === 'small' ? '0.7rem' : '0.75rem',
+                        }}
+                      />
+                    ) : (
+                      <Typography
+                        variant="body2"
+                        color="text.secondary"
+                        fontStyle="italic"
+                      >
+                        Not assigned
+                      </Typography>
+                    )}
+                  </TableCell>
+                  <TableCell onClick={() => handleRowClick(exercise.id)}>
+                    {exercise.isPracticeMode && (
+                      <Tooltip title="Practice Mode - excluded from production reports">
+                        <Box component="span" sx={{ color: 'text.secondary' }}>
+                          <FontAwesomeIcon icon={faScrewdriverWrench} size="sm" />
+                        </Box>
                       </Tooltip>
                     )}
                   </TableCell>
-                )}
-              </TableRow>
+                  {showActionsColumn && (
+                    <TableCell align="right">
+                      {canImport && onImportClick && (
+                        <Tooltip title="Import MSEL from Excel">
+                          <IconButton
+                            size="small"
+                            onClick={e => onImportClick(exercise.id, e)}
+                            sx={{
+                              color: 'primary.main',
+                              '&:hover': {
+                                backgroundColor: 'primary.light',
+                                color: 'primary.dark',
+                              },
+                            }}
+                          >
+                            <FontAwesomeIcon icon={faFileImport} />
+                          </IconButton>
+                        </Tooltip>
+                      )}
+                    </TableCell>
+                  )}
+                </TableRow>
+
+                {/* Expandable detail row */}
+                <TableRow>
+                  <TableCell
+                    colSpan={showActionsColumn ? 9 : 8}
+                    sx={{ py: 0, borderBottom: 'none' }}
+                  >
+                    <Collapse in={isExpanded} timeout="auto" unmountOnExit>
+                      <ExerciseDetailRow
+                        exercise={exercise}
+                        isExpanded={isExpanded}
+                        userRole={userRole}
+                        showOrganization={hasMultipleOrgs}
+                      />
+                    </Collapse>
+                  </TableCell>
+                </TableRow>
+              </Fragment>
             )
           })}
         </TableBody>
@@ -463,6 +529,7 @@ const ExerciseTableSkeleton = ({
       <Table size={size}>
         <TableHead>
           <TableRow>
+            <TableCell width={48}>{/* Expand icon column */}</TableCell>
             <TableCell>Name</TableCell>
             <TableCell>Type</TableCell>
             <TableCell>Status</TableCell>
@@ -476,6 +543,9 @@ const ExerciseTableSkeleton = ({
         <TableBody>
           {skeletonRows.map(index => (
             <TableRow key={index}>
+              <TableCell>
+                <Skeleton variant="circular" width={24} height={24} />
+              </TableCell>
               <TableCell>
                 <Skeleton variant="text" width={size === 'small' ? 160 : 180} />
               </TableCell>

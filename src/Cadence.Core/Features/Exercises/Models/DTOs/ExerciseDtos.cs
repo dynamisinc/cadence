@@ -173,7 +173,12 @@ public record ExerciseDto(
     TimeSpan? MaxDuration,
     // Summary counts (for list views)
     int InjectCount = 0,
-    int FiredInjectCount = 0
+    int FiredInjectCount = 0,
+    // Expandable table details
+    string? OrganizationName = null,        // Organization display name
+    string? ClockState = null,              // "Running", "Paused", "Stopped", null for non-active
+    int ElapsedSeconds = 0,                 // Elapsed time for active exercises
+    int ReadyInjectCount = 0                // Count of pending injects ready to fire
 );
 
 /// <summary>
@@ -185,12 +190,19 @@ public static class ExerciseMapper
     /// Maps an Exercise entity to ExerciseDto with inject counts = 0.
     /// Use the overload with count parameters for list views.
     /// </summary>
-    public static ExerciseDto ToDto(this Exercise entity) => entity.ToDto(0, 0);
+    public static ExerciseDto ToDto(this Exercise entity) => entity.ToDto(0, 0, null, null, 0, 0);
 
     /// <summary>
-    /// Maps an Exercise entity to ExerciseDto with the specified inject counts.
+    /// Maps an Exercise entity to ExerciseDto with the specified inject counts and detail fields.
     /// </summary>
-    public static ExerciseDto ToDto(this Exercise entity, int injectCount, int firedInjectCount) => new(
+    public static ExerciseDto ToDto(
+        this Exercise entity,
+        int injectCount,
+        int firedInjectCount,
+        string? organizationName = null,
+        string? clockState = null,
+        int elapsedSeconds = 0,
+        int readyInjectCount = 0) => new(
         entity.Id,
         entity.Name,
         entity.Description,
@@ -225,7 +237,11 @@ public static class ExerciseMapper
         entity.ConfirmClockControl,
         entity.MaxDuration,
         injectCount,
-        firedInjectCount
+        firedInjectCount,
+        organizationName,
+        clockState,
+        elapsedSeconds,
+        readyInjectCount
     );
 
     public static Exercise ToEntity(this CreateExerciseRequest request, Guid organizationId, string createdBy) => new()
