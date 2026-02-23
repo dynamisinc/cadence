@@ -2,6 +2,7 @@
  * ConnectivityContext Tests
  */
 
+import { useEffect, useRef, useState } from 'react'
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, act } from '@testing-library/react'
 import { ConnectivityProvider, useConnectivity } from './ConnectivityContext'
@@ -231,12 +232,19 @@ describe('ConnectivityContext', () => {
   })
 
   it('setSignalRState is stable across isInExercise changes', async () => {
-    let capturedSetSignalRState: ReturnType<typeof useConnectivity>['setSignalRState'] | null = null
     const StabilityTestComponent = () => {
       const { setSignalRState, setIsInExercise } = useConnectivity()
-      capturedSetSignalRState = setSignalRState
+      const prevRef = useRef(setSignalRState)
+      const [isStable, setIsStable] = useState(true)
+
+      useEffect(() => {
+        setIsStable(prevRef.current === setSignalRState)
+        prevRef.current = setSignalRState
+      }, [setSignalRState])
+
       return (
         <div>
+          <span data-testid="isStable">{String(isStable)}</span>
           <button onClick={() => setIsInExercise(true)}>Enter</button>
           <button onClick={() => setIsInExercise(false)}>Exit</button>
         </div>
@@ -249,13 +257,14 @@ describe('ConnectivityContext', () => {
       </ConnectivityProvider>,
     )
 
-    const firstRef = capturedSetSignalRState
+    // Initial render — stable
+    expect(screen.getByTestId('isStable').textContent).toBe('true')
 
     await act(async () => {
       screen.getByText('Enter').click()
     })
 
     // setSignalRState should be the same reference (stable) even after isInExercise changed
-    expect(capturedSetSignalRState).toBe(firstRef)
+    expect(screen.getByTestId('isStable').textContent).toBe('true')
   })
 })

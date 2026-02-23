@@ -21,7 +21,7 @@ import {
   CircularProgress,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faCheck, faTimes, faArrowLeft, faSave, faHome, faShieldHalved, faBuilding } from '@fortawesome/free-solid-svg-icons'
+import { faCheck, faTimes, faSave, faHome, faShieldHalved, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
 import { CobraPrimaryButton, CobraSecondaryButton, CobraTextField } from '@/theme/styledComponents'
 import { PageHeader } from '@/shared/components'

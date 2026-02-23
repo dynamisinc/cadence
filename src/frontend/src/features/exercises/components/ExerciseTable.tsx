@@ -161,7 +161,7 @@ export const ExerciseTable = ({
   // Determine if user has multiple organizations (show org names in detail rows)
   const hasMultipleOrgs = useMemo(() => {
     const orgNames = new Set(
-      exercises.map(e => e.organizationName).filter(Boolean)
+      exercises.map(e => e.organizationName).filter(Boolean),
     )
     return orgNames.size > 1
   }, [exercises])

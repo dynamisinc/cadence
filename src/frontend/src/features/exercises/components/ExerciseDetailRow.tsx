@@ -46,7 +46,7 @@ const formatElapsedTime = (seconds: number): string => {
  * Get clock state icon and color based on state
  */
 const getClockDisplay = (
-  clockState?: string | null
+  clockState?: string | null,
 ): { icon: typeof faPlay; color: string } => {
   switch (clockState) {
     case 'Running':
@@ -74,7 +74,7 @@ const getClockDisplay = (
  */
 export const ExerciseDetailRow = ({
   exercise,
-  isExpanded,
+  isExpanded: _isExpanded,
   userRole,
   showOrganization,
 }: ExerciseDetailRowProps) => {
@@ -88,7 +88,7 @@ export const ExerciseDetailRow = ({
   const showReadyInjects = Boolean(
     userRole === 'Controller' &&
     exercise.status === 'Active' &&
-    (exercise.readyInjectCount ?? 0) > 0
+    (exercise.readyInjectCount ?? 0) > 0,
   )
 
   // Show clock info for active exercises

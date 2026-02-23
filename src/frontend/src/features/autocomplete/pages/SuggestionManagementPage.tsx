@@ -12,7 +12,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLightbulb, faPlus, faFileImport, faHome, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
-import { useOrganization } from '@/contexts/OrganizationContext'
 import { useBreadcrumbs } from '@/core/contexts'
 import CobraStyles from '@/theme/CobraStyles'
 import { SUGGESTION_FIELDS } from '../types'
@@ -25,7 +24,6 @@ import { HistoricalValuesSection } from '../components/HistoricalValuesSection'
 import { PageHeader } from '@/shared/components'
 
 export const SuggestionManagementPage = () => {
-  const { currentOrg } = useOrganization()
   const [activeTab, setActiveTab] = useState(0)
   const [showAddDialog, setShowAddDialog] = useState(false)
   const [showBulkDialog, setShowBulkDialog] = useState(false)

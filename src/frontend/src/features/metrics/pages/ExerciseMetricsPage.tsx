@@ -9,11 +9,9 @@ import { useState } from 'react'
 import { useParams } from 'react-router-dom'
 import {
   Box,
-  Typography,
   Tabs,
   Tab,
   Paper,
-  Stack,
   Skeleton,
   Alert,
 } from '@mui/material'

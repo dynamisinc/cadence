@@ -25,7 +25,6 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPlus,
-  faArrowLeft,
   faMagnifyingGlass,
   faListCheck,
   faPlay,

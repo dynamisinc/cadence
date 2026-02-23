@@ -431,26 +431,26 @@ export const ObservationsPage = () => {
                     isCapturingPhoto
                       ? <FontAwesomeIcon icon={faSpinner} spin />
                       : <FontAwesomeIcon icon={faCamera} />
-                }
-                onClick={openQuickPhotoCamera}
-                disabled={isCapturingPhoto}
-                variant="outlined"
-              >
-                {isCapturingPhoto ? 'Capturing...' : 'Quick Photo'}
-              </CobraPrimaryButton>
-              <CobraPrimaryButton
-                startIcon={<FontAwesomeIcon icon={faClipboardCheck} />}
-                onClick={() => setShowEegEntryForm(true)}
-                variant="outlined"
-              >
-                Add EEG Entry
-              </CobraPrimaryButton>
-            </>
-          )}
-          <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
-            Back to Exercise
-          </CobraLinkButton>
-        </>
+                  }
+                  onClick={openQuickPhotoCamera}
+                  disabled={isCapturingPhoto}
+                  variant="outlined"
+                >
+                  {isCapturingPhoto ? 'Capturing...' : 'Quick Photo'}
+                </CobraPrimaryButton>
+                <CobraPrimaryButton
+                  startIcon={<FontAwesomeIcon icon={faClipboardCheck} />}
+                  onClick={() => setShowEegEntryForm(true)}
+                  variant="outlined"
+                >
+                  Add EEG Entry
+                </CobraPrimaryButton>
+              </>
+            )}
+            <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
+              Back to Exercise
+            </CobraLinkButton>
+          </>
         }
       />
 

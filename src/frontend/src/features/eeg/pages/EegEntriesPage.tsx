@@ -271,31 +271,31 @@ export const EegEntriesPage = () => {
         subtitle={`Exercise Evaluation Guide entries for ${exercise.name}`}
         actions={
           <Stack direction="row" spacing={2}>
-          {/* Show Generate button only on Coverage tab */}
-          {activeTab === 'coverage' && (
-            <CobraSecondaryButton
-              startIcon={<FontAwesomeIcon icon={faFileWord} />}
-              onClick={() => setShowDocumentDialog(true)}
-            >
-              Generate EEG
-            </CobraSecondaryButton>
-          )}
-          {canExport && (
-            <CobraSecondaryButton
-              startIcon={<FontAwesomeIcon icon={faFileExport} />}
-              onClick={() => setShowExportDialog(true)}
-            >
-              Export
-            </CobraSecondaryButton>
-          )}
-          {canCreate && activeTab === 'entries' && (
-            <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faPlus} />}
-              onClick={handleCreateClick}
-            >
-              Add Entry
-            </CobraPrimaryButton>
-          )}
+            {/* Show Generate button only on Coverage tab */}
+            {activeTab === 'coverage' && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faFileWord} />}
+                onClick={() => setShowDocumentDialog(true)}
+              >
+                Generate EEG
+              </CobraSecondaryButton>
+            )}
+            {canExport && (
+              <CobraSecondaryButton
+                startIcon={<FontAwesomeIcon icon={faFileExport} />}
+                onClick={() => setShowExportDialog(true)}
+              >
+                Export
+              </CobraSecondaryButton>
+            )}
+            {canCreate && activeTab === 'entries' && (
+              <CobraPrimaryButton
+                startIcon={<FontAwesomeIcon icon={faPlus} />}
+                onClick={handleCreateClick}
+              >
+                Add Entry
+              </CobraPrimaryButton>
+            )}
           </Stack>
         }
         mb={2}

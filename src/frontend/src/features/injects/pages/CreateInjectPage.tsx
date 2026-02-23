@@ -3,17 +3,14 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import {
   Box,
   Typography,
-  Stack,
   Paper,
-  IconButton,
   Skeleton,
   Dialog,
   DialogTitle,
   DialogContent,
   DialogActions,
 } from '@mui/material'
-import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faArrowLeft, faHome } from '@fortawesome/free-solid-svg-icons'
+import { faHome } from '@fortawesome/free-solid-svg-icons'
 
 import { InjectForm } from '../components/InjectForm'
 import { useInjects } from '../hooks'

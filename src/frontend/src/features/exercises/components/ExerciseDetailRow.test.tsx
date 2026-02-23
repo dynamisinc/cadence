@@ -11,7 +11,6 @@ import { screen } from '@testing-library/react'
 import { render } from '../../../test/test-utils'
 import { ExerciseDetailRow } from './ExerciseDetailRow'
 import type { ExerciseDto } from '../types'
-import type { ExerciseRole } from '@/features/auth'
 import { ExerciseType, ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 
 // Helper to create mock exercise
@@ -66,7 +65,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise()}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
     })
 
@@ -76,7 +75,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ location: 'City Hall' })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('City Hall')).toBeInTheDocument()
     })
@@ -87,7 +86,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ location: null })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/City Hall/)).not.toBeInTheDocument()
     })
@@ -98,7 +97,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ injectCount: 10, firedInjectCount: 5 })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Progress')).toBeInTheDocument()
       expect(screen.getByText('5 / 10 injects')).toBeInTheDocument()
@@ -111,7 +110,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ injectCount: 0, firedInjectCount: 0 })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
     })
@@ -124,7 +123,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ organizationName: 'FEMA Region 2' })}
           isExpanded={true}
           showOrganization={true}
-        />
+        />,
       )
       expect(screen.getByText('FEMA Region 2')).toBeInTheDocument()
     })
@@ -135,7 +134,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ organizationName: 'FEMA Region 2' })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText('FEMA Region 2')).not.toBeInTheDocument()
     })
@@ -146,7 +145,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ organizationName: null })}
           isExpanded={true}
           showOrganization={true}
-        />
+        />,
       )
       // Should not have any building icon or org text
       const boxes = screen.queryAllByText(/FEMA|Organization/)
@@ -159,7 +158,7 @@ describe('ExerciseDetailRow', () => {
           exercise={createMockExercise({ organizationName: '' })}
           isExpanded={true}
           showOrganization={true}
-        />
+        />,
       )
       // Empty string is falsy, so conditional should not render
       const boxes = screen.queryAllByText(/FEMA|Organization/)
@@ -178,7 +177,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Elapsed: 01:01:01')).toBeInTheDocument()
       expect(screen.getByText('Running')).toBeInTheDocument()
@@ -194,7 +193,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/Elapsed:/)).not.toBeInTheDocument()
       expect(screen.queryByText('Stopped')).not.toBeInTheDocument()
@@ -209,7 +208,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/Elapsed:/)).not.toBeInTheDocument()
     })
@@ -224,7 +223,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Paused')).toBeInTheDocument()
       expect(screen.getByText('Elapsed: 00:30:00')).toBeInTheDocument()
@@ -240,7 +239,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Stopped')).toBeInTheDocument()
       expect(screen.getByText('Elapsed: 00:00:00')).toBeInTheDocument()
@@ -257,7 +256,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Elapsed: 00:00:45')).toBeInTheDocument()
     })
@@ -271,7 +270,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Elapsed: 00:12:34')).toBeInTheDocument()
     })
@@ -285,7 +284,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Elapsed: 02:03:04')).toBeInTheDocument()
     })
@@ -299,7 +298,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Elapsed: 25:01:01')).toBeInTheDocument()
     })
@@ -313,7 +312,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('Elapsed: 00:00:00')).toBeInTheDocument()
     })
@@ -330,7 +329,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('3 injects ready')).toBeInTheDocument()
     })
@@ -345,7 +344,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.getByText('1 inject ready')).toBeInTheDocument()
     })
@@ -360,7 +359,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Evaluator"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -375,7 +374,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Observer"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -390,7 +389,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="ExerciseDirector"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -405,7 +404,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -420,7 +419,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -435,7 +434,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -450,7 +449,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       expect(screen.queryByText(/injects ready/)).not.toBeInTheDocument()
     })
@@ -467,7 +466,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
       // Should NOT render the ready injects section at all
       // This was the bug: without Boolean(), React would render "0"
@@ -488,7 +487,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
 
       // Check that "0" is not in the rendered output
@@ -506,7 +505,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       const progressBar = screen.getByRole('progressbar')
       expect(progressBar).toHaveAttribute('aria-valuenow', '50')
@@ -521,7 +520,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       const progressBar = screen.getByRole('progressbar')
       expect(progressBar).toHaveAttribute('aria-valuenow', '100')
@@ -536,7 +535,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       const progressBar = screen.getByRole('progressbar')
       expect(progressBar).toHaveAttribute('aria-valuenow', '0')
@@ -551,7 +550,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={false}
-        />
+        />,
       )
       const progressBar = screen.getByRole('progressbar')
       // 1/3 = 33.333...% (MUI rounds to integer)
@@ -576,7 +575,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={true}
-        />
+        />,
       )
 
       expect(screen.getByText('Emergency Operations Center')).toBeInTheDocument()
@@ -604,7 +603,7 @@ describe('ExerciseDetailRow', () => {
           isExpanded={true}
           userRole="Controller"
           showOrganization={false}
-        />
+        />,
       )
 
       // Should only render the container, no detail sections
@@ -623,7 +622,7 @@ describe('ExerciseDetailRow', () => {
           })}
           isExpanded={true}
           showOrganization={true}
-        />
+        />,
       )
 
       expect(screen.getByText('City Hall')).toBeInTheDocument()

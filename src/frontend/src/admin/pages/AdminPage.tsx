@@ -12,7 +12,7 @@
 
 import React from 'react'
 import { Container, Stack, Paper } from '@mui/material'
-import { faGear, faHome, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
+import { faGear, faHome } from '@fortawesome/free-solid-svg-icons'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
 import { SystemSettingsAdmin } from '../components/SystemSettingsAdmin'
 import { PageHeader } from '@/shared/components'

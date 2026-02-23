@@ -21,7 +21,7 @@ import { styled } from '@mui/material/styles'
  * ```
  */
 export const CobraPrimaryButton = styled(Button, {
-  shouldForwardProp: (prop) => prop !== 'size',
+  shouldForwardProp: prop => prop !== 'size',
 })<{ size?: 'small' | 'medium' | 'large' }>(({ theme, size }) => ({
   background: theme.palette.buttonPrimary.main,
   borderRadius: 50,
@@ -29,26 +29,26 @@ export const CobraPrimaryButton = styled(Button, {
   textTransform: 'none' as const,
   ...(size === 'small'
     ? {
-        paddingBottom: 3,
-        paddingLeft: 12,
-        paddingRight: 12,
-        paddingTop: 3,
-        fontSize: '0.8125rem',
-      }
+      paddingBottom: 3,
+      paddingLeft: 12,
+      paddingRight: 12,
+      paddingTop: 3,
+      fontSize: '0.8125rem',
+    }
     : size === 'large'
       ? {
-          paddingBottom: 8,
-          paddingLeft: 28,
-          paddingRight: 28,
-          paddingTop: 8,
-        }
+        paddingBottom: 8,
+        paddingLeft: 28,
+        paddingRight: 28,
+        paddingTop: 8,
+      }
       : {
-          // Default (medium)
-          paddingBottom: 5,
-          paddingLeft: 20,
-          paddingRight: 20,
-          paddingTop: 5,
-        }),
+        // Default (medium)
+        paddingBottom: 5,
+        paddingLeft: 20,
+        paddingRight: 20,
+        paddingTop: 5,
+      }),
   '&:hover': {
     background: theme.palette.buttonPrimary.light,
   },
