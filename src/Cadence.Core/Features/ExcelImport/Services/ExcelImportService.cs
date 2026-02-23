@@ -33,27 +33,30 @@ public class ExcelImportService : IExcelImportService
     // Maximum rows to process
     private const int MaxRows = 5000;
 
+    // Maximum columns to process (prevents phantom column issues in some Excel files)
+    private const int MaxColumns = 100;
+
     // Common column name patterns for auto-mapping
     private static readonly Dictionary<string, string[]> ColumnPatterns = new(StringComparer.OrdinalIgnoreCase)
     {
-        { "InjectNumber", new[] { "#", "number", "inject number", "inj #", "inject #", "inject no", "no", "id" } },
-        { "Title", new[] { "title", "inject title", "name", "inject name", "event", "event title", "inject" } },
-        { "Description", new[] { "description", "desc", "details", "inject description", "narrative", "inject details" } },
-        { "ScheduledTime", new[] { "time", "scheduled time", "scheduled", "wall clock", "wall time", "delivery time" } },
+        { "InjectNumber", new[] { "#", "number", "inject number", "inj #", "inject #", "inject no", "no", "id", "msel number", "msel #", "msel no", "inj#" } },
+        { "Title", new[] { "title", "inject title", "name", "inject name", "event", "event title", "inject", "subject" } },
+        { "Description", new[] { "description", "desc", "details", "inject description", "narrative", "inject details", "text", "description/script", "detailed statement", "script" } },
+        { "ScheduledTime", new[] { "time", "scheduled time", "scheduled", "wall clock", "wall time", "delivery time", "inject dtg", "dtg", "date time", "actual dtg" } },
         { "ScenarioDay", new[] { "day", "scenario day", "exercise day", "sim day" } },
         { "ScenarioTime", new[] { "scenario time", "sim time", "story time", "exercise time" } },
-        { "Source", new[] { "source", "from", "sender", "originator", "sent by" } },
-        { "Target", new[] { "target", "to", "recipient", "receiver", "sent to", "for" } },
-        { "Track", new[] { "track", "lane", "functional area", "area" } },
-        { "DeliveryMethod", new[] { "method", "delivery method", "delivery", "type", "inject type", "mode" } },
-        { "ExpectedAction", new[] { "expected action", "expected response", "response", "action", "anticipated response" } },
-        { "Notes", new[] { "notes", "comments", "remarks", "controller notes" } },
+        { "Source", new[] { "source", "from", "sender", "originator", "sent by", "send from", "sent from", "initiated by" } },
+        { "Target", new[] { "target", "to", "recipient", "receiver", "sent to", "for", "send to" } },
+        { "Track", new[] { "track", "lane", "functional area", "area", "storyline/thread", "storyline/ thread", "storyline", "thread", "esf" } },
+        { "DeliveryMethod", new[] { "method", "delivery method", "delivery", "means", "inject mode", "modality" } },
+        { "ExpectedAction", new[] { "expected action", "expected response", "response", "action", "anticipated response", "remarks/expected outcome", "expected outcome" } },
+        { "Notes", new[] { "notes", "comments", "remarks", "controller notes", "notes/remarks", "comments/notes" } },
         { "Phase", new[] { "phase", "exercise phase", "phase name" } },
         { "Priority", new[] { "priority", "importance" } },
         { "LocationName", new[] { "location", "location name", "place", "venue" } },
         { "LocationType", new[] { "location type", "venue type" } },
-        { "ResponsibleController", new[] { "controller", "responsible controller", "assigned to", "owner" } },
-        { "InjectType", new[] { "inject type", "type", "category", "inject category" } },
+        { "ResponsibleController", new[] { "controller", "responsible controller", "assigned to", "owner", "injected by", "poc", "inject author" } },
+        { "InjectType", new[] { "inject type", "category", "inject category" } },
         { "TriggerType", new[] { "trigger", "trigger type", "activation", "fire mode" } },
     };
 
@@ -85,6 +88,13 @@ public class ExcelImportService : IExcelImportService
         { "challenge", InjectType.Complexity },
         { "escalation", InjectType.Complexity },
         { "difficult", InjectType.Complexity },
+        // Legacy MSEL type values
+        { "administrative", InjectType.Standard },
+        { "contextual", InjectType.Standard },
+        { "expected action", InjectType.Standard },
+        { "contingent", InjectType.Contingency },
+        { "information", InjectType.Standard },
+        { "operational", InjectType.Standard },
     };
 
     // Synonyms for TriggerType enum values
@@ -129,6 +139,47 @@ public class ExcelImportService : IExcelImportService
         "controller action", "actor action", "player action", "staff action", "inject",
         "manual", "automatic", "auto", "scheduled", "timed", "conditional", "triggered",
         "time-based", "event-based", "dependent", "contingent"
+    };
+
+    // Delivery method synonyms for resolving legacy MSEL delivery method values
+    private static readonly Dictionary<string, string> DeliveryMethodSynonyms = new(StringComparer.OrdinalIgnoreCase)
+    {
+        // Verbal synonyms
+        { "in person", "Verbal" },
+        { "in-person", "Verbal" },
+        { "face to face", "Verbal" },
+        { "face-to-face", "Verbal" },
+        { "spoken", "Verbal" },
+        { "oral", "Verbal" },
+        { "runner", "Verbal" },
+        // Phone synonyms
+        { "call", "Phone" },
+        { "telephone", "Phone" },
+        { "text", "Phone" },
+        { "sms", "Phone" },
+        { "message", "Phone" },
+        { "cell phone call", "Phone" },
+        { "cell phone", "Phone" },
+        { "mobile", "Phone" },
+        // Email synonyms
+        { "e-mail", "Email" },
+        { "electronic mail", "Email" },
+        { "msg", "Email" },
+        // Written synonyms
+        { "fax", "Written" },
+        { "document", "Written" },
+        { "paper", "Written" },
+        { "memo", "Written" },
+        { "letter", "Written" },
+        { "handout", "Written" },
+        { "courier", "Written" },
+        // Simulation synonyms
+        { "sim", "Simulation" },
+        { "cax", "Simulation" },
+        { "computer aided", "Simulation" },
+        { "simulated", "Simulation" },
+        { "emits", "Simulation" },
+        { "jiee", "Simulation" },
     };
 
     public ExcelImportService(
@@ -192,10 +243,10 @@ public class ExcelImportService : IExcelImportService
                 foreach (var worksheet in workbook.Worksheets)
                 {
                     var lastRow = worksheet.LastRowUsed()?.RowNumber() ?? 0;
-                    var lastCol = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
+                    var lastCol = Math.Min(worksheet.LastColumnUsed()?.ColumnNumber() ?? 0, MaxColumns);
 
-                    // Analyze header row for MSEL patterns
-                    var (looksLikeMsel, confidence) = AnalyzeWorksheetHeaders(worksheet);
+                    // Analyze headers across first 10 rows for MSEL patterns
+                    var (looksLikeMsel, confidence, suggestedHeaderRow) = AnalyzeWorksheetHeaders(worksheet);
 
                     worksheets.Add(new WorksheetInfoDto
                     {
@@ -204,7 +255,9 @@ public class ExcelImportService : IExcelImportService
                         RowCount = Math.Max(0, lastRow - 1), // Subtract header row
                         ColumnCount = lastCol,
                         LooksLikeMsel = looksLikeMsel,
-                        MselConfidence = confidence
+                        MselConfidence = confidence,
+                        SuggestedHeaderRow = suggestedHeaderRow,
+                        SuggestedDataStartRow = suggestedHeaderRow + 1
                     });
                 }
 
@@ -279,7 +332,7 @@ public class ExcelImportService : IExcelImportService
         // Get column information
         var columns = new List<ColumnInfoDto>();
         var headerRow = worksheet.Row(request.HeaderRow);
-        var lastColumn = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
+        var lastColumn = Math.Min(worksheet.LastColumnUsed()?.ColumnNumber() ?? 0, MaxColumns);
 
         for (int col = 1; col <= lastColumn; col++)
         {
@@ -355,7 +408,7 @@ public class ExcelImportService : IExcelImportService
             ("InjectNumber", "Inject Number", false, "Unique identifier for the inject within the MSEL"),
             ("Title", "Title", true, "Brief title of the inject"),
             ("Description", "Description", false, "Detailed description of the inject"),
-            ("ScheduledTime", "Scheduled Time", true, "Wall clock time when inject should be delivered"),
+            ("ScheduledTime", "Scheduled Time", false, "Wall clock time when inject should be delivered (defaults to 00:00 if not provided)"),
             ("ScenarioDay", "Scenario Day", false, "Day number in the exercise scenario"),
             ("ScenarioTime", "Scenario Time", false, "Time in the exercise scenario"),
             ("Source", "Source / From", false, "Who is sending or initiating this inject"),
@@ -572,6 +625,14 @@ public class ExcelImportService : IExcelImportService
                 MapRowToInject(inject, row.Values, session.Mappings, phases, deliveryMethods,
                     request.ExerciseId, exercise.OrganizationId, request.CreateMissingPhases, ref phasesCreated, warnings);
 
+                // Title fallback: if Title is empty, populate from Description
+                if (string.IsNullOrWhiteSpace(inject.Title) && !string.IsNullOrWhiteSpace(inject.Description))
+                {
+                    inject.Title = inject.Description.Length > 200
+                        ? inject.Description[..197] + "..."
+                        : inject.Description;
+                }
+
                 _context.Injects.Add(inject);
                 injectsCreated++;
             }
@@ -685,30 +746,44 @@ public class ExcelImportService : IExcelImportService
         return lines;
     }
 
-    private static (bool LooksLikeMsel, int Confidence) AnalyzeWorksheetHeaders(IXLWorksheet worksheet)
+    private static (bool LooksLikeMsel, int Confidence, int SuggestedHeaderRow) AnalyzeWorksheetHeaders(IXLWorksheet worksheet)
     {
-        var headerRow = worksheet.Row(1);
-        var headers = new List<string>();
+        var bestRow = 1;
+        var bestConfidence = 0;
+        var bestMatches = 0;
 
-        for (int col = 1; col <= worksheet.LastColumnUsed()?.ColumnNumber(); col++)
+        var maxScanRow = Math.Min(10, worksheet.LastRowUsed()?.RowNumber() ?? 1);
+        var lastCol = Math.Min(worksheet.LastColumnUsed()?.ColumnNumber() ?? 0, MaxColumns);
+
+        // Expanded patterns for legacy MSEL detection
+        var keyPatterns = new[] { "title", "subject", "time", "dtg", "inject", "description", "text", "from", "to", "msel" };
+
+        for (int row = 1; row <= maxScanRow; row++)
         {
-            headers.Add(headerRow.Cell(col).GetString().Trim().ToLowerInvariant());
-        }
-
-        // Check for common MSEL column patterns
-        var matchedPatterns = 0;
-        var keyPatterns = new[] { "title", "time", "inject", "description", "from", "to" };
-
-        foreach (var pattern in keyPatterns)
-        {
-            if (headers.Any(h => h.Contains(pattern)))
+            var headers = new List<string>();
+            for (int col = 1; col <= lastCol; col++)
             {
-                matchedPatterns++;
+                headers.Add(worksheet.Row(row).Cell(col).GetString().Trim().ToLowerInvariant());
+            }
+
+            var matchedPatterns = 0;
+            foreach (var pattern in keyPatterns)
+            {
+                if (headers.Any(h => h.Contains(pattern)))
+                {
+                    matchedPatterns++;
+                }
+            }
+
+            if (matchedPatterns > bestMatches)
+            {
+                bestMatches = matchedPatterns;
+                bestRow = row;
+                bestConfidence = (matchedPatterns * 100) / keyPatterns.Length;
             }
         }
 
-        var confidence = (matchedPatterns * 100) / keyPatterns.Length;
-        return (matchedPatterns >= 2, Math.Min(100, confidence + 20));
+        return (bestMatches >= 2, Math.Min(100, bestConfidence + 20), bestRow);
     }
 
     private static (string DataType, IReadOnlyList<string?> SampleValues, int FillRate) GetColumnData(
@@ -918,6 +993,10 @@ public class ExcelImportService : IExcelImportService
                     rowData[mapping.CadenceField] = colIndex < values.Count ? values[colIndex] : null;
                 }
 
+                // Skip rows where all mapped values are empty (legend rows, spacers)
+                if (rowData.Values.All(v => IsEmpty(v)))
+                    continue;
+
                 rows.Add(rowData);
             }
         }
@@ -943,6 +1022,10 @@ public class ExcelImportService : IExcelImportService
                     var cell = worksheet.Cell(row, mapping.SourceColumnIndex!.Value + 1);
                     rowData[mapping.CadenceField] = GetCellValue(cell);
                 }
+
+                // Skip rows where all mapped values are empty (legend rows, spacers)
+                if (rowData.Values.All(v => IsEmpty(v)))
+                    continue;
 
                 rows.Add(rowData);
             }
@@ -980,7 +1063,7 @@ public class ExcelImportService : IExcelImportService
             // Validate specific field formats
             if (row.TryGetValue("ScheduledTime", out var timeValue) && !IsEmpty(timeValue))
             {
-                if (!TryParseTime(timeValue, out _))
+                if (!TimeParsingHelper.TryParseTime(timeValue, out _) && !TimeParsingHelper.TryParseDateTime(timeValue, out _))
                 {
                     issues.Add(new ValidationIssueDto
                     {
@@ -988,6 +1071,21 @@ public class ExcelImportService : IExcelImportService
                         Severity = "Error",
                         Message = "Cannot parse time value",
                         OriginalValue = timeValue?.ToString()
+                    });
+                }
+            }
+            else if (!row.ContainsKey("ScheduledTime") || IsEmpty(timeValue))
+            {
+                // ScheduledTime not mapped or empty - warn but allow import
+                var hasScheduledTimeMapping = mappings.Any(m => m.CadenceField == "ScheduledTime" && m.SourceColumnIndex.HasValue);
+                if (!hasScheduledTimeMapping || IsEmpty(timeValue))
+                {
+                    issues.Add(new ValidationIssueDto
+                    {
+                        Field = "ScheduledTime",
+                        Severity = "Warning",
+                        Message = "Scheduled Time is not provided. Will default to 00:00.",
+                        OriginalValue = null
                     });
                 }
             }
@@ -1074,58 +1172,8 @@ public class ExcelImportService : IExcelImportService
         return value == null || (value is string s && string.IsNullOrWhiteSpace(s));
     }
 
-    private static bool TryParseTime(object? value, out TimeOnly result)
-    {
-        result = default;
-
-        if (value == null) return false;
-
-        if (value is DateTime dt)
-        {
-            result = TimeOnly.FromDateTime(dt);
-            return true;
-        }
-
-        if (value is TimeSpan ts)
-        {
-            result = TimeOnly.FromTimeSpan(ts);
-            return true;
-        }
-
-        if (value is double d)
-        {
-            // Excel stores times as fractions of a day
-            var time = TimeSpan.FromDays(d);
-            result = TimeOnly.FromTimeSpan(time);
-            return true;
-        }
-
-        if (value is string s)
-        {
-            // Try common time formats
-            var formats = new[]
-            {
-                "h:mm tt", "hh:mm tt", "H:mm", "HH:mm", "H:mm:ss", "HH:mm:ss",
-                "h:mm:ss tt", "hh:mm:ss tt"
-            };
-
-            foreach (var format in formats)
-            {
-                if (TimeOnly.TryParseExact(s, format, null, System.Globalization.DateTimeStyles.None, out result))
-                {
-                    return true;
-                }
-            }
-
-            // Try general parsing
-            if (TimeOnly.TryParse(s, out result))
-            {
-                return true;
-            }
-        }
-
-        return false;
-    }
+    // NOTE: TryParseTime logic has been extracted to TimeParsingHelper for testability.
+    // All callers now use TimeParsingHelper.TryParseTime / TryParseDateTime.
 
     private void MapRowToInject(
         Inject inject,
@@ -1165,9 +1213,18 @@ public class ExcelImportService : IExcelImportService
                     inject.Description = stringValue ?? "";
                     break;
                 case "ScheduledTime":
-                    if (TryParseTime(value, out var time))
+                    if (TimeParsingHelper.TryParseTime(value, out var time))
                     {
                         inject.ScheduledTime = time;
+                    }
+                    else if (TimeParsingHelper.TryParseDateTime(value, out var fullDt))
+                    {
+                        inject.ScheduledTime = TimeOnly.FromDateTime(fullDt);
+                        // Populate ScenarioDay from date if not already set
+                        if (inject.ScenarioDay == null)
+                        {
+                            inject.ScenarioDay = fullDt.Day;
+                        }
                     }
                     break;
                 case "ScenarioDay":
@@ -1177,7 +1234,7 @@ public class ExcelImportService : IExcelImportService
                     }
                     break;
                 case "ScenarioTime":
-                    if (TryParseTime(value, out var scenarioTime))
+                    if (TimeParsingHelper.TryParseTime(value, out var scenarioTime))
                     {
                         inject.ScenarioTime = scenarioTime;
                     }
@@ -1194,7 +1251,15 @@ public class ExcelImportService : IExcelImportService
                 case "DeliveryMethod":
                     if (stringValue != null && deliveryMethods.TryGetValue(stringValue.ToLowerInvariant(), out var method))
                     {
+                        // Exact match in delivery methods lookup
                         inject.DeliveryMethodId = method.Id;
+                    }
+                    else if (!string.IsNullOrEmpty(stringValue) &&
+                             DeliveryMethodSynonyms.TryGetValue(stringValue, out var canonicalName) &&
+                             deliveryMethods.TryGetValue(canonicalName.ToLowerInvariant(), out var synonymMethod))
+                    {
+                        // Synonym resolved to a known delivery method
+                        inject.DeliveryMethodId = synonymMethod.Id;
                     }
                     else if (!string.IsNullOrEmpty(stringValue))
                     {

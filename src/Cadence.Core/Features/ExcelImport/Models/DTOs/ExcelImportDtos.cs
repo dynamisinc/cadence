@@ -75,6 +75,16 @@ public record WorksheetInfoDto
     /// Confidence score (0-100) that this is the MSEL worksheet.
     /// </summary>
     public int MselConfidence { get; init; }
+
+    /// <summary>
+    /// Suggested header row (1-based). Determined by scanning the first 10 rows for MSEL-like headers.
+    /// </summary>
+    public int SuggestedHeaderRow { get; init; } = 1;
+
+    /// <summary>
+    /// Suggested data start row (1-based). Typically SuggestedHeaderRow + 1.
+    /// </summary>
+    public int SuggestedDataStartRow { get; init; } = 2;
 }
 
 /// <summary>
