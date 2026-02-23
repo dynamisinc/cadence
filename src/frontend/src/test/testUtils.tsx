@@ -5,7 +5,7 @@ import { ThemeProvider } from '@mui/material/styles'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cobraTheme } from '../theme/cobraTheme'
 import { FeatureFlagsProvider } from '../admin'
-import { ConnectivityProvider, OfflineSyncProvider } from '../core/contexts'
+import { BreadcrumbProvider, ConnectivityProvider, OfflineSyncProvider } from '../core/contexts'
 import { AuthProvider } from '../contexts/AuthContext'
 import { OrganizationProvider } from '../contexts/OrganizationContext'
 import { ExerciseNavigationProvider } from '../shared/contexts'
@@ -40,9 +40,11 @@ const AllProviders = ({ children }: WrapperProps) => {
                 <OrganizationProvider>
                   <UserPreferencesProvider>
                     <BrowserRouter>
-                      <ExerciseNavigationProvider>
-                        {children}
-                      </ExerciseNavigationProvider>
+                      <BreadcrumbProvider>
+                        <ExerciseNavigationProvider>
+                          {children}
+                        </ExerciseNavigationProvider>
+                      </BreadcrumbProvider>
                     </BrowserRouter>
                   </UserPreferencesProvider>
                 </OrganizationProvider>

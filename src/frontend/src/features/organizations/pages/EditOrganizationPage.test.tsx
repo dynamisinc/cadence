@@ -82,6 +82,10 @@ vi.mock('../components', () => ({
   ApprovalPermissionsSettings: () => <div data-testid="approval-permissions-settings" />,
 }))
 
+vi.mock('@/core/contexts', () => ({
+  useBreadcrumbs: vi.fn(),
+}))
+
 vi.mock('@/shared/components', () => ({
   StatusChip: ({ status }: any) => <span>{status}</span>,
   PageHeader: ({ title, subtitle, actions }: any) => (
