@@ -7,7 +7,7 @@ import { alpha, createTheme } from '@mui/material/styles'
  * Based on cobra-styling-package patterns
  *
  * Key Design Principles:
- * - Silver/Cobalt Blue color scheme
+ * - Silver/Navy Blue color scheme
  * - Small form controls by default
  * - 54px header height
  * - Consistent spacing and padding via CobraStyles
@@ -195,7 +195,7 @@ export const cobraTheme = createTheme({
       main: '#e42217', // lava red
     },
     info: {
-      main: '#0020c2',
+      main: '#1e3a5f',
       light: '#0000ff',
       dark: '#00008b',
     },
@@ -213,13 +213,13 @@ export const cobraTheme = createTheme({
       contrastText: '#ffffff',
       dark: '#00008b', // darkblue
       light: '#0000ff',
-      main: '#0020c2', // cobalt blue
+      main: '#1e3a5f', // navy blue
     },
     linkButton: {
       contrastText: '#ffffff',
       dark: '#00008b',
       light: '#DBE9FA',
-      main: '#0020c2',
+      main: '#1e3a5f',
     },
     notifications: {
       error: '#EFB6B6',
@@ -495,7 +495,7 @@ export function createCobraTheme(mode: 'light' | 'dark') {
         main: '#e42217',
       },
       info: {
-        main: isDark ? '#4a90d9' : '#0020c2',
+        main: isDark ? '#4a90d9' : '#1e3a5f',
         light: isDark ? '#6ba3e0' : '#0000ff',
         dark: isDark ? '#2a70b9' : '#00008b',
       },
@@ -513,13 +513,13 @@ export function createCobraTheme(mode: 'light' | 'dark') {
         contrastText: '#ffffff',
         dark: isDark ? '#1a50a0' : '#00008b',
         light: isDark ? '#4a90d9' : '#0000ff',
-        main: isDark ? '#2a70c2' : '#0020c2',
+        main: isDark ? '#2a70c2' : '#1e3a5f',
       },
       linkButton: {
         contrastText: '#ffffff',
         dark: isDark ? '#1a50a0' : '#00008b',
         light: isDark ? '#1a3352' : '#DBE9FA',
-        main: isDark ? '#4a90d9' : '#0020c2',
+        main: isDark ? '#4a90d9' : '#1e3a5f',
       },
       notifications: {
         error: isDark ? '#5c2020' : '#EFB6B6',

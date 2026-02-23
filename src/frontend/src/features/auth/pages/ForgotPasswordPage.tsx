@@ -82,7 +82,7 @@ export const ForgotPasswordPage: FC = () => {
           <Box sx={{ textAlign: 'center', py: 2 }}>
             <FontAwesomeIcon
               icon={faEnvelope}
-              style={{ fontSize: 48, color: '#0020c2', marginBottom: 16 }}
+              style={{ fontSize: 48, color: '#1e3a5f', marginBottom: 16 }}
             />
             <Typography variant="body1" paragraph>
               If an account exists for <strong>{email}</strong>, we've sent a password reset link.

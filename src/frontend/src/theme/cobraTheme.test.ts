@@ -19,8 +19,8 @@ describe('cobraTheme', () => {
       expect(cobraTheme.palette.primary.light).toBe('#dadbdd')
     })
 
-    it('has correct buttonPrimary colors (cobalt blue)', () => {
-      expect(cobraTheme.palette.buttonPrimary.main).toBe('#0020c2')
+    it('has correct buttonPrimary colors (navy blue)', () => {
+      expect(cobraTheme.palette.buttonPrimary.main).toBe('#1e3a5f')
       expect(cobraTheme.palette.buttonPrimary.contrastText).toBe('#ffffff')
       expect(cobraTheme.palette.buttonPrimary.dark).toBe('#00008b')
     })
@@ -62,7 +62,7 @@ describe('cobraTheme', () => {
       expect(getProgressColor(100)).toBe(cobraTheme.palette.success.main)
     })
 
-    it('returns cobalt blue for 67-99%', () => {
+    it('returns navy blue for 67-99%', () => {
       expect(getProgressColor(67)).toBe(cobraTheme.palette.info.main)
       expect(getProgressColor(85)).toBe(cobraTheme.palette.info.main)
       expect(getProgressColor(99)).toBe(cobraTheme.palette.info.main)

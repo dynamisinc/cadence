@@ -2,7 +2,7 @@ import { Button } from '@mui/material'
 import { styled } from '@mui/material/styles'
 
 /**
- * CobraPrimaryButton - Primary action button with cobalt blue background
+ * CobraPrimaryButton - Primary action button with navy blue background
  *
  * Use for:
  * - Main form submissions (Save, Submit, Create)
