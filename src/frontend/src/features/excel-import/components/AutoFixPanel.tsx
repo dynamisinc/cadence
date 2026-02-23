@@ -5,7 +5,7 @@
  * Each suggestion shows the issue pattern and a one-click fix button.
  */
 
-import { Box, Typography, Stack, Paper } from '@mui/material'
+import { Typography, Stack, Paper } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faWandMagicSparkles } from '@fortawesome/free-solid-svg-icons'
 

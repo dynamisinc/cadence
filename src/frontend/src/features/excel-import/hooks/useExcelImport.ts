@@ -114,11 +114,11 @@ export const useUpdateRows = () => {
 
   return useMutation({
     mutationFn: (request: UpdateRowsRequest) => excelImportService.updateRows(request),
-    onSuccess: (data) => {
+    onSuccess: data => {
       // Merge updated rows into the cached validation result
       queryClient.setQueryData<ValidationResult>(
         [QUERY_KEY, 'validation', data.sessionId],
-        (old) => {
+        old => {
           if (!old) return old
           const rowMap = new Map(old.rows.map(r => [r.rowNumber, r]))
           for (const updated of data.updatedRows) {
