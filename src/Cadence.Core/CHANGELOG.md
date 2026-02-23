@@ -2,6 +2,14 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.8.0](https://github.com/dynamisinc/cadence/compare/api-v3.7.0...api-v3.8.0) (2026-02-23)
+
+
+### Features
+
+* **assignments:** show organization name on cards when user has multi-org assignments ([0c08379](https://github.com/dynamisinc/cadence/commit/0c08379b0ad7c8d21973e291e44f3c3b4a7d84d7))
+* **exercises:** add detailed fields to ExerciseDto and update ExerciseTable for expandable rows ([e1a9a90](https://github.com/dynamisinc/cadence/commit/e1a9a901459890f6ba8fa0d2f3c4d4cfe4b8ab9c))
+
 ## [3.7.0](https://github.com/dynamisinc/cadence/compare/api-v3.6.0...api-v3.7.0) (2026-02-21)
 
 
