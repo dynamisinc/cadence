@@ -25,7 +25,6 @@ vi.mock('../hooks/useOrganizations', () => ({
   useOrganizations: vi.fn(),
 }))
 
-
 vi.mock('@/core/contexts', () => ({
   useBreadcrumbs: vi.fn(),
 }))
