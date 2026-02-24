@@ -2,6 +2,20 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.9.0](https://github.com/dynamisinc/cadence/compare/api-v3.8.0...api-v3.9.0) (2026-02-24)
+
+
+### Features
+
+* **excel-import:** add auto-fix suggestions and inline cell editing for validation ([2bb2f30](https://github.com/dynamisinc/cadence/commit/2bb2f30a7df1340dd1cb6a601544dfdce55a0cea))
+* **excel-import:** add legacy MSEL format support for import wizard ([e76c23c](https://github.com/dynamisinc/cadence/commit/e76c23c64faba6e07d3f3b72ef5dec80e0a1f55a))
+* **excel-import:** add legacy MSEL format support with auto-fix and inline editing ([8dca6d8](https://github.com/dynamisinc/cadence/commit/8dca6d8706fd1be4fe345c47064bbb92fc221062))
+
+
+### Bug Fixes
+
+* **excel-import:** resolve race condition, time parsing crash, and COBRA compliance ([81310b7](https://github.com/dynamisinc/cadence/commit/81310b78cf85e1f347b2f5191ac57685ef17264b))
+
 ## [3.8.0](https://github.com/dynamisinc/cadence/compare/api-v3.7.0...api-v3.8.0) (2026-02-23)
 
 
