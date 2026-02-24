@@ -124,7 +124,7 @@ export const RouteErrorFallback = () => {
             icon={faLifeRing}
             style={{
               fontSize: isTablet ? '36px' : '28px',
-              color: '#0020c2',
+              color: '#1e3a5f',
             }}
           />
         </Box>

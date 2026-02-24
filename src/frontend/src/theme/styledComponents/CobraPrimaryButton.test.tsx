@@ -21,7 +21,7 @@ describe('CobraPrimaryButton', () => {
     expect(screen.getByRole('button')).toBeDisabled()
   })
 
-  it('applies cobalt blue background color', () => {
+  it('applies navy blue background color', () => {
     render(<CobraPrimaryButton>Save</CobraPrimaryButton>)
     const button = screen.getByRole('button')
     expect(button).toHaveStyle({ textTransform: 'none' })

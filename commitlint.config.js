@@ -48,6 +48,10 @@ module.exports = {
         'photos',
         'delivery-methods',
         'autocomplete',
+        'assignments',
+        'security',
+        'nav',
+        'release-notes',
         // Infrastructure
         'agent',
         'migrations',
@@ -60,6 +64,7 @@ module.exports = {
         'infra',
       ],
     ],
+    'header-max-length': [2, 'always', 120],
     'scope-empty': [1, 'never'],
     'type-enum': [
       2,

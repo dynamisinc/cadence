@@ -64,8 +64,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Logo - visible on desktop, centered with collapsed sidebar icons */}
         <Box
           component="img"
-          src="/dynamis-logo.jpg"
-          alt="Dynamis Logo"
+          src="/icon-source-light.svg"
+          alt="Cadence Logo"
           data-testid="app-logo"
           sx={{
             height: 40,

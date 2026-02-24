@@ -2,6 +2,7 @@ import type { ReactElement, ReactNode } from 'react'
 import { render, type RenderOptions } from '@testing-library/react'
 import { ThemeProvider } from '@mui/material/styles'
 import { cobraTheme } from '../theme/cobraTheme'
+import { BreadcrumbProvider } from '../core/contexts/BreadcrumbContext'
 
 interface WrapperProps {
   children: ReactNode
@@ -10,7 +11,9 @@ interface WrapperProps {
 const AllTheProviders = ({ children }: WrapperProps) => {
   return (
     <ThemeProvider theme={cobraTheme}>
-      {children}
+      <BreadcrumbProvider>
+        {children}
+      </BreadcrumbProvider>
     </ThemeProvider>
   )
 }
