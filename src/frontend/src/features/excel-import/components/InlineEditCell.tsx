@@ -6,7 +6,8 @@
  */
 
 import { useState, useRef, useEffect } from 'react'
-import { Box, InputBase } from '@mui/material'
+import { Box } from '@mui/material'
+import { CobraTextField } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen } from '@fortawesome/free-solid-svg-icons'
 
@@ -79,21 +80,29 @@ export const InlineEditCell = ({
 
   if (isEditing) {
     return (
-      <InputBase
+      <CobraTextField
         inputRef={inputRef}
         value={editValue}
         onChange={e => setEditValue(e.target.value)}
         onBlur={handleSave}
         onKeyDown={handleKeyDown}
         size="small"
+        variant="outlined"
         sx={{
-          fontSize: '0.875rem',
-          border: 1,
-          borderColor: borderColor || 'primary.main',
-          borderRadius: 1,
-          px: 1,
-          py: 0.25,
           width: '100%',
+          '& .MuiInputBase-root': {
+            fontSize: '0.875rem',
+            borderRadius: 1,
+          },
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: borderColor || 'primary.main',
+            },
+          },
+          '& .MuiInputBase-input': {
+            px: 1,
+            py: 0.25,
+          },
         }}
       />
     )

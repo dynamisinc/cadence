@@ -753,63 +753,67 @@ public class ExcelImportService : IExcelImportService
             throw new InvalidOperationException("No validation results. Please validate before updating rows.");
         }
 
-        // Build rowNumber -> index lookup
-        var rowIndex = new Dictionary<int, int>();
-        for (int i = 0; i < session.ValidationResults.Count; i++)
+        // Lock session state to prevent concurrent read-modify-write on ValidationResults
+        lock (session.SyncRoot)
         {
-            rowIndex[session.ValidationResults[i].RowNumber] = i;
-        }
-
-        var updatedRows = new List<RowValidationResultDto>();
-        var affectedRowNumbers = request.Updates.Select(u => u.RowNumber).Distinct();
-
-        foreach (var rowNumber in affectedRowNumbers)
-        {
-            if (!rowIndex.TryGetValue(rowNumber, out var idx))
-                continue;
-
-            var existing = session.ValidationResults[idx];
-
-            // Apply value updates
-            foreach (var update in request.Updates.Where(u => u.RowNumber == rowNumber))
+            // Build rowNumber -> index lookup
+            var rowIndex = new Dictionary<int, int>();
+            for (int i = 0; i < session.ValidationResults.Count; i++)
             {
-                existing.Values[update.Field] = update.Value;
+                rowIndex[session.ValidationResults[i].RowNumber] = i;
             }
 
-            // Re-validate
-            var issues = ValidateSingleRow(existing.Values, session.Mappings);
-            var status = issues.Any(i => i.Severity == "Error")
-                ? "Error"
-                : issues.Any(i => i.Severity == "Warning")
-                    ? "Warning"
-                    : "Valid";
+            var updatedRows = new List<RowValidationResultDto>();
+            var affectedRowNumbers = request.Updates.Select(u => u.RowNumber).Distinct();
 
-            var newRow = new RowValidationResultDto
+            foreach (var rowNumber in affectedRowNumbers)
             {
-                RowNumber = existing.RowNumber,
-                Status = status,
-                Values = existing.Values,
-                Issues = issues.Count > 0 ? issues : null
-            };
+                if (!rowIndex.TryGetValue(rowNumber, out var idx))
+                    continue;
 
-            session.ValidationResults[idx] = newRow;
-            updatedRows.Add(newRow);
+                var existing = session.ValidationResults[idx];
+
+                // Apply value updates
+                foreach (var update in request.Updates.Where(u => u.RowNumber == rowNumber))
+                {
+                    existing.Values[update.Field] = update.Value;
+                }
+
+                // Re-validate
+                var issues = ValidateSingleRow(existing.Values, session.Mappings);
+                var status = issues.Any(i => i.Severity == "Error")
+                    ? "Error"
+                    : issues.Any(i => i.Severity == "Warning")
+                        ? "Warning"
+                        : "Valid";
+
+                var newRow = new RowValidationResultDto
+                {
+                    RowNumber = existing.RowNumber,
+                    Status = status,
+                    Values = existing.Values,
+                    Issues = issues.Count > 0 ? issues : null
+                };
+
+                session.ValidationResults[idx] = newRow;
+                updatedRows.Add(newRow);
+            }
+
+            // Recompute counts
+            var validRows = session.ValidationResults.Count(r => r.Status == "Valid");
+            var errorRows = session.ValidationResults.Count(r => r.Status == "Error");
+            var warningRows = session.ValidationResults.Count(r => r.Status == "Warning");
+
+            return Task.FromResult(new UpdateRowsResultDto
+            {
+                SessionId = request.SessionId,
+                TotalRows = session.ValidationResults.Count,
+                ValidRows = validRows,
+                ErrorRows = errorRows,
+                WarningRows = warningRows,
+                UpdatedRows = updatedRows
+            });
         }
-
-        // Recompute counts
-        var validRows = session.ValidationResults.Count(r => r.Status == "Valid");
-        var errorRows = session.ValidationResults.Count(r => r.Status == "Error");
-        var warningRows = session.ValidationResults.Count(r => r.Status == "Warning");
-
-        return Task.FromResult(new UpdateRowsResultDto
-        {
-            SessionId = request.SessionId,
-            TotalRows = session.ValidationResults.Count,
-            ValidRows = validRows,
-            ErrorRows = errorRows,
-            WarningRows = warningRows,
-            UpdatedRows = updatedRows
-        });
     }
 
     #region Private Methods
@@ -1693,9 +1697,16 @@ public class ExcelImportService : IExcelImportService
 
     private class ImportSession
     {
-        // Lock object for thread-safe access to mutable session state
+        // Lock object for thread-safe access to mutable session state.
+        // Used for ExpiresAt and any read-modify-write on ValidationResults/Mappings.
         private readonly object _lock = new();
         private DateTime _expiresAt;
+
+        /// <summary>
+        /// Synchronization root for external callers that need to lock session state
+        /// (e.g., UpdateRowsAsync mutating ValidationResults).
+        /// </summary>
+        public object SyncRoot => _lock;
 
         public Guid SessionId { get; init; }
         public required string FileName { get; init; }

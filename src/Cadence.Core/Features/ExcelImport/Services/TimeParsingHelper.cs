@@ -90,6 +90,11 @@ public static partial class TimeParsingHelper
 
         if (value is double d)
         {
+            // Excel time fractions are in [0, 1). Values >= 1.0 are date serials
+            // and should fall through to TryParseDateTime instead.
+            if (d < 0 || d >= 1.0)
+                return false;
+
             var time = TimeSpan.FromDays(d);
             result = TimeOnly.FromTimeSpan(time);
             return true;
