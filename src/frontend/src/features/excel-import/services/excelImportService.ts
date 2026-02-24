@@ -15,6 +15,8 @@ import type {
   ExecuteImportRequest,
   ImportResult,
   ImportSessionState,
+  UpdateRowsRequest,
+  UpdateRowsResult,
 } from '../types'
 
 const BASE_URL = '/import'
@@ -79,6 +81,17 @@ export const executeImport = async (request: ExecuteImportRequest): Promise<Impo
 }
 
 /**
+ * Update row values and re-validate. Used for auto-fix and inline editing.
+ */
+export const updateRows = async (request: UpdateRowsRequest): Promise<UpdateRowsResult> => {
+  const response = await api.patch<UpdateRowsResult>(
+    `${BASE_URL}/sessions/${request.sessionId}/rows`,
+    request,
+  )
+  return response.data
+}
+
+/**
  * Cancel an import session
  */
 export const cancelImport = async (sessionId: string): Promise<void> => {
@@ -92,6 +105,7 @@ export const excelImportService = {
   getSuggestedMappings,
   validateImport,
   executeImport,
+  updateRows,
   cancelImport,
 }
 

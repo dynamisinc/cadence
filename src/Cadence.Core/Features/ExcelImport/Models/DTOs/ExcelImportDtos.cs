@@ -75,6 +75,16 @@ public record WorksheetInfoDto
     /// Confidence score (0-100) that this is the MSEL worksheet.
     /// </summary>
     public int MselConfidence { get; init; }
+
+    /// <summary>
+    /// Suggested header row (1-based). Determined by scanning the first 10 rows for MSEL-like headers.
+    /// </summary>
+    public int SuggestedHeaderRow { get; init; } = 1;
+
+    /// <summary>
+    /// Suggested data start row (1-based). Typically SuggestedHeaderRow + 1.
+    /// </summary>
+    public int SuggestedDataStartRow { get; init; } = 2;
 }
 
 /// <summary>
@@ -425,6 +435,80 @@ public record ImportResultDto
     /// The MSEL ID that was imported into.
     /// </summary>
     public Guid? MselId { get; init; }
+}
+
+/// <summary>
+/// Request to update one or more row values in a validation session and re-validate.
+/// Used for both bulk auto-fix and individual inline edits.
+/// </summary>
+public record UpdateRowsRequestDto
+{
+    /// <summary>
+    /// Session ID.
+    /// </summary>
+    public required Guid SessionId { get; init; }
+
+    /// <summary>
+    /// List of row updates to apply.
+    /// </summary>
+    public required IReadOnlyList<RowUpdateDto> Updates { get; init; }
+}
+
+/// <summary>
+/// A single row value update.
+/// </summary>
+public record RowUpdateDto
+{
+    /// <summary>
+    /// Row number (1-based, matching RowValidationResultDto.RowNumber).
+    /// </summary>
+    public required int RowNumber { get; init; }
+
+    /// <summary>
+    /// Cadence field name to update (e.g., "Title", "ScheduledTime").
+    /// </summary>
+    public required string Field { get; init; }
+
+    /// <summary>
+    /// New value for the field.
+    /// </summary>
+    public string? Value { get; init; }
+}
+
+/// <summary>
+/// Response after updating rows. Returns only the changed rows plus updated counts.
+/// </summary>
+public record UpdateRowsResultDto
+{
+    /// <summary>
+    /// Session ID.
+    /// </summary>
+    public required Guid SessionId { get; init; }
+
+    /// <summary>
+    /// Updated total row count.
+    /// </summary>
+    public required int TotalRows { get; init; }
+
+    /// <summary>
+    /// Updated valid row count.
+    /// </summary>
+    public required int ValidRows { get; init; }
+
+    /// <summary>
+    /// Updated error row count.
+    /// </summary>
+    public required int ErrorRows { get; init; }
+
+    /// <summary>
+    /// Updated warning row count.
+    /// </summary>
+    public required int WarningRows { get; init; }
+
+    /// <summary>
+    /// Only the rows that were re-validated (changed).
+    /// </summary>
+    public required IReadOnlyList<RowValidationResultDto> UpdatedRows { get; init; }
 }
 
 /// <summary>

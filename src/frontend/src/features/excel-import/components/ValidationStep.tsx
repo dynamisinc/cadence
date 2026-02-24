@@ -4,7 +4,7 @@
  * Fourth step of the import wizard - validate import data and review errors.
  */
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import {
   Box,
   Typography,
@@ -18,8 +18,6 @@ import {
   TableHead,
   TableRow,
   Chip,
-  ToggleButton,
-  ToggleButtonGroup,
   Collapse,
   IconButton,
   LinearProgress,
@@ -33,11 +31,13 @@ import {
   faXmark,
   faChevronDown,
   faChevronUp,
-  faFilter,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
-import type { ValidationResult, RowValidationResult, ColumnMapping } from '../types'
+import { AutoFixPanel } from './AutoFixPanel'
+import { InlineEditCell } from './InlineEditCell'
+import { computeAutoFixSuggestions } from '../utils/autoFixSuggestions'
+import type { ValidationResult, RowValidationResult, ColumnMapping, AutoFixSuggestion } from '../types'
 
 type FilterMode = 'all' | 'valid' | 'warning' | 'error'
 
@@ -54,6 +54,12 @@ interface ValidationStepProps {
   onBack: () => void
   /** Called when user confirms and wants to proceed (import valid rows) */
   onProceed: (skipErrors: boolean) => void
+  /** Called when user applies a bulk auto-fix */
+  onApplyFix?: (suggestion: AutoFixSuggestion) => void
+  /** Called when user edits a single cell inline */
+  onCellEdit?: (rowNumber: number, field: string, newValue: string) => void
+  /** Whether an update (auto-fix or inline edit) is in progress */
+  isUpdating?: boolean
 }
 
 export const ValidationStep = ({
@@ -63,14 +69,20 @@ export const ValidationStep = ({
   error = null,
   onBack,
   onProceed,
+  onApplyFix,
+  onCellEdit,
+  isUpdating = false,
 }: ValidationStepProps) => {
   const [filter, setFilter] = useState<FilterMode>('all')
   const [expandedRow, setExpandedRow] = useState<number | null>(null)
 
-  const handleFilterChange = (_: React.MouseEvent<HTMLElement>, newFilter: FilterMode | null) => {
-    if (newFilter !== null) {
-      setFilter(newFilter)
-    }
+  const autoFixSuggestions = useMemo(
+    () => computeAutoFixSuggestions(validationResult),
+    [validationResult],
+  )
+
+  const handleCardFilter = (mode: FilterMode) => {
+    setFilter(prev => (prev === mode ? 'all' : mode))
   }
 
   const toggleRowExpansion = (rowNumber: number) => {
@@ -109,30 +121,38 @@ export const ValidationStep = ({
 
   return (
     <Box>
-      {/* Summary Cards */}
+      {/* Summary Cards (clickable filters) */}
       <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
         <SummaryCard
           title="Total Rows"
           value={validationResult.totalRows}
           color="default"
+          isActive={filter === 'all'}
+          onClick={() => handleCardFilter('all')}
         />
         <SummaryCard
           title="Valid"
           value={validationResult.validRows}
           color="success"
           icon={faCheck}
+          isActive={filter === 'valid'}
+          onClick={() => handleCardFilter('valid')}
         />
         <SummaryCard
           title="Warnings"
           value={validationResult.warningRows}
           color="warning"
           icon={faExclamationTriangle}
+          isActive={filter === 'warning'}
+          onClick={() => handleCardFilter('warning')}
         />
         <SummaryCard
           title="Errors"
           value={validationResult.errorRows}
           color="error"
           icon={faXmark}
+          isActive={filter === 'error'}
+          onClick={() => handleCardFilter('error')}
         />
       </Stack>
 
@@ -153,22 +173,14 @@ export const ValidationStep = ({
         </Alert>
       )}
 
-      {/* Filter Toggle */}
-      <Stack direction="row" spacing={2} alignItems="center" sx={{ mb: 2 }}>
-        <FontAwesomeIcon icon={faFilter} />
-        <Typography variant="body2">Filter:</Typography>
-        <ToggleButtonGroup
-          value={filter}
-          exclusive
-          onChange={handleFilterChange}
-          size="small"
-        >
-          <ToggleButton value="all">All ({validationResult.totalRows})</ToggleButton>
-          <ToggleButton value="valid">Valid ({validationResult.validRows})</ToggleButton>
-          <ToggleButton value="warning">Warnings ({validationResult.warningRows})</ToggleButton>
-          <ToggleButton value="error">Errors ({validationResult.errorRows})</ToggleButton>
-        </ToggleButtonGroup>
-      </Stack>
+      {/* Auto-Fix Suggestions */}
+      {onApplyFix && autoFixSuggestions.length > 0 && (
+        <AutoFixPanel
+          suggestions={autoFixSuggestions}
+          onApplyFix={onApplyFix}
+          isApplying={isUpdating}
+        />
+      )}
 
       {/* Validation Table */}
       <TableContainer component={Paper} variant="outlined" sx={{ maxHeight: 400, mb: 3 }}>
@@ -191,6 +203,7 @@ export const ValidationStep = ({
                 isExpanded={expandedRow === row.rowNumber}
                 onToggle={() => toggleRowExpansion(row.rowNumber)}
                 mappedFields={mappedFields}
+                onCellEdit={onCellEdit}
               />
             ))}
           </TableBody>
@@ -228,14 +241,23 @@ interface SummaryCardProps {
   value: number
   color: 'default' | 'success' | 'warning' | 'error'
   icon?: typeof faCheck
+  isActive?: boolean
+  onClick?: () => void
 }
 
-const SummaryCard = ({ title, value, color, icon }: SummaryCardProps) => {
+const SummaryCard = ({ title, value, color, icon, isActive = false, onClick }: SummaryCardProps) => {
   const colorMap = {
     default: 'grey.100',
     success: 'success.light',
     warning: 'warning.light',
     error: 'error.light',
+  }
+
+  const borderColorMap = {
+    default: 'grey.500',
+    success: 'success.main',
+    warning: 'warning.main',
+    error: 'error.main',
   }
 
   const textColorMap = {
@@ -246,7 +268,22 @@ const SummaryCard = ({ title, value, color, icon }: SummaryCardProps) => {
   }
 
   return (
-    <Card sx={{ flex: 1, backgroundColor: colorMap[color] }}>
+    <Card
+      onClick={onClick}
+      sx={{
+        flex: 1,
+        backgroundColor: colorMap[color],
+        cursor: 'pointer',
+        border: 2,
+        borderColor: isActive ? borderColorMap[color] : 'transparent',
+        transition: 'border-color 0.15s, box-shadow 0.15s',
+        boxShadow: isActive ? 3 : 1,
+        '&:hover': {
+          borderColor: borderColorMap[color],
+          boxShadow: 2,
+        },
+      }}
+    >
       <CardContent sx={{ textAlign: 'center', py: 1.5, '&:last-child': { pb: 1.5 } }}>
         <Typography variant="h5" sx={{ color: textColorMap[color] }}>
           {icon && <FontAwesomeIcon icon={icon} style={{ marginRight: 8 }} />}
@@ -265,6 +302,7 @@ interface ValidationRowProps {
   isExpanded: boolean
   onToggle: () => void
   mappedFields: ColumnMapping[]
+  onCellEdit?: (rowNumber: number, field: string, newValue: string) => void
 }
 
 const ValidationRow = ({
@@ -272,6 +310,7 @@ const ValidationRow = ({
   isExpanded,
   onToggle,
   mappedFields: _mappedFields,
+  onCellEdit,
 }: ValidationRowProps) => {
   const getStatusChip = () => {
     switch (row.status) {
@@ -284,10 +323,13 @@ const ValidationRow = ({
     }
   }
 
-  const titleValue = row.values['Title'] as string || '-'
+  const titleValue = (row.values['Title'] as string) || ''
   const timeValue = row.values['ScheduledTime']
-  const timeDisplay = timeValue ? String(timeValue) : '-'
+  const timeDisplay = timeValue ? String(timeValue) : ''
   const issueCount = row.issues?.length || 0
+
+  const titleIssue = row.issues?.find(i => i.field === 'Title')
+  const timeIssue = row.issues?.find(i => i.field === 'ScheduledTime')
 
   return (
     <>
@@ -313,10 +355,37 @@ const ValidationRow = ({
         </TableCell>
         <TableCell>{row.rowNumber}</TableCell>
         <TableCell>{getStatusChip()}</TableCell>
-        <TableCell sx={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {titleValue}
+        <TableCell
+          sx={{ maxWidth: 200 }}
+          onClick={titleIssue ? e => e.stopPropagation() : undefined}
+        >
+          {onCellEdit ? (
+            <InlineEditCell
+              value={titleValue}
+              field="Title"
+              rowNumber={row.rowNumber}
+              hasIssue={!!titleIssue}
+              issueSeverity={titleIssue?.severity}
+              onSave={onCellEdit}
+            />
+          ) : (
+            titleValue || '-'
+          )}
         </TableCell>
-        <TableCell>{timeDisplay}</TableCell>
+        <TableCell onClick={timeIssue ? e => e.stopPropagation() : undefined}>
+          {onCellEdit ? (
+            <InlineEditCell
+              value={timeDisplay}
+              field="ScheduledTime"
+              rowNumber={row.rowNumber}
+              hasIssue={!!timeIssue}
+              issueSeverity={timeIssue?.severity}
+              onSave={onCellEdit}
+            />
+          ) : (
+            timeDisplay || '-'
+          )}
+        </TableCell>
         <TableCell>
           {issueCount > 0 ? `${issueCount} issue${issueCount !== 1 ? 's' : ''}` : '-'}
         </TableCell>

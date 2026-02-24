@@ -44,6 +44,14 @@ public interface IExcelImportService
     Task<ImportResultDto> ExecuteImportAsync(ExecuteImportRequestDto request);
 
     /// <summary>
+    /// Updates row values in the session and re-validates affected rows.
+    /// Used for both bulk auto-fix and individual inline cell edits.
+    /// </summary>
+    /// <param name="request">Row update request</param>
+    /// <returns>Updated validation summary and re-validated rows</returns>
+    Task<UpdateRowsResultDto> UpdateRowsAsync(UpdateRowsRequestDto request);
+
+    /// <summary>
     /// Cancels an import session and cleans up temporary files.
     /// </summary>
     /// <param name="sessionId">Import session ID</param>

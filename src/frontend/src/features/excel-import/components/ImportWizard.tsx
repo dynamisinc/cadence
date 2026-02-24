@@ -33,8 +33,10 @@ import {
   useValidateImport,
   useExecuteImport,
   useCancelImport,
+  useUpdateRows,
 } from '../hooks/useExcelImport'
 import { useDownloadTemplate } from '../../excel-export/hooks/useExcelExport'
+import { notify } from '../../../shared/utils/notify'
 import type {
   FileAnalysisResult,
   WorksheetSelectionResult,
@@ -42,6 +44,7 @@ import type {
   ValidationResult,
   ImportResult,
   ImportWizardStepType,
+  AutoFixSuggestion,
 } from '../types'
 import { ImportWizardStep } from '../types'
 
@@ -89,6 +92,7 @@ export const ImportWizard = ({
   const validateMutation = useValidateImport()
   const executeMutation = useExecuteImport()
   const cancelMutation = useCancelImport()
+  const updateRowsMutation = useUpdateRows()
   const downloadTemplateMutation = useDownloadTemplate()
 
   // Get current step index
@@ -151,7 +155,64 @@ export const ImportWizard = ({
     setCurrentStep(ImportWizardStep.Validation)
   }
 
-  // Step 4: Validation
+  // Step 4: Validation - auto-fix and inline edit
+  const handleApplyFix = async (suggestion: AutoFixSuggestion) => {
+    if (!sessionId) return
+    try {
+      const result = await updateRowsMutation.mutateAsync({
+        sessionId,
+        updates: suggestion.updates,
+      })
+      // Merge updated rows into local validation state
+      setValidationResult(prev => {
+        if (!prev) return prev
+        const rowMap = new Map(prev.rows.map(r => [r.rowNumber, r]))
+        for (const updated of result.updatedRows) {
+          rowMap.set(updated.rowNumber, updated)
+        }
+        return {
+          ...prev,
+          totalRows: result.totalRows,
+          validRows: result.validRows,
+          errorRows: result.errorRows,
+          warningRows: result.warningRows,
+          rows: Array.from(rowMap.values()).sort((a, b) => a.rowNumber - b.rowNumber),
+        }
+      })
+      notify.success(`Fixed ${suggestion.affectedRows} row${suggestion.affectedRows !== 1 ? 's' : ''}`)
+    } catch {
+      notify.error('Failed to apply fix. Please try again.')
+    }
+  }
+
+  const handleCellEdit = async (rowNumber: number, field: string, newValue: string) => {
+    if (!sessionId) return
+    try {
+      const result = await updateRowsMutation.mutateAsync({
+        sessionId,
+        updates: [{ rowNumber, field, value: newValue }],
+      })
+      // Merge the single updated row into local validation state
+      setValidationResult(prev => {
+        if (!prev) return prev
+        const rowMap = new Map(prev.rows.map(r => [r.rowNumber, r]))
+        for (const updated of result.updatedRows) {
+          rowMap.set(updated.rowNumber, updated)
+        }
+        return {
+          ...prev,
+          totalRows: result.totalRows,
+          validRows: result.validRows,
+          errorRows: result.errorRows,
+          warningRows: result.warningRows,
+          rows: Array.from(rowMap.values()).sort((a, b) => a.rowNumber - b.rowNumber),
+        }
+      })
+    } catch {
+      notify.error('Failed to save edit. Please try again.')
+    }
+  }
+
   const handleValidationProceed = (shouldSkipErrors: boolean) => {
     setSkipErrors(shouldSkipErrors)
     setCurrentStep(ImportWizardStep.Import)
@@ -252,6 +313,9 @@ export const ImportWizard = ({
             error={validateMutation.error?.message ?? null}
             onBack={handleBack}
             onProceed={handleValidationProceed}
+            onApplyFix={handleApplyFix}
+            onCellEdit={handleCellEdit}
+            isUpdating={updateRowsMutation.isPending}
           />
         )
 

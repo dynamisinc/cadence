@@ -10,6 +10,9 @@ import type { UserListResponse } from '../types'
 
 // Mock the services
 vi.mock('../services/userService')
+vi.mock('@/core/contexts', () => ({
+  useBreadcrumbs: vi.fn(),
+}))
 vi.mock('../../organizations/services/organizationService', () => ({
   organizationService: {
     getAll: vi.fn().mockResolvedValue({

@@ -59,6 +59,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAutocompleteService, AutocompleteService>();
         services.AddScoped<IOrganizationSuggestionService, OrganizationSuggestionService>();
         services.AddScoped<IExcelImportService, ExcelImportService>();
+        LegacyExcelReader.EnsureEncodingRegistered(); // Required for .xls (BIFF) file support
         services.AddScoped<IExcelExportService, ExcelExportService>();
         services.AddScoped<IUserService, UserService>();
         services.AddScoped<IUserPreferencesService, UserPreferencesService>();

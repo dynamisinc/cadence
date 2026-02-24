@@ -39,6 +39,7 @@ module.exports = {
         'email-communications',
         'invitation',
         'bulk-participant-import',
+        'excel-import',
         'feature-flags',
         'system-settings',
         'hseep-roles',
