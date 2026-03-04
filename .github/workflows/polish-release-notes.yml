@@ -1,0 +1,57 @@
+name: Polish Release Notes
+
+# Runs when release-please updates its PR branch with new CHANGELOG entries.
+# Parses the changelog into JSON, polishes it via Claude API, and commits
+# the result back to the PR so it's visible for review before merge.
+
+on:
+  push:
+    branches:
+      - release-please--branches--main
+    paths:
+      - "src/frontend/CHANGELOG.md"
+
+permissions:
+  contents: write
+
+jobs:
+  polish:
+    name: Polish Release Notes
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: src/frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: src/frontend
+
+      - name: Parse changelog to raw JSON
+        run: npx tsx scripts/parse-changelog.ts
+        working-directory: src/frontend
+
+      - name: Polish release notes via Claude
+        run: node scripts/polish-release-notes.mjs
+        working-directory: src/frontend
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+
+      - name: Commit polished release notes
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add src/frontend/src/features/version/data/release-notes.json
+          if git diff --staged --quiet; then
+            echo "No changes to release notes"
+          else
+            git commit -m "chore: polish release notes for user-facing display"
+            git push
+          fi
