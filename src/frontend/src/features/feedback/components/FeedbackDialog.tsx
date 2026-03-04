@@ -36,7 +36,8 @@ import {
   CobraTextField,
 } from '@/theme/styledComponents'
 import { feedbackService } from '../services/feedbackService'
-import type { FeedbackTab } from '../types'
+import type { FeedbackClientContext, FeedbackTab } from '../types'
+import { useExerciseNavigation } from '@/shared/contexts'
 
 interface FeedbackDialogProps {
   open: boolean
@@ -53,6 +54,18 @@ const FEEDBACK_CATEGORIES = [
 ]
 
 export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
+  const { currentExercise } = useExerciseNavigation()
+
+  const buildContext = (): FeedbackClientContext => ({
+    currentUrl: window.location.href,
+    screenSize: `${window.screen.width}x${window.screen.height}`,
+    appVersion: __APP_VERSION__,
+    commitSha: __COMMIT_SHA__,
+    exerciseId: currentExercise?.id,
+    exerciseName: currentExercise?.name,
+    exerciseRole: currentExercise?.userRole,
+  })
+
   const [activeTab, setActiveTab] = useState<FeedbackTab>('bug')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
@@ -113,6 +126,8 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
     try {
       let result
 
+      const context = buildContext()
+
       switch (activeTab) {
         case 'bug':
           result = await feedbackService.submitBugReport({
@@ -120,6 +135,7 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
             description: bugDescription,
             stepsToReproduce: bugSteps || undefined,
             severity: bugSeverity,
+            context,
           })
           break
         case 'feature':
@@ -127,6 +143,7 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
             title: featureTitle,
             description: featureDescription,
             useCase: featureUseCase || undefined,
+            context,
           })
           break
         case 'feedback':
@@ -134,6 +151,7 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
             category: feedbackCategory,
             subject: feedbackSubject,
             message: feedbackMessage,
+            context,
           })
           break
       }

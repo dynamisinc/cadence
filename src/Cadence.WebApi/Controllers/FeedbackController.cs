@@ -40,15 +40,15 @@ public class FeedbackController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SubmitBugReport([FromBody] SubmitBugReportRequest request)
     {
-        var (userName, userEmail) = GetCurrentUser();
-        if (userEmail == null) return Unauthorized();
+        var userCtx = GetCurrentUserContext();
+        if (userCtx.Email == null) return Unauthorized();
 
         var refNumber = GenerateReferenceNumber();
         var sw = Stopwatch.StartNew();
 
         _logger.LogInformation(
             "[Feedback] Bug report received - Ref: {RefNumber}, User: {Email}, Title: {Title}, Severity: {Severity}",
-            refNumber, userEmail, request.Title, request.Severity);
+            refNumber, userCtx.Email, request.Title, request.Severity);
 
         try
         {
@@ -58,16 +58,26 @@ public class FeedbackController : ControllerBase
                 Description = request.Description,
                 StepsToReproduce = request.StepsToReproduce ?? "Not provided",
                 Severity = request.Severity,
-                ReporterName = userName ?? "Unknown",
-                ReporterEmail = userEmail,
-                CurrentUrl = Request.Headers.Referer.ToString(),
+                ReporterName = userCtx.Name ?? "Unknown",
+                ReporterEmail = userCtx.Email,
+                // Client-supplied environment context (more reliable than HTTP headers for a SPA)
+                CurrentUrl = request.Context?.CurrentUrl ?? Request.Headers.Referer.ToString(),
                 Browser = Request.Headers.UserAgent.ToString(),
+                ScreenSize = request.Context?.ScreenSize ?? "Unknown",
                 OperatingSystem = "Detected from user agent",
-                ScreenSize = "Unknown",
                 ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                // Identity and org context from JWT claims
+                UserRole = userCtx.SystemRole ?? "Unknown",
+                OrgName = userCtx.OrgName ?? "No organisation",
+                OrgRole = userCtx.OrgRole ?? "Unknown",
+                // Exercise context from client
+                ExerciseName = request.Context?.ExerciseName ?? "Not in exercise",
+                ExerciseRole = FormatExerciseRole(request.Context?.ExerciseRole),
+                // App version from client
+                AppVersion = request.Context?.AppVersion ?? "Unknown",
+                CommitSha = request.Context?.CommitSha ?? "Unknown",
             };
 
-            // Send bug report to support
             var config = await _emailConfig.GetConfigurationAsync();
             var supportRecipient = new EmailRecipient(config.SupportAddress, "Cadence Support");
             var supportResult = await _emailService.SendTemplatedAsync("BugReport", model, supportRecipient);
@@ -79,13 +89,15 @@ public class FeedbackController : ControllerBase
                     refNumber, supportResult.ErrorMessage);
             }
 
-            // Send acknowledgment to user (best-effort, don't fail the request)
-            await SendAcknowledgmentSafe(userName ?? "User", userEmail, refNumber, "Bug Report", request.Title);
+            await SendAcknowledgmentSafe(userCtx.Name ?? "User", userCtx.Email, refNumber, "Bug Report", request.Title);
+
+            // Phase 2: persist to database here
+            // await _feedbackService.SaveAsync(refNumber, FeedbackType.BugReport, userCtx, request.Context, request.Title, request.Severity);
 
             _logger.LogInformation(
                 "[Feedback] Bug report complete - Ref: {RefNumber}, User: {Email}, " +
                 "SupportEmailStatus: {SupportStatus}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, supportResult.Status, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, supportResult.Status, sw.ElapsedMilliseconds);
 
             return Ok(new FeedbackResponse(refNumber, "Bug report submitted successfully. You'll receive a confirmation email shortly."));
         }
@@ -93,7 +105,7 @@ public class FeedbackController : ControllerBase
         {
             _logger.LogError(ex,
                 "[Feedback] Bug report FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, sw.ElapsedMilliseconds);
             return StatusCode(500, new { message = "Failed to submit bug report. Please try again." });
         }
     }
@@ -106,15 +118,15 @@ public class FeedbackController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SubmitFeatureRequest([FromBody] SubmitFeatureRequestRequest request)
     {
-        var (userName, userEmail) = GetCurrentUser();
-        if (userEmail == null) return Unauthorized();
+        var userCtx = GetCurrentUserContext();
+        if (userCtx.Email == null) return Unauthorized();
 
         var refNumber = GenerateReferenceNumber();
         var sw = Stopwatch.StartNew();
 
         _logger.LogInformation(
             "[Feedback] Feature request received - Ref: {RefNumber}, User: {Email}, Title: {Title}",
-            refNumber, userEmail, request.Title);
+            refNumber, userCtx.Email, request.Title);
 
         try
         {
@@ -123,9 +135,19 @@ public class FeedbackController : ControllerBase
                 Title = request.Title,
                 Description = request.Description,
                 UseCase = request.UseCase ?? "Not provided",
-                ReporterName = userName ?? "Unknown",
-                ReporterEmail = userEmail,
+                ReporterName = userCtx.Name ?? "Unknown",
+                ReporterEmail = userCtx.Email,
                 ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                // Identity and org context from JWT claims
+                UserRole = userCtx.SystemRole ?? "Unknown",
+                OrgName = userCtx.OrgName ?? "No organisation",
+                OrgRole = userCtx.OrgRole ?? "Unknown",
+                // Exercise context from client
+                ExerciseName = request.Context?.ExerciseName ?? "Not in exercise",
+                ExerciseRole = FormatExerciseRole(request.Context?.ExerciseRole),
+                // App version from client
+                AppVersion = request.Context?.AppVersion ?? "Unknown",
+                CommitSha = request.Context?.CommitSha ?? "Unknown",
             };
 
             var config = await _emailConfig.GetConfigurationAsync();
@@ -139,12 +161,15 @@ public class FeedbackController : ControllerBase
                     refNumber, supportResult.ErrorMessage);
             }
 
-            await SendAcknowledgmentSafe(userName ?? "User", userEmail, refNumber, "Feature Request", request.Title);
+            await SendAcknowledgmentSafe(userCtx.Name ?? "User", userCtx.Email, refNumber, "Feature Request", request.Title);
+
+            // Phase 2: persist to database here
+            // await _feedbackService.SaveAsync(refNumber, FeedbackType.FeatureRequest, userCtx, request.Context, request.Title, null);
 
             _logger.LogInformation(
                 "[Feedback] Feature request complete - Ref: {RefNumber}, User: {Email}, " +
                 "SupportEmailStatus: {SupportStatus}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, supportResult.Status, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, supportResult.Status, sw.ElapsedMilliseconds);
 
             return Ok(new FeedbackResponse(refNumber, "Feature request submitted successfully. Thank you for your feedback!"));
         }
@@ -152,7 +177,7 @@ public class FeedbackController : ControllerBase
         {
             _logger.LogError(ex,
                 "[Feedback] Feature request FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, sw.ElapsedMilliseconds);
             return StatusCode(500, new { message = "Failed to submit feature request. Please try again." });
         }
     }
@@ -165,15 +190,15 @@ public class FeedbackController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SubmitGeneralFeedback([FromBody] SubmitGeneralFeedbackRequest request)
     {
-        var (userName, userEmail) = GetCurrentUser();
-        if (userEmail == null) return Unauthorized();
+        var userCtx = GetCurrentUserContext();
+        if (userCtx.Email == null) return Unauthorized();
 
         var refNumber = GenerateReferenceNumber();
         var sw = Stopwatch.StartNew();
 
         _logger.LogInformation(
             "[Feedback] General feedback received - Ref: {RefNumber}, User: {Email}, Category: {Category}, Subject: {Subject}",
-            refNumber, userEmail, request.Category, request.Subject);
+            refNumber, userCtx.Email, request.Category, request.Subject);
 
         try
         {
@@ -182,9 +207,19 @@ public class FeedbackController : ControllerBase
                 Category = request.Category,
                 Subject = request.Subject,
                 Message = request.Message,
-                SenderName = userName ?? "Unknown",
-                SenderEmail = userEmail,
+                SenderName = userCtx.Name ?? "Unknown",
+                SenderEmail = userCtx.Email,
                 SentAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                // Identity and org context from JWT claims
+                UserRole = userCtx.SystemRole ?? "Unknown",
+                OrgName = userCtx.OrgName ?? "No organisation",
+                OrgRole = userCtx.OrgRole ?? "Unknown",
+                // Exercise context from client
+                ExerciseName = request.Context?.ExerciseName ?? "Not in exercise",
+                ExerciseRole = FormatExerciseRole(request.Context?.ExerciseRole),
+                // App version from client
+                AppVersion = request.Context?.AppVersion ?? "Unknown",
+                CommitSha = request.Context?.CommitSha ?? "Unknown",
             };
 
             var config = await _emailConfig.GetConfigurationAsync();
@@ -198,12 +233,15 @@ public class FeedbackController : ControllerBase
                     refNumber, supportResult.ErrorMessage);
             }
 
-            await SendAcknowledgmentSafe(userName ?? "User", userEmail, refNumber, "Feedback", request.Subject);
+            await SendAcknowledgmentSafe(userCtx.Name ?? "User", userCtx.Email, refNumber, "Feedback", request.Subject);
+
+            // Phase 2: persist to database here
+            // await _feedbackService.SaveAsync(refNumber, FeedbackType.General, userCtx, request.Context, request.Subject, null);
 
             _logger.LogInformation(
                 "[Feedback] General feedback complete - Ref: {RefNumber}, User: {Email}, " +
                 "SupportEmailStatus: {SupportStatus}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, supportResult.Status, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, supportResult.Status, sw.ElapsedMilliseconds);
 
             return Ok(new FeedbackResponse(refNumber, "Feedback submitted successfully. Thank you!"));
         }
@@ -211,7 +249,7 @@ public class FeedbackController : ControllerBase
         {
             _logger.LogError(ex,
                 "[Feedback] General feedback FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, sw.ElapsedMilliseconds);
             return StatusCode(500, new { message = "Failed to submit feedback. Please try again." });
         }
     }
@@ -224,8 +262,8 @@ public class FeedbackController : ControllerBase
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> SubmitErrorReport([FromBody] SubmitErrorReportRequest request)
     {
-        var (userName, userEmail) = GetCurrentUser();
-        if (userEmail == null) return Unauthorized();
+        var userCtx = GetCurrentUserContext();
+        if (userCtx.Email == null) return Unauthorized();
 
         var refNumber = GenerateReferenceNumber();
         var sw = Stopwatch.StartNew();
@@ -233,7 +271,7 @@ public class FeedbackController : ControllerBase
         _logger.LogInformation(
             "[Feedback] Error report received - Ref: {RefNumber}, User: {Email}, " +
             "ErrorMessage: {ErrorMessage}, Url: {Url}",
-            refNumber, userEmail, Truncate(request.ErrorMessage, 200), request.Url);
+            refNumber, userCtx.Email, Truncate(request.ErrorMessage, 200), request.Url);
 
         _logger.LogDebug(
             "[Feedback] Error report details - Ref: {RefNumber}, StackTrace: {StackTrace}, " +
@@ -242,20 +280,26 @@ public class FeedbackController : ControllerBase
 
         try
         {
-            // Use the BugReport template with auto-populated fields for error reports
             var model = new BugReportEmailModel
             {
                 Title = $"[Auto] Runtime Error: {Truncate(request.ErrorMessage, 100)}",
                 Description = request.ErrorMessage,
                 StepsToReproduce = request.ComponentStack ?? "Component stack not available",
                 Severity = "High",
-                ReporterName = userName ?? "Unknown",
-                ReporterEmail = userEmail,
+                ReporterName = userCtx.Name ?? "Unknown",
+                ReporterEmail = userCtx.Email,
                 CurrentUrl = request.Url,
                 Browser = request.Browser,
                 OperatingSystem = "Detected from user agent",
                 ScreenSize = "Unknown",
                 ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                UserRole = userCtx.SystemRole ?? "Unknown",
+                OrgName = userCtx.OrgName ?? "No organisation",
+                OrgRole = userCtx.OrgRole ?? "Unknown",
+                ExerciseName = "Unknown",
+                ExerciseRole = string.Empty,
+                AppVersion = "Unknown",
+                CommitSha = "Unknown",
             };
 
             var config = await _emailConfig.GetConfigurationAsync();
@@ -272,7 +316,7 @@ public class FeedbackController : ControllerBase
             _logger.LogInformation(
                 "[Feedback] Error report complete - Ref: {RefNumber}, User: {Email}, " +
                 "SupportEmailStatus: {SupportStatus}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, supportResult.Status, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, supportResult.Status, sw.ElapsedMilliseconds);
 
             return Ok(new FeedbackResponse(refNumber, "Error report sent to our team. Thank you for helping us improve!"));
         }
@@ -280,13 +324,13 @@ public class FeedbackController : ControllerBase
         {
             _logger.LogError(ex,
                 "[Feedback] Error report FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
-                refNumber, userEmail, sw.ElapsedMilliseconds);
+                refNumber, userCtx.Email, sw.ElapsedMilliseconds);
             return StatusCode(500, new { message = "Failed to submit error report. Please try again." });
         }
     }
 
     /// <summary>
-    /// Send acknowledgment email. Best-effort - failures are logged but don't fail the request.
+    /// Send acknowledgment email. Best-effort — failures are logged but don't fail the request.
     /// </summary>
     private async Task SendAcknowledgmentSafe(string userName, string userEmail, string refNumber, string ticketType, string title)
     {
@@ -320,13 +364,30 @@ public class FeedbackController : ControllerBase
         }
     }
 
-    private (string? Name, string? Email) GetCurrentUser()
+    /// <summary>
+    /// Extracts identity and org context from JWT claims.
+    /// Roles and org are sourced here (not trusted from client payload).
+    /// </summary>
+    private FeedbackUserContext GetCurrentUserContext()
     {
-        var email = User.FindFirstValue(ClaimTypes.Email);
-        var name = User.FindFirstValue(ClaimTypes.Name)
-                ?? User.FindFirstValue("display_name");
-        return (name, email);
+        var email   = User.FindFirstValue(ClaimTypes.Email);
+        var name    = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("display_name");
+        var role    = User.FindFirstValue("SystemRole") ?? User.FindFirstValue(ClaimTypes.Role);
+        var orgName = User.FindFirstValue("org_name");
+        var orgRole = User.FindFirstValue("org_role");
+        return new FeedbackUserContext(name, email, role, orgName, orgRole);
     }
+
+    private record FeedbackUserContext(
+        string? Name,
+        string? Email,
+        string? SystemRole,
+        string? OrgName,
+        string? OrgRole);
+
+    /// <summary>Returns " [Role]" when a role is present, or empty string when not in an exercise.</summary>
+    private static string FormatExerciseRole(string? role) =>
+        string.IsNullOrWhiteSpace(role) ? string.Empty : $" [{role}]";
 
     private static string GenerateReferenceNumber()
     {

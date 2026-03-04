@@ -37,6 +37,7 @@ module.exports = {
         'inject-approval',
         'email',
         'email-communications',
+        'feedback',
         'invitation',
         'bulk-participant-import',
         'excel-import',
