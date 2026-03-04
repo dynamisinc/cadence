@@ -405,7 +405,7 @@ public class FeedbackController : ControllerBase
     private FeedbackUserContext GetCurrentUserContext()
     {
         var email   = User.FindFirstValue(ClaimTypes.Email);
-        var name    = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("display_name");
+        var name    = User.FindFirstValue(ClaimTypes.Name) ?? User.FindFirstValue("name") ?? User.FindFirstValue("display_name");
         var role    = User.FindFirstValue("SystemRole") ?? User.FindFirstValue(ClaimTypes.Role);
         var orgName = User.FindFirstValue("org_name");
         var orgRole = User.FindFirstValue("org_role");
