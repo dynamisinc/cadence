@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npx tsx scripts/parse-changelog.ts",
     "build": "tsc -b && vite build",
     "release-notes": "npx tsx scripts/parse-changelog.ts",
     "release-notes:polish": "npx tsx scripts/parse-changelog.ts && node scripts/polish-release-notes.mjs",
