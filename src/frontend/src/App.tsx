@@ -19,7 +19,7 @@ import { ExerciseNavigationProvider } from './shared/contexts'
 import { UserPreferencesProvider } from './features/settings'
 import { ExerciseContextWrapper, GlobalPlaceholderPage, FeatureFlagGuard } from './shared/components'
 import { SystemRole } from './types'
-import { AdminPage, ArchivedExercisesPage, FeatureFlagsProvider } from './admin'
+import { AdminPage, ArchivedExercisesPage, FeedbackReportListPage, FeatureFlagsProvider } from './admin'
 import { HomePage } from './features/home'
 import { PendingUserPage } from './pages/PendingUserPage'
 import {
@@ -430,6 +430,14 @@ const router = createBrowserRouter([
         element: (
           <ProtectedRoute requiredRole={SystemRole.Admin}>
             <DeliveryMethodsManagementPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: 'admin/feedback',
+        element: (
+          <ProtectedRoute requiredRole={SystemRole.Admin}>
+            <FeedbackReportListPage />
           </ProtectedRoute>
         ),
       },

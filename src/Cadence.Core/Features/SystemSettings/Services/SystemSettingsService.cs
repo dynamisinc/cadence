@@ -40,6 +40,18 @@ public class SystemSettingsService : ISystemSettingsService
         settings.SupportAddress = NullIfEmpty(request.SupportAddress);
         settings.DefaultSenderAddress = NullIfEmpty(request.DefaultSenderAddress);
         settings.DefaultSenderName = NullIfEmpty(request.DefaultSenderName);
+
+        // GitHub fields
+        if (request.GitHubToken == "__clear__")
+            settings.GitHubToken = null;
+        else if (!string.IsNullOrWhiteSpace(request.GitHubToken))
+            settings.GitHubToken = request.GitHubToken.Trim();
+
+        settings.GitHubOwner = NullIfEmpty(request.GitHubOwner);
+        settings.GitHubRepo = NullIfEmpty(request.GitHubRepo);
+        if (request.GitHubLabelsEnabled.HasValue)
+            settings.GitHubLabelsEnabled = request.GitHubLabelsEnabled.Value;
+
         settings.UpdatedAt = DateTime.UtcNow;
         settings.UpdatedBy = updatedBy;
 
@@ -59,9 +71,22 @@ public class SystemSettingsService : ISystemSettingsService
             EffectiveSupportAddress = settings?.SupportAddress ?? _emailDefaults.SupportAddress,
             EffectiveDefaultSenderAddress = settings?.DefaultSenderAddress ?? _emailDefaults.DefaultSenderAddress,
             EffectiveDefaultSenderName = settings?.DefaultSenderName ?? _emailDefaults.DefaultSenderName,
+            GitHubOwner = settings?.GitHubOwner,
+            GitHubRepo = settings?.GitHubRepo,
+            GitHubLabelsEnabled = settings?.GitHubLabelsEnabled ?? false,
+            GitHubTokenConfigured = !string.IsNullOrEmpty(settings?.GitHubToken),
+            GitHubTokenMasked = MaskToken(settings?.GitHubToken),
             UpdatedAt = settings?.UpdatedAt,
             UpdatedBy = settings?.UpdatedBy,
         };
+    }
+
+    private static string? MaskToken(string? token)
+    {
+        if (string.IsNullOrEmpty(token)) return null;
+        return token.Length <= 4
+            ? new string('*', token.Length)
+            : new string('*', token.Length - 4) + token[^4..];
     }
 
     private static string? NullIfEmpty(string? value)

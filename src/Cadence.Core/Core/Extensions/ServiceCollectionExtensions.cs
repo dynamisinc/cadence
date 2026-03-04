@@ -89,6 +89,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEegDocumentService, EegDocumentService>();
 
         // Feedback Services
+        services.AddScoped<IGitHubIssueService, GitHubIssueService>();
         services.AddScoped<IFeedbackService, FeedbackService>();
 
         // Email Services

@@ -42,4 +42,17 @@ public class FeedbackReport : BaseEntity
     public string? ExerciseId { get; set; }
     public string? ExerciseName { get; set; }
     public string? ExerciseRole { get; set; }
+
+    // ── Admin triage ──
+
+    /// <summary>Admin notes added during triage/review.</summary>
+    public string? AdminNotes { get; set; }
+
+    // ── GitHub integration ──
+
+    /// <summary>GitHub issue number created for this report. Null if not configured or creation failed.</summary>
+    public int? GitHubIssueNumber { get; set; }
+
+    /// <summary>Full URL to the GitHub issue.</summary>
+    public string? GitHubIssueUrl { get; set; }
 }

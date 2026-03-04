@@ -38,6 +38,7 @@ import {
 import { feedbackService } from '../services/feedbackService'
 import type { FeedbackClientContext, FeedbackTab } from '../types'
 import { useExerciseNavigation } from '@/shared/contexts'
+import { notify } from '@/shared/utils/notify'
 
 interface FeedbackDialogProps {
   open: boolean
@@ -68,7 +69,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
 
   const [activeTab, setActiveTab] = useState<FeedbackTab>('bug')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   // Bug report fields
@@ -99,7 +99,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
     setFeedbackSubject('')
     setFeedbackMessage('')
     setError(null)
-    setSuccessMessage(null)
   }
 
   const handleClose = () => {
@@ -121,7 +120,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setError(null)
-    setSuccessMessage(null)
 
     try {
       let result
@@ -156,23 +154,11 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
           break
       }
 
-      setSuccessMessage(
+      notify.success(
         `${result.message} Reference: ${result.referenceNumber}`,
       )
-      // Reset form fields but keep success message visible
-      if (activeTab === 'bug') {
-        setBugTitle('')
-        setBugDescription('')
-        setBugSteps('')
-        setBugSeverity('Medium')
-      } else if (activeTab === 'feature') {
-        setFeatureTitle('')
-        setFeatureDescription('')
-        setFeatureUseCase('')
-      } else {
-        setFeedbackSubject('')
-        setFeedbackMessage('')
-      }
+      resetForm()
+      onClose()
     } catch {
       setError('Failed to submit. Please try again.')
     } finally {
@@ -207,16 +193,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
       </DialogTitle>
 
       <DialogContent dividers>
-        {successMessage && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccessMessage(null)}
-          >
-            {successMessage}
-          </Alert>
-        )}
-
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
@@ -228,7 +204,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
           onChange={(_, val) => {
             setActiveTab(val)
             setError(null)
-            setSuccessMessage(null)
           }}
           sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
         >

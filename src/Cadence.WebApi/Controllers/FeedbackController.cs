@@ -4,9 +4,11 @@ using System.Text.Json;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Models.DTOs;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.Feedback.Models.DTOs;
 using Cadence.Core.Features.Feedback.Models.Enums;
 using Cadence.Core.Features.Feedback.Services;
 using Cadence.Core.Features.SystemSettings.Services;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -36,6 +38,67 @@ public class FeedbackController : ControllerBase
         _emailConfig = emailConfig;
         _feedbackService = feedbackService;
         _logger = logger;
+    }
+
+    /// <summary>
+    /// Get paginated list of feedback reports. Admin only.
+    /// </summary>
+    [HttpGet]
+    [AuthorizeAdmin]
+    [ProducesResponseType(typeof(FeedbackListResponse), StatusCodes.Status200OK)]
+    public async Task<IActionResult> GetReports(
+        [FromQuery] int page = 1,
+        [FromQuery] int pageSize = 25,
+        [FromQuery] string? search = null,
+        [FromQuery] FeedbackType? type = null,
+        [FromQuery] FeedbackStatus? status = null,
+        [FromQuery] string? sortBy = null,
+        [FromQuery] bool sortDesc = true)
+    {
+        var result = await _feedbackService.GetReportsAsync(
+            page, pageSize, search, type, status, sortBy, sortDesc);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Update the status and admin notes on a feedback report. Admin only.
+    /// </summary>
+    [HttpPatch("{id:guid}/status")]
+    [AuthorizeAdmin]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> UpdateStatus(Guid id, [FromBody] UpdateFeedbackStatusRequest request)
+    {
+        try
+        {
+            var (confirmedStatus, confirmedNotes) = await _feedbackService.UpdateStatusAsync(id, request.Status, request.AdminNotes);
+            return Ok(new { status = confirmedStatus, adminNotes = confirmedNotes });
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
+    }
+
+    /// <summary>
+    /// Soft-delete a feedback report. Admin only.
+    /// </summary>
+    [HttpDelete("{id:guid}")]
+    [AuthorizeAdmin]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Delete(Guid id)
+    {
+        try
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? "unknown";
+            await _feedbackService.SoftDeleteAsync(id, userId);
+            return NoContent();
+        }
+        catch (KeyNotFoundException)
+        {
+            return NotFound();
+        }
     }
 
     /// <summary>

@@ -27,6 +27,20 @@ public class SystemSettings
     /// </summary>
     public string? DefaultSenderName { get; set; }
 
+    // ── GitHub Integration ──
+
+    /// <summary>Personal Access Token for GitHub API. Null = not configured.</summary>
+    public string? GitHubToken { get; set; }
+
+    /// <summary>GitHub repository owner (user or org login).</summary>
+    public string? GitHubOwner { get; set; }
+
+    /// <summary>GitHub repository name.</summary>
+    public string? GitHubRepo { get; set; }
+
+    /// <summary>When true, automatically create GitHub issues for feedback and apply type labels.</summary>
+    public bool GitHubLabelsEnabled { get; set; }
+
     public DateTime UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
 }

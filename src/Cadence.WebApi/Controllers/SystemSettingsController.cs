@@ -1,4 +1,5 @@
 using System.Security.Claims;
+using Cadence.Core.Features.Feedback.Services;
 using Cadence.Core.Features.SystemSettings.Models.DTOs;
 using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -12,10 +13,14 @@ namespace Cadence.WebApi.Controllers;
 public class SystemSettingsController : ControllerBase
 {
     private readonly ISystemSettingsService _settingsService;
+    private readonly IGitHubIssueService _gitHubIssueService;
 
-    public SystemSettingsController(ISystemSettingsService settingsService)
+    public SystemSettingsController(
+        ISystemSettingsService settingsService,
+        IGitHubIssueService gitHubIssueService)
     {
         _settingsService = settingsService;
+        _gitHubIssueService = gitHubIssueService;
     }
 
     [HttpGet]
@@ -34,5 +39,16 @@ public class SystemSettingsController : ControllerBase
         var email = User.FindFirstValue(ClaimTypes.Email) ?? "unknown";
         var settings = await _settingsService.UpdateSettingsAsync(request, email);
         return Ok(settings);
+    }
+
+    [HttpPost("test-github")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> TestGitHubConnection()
+    {
+        var (success, message) = await _gitHubIssueService.TestConnectionAsync();
+        return success
+            ? Ok(new { success, message })
+            : BadRequest(new { success, message });
     }
 }
