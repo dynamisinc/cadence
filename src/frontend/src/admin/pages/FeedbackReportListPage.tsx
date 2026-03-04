@@ -42,6 +42,7 @@ import {
   faTrash,
 } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 import { CobraTextField, CobraPrimaryButton } from '@/theme/styledComponents'
 import CobraStyles from '@/theme/CobraStyles'
 import { PageHeader, ConfirmDialog } from '@/shared/components'
@@ -134,7 +135,7 @@ export const FeedbackReportListPage = () => {
     setPage(0)
   }
 
-  const hasActiveFilters = search || typeFilter !== '' || statusFilter !== ''
+  const hasActiveFilters = !!(search || typeFilter !== '' || statusFilter !== '')
 
   if (error) return <Alert severity="error">Failed to load feedback reports.</Alert>
 
@@ -519,7 +520,7 @@ const ReportRow = ({ report, expanded, onToggle, onStatusChange, onSaveNotes, on
               onClick={e => e.stopPropagation()}
               sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}
             >
-              <FontAwesomeIcon icon={faGithub} />
+              <FontAwesomeIcon icon={faGithub as IconProp} />
               <Typography variant="body2">#{report.gitHubIssueNumber}</Typography>
             </Link>
           ) : (

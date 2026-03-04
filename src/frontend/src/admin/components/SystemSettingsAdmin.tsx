@@ -17,6 +17,7 @@ import {
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSave, faEnvelope, faXmark, faPlug, faSpinner, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 import { faGithub } from '@fortawesome/free-brands-svg-icons'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -201,7 +202,7 @@ export const SystemSettingsAdmin: FC = () => {
         <Divider sx={{ my: 4 }} />
 
         <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
-          <FontAwesomeIcon icon={faGithub} />
+          <FontAwesomeIcon icon={faGithub as IconProp} />
           <Box>
             <Typography variant="h6">GitHub Integration</Typography>
             <Typography variant="caption" color="text.secondary">

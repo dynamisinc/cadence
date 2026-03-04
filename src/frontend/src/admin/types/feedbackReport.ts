@@ -1,15 +1,17 @@
-export enum FeedbackType {
-  BugReport = 'BugReport',
-  FeatureRequest = 'FeatureRequest',
-  General = 'General',
-}
+export const FeedbackType = {
+  BugReport: 'BugReport',
+  FeatureRequest: 'FeatureRequest',
+  General: 'General',
+} as const
+export type FeedbackType = (typeof FeedbackType)[keyof typeof FeedbackType]
 
-export enum FeedbackStatus {
-  New = 'New',
-  InReview = 'InReview',
-  Resolved = 'Resolved',
-  Closed = 'Closed',
-}
+export const FeedbackStatus = {
+  New: 'New',
+  InReview: 'InReview',
+  Resolved: 'Resolved',
+  Closed: 'Closed',
+} as const
+export type FeedbackStatus = (typeof FeedbackStatus)[keyof typeof FeedbackStatus]
 
 export const FeedbackTypeLabels: Record<FeedbackType, string> = {
   [FeedbackType.BugReport]: 'Bug Report',
