@@ -20,8 +20,7 @@ export function useUpdateFeedbackStatus() {
   return useMutation({
     mutationFn: ({ id, request }: { id: string; request: UpdateFeedbackStatusRequest }) =>
       feedbackAdminService.updateStatus(id, request),
-    onSuccess: async data => {
-      console.log('[useFeedbackAdmin] Status update confirmed by server:', data)
+    onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: feedbackAdminKeys.all })
       notify.success('Report updated')
     },

@@ -382,6 +382,10 @@ public class FeedbackController : ControllerBase
                     refNumber, supportResult.ErrorMessage);
             }
 
+            await PersistFeedbackSafe(refNumber, FeedbackType.BugReport, userCtx, null,
+                $"[Auto] Runtime Error: {Truncate(request.ErrorMessage, 100)}", "High",
+                JsonSerializer.Serialize(new { request.ErrorMessage, request.StackTrace, request.ComponentStack, request.Browser, request.Url }));
+
             _logger.LogInformation(
                 "[Feedback] Error report complete - Ref: {RefNumber}, User: {Email}, " +
                 "SupportEmailStatus: {SupportStatus}, ElapsedMs: {ElapsedMs}",

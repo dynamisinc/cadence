@@ -91,7 +91,7 @@ public class FeedbackService : IFeedbackService
 
     public async Task<(FeedbackStatus Status, string? AdminNotes)> UpdateStatusAsync(Guid id, FeedbackStatus status, string? adminNotes)
     {
-        var report = await _context.FeedbackReports.FindAsync(id)
+        var report = await _context.FeedbackReports.FirstOrDefaultAsync(r => r.Id == id)
             ?? throw new KeyNotFoundException($"Feedback report {id} not found");
 
         var previousStatus = report.Status;
@@ -99,10 +99,6 @@ public class FeedbackService : IFeedbackService
 
         report.Status = status;
         report.AdminNotes = adminNotes;
-
-        // Explicitly mark properties as modified to ensure EF Core persists the changes
-        _context.Entry(report).Property(r => r.Status).IsModified = true;
-        _context.Entry(report).Property(r => r.AdminNotes).IsModified = true;
 
         var rowsAffected = await _context.SaveChangesAsync();
 
@@ -144,7 +140,7 @@ public class FeedbackService : IFeedbackService
 
     public async Task SoftDeleteAsync(Guid id, string deletedBy)
     {
-        var report = await _context.FeedbackReports.FindAsync(id)
+        var report = await _context.FeedbackReports.FirstOrDefaultAsync(r => r.Id == id)
             ?? throw new KeyNotFoundException($"Feedback report {id} not found");
 
         report.IsDeleted = true;
@@ -183,6 +179,9 @@ public class FeedbackService : IFeedbackService
         string? sortBy = null,
         bool sortDesc = true)
     {
+        page = Math.Max(1, page);
+        pageSize = Math.Clamp(pageSize, 1, 100);
+
         var query = _context.FeedbackReports.AsQueryable();
 
         if (type.HasValue)
@@ -193,12 +192,12 @@ public class FeedbackService : IFeedbackService
 
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var term = search.Trim().ToLower();
+            var term = search.Trim();
             query = query.Where(r =>
-                r.Title.ToLower().Contains(term) ||
-                r.ReferenceNumber.ToLower().Contains(term) ||
-                r.ReporterEmail.ToLower().Contains(term) ||
-                (r.ReporterName != null && r.ReporterName.ToLower().Contains(term)));
+                r.Title.Contains(term) ||
+                r.ReferenceNumber.Contains(term) ||
+                r.ReporterEmail.Contains(term) ||
+                (r.ReporterName != null && r.ReporterName.Contains(term)));
         }
 
         var totalCount = await query.CountAsync();
