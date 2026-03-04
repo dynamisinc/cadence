@@ -284,7 +284,7 @@ export const FeedbackReportListPage = () => {
                     report={report}
                     expanded={expandedId === report.id}
                     onToggle={() => setExpandedId(expandedId === report.id ? null : report.id)}
-                    onStatusChange={(status) => {
+                    onStatusChange={status => {
                       if (status === FeedbackStatus.Closed) {
                         setCloseConfirm({ id: report.id, refNumber: report.referenceNumber, adminNotes: report.adminNotes })
                       } else {
@@ -294,13 +294,13 @@ export const FeedbackReportListPage = () => {
                         })
                       }
                     }}
-                    onSaveNotes={(notes) =>
+                    onSaveNotes={notes =>
                       updateStatus.mutate({
                         id: report.id,
                         request: { status: report.status, adminNotes: notes },
                       })
                     }
-                    onMenuOpen={(e) => setMenuAnchor({ element: e.currentTarget, reportId: report.id })}
+                    onMenuOpen={e => setMenuAnchor({ element: e.currentTarget, reportId: report.id })}
                     isUpdating={updateStatus.isPending}
                   />
                 ))}
