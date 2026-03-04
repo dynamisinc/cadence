@@ -19,6 +19,7 @@ module.exports = {
         'backend',
         'tests',
         'seeding',
+        'data',
         // Feature modules
         'eeg',
         'exercises',
