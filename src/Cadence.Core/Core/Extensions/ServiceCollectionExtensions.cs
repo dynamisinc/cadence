@@ -5,6 +5,7 @@ using Cadence.Core.Features.BulkParticipantImport.Services;
 using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Features.DeliveryMethods.Services;
 using Cadence.Core.Features.ExcelExport.Services;
+using Cadence.Core.Features.Feedback.Services;
 using Cadence.Core.Features.ExcelImport.Services;
 using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.Core.Features.Exercises.Services;
@@ -86,6 +87,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IEegEntryService, EegEntryService>();
         services.AddScoped<IEegExportService, EegExportService>();
         services.AddScoped<IEegDocumentService, EegDocumentService>();
+
+        // Feedback Services
+        services.AddScoped<IGitHubIssueService, GitHubIssueService>();
+        services.AddScoped<IFeedbackService, FeedbackService>();
 
         // Email Services
         services.AddMemoryCache();

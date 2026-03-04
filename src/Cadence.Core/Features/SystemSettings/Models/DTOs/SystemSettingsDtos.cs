@@ -18,6 +18,15 @@ public class SystemSettingsDto
     public string EffectiveDefaultSenderAddress { get; set; } = string.Empty;
     public string EffectiveDefaultSenderName { get; set; } = string.Empty;
 
+    // GitHub integration
+    public string? GitHubOwner { get; set; }
+    public string? GitHubRepo { get; set; }
+    public bool GitHubLabelsEnabled { get; set; }
+    /// <summary>Masked token (last 4 chars only). Null if not configured.</summary>
+    public string? GitHubTokenMasked { get; set; }
+    /// <summary>True if a GitHub token is stored.</summary>
+    public bool GitHubTokenConfigured { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
 }
@@ -31,4 +40,11 @@ public class UpdateSystemSettingsRequest
     public string? SupportAddress { get; set; }
     public string? DefaultSenderAddress { get; set; }
     public string? DefaultSenderName { get; set; }
+
+    // GitHub integration
+    /// <summary>New token. Null/empty = no change. "__clear__" = remove stored token.</summary>
+    public string? GitHubToken { get; set; }
+    public string? GitHubOwner { get; set; }
+    public string? GitHubRepo { get; set; }
+    public bool? GitHubLabelsEnabled { get; set; }
 }

@@ -19,8 +19,8 @@ describe('menuConfig', () => {
   // Menu Items Structure Tests
   // ===========================================================================
   describe('MENU_ITEMS structure', () => {
-    it('has exactly 16 menu items', () => {
-      expect(MENU_ITEMS).toHaveLength(16)
+    it('has exactly 17 menu items', () => {
+      expect(MENU_ITEMS).toHaveLength(17)
     })
 
     it('all items have required properties', () => {
@@ -85,9 +85,9 @@ describe('menuConfig', () => {
       expect(orgItems).toHaveLength(7)
     })
 
-    it('SYSTEM section has 6 items', () => {
+    it('SYSTEM section has 7 items', () => {
       const systemItems = MENU_ITEMS.filter(item => item.section === 'system')
-      expect(systemItems).toHaveLength(6)
+      expect(systemItems).toHaveLength(7)
     })
 
     it('CONDUCT section contains correct items', () => {
@@ -345,11 +345,11 @@ describe('menuConfig', () => {
   // ===========================================================================
   describe('Role permissions', () => {
     describe('Administrator', () => {
-      it('can see all 16 items', () => {
+      it('can see all 17 items', () => {
         const visibleItems = MENU_ITEMS.filter(
           item => item.allowedRoles.includes(HseepRole.Administrator),
         )
-        expect(visibleItems).toHaveLength(16)
+        expect(visibleItems).toHaveLength(17)
       })
     })
 
@@ -486,7 +486,7 @@ describe('menuConfig', () => {
 
       it('returns correct items for SYSTEM section', () => {
         const items = getMenuItemsBySection('system')
-        expect(items).toHaveLength(6)
+        expect(items).toHaveLength(7)
         items.forEach(item => {
           expect(item.section).toBe('system')
         })
@@ -532,13 +532,14 @@ describe('menuConfig', () => {
       expect(MENU_ITEMS[8].id).toBe('org-archived')
       expect(MENU_ITEMS[9].id).toBe('org-settings')
 
-      // SYSTEM items last (10-15)
+      // SYSTEM items last (10-16)
       expect(MENU_ITEMS[10].id).toBe('admin')
       expect(MENU_ITEMS[11].id).toBe('templates')
       expect(MENU_ITEMS[12].id).toBe('users')
       expect(MENU_ITEMS[13].id).toBe('organizations')
       expect(MENU_ITEMS[14].id).toBe('delivery-methods')
-      expect(MENU_ITEMS[15].id).toBe('settings')
+      expect(MENU_ITEMS[15].id).toBe('feedback')
+      expect(MENU_ITEMS[16].id).toBe('settings')
     })
   })
 })

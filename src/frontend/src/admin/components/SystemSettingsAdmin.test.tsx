@@ -31,11 +31,13 @@ const mockSettingsWithOverrides: SystemSettingsDto = {
 vi.mock('../hooks/useSystemSettings', () => ({
   useSystemSettings: vi.fn(),
   useUpdateSystemSettings: vi.fn(),
+  useTestGitHubConnection: vi.fn(),
 }))
 
-import { useSystemSettings, useUpdateSystemSettings } from '../hooks/useSystemSettings'
+import { useSystemSettings, useUpdateSystemSettings, useTestGitHubConnection } from '../hooks/useSystemSettings'
 const mockUseSystemSettings = vi.mocked(useSystemSettings)
 const mockUseUpdateSystemSettings = vi.mocked(useUpdateSystemSettings)
+const mockUseTestGitHubConnection = vi.mocked(useTestGitHubConnection)
 
 describe('SystemSettingsAdmin', () => {
   const mockMutateAsync = vi.fn()
@@ -47,6 +49,10 @@ describe('SystemSettingsAdmin', () => {
       mutateAsync: mockMutateAsync,
       isPending: false,
     } as ReturnType<typeof useUpdateSystemSettings>)
+    mockUseTestGitHubConnection.mockReturnValue({
+      mutateAsync: vi.fn(),
+      isPending: false,
+    } as unknown as ReturnType<typeof useTestGitHubConnection>)
   })
 
   it('renders loading state', () => {

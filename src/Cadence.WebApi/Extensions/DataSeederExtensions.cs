@@ -156,6 +156,69 @@ public static class DataSeederExtensions
 
     #endregion
 
+    #region Beta Seeding (All Except Production)
+
+    /// <summary>
+    /// Seeds beta testing data for Dynamis internal testers.
+    /// Creates a realistic agency organization with exercises in various lifecycle states.
+    ///
+    /// No users are seeded - testers are invited manually and assigned to exercises.
+    ///
+    /// Seeds:
+    /// - Beta organization (Coastal Region Emergency Services Agency)
+    /// - 6 exercises (Active, Completed, Draft planned, Draft empty x2, Archived)
+    /// - Complete MSELs with 65+ injects
+    /// - FEMA Core Capabilities
+    ///
+    /// Idempotent. Failure logs error but doesn't prevent app startup.
+    /// </summary>
+    public static async Task SeedBetaDataAsync(this IHost app)
+    {
+        using var scope = app.Services.CreateScope();
+        var services = scope.ServiceProvider;
+        var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+        var logger = loggerFactory.CreateLogger("Cadence.Data.BetaDataSeeder");
+
+        try
+        {
+            logger.LogInformation("=== Starting Beta Data Seeding ===");
+
+            var context = services.GetRequiredService<AppDbContext>();
+
+            // 1. Seed base data (beta org, exercises, MSELs, phases, objectives, injects)
+            logger.LogInformation("Seeding beta organization, exercises, MSELs, objectives, injects...");
+            await BetaDataSeeder.SeedAsync(context, logger);
+
+            // 2. Seed capabilities (FEMA Core Capabilities for beta org)
+            var importService = services.GetService<ICapabilityImportService>();
+            if (importService != null)
+            {
+                logger.LogInformation("Seeding FEMA Core Capabilities for beta organization...");
+                await BetaDataSeeder.SeedCapabilitiesAsync(context, importService, logger);
+            }
+            else
+            {
+                logger.LogDebug("ICapabilityImportService not registered - skipping capability seeding");
+            }
+
+            // 3. Seed EEG data (capability targets, critical tasks, inject-task links)
+            logger.LogInformation("Seeding EEG capability targets and critical tasks...");
+            await BetaDataSeeder.SeedEegDataAsync(context, logger);
+
+            // Note: No user seeding - testers are invited manually
+            // Note: No observation seeding - testers will create observations during testing
+
+            logger.LogInformation("=== Beta Data Seeding Complete ===");
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error seeding beta data");
+            // Don't re-throw - beta seeding failure shouldn't prevent app startup
+        }
+    }
+
+    #endregion
+
     #region Observations Seeding
 
     /// <summary>

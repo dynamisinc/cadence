@@ -55,7 +55,8 @@ describe('CapabilityDialog', () => {
       await user.type(screen.getByLabelText(/name/i), 'New Capability')
       await user.type(screen.getByLabelText(/description/i), 'Test description')
 
-      await user.click(screen.getByRole('button', { name: /save/i }))
+      const saveButton = await screen.findByRole('button', { name: /save/i })
+      await user.click(saveButton)
 
       await waitFor(() => {
         expect(onCreate).toHaveBeenCalledWith({
@@ -101,8 +102,10 @@ describe('CapabilityDialog', () => {
       await user.type(screen.getByLabelText(/name/i), 'A')
 
       // Save button should remain disabled when name is too short
-      const saveButton = screen.getByRole('button', { name: /save/i })
-      expect(saveButton).toBeDisabled()
+      await waitFor(() => {
+        const saveButton = screen.getByRole('button', { name: /save/i })
+        expect(saveButton).toBeDisabled()
+      })
       expect(onCreate).not.toHaveBeenCalled()
     })
   })
@@ -144,7 +147,8 @@ describe('CapabilityDialog', () => {
       await user.clear(nameInput)
       await user.type(nameInput, 'Updated Capability')
 
-      await user.click(screen.getByRole('button', { name: /save/i }))
+      const saveButton = await screen.findByRole('button', { name: /save/i })
+      await user.click(saveButton)
 
       await waitFor(() => {
         expect(onUpdate).toHaveBeenCalledWith(

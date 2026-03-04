@@ -25,3 +25,9 @@ export function useUpdateSystemSettings() {
     },
   })
 }
+
+export function useTestGitHubConnection() {
+  return useMutation({
+    mutationFn: () => systemSettingsService.testGitHubConnection(),
+  })
+}

@@ -1,5 +1,9 @@
 import apiClient from '@/core/services/api'
-import type { SystemSettingsDto, UpdateSystemSettingsRequest } from '../types/systemSettings'
+import type {
+  SystemSettingsDto,
+  UpdateSystemSettingsRequest,
+  GitHubConnectionTestResult,
+} from '../types/systemSettings'
 
 export const systemSettingsService = {
   getSettings: async (): Promise<SystemSettingsDto> => {
@@ -9,6 +13,13 @@ export const systemSettingsService = {
 
   updateSettings: async (request: UpdateSystemSettingsRequest): Promise<SystemSettingsDto> => {
     const response = await apiClient.put<SystemSettingsDto>('/system-settings', request)
+    return response.data
+  },
+
+  testGitHubConnection: async (): Promise<GitHubConnectionTestResult> => {
+    const response = await apiClient.post<GitHubConnectionTestResult>(
+      '/system-settings/test-github',
+    )
     return response.data
   },
 }

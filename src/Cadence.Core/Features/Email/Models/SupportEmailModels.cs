@@ -16,6 +16,15 @@ public class BugReportEmailModel
     public string OperatingSystem { get; set; } = string.Empty;
     public string ScreenSize { get; set; } = string.Empty;
     public string ReportedAt { get; set; } = string.Empty;
+
+    // Submission context — populated from JWT claims (identity) and client context (environment)
+    public string UserRole { get; set; } = string.Empty;
+    public string OrgName { get; set; } = string.Empty;
+    public string OrgRole { get; set; } = string.Empty;
+    public string ExerciseName { get; set; } = string.Empty;
+    public string ExerciseRole { get; set; } = string.Empty;
+    public string AppVersion { get; set; } = string.Empty;
+    public string CommitSha { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -29,6 +38,15 @@ public class FeatureRequestEmailModel
     public string ReporterName { get; set; } = string.Empty;
     public string ReporterEmail { get; set; } = string.Empty;
     public string ReportedAt { get; set; } = string.Empty;
+
+    // Submission context — populated from JWT claims (identity) and client context (environment)
+    public string UserRole { get; set; } = string.Empty;
+    public string OrgName { get; set; } = string.Empty;
+    public string OrgRole { get; set; } = string.Empty;
+    public string ExerciseName { get; set; } = string.Empty;
+    public string ExerciseRole { get; set; } = string.Empty;
+    public string AppVersion { get; set; } = string.Empty;
+    public string CommitSha { get; set; } = string.Empty;
 }
 
 /// <summary>
@@ -42,6 +60,15 @@ public class GeneralFeedbackEmailModel
     public string SenderName { get; set; } = string.Empty;
     public string SenderEmail { get; set; } = string.Empty;
     public string SentAt { get; set; } = string.Empty;
+
+    // Submission context — populated from JWT claims (identity) and client context (environment)
+    public string UserRole { get; set; } = string.Empty;
+    public string OrgName { get; set; } = string.Empty;
+    public string OrgRole { get; set; } = string.Empty;
+    public string ExerciseName { get; set; } = string.Empty;
+    public string ExerciseRole { get; set; } = string.Empty;
+    public string AppVersion { get; set; } = string.Empty;
+    public string CommitSha { get; set; } = string.Empty;
 }
 
 /// <summary>

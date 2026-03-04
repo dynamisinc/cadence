@@ -8,24 +8,43 @@ import {
   Alert,
   IconButton,
   Tooltip,
+  Divider,
+  FormControlLabel,
+  Switch,
+  Chip,
+  Link,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faSave, faEnvelope, faXmark } from '@fortawesome/free-solid-svg-icons'
+import { faSave, faEnvelope, faXmark, faPlug, faSpinner, faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
+import { faGithub } from '@fortawesome/free-brands-svg-icons'
+import type { IconProp } from '@fortawesome/fontawesome-svg-core'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
   CobraTextField,
 } from '@/theme/styledComponents'
 import { formatDateTime } from '@/shared/utils/dateUtils'
-import { useSystemSettings, useUpdateSystemSettings } from '../hooks/useSystemSettings'
+import {
+  useSystemSettings,
+  useUpdateSystemSettings,
+  useTestGitHubConnection,
+} from '../hooks/useSystemSettings'
 import { notify } from '@/shared/utils/notify'
+import type { GitHubConnectionTestResult } from '../types/systemSettings'
 
 export const SystemSettingsAdmin: FC = () => {
   const { data: settings, isLoading, error } = useSystemSettings()
   const updateSettings = useUpdateSystemSettings()
 
+  const testConnection = useTestGitHubConnection()
+
   const [supportAddress, setSupportAddress] = useState('')
   const [defaultSenderName, setDefaultSenderName] = useState('')
+  const [gitHubToken, setGitHubToken] = useState('')
+  const [gitHubOwner, setGitHubOwner] = useState('')
+  const [gitHubRepo, setGitHubRepo] = useState('')
+  const [gitHubLabelsEnabled, setGitHubLabelsEnabled] = useState(false)
+  const [testResult, setTestResult] = useState<GitHubConnectionTestResult | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
   // Populate form when settings load
@@ -33,6 +52,10 @@ export const SystemSettingsAdmin: FC = () => {
     if (settings) {
       setSupportAddress(settings.supportAddress ?? '')
       setDefaultSenderName(settings.defaultSenderName ?? '')
+      setGitHubOwner(settings.gitHubOwner ?? '')
+      setGitHubRepo(settings.gitHubRepo ?? '')
+      setGitHubLabelsEnabled(settings.gitHubLabelsEnabled)
+      setGitHubToken('')
       setHasChanges(false)
     }
   }, [settings])
@@ -42,10 +65,14 @@ export const SystemSettingsAdmin: FC = () => {
     if (settings) {
       const changed =
         supportAddress !== (settings.supportAddress ?? '') ||
-        defaultSenderName !== (settings.defaultSenderName ?? '')
+        defaultSenderName !== (settings.defaultSenderName ?? '') ||
+        gitHubToken !== '' ||
+        gitHubOwner !== (settings.gitHubOwner ?? '') ||
+        gitHubRepo !== (settings.gitHubRepo ?? '') ||
+        gitHubLabelsEnabled !== settings.gitHubLabelsEnabled
       setHasChanges(changed)
     }
-  }, [supportAddress, defaultSenderName, settings])
+  }, [supportAddress, defaultSenderName, gitHubToken, gitHubOwner, gitHubRepo, gitHubLabelsEnabled, settings])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -55,6 +82,10 @@ export const SystemSettingsAdmin: FC = () => {
         supportAddress: supportAddress.trim() || null,
         defaultSenderAddress: null,
         defaultSenderName: defaultSenderName.trim() || null,
+        gitHubToken: gitHubToken || null,
+        gitHubOwner: gitHubOwner.trim() || null,
+        gitHubRepo: gitHubRepo.trim() || null,
+        gitHubLabelsEnabled: gitHubLabelsEnabled,
       })
       notify.success('System settings updated')
       setHasChanges(false)
@@ -69,7 +100,22 @@ export const SystemSettingsAdmin: FC = () => {
     if (settings) {
       setSupportAddress(settings.supportAddress ?? '')
       setDefaultSenderName(settings.defaultSenderName ?? '')
+      setGitHubToken('')
+      setGitHubOwner(settings.gitHubOwner ?? '')
+      setGitHubRepo(settings.gitHubRepo ?? '')
+      setGitHubLabelsEnabled(settings.gitHubLabelsEnabled)
+      setTestResult(null)
       setHasChanges(false)
+    }
+  }
+
+  const handleTestConnection = async () => {
+    setTestResult(null)
+    try {
+      const result = await testConnection.mutateAsync()
+      setTestResult(result)
+    } catch {
+      setTestResult({ success: false, message: 'Failed to test connection' })
     }
   }
 
@@ -151,36 +197,198 @@ export const SystemSettingsAdmin: FC = () => {
               },
             }}
           />
+        </Stack>
 
-          {settings?.updatedAt && (
+        <Divider sx={{ my: 4 }} />
+
+        <Stack direction="row" spacing={1.5} alignItems="center" sx={{ mb: 1 }}>
+          <FontAwesomeIcon icon={faGithub as IconProp} />
+          <Box>
+            <Typography variant="h6">GitHub Integration</Typography>
             <Typography variant="caption" color="text.secondary">
-              Last updated: {formatDateTime(settings.updatedAt)}
-              {settings.updatedBy && ` by ${settings.updatedBy}`}
+              Automatically create GitHub issues from feedback submissions.
             </Typography>
-          )}
+          </Box>
+        </Stack>
 
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end', pt: 1 }}>
-            <CobraSecondaryButton
-              onClick={handleReset}
-              disabled={!hasChanges || updateSettings.isPending}
+        <Alert severity="info" variant="outlined" sx={{ mb: 3 }}>
+          <Typography variant="body2">
+            To set up GitHub integration, you need a{' '}
+            <Link
+              href="https://github.com/settings/tokens?type=beta"
+              target="_blank"
+              rel="noreferrer"
             >
-              Reset
-            </CobraSecondaryButton>
-            <CobraPrimaryButton
-              type="submit"
-              disabled={!hasChanges || updateSettings.isPending}
+              Fine-grained Personal Access Token
+            </Link>{' '}
+            with <strong>Issues: Read and write</strong> permission on the target repository.{' '}
+            <Link
+              href="https://docs.github.com/en/authentication/keeping-your-account-and-data-secure/managing-your-personal-access-tokens#creating-a-fine-grained-personal-access-token"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Learn how to create one
+            </Link>
+          </Typography>
+        </Alert>
+
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
+            gap: 2.5,
+            mb: 2.5,
+          }}
+        >
+          <CobraTextField
+            label="Personal Access Token"
+            value={gitHubToken}
+            onChange={e => setGitHubToken(e.target.value)}
+            fullWidth
+            type="password"
+            placeholder={settings?.gitHubTokenConfigured ? '••••••••' + (settings.gitHubTokenMasked ?? '') : 'ghp_...'}
+            helperText={
+              settings?.gitHubTokenConfigured
+                ? gitHubToken
+                  ? 'Will replace existing token'
+                  : `Token configured (ends in ${settings.gitHubTokenMasked ?? '****'})`
+                : 'Generate at GitHub > Settings > Developer settings > Personal access tokens'
+            }
+            slotProps={{
+              input: {
+                endAdornment: settings?.gitHubTokenConfigured && !gitHubToken ? (
+                  <Tooltip title="Remove token">
+                    <IconButton size="small" onClick={() => setGitHubToken('__clear__')}>
+                      <FontAwesomeIcon icon={faXmark} size="sm" />
+                    </IconButton>
+                  </Tooltip>
+                ) : undefined,
+              },
+            }}
+          />
+
+          <Box />
+
+          <CobraTextField
+            label="Repository Owner"
+            value={gitHubOwner}
+            onChange={e => setGitHubOwner(e.target.value)}
+            fullWidth
+            placeholder="organization-or-username"
+            helperText={
+              <span>
+                The owner from your repo URL: github.com/
+                <strong>{gitHubOwner || 'owner'}</strong>/{gitHubRepo || 'repo'}
+              </span>
+            }
+          />
+
+          <CobraTextField
+            label="Repository Name"
+            value={gitHubRepo}
+            onChange={e => setGitHubRepo(e.target.value)}
+            fullWidth
+            placeholder="repository-name"
+            helperText={
+              <span>
+                The repo name from your URL: github.com/{gitHubOwner || 'owner'}/
+                <strong>{gitHubRepo || 'repo'}</strong>
+              </span>
+            }
+          />
+        </Box>
+
+        <Stack spacing={2.5}>
+          <FormControlLabel
+            control={
+              <Switch
+                checked={gitHubLabelsEnabled}
+                onChange={e => setGitHubLabelsEnabled(e.target.checked)}
+              />
+            }
+            label={
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography variant="body2">
+                  Add labels to issues automatically
+                </Typography>
+                <Tooltip
+                  title="Bug reports get 'bug', feature requests get 'enhancement', and general feedback gets 'feedback'. Labels are created if they don't exist."
+                  arrow
+                >
+                  <Box component="span" sx={{ color: 'text.secondary', cursor: 'help', fontSize: 14 }}>
+                    <FontAwesomeIcon icon={faCircleQuestion} />
+                  </Box>
+                </Tooltip>
+              </Stack>
+            }
+          />
+
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <CobraSecondaryButton
+              type="button"
+              onClick={handleTestConnection}
+              disabled={testConnection.isPending || !settings?.gitHubTokenConfigured || !settings?.gitHubOwner || !settings?.gitHubRepo || hasChanges}
               startIcon={
-                updateSettings.isPending ? (
-                  <CircularProgress size={16} color="inherit" />
+                testConnection.isPending ? (
+                  <FontAwesomeIcon icon={faSpinner} spin />
                 ) : (
-                  <FontAwesomeIcon icon={faSave} />
+                  <FontAwesomeIcon icon={faPlug} />
                 )
               }
             >
-              {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
-            </CobraPrimaryButton>
+              {testConnection.isPending ? 'Testing...' : 'Test Connection'}
+            </CobraSecondaryButton>
+
+            {testResult ? (
+              <Chip
+                label={testResult.message}
+                color={testResult.success ? 'success' : 'error'}
+                size="small"
+                variant="outlined"
+              />
+            ) : hasChanges ? (
+              <Typography variant="caption" color="text.secondary">
+                Save changes before testing
+              </Typography>
+            ) : (!settings?.gitHubTokenConfigured || !settings?.gitHubOwner || !settings?.gitHubRepo) ? (
+              <Typography variant="caption" color="text.secondary">
+                Configure and save token, owner, and repo first
+              </Typography>
+            ) : null}
           </Box>
         </Stack>
+
+        <Divider sx={{ my: 4 }} />
+
+        {settings?.updatedAt && (
+          <Typography variant="caption" color="text.secondary" sx={{ mb: 2, display: 'block' }}>
+            Last updated: {formatDateTime(settings.updatedAt)}
+            {settings.updatedBy && ` by ${settings.updatedBy}`}
+          </Typography>
+        )}
+
+        <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+          <CobraSecondaryButton
+            type="button"
+            onClick={handleReset}
+            disabled={!hasChanges || updateSettings.isPending}
+          >
+            Reset
+          </CobraSecondaryButton>
+          <CobraPrimaryButton
+            type="submit"
+            disabled={!hasChanges || updateSettings.isPending}
+            startIcon={
+              updateSettings.isPending ? (
+                <CircularProgress size={16} color="inherit" />
+              ) : (
+                <FontAwesomeIcon icon={faSave} />
+              )
+            }
+          >
+            {updateSettings.isPending ? 'Saving...' : 'Save Changes'}
+          </CobraPrimaryButton>
+        </Box>
       </form>
     </Box>
   )

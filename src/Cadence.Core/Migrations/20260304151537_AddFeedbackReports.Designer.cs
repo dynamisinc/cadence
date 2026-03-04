@@ -4,6 +4,7 @@ using Cadence.Core.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Cadence.Core.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260304151537_AddFeedbackReports")]
+    partial class AddFeedbackReports
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -247,9 +250,6 @@ namespace Cadence.Core.Migrations
                         .ValueGeneratedOnAdd()
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<string>("AdminNotes")
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<string>("AppVersion")
                         .HasColumnType("nvarchar(max)");
 
@@ -284,12 +284,6 @@ namespace Cadence.Core.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ExerciseRole")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int?>("GitHubIssueNumber")
-                        .HasColumnType("int");
-
-                    b.Property<string>("GitHubIssueUrl")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<bool>("IsDeleted")
@@ -357,18 +351,6 @@ namespace Cadence.Core.Migrations
                     b.Property<string>("DefaultSenderName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
-
-                    b.Property<bool>("GitHubLabelsEnabled")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("GitHubOwner")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GitHubRepo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("GitHubToken")
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("SupportAddress")
                         .HasMaxLength(200)

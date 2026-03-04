@@ -36,7 +36,9 @@ import {
   CobraTextField,
 } from '@/theme/styledComponents'
 import { feedbackService } from '../services/feedbackService'
-import type { FeedbackTab } from '../types'
+import type { FeedbackClientContext, FeedbackTab } from '../types'
+import { useExerciseNavigation } from '@/shared/contexts'
+import { notify } from '@/shared/utils/notify'
 
 interface FeedbackDialogProps {
   open: boolean
@@ -53,9 +55,20 @@ const FEEDBACK_CATEGORIES = [
 ]
 
 export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
+  const { currentExercise } = useExerciseNavigation()
+
+  const buildContext = (): FeedbackClientContext => ({
+    currentUrl: window.location.href,
+    screenSize: `${window.screen.width}x${window.screen.height}`,
+    appVersion: __APP_VERSION__,
+    commitSha: __COMMIT_SHA__,
+    exerciseId: currentExercise?.id,
+    exerciseName: currentExercise?.name,
+    exerciseRole: currentExercise?.userRole,
+  })
+
   const [activeTab, setActiveTab] = useState<FeedbackTab>('bug')
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   // Bug report fields
@@ -86,7 +99,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
     setFeedbackSubject('')
     setFeedbackMessage('')
     setError(null)
-    setSuccessMessage(null)
   }
 
   const handleClose = () => {
@@ -108,10 +120,11 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
   const handleSubmit = async () => {
     setIsSubmitting(true)
     setError(null)
-    setSuccessMessage(null)
 
     try {
       let result
+
+      const context = buildContext()
 
       switch (activeTab) {
         case 'bug':
@@ -120,6 +133,7 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
             description: bugDescription,
             stepsToReproduce: bugSteps || undefined,
             severity: bugSeverity,
+            context,
           })
           break
         case 'feature':
@@ -127,6 +141,7 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
             title: featureTitle,
             description: featureDescription,
             useCase: featureUseCase || undefined,
+            context,
           })
           break
         case 'feedback':
@@ -134,27 +149,16 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
             category: feedbackCategory,
             subject: feedbackSubject,
             message: feedbackMessage,
+            context,
           })
           break
       }
 
-      setSuccessMessage(
+      notify.success(
         `${result.message} Reference: ${result.referenceNumber}`,
       )
-      // Reset form fields but keep success message visible
-      if (activeTab === 'bug') {
-        setBugTitle('')
-        setBugDescription('')
-        setBugSteps('')
-        setBugSeverity('Medium')
-      } else if (activeTab === 'feature') {
-        setFeatureTitle('')
-        setFeatureDescription('')
-        setFeatureUseCase('')
-      } else {
-        setFeedbackSubject('')
-        setFeedbackMessage('')
-      }
+      resetForm()
+      onClose()
     } catch {
       setError('Failed to submit. Please try again.')
     } finally {
@@ -189,16 +193,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
       </DialogTitle>
 
       <DialogContent dividers>
-        {successMessage && (
-          <Alert
-            severity="success"
-            sx={{ mb: 2 }}
-            onClose={() => setSuccessMessage(null)}
-          >
-            {successMessage}
-          </Alert>
-        )}
-
         {error && (
           <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
             {error}
@@ -210,7 +204,6 @@ export const FeedbackDialog = ({ open, onClose }: FeedbackDialogProps) => {
           onChange={(_, val) => {
             setActiveTab(val)
             setError(null)
-            setSuccessMessage(null)
           }}
           sx={{ mb: 2, borderBottom: 1, borderColor: 'divider' }}
         >

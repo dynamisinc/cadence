@@ -959,6 +959,13 @@ Cadence - Exercise Management Platform"
   <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Browser:</td><td>{{Browser}}</td></tr>
   <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">OS:</td><td>{{OperatingSystem}}</td></tr>
   <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Screen:</td><td>{{ScreenSize}}</td></tr>
+</table>
+<h3>Submission Context</h3>
+<table style=""margin: 8px 0; font-size: 14px;"">
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">App Version:</td><td>{{AppVersion}} ({{CommitSha}})</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Organisation:</td><td>{{OrgName}} [{{OrgRole}}]</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Exercise:</td><td>{{ExerciseName}}{{ExerciseRole}}</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">User Role:</td><td>{{UserRole}}</td></tr>
 </table>",
             PlainTextContent: @"Bug Report
 
@@ -979,6 +986,12 @@ Browser: {{Browser}}
 OS: {{OperatingSystem}}
 Screen: {{ScreenSize}}
 
+SUBMISSION CONTEXT
+App Version: {{AppVersion}} ({{CommitSha}})
+Organisation: {{OrgName}} [{{OrgRole}}]
+Exercise: {{ExerciseName}}{{ExerciseRole}}
+User Role: {{UserRole}}
+
 ---
 Cadence - Exercise Management Platform"
         ));
@@ -998,7 +1011,14 @@ Cadence - Exercise Management Platform"
 <h3>Description</h3>
 <p>{{Description}}</p>
 <h3>Use Case</h3>
-<p>{{UseCase}}</p>",
+<p>{{UseCase}}</p>
+<h3>Submission Context</h3>
+<table style=""margin: 8px 0; font-size: 14px;"">
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">App Version:</td><td>{{AppVersion}} ({{CommitSha}})</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Organisation:</td><td>{{OrgName}} [{{OrgRole}}]</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Exercise:</td><td>{{ExerciseName}}{{ExerciseRole}}</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">User Role:</td><td>{{UserRole}}</td></tr>
+</table>",
             PlainTextContent: @"Feature Request
 
 Title: {{Title}}
@@ -1010,6 +1030,12 @@ DESCRIPTION
 
 USE CASE
 {{UseCase}}
+
+SUBMISSION CONTEXT
+App Version: {{AppVersion}} ({{CommitSha}})
+Organisation: {{OrgName}} [{{OrgRole}}]
+Exercise: {{ExerciseName}}{{ExerciseRole}}
+User Role: {{UserRole}}
 
 ---
 Cadence - Exercise Management Platform"
@@ -1029,7 +1055,14 @@ Cadence - Exercise Management Platform"
   <tr><td style=""padding: 4px 16px 4px 0; color: #666666; font-weight: bold;"">Sent:</td><td>{{SentAt}}</td></tr>
 </table>
 <h3>Message</h3>
-<p>{{Message}}</p>",
+<p>{{Message}}</p>
+<h3>Submission Context</h3>
+<table style=""margin: 8px 0; font-size: 14px;"">
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">App Version:</td><td>{{AppVersion}} ({{CommitSha}})</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Organisation:</td><td>{{OrgName}} [{{OrgRole}}]</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">Exercise:</td><td>{{ExerciseName}}{{ExerciseRole}}</td></tr>
+  <tr><td style=""padding: 2px 12px 2px 0; color: #666666;"">User Role:</td><td>{{UserRole}}</td></tr>
+</table>",
             PlainTextContent: @"User Feedback
 
 Category: {{Category}}
@@ -1039,6 +1072,12 @@ Sent: {{SentAt}}
 
 MESSAGE
 {{Message}}
+
+SUBMISSION CONTEXT
+App Version: {{AppVersion}} ({{CommitSha}})
+Organisation: {{OrgName}} [{{OrgRole}}]
+Exercise: {{ExerciseName}}{{ExerciseRole}}
+User Role: {{UserRole}}
 
 ---
 Cadence - Exercise Management Platform"
