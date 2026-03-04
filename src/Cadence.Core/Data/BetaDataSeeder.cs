@@ -163,77 +163,187 @@ public static class BetaDataSeeder
     // WC Preliminary Draw - fixed IDs for linking
     public static readonly Guid WcPrelimInject1Id = Guid.Parse("ffffffff-ffff-ffff-ffff-ffffffff0601");
 
+    // =========================================================================
+    // EEG Capability Targets - MCI TTX (Exercise 1)
+    // =========================================================================
+
+    public static readonly Guid MciCapTarget_EMS = Guid.Parse("aabbccdd-eeee-0001-0001-000000000001");
+    public static readonly Guid MciCapTarget_OpComm = Guid.Parse("aabbccdd-eeee-0001-0001-000000000002");
+    public static readonly Guid MciCapTarget_MassCare = Guid.Parse("aabbccdd-eeee-0001-0001-000000000003");
+    public static readonly Guid MciCapTarget_Security = Guid.Parse("aabbccdd-eeee-0001-0001-000000000004");
+    public static readonly Guid MciCapTarget_SitAssess = Guid.Parse("aabbccdd-eeee-0001-0001-000000000005");
+
+    // =========================================================================
+    // EEG Capability Targets - Hazmat FE (Exercise 2)
+    // =========================================================================
+
+    public static readonly Guid HazCapTarget_EnvResp = Guid.Parse("aabbccdd-eeee-0001-0002-000000000001");
+    public static readonly Guid HazCapTarget_Security = Guid.Parse("aabbccdd-eeee-0001-0002-000000000002");
+    public static readonly Guid HazCapTarget_OpComm = Guid.Parse("aabbccdd-eeee-0001-0002-000000000003");
+    public static readonly Guid HazCapTarget_EMS = Guid.Parse("aabbccdd-eeee-0001-0002-000000000004");
+
+    // =========================================================================
+    // EEG Critical Tasks - MCI TTX (Exercise 1)
+    // Pattern: Exercise 01, Target ##, Task ##
+    // =========================================================================
+
+    // MCI Target 1 (EMS) tasks
+    public static readonly Guid MciTask_EMS_1 = Guid.Parse("aabbccdd-eeee-0002-0001-000100000001");
+    public static readonly Guid MciTask_EMS_2 = Guid.Parse("aabbccdd-eeee-0002-0001-000100000002");
+    public static readonly Guid MciTask_EMS_3 = Guid.Parse("aabbccdd-eeee-0002-0001-000100000003");
+
+    // MCI Target 2 (OpComm) tasks
+    public static readonly Guid MciTask_OpComm_1 = Guid.Parse("aabbccdd-eeee-0002-0001-000200000001");
+    public static readonly Guid MciTask_OpComm_2 = Guid.Parse("aabbccdd-eeee-0002-0001-000200000002");
+
+    // MCI Target 3 (MassCare) tasks
+    public static readonly Guid MciTask_MassCare_1 = Guid.Parse("aabbccdd-eeee-0002-0001-000300000001");
+    public static readonly Guid MciTask_MassCare_2 = Guid.Parse("aabbccdd-eeee-0002-0001-000300000002");
+
+    // MCI Target 4 (Security) tasks
+    public static readonly Guid MciTask_Security_1 = Guid.Parse("aabbccdd-eeee-0002-0001-000400000001");
+    public static readonly Guid MciTask_Security_2 = Guid.Parse("aabbccdd-eeee-0002-0001-000400000002");
+
+    // MCI Target 5 (SitAssess) tasks
+    public static readonly Guid MciTask_SitAssess_1 = Guid.Parse("aabbccdd-eeee-0002-0001-000500000001");
+    public static readonly Guid MciTask_SitAssess_2 = Guid.Parse("aabbccdd-eeee-0002-0001-000500000002");
+
+    // =========================================================================
+    // EEG Critical Tasks - Hazmat FE (Exercise 2)
+    // =========================================================================
+
+    // Hazmat Target 1 (EnvResp) tasks
+    public static readonly Guid HazTask_EnvResp_1 = Guid.Parse("aabbccdd-eeee-0002-0002-000100000001");
+    public static readonly Guid HazTask_EnvResp_2 = Guid.Parse("aabbccdd-eeee-0002-0002-000100000002");
+    public static readonly Guid HazTask_EnvResp_3 = Guid.Parse("aabbccdd-eeee-0002-0002-000100000003");
+
+    // Hazmat Target 2 (Security) tasks
+    public static readonly Guid HazTask_Security_1 = Guid.Parse("aabbccdd-eeee-0002-0002-000200000001");
+    public static readonly Guid HazTask_Security_2 = Guid.Parse("aabbccdd-eeee-0002-0002-000200000002");
+
+    // Hazmat Target 3 (OpComm) tasks
+    public static readonly Guid HazTask_OpComm_1 = Guid.Parse("aabbccdd-eeee-0002-0002-000300000001");
+    public static readonly Guid HazTask_OpComm_2 = Guid.Parse("aabbccdd-eeee-0002-0002-000300000002");
+
+    // Hazmat Target 4 (EMS) tasks
+    public static readonly Guid HazTask_EMS_1 = Guid.Parse("aabbccdd-eeee-0002-0002-000400000001");
+    public static readonly Guid HazTask_EMS_2 = Guid.Parse("aabbccdd-eeee-0002-0002-000400000002");
+
     #endregion
 
     /// <summary>
-    /// Seeds beta testing data if not already present. Idempotent.
+    /// Seeds beta testing data incrementally. Idempotent - each step checks for its own data
+    /// so partial runs from previous failures can recover and complete successfully.
     /// </summary>
     public static async Task SeedAsync(AppDbContext context, ILogger? logger = null)
     {
-        // Check if already seeded
-        if (await context.Organizations.AnyAsync(o => o.Id == BetaOrganizationId))
-        {
-            logger?.LogDebug("Beta data already seeded - skipping");
-            return;
-        }
-
-        logger?.LogInformation("Seeding beta testing data...");
+        logger?.LogInformation("Seeding beta testing data (incremental)...");
         var now = DateTime.UtcNow;
 
         // 1. Create Beta Organization
-        var betaOrg = CreateBetaOrganization();
-        context.Organizations.Add(betaOrg);
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created beta organization: {OrgName}", betaOrg.Name);
+        var orgExists = await context.Organizations.AnyAsync(o => o.Id == BetaOrganizationId);
+        if (!orgExists)
+        {
+            var betaOrg = CreateBetaOrganization();
+            context.Organizations.Add(betaOrg);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created beta organization: {OrgName}", betaOrg.Name);
+        }
+        else
+        {
+            logger?.LogDebug("Beta organization already exists - skipping");
+        }
 
         // 2. Create Exercises (without ActiveMselId initially)
-        var exercises = CreateExercises(now);
-        context.Exercises.AddRange(exercises);
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created {Count} beta exercises", exercises.Count);
+        if (!await context.Exercises.AnyAsync(e => e.Id == MciTtxId))
+        {
+            var exercises = CreateExercises(now);
+            context.Exercises.AddRange(exercises);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} beta exercises", exercises.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta exercises already exist - skipping");
+        }
 
         // 3. Create MSELs
-        var msels = CreateMsels();
-        context.Msels.AddRange(msels);
-        await context.SaveChangesAsync();
+        if (!await context.Msels.IgnoreQueryFilters().AnyAsync(m => m.Id == MciMselId))
+        {
+            var msels = CreateMsels();
+            context.Msels.AddRange(msels);
+            await context.SaveChangesAsync();
 
-        // 4. Link ActiveMselId to exercises
-        var mciTtx = await context.Exercises.FindAsync(MciTtxId);
-        var hazmatFe = await context.Exercises.FindAsync(HazmatFeId);
-        var wcTtx = await context.Exercises.FindAsync(WorldCupTtxId);
-        var wcPrelim = await context.Exercises.FindAsync(WcPrelimDrawId);
+            // 4. Link ActiveMselId to exercises
+            var mciTtx = await context.Exercises.FindAsync(MciTtxId);
+            var hazmatFe = await context.Exercises.FindAsync(HazmatFeId);
+            var wcTtx = await context.Exercises.FindAsync(WorldCupTtxId);
+            var wcPrelim = await context.Exercises.FindAsync(WcPrelimDrawId);
 
-        if (mciTtx != null) mciTtx.ActiveMselId = MciMselId;
-        if (hazmatFe != null) hazmatFe.ActiveMselId = HazmatMselId;
-        if (wcTtx != null) wcTtx.ActiveMselId = WorldCupMselId;
-        if (wcPrelim != null) wcPrelim.ActiveMselId = WcPrelimMselId;
+            if (mciTtx != null) mciTtx.ActiveMselId = MciMselId;
+            if (hazmatFe != null) hazmatFe.ActiveMselId = HazmatMselId;
+            if (wcTtx != null) wcTtx.ActiveMselId = WorldCupMselId;
+            if (wcPrelim != null) wcPrelim.ActiveMselId = WcPrelimMselId;
 
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created {Count} MSELs", msels.Count);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} MSELs", msels.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta MSELs already exist - skipping");
+        }
 
         // 5. Create Phases
-        var phases = CreateAllPhases();
-        context.Phases.AddRange(phases);
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created {Count} phases", phases.Count);
+        if (!await context.Phases.IgnoreQueryFilters().AnyAsync(p => p.Id == MciPhase1Id))
+        {
+            var phases = CreateAllPhases();
+            context.Phases.AddRange(phases);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} phases", phases.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta phases already exist - skipping");
+        }
 
         // 6. Create Objectives
-        var objectives = CreateAllObjectives();
-        context.Objectives.AddRange(objectives);
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created {Count} objectives", objectives.Count);
+        if (!await context.Objectives.IgnoreQueryFilters().AnyAsync(o => o.Id == MciObj1Id))
+        {
+            var objectives = CreateAllObjectives();
+            context.Objectives.AddRange(objectives);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} objectives", objectives.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta objectives already exist - skipping");
+        }
 
         // 7. Create Injects
-        var injects = CreateAllInjects(now);
-        context.Injects.AddRange(injects);
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created {Count} injects", injects.Count);
+        if (!await context.Injects.IgnoreQueryFilters().AnyAsync(i => i.Id == MciInject1Id))
+        {
+            var injects = CreateAllInjects(now);
+            context.Injects.AddRange(injects);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} injects", injects.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta injects already exist - skipping");
+        }
 
         // 8. Create Inject-Objective links
-        var injectObjectives = CreateInjectObjectiveLinks();
-        context.Set<InjectObjective>().AddRange(injectObjectives);
-        await context.SaveChangesAsync();
-        logger?.LogInformation("Created {Count} inject-objective links", injectObjectives.Count);
+        if (!await context.Set<InjectObjective>().AnyAsync(io => io.InjectId == MciInject1Id))
+        {
+            var injectObjectives = CreateInjectObjectiveLinks();
+            context.Set<InjectObjective>().AddRange(injectObjectives);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} inject-objective links", injectObjectives.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta inject-objective links already exist - skipping");
+        }
 
         logger?.LogInformation("Beta data seeding complete");
     }
@@ -271,6 +381,538 @@ public static class BetaDataSeeder
         {
             logger?.LogError(ex, "Failed to seed capabilities for beta organization");
         }
+    }
+
+    /// <summary>
+    /// Seeds EEG data (Capability Targets, Critical Tasks, and Inject-Task links) for the
+    /// Active (MCI TTX) and Completed (Hazmat FE) beta exercises. Must run AFTER capabilities
+    /// are seeded since targets reference org-level capabilities by name lookup.
+    ///
+    /// Seeds:
+    /// - ExerciseTargetCapability (which capabilities each exercise evaluates)
+    /// - CapabilityTarget (exercise-specific measurable performance thresholds)
+    /// - CriticalTask (observable actions under each target)
+    /// - InjectCriticalTask (links injects to the critical tasks they test)
+    ///
+    /// Idempotent. Skips if capability targets already exist for these exercises.
+    /// </summary>
+    public static async Task SeedEegDataAsync(AppDbContext context, ILogger? logger = null)
+    {
+        // Check if already seeded
+        var hasTargets = await context.CapabilityTargets
+            .AnyAsync(ct => ct.ExerciseId == MciTtxId || ct.ExerciseId == HazmatFeId);
+
+        if (hasTargets)
+        {
+            logger?.LogDebug("EEG data already seeded for beta exercises - skipping");
+            return;
+        }
+
+        // Look up FEMA capabilities by name for the beta organization
+        var capabilities = await context.Capabilities
+            .Where(c => c.OrganizationId == BetaOrganizationId && c.SourceLibrary == "FEMA")
+            .ToListAsync();
+
+        if (!capabilities.Any())
+        {
+            logger?.LogWarning("No FEMA capabilities found for beta org - skipping EEG seeding. " +
+                               "Ensure SeedCapabilitiesAsync runs first.");
+            return;
+        }
+
+        // Build lookup by name
+        var capLookup = capabilities.ToDictionary(c => c.Name, c => c.Id);
+
+        // Helper to safely get capability ID
+        Guid? GetCapId(string name) => capLookup.TryGetValue(name, out var id) ? id : null;
+
+        var now = DateTime.UtcNow;
+        var system = SystemConstants.SystemUserIdString;
+
+        // Required capability IDs
+        var emsCapId = GetCapId("Public Health, Healthcare, and Emergency Medical Services");
+        var opCommCapId = GetCapId("Operational Communications");
+        var massCareCapId = GetCapId("Mass Care Services");
+        var securityCapId = GetCapId("On-scene Security, Protection, and Law Enforcement");
+        var sitAssessCapId = GetCapId("Situational Assessment");
+        var envRespCapId = GetCapId("Environmental Response/Health and Safety");
+
+        if (emsCapId == null || opCommCapId == null || massCareCapId == null ||
+            securityCapId == null || sitAssessCapId == null || envRespCapId == null)
+        {
+            logger?.LogWarning("Missing required FEMA capabilities - skipping EEG seeding. " +
+                               "Found {Count} capabilities.", capabilities.Count);
+            return;
+        }
+
+        logger?.LogInformation("Seeding EEG data for MCI TTX and Hazmat FE exercises...");
+
+        // =====================================================================
+        // 1. ExerciseTargetCapability (which capabilities each exercise targets)
+        // =====================================================================
+
+        var exerciseTargetCaps = new List<ExerciseTargetCapability>
+        {
+            // MCI TTX targets 5 capabilities
+            new() { ExerciseId = MciTtxId, CapabilityId = emsCapId.Value },
+            new() { ExerciseId = MciTtxId, CapabilityId = opCommCapId.Value },
+            new() { ExerciseId = MciTtxId, CapabilityId = massCareCapId.Value },
+            new() { ExerciseId = MciTtxId, CapabilityId = securityCapId.Value },
+            new() { ExerciseId = MciTtxId, CapabilityId = sitAssessCapId.Value },
+
+            // Hazmat FE targets 4 capabilities
+            new() { ExerciseId = HazmatFeId, CapabilityId = envRespCapId.Value },
+            new() { ExerciseId = HazmatFeId, CapabilityId = securityCapId.Value },
+            new() { ExerciseId = HazmatFeId, CapabilityId = opCommCapId.Value },
+            new() { ExerciseId = HazmatFeId, CapabilityId = emsCapId.Value },
+        };
+
+        context.Set<ExerciseTargetCapability>().AddRange(exerciseTargetCaps);
+        await context.SaveChangesAsync();
+        logger?.LogInformation("Created {Count} exercise-capability links", exerciseTargetCaps.Count);
+
+        // =====================================================================
+        // 2. Capability Targets (exercise-specific performance thresholds)
+        // =====================================================================
+
+        var capabilityTargets = new List<CapabilityTarget>
+        {
+            // -----------------------------------------------------------------
+            // MCI TTX - 5 Capability Targets
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = MciCapTarget_EMS,
+                ExerciseId = MciTtxId,
+                CapabilityId = emsCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Activate MCI triage system and transport 60+ patients to appropriate receiving facilities within 90 minutes of incident declaration",
+                Sources = "Coastal Region MCI Plan v3.2; EMS SOP 12.1; Regional Hospital Surge Protocol",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciCapTarget_OpComm,
+                ExerciseId = MciTtxId,
+                CapabilityId = opCommCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Establish interoperable multi-agency communications within 15 minutes of incident notification",
+                Sources = "Regional Interoperability Plan; TICP v2.0; ICS Forms 205/205A",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciCapTarget_MassCare,
+                ExerciseId = MciTtxId,
+                CapabilityId = massCareCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Activate family reunification center and provide crisis support services within 60 minutes of MCI declaration",
+                Sources = "Mass Care Annex E; American Red Cross MOA; Family Assistance SOP 8.3",
+                SortOrder = 3,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciCapTarget_Security,
+                ExerciseId = MciTtxId,
+                CapabilityId = securityCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Secure incident perimeter and manage traffic for emergency vehicle access within 20 minutes of first unit arrival",
+                Sources = "Law Enforcement MCI Protocol; Traffic Management Plan; ICS-204 Assignment",
+                SortOrder = 4,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciCapTarget_SitAssess,
+                ExerciseId = MciTtxId,
+                CapabilityId = sitAssessCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Provide decision-ready situation reports to unified command at 15-minute intervals throughout the operation",
+                Sources = "ICS-209 Incident Summary; EOC SOP 3.1; Situation Unit Leader Checklist",
+                SortOrder = 5,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // Hazmat FE - 4 Capability Targets
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = HazCapTarget_EnvResp,
+                ExerciseId = HazmatFeId,
+                CapabilityId = envRespCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Establish hot/warm/cold zones and begin environmental air monitoring within 30 minutes of HAZMAT team arrival on scene",
+                Sources = "HAZMAT Response Plan; ERG 2024; EPA Region IV MOA; OSHA 1910.120",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazCapTarget_Security,
+                ExerciseId = HazmatFeId,
+                CapabilityId = securityCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Secure affected area and coordinate evacuation or shelter-in-place within 20 minutes of hazard confirmation",
+                Sources = "Shelter-in-Place SOP 6.2; Evacuation Route Plan; Public Alert System Protocol",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazCapTarget_OpComm,
+                ExerciseId = HazmatFeId,
+                CapabilityId = opCommCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Maintain uninterrupted multi-agency communications throughout the 8-hour HAZMAT operation using primary and backup systems",
+                Sources = "HAZMAT Communications Plan; TICP v2.0; Backup Comms SOP 14.1",
+                SortOrder = 3,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazCapTarget_EMS,
+                ExerciseId = HazmatFeId,
+                CapabilityId = emsCapId.Value,
+                OrganizationId = BetaOrganizationId,
+                TargetDescription = "Establish mass decontamination capability and medical monitoring system for 200+ potential chlorine exposures within 45 minutes",
+                Sources = "Mass Decon SOP 9.4; Hospital Surge Protocol; Chlorine Exposure Treatment Guide",
+                SortOrder = 4,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+        };
+
+        context.CapabilityTargets.AddRange(capabilityTargets);
+        await context.SaveChangesAsync();
+        logger?.LogInformation("Created {Count} capability targets", capabilityTargets.Count);
+
+        // =====================================================================
+        // 3. Critical Tasks (observable actions under each target)
+        // =====================================================================
+
+        var criticalTasks = new List<CriticalTask>
+        {
+            // -----------------------------------------------------------------
+            // MCI TTX - Target 1: EMS (3 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = MciTask_EMS_1,
+                CapabilityTargetId = MciCapTarget_EMS,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Implement START triage at scene within 10 minutes of first responder arrival",
+                Standard = "Per MCI Plan v3.2: All patients tagged and triaged using START algorithm; triage officer designated; patient count reported to IC within 10 minutes",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciTask_EMS_2,
+                CapabilityTargetId = MciCapTarget_EMS,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Coordinate patient distribution across 4 hospitals based on real-time surge capacity data",
+                Standard = "Per Hospital Surge Protocol: EMS Dispatch confirms bed availability with each hospital; patients distributed based on injury severity and hospital capability; no single facility receives more than 40% of total patients",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciTask_EMS_3,
+                CapabilityTargetId = MciCapTarget_EMS,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish patient tracking and family reunification data system",
+                Standard = "Per SOP 12.1: All transported patients entered into tracking system with unique ID, receiving hospital, and injury category within 15 minutes of transport",
+                SortOrder = 3,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // MCI TTX - Target 2: Operational Communications (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = MciTask_OpComm_1,
+                CapabilityTargetId = MciCapTarget_OpComm,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Activate mutual aid talk groups on regional interoperability channel",
+                Standard = "Per TICP v2.0: All responding agencies confirm on assigned interop channel within 15 minutes; communications check completed with all units",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciTask_OpComm_2,
+                CapabilityTargetId = MciCapTarget_OpComm,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish unified command post communications including field-to-EOC link",
+                Standard = "Per ICS-205: Communications plan distributed; primary and backup frequencies assigned; field-to-EOC radio/phone link verified operational",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // MCI TTX - Target 3: Mass Care Services (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = MciTask_MassCare_1,
+                CapabilityTargetId = MciCapTarget_MassCare,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish family assistance center at designated location with reception and information areas",
+                Standard = "Per Mass Care Annex E: FAC location confirmed; staffing includes social services, chaplain, Red Cross caseworker; information hotline activated; signage posted",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciTask_MassCare_2,
+                CapabilityTargetId = MciCapTarget_MassCare,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Activate crisis counseling and victim advocate services for families and survivors",
+                Standard = "Per Family Assistance SOP 8.3: Crisis counselors on-site within 60 minutes; victim advocates available for each family; coordination with hospital social workers established",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // MCI TTX - Target 4: Security (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = MciTask_Security_1,
+                CapabilityTargetId = MciCapTarget_Security,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish inner and outer perimeters per ICS protocols within 20 minutes of first unit arrival",
+                Standard = "Per Law Enforcement MCI Protocol: Inner perimeter excludes civilians from hazard area; outer perimeter controls access; access control points staffed with check-in/check-out logs",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciTask_Security_2,
+                CapabilityTargetId = MciCapTarget_Security,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Implement traffic management plan for emergency vehicle corridors on Highway 17",
+                Standard = "Per Traffic Management Plan: Two emergency vehicle corridors established; civilian traffic diverted to alternate routes; DOT message boards activated; staging area access controlled",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // MCI TTX - Target 5: Situational Assessment (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = MciTask_SitAssess_1,
+                CapabilityTargetId = MciCapTarget_SitAssess,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish situation unit and begin collecting field reports from all operational sectors",
+                Standard = "Per EOC SOP 3.1: Situation Unit Leader designated; field reports collected from Fire, EMS, LE, and hospital sectors; information consolidated for briefings",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = MciTask_SitAssess_2,
+                CapabilityTargetId = MciCapTarget_SitAssess,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Produce initial ICS-209 incident summary within 30 minutes of MCI declaration",
+                Standard = "Per ICS-209: Accurate patient count by triage category; resource status; hospital bed availability; road closure status; estimated time to scene clearance",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-14), UpdatedAt = now.AddDays(-14),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // Hazmat FE - Target 1: Environmental Response (3 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = HazTask_EnvResp_1,
+                CapabilityTargetId = HazCapTarget_EnvResp,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Conduct initial hazard assessment and positively identify the chemical agent using field instruments",
+                Standard = "Per HAZMAT Response Plan: 4-gas monitor and PID deployed; chemical identified using SDS, placards, and field testing; results reported to IC and CHEMTREC notified within 20 minutes",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazTask_EnvResp_2,
+                CapabilityTargetId = HazCapTarget_EnvResp,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish exclusion zones (hot/warm/cold) per ERG guidelines for chlorine release",
+                Standard = "Per ERG 2024: Hot zone based on concentration readings; warm zone with decon corridor; cold zone for command and staging; zones marked with barrier tape and signage; perimeter monitored continuously",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazTask_EnvResp_3,
+                CapabilityTargetId = HazCapTarget_EnvResp,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Deploy continuous air monitoring network and report real-time readings to Incident Commander",
+                Standard = "Per OSHA 1910.120: Fixed air monitors at hot zone boundary and downwind residential area; readings recorded every 10 minutes; action levels trigger shelter-in-place or evacuation decisions",
+                SortOrder = 3,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // Hazmat FE - Target 2: Security (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = HazTask_Security_1,
+                CapabilityTargetId = HazCapTarget_Security,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Issue shelter-in-place notification to immediate residential area via reverse 911 and outdoor warning sirens",
+                Standard = "Per Shelter-in-Place SOP 6.2: Reverse 911 message sent within 15 minutes of hazard confirmation; outdoor sirens activated; social media alert posted; local media notified",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazTask_Security_2,
+                CapabilityTargetId = HazCapTarget_Security,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish evacuation routes away from plume trajectory based on wind direction data",
+                Standard = "Per Evacuation Route Plan: Routes identified upwind and crosswind; school evacuation coordinated with district; special needs transportation arranged; traffic control points staffed",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // Hazmat FE - Target 3: Operational Communications (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = HazTask_OpComm_1,
+                CapabilityTargetId = HazCapTarget_OpComm,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Establish HAZMAT talk group and confirm all responding units on assigned frequency",
+                Standard = "Per HAZMAT Comms Plan: Dedicated HAZMAT talk group activated; all HAZMAT, fire, EMS, LE, and EPA units confirmed on frequency; communications check completed within 15 minutes of IC establishment",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazTask_OpComm_2,
+                CapabilityTargetId = HazCapTarget_OpComm,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Implement backup communications plan using cellular/satellite for extended operations",
+                Standard = "Per Backup Comms SOP 14.1: Cellular backup verified; satellite phone available at IC post; radio relay established if terrain issues; communications log maintained throughout incident",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+
+            // -----------------------------------------------------------------
+            // Hazmat FE - Target 4: EMS (2 tasks)
+            // -----------------------------------------------------------------
+            new()
+            {
+                Id = HazTask_EMS_1,
+                CapabilityTargetId = HazCapTarget_EMS,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Deploy mass decontamination corridor at warm/cold zone boundary within 45 minutes of arrival",
+                Standard = "Per Mass Decon SOP 9.4: Two-stage decon corridor (gross and technical) established; water supply connected; PPE-equipped decon team of 6+ personnel; ambulatory and non-ambulatory lanes operational",
+                SortOrder = 1,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+            new()
+            {
+                Id = HazTask_EMS_2,
+                CapabilityTargetId = HazCapTarget_EMS,
+                OrganizationId = BetaOrganizationId,
+                TaskDescription = "Initiate exposure tracking and medical surveillance for all potentially exposed individuals",
+                Standard = "Per Chlorine Exposure Guide: Patient registration at decon exit; symptom assessment using CHEMPACK protocols; hospital transport for symptomatic patients; exposure registry maintained for follow-up",
+                SortOrder = 2,
+                CreatedAt = now.AddDays(-60), UpdatedAt = now.AddDays(-30),
+                CreatedBy = system, ModifiedBy = system
+            },
+        };
+
+        context.CriticalTasks.AddRange(criticalTasks);
+        await context.SaveChangesAsync();
+        logger?.LogInformation("Created {Count} critical tasks", criticalTasks.Count);
+
+        // =====================================================================
+        // 4. InjectCriticalTask links (connecting injects to critical tasks)
+        // =====================================================================
+
+        var injectTaskLinks = new List<InjectCriticalTask>
+        {
+            // MCI TTX - Inject 1 (Multi-Vehicle Accident) tests EMS triage and OpComm activation
+            new() { InjectId = MciInject1Id, CriticalTaskId = MciTask_EMS_1, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject1Id, CriticalTaskId = MciTask_OpComm_1, CreatedAt = now.AddDays(-14), CreatedBy = system },
+
+            // MCI TTX - Inject 2 (Scene Size-Up) tests EMS triage and Security perimeter
+            new() { InjectId = MciInject2Id, CriticalTaskId = MciTask_EMS_1, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject2Id, CriticalTaskId = MciTask_Security_1, CreatedAt = now.AddDays(-14), CreatedBy = system },
+
+            // MCI TTX - Inject 3 (MCI Declaration) tests SitAssess and OpComm
+            new() { InjectId = MciInject3Id, CriticalTaskId = MciTask_SitAssess_1, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject3Id, CriticalTaskId = MciTask_OpComm_2, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject3Id, CriticalTaskId = MciTask_SitAssess_2, CreatedAt = now.AddDays(-14), CreatedBy = system },
+
+            // MCI TTX - Inject 4 (Triage Complete) tests EMS patient distribution and MassCare
+            new() { InjectId = MciInject4Id, CriticalTaskId = MciTask_EMS_2, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject4Id, CriticalTaskId = MciTask_EMS_3, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject4Id, CriticalTaskId = MciTask_MassCare_1, CreatedAt = now.AddDays(-14), CreatedBy = system },
+
+            // MCI TTX - Inject 5 (Hospital Surge) tests EMS distribution and MassCare counseling
+            new() { InjectId = MciInject5Id, CriticalTaskId = MciTask_EMS_2, CreatedAt = now.AddDays(-14), CreatedBy = system },
+            new() { InjectId = MciInject5Id, CriticalTaskId = MciTask_MassCare_2, CreatedAt = now.AddDays(-14), CreatedBy = system },
+
+            // Hazmat FE - Inject 1 (Chemical Odor Reports) tests EnvResp assessment and Security SIP
+            new() { InjectId = HazmatInject1Id, CriticalTaskId = HazTask_EnvResp_1, CreatedAt = now.AddDays(-60), CreatedBy = system },
+            new() { InjectId = HazmatInject1Id, CriticalTaskId = HazTask_Security_1, CreatedAt = now.AddDays(-60), CreatedBy = system },
+
+            // Hazmat FE - Inject 2 (HAZMAT Team Assessment) tests EnvResp zones and OpComm
+            new() { InjectId = HazmatInject2Id, CriticalTaskId = HazTask_EnvResp_2, CreatedAt = now.AddDays(-60), CreatedBy = system },
+            new() { InjectId = HazmatInject2Id, CriticalTaskId = HazTask_EnvResp_3, CreatedAt = now.AddDays(-60), CreatedBy = system },
+            new() { InjectId = HazmatInject2Id, CriticalTaskId = HazTask_OpComm_1, CreatedAt = now.AddDays(-60), CreatedBy = system },
+
+            // Hazmat FE - Inject 3 (Wind Direction Change) tests Security evacuation and EMS decon
+            new() { InjectId = HazmatInject3Id, CriticalTaskId = HazTask_Security_2, CreatedAt = now.AddDays(-60), CreatedBy = system },
+            new() { InjectId = HazmatInject3Id, CriticalTaskId = HazTask_EMS_1, CreatedAt = now.AddDays(-60), CreatedBy = system },
+            new() { InjectId = HazmatInject3Id, CriticalTaskId = HazTask_OpComm_2, CreatedAt = now.AddDays(-60), CreatedBy = system },
+        };
+
+        context.Set<InjectCriticalTask>().AddRange(injectTaskLinks);
+        await context.SaveChangesAsync();
+        logger?.LogInformation("Created {Count} inject-critical task links", injectTaskLinks.Count);
+
+        logger?.LogInformation("EEG data seeding complete for beta exercises");
     }
 
     #region Organization
@@ -517,6 +1159,7 @@ public static class BetaDataSeeder
                               "Multi-agency response through triage, transport, hospital surge, and family reunification.",
                 Version = 2,
                 IsActive = true,
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-2),
@@ -531,6 +1174,7 @@ public static class BetaDataSeeder
                               "Response through detection, containment, decontamination, and environmental recovery.",
                 Version = 1,
                 IsActive = true,
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55),
                 UpdatedAt = DateTime.UtcNow.AddDays(-35),
@@ -546,6 +1190,7 @@ public static class BetaDataSeeder
                               "and full-spectrum threat response.",
                 Version = 2,
                 IsActive = true,
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-3),
@@ -560,6 +1205,7 @@ public static class BetaDataSeeder
                               "500+ international dignitaries, 15,000 invited guests.",
                 Version = 1,
                 IsActive = true,
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WcPrelimDrawId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-6),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-5),
@@ -589,6 +1235,7 @@ public static class BetaDataSeeder
                 Sequence = 1,
                 StartTime = new TimeOnly(9, 0),
                 EndTime = new TimeOnly(9, 30),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -604,6 +1251,7 @@ public static class BetaDataSeeder
                 Sequence = 2,
                 StartTime = new TimeOnly(9, 30),
                 EndTime = new TimeOnly(10, 15),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -619,6 +1267,7 @@ public static class BetaDataSeeder
                 Sequence = 3,
                 StartTime = new TimeOnly(10, 15),
                 EndTime = new TimeOnly(11, 15),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -634,6 +1283,7 @@ public static class BetaDataSeeder
                 Sequence = 4,
                 StartTime = new TimeOnly(11, 15),
                 EndTime = new TimeOnly(12, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -654,6 +1304,7 @@ public static class BetaDataSeeder
                 Sequence = 1,
                 StartTime = new TimeOnly(8, 0),
                 EndTime = new TimeOnly(10, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55),
                 UpdatedAt = DateTime.UtcNow.AddDays(-55),
@@ -669,6 +1320,7 @@ public static class BetaDataSeeder
                 Sequence = 2,
                 StartTime = new TimeOnly(10, 0),
                 EndTime = new TimeOnly(13, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55),
                 UpdatedAt = DateTime.UtcNow.AddDays(-55),
@@ -684,6 +1336,7 @@ public static class BetaDataSeeder
                 Sequence = 3,
                 StartTime = new TimeOnly(13, 0),
                 EndTime = new TimeOnly(16, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55),
                 UpdatedAt = DateTime.UtcNow.AddDays(-55),
@@ -704,6 +1357,7 @@ public static class BetaDataSeeder
                 Sequence = 1,
                 StartTime = new TimeOnly(9, 0),
                 EndTime = new TimeOnly(11, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -719,6 +1373,7 @@ public static class BetaDataSeeder
                 Sequence = 2,
                 StartTime = new TimeOnly(11, 0),
                 EndTime = new TimeOnly(13, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -734,6 +1389,7 @@ public static class BetaDataSeeder
                 Sequence = 3,
                 StartTime = new TimeOnly(13, 0),
                 EndTime = new TimeOnly(15, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14),
                 UpdatedAt = DateTime.UtcNow.AddDays(-14),
@@ -754,6 +1410,7 @@ public static class BetaDataSeeder
                 Sequence = 1,
                 StartTime = new TimeOnly(7, 0),
                 EndTime = new TimeOnly(13, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WcPrelimDrawId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-6),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-6),
@@ -769,6 +1426,7 @@ public static class BetaDataSeeder
                 Sequence = 2,
                 StartTime = new TimeOnly(13, 0),
                 EndTime = new TimeOnly(19, 0),
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WcPrelimDrawId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-6),
                 UpdatedAt = DateTime.UtcNow.AddMonths(-6),
@@ -797,6 +1455,7 @@ public static class BetaDataSeeder
                 Description = "Demonstrate the ability to establish unified command and effective scene control " +
                               "within 15 minutes of first responder arrival, including perimeter security, " +
                               "staging area designation, and resource coordination.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -806,6 +1465,7 @@ public static class BetaDataSeeder
                 Id = MciObj2Id, ObjectiveNumber = "2", Name = "Mass Triage Operations",
                 Description = "Demonstrate the ability to implement START triage for 60+ patients within " +
                               "30 minutes and accurately categorize patients by acuity for transport prioritization.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -816,6 +1476,7 @@ public static class BetaDataSeeder
                 Description = "Demonstrate the ability to coordinate patient transport to 4 area hospitals " +
                               "based on capability and capacity, managing ambulance staging and air transport " +
                               "for critical patients.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -825,6 +1486,7 @@ public static class BetaDataSeeder
                 Id = MciObj4Id, ObjectiveNumber = "4", Name = "Hospital Surge Activation",
                 Description = "Demonstrate the ability to activate hospital surge protocols across the " +
                               "regional hospital network and implement patient tracking across facilities.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -834,6 +1496,7 @@ public static class BetaDataSeeder
                 Id = MciObj5Id, ObjectiveNumber = "5", Name = "Family Assistance & Public Information",
                 Description = "Demonstrate the ability to establish a Family Assistance Center and coordinate " +
                               "timely, accurate public messaging across agencies within 2 hours of incident.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = MciTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -848,6 +1511,7 @@ public static class BetaDataSeeder
                 Id = HazmatObj1Id, ObjectiveNumber = "1", Name = "HAZMAT Identification & Zone Establishment",
                 Description = "Demonstrate the ability to identify the chemical agent and establish hot, warm, " +
                               "and cold zones within 45 minutes of HAZMAT team arrival.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55), UpdatedAt = DateTime.UtcNow.AddDays(-55),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -857,6 +1521,7 @@ public static class BetaDataSeeder
                 Id = HazmatObj2Id, ObjectiveNumber = "2", Name = "Protective Action Implementation",
                 Description = "Demonstrate the ability to execute shelter-in-place and evacuation orders " +
                               "for affected populations within 1 hour of zone establishment.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55), UpdatedAt = DateTime.UtcNow.AddDays(-55),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -866,6 +1531,7 @@ public static class BetaDataSeeder
                 Id = HazmatObj3Id, ObjectiveNumber = "3", Name = "Environmental Monitoring",
                 Description = "Demonstrate the ability to deploy air monitoring and water sampling within " +
                               "2 hours of incident confirmation and maintain continuous environmental assessment.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55), UpdatedAt = DateTime.UtcNow.AddDays(-55),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -875,6 +1541,7 @@ public static class BetaDataSeeder
                 Id = HazmatObj4Id, ObjectiveNumber = "4", Name = "Mass Decontamination Operations",
                 Description = "Demonstrate the ability to establish and operate a decontamination corridor " +
                               "capable of processing 200+ affected residents per hour.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = HazmatFeId,
                 CreatedAt = DateTime.UtcNow.AddDays(-55), UpdatedAt = DateTime.UtcNow.AddDays(-55),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -889,6 +1556,7 @@ public static class BetaDataSeeder
                 Id = WcObj1Id, ObjectiveNumber = "1", Name = "Credentialing & Access Control",
                 Description = "Validate the multi-tier credentialing system across 12 venue entry points " +
                               "including contingency procedures for system failures and fraudulent credentials.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -898,6 +1566,7 @@ public static class BetaDataSeeder
                 Id = WcObj2Id, ObjectiveNumber = "2", Name = "Threat Detection & Response",
                 Description = "Demonstrate detection and response capabilities for CBRNE threats, active threat " +
                               "scenarios, and unauthorized UAS within the venue security perimeter.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -907,6 +1576,7 @@ public static class BetaDataSeeder
                 Id = WcObj3Id, ObjectiveNumber = "3", Name = "Crowd Management & Flow",
                 Description = "Demonstrate effective management of ingress and egress for 65,000 spectators " +
                               "while maintaining security posture and responding to crowd safety incidents.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -916,6 +1586,7 @@ public static class BetaDataSeeder
                 Id = WcObj4Id, ObjectiveNumber = "4", Name = "Multi-Agency Unified Command",
                 Description = "Demonstrate unified command operations between federal (CISA/FBI/USSS), state, " +
                               "and local agencies including clear authority delineation and decision escalation.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -925,6 +1596,7 @@ public static class BetaDataSeeder
                 Id = WcObj5Id, ObjectiveNumber = "5", Name = "Communications & Public Information",
                 Description = "Maintain secure interoperable communications between all agencies and coordinate " +
                               "public messaging including emergency notifications through venue PA and digital systems.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WorldCupTtxId,
                 CreatedAt = DateTime.UtcNow.AddDays(-14), UpdatedAt = DateTime.UtcNow.AddDays(-14),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -939,6 +1611,7 @@ public static class BetaDataSeeder
                 Id = WcPrelimObj1Id, ObjectiveNumber = "1", Name = "VIP & Dignitary Security",
                 Description = "Coordinate security operations for 500+ international dignitaries including " +
                               "FIFA officials and government leaders across motorcade, venue, and hotel zones.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WcPrelimDrawId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-6), UpdatedAt = DateTime.UtcNow.AddMonths(-6),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -948,6 +1621,7 @@ public static class BetaDataSeeder
                 Id = WcPrelimObj2Id, ObjectiveNumber = "2", Name = "Crowd Management for Ceremonial Events",
                 Description = "Manage 15,000 invited guests through credentialing, screening, and seating " +
                               "while maintaining dignified event atmosphere and security posture.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WcPrelimDrawId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-6), UpdatedAt = DateTime.UtcNow.AddMonths(-6),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -957,6 +1631,7 @@ public static class BetaDataSeeder
                 Id = WcPrelimObj3Id, ObjectiveNumber = "3", Name = "Multi-Agency Emergency Response",
                 Description = "Coordinate emergency response capabilities between federal, state, and local " +
                               "partners including medical, fire, and law enforcement for venue incidents.",
+                OrganizationId = BetaOrganizationId,
                 ExerciseId = WcPrelimDrawId,
                 CreatedAt = DateTime.UtcNow.AddMonths(-6), UpdatedAt = DateTime.UtcNow.AddMonths(-6),
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString

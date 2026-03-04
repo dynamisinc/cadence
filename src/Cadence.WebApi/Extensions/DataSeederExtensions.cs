@@ -201,6 +201,10 @@ public static class DataSeederExtensions
                 logger.LogDebug("ICapabilityImportService not registered - skipping capability seeding");
             }
 
+            // 3. Seed EEG data (capability targets, critical tasks, inject-task links)
+            logger.LogInformation("Seeding EEG capability targets and critical tasks...");
+            await BetaDataSeeder.SeedEegDataAsync(context, logger);
+
             // Note: No user seeding - testers are invited manually
             // Note: No observation seeding - testers will create observations during testing
 
