@@ -1,0 +1,67 @@
+name: DAST Security Scan
+
+on:
+  schedule:
+    # Weekly scan on Monday at 2 AM UTC
+    - cron: "0 2 * * 1"
+  workflow_dispatch:
+    inputs:
+      target_url:
+        description: "Target URL to scan (default: UAT)"
+        required: false
+        type: string
+
+env:
+  DEFAULT_TARGET_URL: "https://app-cadence-api-uat.azurewebsites.net"
+
+jobs:
+  zap-baseline:
+    name: OWASP ZAP Baseline Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set target URL
+        id: target
+        run: |
+          URL="${{ github.event.inputs.target_url || env.DEFAULT_TARGET_URL }}"
+          echo "url=$URL" >> $GITHUB_OUTPUT
+          echo "Scan target: $URL"
+
+      - name: Verify target is reachable
+        id: reachable
+        run: |
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 30 "${{ steps.target.outputs.url }}/api/health/live" 2>/dev/null) || HTTP_CODE="000"
+          echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
+
+          if [ "$HTTP_CODE" != "200" ]; then
+            echo "::warning::Target ${{ steps.target.outputs.url }} returned HTTP $HTTP_CODE — skipping DAST scan"
+            echo "## DAST Scan Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "Target \`${{ steps.target.outputs.url }}\` is not reachable (HTTP $HTTP_CODE)." >> $GITHUB_STEP_SUMMARY
+            echo "The scan will run automatically on the next scheduled trigger when the target is available." >> $GITHUB_STEP_SUMMARY
+          else
+            echo "Target is reachable (HTTP $HTTP_CODE)"
+          fi
+
+      - name: Run ZAP Baseline Scan
+        if: steps.reachable.outputs.http_code == '200'
+        uses: zaproxy/action-baseline@v0.14.0
+        with:
+          target: "${{ steps.target.outputs.url }}"
+          rules_file_name: ".zap/rules.tsv"
+          cmd_options: "-a -j"
+          allow_issue_writing: false
+          artifact_name: "zap-report"
+
+      - name: Generate scan summary
+        if: steps.reachable.outputs.http_code == '200'
+        run: |
+          echo "## OWASP ZAP Baseline Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Target:** \`${{ steps.target.outputs.url }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan type:** Baseline (passive spider + passive scan)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the \`zap-report\` artifact for the full HTML report." >> $GITHUB_STEP_SUMMARY

@@ -1,0 +1,7 @@
+10038	IGNORE	(Content Security Policy (CSP) Header Not Set - will address with CSP implementation)
+10063	IGNORE	(Permissions Policy Header Not Set - low risk for internal app)
+90033	IGNORE	(Loosely Scoped Cookie - Azure auth cookies are scoped by platform)
+10098	WARN	(Cross-Domain Misconfiguration - review if flagged)
+10020	WARN	(X-Frame-Options Header - should be set but not blocking)
+10021	WARN	(X-Content-Type-Options Header Missing - should be set but not blocking)
+10036	WARN	(Server Leaks Version Information - cosmetic but worth fixing)

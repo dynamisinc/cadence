@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AnalysisMode>Recommended</AnalysisMode>
     <RootNamespace>Cadence.Core</RootNamespace>
     <AssemblyName>Cadence.Core</AssemblyName>
     <!-- Prevent MSB3552 error when no .resx files exist -->

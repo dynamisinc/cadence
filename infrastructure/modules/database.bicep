@@ -12,6 +12,8 @@ resource sqlServer 'Microsoft.Sql/servers@2023-01-01-preview' = {
   properties: {
     administratorLogin: adminLogin
     administratorLoginPassword: adminPassword
+    minimalTlsVersion: '1.2'
+    publicNetworkAccess: 'Enabled'
   }
   tags: tags
 }

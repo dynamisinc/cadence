@@ -12,6 +12,7 @@ param sqlAdminPassword string
   'both'
 ])
 param hostingModel string = 'webapi'
+param securityContactEmail string = ''
 
 var resourceSuffix = '${appName}-${environment}'
 var uniqueSuffix = uniqueString(resourceGroup().id)
@@ -19,6 +20,7 @@ var shortSuffix = substring(uniqueSuffix, 0, 4)
 
 // Resource Names
 var storageName = 'st${replace(resourceSuffix, '-', '')}${shortSuffix}'
+var logAnalyticsName = 'log-${resourceSuffix}'
 var appInsightsName = 'appi-${resourceSuffix}'
 var sqlServerName = 'sql-${resourceSuffix}-${shortSuffix}'
 var sqlDbName = 'sqldb-${resourceSuffix}'
@@ -42,11 +44,22 @@ module storage 'modules/storage.bicep' = {
   }
 }
 
+// Log Analytics workspace for Defender for Cloud and App Insights
+module logAnalytics 'modules/loganalytics.bicep' = {
+  name: 'logAnalyticsDeploy'
+  params: {
+    location: location
+    workspaceName: logAnalyticsName
+    tags: tags
+  }
+}
+
 module appInsights 'modules/appinsights.bicep' = {
   name: 'appInsightsDeploy'
   params: {
     location: location
     appInsightsName: appInsightsName
+    logAnalyticsWorkspaceId: logAnalytics.outputs.id
     tags: tags
   }
 }
@@ -107,7 +120,14 @@ module staticWebApp 'modules/staticwebapp.bicep' = {
   }
 }
 
+// Defender for Cloud (subscription-scoped) must be deployed separately:
+//   az deployment sub create --location <location> \
+//     --template-file modules/defender.bicep \
+//     --parameters logAnalyticsWorkspaceId=<logAnalytics.outputs.id> \
+//                  securityContactEmail='security@dynamis.com'
+
 output functionAppName string = (hostingModel == 'functions' || hostingModel == 'both') ? functionApp.outputs.name : ''
 output webAppName string = (hostingModel == 'webapi' || hostingModel == 'both') ? webApp.outputs.name : ''
 output staticWebAppName string = staticWebApp.outputs.name
 output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
+output logAnalyticsWorkspaceId string = logAnalytics.outputs.id

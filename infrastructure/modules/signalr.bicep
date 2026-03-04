@@ -1,5 +1,6 @@
 param location string
 param signalRName string
+param allowedOrigins array = []
 param tags object = {}
 
 resource signalR 'Microsoft.SignalRService/signalR@2023-02-01' = {
@@ -18,9 +19,7 @@ resource signalR 'Microsoft.SignalRService/signalR@2023-02-01' = {
       }
     ]
     cors: {
-      allowedOrigins: [
-        '*'
-      ]
+      allowedOrigins: empty(allowedOrigins) ? ['*'] : allowedOrigins
     }
   }
   tags: tags

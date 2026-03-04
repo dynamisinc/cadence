@@ -29,6 +29,8 @@ resource webApp 'Microsoft.Web/sites@2022-09-01' = {
     siteConfig: {
       netFrameworkVersion: 'v8.0'
       use32BitWorkerProcess: false
+      minTlsVersion: '1.2'
+      ftpsState: 'Disabled'
       appSettings: [
         {
           name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'
