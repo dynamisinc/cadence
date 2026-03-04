@@ -5,6 +5,23 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.11.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.10.0...frontend-v2.11.0) (2026-03-04)
+
+
+### Features
+
+* **feedback:** add admin dashboard, GitHub integration, and triage actions ([d1614ed](https://github.com/dynamisinc/cadence/commit/d1614ed7625811727deb762e299ba5ef859975d6))
+* **feedback:** enrich submissions with automatic context capture ([f717490](https://github.com/dynamisinc/cadence/commit/f7174900a20fbc11cbd7edff96e54938016b72e8))
+* **feedback:** persist feedback submissions with admin dashboard ([850d7e7](https://github.com/dynamisinc/cadence/commit/850d7e76597db364f9f9239a06dee571958f3c8d))
+
+
+### Bug Fixes
+
+* **feedback:** address code review issues from branch review ([8c01273](https://github.com/dynamisinc/cadence/commit/8c01273e32bc43b32a9165522bd6e66a3ef39842))
+* **tests:** update menuConfig test for feedback menu item ([cd305b3](https://github.com/dynamisinc/cadence/commit/cd305b35bdfb5fb92dcb791f80bb5d9aa9a7a767))
+* **tests:** update useFilteredMenu test for feedback menu item ([c5bf9e2](https://github.com/dynamisinc/cadence/commit/c5bf9e233b73c964584956fc6a4a67ae830302c1))
+* **ui:** resolve type errors and failing tests ([c135a60](https://github.com/dynamisinc/cadence/commit/c135a606cd889ca6c9a12379fd9527b5958376e0))
+
 ## [2.10.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.9.0...frontend-v2.10.0) (2026-02-24)
 
 
