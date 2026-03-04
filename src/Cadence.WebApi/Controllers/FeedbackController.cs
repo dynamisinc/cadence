@@ -1,8 +1,11 @@
 using System.Diagnostics;
 using System.Security.Claims;
+using System.Text.Json;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Models.DTOs;
 using Cadence.Core.Features.Email.Services;
+using Cadence.Core.Features.Feedback.Models.Enums;
+using Cadence.Core.Features.Feedback.Services;
 using Cadence.Core.Features.SystemSettings.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -20,15 +23,18 @@ public class FeedbackController : ControllerBase
 {
     private readonly IEmailService _emailService;
     private readonly IEmailConfigurationProvider _emailConfig;
+    private readonly IFeedbackService _feedbackService;
     private readonly ILogger<FeedbackController> _logger;
 
     public FeedbackController(
         IEmailService emailService,
         IEmailConfigurationProvider emailConfig,
+        IFeedbackService feedbackService,
         ILogger<FeedbackController> logger)
     {
         _emailService = emailService;
         _emailConfig = emailConfig;
+        _feedbackService = feedbackService;
         _logger = logger;
     }
 
@@ -91,8 +97,8 @@ public class FeedbackController : ControllerBase
 
             await SendAcknowledgmentSafe(userCtx.Name ?? "User", userCtx.Email, refNumber, "Bug Report", request.Title);
 
-            // Phase 2: persist to database here
-            // await _feedbackService.SaveAsync(refNumber, FeedbackType.BugReport, userCtx, request.Context, request.Title, request.Severity);
+            await PersistFeedbackSafe(refNumber, FeedbackType.BugReport, userCtx, request.Context, request.Title, request.Severity,
+                JsonSerializer.Serialize(new { request.Description, request.StepsToReproduce, request.Severity }));
 
             _logger.LogInformation(
                 "[Feedback] Bug report complete - Ref: {RefNumber}, User: {Email}, " +
@@ -163,8 +169,8 @@ public class FeedbackController : ControllerBase
 
             await SendAcknowledgmentSafe(userCtx.Name ?? "User", userCtx.Email, refNumber, "Feature Request", request.Title);
 
-            // Phase 2: persist to database here
-            // await _feedbackService.SaveAsync(refNumber, FeedbackType.FeatureRequest, userCtx, request.Context, request.Title, null);
+            await PersistFeedbackSafe(refNumber, FeedbackType.FeatureRequest, userCtx, request.Context, request.Title, null,
+                JsonSerializer.Serialize(new { request.Description, request.UseCase }));
 
             _logger.LogInformation(
                 "[Feedback] Feature request complete - Ref: {RefNumber}, User: {Email}, " +
@@ -235,8 +241,8 @@ public class FeedbackController : ControllerBase
 
             await SendAcknowledgmentSafe(userCtx.Name ?? "User", userCtx.Email, refNumber, "Feedback", request.Subject);
 
-            // Phase 2: persist to database here
-            // await _feedbackService.SaveAsync(refNumber, FeedbackType.General, userCtx, request.Context, request.Subject, null);
+            await PersistFeedbackSafe(refNumber, FeedbackType.General, userCtx, request.Context, request.Subject, null,
+                JsonSerializer.Serialize(new { request.Category, request.Message }));
 
             _logger.LogInformation(
                 "[Feedback] General feedback complete - Ref: {RefNumber}, User: {Email}, " +
@@ -361,6 +367,34 @@ public class FeedbackController : ControllerBase
             _logger.LogWarning(ex,
                 "[Feedback] Acknowledgment email error for {RefNumber} to {Email} (non-critical)",
                 refNumber, userEmail);
+        }
+    }
+
+    /// <summary>
+    /// Persist feedback to the database. Best-effort — failures are logged but don't fail the request
+    /// since the email has already been sent.
+    /// </summary>
+    private async Task PersistFeedbackSafe(
+        string refNumber,
+        FeedbackType type,
+        FeedbackUserContext userCtx,
+        FeedbackClientContext? clientContext,
+        string title,
+        string? severity,
+        string? contentJson)
+    {
+        try
+        {
+            await _feedbackService.SaveAsync(
+                refNumber, type,
+                userCtx.Email!, userCtx.Name, userCtx.SystemRole, userCtx.OrgName, userCtx.OrgRole,
+                clientContext, title, severity, contentJson);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex,
+                "[Feedback] Failed to persist {Type} report {RefNumber} to database (non-critical)",
+                type, refNumber);
         }
     }
 

@@ -1,5 +1,6 @@
 using Cadence.Core.Constants;
 using Cadence.Core.Features.BulkParticipantImport.Models.Entities;
+using Cadence.Core.Features.Feedback.Models.Entities;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.SystemSettings.Models.Entities;
 using Cadence.Core.Hubs;
@@ -138,6 +139,9 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     // Autocomplete suggestion management
     public DbSet<OrganizationSuggestion> OrganizationSuggestions => Set<OrganizationSuggestion>();
+
+    // Feedback
+    public DbSet<FeedbackReport> FeedbackReports => Set<FeedbackReport>();
 
     // =========================================================================
     // Model Configuration
