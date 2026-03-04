@@ -2,6 +2,23 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.10.0](https://github.com/dynamisinc/cadence/compare/api-v3.9.0...api-v3.10.0) (2026-03-04)
+
+
+### Features
+
+* **data:** add beta testing data seeder for internal UAT ([19296fe](https://github.com/dynamisinc/cadence/commit/19296fe548f8db3f6a0573c33cc36870d4d56b4d))
+* **feedback:** add admin dashboard, GitHub integration, and triage actions ([d1614ed](https://github.com/dynamisinc/cadence/commit/d1614ed7625811727deb762e299ba5ef859975d6))
+* **feedback:** enrich submissions with automatic context capture ([f717490](https://github.com/dynamisinc/cadence/commit/f7174900a20fbc11cbd7edff96e54938016b72e8))
+* **feedback:** persist feedback submissions to database ([98e2cf1](https://github.com/dynamisinc/cadence/commit/98e2cf15fef7f538fe8f6433d5a44aff4dbfc56f))
+* **feedback:** persist feedback submissions with admin dashboard ([850d7e7](https://github.com/dynamisinc/cadence/commit/850d7e76597db364f9f9239a06dee571958f3c8d))
+
+
+### Bug Fixes
+
+* **data:** add OrganizationId to seeded entities and EEG capability targets ([408e03f](https://github.com/dynamisinc/cadence/commit/408e03f047677315b91216f87bb7f0a7127e8e7f))
+* **feedback:** address code review issues from branch review ([8c01273](https://github.com/dynamisinc/cadence/commit/8c01273e32bc43b32a9165522bd6e66a3ef39842))
+
 ## [3.9.0](https://github.com/dynamisinc/cadence/compare/api-v3.8.0...api-v3.9.0) (2026-02-24)
 
 

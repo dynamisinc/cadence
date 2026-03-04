@@ -1,29 +1,104 @@
 [
   {
-    "version": "2.6.2",
+    "version": "2.11.0",
+    "date": "2026-03-04",
+    "features": [
+      "Added a feedback submission tool that allows users to report issues or suggestions directly from within Cadence. Submissions automatically capture relevant context (such as the current page and exercise) to help administrators understand and act on feedback quickly.",
+      "Added an admin dashboard for reviewing, triaging, and managing feedback submissions, with GitHub integration to track and escalate issues."
+    ],
+    "fixes": []
+  },
+  {
+    "version": "2.10.0",
+    "date": "2026-02-24",
+    "features": [
+      "The Excel import wizard now supports the legacy MSEL format, making it easier to bring in data from older spreadsheets without manual reformatting.",
+      "When imported spreadsheet data has validation errors, Cadence now suggests automatic fixes and allows you to edit individual cells inline — so you can correct problems and complete your import without leaving the wizard."
+    ],
+    "fixes": [
+      "Resolved a timing issue during Excel import that could cause the import to fail intermittently, fixed a crash caused by certain time formats in imported data, and addressed a compliance issue with the import process."
+    ]
+  },
+  {
+    "version": "2.9.0",
+    "date": "2026-02-23",
+    "features": [
+      "Assignment cards now display the organization name when you have assignments across multiple organizations, making it easier to distinguish between them at a glance.",
+      "The exercise list now supports expandable rows with additional exercise details, giving you quick access to more information without navigating away from the list."
+    ],
+    "fixes": [
+      "Fixed the connection status indicator, which was incorrectly showing \"Connecting\" even after a successful connection was established. The indicator has also been consolidated into the header for a cleaner layout.",
+      "Removed exercise-specific items from the global sidebar so they only appear when you are within an exercise.",
+      "Fixed an issue where the exercise table displayed a \"0\" for ready injects instead of leaving the field blank when no injects were ready.",
+      "Fixed an issue where an organization with no name would cause a stray icon to appear on the screen.",
+      "Removed a duplicate \"Inject Queue\" entry from the sidebar.",
+      "Removed a redundant \"Other\" column from the delivery methods table.",
+      "Standardized page header layouts, icons, subtitles, and breadcrumbs across the application for a more consistent experience."
+    ]
+  },
+  {
+    "version": "2.8.0",
+    "date": "2026-02-21",
+    "features": [
+      "System administrators can now manage delivery methods directly from the admin interface, including creating, editing, and removing them.",
+      "The exercise clock now supports setting a maximum duration and allows manually setting the current time, giving facilitators greater control over exercise pacing.",
+      "Autocomplete fields now support blocking or unblocking specific suggestions and managing the history of previously used values, giving administrators more control over what suggestions appear during data entry."
+    ],
+    "fixes": [
+      "Fixed a permissions issue where system and organization administrators could be incorrectly outranked by exercise-level roles, potentially restricting their access."
+    ]
+  },
+  {
+    "version": "2.7.1",
+    "date": "2026-02-16",
+    "features": [],
+    "fixes": []
+  },
+  {
+    "version": "2.7.0",
+    "date": "2026-02-13",
+    "features": [
+      "Organization administrators can now manage autocomplete suggestions at the organization level, controlling which values appear as suggestions in inject fields across their exercises.",
+      "The inject form has been redesigned with an improved layout, autocomplete support for key fields, and the ability to duplicate an existing inject — saving time when creating similar injects.",
+      "Notifications (toast messages) are now deduplicated so the same alert won't stack repeatedly. A maximum of three notifications are shown at a time, and connection status changes are consolidated into a single evolving message."
+    ],
+    "fixes": [
+      "Injects are now automatically renumbered when you reorder them on the MSEL, so inject numbers always remain in ascending order.",
+      "All date and time displays throughout the application now consistently respect your timezone, including inject timestamps and exercise dates.",
+      "Improved the exercise form layout on laptop and tablet screens for better usability."
+    ]
+  },
+  {
+    "version": "2.6.3",
     "date": "2026-02-12",
     "features": [],
     "fixes": [
-      "Resolved various display and formatting issues across the application"
+      "Fixed a subtle issue that could cause unexpected behavior when loading certain pages."
     ]
+  },
+  {
+    "version": "2.6.2",
+    "date": "2026-02-12",
+    "features": [],
+    "fixes": []
   },
   {
     "version": "2.6.1",
     "date": "2026-02-11",
     "features": [],
     "fixes": [
-      "About page now shows complete release history across all versions"
+      "Fixed the About page to correctly display all releases from the changelog."
     ]
   },
   {
     "version": "2.6.0",
     "date": "2026-02-11",
     "features": [
-      "Annotate photos with circles, arrows, and text labels to highlight key details",
-      "Photos captured offline are queued automatically and upload when connectivity returns"
+      "Photos captured in the field can now be queued for upload while offline and will sync automatically when connectivity is restored.",
+      "Added an annotation editor for photos, allowing evaluators to mark up images before saving them to an observation."
     ],
     "fixes": [
-      "Fixed annotation drawing not saving correctly and photo gallery not refreshing after edits"
+      "Fixed an issue where annotation drawings were not saving correctly and the photo gallery was not refreshing after a photo was saved."
     ]
   },
   {
@@ -31,173 +106,176 @@
     "date": "2026-02-11",
     "features": [],
     "fixes": [
-      "Invitation page now displays the organization name and available exercises, and the registration experience for new users has been improved"
+      "The exercise invitation page now displays the organization name and a list of associated exercises, making it clearer what you are being invited to. The registration flow for new users accepting an invitation has also been improved."
     ]
   },
   {
     "version": "2.5.0",
     "date": "2026-02-11",
     "features": [
-      "Capture photos during exercise conduct using your device camera or photo library",
-      "Browse all exercise photos in a dedicated photo gallery with timestamps and participant names",
-      "Attach photos directly to observations for visual documentation of exercise performance",
-      "Delete photos and recover them from the recycle bin if needed",
-      "View observation details directly from linked photos in the gallery"
+      "Field operators and evaluators can now capture photos directly from the conduct and observations pages. Photos are attached to observations and displayed in an inline gallery, with support for deletion and a recycle bin for recovering removed photos.",
+      "Observation list items that have linked photos now show a preview gallery with observation details for quick reference."
     ],
     "fixes": [
-      "Photos are now staged locally and only uploaded when the observation form is submitted, preventing orphaned uploads"
+      "Photos are now staged locally and only uploaded when the observation form is submitted, preventing incomplete uploads from appearing in the gallery."
     ]
   },
   {
     "version": "2.4.0",
     "date": "2026-02-10",
     "features": [
-      "Import participant lists in bulk from CSV or Excel files with drag-and-drop upload, automatic classification of existing members versus new invitations, and pending invitation tracking"
+      "Administrators can now import multiple participants at once using a drag-and-drop file upload. Imported participants receive pending invitations and appear in the participant list immediately."
     ],
     "fixes": []
   },
   {
     "version": "2.3.0",
     "date": "2026-02-09",
-    "features": [],
+    "features": [
+      "Improved backend structured logging to support better diagnostics and operational monitoring."
+    ],
     "fixes": [
-      "The install prompt for the Cadence app now remembers your dismissal for 90 days instead of reappearing on each visit"
+      "The \"Install App\" banner is now dismissed for 90 days after a user closes it, rather than reappearing on every visit."
     ]
   },
   {
     "version": "2.2.0",
     "date": "2026-02-09",
     "features": [
-      "Email invitations for organizations and exercises with automated delivery and one-click accept",
-      "Smart invitation flow that detects whether a recipient already has a Cadence account and routes them accordingly",
-      "Email notification preferences so users can control which messages they receive",
-      "Submit feedback, bug reports, and feature requests directly from within the application",
-      "Administrators can configure email settings from the system settings page"
+      "Cadence now supports email communications. Administrators can send exercise invitations by email directly from the participant management screen, and invitees receive a link to accept and join.",
+      "New and existing users receiving an invitation are guided through the appropriate flow — account creation or login — and land directly in the right exercise after accepting.",
+      "Users can now set their email notification preferences from their profile settings.",
+      "System administrators can configure and override email delivery settings from the admin panel."
     ],
     "fixes": [
-      "Login page now shows a clear error message when credentials are invalid",
-      "Improved password field behavior and visibility toggle",
-      "New-user invitation flow now correctly creates the account, accepts the invitation, and sets the organization context in one step"
+      "Fixed an issue where an incorrect username or password would not display an error message on the login screen.",
+      "Improved the password field UX on the login and registration pages."
     ]
   },
   {
     "version": "2.1.0",
     "date": "2026-02-06",
     "features": [
-      "Exercise Evaluation Guide (EEG) for HSEEP-compliant structured evaluation: define Capability Targets and Critical Tasks, then record P/S/M/U-rated assessments against them during conduct",
-      "EEG entries can be viewed grouped by Capability Target or Critical Task for quick coverage review",
-      "Drag-and-drop reordering of Critical Tasks and Capability Targets",
-      "Link MSEL injects to the Critical Tasks they are designed to test",
-      "Generate EEG summary documents showing capability coverage and performance ratings",
-      "EEG entries are accessible from the Observations page for a unified evaluation view"
+      "Added the Exercise Evaluation Guide (EEG), a structured tool for evaluators to document capability assessments, link findings to specific injects, and track coverage across the exercise.",
+      "EEG entries update in real time across all evaluator screens and can be reordered via drag and drop.",
+      "EEG documents (cover page and detailed report) can be generated directly from the EEG interface for post-exercise reporting."
     ],
     "fixes": [
-      "Observation timestamps now display correctly in the local timezone",
-      "EEG entry layout is more compact and readable on tablet and laptop screens",
-      "Fixed an issue where the loading indicator could appear incorrectly on the MSEL page"
+      "EEG entries now record and display the correct observation time in your local timezone.",
+      "Fixed the compact layout of critical task items on tablet and laptop screens.",
+      "Fixed several display and permission issues in the EEG, including edit timestamps, authorization checks, and coverage display in the generated document.",
+      "Added EEG entry creation as an option from the observations page for a more integrated workflow."
     ]
   },
   {
     "version": "2.0.0",
     "date": "2026-02-04",
     "features": [
-      "Inject approval workflow: injects follow a Draft, Submitted, Approved process before an exercise can go live, supporting HSEEP compliance and organizational governance",
-      "Configurable approval permissions per organization, including self-approval policies and role-based approval authority",
-      "Submit injects for approval directly from the MSEL table row or the inject detail drawer",
-      "Batch approve or reject multiple injects at once from the MSEL view",
-      "Editing a submitted or approved inject automatically reverts it to Draft for re-review",
-      "Organization management section added to the sidebar for administrators"
+      "Added an inject approval workflow. Injects can now be submitted for approval before being added to the MSEL, with configurable permissions controlling who can approve. Self-approval restrictions and edit invalidation rules are enforced in line with HSEEP guidance.",
+      "Organization administrators now have a dedicated Organization section in the sidebar for managing their organization's settings and members.",
+      "Added route-level feature flag protection so that features not enabled for your organization are not accessible, even by direct URL."
     ],
     "fixes": [
-      "After submitting an inject for approval, the view now returns to the MSEL as expected",
-      "Approval permissions are now saved reliably when configuring organizational settings"
+      "After submitting an inject for approval, you are now returned to the MSEL page automatically.",
+      "Fixed issues with approval permissions not persisting correctly and self-approval restrictions not being applied consistently.",
+      "Improved the error page shown when something goes wrong, with a clearer message and a responsive layout."
     ],
     "breaking": [
-      "Inject statuses have been updated to HSEEP-compliant terminology (e.g., 'Fired' is now 'Released', 'Pending' is now 'Draft'). Existing exercises will be migrated automatically."
+      "Inject status values have been renamed to align with HSEEP terminology. Any integrations or exports referencing the previous status names will need to be updated."
     ]
   },
   {
     "version": "1.2.0",
     "date": "2026-02-03",
     "features": [
-      "Filter the user management list by account status and organization membership",
-      "Improved user management page layout and usability",
-      "Version update notifications are now less intrusive with an improved About page"
+      "The user management page now supports filtering users by status and organization, making it easier to find and manage specific users across large rosters.",
+      "Improved the overall layout and usability of the user management admin page.",
+      "Added Application Insights telemetry integration for improved monitoring and diagnostics of the platform.",
+      "Improved the release notification experience and made the public About page easier to navigate."
     ],
     "fixes": [
-      "Fixed a session refresh issue that could cause intermittent logouts"
+      "Fixed an issue that could cause authentication to fail intermittently due to a circular dependency in the token refresh process."
     ]
   },
   {
     "version": "1.1.0",
     "date": "2026-02-01",
     "features": [
-      "Role-aware home page dashboard showing your active exercises, upcoming assignments, and quick actions",
-      "My Assignments view with exercises grouped by status (Active, Upcoming, Completed)",
-      "In-app notifications for exercise updates and role assignments",
-      "Exercise clock with start, pause, stop, and reset controls for real-time exercise pacing",
-      "Clock-driven and facilitator-paced conduct view modes for different exercise styles",
-      "Time-based inject sections: Ready to Fire, Upcoming, Later, Fired, and Skipped",
-      "Narrative view for Observers showing 'The Story So Far' and 'What Is Happening Now'",
-      "Layout mode toggle (Classic, Sticky Header, Floating Chip) for the conduct page",
-      "Observations panel for Evaluators during active exercises with quick entry (keyboard shortcut: Ctrl+O)",
-      "Observation-to-inject linking with clickable references for traceability",
-      "Capability tagging on observations for structured evaluation",
-      "Sort, filter, group, and search injects within the MSEL",
-      "Drag-and-drop inject reordering with real-time sync across connected users",
-      "Exercise objectives with inject-to-objective linking for traceability",
-      "Exercise status workflow: Draft, Active, Completed, and Archived with confirmation dialogs",
-      "Exercise duplication including phases, objectives, and all MSEL injects",
-      "Practice mode toggle to run exercises without affecting official records",
-      "Exercise participant management with HSEEP role assignment (Exercise Director, Controller, Evaluator, Observer)",
-      "Inline user creation when adding participants to an exercise",
-      "Organization-scoped capability library with FEMA, NATO, NIST CSF 2.0, and ISO 22301 frameworks",
-      "Capability Library administration page for managing and importing predefined capability sets",
-      "Exercise settings for confirmation dialogs, clock mode, and timing configuration",
-      "Expanded timezone support with 67 global timezones",
-      "Excel export for MSEL data and observations with enhanced templates",
-      "Full exercise package export as ZIP (MSEL, Observations, Summary)",
-      "MSEL import from Excel with upload, sheet selection, column mapping, and validation wizard",
-      "Reports page with exercise data export options",
-      "Real-time sync via SignalR for injects, observations, and clock state across all connected users",
-      "Offline capability with local data caching, action queuing, and automatic sync on reconnect",
-      "Conflict resolution with notification dialog when offline changes conflict with server state",
-      "Progressive Web App (PWA) support for installing Cadence on your device",
-      "Breadcrumb navigation throughout the application",
-      "Role-based sidebar navigation with collapsible menus",
-      "Versioning and release notes with 'What is New' notification on updates",
-      "Organization management with multi-tenant data isolation and organization switching",
-      "Complete authentication system with login, registration, remember me, and cross-tab logout",
-      "Three-tier role-based access control: System Roles, Organization Roles, and Exercise Roles"
+      "Added a role-aware home page dashboard that surfaces relevant exercises and tasks based on your role.",
+      "Added a clock-based inject workflow that automatically organizes injects into time-based sections (Ready to Fire, Upcoming, Later, Fired, Skipped) as the exercise clock runs.",
+      "Added exercise conduct and observations pages for running live exercises, with support for clock-driven and facilitator-paced modes.",
+      "Added inject sorting, filtering, grouping, and full-text search on the MSEL page.",
+      "Added drag-and-drop inject reordering on the MSEL with real-time sync to all connected users.",
+      "Added an objectives feature with full create/edit/delete support and the ability to link injects to objectives.",
+      "Added a standalone observations page with improved workflow, capability tagging, and a clickable link from observations to their associated inject.",
+      "Added an Exercise Evaluation Guide (EEG) entries page with grouped views, real-time updates, drag-and-drop reordering, and inject linking.",
+      "Added exercise capabilities with a library of predefined frameworks (FEMA, NATO, NIST CSF 2.0, ISO 22301) and an admin UI for managing and importing capabilities.",
+      "Added exercise metrics and settings pages, including inject summaries, capability performance tracking, timeline analysis, and configurable confirmation dialogs.",
+      "Added exercise status workflow (Draft → Active → Completed → Archived) with confirmation dialogs and the ability to duplicate exercises with all related data.",
+      "Added MSEL import from Excel with an improved wizard flow covering sheet selection, column mapping, validation, and import.",
+      "Added full Excel export for MSEL data, observations, and a full exercise package (ZIP file with MSEL, Observations, and Summary).",
+      "Added My Assignments dashboard showing your exercises grouped by status.",
+      "Added participant management with HSEEP role assignment and inline user creation from the Add Participant dialog.",
+      "Added real-time updates via SignalR for injects, observations, and clock state across all connected users.",
+      "Added offline support: Cadence now detects when you lose connectivity, queues your actions locally, and replays them automatically when you reconnect.",
+      "Added Progressive Web App (PWA) support so Cadence can be installed on your device.",
+      "Added breadcrumb navigation throughout the application.",
+      "Added practice mode toggle with a visual indicator across the application.",
+      "Added support for 67 global timezones in exercise timing configuration.",
+      "Added organization management with multi-tenant data isolation, member management, and organization switching."
     ],
     "fixes": [
-      "Fixed character counter showing incorrect text in the exercise name field",
-      "Fixed file picker opening twice when clicking Browse Files during Excel import",
-      "Fixed unsaved changes warning appearing after a successful exercise creation",
-      "Fixed duplicate observations from SignalR race conditions when multiple users are connected",
-      "Fixed empty state flash on the exercises list during background data refresh",
-      "Fixed objective filter labels not showing the correct objective names",
-      "Exercise name now displays correctly in breadcrumbs instead of the exercise ID",
-      "Hide the Complete Exercise option for exercises that are already archived",
-      "Fixed login redirect loop when the server is unreachable in offline mode",
-      "Improved 404 page with a cleaner display showing the attempted URL"
+      "Fixed an issue where the exercise name field displayed \"[object Object]\" in the character counter.",
+      "Fixed the file picker opening twice when clicking Browse Files during Excel import.",
+      "Fixed an unsaved changes warning appearing after a new exercise was successfully created.",
+      "Fixed duplicate observations being created due to a SignalR timing issue.",
+      "Fixed an empty state flash appearing briefly on the exercises list during page load.",
+      "Fixed objective names not displaying correctly in active filter labels.",
+      "Fixed the login page not redirecting properly when the API was unreachable while offline.",
+      "Fixed inject numbers not appearing on observations and added the ability to edit existing observations.",
+      "Fixed the exercise name not appearing in breadcrumbs on exercise sub-pages.",
+      "Fixed an issue where completed assignments were always expanded; they now default to collapsed.",
+      "Fixed the conduct page so that reset and skip inject actions work correctly from the inject detail drawer.",
+      "Fixed the \"Complete Exercise\" option appearing for archived exercises, where it is not applicable.",
+      "Fixed the 404 page to show the URL you attempted to visit and display a cleaner layout."
     ]
   },
   {
     "version": "1.0.0",
     "date": "2026-01-30",
     "features": [
-      "Create, edit, view, and manage exercises with full lifecycle support",
-      "MSEL inject management with status tracking (Pending, Fired, Skipped, Deferred)",
-      "Fire injects with confirmation dialog and user preference persistence",
-      "Inject detail drawer with description preview and delivery method indicators",
-      "Drag-and-drop inject reordering",
-      "Real-time exercise clock with start, pause, stop, and reset controls",
-      "Dual time tracking: scenario time and wall clock time",
-      "Responsive design for tablet and desktop use"
+      "Full exercise lifecycle management: create, edit, duplicate, and archive exercises with a structured status workflow (Draft → Active → Completed → Archived).",
+      "Complete MSEL and inject management with status tracking (Pending, Fired, Skipped, Deferred), drag-and-drop reordering, and an inject detail drawer.",
+      "Inject organization tools: sorting, filtering, grouping, and full-text search.",
+      "Inject-to-Objective linking with many-to-many relationships.",
+      "Real-time exercise clock with start, pause, stop, and reset controls. Supports clock-driven and facilitator-paced conduct view modes.",
+      "Time-based inject sections (Ready to Fire, Upcoming, Later, Fired, Skipped) that update automatically as the clock runs.",
+      "Narrative view for Observers showing \"The Story So Far\" and \"What's Happening Now.\"",
+      "Observations panel for evaluators during active exercises, with quick entry via keyboard shortcut (Ctrl+O or O), inject linking, and location field.",
+      "Organization-scoped capability library supporting FEMA, NATO, NIST CSF 2.0, and ISO 22301 frameworks.",
+      "Exercise metrics dashboard with inject summaries, capability performance, and timeline analysis.",
+      "Excel export for MSEL and observations, plus a full exercise package export as a ZIP file.",
+      "Excel import wizard with intelligent column mapping, template download, and validation.",
+      "JWT-based authentication with refresh tokens, Remember Me support, and cross-tab logout synchronization.",
+      "Role-based access control with system, organization, and exercise-level roles (including Observer, Evaluator, Controller, and Exercise Director).",
+      "User and participant management with search, filtering, role assignment, and inline user creation.",
+      "Real-time updates via SignalR for injects, observations, and clock state.",
+      "Offline support with local caching, action queuing, and automatic sync on reconnect.",
+      "Progressive Web App (PWA) support for device installation.",
+      "User preferences for time format and theme. Exercise settings for confirmation dialogs, auto-fire, clock mode, and timing configuration.",
+      "Support for 67 global timezones.",
+      "Breadcrumb navigation, role-based sidebar, and a My Assignments dashboard.",
+      "Practice mode toggle with a visual indicator across the application."
     ],
     "fixes": [
-      "Fixed authentication handling when the server is unreachable"
+      "Fixed auth handling when the API is unreachable.",
+      "Fixed the exercise name field displaying \"[object Object]\" in the character counter.",
+      "Fixed the file picker opening twice when clicking Browse Files.",
+      "Fixed an unsaved changes warning appearing after a successful exercise creation.",
+      "Fixed a null check error in the inject type display.",
+      "Fixed duplicate observations being created due to a SignalR race condition.",
+      "Fixed an empty state flash on page load.",
+      "Fixed objective filter labels not displaying the correct name."
     ]
   }
 ]
