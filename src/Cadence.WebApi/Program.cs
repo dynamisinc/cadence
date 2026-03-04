@@ -135,6 +135,15 @@ try
         Log.Information("Blob storage: Local file system (no connection string)");
     }
 
+    // GitHub API client for feedback issue creation
+    builder.Services.AddHttpClient("github", client =>
+    {
+        client.BaseAddress = new Uri("https://api.github.com/");
+        client.DefaultRequestHeaders.Add("Accept", "application/vnd.github+json");
+        client.DefaultRequestHeaders.Add("User-Agent", "Cadence-App");
+        client.DefaultRequestHeaders.Add("X-GitHub-Api-Version", "2022-11-28");
+    });
+
     // Add ASP.NET Core Identity
     builder.Services.AddIdentity<ApplicationUser, IdentityRole>(options =>
     {
@@ -306,6 +315,7 @@ try
     if (!app.Environment.IsProduction() && !app.Environment.IsEnvironment("Testing"))
     {
         await app.SeedDemoDataAsync();
+        await app.SeedBetaDataAsync();
     }
 
     // =============================================================================
