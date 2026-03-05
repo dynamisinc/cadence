@@ -66,14 +66,15 @@ function isOrgRoleAllowed(
   item: MenuItem,
   orgRole: string | null,
   systemRole: string | null,
+  hasOrg: boolean,
 ): boolean {
   // If no org roles specified, don't restrict by org role
   if (!item.allowedOrgRoles || item.allowedOrgRoles.length === 0) {
     return true
   }
-  // System Admins can always access org-scoped items
+  // System Admins can access org-scoped items, but only when an org is selected
   if (systemRole === 'Admin') {
-    return true
+    return hasOrg
   }
   // Check if user's org role is in the allowed list
   return orgRole !== null && item.allowedOrgRoles.includes(orgRole as OrgRole)
@@ -185,13 +186,13 @@ export function useFilteredMenu(options: UseFilteredMenuOptions = {}): FilteredM
       }
 
       // Check organization role permission (for OrgAdmin-only items)
-      if (!isOrgRoleAllowed(item, orgRole, systemRole)) {
+      if (!isOrgRoleAllowed(item, orgRole, systemRole, currentOrg !== null)) {
         return false
       }
 
       return true
     })
-  }, [user, effectiveRole, systemRole, orgRole, isVisible])
+  }, [user, effectiveRole, systemRole, orgRole, currentOrg, isVisible])
 
   // Memoize grouped items
   const groupedBySection = useMemo((): GroupedMenuItems => {

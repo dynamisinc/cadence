@@ -21,8 +21,10 @@ import { CircularProgress, Box, Alert } from '@mui/material'
 import { useExercise } from '@/features/exercises/hooks'
 import { useExerciseRole } from '@/features/auth'
 import { useExerciseNavigation, type ExerciseNavigationData } from '@/shared/contexts'
+import { useOrganization } from '@/contexts/OrganizationContext'
 import { HseepRole, ExerciseStatus } from '@/types'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { notify } from '@/shared/utils/notify'
 import { useNavigate } from 'react-router-dom'
 
 /**
@@ -69,6 +71,7 @@ export const ExerciseContextWrapper = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { currentExercise, enterExercise, exitExercise, updateExercise } = useExerciseNavigation()
+  const { currentOrg, switchOrganization, memberships } = useOrganization()
 
   // Fetch exercise data
   const { exercise, loading, error } = useExercise(exerciseId)
@@ -78,6 +81,8 @@ export const ExerciseContextWrapper = () => {
 
   // Track if we've entered context to avoid re-entering on every render
   const hasEnteredRef = useRef(false)
+  // Track if we've already triggered an org switch to prevent duplicates
+  const orgSwitchTriggeredRef = useRef(false)
   const prevExerciseIdRef = useRef<string | null>(null)
   // Track the last values we set to prevent unnecessary updates
   const lastSetValuesRef = useRef<{
@@ -191,6 +196,31 @@ export const ExerciseContextWrapper = () => {
       lastSetValuesRef.current.userRole = newRole
     }
   }, [effectiveRole, currentExerciseId, currentExerciseRole, exerciseId, updateExercise])
+
+  // Auto-enter org when exercise belongs to a different org than current
+  const exerciseOrgId = exercise?.organizationId
+  useEffect(() => {
+    if (!exerciseOrgId || loading || orgSwitchTriggeredRef.current) return
+    // Skip if already in the correct org
+    if (currentOrg?.id === exerciseOrgId) return
+
+    orgSwitchTriggeredRef.current = true
+
+    // Find the org name from memberships for the toast message
+    const membership = memberships.find(m => m.organizationId === exerciseOrgId)
+    const orgName = membership?.organizationName ?? 'the exercise\'s organization'
+
+    notify.warning(`You have entered ${orgName}`, {
+      toastId: 'org-auto-switch',
+      autoClose: 4000,
+    })
+
+    switchOrganization(exerciseOrgId).catch(() => {
+      notify.error('Failed to switch organization')
+      orgSwitchTriggeredRef.current = false
+    })
+    // Page will reload after switch
+  }, [exerciseOrgId, loading, currentOrg?.id, memberships, switchOrganization])
 
   // Exit exercise context when navigating away from exercise routes
   useEffect(() => {

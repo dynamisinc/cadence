@@ -213,7 +213,8 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
                 role: membership.role,
               })
             })
-            return // Don't update lastFetchedTokenRef — page will reload
+            // Mark as fetched so isLoading becomes false while reload is pending
+            lastFetchedTokenRef.current = accessToken ?? null
           } else {
             // Multiple memberships, none selected — user needs to pick
             console.log('[OrganizationContext] Multiple memberships but none selected, needs org selection')
