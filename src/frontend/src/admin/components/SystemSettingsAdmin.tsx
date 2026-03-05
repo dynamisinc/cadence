@@ -86,6 +86,8 @@ export const SystemSettingsAdmin: FC = () => {
         gitHubOwner: gitHubOwner.trim() || null,
         gitHubRepo: gitHubRepo.trim() || null,
         gitHubLabelsEnabled: gitHubLabelsEnabled,
+        eulaContent: null,
+        eulaVersion: null,
       })
       notify.success('System settings updated')
       setHasChanges(false)

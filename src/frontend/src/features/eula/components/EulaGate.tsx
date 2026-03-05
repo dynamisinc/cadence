@@ -27,10 +27,10 @@ export const EulaGate: React.FC<EulaGateProps> = ({ children }) => {
     if (atBottom) setHasScrolledToBottom(true)
   }, [])
 
-  const handleAccept = useCallback(() => {
+  const handleAccept = () => {
     if (!eulaStatus?.version) return
     acceptMutation.mutate(eulaStatus.version)
-  }, [acceptMutation, eulaStatus?.version])
+  }
 
   // Not authenticated yet or still loading — render children (auth guards handle the rest)
   if (!isAuthenticated || isAuthLoading) {

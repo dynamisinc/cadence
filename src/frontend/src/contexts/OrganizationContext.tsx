@@ -203,7 +203,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
               organizationId: membership.organizationId,
             }).then(() => {
               window.location.reload()
-            }).catch((err) => {
+            }).catch(err => {
               console.error('[OrganizationContext] Auto-switch failed:', err)
               // Fallback: set locally even though JWT won't have claims
               setCurrentOrg({

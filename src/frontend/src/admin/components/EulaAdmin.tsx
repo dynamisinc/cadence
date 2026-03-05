@@ -14,7 +14,6 @@ import { faSave, faFileContract, faSpinner, faEye, faPen, faTrash } from '@forta
 import Markdown from 'react-markdown'
 import {
   CobraPrimaryButton,
-  CobraSecondaryButton,
   CobraDeleteButton,
   CobraTextField,
 } from '@/theme/styledComponents'
@@ -132,7 +131,7 @@ export const EulaAdmin: FC = () => {
       <CobraTextField
         label="Version"
         value={version}
-        onChange={(e) => setVersion(e.target.value)}
+        onChange={e => setVersion(e.target.value)}
         placeholder="e.g., 1.0, 2024-03"
         size="small"
         sx={{ maxWidth: 200 }}
@@ -165,7 +164,7 @@ export const EulaAdmin: FC = () => {
             maxRows={24}
             fullWidth
             value={content}
-            onChange={(e) => setContent(e.target.value)}
+            onChange={e => setContent(e.target.value)}
             placeholder="Paste your EULA content here in Markdown format..."
           />
         ) : (
