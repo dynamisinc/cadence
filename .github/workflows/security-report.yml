@@ -143,19 +143,20 @@ jobs:
       - name: Merge SARIF files
         if: steps.check.outputs.has_sarif == 'true'
         run: |
+          OUTPUT="$GITHUB_WORKSPACE/report-output/consolidated-security-report.sarif"
           SARIF_FILES=(sarif-inputs/*.sarif)
           FILE_COUNT=${#SARIF_FILES[@]}
           echo "Found $FILE_COUNT SARIF file(s)"
 
           if [ "$FILE_COUNT" -eq 1 ]; then
-            # Single file — just copy, no merge needed
-            cp "${SARIF_FILES[0]}" report-output/consolidated-security-report.sarif
+            cp "${SARIF_FILES[0]}" "$OUTPUT"
             echo "Single SARIF file copied"
           else
-            sarif merge "${SARIF_FILES[@]}" --output-file report-output/consolidated-security-report.sarif
+            sarif merge "${SARIF_FILES[@]}" --output-file "$OUTPUT"
             echo "Merged $FILE_COUNT SARIF files"
           fi
 
+          echo "Output file exists: $(test -f "$OUTPUT" && echo YES || echo NO)"
           ls -la report-output/
 
       - name: Generate HTML report
