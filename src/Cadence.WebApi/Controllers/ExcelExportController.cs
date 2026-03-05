@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadence.Core.Features.ExcelExport.Models.DTOs;
 using Cadence.Core.Features.ExcelExport.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -41,9 +42,9 @@ public class ExcelExportController : ControllerBase
             var result = await _service.ExportMselAsync(request);
 
             // Add metadata headers for frontend consumption
-            Response.Headers.Append("X-Inject-Count", result.InjectCount.ToString());
-            Response.Headers.Append("X-Phase-Count", result.PhaseCount.ToString());
-            Response.Headers.Append("X-Objective-Count", result.ObjectiveCount.ToString());
+            Response.Headers.Append("X-Inject-Count", result.InjectCount.ToString(CultureInfo.InvariantCulture));
+            Response.Headers.Append("X-Phase-Count", result.PhaseCount.ToString(CultureInfo.InvariantCulture));
+            Response.Headers.Append("X-Objective-Count", result.ObjectiveCount.ToString(CultureInfo.InvariantCulture));
             Response.Headers.Append("Access-Control-Expose-Headers", "X-Inject-Count, X-Phase-Count, X-Objective-Count, Content-Disposition");
 
             return File(result.Content, result.ContentType, result.Filename);
@@ -162,7 +163,7 @@ public class ExcelExportController : ControllerBase
             var result = await _service.ExportObservationsAsync(request);
 
             // Add metadata headers
-            Response.Headers.Append("X-Observation-Count", result.ObjectiveCount.ToString());
+            Response.Headers.Append("X-Observation-Count", result.ObjectiveCount.ToString(CultureInfo.InvariantCulture));
             Response.Headers.Append("Access-Control-Expose-Headers", "X-Observation-Count, Content-Disposition");
 
             return File(result.Content, result.ContentType, result.Filename);
@@ -207,9 +208,9 @@ public class ExcelExportController : ControllerBase
             var result = await _service.ExportFullPackageAsync(request);
 
             // Add metadata headers
-            Response.Headers.Append("X-Inject-Count", result.InjectCount.ToString());
-            Response.Headers.Append("X-Phase-Count", result.PhaseCount.ToString());
-            Response.Headers.Append("X-Objective-Count", result.ObjectiveCount.ToString());
+            Response.Headers.Append("X-Inject-Count", result.InjectCount.ToString(CultureInfo.InvariantCulture));
+            Response.Headers.Append("X-Phase-Count", result.PhaseCount.ToString(CultureInfo.InvariantCulture));
+            Response.Headers.Append("X-Objective-Count", result.ObjectiveCount.ToString(CultureInfo.InvariantCulture));
             Response.Headers.Append("Access-Control-Expose-Headers", "X-Inject-Count, X-Phase-Count, X-Objective-Count, Content-Disposition");
 
             return File(result.Content, result.ContentType, result.Filename);

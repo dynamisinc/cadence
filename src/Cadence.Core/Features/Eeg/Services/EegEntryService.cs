@@ -81,7 +81,7 @@ public class EegEntryService : IEegEntryService
         if (!string.IsNullOrWhiteSpace(queryParams.Search))
         {
             var searchLower = queryParams.Search.ToLowerInvariant();
-            query = query.Where(e => e.ObservationText.ToLower().Contains(searchLower));
+            query = query.Where(e => e.ObservationText.ToLowerInvariant().Contains(searchLower));
         }
 
         // Get total count before pagination
@@ -315,7 +315,7 @@ public class EegEntryService : IEegEntryService
             .ToListAsync();
 
         var totalTasks = tasks.Count;
-        var evaluatedTasks = tasks.Count(t => t.EegEntries.Any());
+        var evaluatedTasks = tasks.Count(t => t.EegEntries.Count > 0);
         var coveragePercentage = totalTasks > 0
             ? Math.Round((decimal)evaluatedTasks / totalTasks * 100, 1)
             : 0;
@@ -338,7 +338,7 @@ public class EegEntryService : IEegEntryService
                 g.Key.TargetDescription,
                 g.Key.Capability.Name,
                 g.Count(),
-                g.Count(t => t.EegEntries.Any()),
+                g.Count(t => t.EegEntries.Count > 0),
                 g.Select(t => new TaskRatingDto(
                     t.Id,
                     t.TaskDescription,
@@ -349,7 +349,7 @@ public class EegEntryService : IEegEntryService
 
         // Unevaluated tasks
         var unevaluatedTasks = tasks
-            .Where(t => !t.EegEntries.Any())
+            .Where(t => t.EegEntries.Count == 0)
             .Select(t => new UnevaluatedTaskDto(
                 t.Id,
                 t.TaskDescription,

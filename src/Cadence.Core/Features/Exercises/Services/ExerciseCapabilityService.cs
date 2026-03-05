@@ -72,7 +72,7 @@ public class ExerciseCapabilityService : IExerciseCapabilityService
             .Where(etc => etc.ExerciseId == exerciseId)
             .ToListAsync(ct);
 
-        if (existingLinks.Any())
+        if (existingLinks.Count > 0)
         {
             _context.ExerciseTargetCapabilities.RemoveRange(existingLinks);
             _logger.LogDebug("Removed {Count} existing capability links for exercise {ExerciseId}",
@@ -80,7 +80,7 @@ public class ExerciseCapabilityService : IExerciseCapabilityService
         }
 
         // Add new links
-        if (distinctIds.Any())
+        if (distinctIds.Count > 0)
         {
             var newLinks = distinctIds.Select(capabilityId => new ExerciseTargetCapability
             {

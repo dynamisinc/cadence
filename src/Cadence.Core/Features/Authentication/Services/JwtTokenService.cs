@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Security.Cryptography;
@@ -74,7 +75,7 @@ public class JwtTokenService : ITokenService
     /// <returns>Tuple of (token string, expiration time in seconds).</returns>
     public (string Token, int ExpiresIn) GenerateAccessToken(UserInfo user, Guid? organizationId, string? orgName, string? orgSlug, string? orgRole)
     {
-        if (user == null) throw new ArgumentNullException(nameof(user));
+        ArgumentNullException.ThrowIfNull(user);
 
         var claimsList = new List<Claim>
         {
@@ -84,7 +85,7 @@ public class JwtTokenService : ITokenService
             new Claim(ClaimTypes.Role, user.Role),
             new Claim("SystemRole", user.Role), // Custom claim for authorization policies
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()), // Unique token ID
-            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64)
+            new Claim(JwtRegisteredClaimNames.Iat, DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture), ClaimValueTypes.Integer64)
         };
 
         // Add organization context claims if provided
@@ -248,9 +249,8 @@ public class JwtTokenService : ITokenService
             throw new ArgumentException("Token cannot be null or empty", nameof(token));
         }
 
-        using var sha256 = SHA256.Create();
         var bytes = Encoding.UTF8.GetBytes(token);
-        var hash = sha256.ComputeHash(bytes);
+        var hash = SHA256.HashData(bytes);
         return Convert.ToBase64String(hash);
     }
 

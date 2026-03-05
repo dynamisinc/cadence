@@ -172,7 +172,7 @@ public class CapabilityService : ICapabilityService
 
         var query = _context.Capabilities
             .Where(c => c.OrganizationId == organizationId)
-            .Where(c => c.Name.ToLower() == trimmedName.ToLower());
+            .Where(c => c.Name.ToLowerInvariant() == trimmedName.ToLowerInvariant());
 
         if (excludeId.HasValue)
         {

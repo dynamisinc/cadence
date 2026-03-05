@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Security.Claims;
 using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Features.Eeg.Services;
@@ -256,7 +257,7 @@ public class EegEntriesController : ControllerBase
             var result = await _eegExportService.ExportEegDataAsync(request);
 
             // Add metadata headers
-            Response.Headers.Append("X-Entry-Count", result.ObjectiveCount.ToString());
+            Response.Headers.Append("X-Entry-Count", result.ObjectiveCount.ToString(CultureInfo.InvariantCulture));
             Response.Headers.Append("Access-Control-Expose-Headers", "X-Entry-Count, Content-Disposition");
 
             return File(result.Content, result.ContentType, result.Filename);
@@ -297,7 +298,7 @@ public class EegEntriesController : ControllerBase
             var result = await _eegExportService.ExportEegDataAsync(modifiedRequest);
 
             // Add metadata headers
-            Response.Headers.Append("X-Entry-Count", result.ObjectiveCount.ToString());
+            Response.Headers.Append("X-Entry-Count", result.ObjectiveCount.ToString(CultureInfo.InvariantCulture));
             Response.Headers.Append("Access-Control-Expose-Headers", "X-Entry-Count, Content-Disposition");
 
             return File(result.Content, result.ContentType, result.Filename);
@@ -333,8 +334,8 @@ public class EegEntriesController : ControllerBase
             var result = await _eegDocumentService.GenerateAsync(exerciseId, documentRequest);
 
             // Add metadata headers
-            Response.Headers.Append("X-Capability-Target-Count", result.CapabilityTargetCount.ToString());
-            Response.Headers.Append("X-Critical-Task-Count", result.CriticalTaskCount.ToString());
+            Response.Headers.Append("X-Capability-Target-Count", result.CapabilityTargetCount.ToString(CultureInfo.InvariantCulture));
+            Response.Headers.Append("X-Critical-Task-Count", result.CriticalTaskCount.ToString(CultureInfo.InvariantCulture));
             Response.Headers.Append("Access-Control-Expose-Headers", "X-Capability-Target-Count, X-Critical-Task-Count, Content-Disposition");
 
             return File(result.Content, result.ContentType, result.Filename);

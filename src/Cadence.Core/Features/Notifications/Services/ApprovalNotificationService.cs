@@ -50,7 +50,7 @@ public class ApprovalNotificationService : IApprovalNotificationService
             .Select(p => p.UserId)
             .ToListAsync(cancellationToken);
 
-        if (!directors.Any())
+        if (directors.Count == 0)
         {
             _logger.LogWarning(
                 "No Exercise Directors found for exercise {ExerciseId} when notifying inject submission",
@@ -265,7 +265,7 @@ public class ApprovalNotificationService : IApprovalNotificationService
         string? notes = null,
         CancellationToken cancellationToken = default)
     {
-        if (!injects.Any())
+        if (injects.Count == 0)
         {
             return;
         }
@@ -346,7 +346,7 @@ public class ApprovalNotificationService : IApprovalNotificationService
         string reason,
         CancellationToken cancellationToken = default)
     {
-        if (!injects.Any())
+        if (injects.Count == 0)
         {
             return;
         }
@@ -550,7 +550,7 @@ public class ApprovalNotificationService : IApprovalNotificationService
 
         var notifications = await query.ToListAsync(cancellationToken);
 
-        if (!notifications.Any())
+        if (notifications.Count == 0)
         {
             return;
         }

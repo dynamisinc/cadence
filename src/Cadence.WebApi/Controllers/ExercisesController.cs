@@ -559,8 +559,8 @@ public class ExercisesController : ControllerBase
                     SkippedByUserId = null,
                     SkipReason = null,
                     MselId = newMselId.Value,
-                    PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
-                        ? phaseIdMap[sourceInject.PhaseId.Value]
+                    PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.TryGetValue(sourceInject.PhaseId.Value, out var mappedPhaseId)
+                        ? mappedPhaseId
                         : null,
                     CreatedBy = SystemConstants.SystemUserIdString,
                     ModifiedBy = SystemConstants.SystemUserIdString,
@@ -570,12 +570,12 @@ public class ExercisesController : ControllerBase
                 // Copy inject-objective links
                 foreach (var sourceLink in sourceInject.InjectObjectives)
                 {
-                    if (objectiveIdMap.ContainsKey(sourceLink.ObjectiveId))
+                    if (objectiveIdMap.TryGetValue(sourceLink.ObjectiveId, out var mappedObjectiveId))
                     {
                         _context.InjectObjectives.Add(new InjectObjective
                         {
                             InjectId = newInjectId,
-                            ObjectiveId = objectiveIdMap[sourceLink.ObjectiveId],
+                            ObjectiveId = mappedObjectiveId,
                         });
                     }
                 }

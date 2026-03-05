@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Objectives.Models.DTOs;
 using Cadence.Core.Models.Entities;
@@ -211,6 +212,6 @@ public class ObjectiveService : IObjectiveService
             }
         }
 
-        return (highestNumeric + 1).ToString();
+        return (highestNumeric + 1).ToString(CultureInfo.InvariantCulture);
     }
 }

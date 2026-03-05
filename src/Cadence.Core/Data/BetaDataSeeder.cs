@@ -484,7 +484,7 @@ public static class BetaDataSeeder
             .Where(c => c.OrganizationId == BetaOrganizationId && c.SourceLibrary == "FEMA")
             .ToListAsync();
 
-        if (!capabilities.Any())
+        if (capabilities.Count == 0)
         {
             logger?.LogWarning("No FEMA capabilities found for beta org - skipping EEG seeding. " +
                                "Ensure SeedCapabilitiesAsync runs first.");

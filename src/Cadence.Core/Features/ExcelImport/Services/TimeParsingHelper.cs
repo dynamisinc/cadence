@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.RegularExpressions;
 
 namespace Cadence.Core.Features.ExcelImport.Services;
@@ -36,20 +37,20 @@ public static partial class TimeParsingHelper
         if (!match.Success)
             return false;
 
-        var day = int.Parse(match.Groups[1].Value);
+        var day = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
         var timeStr = match.Groups[2].Value;
         var monthStr = match.Groups[3].Value;
         var yearStr = match.Groups[4].Value;
 
-        var hours = int.Parse(timeStr[..2]);
-        var minutes = int.Parse(timeStr[2..]);
+        var hours = int.Parse(timeStr[..2], CultureInfo.InvariantCulture);
+        var minutes = int.Parse(timeStr[2..], CultureInfo.InvariantCulture);
 
         if (!MonthAbbreviations.TryGetValue(monthStr, out var month))
             return false;
 
         var year = yearStr.Length == 2
-            ? 2000 + int.Parse(yearStr)
-            : int.Parse(yearStr);
+            ? 2000 + int.Parse(yearStr, CultureInfo.InvariantCulture)
+            : int.Parse(yearStr, CultureInfo.InvariantCulture);
 
         if (day < 1 || day > 31 || hours > 23 || minutes > 59)
             return false;

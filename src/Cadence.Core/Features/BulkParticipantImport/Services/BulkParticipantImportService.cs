@@ -607,7 +607,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         return (content, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "participant-import-template.xlsx");
     }
 
-    private class ImportSession
+    private sealed class ImportSession
     {
         public Guid SessionId { get; set; }
         public Guid ExerciseId { get; set; }

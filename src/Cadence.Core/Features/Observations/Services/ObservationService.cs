@@ -232,7 +232,7 @@ public class ObservationService : IObservationService
         await _context.SaveChangesAsync();
 
         // Link capabilities if provided
-        if (request.CapabilityIds?.Any() == true)
+        if (request.CapabilityIds?.Count > 0)
         {
             var capabilityLinks = request.CapabilityIds.Select(capId => new ObservationCapability
             {
@@ -307,7 +307,7 @@ public class ObservationService : IObservationService
             .Select(ep => ep.UserId)
             .ToListAsync();
 
-        if (!exerciseDirectorIds.Any())
+        if (exerciseDirectorIds.Count == 0)
         {
             return;
         }
@@ -403,7 +403,7 @@ public class ObservationService : IObservationService
             _context.ObservationCapabilities.RemoveRange(existingLinks);
 
             // Add new links
-            if (request.CapabilityIds.Any())
+            if (request.CapabilityIds.Count > 0)
             {
                 var newLinks = request.CapabilityIds.Select(capId => new ObservationCapability
                 {

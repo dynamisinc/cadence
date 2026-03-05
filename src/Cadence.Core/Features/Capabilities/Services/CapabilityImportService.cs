@@ -51,7 +51,7 @@ public class CapabilityImportService : ICapabilityImportService
         // Get existing capability names for this organization (case-insensitive)
         var existingNames = await _context.Capabilities
             .Where(c => c.OrganizationId == organizationId)
-            .Select(c => c.Name.ToLower())
+            .Select(c => c.Name.ToLowerInvariant())
             .ToHashSetAsync(cancellationToken);
 
         var importedNames = new List<string>();
@@ -60,7 +60,7 @@ public class CapabilityImportService : ICapabilityImportService
         // Import capabilities that don't already exist
         foreach (var predefinedCap in library.Capabilities)
         {
-            var nameLower = predefinedCap.Name.ToLower();
+            var nameLower = predefinedCap.Name.ToLowerInvariant();
 
             if (existingNames.Contains(nameLower))
             {

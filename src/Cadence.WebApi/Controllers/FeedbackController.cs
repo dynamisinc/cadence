@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Security.Claims;
 using System.Text.Json;
 using Cadence.Core.Features.Email.Models;
@@ -134,7 +135,7 @@ public class FeedbackController : ControllerBase
                 Browser = Request.Headers.UserAgent.ToString(),
                 ScreenSize = request.Context?.ScreenSize ?? "Unknown",
                 OperatingSystem = "Detected from user agent",
-                ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC", CultureInfo.InvariantCulture),
                 // Identity and org context from JWT claims
                 UserRole = userCtx.SystemRole ?? "Unknown",
                 OrgName = userCtx.OrgName ?? "No organisation",
@@ -206,7 +207,7 @@ public class FeedbackController : ControllerBase
                 UseCase = request.UseCase ?? "Not provided",
                 ReporterName = userCtx.Name ?? "Unknown",
                 ReporterEmail = userCtx.Email,
-                ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC", CultureInfo.InvariantCulture),
                 // Identity and org context from JWT claims
                 UserRole = userCtx.SystemRole ?? "Unknown",
                 OrgName = userCtx.OrgName ?? "No organisation",
@@ -278,7 +279,7 @@ public class FeedbackController : ControllerBase
                 Message = request.Message,
                 SenderName = userCtx.Name ?? "Unknown",
                 SenderEmail = userCtx.Email,
-                SentAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                SentAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC", CultureInfo.InvariantCulture),
                 // Identity and org context from JWT claims
                 UserRole = userCtx.SystemRole ?? "Unknown",
                 OrgName = userCtx.OrgName ?? "No organisation",
@@ -361,7 +362,7 @@ public class FeedbackController : ControllerBase
                 Browser = request.Browser,
                 OperatingSystem = "Detected from user agent",
                 ScreenSize = "Unknown",
-                ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
+                ReportedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC", CultureInfo.InvariantCulture),
                 UserRole = userCtx.SystemRole ?? "Unknown",
                 OrgName = userCtx.OrgName ?? "No organisation",
                 OrgRole = userCtx.OrgRole ?? "Unknown",
@@ -415,8 +416,8 @@ public class FeedbackController : ControllerBase
                 ReferenceNumber = refNumber,
                 TicketType = ticketType,
                 TicketTitle = title,
-                SubmittedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC"),
-                MessagePreview = $"Thank you for your {ticketType.ToLower()}. Our team will review it shortly.",
+                SubmittedAt = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss UTC", CultureInfo.InvariantCulture),
+                MessagePreview = $"Thank you for your {ticketType.ToLowerInvariant()}. Our team will review it shortly.",
             };
 
             var userRecipient = new EmailRecipient(userEmail, userName);
@@ -479,7 +480,7 @@ public class FeedbackController : ControllerBase
         return new FeedbackUserContext(name, email, role, orgName, orgRole);
     }
 
-    private record FeedbackUserContext(
+    private sealed record FeedbackUserContext(
         string? Name,
         string? Email,
         string? SystemRole,
@@ -492,7 +493,7 @@ public class FeedbackController : ControllerBase
 
     private static string GenerateReferenceNumber()
     {
-        var date = DateTime.UtcNow.ToString("yyyyMMdd");
+        var date = DateTime.UtcNow.ToString("yyyyMMdd", CultureInfo.InvariantCulture);
         var random = Random.Shared.Next(1000, 9999);
         return $"CAD-{date}-{random}";
     }

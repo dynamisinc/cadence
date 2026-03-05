@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadence.Core.Data;
 using Cadence.Core.Extensions;
 using Cadence.Functions.Middleware;
@@ -13,7 +14,7 @@ using Serilog;
 
 // Bootstrap logger for capturing startup errors
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .CreateLogger();
 
 try
@@ -38,7 +39,7 @@ try
         .Enrich.WithEnvironmentName()
         .Enrich.WithThreadId()
         .Enrich.WithProperty("Application", "Cadence.Functions")
-        .WriteTo.Console();
+        .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture);
 
     // Application Insights (optional - controlled by configuration)
     var appInsightsEnabled = configuration.GetValue<bool>("ApplicationInsights:Enabled");

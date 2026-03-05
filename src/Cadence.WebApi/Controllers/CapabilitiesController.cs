@@ -40,7 +40,7 @@ public class CapabilitiesController : ControllerBase
     /// Validates that the user has access to the requested organization.
     /// Returns a Forbid result if access is denied, null if access is allowed.
     /// </summary>
-    private ActionResult? ValidateOrganizationAccess(Guid organizationId)
+    private ForbidResult? ValidateOrganizationAccess(Guid organizationId)
     {
         // SysAdmins can access any organization
         if (_orgContext.IsSysAdmin)

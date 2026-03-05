@@ -107,7 +107,7 @@ public class ParticipantFileParser : IParticipantFileParser
         var headers = ParseCsvLine(lines[0], delimiter);
         var (columnMappings, mappingErrors, warnings) = MapColumns(headers);
 
-        if (mappingErrors.Any())
+        if (mappingErrors.Count > 0)
         {
             return new FileParseResult
             {
@@ -254,7 +254,7 @@ public class ParticipantFileParser : IParticipantFileParser
 
             var (columnMappings, mappingErrors, warnings) = MapColumns(headers);
 
-            if (mappingErrors.Any())
+            if (mappingErrors.Count > 0)
             {
                 return new FileParseResult
                 {
@@ -532,7 +532,7 @@ public class ParticipantFileParser : IParticipantFileParser
             }
             else if (!row.NormalizedExerciseRole.HasValue)
             {
-                var validRoles = string.Join(", ", Enum.GetNames(typeof(ExerciseRole)));
+                var validRoles = string.Join(", ", Enum.GetNames<ExerciseRole>());
                 errors.Add($"Invalid exercise role '{row.ExerciseRole}'. Valid roles: {validRoles}");
             }
 

@@ -81,8 +81,8 @@ public class ParticipantClassificationService : IParticipantClassificationServic
 
         // Batch query: Find all users by normalized email
         var users = await _context.ApplicationUsers
-            .Where(u => emails.Contains(u.NormalizedEmail!.ToLower()))
-            .ToDictionaryAsync(u => u.NormalizedEmail!.ToLower(), u => u);
+            .Where(u => emails.Contains(u.NormalizedEmail!.ToLowerInvariant()))
+            .ToDictionaryAsync(u => u.NormalizedEmail!.ToLowerInvariant(), u => u);
 
         // Batch query: Find all active org memberships for these users in current org
         var userIds = users.Values.Select(u => u.Id).ToList();
@@ -101,7 +101,7 @@ public class ParticipantClassificationService : IParticipantClassificationServic
         // Batch query: Find all pending org invites for these emails
         var pendingInvites = await _context.OrganizationInvites
             .Where(i => i.OrganizationId == orgId
-                && emails.Contains(i.Email!.ToLower())
+                && emails.Contains(i.Email!.ToLowerInvariant())
                 && i.UsedAt == null
                 && i.ExpiresAt > DateTime.UtcNow)
             .ToListAsync();

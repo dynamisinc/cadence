@@ -38,10 +38,10 @@ public class OrganizationService : IOrganizationService
         // Apply search filter
         if (!string.IsNullOrWhiteSpace(search))
         {
-            var searchLower = search.ToLower();
+            var searchLower = search.ToLowerInvariant();
             query = query.Where(o =>
-                o.Name.ToLower().Contains(searchLower) ||
-                o.Slug.ToLower().Contains(searchLower));
+                o.Name.ToLowerInvariant().Contains(searchLower) ||
+                o.Slug.ToLowerInvariant().Contains(searchLower));
         }
 
         // Apply status filter
@@ -54,18 +54,18 @@ public class OrganizationService : IOrganizationService
         var totalCount = await query.CountAsync(cancellationToken);
 
         // Apply sorting
-        query = sortBy.ToLower() switch
+        query = sortBy.ToLowerInvariant() switch
         {
-            "name" => sortDir.ToLower() == "desc"
+            "name" => sortDir.ToLowerInvariant() == "desc"
                 ? query.OrderByDescending(o => o.Name)
                 : query.OrderBy(o => o.Name),
-            "slug" => sortDir.ToLower() == "desc"
+            "slug" => sortDir.ToLowerInvariant() == "desc"
                 ? query.OrderByDescending(o => o.Slug)
                 : query.OrderBy(o => o.Slug),
-            "status" => sortDir.ToLower() == "desc"
+            "status" => sortDir.ToLowerInvariant() == "desc"
                 ? query.OrderByDescending(o => o.Status)
                 : query.OrderBy(o => o.Status),
-            "createdat" => sortDir.ToLower() == "desc"
+            "createdat" => sortDir.ToLowerInvariant() == "desc"
                 ? query.OrderByDescending(o => o.CreatedAt)
                 : query.OrderBy(o => o.CreatedAt),
             _ => query.OrderBy(o => o.Name)
@@ -104,7 +104,7 @@ public class OrganizationService : IOrganizationService
     {
         // Validate slug uniqueness
         var slugExists = await _context.Organizations
-            .AnyAsync(o => o.Slug.ToLower() == request.Slug.ToLower(), cancellationToken);
+            .AnyAsync(o => o.Slug.ToLowerInvariant() == request.Slug.ToLowerInvariant(), cancellationToken);
 
         if (slugExists)
         {
@@ -133,7 +133,7 @@ public class OrganizationService : IOrganizationService
 
             // Find or create user
             var user = await _context.Set<ApplicationUser>()
-                .FirstOrDefaultAsync(u => u.Email!.ToLower() == request.FirstAdminEmail.ToLower(), cancellationToken);
+                .FirstOrDefaultAsync(u => u.Email!.ToLowerInvariant() == request.FirstAdminEmail.ToLowerInvariant(), cancellationToken);
 
             if (user == null)
             {
@@ -232,10 +232,10 @@ public class OrganizationService : IOrganizationService
         Guid? excludeId = null,
         CancellationToken cancellationToken = default)
     {
-        var slugLower = slug.ToLower();
+        var slugLower = slug.ToLowerInvariant();
 
         var query = _context.Organizations
-            .Where(o => o.Slug.ToLower() == slugLower && !o.IsDeleted);
+            .Where(o => o.Slug.ToLowerInvariant() == slugLower && !o.IsDeleted);
 
         if (excludeId.HasValue)
         {
@@ -280,7 +280,7 @@ public class OrganizationService : IOrganizationService
         }
 
         // Convert to lowercase
-        var slug = name.ToLower();
+        var slug = name.ToLowerInvariant();
 
         // Replace spaces with hyphens
         slug = slug.Replace(" ", "-");

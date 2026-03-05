@@ -101,7 +101,7 @@ public class ExerciseParticipantService : IExerciseParticipantService
         CancellationToken ct = default)
     {
         // Verify user exists
-        var user = await _context.ApplicationUsers.FindAsync(request.UserId);
+        var user = await _context.ApplicationUsers.FindAsync(new object[] { request.UserId }, ct);
         if (user == null)
         {
             throw new KeyNotFoundException($"User {request.UserId} not found");
@@ -163,7 +163,7 @@ public class ExerciseParticipantService : IExerciseParticipantService
         await _context.SaveChangesAsync(ct);
 
         var result = await GetParticipantAsync(exerciseId, request.UserId, ct);
-        return result ?? throw new Exception("Failed to add participant");
+        return result ?? throw new InvalidOperationException("Failed to add participant");
     }
 
     /// <inheritdoc />

@@ -76,8 +76,8 @@ public class AutocompleteService : IAutocompleteService
 
         if (!string.IsNullOrWhiteSpace(filter))
         {
-            var lowerFilter = filter.ToLower();
-            managedQuery = managedQuery.Where(s => s.Value.ToLower().Contains(lowerFilter));
+            var lowerFilter = filter.ToLowerInvariant();
+            managedQuery = managedQuery.Where(s => s.Value.ToLowerInvariant().Contains(lowerFilter));
         }
 
         var managedSuggestions = await managedQuery
@@ -153,8 +153,8 @@ public class AutocompleteService : IAutocompleteService
         // Apply filter if provided
         if (!string.IsNullOrWhiteSpace(filter))
         {
-            var lowerFilter = filter.ToLower();
-            query = query.Where(v => v!.ToLower().Contains(lowerFilter));
+            var lowerFilter = filter.ToLowerInvariant();
+            query = query.Where(v => v!.ToLowerInvariant().Contains(lowerFilter));
         }
 
         // Group by value, count occurrences, and order by frequency
