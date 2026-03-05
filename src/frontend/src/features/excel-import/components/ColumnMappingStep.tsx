@@ -414,7 +414,7 @@ const MappingRow = ({
         <Stack direction="row" spacing={1} alignItems="center">
           <FormControl size="small" sx={{ minWidth: 200 }}>
             <Select
-              value={mapping.sourceColumnIndex ?? ''}
+              value={mapping.sourceColumnIndex != null ? String(mapping.sourceColumnIndex) : ''}
               onChange={e =>
                 onMappingChange(
                   mapping.cadenceField,
@@ -429,7 +429,7 @@ const MappingRow = ({
               {columns.map(col => {
                 const mappedTo = usedColumns.get(col.index)
                 return (
-                  <MenuItem key={col.index} value={col.index}>
+                  <MenuItem key={col.index} value={String(col.index)}>
                     <Stack direction="row" spacing={1} alignItems="center" sx={{ width: '100%' }}>
                       <span>{col.letter}: {col.header}</span>
                       {mappedTo && (
