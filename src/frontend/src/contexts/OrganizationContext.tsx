@@ -43,6 +43,8 @@ interface OrganizationContextValue {
   isLoading: boolean;
   /** User has no organization assigned (Pending status) */
   isPending: boolean;
+  /** User has memberships but no org currently selected — needs to pick one */
+  needsOrgSelection: boolean;
   /** Switch to a different organization */
   switchOrganization: (orgId: string) => Promise<void>;
   /** Refresh the list of memberships */
@@ -193,15 +195,28 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
               role: currentMembership.role,
             })
           } else if (response.data.memberships.length === 1) {
-            // Single membership - use it as default
+            // Single membership — auto-switch via backend to get proper JWT claims
             const membership = response.data.memberships[0]
-            console.log('[OrganizationContext] Single membership, using as default:', membership.organizationName)
-            setCurrentOrg({
-              id: membership.organizationId,
-              name: membership.organizationName,
-              slug: membership.organizationSlug,
-              role: membership.role,
+            console.log('[OrganizationContext] Single membership, auto-switching:', membership.organizationName)
+            // Don't await — let it reload the page
+            apiClient.post('/users/current-organization', {
+              organizationId: membership.organizationId,
+            }).then(() => {
+              window.location.reload()
+            }).catch((err) => {
+              console.error('[OrganizationContext] Auto-switch failed:', err)
+              // Fallback: set locally even though JWT won't have claims
+              setCurrentOrg({
+                id: membership.organizationId,
+                name: membership.organizationName,
+                slug: membership.organizationSlug,
+                role: membership.role,
+              })
             })
+            return // Don't update lastFetchedTokenRef — page will reload
+          } else {
+            // Multiple memberships, none selected — user needs to pick
+            console.log('[OrganizationContext] Multiple memberships but none selected, needs org selection')
           }
         }
       }
@@ -273,11 +288,17 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
     }
   }, [isAuthenticated, refreshMemberships])
 
+  // User has memberships but no org selected (and not still loading/pending)
+  // This covers both multi-org users who need to pick, and single-org users
+  // whose auto-switch hasn't completed yet
+  const needsOrgSelection = !isLoading && !isPending && !currentOrg && memberships.length > 0
+
   const value: OrganizationContextValue = {
     currentOrg,
     memberships,
     isLoading,
     isPending,
+    needsOrgSelection,
     switchOrganization,
     refreshMemberships,
   }
