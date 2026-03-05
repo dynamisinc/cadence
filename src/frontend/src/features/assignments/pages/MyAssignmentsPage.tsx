@@ -12,7 +12,7 @@ import { useBreadcrumbs } from '@/core/contexts'
 import { useMyAssignments } from '../hooks/useMyAssignments'
 import { AssignmentSection } from '../components/AssignmentSection'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
-import { PageHeader } from '@/shared/components'
+import { HelpTooltip, PageHeader } from '@/shared/components'
 import CobraStyles from '@/theme/CobraStyles'
 
 export function MyAssignmentsPage() {
@@ -36,7 +36,7 @@ export function MyAssignmentsPage() {
   if (isLoading) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
+        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" chips={<HelpTooltip helpKey="assignments.overview" compact />} />
         <AssignmentSection
           title="Active Now"
           type="active"
@@ -57,7 +57,7 @@ export function MyAssignmentsPage() {
   if (isError) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
+        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" chips={<HelpTooltip helpKey="assignments.overview" compact />} />
         <Alert
           severity="error"
           action={
@@ -82,7 +82,7 @@ export function MyAssignmentsPage() {
   if (hasNoAssignments) {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
-        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
+        <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" chips={<HelpTooltip helpKey="assignments.overview" compact />} />
         <Box
           display="flex"
           flexDirection="column"
