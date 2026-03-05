@@ -52,6 +52,26 @@ public class SystemSettingsService : ISystemSettingsService
         if (request.GitHubLabelsEnabled.HasValue)
             settings.GitHubLabelsEnabled = request.GitHubLabelsEnabled.Value;
 
+        // EULA fields
+        var newEulaContent = NullIfEmpty(request.EulaContent);
+        var newEulaVersion = NullIfEmpty(request.EulaVersion);
+
+        if (newEulaContent != null && newEulaVersion != null)
+        {
+            if (settings.EulaContent != newEulaContent || settings.EulaVersion != newEulaVersion)
+                settings.EulaUpdatedAt = DateTime.UtcNow;
+
+            settings.EulaContent = newEulaContent;
+            settings.EulaVersion = newEulaVersion;
+        }
+        else if (newEulaContent == null && request.EulaContent != null)
+        {
+            // Explicitly clearing EULA (sent empty string)
+            settings.EulaContent = null;
+            settings.EulaVersion = null;
+            settings.EulaUpdatedAt = null;
+        }
+
         settings.UpdatedAt = DateTime.UtcNow;
         settings.UpdatedBy = updatedBy;
 
@@ -76,6 +96,10 @@ public class SystemSettingsService : ISystemSettingsService
             GitHubLabelsEnabled = settings?.GitHubLabelsEnabled ?? false,
             GitHubTokenConfigured = !string.IsNullOrEmpty(settings?.GitHubToken),
             GitHubTokenMasked = MaskToken(settings?.GitHubToken),
+            EulaContent = settings?.EulaContent,
+            EulaVersion = settings?.EulaVersion,
+            EulaUpdatedAt = settings?.EulaUpdatedAt,
+            EulaConfigured = !string.IsNullOrEmpty(settings?.EulaContent) && !string.IsNullOrEmpty(settings?.EulaVersion),
             UpdatedAt = settings?.UpdatedAt,
             UpdatedBy = settings?.UpdatedBy,
         };

@@ -41,6 +41,17 @@ public class SystemSettings
     /// <summary>When true, automatically create GitHub issues for feedback and apply type labels.</summary>
     public bool GitHubLabelsEnabled { get; set; }
 
+    // ── EULA ──
+
+    /// <summary>EULA content in Markdown format. Null = no EULA configured.</summary>
+    public string? EulaContent { get; set; }
+
+    /// <summary>Version identifier for the current EULA (e.g. "1.0"). Null = no EULA.</summary>
+    public string? EulaVersion { get; set; }
+
+    /// <summary>When the EULA was last updated.</summary>
+    public DateTime? EulaUpdatedAt { get; set; }
+
     public DateTime UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
 }

@@ -110,6 +110,7 @@ public static class ServiceCollectionExtensions
 
         // System Settings Services
         services.AddScoped<ISystemSettingsService, SystemSettingsService>();
+        services.AddScoped<IEulaService, EulaService>();
         services.AddScoped<IEmailConfigurationProvider, EmailConfigurationProvider>();
 
         return services;

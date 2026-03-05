@@ -128,6 +128,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
     // System configuration
     public DbSet<SystemSettings> SystemSettings => Set<SystemSettings>();
+    public DbSet<EulaAcceptance> EulaAcceptances => Set<EulaAcceptance>();
 
     // Photo entities
     public DbSet<ExercisePhoto> ExercisePhotos => Set<ExercisePhoto>();
@@ -247,6 +248,7 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
 
         // System configuration
         ConfigureSystemSettings(modelBuilder);
+        ConfigureEulaAcceptance(modelBuilder);
 
         // Bulk Participant Import entities
         ConfigurePendingExerciseAssignment(modelBuilder);
@@ -1554,6 +1556,19 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.DefaultSenderAddress).HasMaxLength(200);
             entity.Property(e => e.DefaultSenderName).HasMaxLength(100);
             entity.Property(e => e.UpdatedBy).HasMaxLength(450);
+            entity.Property(e => e.EulaVersion).HasMaxLength(50);
+        });
+    }
+
+    private static void ConfigureEulaAcceptance(ModelBuilder modelBuilder)
+    {
+        modelBuilder.Entity<EulaAcceptance>(entity =>
+        {
+            entity.ToTable("EulaAcceptances");
+            entity.HasKey(e => e.Id);
+            entity.Property(e => e.UserId).IsRequired().HasMaxLength(450);
+            entity.Property(e => e.EulaVersion).IsRequired().HasMaxLength(50);
+            entity.HasIndex(e => new { e.UserId, e.EulaVersion }).IsUnique();
         });
     }
 
