@@ -5,6 +5,26 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.12.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.11.0...frontend-v2.12.0) (2026-03-05)
+
+
+### Features
+
+* **eula:** add EULA acceptance gate with admin management ([f63bb74](https://github.com/dynamisinc/cadence/commit/f63bb7441893dfd5bb3e68f8f07fc66fb22b2c23))
+* **onboarding:** add role-based orientation and contextual help tooltips ([ae0d37d](https://github.com/dynamisinc/cadence/commit/ae0d37dac17131458fc1e36d9596a9c09590d32e))
+* **organizations:** non-blocking org selection UX with cross-org exercise list ([9c025d6](https://github.com/dynamisinc/cadence/commit/9c025d65b2262dbf6608ba69a548eb9cf21fa79e))
+* **ui:** add branded splash screen with version display ([013cea0](https://github.com/dynamisinc/cadence/commit/013cea0fcdc0f2f180796d0cacfc6c9809213839))
+
+
+### Bug Fixes
+
+* **core:** resolve code review issues across EULA, exercises, and UI ([53a5566](https://github.com/dynamisinc/cadence/commit/53a5566881b7dee7632370381dc9722d99d86dd6))
+* **nav:** link header logo to home page ([220b646](https://github.com/dynamisinc/cadence/commit/220b646ad49fd1756be1d25c22ca98282092f71e))
+* **nav:** scope header link to logo only and add section prefix to collapsed tooltips ([5912f83](https://github.com/dynamisinc/cadence/commit/5912f83ef75a3cab1ed488739cdfe6599c825153))
+* **organizations:** add org picker dialog when no organization selected ([7685abb](https://github.com/dynamisinc/cadence/commit/7685abbeaa748b2623743a0e5c512bb318353d5e))
+* **release-notes:** remove prebuild hook that overwrites polished notes ([e7bbd6f](https://github.com/dynamisinc/cadence/commit/e7bbd6f3bb45bb4b0adae1410b18921d9e7fc149))
+* **ui:** resolve lint errors, type errors, and PWA build limit ([899100f](https://github.com/dynamisinc/cadence/commit/899100f0dcd978dedc42ff8688f0dbfd75e17d2f))
+
 ## [2.11.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.10.0...frontend-v2.11.0) (2026-03-04)
 
 
