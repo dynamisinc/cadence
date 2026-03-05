@@ -34,8 +34,9 @@ env:
   # Resource group naming convention: rg-cadence-{env}-{region}
   UAT_RESOURCE_GROUP: "rg-cadence-uat-centralus"
   UAT_LOCATION: "centralus"
-  PROD_RESOURCE_GROUP: "rg-cadence-prod-eastus2"
-  PROD_LOCATION: "eastus2"
+  # TODO: Migrate prod to eastus2 after Basic VM quota approved (see prod.bicepparam)
+  PROD_RESOURCE_GROUP: "rg-cadence-prod-centralus"
+  PROD_LOCATION: "centralus"
 
 jobs:
   deploy:

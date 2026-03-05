@@ -2,11 +2,14 @@ using '../main.bicep'
 
 // ============================================================================
 // Production Environment Parameters
-// Resource Group: rg-cadence-prod-eastus2
+// Resource Group: rg-cadence-prod-centralus
 // ============================================================================
 
 param environment = 'prod'
-param location = 'eastus2'
+// TODO: Migrate to eastus2 once Basic VM (standardBSFamily) quota is approved.
+// Quota request requires MFA — submit via Azure Portal > Quotas > Compute > East US 2.
+// After approval, change location to 'eastus2' and update RG name in deploy-infrastructure.yml.
+param location = 'centralus'
 
 // SQL Server
 param sqlAdminLogin = 'sqladmin'
