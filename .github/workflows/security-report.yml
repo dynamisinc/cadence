@@ -143,17 +143,95 @@ jobs:
       - name: Merge SARIF files
         if: steps.check.outputs.has_sarif == 'true'
         run: |
-          cd sarif-inputs
-          sarif merge *.sarif --output-file ../report-output/consolidated-security-report.sarif
-          echo "Merged SARIF created successfully"
+          SARIF_FILES=(sarif-inputs/*.sarif)
+          FILE_COUNT=${#SARIF_FILES[@]}
+          echo "Found $FILE_COUNT SARIF file(s)"
+
+          if [ "$FILE_COUNT" -eq 1 ]; then
+            # Single file — just copy, no merge needed
+            cp "${SARIF_FILES[0]}" report-output/consolidated-security-report.sarif
+            echo "Single SARIF file copied"
+          else
+            sarif merge "${SARIF_FILES[@]}" --output-file report-output/consolidated-security-report.sarif
+            echo "Merged $FILE_COUNT SARIF files"
+          fi
+
+          ls -la report-output/
 
       - name: Generate HTML report
         if: steps.check.outputs.has_sarif == 'true'
         run: |
-          sarif convert report-output/consolidated-security-report.sarif \
-            --tool HtmlReport \
-            --output report-output/consolidated-security-report.html
-          echo "HTML report generated successfully"
+          # Generate HTML summary from SARIF using Python (sarif-tools HTML export was removed in v4)
+          python3 << 'PYEOF'
+          import json, html, os
+          from datetime import datetime
+
+          with open("report-output/consolidated-security-report.sarif") as f:
+              data = json.load(f)
+
+          findings = []
+          for run in data.get("runs", []):
+              tool = run.get("tool", {}).get("driver", {}).get("name", "Unknown")
+              for result in run.get("results", []):
+                  level = result.get("level", "note")
+                  rule_id = result.get("ruleId", "N/A")
+                  message = result.get("message", {}).get("text", "No description")
+                  locations = result.get("locations", [])
+                  loc_str = ""
+                  if locations:
+                      phys = locations[0].get("physicalLocation", {})
+                      artifact = phys.get("artifactLocation", {}).get("uri", "")
+                      region = phys.get("region", {})
+                      line = region.get("startLine", "")
+                      loc_str = f"{artifact}:{line}" if line else artifact
+                  findings.append({
+                      "tool": tool, "level": level, "rule": rule_id,
+                      "message": message, "location": loc_str
+                  })
+
+          level_order = {"error": 0, "warning": 1, "note": 2, "none": 3}
+          findings.sort(key=lambda f: level_order.get(f["level"], 99))
+
+          level_colors = {"error": "#d32f2f", "warning": "#f57c00", "note": "#1976d2", "none": "#757575"}
+          level_labels = {"error": "Critical/Error", "warning": "Warning", "note": "Note", "none": "Info"}
+
+          now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
+          h = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+          <title>Cadence Security Report - {now}</title>
+          <style>
+            body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 2rem; color: #333; }}
+            h1 {{ color: #1a237e; }} h2 {{ color: #283593; margin-top: 2rem; }}
+            table {{ border-collapse: collapse; width: 100%; margin: 1rem 0; }}
+            th, td {{ border: 1px solid #ddd; padding: 8px 12px; text-align: left; }}
+            th {{ background: #f5f5f5; }} tr:hover {{ background: #fafafa; }}
+            .badge {{ padding: 2px 8px; border-radius: 4px; color: white; font-size: 0.85em; }}
+            .summary {{ display: flex; gap: 1rem; margin: 1rem 0; }}
+            .summary-card {{ padding: 1rem; border-radius: 8px; min-width: 120px; text-align: center; color: white; }}
+          </style></head><body>
+          <h1>Cadence Security Report</h1>
+          <p><strong>Generated:</strong> {now}</p>
+          <div class="summary">"""
+
+          from collections import Counter
+          level_counts = Counter(f["level"] for f in findings)
+          for level in ["error", "warning", "note", "none"]:
+              count = level_counts.get(level, 0)
+              h += f'<div class="summary-card" style="background:{level_colors[level]}">'
+              h += f'<div style="font-size:2em;font-weight:bold">{count}</div>'
+              h += f'<div>{level_labels[level]}</div></div>'
+          h += f'</div><p><strong>Total findings:</strong> {len(findings)}</p>'
+
+          h += "<h2>Findings</h2><table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Message</th><th>Location</th></tr>"
+          for f in findings:
+              badge = f'<span class="badge" style="background:{level_colors[f["level"]]}">{level_labels[f["level"]]}</span>'
+              h += f'<tr><td>{badge}</td><td>{html.escape(f["tool"])}</td><td>{html.escape(f["rule"])}</td>'
+              h += f'<td>{html.escape(f["message"][:200])}</td><td><code>{html.escape(f["location"])}</code></td></tr>'
+          h += "</table></body></html>"
+
+          with open("report-output/consolidated-security-report.html", "w") as out:
+              out.write(h)
+          print(f"HTML report generated with {len(findings)} findings")
+          PYEOF
 
       - name: Generate executive summary
         if: always()
