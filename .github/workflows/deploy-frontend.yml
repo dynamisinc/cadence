@@ -96,7 +96,7 @@ jobs:
           VITE_PWA_REGISTER_TYPE: ${{ vars.VITE_PWA_REGISTER_TYPE || 'autoUpdate' }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: frontend
           path: src/frontend/dist

@@ -107,7 +107,7 @@ jobs:
         run: dotnet publish ${{ env.WEBAPI_PROJECT_PATH }}/Cadence.WebApi.csproj --configuration Release --output ./publish/webapi /p:InformationalVersion=${{ steps.version.outputs.full }}
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: web-api
           path: ./publish/webapi

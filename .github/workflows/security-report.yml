@@ -219,7 +219,7 @@ jobs:
       # Upload consolidated SARIF
       - name: Upload consolidated SARIF
         if: steps.check.outputs.has_sarif == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-report-sarif
           path: report-output/consolidated-security-report.sarif
@@ -228,7 +228,7 @@ jobs:
       # Upload HTML report
       - name: Upload HTML report
         if: steps.check.outputs.has_sarif == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-report-html
           path: report-output/consolidated-security-report.html
@@ -237,7 +237,7 @@ jobs:
       # Upload DAST report separately
       - name: Upload DAST HTML report
         if: steps.dast.outputs.found == 'true'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: security-report-dast
           path: report-output/report_html.html
