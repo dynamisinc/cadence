@@ -60,7 +60,7 @@ import {
   CobraTextField,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { PageHeader } from '@/shared/components'
+import { HelpTooltip, PageHeader } from '@/shared/components'
 import { useBreadcrumbs } from '../../../core/contexts'
 import { ExerciseStatus, ObservationRating, ObservationRatingLabels } from '../../../types'
 import type { ObservationDto } from '../types'
@@ -74,7 +74,7 @@ export const ObservationsPage = () => {
 
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
-  const { can } = useExerciseRole(exerciseId ?? null)
+  const { effectiveRole, can } = useExerciseRole(exerciseId ?? null)
   const {
     observations,
     loading: observationsLoading,
@@ -410,11 +410,14 @@ export const ObservationsPage = () => {
         icon={faEye}
         subtitle="Record and review evaluator observations for this exercise"
         chips={
-          <Chip
-            label={`${observations.length} total`}
-            size="small"
-            variant="outlined"
-          />
+          <>
+            <Chip
+              label={`${observations.length} total`}
+              size="small"
+              variant="outlined"
+            />
+            <HelpTooltip helpKey="observations.overview" exerciseRole={effectiveRole ?? undefined} compact />
+          </>
         }
         actions={
           <>

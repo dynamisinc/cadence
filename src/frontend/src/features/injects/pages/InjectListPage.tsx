@@ -78,7 +78,7 @@ import { formatScenarioTime, formatScheduledTime } from '../types'
 import { isGroupExpanded } from '../utils/groupUtils'
 import { ImportWizard } from '../../excel-import/components'
 import { ExportDialog } from '../../excel-export/components'
-import { PageHeader } from '@/shared/components'
+import { HelpTooltip, PageHeader } from '@/shared/components'
 
 /**
  * Check if the current sort order allows drag-and-drop reordering.
@@ -157,7 +157,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
     isReordering: isReorderingPhase,
   } = usePhases(exerciseId)
   const { summaries: objectives } = useObjectiveSummaries(exerciseId)
-  const { can } = useExerciseRole(exerciseId)
+  const { effectiveRole, can } = useExerciseRole(exerciseId)
   const canFireInjects = can('fire_inject')
   const canManage = can('edit_inject')
 
@@ -380,6 +380,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
         showBackButton
         onBackClick={handleBackClick}
         subtitle={exerciseLoading ? <Skeleton width={200} /> : exercise?.name || 'Exercise'}
+        chips={<HelpTooltip helpKey="msel.overview" exerciseRole={effectiveRole ?? undefined} compact />}
         actions={(canFireInjects || canManage) ? (
           <>
             <CobraSecondaryButton

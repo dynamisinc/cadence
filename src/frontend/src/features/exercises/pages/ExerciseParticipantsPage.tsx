@@ -15,7 +15,7 @@ import type { FC } from 'react'
 import { useParams } from 'react-router-dom'
 import { Box, Alert } from '@mui/material'
 import { faHome, faUsers } from '@fortawesome/free-solid-svg-icons'
-import { PageHeader } from '@/shared/components'
+import { HelpTooltip, PageHeader } from '@/shared/components'
 import { ParticipantList } from '../components/ParticipantList'
 import { AddParticipantDialog } from '../components/AddParticipantDialog'
 import { InviteMembersDialog } from '../components/InviteMembersDialog'
@@ -53,7 +53,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
   const params = useParams<{ exerciseId?: string; id?: string }>()
   const exerciseId = propExerciseId ?? params.exerciseId ?? params.id
   const isStandalone = !propExerciseId // Only set breadcrumbs when used as standalone page
-  const { can } = useExerciseRole(exerciseId ?? null)
+  const { effectiveRole, can } = useExerciseRole(exerciseId ?? null)
   const canManageParticipants = can('manage_participants')
   const [dialogOpen, setDialogOpen] = useState(false)
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
@@ -205,6 +205,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
           title="Participants"
           icon={faUsers}
           subtitle={exercise ? `Manage participants for ${exercise.name}` : undefined}
+          chips={<HelpTooltip helpKey="participants.roles" exerciseRole={effectiveRole ?? undefined} compact />}
         />
       )}
 

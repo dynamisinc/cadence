@@ -17,6 +17,7 @@ export {
 export { useServiceWorker, type UseServiceWorkerReturn } from './useServiceWorker'
 export { useSignalR } from './useSignalR'
 export type { ConnectionState } from './useSignalR'
+export { useDismissible, type UseDismissibleReturn } from './useDismissible'
 export { useUnsavedChangesWarning, type UnsavedChangesOptions } from './useUnsavedChangesWarning'
 export {
   useFilteredMenu,

@@ -74,7 +74,7 @@ import { eegEntryKeys } from '../../eeg/hooks/useEegEntries'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
-import { PageHeader } from '@/shared/components'
+import { HelpTooltip, PageHeader } from '@/shared/components'
 import { useObjectiveSummaries } from '../../objectives/hooks'
 import { QuickPhotoFab } from '../../photos'
 import type { ObservationDto } from '../../observations/types'
@@ -88,7 +88,7 @@ export const ExerciseConductPage = () => {
 
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
-  const { effectiveRole: _effectiveRole, can } = useExerciseRole(exerciseId ?? null)
+  const { effectiveRole, can } = useExerciseRole(exerciseId ?? null)
   const {
     clockState,
     displayTime,
@@ -793,6 +793,12 @@ export const ExerciseConductPage = () => {
         title="Exercise Conduct"
         icon={faDesktop}
         subtitle={exercise ? `Conduct ${exercise.name}` : undefined}
+        chips={
+          <>
+            <HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} compact />
+            <HelpTooltip helpKey="conduct.clock" exerciseRole={effectiveRole ?? undefined} compact />
+          </>
+        }
         mb={2}
       />
 
