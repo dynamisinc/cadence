@@ -2,6 +2,20 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.11.0](https://github.com/dynamisinc/cadence/compare/api-v3.10.0...api-v3.11.0) (2026-03-05)
+
+
+### Features
+
+* **eula:** add EULA acceptance gate with admin management ([f63bb74](https://github.com/dynamisinc/cadence/commit/f63bb7441893dfd5bb3e68f8f07fc66fb22b2c23))
+* **seeding:** add observations and EEG entries to beta data seeder ([7364a2e](https://github.com/dynamisinc/cadence/commit/7364a2e5e7117048b8d4700cf08cc828ad910092))
+
+
+### Bug Fixes
+
+* **core:** resolve code review issues across EULA, exercises, and UI ([53a5566](https://github.com/dynamisinc/cadence/commit/53a5566881b7dee7632370381dc9722d99d86dd6))
+* **migrations:** add FK constraint from EulaAcceptances to AspNetUsers ([17195cc](https://github.com/dynamisinc/cadence/commit/17195cc7038ccd08af803cd44d368567fc54cc56))
+
 ## [3.10.0](https://github.com/dynamisinc/cadence/compare/api-v3.9.0...api-v3.10.0) (2026-03-04)
 
 
