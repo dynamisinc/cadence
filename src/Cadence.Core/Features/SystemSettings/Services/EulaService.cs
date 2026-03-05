@@ -50,6 +50,14 @@ public class EulaService : IEulaService
         if (string.IsNullOrWhiteSpace(version))
             throw new ArgumentException("EULA version is required.", nameof(version));
 
+        // Validate version matches the currently configured EULA
+        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        if (settings == null || string.IsNullOrEmpty(settings.EulaVersion))
+            throw new InvalidOperationException("No EULA is currently configured.");
+
+        if (!string.Equals(version, settings.EulaVersion, StringComparison.Ordinal))
+            throw new InvalidOperationException("The submitted EULA version does not match the current version.");
+
         // Check if already accepted (idempotent)
         var existing = await _context.EulaAcceptances
             .AnyAsync(a => a.UserId == userId && a.EulaVersion == version);

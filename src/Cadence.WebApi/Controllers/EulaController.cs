@@ -24,10 +24,12 @@ public class EulaController : ControllerBase
     /// </summary>
     [HttpGet("status")]
     [ProducesResponseType(typeof(EulaStatusDto), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetStatus()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("User ID not found in token.");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token." });
 
         var status = await _eulaService.GetStatusAsync(userId);
         return Ok(status);
@@ -39,15 +41,24 @@ public class EulaController : ControllerBase
     [HttpPost("accept")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Accept([FromBody] AcceptEulaRequest request)
     {
         if (string.IsNullOrWhiteSpace(request.Version))
             return BadRequest(new { error = "Version is required." });
 
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier)
-            ?? throw new UnauthorizedAccessException("User ID not found in token.");
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            return Unauthorized(new { error = "User ID not found in token." });
 
-        await _eulaService.AcceptAsync(userId, request.Version);
-        return NoContent();
+        try
+        {
+            await _eulaService.AcceptAsync(userId, request.Version);
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { error = ex.Message });
+        }
     }
 }

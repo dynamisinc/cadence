@@ -84,7 +84,9 @@ public class ExercisesController : ControllerBase
         }
         else if (!_orgContext.IsSysAdmin && !_orgContext.CurrentOrganizationId.HasValue)
         {
-            // No org context: show exercises from all organizations the user belongs to
+            // No org context: show exercises from all organizations the user belongs to.
+            // Must use IgnoreQueryFilters() because the DbContext org filter would match
+            // OrgIdForFilter == Guid.Empty (no org context), returning nothing.
             var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             if (string.IsNullOrEmpty(userId))
                 return Ok(Array.Empty<ExerciseDto>());
@@ -94,7 +96,9 @@ public class ExercisesController : ControllerBase
             if (orgIds.Count == 0)
                 return Ok(Array.Empty<ExerciseDto>());
 
-            query = query.Where(e => orgIds.Contains(e.OrganizationId));
+            query = _context.Exercises
+                .IgnoreQueryFilters()
+                .Where(e => !e.IsDeleted && orgIds.Contains(e.OrganizationId));
         }
         // SysAdmins with org context filter to that org for consistency
         else if (_orgContext.IsSysAdmin && _orgContext.CurrentOrganizationId.HasValue)

@@ -47,10 +47,9 @@ export const EulaGate: React.FC<EulaGateProps> = ({ children }) => {
     return <>{children}</>
   }
 
-  // EULA acceptance required — show blocking dialog
+  // EULA acceptance required — show blocking dialog (children NOT rendered)
   return (
     <>
-      {children}
       <Dialog
         open
         maxWidth="md"

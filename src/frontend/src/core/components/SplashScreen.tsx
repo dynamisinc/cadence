@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
-import { Box, IconButton, Typography } from '@mui/material'
+import { Box, Typography } from '@mui/material'
+import { CobraIconButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
 import { appVersion } from '@/config/version'
@@ -92,7 +93,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         }}
       >
         {/* Close button — visible when hovered */}
-        <IconButton
+        <CobraIconButton
           onClick={handleClose}
           aria-label="Close splash screen"
           sx={{
@@ -106,7 +107,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           }}
         >
           <FontAwesomeIcon icon={faXmark} size="lg" />
-        </IconButton>
+        </CobraIconButton>
 
         {/* Logo with subtle pulse */}
         <Box

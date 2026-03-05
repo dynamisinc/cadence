@@ -1569,6 +1569,11 @@ public class AppDbContext : IdentityDbContext<ApplicationUser>
             entity.Property(e => e.UserId).IsRequired().HasMaxLength(450);
             entity.Property(e => e.EulaVersion).IsRequired().HasMaxLength(50);
             entity.HasIndex(e => new { e.UserId, e.EulaVersion }).IsUnique();
+
+            entity.HasOne(e => e.User)
+                .WithMany()
+                .HasForeignKey(e => e.UserId)
+                .OnDelete(DeleteBehavior.Cascade);
         });
     }
 
