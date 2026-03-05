@@ -112,7 +112,7 @@ jobs:
       # Note: vitest produces standard JUnit XML, not Jest's variant, so use java-junit
       # continue-on-error: Dependabot PRs have read-only tokens and can't create check runs
       - name: Publish Test Summary
-        uses: dorny/test-reporter@v1
+        uses: dorny/test-reporter@v2
         if: always() && (steps.frontend-tests.outcome == 'success' || steps.frontend-tests.outcome == 'failure')
         continue-on-error: true
         with:
