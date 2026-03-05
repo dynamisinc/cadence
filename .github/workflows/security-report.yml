@@ -24,7 +24,7 @@ jobs:
           dotnet-version: ${{ env.DOTNET_VERSION }}
 
       - name: Install SARIF Multitool
-        run: dotnet tool install --global Microsoft.CodeAnalysis.Sarif.Multitool
+        run: dotnet tool install --global Sarif.Multitool
 
       - name: Create working directory
         run: mkdir -p sarif-inputs report-output
