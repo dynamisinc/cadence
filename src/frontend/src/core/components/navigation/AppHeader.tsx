@@ -65,7 +65,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         {/* Logo + Title - links to home */}
         <Link
           to="/"
-          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', flexGrow: 1 }}
+          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
         >
           <Box
             component="img"
@@ -94,6 +94,9 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             Cadence
           </Typography>
         </Link>
+
+        {/* Spacer */}
+        <Box sx={{ flexGrow: 1 }} />
 
         {/* Connection Status Indicator */}
         <Box sx={{ mr: 1 }}>
