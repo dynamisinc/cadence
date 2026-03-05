@@ -13,6 +13,7 @@
 import React from 'react'
 import { Container, Stack, Paper } from '@mui/material'
 import { faGear, faHome } from '@fortawesome/free-solid-svg-icons'
+import { EulaAdmin } from '../components/EulaAdmin'
 import { FeatureFlagsAdmin } from '../components/FeatureFlagsAdmin'
 import { SystemSettingsAdmin } from '../components/SystemSettingsAdmin'
 import { PageHeader } from '@/shared/components'
@@ -37,6 +38,11 @@ export const AdminPage: React.FC = () => {
         {/* System Settings Section */}
         <Paper sx={{ p: 3 }} data-testid="system-settings-section">
           <SystemSettingsAdmin />
+        </Paper>
+
+        {/* EULA / Terms of Use Section */}
+        <Paper sx={{ p: 3 }} data-testid="eula-section">
+          <EulaAdmin />
         </Paper>
 
         {/* Feature Flags Section */}

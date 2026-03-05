@@ -2,37 +2,45 @@ param location string
 param functionAppName string
 param storageAccountName string
 param appInsightsConnectionString string
-param signalRConnectionString string
+param signalRConnectionString string = ''
 param sqlConnectionString string
 param tags object = {}
 
-resource hostingPlan 'Microsoft.Web/serverfarms@2022-09-01' = {
+// Functions use their own Consumption plan (scale to zero)
+resource hostingPlan 'Microsoft.Web/serverfarms@2023-12-01' = {
   name: '${functionAppName}-plan'
   location: location
+  kind: 'linux'
   sku: {
     name: 'Y1'
     tier: 'Dynamic'
   }
-  properties: {}
+  properties: {
+    reserved: true
+  }
   tags: tags
 }
 
-resource storageAccount 'Microsoft.Storage/storageAccounts@2023-01-01' existing = {
+resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' existing = {
   name: storageAccountName
 }
 
-resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
+resource functionApp 'Microsoft.Web/sites@2023-12-01' = {
   name: functionAppName
   location: location
-  kind: 'functionapp'
+  kind: 'functionapp,linux'
   identity: {
     type: 'SystemAssigned'
   }
   properties: {
     serverFarmId: hostingPlan.id
+    reserved: true
+    httpsOnly: true
     siteConfig: {
-      netFrameworkVersion: 'v8.0' // Currently Azure uses v8.0 setting for isolated .NET 8/9/10
+      linuxFxVersion: 'DOTNET-ISOLATED|10.0'
       use32BitWorkerProcess: false
+      minTlsVersion: '1.2'
+      ftpsState: 'FtpsOnly'
       appSettings: [
         {
           name: 'AzureWebJobsStorage'
@@ -73,7 +81,6 @@ resource functionApp 'Microsoft.Web/sites@2022-09-01' = {
         ]
       }
     }
-    httpsOnly: true
   }
   tags: tags
 }

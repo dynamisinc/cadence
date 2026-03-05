@@ -1,3 +1,6 @@
+using System.Globalization;
+using System.IO.Compression;
+using System.Text.RegularExpressions;
 using Cadence.Core.Data;
 using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Hubs;
@@ -6,8 +9,6 @@ using DocumentFormat.OpenXml;
 using DocumentFormat.OpenXml.Packaging;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Microsoft.EntityFrameworkCore;
-using System.IO.Compression;
-using System.Text.RegularExpressions;
 
 namespace Cadence.Core.Features.Eeg.Services;
 
@@ -181,7 +182,7 @@ public partial class EegDocumentService : IEegDocumentService
         table.AppendChild(CreateTableProperties(false));
 
         AddTableRow(table, "Exercise Name:", exercise.Name);
-        AddTableRow(table, "Exercise Date:", exercise.ScheduledDate.ToString("MMMM d, yyyy"));
+        AddTableRow(table, "Exercise Date:", exercise.ScheduledDate.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture));
         AddTableRow(table, "Organization:", exercise.Organization?.Name ?? "");
         AddTableRow(table, "Location:", exercise.Location ?? "");
 
@@ -278,7 +279,7 @@ public partial class EegDocumentService : IEegDocumentService
         {
             tasksCell.AppendChild(CreateBulletParagraph(task.TaskDescription, fontSize: 20));
         }
-        if (!target.CriticalTasks.Any())
+        if (target.CriticalTasks.Count == 0)
         {
             tasksCell.AppendChild(CreateParagraph("(No tasks defined)"));
         }
@@ -298,7 +299,7 @@ public partial class EegDocumentService : IEegDocumentService
             foreach (var entry in entries)
             {
                 var ratingLetter = GetRatingLetter(entry.Rating);
-                var timeStr = entry.ObservedAt.ToString("HH:mm");
+                var timeStr = entry.ObservedAt.ToString("HH:mm", CultureInfo.InvariantCulture);
                 var evaluatorText = includeEvaluatorNames && entry.Evaluator != null
                     ? entry.Evaluator.DisplayName
                     : "Evaluator";
@@ -314,7 +315,7 @@ public partial class EegDocumentService : IEegDocumentService
                 obsCell.AppendChild(CreateParagraph(""));
             }
 
-            if (!entries.Any())
+            if (entries.Count == 0)
             {
                 obsCell.AppendChild(CreateParagraph("(No observations recorded)"));
             }
@@ -322,7 +323,7 @@ public partial class EegDocumentService : IEegDocumentService
             dataRow.AppendChild(obsCell);
 
             // Calculated rating for completed mode
-            var finalRating = entries.Any()
+            var finalRating = entries.Count > 0
                 ? GetAggregateRating(entries.Select(e => e.Rating))
                 : null;
             dataRow.AppendChild(CreateTableCell(
@@ -365,7 +366,7 @@ public partial class EegDocumentService : IEegDocumentService
 
     private static void AddCompletedEvaluatorInfoSection(Body body, List<ApplicationUser> evaluators)
     {
-        if (!evaluators.Any()) return;
+        if (evaluators.Count == 0) return;
 
         body.AppendChild(CreateParagraph(""));
         body.AppendChild(CreateParagraph("Evaluator Information", bold: true));
@@ -456,7 +457,7 @@ public partial class EegDocumentService : IEegDocumentService
             var runProps = new RunProperties();
 
             runProps.AppendChild(new RunFonts { Ascii = "Calibri", HighAnsi = "Calibri" });
-            runProps.AppendChild(new FontSize { Val = fontSize.ToString() });
+            runProps.AppendChild(new FontSize { Val = fontSize.ToString(CultureInfo.InvariantCulture) });
 
             if (bold)
                 runProps.AppendChild(new Bold());
@@ -483,7 +484,7 @@ public partial class EegDocumentService : IEegDocumentService
         var run = new Run();
         var runProps = new RunProperties();
         runProps.AppendChild(new RunFonts { Ascii = "Calibri", HighAnsi = "Calibri" });
-        runProps.AppendChild(new FontSize { Val = fontSize.ToString() });
+        runProps.AppendChild(new FontSize { Val = fontSize.ToString(CultureInfo.InvariantCulture) });
 
         run.AppendChild(runProps);
         run.AppendChild(new Text($"\u2022 {text}") { Space = SpaceProcessingModeValues.Preserve });
@@ -550,7 +551,7 @@ public partial class EegDocumentService : IEegDocumentService
     private static PerformanceRating? GetAggregateRating(IEnumerable<PerformanceRating> ratings)
     {
         var list = ratings.ToList();
-        if (!list.Any()) return null;
+        if (list.Count == 0) return null;
 
         // Use worst-case aggregation per HSEEP guidelines
         // Higher enum value = worse rating, so max gives worst case

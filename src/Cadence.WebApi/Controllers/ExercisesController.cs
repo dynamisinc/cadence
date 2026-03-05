@@ -5,6 +5,7 @@ using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Msel.Models.DTOs;
 using Cadence.Core.Features.Msel.Services;
+using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
@@ -32,6 +33,7 @@ public class ExercisesController : ControllerBase
     private readonly IExerciseApprovalSettingsService _approvalSettingsService;
     private readonly IExerciseApprovalQueueService _approvalQueueService;
     private readonly ICurrentOrganizationContext _orgContext;
+    private readonly IMembershipService _membershipService;
     private readonly ILogger<ExercisesController> _logger;
 
     public ExercisesController(
@@ -43,6 +45,7 @@ public class ExercisesController : ControllerBase
         IExerciseApprovalSettingsService approvalSettingsService,
         IExerciseApprovalQueueService approvalQueueService,
         ICurrentOrganizationContext orgContext,
+        IMembershipService membershipService,
         ILogger<ExercisesController> logger)
     {
         _context = context;
@@ -53,6 +56,7 @@ public class ExercisesController : ControllerBase
         _approvalSettingsService = approvalSettingsService;
         _approvalQueueService = approvalQueueService;
         _orgContext = orgContext;
+        _membershipService = membershipService;
         _logger = logger;
     }
 
@@ -80,8 +84,21 @@ public class ExercisesController : ControllerBase
         }
         else if (!_orgContext.IsSysAdmin && !_orgContext.CurrentOrganizationId.HasValue)
         {
-            // Non-SysAdmin with no org context sees nothing
-            return Ok(Array.Empty<ExerciseDto>());
+            // No org context: show exercises from all organizations the user belongs to.
+            // Must use IgnoreQueryFilters() because the DbContext org filter would match
+            // OrgIdForFilter == Guid.Empty (no org context), returning nothing.
+            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userId))
+                return Ok(Array.Empty<ExerciseDto>());
+
+            var memberships = await _membershipService.GetUserMembershipsAsync(userId);
+            var orgIds = memberships.Select(m => m.OrganizationId).ToList();
+            if (orgIds.Count == 0)
+                return Ok(Array.Empty<ExerciseDto>());
+
+            query = _context.Exercises
+                .IgnoreQueryFilters()
+                .Where(e => !e.IsDeleted && orgIds.Contains(e.OrganizationId));
         }
         // SysAdmins with org context filter to that org for consistency
         else if (_orgContext.IsSysAdmin && _orgContext.CurrentOrganizationId.HasValue)
@@ -546,8 +563,8 @@ public class ExercisesController : ControllerBase
                     SkippedByUserId = null,
                     SkipReason = null,
                     MselId = newMselId.Value,
-                    PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.ContainsKey(sourceInject.PhaseId.Value)
-                        ? phaseIdMap[sourceInject.PhaseId.Value]
+                    PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.TryGetValue(sourceInject.PhaseId.Value, out var mappedPhaseId)
+                        ? mappedPhaseId
                         : null,
                     CreatedBy = SystemConstants.SystemUserIdString,
                     ModifiedBy = SystemConstants.SystemUserIdString,
@@ -557,12 +574,12 @@ public class ExercisesController : ControllerBase
                 // Copy inject-objective links
                 foreach (var sourceLink in sourceInject.InjectObjectives)
                 {
-                    if (objectiveIdMap.ContainsKey(sourceLink.ObjectiveId))
+                    if (objectiveIdMap.TryGetValue(sourceLink.ObjectiveId, out var mappedObjectiveId))
                     {
                         _context.InjectObjectives.Add(new InjectObjective
                         {
                             InjectId = newInjectId,
-                            ObjectiveId = objectiveIdMap[sourceLink.ObjectiveId],
+                            ObjectiveId = mappedObjectiveId,
                         });
                     }
                 }

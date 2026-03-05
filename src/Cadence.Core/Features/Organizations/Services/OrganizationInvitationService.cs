@@ -195,7 +195,7 @@ public class OrganizationInvitationService : IOrganizationInvitationService
 
         if (!string.IsNullOrEmpty(statusFilter))
         {
-            query = statusFilter.ToLower() switch
+            query = statusFilter.ToLowerInvariant() switch
             {
                 "pending" => query.Where(i => i.UsedAt == null && i.ExpiresAt > DateTime.UtcNow),
                 "expired" => query.Where(i => i.UsedAt == null && i.ExpiresAt <= DateTime.UtcNow),
@@ -505,7 +505,7 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             var recipient = new EmailRecipient(invite.Email ?? string.Empty);
 
             // Use exercise-aware template if there are pending assignments
-            var templateName = pendingAssignments.Any()
+            var templateName = pendingAssignments.Count > 0
                 ? "OrganizationInviteWithExercises"
                 : "OrganizationInvite";
 

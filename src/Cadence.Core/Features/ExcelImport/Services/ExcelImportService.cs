@@ -1695,7 +1695,7 @@ public class ExcelImportService : IExcelImportService
 
     #region Nested Types
 
-    private class ImportSession
+    private sealed class ImportSession
     {
         // Lock object for thread-safe access to mutable session state.
         // Used for ExpiresAt and any read-modify-write on ValidationResults/Mappings.
@@ -1721,11 +1721,11 @@ public class ExcelImportService : IExcelImportService
         }
 
         public required string CurrentStep { get; set; }
-        public required IReadOnlyList<WorksheetInfoDto> Worksheets { get; init; }
+        public required List<WorksheetInfoDto> Worksheets { get; init; }
         public int? SelectedWorksheetIndex { get; set; }
         public int HeaderRow { get; set; } = 1;
         public int DataStartRow { get; set; } = 2;
-        public IReadOnlyList<ColumnInfoDto>? Columns { get; set; }
+        public List<ColumnInfoDto>? Columns { get; set; }
         public List<ColumnMappingDto>? Mappings { get; set; }
         public string? TimeFormat { get; set; }
         public string? DateFormat { get; set; }

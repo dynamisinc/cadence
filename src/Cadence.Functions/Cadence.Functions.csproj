@@ -6,6 +6,7 @@
     <OutputType>Exe</OutputType>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <AnalysisMode>Recommended</AnalysisMode>
     <RootNamespace>Cadence.Functions</RootNamespace>
     <AssemblyName>Cadence.Functions</AssemblyName>
     <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>

@@ -368,7 +368,7 @@ public class ObservationMetricsService : IObservationMetricsService
 
         // Count total observations and tagged observations
         var totalObservations = observations.Count;
-        var taggedObservations = observations.Where(o => o.ObservationCapabilities.Any()).ToList();
+        var taggedObservations = observations.Where(o => o.ObservationCapabilities.Count > 0).ToList();
         var totalTaggedObservations = taggedObservations.Count;
         var taggingRate = totalObservations > 0
             ? Math.Round((decimal)totalTaggedObservations / totalObservations * 100, 1)
@@ -395,7 +395,7 @@ public class ObservationMetricsService : IObservationMetricsService
                 var unrated = capObservations.Count - ratedObservations.Count;
 
                 decimal? avgRating = null;
-                if (ratedObservations.Any())
+                if (ratedObservations.Count > 0)
                 {
                     var sum = performed * 1 + satisfactory * 2 + marginal * 3 + unsatisfactory * 4;
                     avgRating = Math.Round((decimal)sum / ratedObservations.Count, 2);
@@ -470,7 +470,7 @@ public class ObservationMetricsService : IObservationMetricsService
                 var areaObservations = g.Sum(c => c.ObservationCount);
                 var areaRated = g.Where(c => c.AverageRating != null).ToList();
                 decimal? areaAvgRating = null;
-                if (areaRated.Any())
+                if (areaRated.Count > 0)
                 {
                     // Weighted average by observation count
                     var weightedSum = areaRated.Sum(c => (c.AverageRating ?? 0) * c.ObservationCount);

@@ -1,0 +1,9 @@
+soft-fail: true
+compact: true
+framework:
+  - bicep
+# Skip checks that are accepted risk or false positives.
+# Each skip must have a comment explaining the rationale.
+skip-check:
+  # Example: skip a specific check if it's accepted risk
+  # - CKV_AZURE_88  # Reason: accepted risk because...

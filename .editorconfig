@@ -64,7 +64,34 @@ csharp_indent_switch_labels = true
 csharp_space_after_cast = false
 csharp_space_after_keywords_in_control_flow_statements = true
 
+# =============================================================================
+# Code Analysis - Suppress noisy rules
+# =============================================================================
+
+# CA1848: Use LoggerMessage delegates - massive boilerplate for minimal perf gain
+dotnet_diagnostic.CA1848.severity = none
+
+# CA1873: Expensive logging arg evaluation - related to CA1848
+dotnet_diagnostic.CA1873.severity = none
+
+# CA1822: Mark members as static - noisy for controller/service methods
+dotnet_diagnostic.CA1822.severity = none
+
+# CA1707: Identifiers should not contain underscores - conflicts with test naming convention
+dotnet_diagnostic.CA1707.severity = none
+
+# CA1805: Do not initialize unnecessarily - stylistic
+dotnet_diagnostic.CA1805.severity = none
+
+# CA1725: Parameter names should match base declaration - noisy
+dotnet_diagnostic.CA1725.severity = none
+
+# CA1862: StringComparison overloads - all instances are in EF Core LINQ (SQL-translated)
+dotnet_diagnostic.CA1862.severity = none
+
+# =============================================================================
 # Naming conventions
+# =============================================================================
 dotnet_naming_rule.private_fields_should_be_camel_case.severity = suggestion
 dotnet_naming_rule.private_fields_should_be_camel_case.symbols = private_fields
 dotnet_naming_rule.private_fields_should_be_camel_case.style = camel_case_underscore_prefix
@@ -144,3 +171,9 @@ indent_size = 4
 # =============================================================================
 [*.bicep]
 indent_size = 2
+
+# =============================================================================
+# EF Core Migrations - auto-generated code, suppress code analysis
+# =============================================================================
+[**/Migrations/*.cs]
+dotnet_diagnostic.CA1861.severity = none

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Net.Http.Headers;
 using System.Text;
 using System.Text.Json;
@@ -206,18 +207,18 @@ public class GitHubIssueService : IGitHubIssueService
         string? orgName)
     {
         var sb = new StringBuilder();
-        sb.AppendLine($"### {FormatTypePrefix(type)}: {title}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"### {FormatTypePrefix(type)}: {title}");
         sb.AppendLine();
-        sb.AppendLine($"**Reference:** {referenceNumber}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"**Reference:** {referenceNumber}");
 
         if (severity != null)
-            sb.AppendLine($"**Severity:** {severity}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"**Severity:** {severity}");
 
         var reporter = reporterName != null ? $"{reporterName} ({reporterEmail})" : reporterEmail;
-        sb.AppendLine($"**Reporter:** {reporter}");
+        sb.AppendLine(CultureInfo.InvariantCulture, $"**Reporter:** {reporter}");
 
         if (orgName != null)
-            sb.AppendLine($"**Organization:** {orgName}");
+            sb.AppendLine(CultureInfo.InvariantCulture, $"**Organization:** {orgName}");
 
         if (!string.IsNullOrEmpty(contentJson))
         {
@@ -230,7 +231,7 @@ public class GitHubIssueService : IGitHubIssueService
                     var value = prop.Value.GetString();
                     if (!string.IsNullOrWhiteSpace(value))
                     {
-                        sb.AppendLine($"#### {FormatPropertyName(prop.Name)}");
+                        sb.AppendLine(CultureInfo.InvariantCulture, $"#### {FormatPropertyName(prop.Name)}");
                         sb.AppendLine(value);
                         sb.AppendLine();
                     }
@@ -265,7 +266,7 @@ public class GitHubIssueService : IGitHubIssueService
         {
             if (i > 0 && char.IsUpper(name[i]))
                 sb.Append(' ');
-            sb.Append(i == 0 ? char.ToUpper(name[i]) : name[i]);
+            sb.Append(i == 0 ? char.ToUpperInvariant(name[i]) : name[i]);
         }
         return sb.ToString();
     }
@@ -278,7 +279,7 @@ public class GitHubIssueService : IGitHubIssueService
         _ => [],
     };
 
-    private record GitHubIssueResponse
+    private sealed record GitHubIssueResponse
     {
         [JsonPropertyName("number")]
         public int Number { get; init; }
@@ -287,13 +288,13 @@ public class GitHubIssueService : IGitHubIssueService
         public string HtmlUrl { get; init; } = string.Empty;
     }
 
-    private record GitHubRepoResponse
+    private sealed record GitHubRepoResponse
     {
         [JsonPropertyName("permissions")]
         public GitHubRepoPermissions? Permissions { get; init; }
     }
 
-    private record GitHubRepoPermissions
+    private sealed record GitHubRepoPermissions
     {
         [JsonPropertyName("push")]
         public bool Push { get; init; }

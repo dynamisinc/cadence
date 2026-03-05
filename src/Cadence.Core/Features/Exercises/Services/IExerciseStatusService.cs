@@ -77,7 +77,9 @@ public interface IExerciseStatusService
     /// <param name="from">Current status</param>
     /// <param name="to">Target status</param>
     /// <returns>True if the transition is allowed</returns>
+#pragma warning disable CA1716 // Identifier matches keyword — 'from'/'to' are idiomatic status-transition parameter names
     bool CanTransition(ExerciseStatus from, ExerciseStatus to);
+#pragma warning restore CA1716
 
     /// <summary>
     /// Gets the available status transitions for the current status.

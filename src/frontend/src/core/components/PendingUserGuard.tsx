@@ -1,8 +1,9 @@
 /**
  * PendingUserGuard - Redirects users without organization membership to /pending
  *
- * Users in "pending" status (no organization assignment) are redirected to the
- * pending user page, except for certain allowed routes like settings and logout.
+ * Users with memberships but no org selected are allowed through — the app
+ * works in a degraded mode (no org sidebar) and auto-enters an org when
+ * they select an exercise.
  *
  * @module core/components
  */
@@ -30,7 +31,8 @@ const ALLOWED_ROUTES = [
 
 /**
  * PendingUserGuard component
- * Redirects pending users to /pending page, allows access to whitelisted routes
+ * Redirects pending users (no memberships at all) to /pending page.
+ * Users with memberships but no org selected pass through normally.
  */
 export const PendingUserGuard: React.FC<PendingUserGuardProps> = ({ children }) => {
   const { isPending, isLoading: isOrgLoading } = useOrganization()

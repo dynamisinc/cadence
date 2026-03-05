@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
 using Cadence.Core.Features.Email.Models;
@@ -81,8 +82,8 @@ public partial class PlaceholderEmailTemplateRenderer : IEmailTemplateRenderer
         return value switch
         {
             null => string.Empty,
-            DateTime dt => dt.ToString("MMMM d, yyyy"),
-            DateTimeOffset dto => dto.ToString("MMMM d, yyyy"),
+            DateTime dt => dt.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture),
+            DateTimeOffset dto => dto.ToString("MMMM d, yyyy", CultureInfo.InvariantCulture),
             _ => value.ToString() ?? string.Empty
         };
     }

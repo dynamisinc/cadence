@@ -1,8 +1,10 @@
 param location string
 param staticWebAppName string
+param repositoryUrl string = ''
+param branch string = 'main'
 param tags object = {}
 
-resource staticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
+resource staticWebApp 'Microsoft.Web/staticSites@2023-12-01' = {
   name: staticWebAppName
   location: location
   sku: {
@@ -13,6 +15,9 @@ resource staticWebApp 'Microsoft.Web/staticSites@2022-09-01' = {
     allowConfigFileUpdates: true
     stagingEnvironmentPolicy: 'Enabled'
     enterpriseGradeCdnStatus: 'Disabled'
+    repositoryUrl: repositoryUrl != '' ? repositoryUrl : null
+    branch: repositoryUrl != '' ? branch : null
+    provider: repositoryUrl != '' ? 'GitHub' : null
   }
   tags: tags
 }

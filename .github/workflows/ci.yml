@@ -148,21 +148,73 @@ jobs:
   security-scan:
     name: Security Scan
     runs-on: ubuntu-latest
-    needs: [build-backend]
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Run dotnet security scan
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: "npm"
+          cache-dependency-path: src/frontend/package-lock.json
+
+      # NuGet vulnerability scan - all projects
+      - name: Scan NuGet packages for vulnerabilities
         run: |
-          dotnet list src/Cadence.WebApi/Cadence.WebApi.csproj package --vulnerable --include-transitive
-        continue-on-error: true
+          echo "## NuGet Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          FOUND_VULN=false
+
+          for PROJECT in src/Cadence.Core/Cadence.Core.csproj src/Cadence.WebApi/Cadence.WebApi.csproj src/Cadence.Functions/Cadence.Functions.csproj; do
+            echo "### Scanning $(basename $(dirname $PROJECT))" >> $GITHUB_STEP_SUMMARY
+            OUTPUT=$(dotnet list $PROJECT package --vulnerable --include-transitive 2>&1)
+            echo "$OUTPUT"
+
+            if echo "$OUTPUT" | grep -qiE "(High|Critical)"; then
+              FOUND_VULN=true
+              echo "::error::High or Critical NuGet vulnerability found in $PROJECT"
+              echo "**HIGH/CRITICAL vulnerabilities found**" >> $GITHUB_STEP_SUMMARY
+            else
+              echo "No high/critical vulnerabilities" >> $GITHUB_STEP_SUMMARY
+            fi
+            echo "" >> $GITHUB_STEP_SUMMARY
+          done
+
+          if [ "$FOUND_VULN" = true ]; then
+            echo "::error::High or Critical NuGet vulnerabilities detected. Update affected packages."
+            exit 1
+          fi
+
+      # npm vulnerability scan - frontend
+      - name: Install frontend dependencies
+        run: npm ci
+        working-directory: src/frontend
+
+      - name: Scan npm packages for vulnerabilities
+        run: |
+          echo "## npm Vulnerability Scan" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if npm audit --audit-level=high --omit=dev 2>&1 | tee /tmp/npm-audit.txt; then
+            echo "No high/critical npm vulnerabilities" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**HIGH/CRITICAL npm vulnerabilities found** — see output above" >> $GITHUB_STEP_SUMMARY
+            echo "::error::High or Critical npm vulnerabilities detected. Run 'npm audit' locally for details."
+            exit 1
+          fi
 
   all-checks-passed:
     name: All Checks Passed
     runs-on: ubuntu-latest
-    needs: [build-backend, build-frontend]
+    needs: [build-backend, build-frontend, security-scan]
     if: always()
 
     steps:
@@ -174,6 +226,10 @@ jobs:
           fi
           if [ "${{ needs.build-frontend.result }}" != "success" ]; then
             echo "Frontend checks failed"
+            exit 1
+          fi
+          if [ "${{ needs.security-scan.result }}" != "success" ]; then
+            echo "Security scan failed"
             exit 1
           fi
           echo "All checks passed!"

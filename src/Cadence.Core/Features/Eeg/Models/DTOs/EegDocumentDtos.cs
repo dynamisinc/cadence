@@ -24,7 +24,9 @@ public enum EegDocumentOutputFormat
     /// <summary>
     /// Single document containing all capabilities.
     /// </summary>
+#pragma warning disable CA1720 // Identifier contains type name — 'Single' is a domain output-format term, not the type System.Single
     Single,
+#pragma warning restore CA1720
 
     /// <summary>
     /// Separate document per capability (ZIP download).

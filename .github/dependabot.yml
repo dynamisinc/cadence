@@ -1,0 +1,92 @@
+version: 2
+updates:
+  # NuGet packages - Core (shared business logic)
+  - package-ecosystem: "nuget"
+    directory: "/src/Cadence.Core"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+        update-types:
+          - "minor"
+          - "patch"
+      entity-framework:
+        patterns:
+          - "Microsoft.EntityFrameworkCore*"
+
+  # NuGet packages - WebApi (primary API)
+  - package-ecosystem: "nuget"
+    directory: "/src/Cadence.WebApi"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      microsoft:
+        patterns:
+          - "Microsoft.*"
+        update-types:
+          - "minor"
+          - "patch"
+      azure:
+        patterns:
+          - "Azure.*"
+
+  # NuGet packages - Functions (background jobs)
+  - package-ecosystem: "nuget"
+    directory: "/src/Cadence.Functions"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "security"
+
+  # npm packages (React frontend)
+  - package-ecosystem: "npm"
+    directory: "/src/frontend"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 10
+    labels:
+      - "dependencies"
+      - "security"
+    groups:
+      mui:
+        patterns:
+          - "@mui/*"
+          - "@emotion/*"
+      fortawesome:
+        patterns:
+          - "@fortawesome/*"
+      testing:
+        patterns:
+          - "@testing-library/*"
+          - "vitest"
+          - "@vitest/*"
+      tanstack:
+        patterns:
+          - "@tanstack/*"
+
+  # GitHub Actions versions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    labels:
+      - "dependencies"
+      - "ci"

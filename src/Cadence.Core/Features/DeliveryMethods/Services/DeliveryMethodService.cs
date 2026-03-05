@@ -62,7 +62,7 @@ public class DeliveryMethodService : IDeliveryMethodService
 
         // Check for duplicate name (case-insensitive)
         var exists = await _context.DeliveryMethods
-            .AnyAsync(dm => dm.Name.ToLower() == trimmedName.ToLower());
+            .AnyAsync(dm => dm.Name.ToLowerInvariant() == trimmedName.ToLowerInvariant());
 
         if (exists)
             throw new InvalidOperationException($"A delivery method with name '{trimmedName}' already exists.");
@@ -112,7 +112,7 @@ public class DeliveryMethodService : IDeliveryMethodService
 
         // Check for duplicate name (case-insensitive, excluding self)
         var duplicate = await _context.DeliveryMethods
-            .AnyAsync(dm => dm.Id != id && dm.Name.ToLower() == trimmedName.ToLower());
+            .AnyAsync(dm => dm.Id != id && dm.Name.ToLowerInvariant() == trimmedName.ToLowerInvariant());
 
         if (duplicate)
             throw new InvalidOperationException($"A delivery method with name '{trimmedName}' already exists.");

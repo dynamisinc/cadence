@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { createBrowserRouter, RouterProvider, useNavigate, useLocation, Outlet } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { MobileBlocker, ProtectedRoute, OrgAdminRoute, PendingUserGuard, GlobalSyncStatus, UpdatePrompt, InstallBanner, ThemedApp, ErrorBoundary, RouteErrorFallback } from './core/components'
@@ -67,6 +67,9 @@ import { NotificationToastProvider } from './features/notifications'
 import { AboutPage, WhatsNewProvider } from './features/version'
 import { CobraPrimaryButton } from './theme/styledComponents'
 import CobraStyles from './theme/CobraStyles'
+import { SplashScreen } from './core/components/SplashScreen'
+import { EulaGate } from './features/eula'
+import { appVersion } from './config/version'
 
 // Create a client with sensible defaults for exercise management
 const queryClient = new QueryClient({
@@ -460,12 +463,27 @@ const router = createBrowserRouter([
  * - AppLayout with Header, Sidebar, Breadcrumbs
  * - Toast notifications
  */
+const SPLASH_VERSION_KEY = 'cadence-splash-version'
+
 function App() {
+  const [showSplash, setShowSplash] = useState(() => {
+    const seen = localStorage.getItem(SPLASH_VERSION_KEY)
+    if (seen === appVersion.version) return false
+    // Mark as seen immediately so F5/remount never re-shows
+    localStorage.setItem(SPLASH_VERSION_KEY, appVersion.version)
+    return true
+  })
+
+  const handleSplashComplete = useCallback(() => {
+    setShowSplash(false)
+  }, [])
+
   return (
     <QueryClientProvider client={queryClient}>
       {/* Base theme for auth pages (before preferences load) */}
       <ThemeProvider theme={cobraTheme}>
         <CssBaseline />
+        {showSplash && <SplashScreen onComplete={handleSplashComplete} />}
         <ErrorBoundary
           onError={(error, errorInfo) => {
             trackException(error, {
@@ -481,24 +499,26 @@ function App() {
               <UserPreferencesProvider>
                 {/* ThemedApp applies dynamic theme based on user preferences */}
                 <ThemedApp>
-                  <ExerciseNavigationProvider>
-                    <ConnectivityProvider>
-                      <OfflineSyncProvider>
-                        <MobileBlocker>
-                          <FeatureFlagsProvider>
-                            <NotificationToastProvider>
-                              <WhatsNewProvider>
-                                <RouterProvider router={router} />
-                              </WhatsNewProvider>
-                            </NotificationToastProvider>
-                            <GlobalSyncStatus />
-                            <UpdatePrompt />
-                            <InstallBanner />
-                          </FeatureFlagsProvider>
-                        </MobileBlocker>
-                      </OfflineSyncProvider>
-                    </ConnectivityProvider>
-                  </ExerciseNavigationProvider>
+                  <EulaGate>
+                    <ExerciseNavigationProvider>
+                      <ConnectivityProvider>
+                        <OfflineSyncProvider>
+                          <MobileBlocker>
+                            <FeatureFlagsProvider>
+                              <NotificationToastProvider>
+                                <WhatsNewProvider>
+                                  <RouterProvider router={router} />
+                                </WhatsNewProvider>
+                              </NotificationToastProvider>
+                              <GlobalSyncStatus />
+                              <UpdatePrompt />
+                              <InstallBanner />
+                            </FeatureFlagsProvider>
+                          </MobileBlocker>
+                        </OfflineSyncProvider>
+                      </ConnectivityProvider>
+                    </ExerciseNavigationProvider>
+                  </EulaGate>
                 </ThemedApp>
               </UserPreferencesProvider>
             </OrganizationProvider>

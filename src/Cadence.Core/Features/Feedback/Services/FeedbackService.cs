@@ -202,7 +202,7 @@ public class FeedbackService : IFeedbackService
 
         var totalCount = await query.CountAsync();
 
-        query = sortBy?.ToLower() switch
+        query = sortBy?.ToLowerInvariant() switch
         {
             "title" => sortDesc ? query.OrderByDescending(r => r.Title) : query.OrderBy(r => r.Title),
             "referencenumber" => sortDesc ? query.OrderByDescending(r => r.ReferenceNumber) : query.OrderBy(r => r.ReferenceNumber),

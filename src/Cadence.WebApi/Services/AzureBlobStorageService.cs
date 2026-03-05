@@ -65,8 +65,7 @@ public class AzureBlobStorageService : IBlobStorageService
     /// <inheritdoc />
     public async Task<string> UploadAsync(Stream stream, string blobPath, string contentType, CancellationToken ct = default)
     {
-        if (stream == null)
-            throw new ArgumentNullException(nameof(stream));
+        ArgumentNullException.ThrowIfNull(stream);
         if (string.IsNullOrWhiteSpace(blobPath))
             throw new ArgumentException("Blob path cannot be empty", nameof(blobPath));
         if (string.IsNullOrWhiteSpace(contentType))

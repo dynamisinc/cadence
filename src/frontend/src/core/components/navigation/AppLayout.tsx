@@ -19,6 +19,7 @@ import { ExerciseSidebar } from './ExerciseSidebar'
 import { Breadcrumb } from './Breadcrumb'
 import { useBreadcrumbContext } from '../../contexts'
 import { useExerciseNavigation } from '@/shared/contexts'
+import { NoOrgBanner } from '../NoOrgBanner'
 
 const SIDEBAR_STATE_KEY = 'cadence-sidebar-open'
 
@@ -163,6 +164,7 @@ export const AppLayout: React.FC<AppLayoutProps> = ({
             minHeight: 0, // Critical for nested flex scrolling
           }}
         >
+          <NoOrgBanner />
           {children}
         </Box>
       </Box>

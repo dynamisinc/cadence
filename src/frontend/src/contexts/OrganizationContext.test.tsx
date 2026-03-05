@@ -332,6 +332,9 @@ describe('OrganizationContext', () => {
     })
 
     it('defaults to single membership when user has only one', async () => {
+      // Auto-switch posts to backend; mock rejection so fallback sets currentOrg locally
+      mockApiPost.mockRejectedValue(new Error('mock auto-switch'))
+
       mockUseAuth.mockReturnValue({
         user: {
           id: 'user-123',

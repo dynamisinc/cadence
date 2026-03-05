@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExcelExport.Models.DTOs;
 using Cadence.Core.Models.Entities;
@@ -75,7 +76,7 @@ public class EegExportService : IEegExportService
 
         // Generate filename
         var safeName = GenerateSafeFilename(exercise.Name);
-        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         var filename = request.Filename ?? $"EEG_Export_{safeName}_{date}";
 
         // Generate Excel file
@@ -169,7 +170,7 @@ public class EegExportService : IEegExportService
         {
             Exercise = new ExerciseInfoDto(
                 exercise.Name,
-                exercise.ScheduledDate.ToString("yyyy-MM-dd"),
+                exercise.ScheduledDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
                 exercise.Status.ToString()
             ),
             Summary = new EegSummaryDto(
@@ -261,7 +262,7 @@ public class EegExportService : IEegExportService
         row++;
 
         ws.Cell(row, 1).Value = "Exercise Date";
-        ws.Cell(row, 2).Value = exercise.ScheduledDate.ToString("yyyy-MM-dd");
+        ws.Cell(row, 2).Value = exercise.ScheduledDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         row++;
 
         ws.Cell(row, 1).Value = "Status";
@@ -269,7 +270,7 @@ public class EegExportService : IEegExportService
         row++;
 
         ws.Cell(row, 1).Value = "Generated";
-        ws.Cell(row, 2).Value = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss") + " UTC";
+        ws.Cell(row, 2).Value = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) + " UTC";
         row += 2;
 
         // Coverage Metrics section
@@ -381,7 +382,7 @@ public class EegExportService : IEegExportService
         foreach (var ct in capabilityTargets)
         {
             // Capability Target header
-            ws.Cell(row, 1).Value = ct.Capability.Name.ToUpper();
+            ws.Cell(row, 1).Value = ct.Capability.Name.ToUpperInvariant();
             if (request.IncludeFormatting)
             {
                 ws.Cell(row, 1).Style.Font.Bold = true;
@@ -441,7 +442,7 @@ public class EegExportService : IEegExportService
                     ws.Cell(row, 2).Value = GetRatingShortCode(firstEntry.Rating);
                     ws.Cell(row, 3).Value = TruncateText(firstEntry.ObservationText, 100);
                     ws.Cell(row, 4).Value = request.IncludeEvaluatorNames ? (firstEntry.Evaluator?.DisplayName ?? "") : "";
-                    ws.Cell(row, 5).Value = firstEntry.ObservedAt.ToString("HH:mm");
+                    ws.Cell(row, 5).Value = firstEntry.ObservedAt.ToString("HH:mm", CultureInfo.InvariantCulture);
 
                     if (request.IncludeFormatting)
                     {
@@ -455,7 +456,7 @@ public class EegExportService : IEegExportService
                         ws.Cell(row, 2).Value = GetRatingShortCode(entry.Rating);
                         ws.Cell(row, 3).Value = TruncateText(entry.ObservationText, 100);
                         ws.Cell(row, 4).Value = request.IncludeEvaluatorNames ? (entry.Evaluator?.DisplayName ?? "") : "";
-                        ws.Cell(row, 5).Value = entry.ObservedAt.ToString("HH:mm");
+                        ws.Cell(row, 5).Value = entry.ObservedAt.ToString("HH:mm", CultureInfo.InvariantCulture);
 
                         if (request.IncludeFormatting)
                         {
@@ -512,7 +513,7 @@ public class EegExportService : IEegExportService
             var ct = taskToCapability.GetValueOrDefault(entry.CriticalTaskId);
             var task = entry.CriticalTask;
 
-            ws.Cell(row, 1).Value = entry.RecordedAt.ToString("yyyy-MM-dd HH:mm:ss");
+            ws.Cell(row, 1).Value = entry.RecordedAt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
             ws.Cell(row, 2).Value = ct?.Capability.Name ?? "";
             ws.Cell(row, 3).Value = ct?.TargetDescription ?? "";
             ws.Cell(row, 4).Value = task?.TaskDescription ?? "";
@@ -680,7 +681,7 @@ public class EegExportService : IEegExportService
     {
         if (string.IsNullOrEmpty(text)) return "";
         if (text.Length <= maxLength) return text;
-        return text.Substring(0, maxLength - 3) + "...";
+        return string.Concat(text.AsSpan(0, maxLength - 3), "...");
     }
 
     #endregion

@@ -344,6 +344,33 @@ namespace Cadence.Core.Migrations
                     b.ToTable("FeedbackReports");
                 });
 
+            modelBuilder.Entity("Cadence.Core.Features.SystemSettings.Models.Entities.EulaAcceptance", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("AcceptedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EulaVersion")
+                        .IsRequired()
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasMaxLength(450)
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId", "EulaVersion")
+                        .IsUnique();
+
+                    b.ToTable("EulaAcceptances", (string)null);
+                });
+
             modelBuilder.Entity("Cadence.Core.Features.SystemSettings.Models.Entities.SystemSettings", b =>
                 {
                     b.Property<Guid>("Id")
@@ -357,6 +384,16 @@ namespace Cadence.Core.Migrations
                     b.Property<string>("DefaultSenderName")
                         .HasMaxLength(100)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<string>("EulaContent")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("EulaUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("EulaVersion")
+                        .HasMaxLength(50)
+                        .HasColumnType("nvarchar(50)");
 
                     b.Property<bool>("GitHubLabelsEnabled")
                         .HasColumnType("bit");
@@ -3192,6 +3229,17 @@ namespace Cadence.Core.Migrations
                     b.Navigation("Exercise");
 
                     b.Navigation("OrganizationInvite");
+                });
+
+            modelBuilder.Entity("Cadence.Core.Features.SystemSettings.Models.Entities.EulaAcceptance", b =>
+                {
+                    b.HasOne("Cadence.Core.Models.Entities.ApplicationUser", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Cadence.Core.Models.Entities.Agency", b =>

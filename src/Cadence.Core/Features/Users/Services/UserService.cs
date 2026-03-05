@@ -95,8 +95,8 @@ public class UserService : IUserService
         {
             var searchLower = search.ToLowerInvariant();
             query = query.Where(u =>
-                u.DisplayName.ToLower().Contains(searchLower) ||
-                u.Email!.ToLower().Contains(searchLower));
+                u.DisplayName.ToLowerInvariant().Contains(searchLower) ||
+                u.Email!.ToLowerInvariant().Contains(searchLower));
         }
 
         // Apply role filter (supports comma-separated values like "Admin,Manager")

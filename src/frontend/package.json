@@ -5,7 +5,6 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "prebuild": "npx tsx scripts/parse-changelog.ts",
     "build": "tsc -b && vite build",
     "release-notes": "npx tsx scripts/parse-changelog.ts",
     "release-notes:polish": "npx tsx scripts/parse-changelog.ts && node scripts/polish-release-notes.mjs",
@@ -50,6 +49,7 @@
     "react-dom": "^19.2.0",
     "react-hook-form": "^7.71.0",
     "react-konva": "^19.2.2",
+    "react-markdown": "^10.1.0",
     "react-router-dom": "^7.10.1",
     "react-toastify": "^11.0.5",
     "recharts": "^3.7.0",

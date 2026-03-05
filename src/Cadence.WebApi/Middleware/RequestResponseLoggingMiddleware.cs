@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Globalization;
 using System.Text;
 using Microsoft.ApplicationInsights;
 using Microsoft.ApplicationInsights.DataContracts;
@@ -224,7 +225,7 @@ public class RequestResponseLoggingMiddleware
             {
                 ["Method"] = request.Method,
                 ["Path"] = request.Path.Value,
-                ["StatusCode"] = statusCode.ToString(),
+                ["StatusCode"] = statusCode.ToString(CultureInfo.InvariantCulture),
                 ["UserId"] = userId,
                 ["OrganizationId"] = orgId,
                 ["RequestBody"] = requestBody,

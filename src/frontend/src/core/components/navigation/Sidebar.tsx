@@ -152,6 +152,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <NavItemButton
             key={item.id}
             item={item}
+            section={section}
             isOpen={open}
             isActive={isActive(item)}
             isDisabled={isItemDisabled(item.id)}
@@ -278,6 +279,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
  */
 interface NavItemButtonProps {
   item: MenuItem;
+  section: MenuSection;
   isOpen: boolean;
   isActive: boolean;
   isDisabled?: boolean;
@@ -287,6 +289,7 @@ interface NavItemButtonProps {
 
 const NavItemButton: React.FC<NavItemButtonProps> = ({
   item,
+  section,
   isOpen,
   isActive,
   isDisabled = false,
@@ -308,12 +311,13 @@ const NavItemButton: React.FC<NavItemButtonProps> = ({
     return theme.palette.text.primary
   }
 
-  // Tooltip shows label when collapsed, or disabled reason when disabled
+  // Tooltip shows "Section: Label" when collapsed, or disabled reason when disabled
+  const sectionPrefix = MENU_SECTION_LABELS[section]
   const tooltipTitle = isDisabled && disabledTooltip
     ? disabledTooltip
     : isOpen
       ? ''
-      : item.label
+      : `${sectionPrefix}: ${item.label}`
 
   const button = (
     <ListItem disablePadding sx={{ display: 'block' }}>

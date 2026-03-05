@@ -27,6 +27,12 @@ public class SystemSettingsDto
     /// <summary>True if a GitHub token is stored.</summary>
     public bool GitHubTokenConfigured { get; set; }
 
+    // EULA
+    public string? EulaContent { get; set; }
+    public string? EulaVersion { get; set; }
+    public DateTime? EulaUpdatedAt { get; set; }
+    public bool EulaConfigured { get; set; }
+
     public DateTime? UpdatedAt { get; set; }
     public string? UpdatedBy { get; set; }
 }
@@ -47,4 +53,10 @@ public class UpdateSystemSettingsRequest
     public string? GitHubOwner { get; set; }
     public string? GitHubRepo { get; set; }
     public bool? GitHubLabelsEnabled { get; set; }
+
+    // EULA
+    /// <summary>Markdown content for the EULA. Null/empty = remove EULA.</summary>
+    public string? EulaContent { get; set; }
+    /// <summary>Version identifier. Required when EulaContent is provided.</summary>
+    public string? EulaVersion { get; set; }
 }

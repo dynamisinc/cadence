@@ -1,0 +1,245 @@
+name: Security Report
+
+on:
+  schedule:
+    # Weekly on Monday at 6 AM UTC (after DAST scan at 2 AM has completed)
+    - cron: "0 6 * * 1"
+  workflow_dispatch:
+
+env:
+  DOTNET_VERSION: "10.0.x"
+
+jobs:
+  generate-report:
+    name: Generate Consolidated Security Report
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DOTNET_VERSION }}
+
+      - name: Install SARIF Multitool
+        run: dotnet tool install --global Microsoft.CodeAnalysis.Sarif.Multitool
+
+      - name: Create working directory
+        run: mkdir -p sarif-inputs report-output
+
+      # Download SARIF artifacts from latest successful runs of each security workflow.
+      # Uses the GitHub REST API since actions/download-artifact only works within the same run.
+      - name: Download SAST SARIF artifact
+        id: sast
+        run: |
+          echo "Fetching latest SAST artifact..."
+          ARTIFACT_URL=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/security-sast.yml/runs?status=completed&per_page=5" \
+            --jq '.workflow_runs[0].id' 2>/dev/null) || true
+
+          if [ -n "$ARTIFACT_URL" ] && [ "$ARTIFACT_URL" != "null" ]; then
+            RUN_ID=$ARTIFACT_URL
+            # Get artifact download URL
+            DOWNLOAD_URL=$(gh api \
+              "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name == "semgrep-sarif") | .archive_download_url' 2>/dev/null) || true
+
+            if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "null" ]; then
+              gh api "$DOWNLOAD_URL" > /tmp/sast.zip 2>/dev/null && \
+              unzip -o /tmp/sast.zip -d sarif-inputs/ 2>/dev/null && \
+              echo "found=true" >> $GITHUB_OUTPUT && \
+              echo "SAST SARIF downloaded successfully" || \
+              echo "found=false" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+              echo "::notice::No SAST artifact found — SAST workflow may not have run yet"
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "::notice::No SAST workflow runs found"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download IaC SARIF artifact
+        id: iac
+        run: |
+          echo "Fetching latest IaC artifact..."
+          ARTIFACT_URL=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/security-iac.yml/runs?status=completed&per_page=5" \
+            --jq '.workflow_runs[0].id' 2>/dev/null) || true
+
+          if [ -n "$ARTIFACT_URL" ] && [ "$ARTIFACT_URL" != "null" ]; then
+            RUN_ID=$ARTIFACT_URL
+            DOWNLOAD_URL=$(gh api \
+              "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name == "checkov-sarif") | .archive_download_url' 2>/dev/null) || true
+
+            if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "null" ]; then
+              gh api "$DOWNLOAD_URL" > /tmp/iac.zip 2>/dev/null && \
+              unzip -o /tmp/iac.zip -d sarif-inputs/ 2>/dev/null && \
+              echo "found=true" >> $GITHUB_OUTPUT && \
+              echo "IaC SARIF downloaded successfully" || \
+              echo "found=false" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+              echo "::notice::No IaC artifact found — IaC workflow may not have run yet"
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "::notice::No IaC workflow runs found"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download DAST HTML report
+        id: dast
+        run: |
+          echo "Fetching latest DAST artifact..."
+          ARTIFACT_URL=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/security-dast.yml/runs?status=completed&per_page=5" \
+            --jq '.workflow_runs[0].id' 2>/dev/null) || true
+
+          if [ -n "$ARTIFACT_URL" ] && [ "$ARTIFACT_URL" != "null" ]; then
+            RUN_ID=$ARTIFACT_URL
+            DOWNLOAD_URL=$(gh api \
+              "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name == "zap-report") | .archive_download_url' 2>/dev/null) || true
+
+            if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "null" ]; then
+              gh api "$DOWNLOAD_URL" > /tmp/dast.zip 2>/dev/null && \
+              unzip -o /tmp/dast.zip -d report-output/ 2>/dev/null && \
+              echo "found=true" >> $GITHUB_OUTPUT && \
+              echo "DAST report downloaded successfully" || \
+              echo "found=false" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+              echo "::notice::No DAST artifact found — DAST workflow may not have run yet"
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+            echo "::notice::No DAST workflow runs found"
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Check for SARIF inputs
+        id: check
+        run: |
+          SARIF_COUNT=$(find sarif-inputs -name "*.sarif" -type f 2>/dev/null | wc -l)
+          echo "sarif_count=$SARIF_COUNT" >> $GITHUB_OUTPUT
+
+          if [ "$SARIF_COUNT" -eq "0" ]; then
+            echo "::warning::No SARIF files found from any upstream scan. Report will be empty."
+            echo "has_sarif=false" >> $GITHUB_OUTPUT
+          else
+            echo "Found $SARIF_COUNT SARIF file(s) to merge"
+            echo "has_sarif=true" >> $GITHUB_OUTPUT
+            ls -la sarif-inputs/
+          fi
+
+      - name: Merge SARIF files
+        if: steps.check.outputs.has_sarif == 'true'
+        run: |
+          cd sarif-inputs
+          sarif merge *.sarif --output-file ../report-output/consolidated-security-report.sarif
+          echo "Merged SARIF created successfully"
+
+      - name: Generate HTML report
+        if: steps.check.outputs.has_sarif == 'true'
+        run: |
+          sarif convert report-output/consolidated-security-report.sarif \
+            --tool HtmlReport \
+            --output report-output/consolidated-security-report.html
+          echo "HTML report generated successfully"
+
+      - name: Generate executive summary
+        if: always()
+        run: |
+          echo "## Consolidated Security Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Generated:** $(date -u '+%Y-%m-%d %H:%M UTC')" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          # Source scan availability
+          echo "### Source Scans" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Scan Type | Available |" >> $GITHUB_STEP_SUMMARY
+          echo "|-----------|-----------|" >> $GITHUB_STEP_SUMMARY
+          echo "| SAST (Semgrep) | ${{ steps.sast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| IaC (Checkov) | ${{ steps.iac.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| DAST (ZAP) | ${{ steps.dast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f report-output/consolidated-security-report.sarif ]; then
+            echo "### Findings Summary" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            # Parse SARIF for summary stats
+            python3 << 'PYEOF' >> $GITHUB_STEP_SUMMARY
+          import json
+
+          with open("report-output/consolidated-security-report.sarif") as f:
+              data = json.load(f)
+
+          severity_counts = {"error": 0, "warning": 0, "note": 0, "none": 0}
+          total = 0
+
+          for run in data.get("runs", []):
+              tool_name = run.get("tool", {}).get("driver", {}).get("name", "Unknown")
+              results = run.get("results", [])
+              total += len(results)
+              for result in results:
+                  level = result.get("level", "none")
+                  severity_counts[level] = severity_counts.get(level, 0) + 1
+
+          print(f"**Total findings:** {total}")
+          print("")
+          print("| Severity | Count |")
+          print("|----------|-------|")
+          print(f"| Critical/Error | {severity_counts.get('error', 0)} |")
+          print(f"| Warning | {severity_counts.get('warning', 0)} |")
+          print(f"| Note/Info | {severity_counts.get('note', 0)} |")
+          PYEOF
+
+          else
+            echo "No SARIF findings to summarize (no upstream scan artifacts available)." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the report artifacts from this workflow run:" >> $GITHUB_STEP_SUMMARY
+          echo "- **security-report-html** — Consolidated HTML report (OWASP-categorized)" >> $GITHUB_STEP_SUMMARY
+          echo "- **security-report-sarif** — Raw merged SARIF file" >> $GITHUB_STEP_SUMMARY
+          echo "- **security-report-dast** — ZAP HTML report (if available)" >> $GITHUB_STEP_SUMMARY
+
+      # Upload consolidated SARIF
+      - name: Upload consolidated SARIF
+        if: steps.check.outputs.has_sarif == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-sarif
+          path: report-output/consolidated-security-report.sarif
+          retention-days: 90
+
+      # Upload HTML report
+      - name: Upload HTML report
+        if: steps.check.outputs.has_sarif == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-html
+          path: report-output/consolidated-security-report.html
+          retention-days: 90
+
+      # Upload DAST report separately
+      - name: Upload DAST HTML report
+        if: steps.dast.outputs.found == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report-dast
+          path: report-output/report_html.html
+          retention-days: 90
+          if-no-files-found: ignore

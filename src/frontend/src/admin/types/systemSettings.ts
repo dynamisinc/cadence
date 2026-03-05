@@ -12,6 +12,11 @@ export interface SystemSettingsDto {
   gitHubLabelsEnabled: boolean
   gitHubTokenConfigured: boolean
   gitHubTokenMasked: string | null
+  // EULA
+  eulaContent: string | null
+  eulaVersion: string | null
+  eulaUpdatedAt: string | null
+  eulaConfigured: boolean
   updatedAt: string | null
   updatedBy: string | null
 }
@@ -25,6 +30,9 @@ export interface UpdateSystemSettingsRequest {
   gitHubOwner: string | null
   gitHubRepo: string | null
   gitHubLabelsEnabled: boolean | null
+  // EULA
+  eulaContent: string | null
+  eulaVersion: string | null
 }
 
 export interface GitHubConnectionTestResult {

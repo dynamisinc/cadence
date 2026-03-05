@@ -60,7 +60,7 @@ public class OrganizationSuggestionService : IOrganizationSuggestionService
         var exists = await _context.OrganizationSuggestions
             .AnyAsync(s => s.OrganizationId == organizationId
                         && s.FieldName == request.FieldName
-                        && s.Value.ToLower() == trimmedValue.ToLower());
+                        && s.Value.ToLowerInvariant() == trimmedValue.ToLowerInvariant());
 
         if (exists)
             throw new InvalidOperationException($"A suggestion with value '{trimmedValue}' already exists for this field.");
@@ -98,7 +98,7 @@ public class OrganizationSuggestionService : IOrganizationSuggestionService
             .AnyAsync(s => s.OrganizationId == organizationId
                         && s.FieldName == suggestion.FieldName
                         && s.Id != id
-                        && s.Value.ToLower() == trimmedValue.ToLower());
+                        && s.Value.ToLowerInvariant() == trimmedValue.ToLowerInvariant());
 
         if (duplicate)
             throw new InvalidOperationException($"A suggestion with value '{trimmedValue}' already exists for this field.");
@@ -146,7 +146,7 @@ public class OrganizationSuggestionService : IOrganizationSuggestionService
         // Get existing values for this field (case-insensitive comparison)
         var existingValues = await _context.OrganizationSuggestions
             .Where(s => s.OrganizationId == organizationId && s.FieldName == request.FieldName)
-            .Select(s => s.Value.ToLower())
+            .Select(s => s.Value.ToLowerInvariant())
             .ToListAsync();
 
         var existingSet = new HashSet<string>(existingValues, StringComparer.OrdinalIgnoreCase);
@@ -224,7 +224,7 @@ public class OrganizationSuggestionService : IOrganizationSuggestionService
         var existing = await _context.OrganizationSuggestions
             .FirstOrDefaultAsync(s => s.OrganizationId == organizationId
                                    && s.FieldName == request.FieldName
-                                   && s.Value.ToLower() == trimmedValue.ToLower());
+                                   && s.Value.ToLowerInvariant() == trimmedValue.ToLowerInvariant());
 
         if (existing != null)
         {

@@ -1,0 +1,71 @@
+name: IaC Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - "infrastructure/**"
+  push:
+    branches: [main]
+    paths:
+      - "infrastructure/**"
+
+jobs:
+  checkov:
+    name: Checkov IaC Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Checkov on Bicep templates
+        id: checkov
+        uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: infrastructure/
+          framework: bicep
+          output_format: cli,sarif
+          output_file_path: console,checkov-results.sarif
+          soft_fail: true
+          quiet: true
+
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: checkov-sarif
+          path: checkov-results.sarif
+          retention-days: 30
+
+      # When GHAS is enabled for this private repo, uncomment to upload to Security tab:
+      # - name: Upload SARIF to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: checkov-results.sarif
+
+      - name: Generate scan summary
+        if: always()
+        run: |
+          echo "## Checkov IaC Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Framework:** Bicep" >> $GITHUB_STEP_SUMMARY
+          echo "**Directory:** \`infrastructure/\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f checkov-results.sarif ]; then
+            FINDINGS=$(python3 -c "
+          import json
+          with open('checkov-results.sarif') as f:
+              data = json.load(f)
+          total = sum(len(r.get('results', [])) for r in data.get('runs', []))
+          print(total)
+          " 2>/dev/null || echo "unknown")
+            echo "**Total findings:** ${FINDINGS}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No SARIF file generated." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Download the \`checkov-sarif\` artifact for full details." >> $GITHUB_STEP_SUMMARY

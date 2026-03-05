@@ -1,0 +1,24 @@
+# Test files - don't flag test fixtures or mock data
+**/Tests/**
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+**/test-results/**
+**/test-utils/**
+
+# EF Core migrations - generated code
+**/Migrations/**
+
+# Build output
+**/obj/**
+**/bin/**
+**/node_modules/**
+**/dist/**
+
+# Scripts and tooling
+scripts/
+
+# Configuration examples (contain placeholder secrets by design)
+**/appsettings.Local.example.json
+**/.env.example

@@ -296,7 +296,7 @@ public class InjectMetricsService : IInjectMetricsService
     // Private Helper Methods
     // =========================================================================
 
-    private record TimingMetricsResult(
+    private sealed record TimingMetricsResult(
         decimal? OnTimeRate,
         int OnTimeCount,
         TimeSpan? AverageVariance,
@@ -402,7 +402,7 @@ public class InjectMetricsService : IInjectMetricsService
     /// <summary>
     /// Helper class for building controller activity data.
     /// </summary>
-    private class ControllerActivityBuilder
+    private sealed class ControllerActivityBuilder
     {
         public Guid ControllerId { get; set; }
         public string ControllerName { get; set; } = string.Empty;

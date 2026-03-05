@@ -14,6 +14,7 @@
 import React from 'react'
 import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBars } from '@fortawesome/free-solid-svg-icons'
 import { ProfileMenu } from '../ProfileMenu'
@@ -61,35 +62,41 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
           <FontAwesomeIcon icon={faBars} />
         </IconButton>
 
-        {/* Logo - visible on desktop, centered with collapsed sidebar icons */}
-        <Box
-          component="img"
-          src="/icon-source-light.svg"
-          alt="Cadence Logo"
-          data-testid="app-logo"
-          sx={{
-            height: 40,
-            width: 'auto',
-            display: { xs: 'none', md: 'block' },
-            ml: '11px',
-            borderRadius: 0.5,
-          }}
-        />
-
-        {/* App Title */}
-        <Typography
-          variant="h6"
-          component="div"
-          data-testid="app-title"
-          sx={{
-            fontWeight: 'bold',
-            color: '#ffffff',
-            flexGrow: 1,
-            pl: { xs: 1, md: 2 },
-          }}
+        {/* Logo + Title - links to home */}
+        <Link
+          to="/"
+          style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}
         >
-          Cadence
-        </Typography>
+          <Box
+            component="img"
+            src="/icon-source-light.svg"
+            alt="Cadence Logo"
+            data-testid="app-logo"
+            sx={{
+              height: 40,
+              width: 'auto',
+              display: { xs: 'none', md: 'block' },
+              ml: '11px',
+              borderRadius: 0.5,
+            }}
+          />
+
+          <Typography
+            variant="h6"
+            component="div"
+            data-testid="app-title"
+            sx={{
+              fontWeight: 'bold',
+              color: '#ffffff',
+              pl: { xs: 1, md: 2 },
+            }}
+          >
+            Cadence
+          </Typography>
+        </Link>
+
+        {/* Spacer */}
+        <Box sx={{ flexGrow: 1 }} />
 
         {/* Connection Status Indicator */}
         <Box sx={{ mr: 1 }}>

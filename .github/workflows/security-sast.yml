@@ -1,0 +1,86 @@
+name: SAST Security Scan
+
+on:
+  pull_request:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  push:
+    branches: [main]
+    paths-ignore:
+      - "**.md"
+      - "docs/**"
+  schedule:
+    # Weekly full scan on Sunday at midnight UTC
+    - cron: "0 0 * * 0"
+
+jobs:
+  semgrep:
+    name: Semgrep SAST
+    runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Semgrep scan
+        id: semgrep
+        run: |
+          semgrep scan \
+            --config auto \
+            --config p/csharp \
+            --config p/typescript \
+            --config p/react \
+            --config p/secrets \
+            --config p/owasp-top-ten \
+            --sarif \
+            --output semgrep-results.sarif \
+            --severity ERROR \
+            src/
+        continue-on-error: true
+
+      - name: Upload SARIF artifact
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: semgrep-sarif
+          path: semgrep-results.sarif
+          retention-days: 30
+
+      # When GHAS is enabled for this private repo, uncomment to upload to Security tab:
+      # - name: Upload SARIF to GitHub Security tab
+      #   uses: github/codeql-action/upload-sarif@v3
+      #   if: always()
+      #   with:
+      #     sarif_file: semgrep-results.sarif
+
+      - name: Generate scan summary
+        if: always()
+        run: |
+          echo "## Semgrep SAST Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+
+          if [ -f semgrep-results.sarif ]; then
+            FINDINGS=$(python3 -c "
+          import json
+          with open('semgrep-results.sarif') as f:
+              data = json.load(f)
+          total = sum(len(r.get('results', [])) for r in data.get('runs', []))
+          print(total)
+          " 2>/dev/null || echo "unknown")
+            echo "**Total findings:** ${FINDINGS}" >> $GITHUB_STEP_SUMMARY
+
+            if [ "$FINDINGS" != "0" ] && [ "$FINDINGS" != "unknown" ]; then
+              echo "" >> $GITHUB_STEP_SUMMARY
+              echo "Download the \`semgrep-sarif\` artifact for full details." >> $GITHUB_STEP_SUMMARY
+            fi
+          else
+            echo "No SARIF file generated — scan may have failed." >> $GITHUB_STEP_SUMMARY
+          fi
+
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Rule packs:** auto, csharp, typescript, react, secrets, owasp-top-ten" >> $GITHUB_STEP_SUMMARY
+          echo "**Severity filter:** ERROR only" >> $GITHUB_STEP_SUMMARY

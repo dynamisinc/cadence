@@ -1,4 +1,5 @@
 // Application entry point
+using System.Globalization;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -31,7 +32,7 @@ using Serilog;
 
 // Bootstrap logger for capturing startup errors before config is loaded
 Log.Logger = new LoggerConfiguration()
-    .WriteTo.Console()
+    .WriteTo.Console(formatProvider: CultureInfo.InvariantCulture)
     .CreateBootstrapLogger();
 
 try
@@ -291,7 +292,7 @@ try
                 retryAfterSeconds = (int)retryAfter.TotalSeconds;
             }
 
-            context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString();
+            context.HttpContext.Response.Headers.RetryAfter = retryAfterSeconds.ToString(CultureInfo.InvariantCulture);
 
             await context.HttpContext.Response.WriteAsJsonAsync(new
             {

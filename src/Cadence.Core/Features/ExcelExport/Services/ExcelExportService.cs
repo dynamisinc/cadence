@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.IO.Compression;
 using System.Text;
 using System.Text.Json;
@@ -17,6 +18,13 @@ public class ExcelExportService : IExcelExportService
 {
     private readonly AppDbContext _context;
     private readonly ILogger<ExcelExportService> _logger;
+
+    // Cached serializer options for JSON export summary
+    private static readonly JsonSerializerOptions JsonSummaryOptions = new()
+    {
+        WriteIndented = true,
+        PropertyNamingPolicy = JsonNamingPolicy.CamelCase
+    };
 
     // Column definitions for the MSEL worksheet
     private static readonly (string Field, string Header, int Width)[] MselColumns =
@@ -334,7 +342,7 @@ public class ExcelExportService : IExcelExportService
 
         // Generate filename
         var safeName = GenerateSafeFilename(exercise.Name);
-        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         var zipFilename = request.Filename ?? $"{safeName}_Package_{date}";
 
         // Create ZIP in memory
@@ -376,9 +384,9 @@ public class ExcelExportService : IExcelExportService
                     Name = exercise.Name,
                     ExerciseType = exercise.ExerciseType.ToString(),
                     Description = exercise.Description,
-                    ScheduledDate = exercise.ScheduledDate.ToString("yyyy-MM-dd"),
-                    StartTime = exercise.StartTime?.ToString("HH:mm"),
-                    EndTime = exercise.EndTime?.ToString("HH:mm"),
+                    ScheduledDate = exercise.ScheduledDate.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture),
+                    StartTime = exercise.StartTime?.ToString("HH:mm", CultureInfo.InvariantCulture),
+                    EndTime = exercise.EndTime?.ToString("HH:mm", CultureInfo.InvariantCulture),
                     Status = exercise.Status.ToString(),
                     InjectCount = injects.Count,
                     InjectsFired = injects.Count(i => i.Status == InjectStatus.Released),
@@ -390,12 +398,7 @@ public class ExcelExportService : IExcelExportService
                     ExportedAt = DateTime.UtcNow
                 };
 
-                var options = new JsonSerializerOptions
-                {
-                    WriteIndented = true,
-                    PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-                };
-                var json = JsonSerializer.Serialize(summary, options);
+                var json = JsonSerializer.Serialize(summary, JsonSummaryOptions);
                 using var writer = new StreamWriter(summaryEntryStream);
                 await writer.WriteAsync(json);
             }
@@ -418,14 +421,14 @@ public class ExcelExportService : IExcelExportService
     {
         // Sanitize exercise name for filename
         var safeName = GenerateSafeFilename(exerciseName);
-        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         return $"{safeName}_MSEL_{date}";
     }
 
     private static string GenerateObservationsFilename(string exerciseName)
     {
         var safeName = GenerateSafeFilename(exerciseName);
-        var date = DateTime.UtcNow.ToString("yyyy-MM-dd");
+        var date = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
         return $"{safeName}_Observations_{date}";
     }
 
@@ -469,9 +472,9 @@ public class ExcelExportService : IExcelExportService
             ws.Cell(row, col++).Value = inject.InjectNumber;
             ws.Cell(row, col++).Value = inject.Title;
             ws.Cell(row, col++).Value = inject.Description;
-            ws.Cell(row, col++).Value = inject.ScheduledTime.ToString("HH:mm");
-            ws.Cell(row, col++).Value = inject.ScenarioDay?.ToString() ?? "";
-            ws.Cell(row, col++).Value = inject.ScenarioTime?.ToString("HH:mm") ?? "";
+            ws.Cell(row, col++).Value = inject.ScheduledTime.ToString("HH:mm", CultureInfo.InvariantCulture);
+            ws.Cell(row, col++).Value = inject.ScenarioDay?.ToString(CultureInfo.InvariantCulture) ?? "";
+            ws.Cell(row, col++).Value = inject.ScenarioTime?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "";
             ws.Cell(row, col++).Value = inject.Source ?? "";
             ws.Cell(row, col++).Value = inject.Target;
             ws.Cell(row, col++).Value = GetDeliveryMethodDisplay(inject);
@@ -479,7 +482,7 @@ public class ExcelExportService : IExcelExportService
             ws.Cell(row, col++).Value = inject.Phase?.Name ?? "";
             ws.Cell(row, col++).Value = inject.ExpectedAction ?? "";
             ws.Cell(row, col++).Value = inject.ControllerNotes ?? "";
-            ws.Cell(row, col++).Value = inject.Priority?.ToString() ?? "";
+            ws.Cell(row, col++).Value = inject.Priority?.ToString(CultureInfo.InvariantCulture) ?? "";
             ws.Cell(row, col++).Value = inject.LocationName ?? "";
             ws.Cell(row, col++).Value = inject.ResponsibleController ?? "";
 
@@ -487,7 +490,7 @@ public class ExcelExportService : IExcelExportService
             if (includeConductData)
             {
                 ws.Cell(row, col++).Value = inject.Status.ToString();
-                ws.Cell(row, col++).Value = inject.FiredAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "";
+                ws.Cell(row, col++).Value = inject.FiredAt?.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) ?? "";
                 ws.Cell(row, col++).Value = inject.FiredByUser?.DisplayName ?? "";
             }
 
@@ -551,8 +554,8 @@ public class ExcelExportService : IExcelExportService
             ws.Cell(row, 1).Value = phase.Sequence;
             ws.Cell(row, 2).Value = phase.Name;
             ws.Cell(row, 3).Value = phase.Description ?? "";
-            ws.Cell(row, 4).Value = phase.StartTime?.ToString("HH:mm") ?? "";
-            ws.Cell(row, 5).Value = phase.EndTime?.ToString("HH:mm") ?? "";
+            ws.Cell(row, 4).Value = phase.StartTime?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "";
+            ws.Cell(row, 5).Value = phase.EndTime?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "";
             row++;
         }
 
@@ -625,7 +628,7 @@ public class ExcelExportService : IExcelExportService
             var col = 1;
 
             // Timestamp
-            ws.Cell(row, col++).Value = observation.ObservedAt.ToString("yyyy-MM-dd HH:mm:ss");
+            ws.Cell(row, col++).Value = observation.ObservedAt.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
 
             // Observer
             ws.Cell(row, col++).Value = observation.CreatedByUser?.DisplayName ?? "";
@@ -698,12 +701,12 @@ public class ExcelExportService : IExcelExportService
         {
             var values = new List<string>
             {
-                inject.InjectNumber.ToString(),
+                inject.InjectNumber.ToString(CultureInfo.InvariantCulture),
                 inject.Title,
                 inject.Description,
-                inject.ScheduledTime.ToString("HH:mm"),
-                inject.ScenarioDay?.ToString() ?? "",
-                inject.ScenarioTime?.ToString("HH:mm") ?? "",
+                inject.ScheduledTime.ToString("HH:mm", CultureInfo.InvariantCulture),
+                inject.ScenarioDay?.ToString(CultureInfo.InvariantCulture) ?? "",
+                inject.ScenarioTime?.ToString("HH:mm", CultureInfo.InvariantCulture) ?? "",
                 inject.Source ?? "",
                 inject.Target,
                 GetDeliveryMethodDisplay(inject),
@@ -711,7 +714,7 @@ public class ExcelExportService : IExcelExportService
                 inject.Phase?.Name ?? "",
                 inject.ExpectedAction ?? "",
                 inject.ControllerNotes ?? "",
-                inject.Priority?.ToString() ?? "",
+                inject.Priority?.ToString(CultureInfo.InvariantCulture) ?? "",
                 inject.LocationName ?? "",
                 inject.ResponsibleController ?? ""
             };
@@ -719,7 +722,7 @@ public class ExcelExportService : IExcelExportService
             if (includeConductData)
             {
                 values.Add(inject.Status.ToString());
-                values.Add(inject.FiredAt?.ToString("yyyy-MM-dd HH:mm:ss") ?? "");
+                values.Add(inject.FiredAt?.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture) ?? "");
                 values.Add(inject.FiredByUser?.DisplayName ?? "");
             }
 

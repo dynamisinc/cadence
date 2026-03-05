@@ -193,6 +193,19 @@ apiClient.interceptors.response.use(
       }
     }
 
+    // Detect missing organization context errors and show a friendly message
+    if (error.response?.status === 400 || error.response?.status === 403) {
+      const data = error.response?.data
+      const message = typeof data === 'string' ? data
+        : (data as Record<string, unknown>)?.message ?? (data as Record<string, unknown>)?.title ?? ''
+      if (typeof message === 'string' && /organization.*context|no organization/i.test(message)) {
+        const { notify } = await import('@/shared/utils/notify')
+        notify.warning('Please select an organization from the header menu to continue.', {
+          toastId: 'org-context-missing',
+        })
+      }
+    }
+
     // Log errors for debugging
     console.error('[apiClient] API Error (not 401 or already retried):', error.response?.data || error.message)
 

@@ -42,7 +42,9 @@ public class ExerciseStatusService : IExerciseStatusService
     }
 
     /// <inheritdoc />
+#pragma warning disable CA1716 // Identifier matches keyword — 'from'/'to' are idiomatic status-transition parameter names
     public bool CanTransition(ExerciseStatus from, ExerciseStatus to)
+#pragma warning restore CA1716
     {
         return ValidTransitions.TryGetValue(from, out var allowedTargets)
                && allowedTargets.Contains(to);
@@ -382,7 +384,7 @@ public class ExerciseStatusService : IExerciseStatusService
             .ToListAsync();
 
         // Check for no injects
-        if (!injects.Any())
+        if (injects.Count == 0)
         {
             result.Warnings.Add("Exercise has no injects");
             // Can still publish, just warning
@@ -394,7 +396,7 @@ public class ExerciseStatusService : IExerciseStatusService
             i.Status != InjectStatus.Deferred &&
             i.Status != InjectStatus.Obsolete).ToList();
 
-        if (injects.Any() && !activeInjects.Any())
+        if (injects.Count > 0 && activeInjects.Count == 0)
         {
             result.Warnings.Add("All injects are Deferred or Obsolete");
             // Can still publish, just warning

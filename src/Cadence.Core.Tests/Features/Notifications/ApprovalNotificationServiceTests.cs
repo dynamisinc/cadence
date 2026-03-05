@@ -51,8 +51,8 @@ public class ApprovalNotificationServiceTests
         var user = new ApplicationUser
         {
             Id = Guid.NewGuid().ToString(),
-            Email = $"{displayName.ToLower().Replace(" ", ".")}@test.com",
-            UserName = $"{displayName.ToLower().Replace(" ", ".")}@test.com",
+            Email = $"{displayName.ToLowerInvariant().Replace(" ", ".")}@test.com",
+            UserName = $"{displayName.ToLowerInvariant().Replace(" ", ".")}@test.com",
             DisplayName = displayName,
             OrganizationId = org.Id,
             Status = UserStatus.Active
