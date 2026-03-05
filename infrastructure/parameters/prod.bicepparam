@@ -22,7 +22,12 @@ param frontendUrl = 'https://cadence.cobrasoftware.com' // TODO: confirm product
 param repositoryUrl = 'https://github.com/dynamisinc/cadence'
 
 // Communication / Email
-param emailCustomDomain = 'cobrasoftware.com'
+// Production shares UAT's ACS + Email Service (acs-cadence-uat / email-cadence-uat).
+// The EMAIL_CONNECTION_STRING secret should point to the UAT ACS resource.
+// FUTURE: To give prod its own email service, set deployCommunication=true and use
+// a subdomain (e.g., emailCustomDomain='prod.cobrasoftware.com') — see docs/INFRA_EMAIL.md
+param deployCommunication = false
+param emailSenderAddress = 'DoNotReply@f726439b-6085-4d29-b117-35b9ac24d3b2.azurecomm.net'
 
 // Security
 param securityContactEmail = 'tbull@dynamis.com'

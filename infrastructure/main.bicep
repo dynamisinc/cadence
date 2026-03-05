@@ -48,8 +48,14 @@ param frontendUrl string = ''
 // Communication / Email Parameters
 // ============================================================================
 
+@description('Deploy ACS + Email Service resources. Set false to share another environment\'s email service.')
+param deployCommunication bool = true
+
 @description('Custom email domain (e.g., cobrasoftware.com). Leave empty to use Azure managed domain only.')
 param emailCustomDomain string = ''
+
+@description('Email sender address when deployCommunication=false (e.g., DoNotReply@xxx.azurecomm.net from shared ACS)')
+param emailSenderAddress string = ''
 
 // ============================================================================
 // Security Parameters
@@ -190,7 +196,7 @@ module webApp 'modules/webapp.bicep' = if (hostingModel == 'webapi' || hostingMo
     storageConnectionString: storage.outputs.connectionString
     frontendUrl: frontendUrl
     emailConnectionString: emailConnectionString
-    emailDefaultSenderAddress: communication.outputs.managedDomainSenderAddress
+    emailDefaultSenderAddress: deployCommunication ? communication.outputs.managedDomainSenderAddress! : emailSenderAddress
     jwtSecretKey: jwtSecretKey
     tags: tags
   }
@@ -219,7 +225,7 @@ module staticWebApp 'modules/staticwebapp.bicep' = {
   }
 }
 
-module communication 'modules/communication.bicep' = {
+module communication 'modules/communication.bicep' = if (deployCommunication) {
   name: 'communicationDeploy'
   params: {
     acsName: acsName
@@ -249,5 +255,5 @@ output staticWebAppHostname string = staticWebApp.outputs.defaultHostname
 output staticWebAppDeploymentToken string = staticWebApp.outputs.deploymentToken
 output sqlServerFqdn string = database.outputs.serverFqdn
 output logAnalyticsWorkspaceId string = logAnalytics.outputs.id
-output acsHostName string = communication.outputs.acsHostName
-output emailSenderAddress string = communication.outputs.managedDomainSenderAddress
+output acsHostName string = deployCommunication ? communication.outputs.acsHostName! : ''
+output emailSenderAddress string = deployCommunication ? communication.outputs.managedDomainSenderAddress! : emailSenderAddress
