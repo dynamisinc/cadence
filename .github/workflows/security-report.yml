@@ -6,9 +6,6 @@ on:
     - cron: "0 6 * * 1"
   workflow_dispatch:
 
-env:
-  DOTNET_VERSION: "10.0.x"
-
 jobs:
   generate-report:
     name: Generate Consolidated Security Report
@@ -17,14 +14,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-
-      - name: Setup .NET
-        uses: actions/setup-dotnet@v5
-        with:
-          dotnet-version: ${{ env.DOTNET_VERSION }}
-
-      - name: Install SARIF Multitool
-        run: dotnet tool install --global Sarif.Multitool
 
       - name: Create working directory
         run: mkdir -p sarif-inputs report-output
@@ -125,53 +114,39 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
-      - name: Check for SARIF inputs
-        id: check
+      - name: Merge SARIF and generate reports
+        id: report
         run: |
-          SARIF_COUNT=$(find sarif-inputs -name "*.sarif" -type f 2>/dev/null | wc -l)
-          echo "sarif_count=$SARIF_COUNT" >> $GITHUB_OUTPUT
-
-          if [ "$SARIF_COUNT" -eq "0" ]; then
-            echo "::warning::No SARIF files found from any upstream scan. Report will be empty."
-            echo "has_sarif=false" >> $GITHUB_OUTPUT
-          else
-            echo "Found $SARIF_COUNT SARIF file(s) to merge"
-            echo "has_sarif=true" >> $GITHUB_OUTPUT
-            ls -la sarif-inputs/
-          fi
-
-      - name: Merge SARIF files
-        if: steps.check.outputs.has_sarif == 'true'
-        run: |
-          OUTPUT="$GITHUB_WORKSPACE/report-output/consolidated-security-report.sarif"
-          SARIF_FILES=(sarif-inputs/*.sarif)
-          FILE_COUNT=${#SARIF_FILES[@]}
-          echo "Found $FILE_COUNT SARIF file(s)"
-
-          if [ "$FILE_COUNT" -eq 1 ]; then
-            cp "${SARIF_FILES[0]}" "$OUTPUT"
-            echo "Single SARIF file copied"
-          else
-            sarif merge "${SARIF_FILES[@]}" --output-file "$OUTPUT"
-            echo "Merged $FILE_COUNT SARIF files"
-          fi
-
-          echo "Output file exists: $(test -f "$OUTPUT" && echo YES || echo NO)"
-          ls -la report-output/
-
-      - name: Generate HTML report
-        if: steps.check.outputs.has_sarif == 'true'
-        run: |
-          # Generate HTML summary from SARIF using Python (sarif-tools HTML export was removed in v4)
           python3 << 'PYEOF'
-          import json, html, os
+          import json, html, glob, os, sys
           from datetime import datetime
+          from collections import Counter
 
-          with open("report-output/consolidated-security-report.sarif") as f:
-              data = json.load(f)
+          sarif_files = glob.glob("sarif-inputs/*.sarif")
+          print(f"Found {len(sarif_files)} SARIF file(s): {sarif_files}")
 
+          if not sarif_files:
+              print("No SARIF files found")
+              with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+                  f.write("has_sarif=false\n")
+              sys.exit(0)
+
+          # Merge: combine all runs from all SARIF files into one
+          merged = {"version": "2.1.0", "$schema": "https://json.schemastore.org/sarif-2.1.0.json", "runs": []}
+          for path in sarif_files:
+              print(f"  Reading {path} ({os.path.getsize(path)} bytes)")
+              with open(path) as f:
+                  data = json.load(f)
+              merged["runs"].extend(data.get("runs", []))
+
+          # Write merged SARIF
+          with open("report-output/consolidated-security-report.sarif", "w") as f:
+              json.dump(merged, f, indent=2)
+          print(f"Merged SARIF written with {len(merged['runs'])} run(s)")
+
+          # Extract findings
           findings = []
-          for run in data.get("runs", []):
+          for run in merged["runs"]:
               tool = run.get("tool", {}).get("driver", {}).get("name", "Unknown")
               for result in run.get("results", []):
                   level = result.get("level", "note")
@@ -185,19 +160,20 @@ jobs:
                       region = phys.get("region", {})
                       line = region.get("startLine", "")
                       loc_str = f"{artifact}:{line}" if line else artifact
-                  findings.append({
-                      "tool": tool, "level": level, "rule": rule_id,
-                      "message": message, "location": loc_str
-                  })
+                  findings.append({"tool": tool, "level": level, "rule": rule_id,
+                                   "message": message, "location": loc_str})
 
           level_order = {"error": 0, "warning": 1, "note": 2, "none": 3}
           findings.sort(key=lambda f: level_order.get(f["level"], 99))
 
           level_colors = {"error": "#d32f2f", "warning": "#f57c00", "note": "#1976d2", "none": "#757575"}
           level_labels = {"error": "Critical/Error", "warning": "Warning", "note": "Note", "none": "Info"}
+          level_counts = Counter(f["level"] for f in findings)
 
+          # Generate HTML report
           now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
-          h = f"""<!DOCTYPE html><html><head><meta charset="utf-8">
+          h = f"""<!DOCTYPE html>
+          <html><head><meta charset="utf-8">
           <title>Cadence Security Report - {now}</title>
           <style>
             body {{ font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; margin: 2rem; color: #333; }}
@@ -206,32 +182,41 @@ jobs:
             th, td {{ border: 1px solid #ddd; padding: 8px 12px; text-align: left; }}
             th {{ background: #f5f5f5; }} tr:hover {{ background: #fafafa; }}
             .badge {{ padding: 2px 8px; border-radius: 4px; color: white; font-size: 0.85em; }}
-            .summary {{ display: flex; gap: 1rem; margin: 1rem 0; }}
-            .summary-card {{ padding: 1rem; border-radius: 8px; min-width: 120px; text-align: center; color: white; }}
+            .summary {{ display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }}
+            .card {{ padding: 1rem; border-radius: 8px; min-width: 120px; text-align: center; color: white; }}
           </style></head><body>
           <h1>Cadence Security Report</h1>
           <p><strong>Generated:</strong> {now}</p>
           <div class="summary">"""
 
-          from collections import Counter
-          level_counts = Counter(f["level"] for f in findings)
           for level in ["error", "warning", "note", "none"]:
               count = level_counts.get(level, 0)
-              h += f'<div class="summary-card" style="background:{level_colors[level]}">'
+              h += f'<div class="card" style="background:{level_colors[level]}">'
               h += f'<div style="font-size:2em;font-weight:bold">{count}</div>'
               h += f'<div>{level_labels[level]}</div></div>'
-          h += f'</div><p><strong>Total findings:</strong> {len(findings)}</p>'
 
-          h += "<h2>Findings</h2><table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Message</th><th>Location</th></tr>"
+          h += f'</div><p><strong>Total findings:</strong> {len(findings)}</p>'
+          h += '<h2>Findings</h2><table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Message</th><th>Location</th></tr>'
+
           for f in findings:
               badge = f'<span class="badge" style="background:{level_colors[f["level"]]}">{level_labels[f["level"]]}</span>'
               h += f'<tr><td>{badge}</td><td>{html.escape(f["tool"])}</td><td>{html.escape(f["rule"])}</td>'
               h += f'<td>{html.escape(f["message"][:200])}</td><td><code>{html.escape(f["location"])}</code></td></tr>'
-          h += "</table></body></html>"
+
+          h += '</table></body></html>'
 
           with open("report-output/consolidated-security-report.html", "w") as out:
               out.write(h)
-          print(f"HTML report generated with {len(findings)} findings")
+
+          print(f"HTML report generated: {len(findings)} findings")
+
+          # Write summary stats to GITHUB_OUTPUT
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write("has_sarif=true\n")
+              f.write(f"total={len(findings)}\n")
+              f.write(f"errors={level_counts.get('error', 0)}\n")
+              f.write(f"warnings={level_counts.get('warning', 0)}\n")
+              f.write(f"notes={level_counts.get('note', 0)}\n")
           PYEOF
 
       - name: Generate executive summary
@@ -252,37 +237,16 @@ jobs:
           echo "| DAST (ZAP) | ${{ steps.dast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
-          if [ -f report-output/consolidated-security-report.sarif ]; then
+          if [ "${{ steps.report.outputs.has_sarif }}" == "true" ]; then
             echo "### Findings Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-
-            # Parse SARIF for summary stats
-            python3 << 'PYEOF' >> $GITHUB_STEP_SUMMARY
-          import json
-
-          with open("report-output/consolidated-security-report.sarif") as f:
-              data = json.load(f)
-
-          severity_counts = {"error": 0, "warning": 0, "note": 0, "none": 0}
-          total = 0
-
-          for run in data.get("runs", []):
-              tool_name = run.get("tool", {}).get("driver", {}).get("name", "Unknown")
-              results = run.get("results", [])
-              total += len(results)
-              for result in results:
-                  level = result.get("level", "none")
-                  severity_counts[level] = severity_counts.get(level, 0) + 1
-
-          print(f"**Total findings:** {total}")
-          print("")
-          print("| Severity | Count |")
-          print("|----------|-------|")
-          print(f"| Critical/Error | {severity_counts.get('error', 0)} |")
-          print(f"| Warning | {severity_counts.get('warning', 0)} |")
-          print(f"| Note/Info | {severity_counts.get('note', 0)} |")
-          PYEOF
-
+            echo "**Total findings:** ${{ steps.report.outputs.total }}" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+            echo "| Critical/Error | ${{ steps.report.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Warning | ${{ steps.report.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Note/Info | ${{ steps.report.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
           else
             echo "No SARIF findings to summarize (no upstream scan artifacts available)." >> $GITHUB_STEP_SUMMARY
           fi
@@ -291,13 +255,13 @@ jobs:
           echo "### Artifacts" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Download the report artifacts from this workflow run:" >> $GITHUB_STEP_SUMMARY
-          echo "- **security-report-html** — Consolidated HTML report (OWASP-categorized)" >> $GITHUB_STEP_SUMMARY
+          echo "- **security-report-html** — Consolidated HTML report" >> $GITHUB_STEP_SUMMARY
           echo "- **security-report-sarif** — Raw merged SARIF file" >> $GITHUB_STEP_SUMMARY
           echo "- **security-report-dast** — ZAP HTML report (if available)" >> $GITHUB_STEP_SUMMARY
 
       # Upload consolidated SARIF
       - name: Upload consolidated SARIF
-        if: steps.check.outputs.has_sarif == 'true'
+        if: steps.report.outputs.has_sarif == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: security-report-sarif
@@ -306,7 +270,7 @@ jobs:
 
       # Upload HTML report
       - name: Upload HTML report
-        if: steps.check.outputs.has_sarif == 'true'
+        if: steps.report.outputs.has_sarif == 'true'
         uses: actions/upload-artifact@v7
         with:
           name: security-report-html
