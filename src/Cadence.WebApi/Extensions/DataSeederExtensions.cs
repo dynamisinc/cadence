@@ -205,8 +205,9 @@ public static class DataSeederExtensions
             logger.LogInformation("Seeding EEG capability targets and critical tasks...");
             await BetaDataSeeder.SeedEegDataAsync(context, logger);
 
-            // Note: No user seeding - testers are invited manually
-            // Note: No observation seeding - testers will create observations during testing
+            // 4. Seed evaluator users, observations, and EEG entries
+            logger.LogInformation("Seeding evaluator users, observations, and EEG entries...");
+            await BetaDataSeeder.SeedObservationsAndEegAsync(context, logger);
 
             logger.LogInformation("=== Beta Data Seeding Complete ===");
         }

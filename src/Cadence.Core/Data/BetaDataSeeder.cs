@@ -229,6 +229,77 @@ public static class BetaDataSeeder
     public static readonly Guid HazTask_EMS_1 = Guid.Parse("aabbccdd-eeee-0002-0002-000400000001");
     public static readonly Guid HazTask_EMS_2 = Guid.Parse("aabbccdd-eeee-0002-0002-000400000002");
 
+    // =========================================================================
+    // Seed Evaluator Users (for observation/EEG attribution)
+    // =========================================================================
+
+    public static readonly string BetaEvaluator1Id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaa001";
+    public static readonly string BetaEvaluator2Id = "aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaa002";
+
+    // Org Membership sentinel IDs
+    public static readonly Guid BetaMembership1Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaab01");
+    public static readonly Guid BetaMembership2Id = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaab02");
+
+    // Exercise Participant sentinel IDs
+    public static readonly Guid BetaParticipantEval1Mci = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaac01");
+    public static readonly Guid BetaParticipantEval2Mci = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaac02");
+    public static readonly Guid BetaParticipantEval1Haz = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaac03");
+    public static readonly Guid BetaParticipantEval2Haz = Guid.Parse("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaac04");
+
+    // =========================================================================
+    // Observations - MCI TTX (Exercise 1) — 8 observations
+    // =========================================================================
+
+    public static readonly Guid MciObs1Id = Guid.Parse("11111111-1111-1111-0001-000000000001");
+    public static readonly Guid MciObs2Id = Guid.Parse("11111111-1111-1111-0001-000000000002");
+    public static readonly Guid MciObs3Id = Guid.Parse("11111111-1111-1111-0001-000000000003");
+    public static readonly Guid MciObs4Id = Guid.Parse("11111111-1111-1111-0001-000000000004");
+    public static readonly Guid MciObs5Id = Guid.Parse("11111111-1111-1111-0001-000000000005");
+    public static readonly Guid MciObs6Id = Guid.Parse("11111111-1111-1111-0001-000000000006");
+    public static readonly Guid MciObs7Id = Guid.Parse("11111111-1111-1111-0001-000000000007");
+    public static readonly Guid MciObs8Id = Guid.Parse("11111111-1111-1111-0001-000000000008");
+
+    // =========================================================================
+    // Observations - Hazmat FE (Exercise 2) — 10 observations
+    // =========================================================================
+
+    public static readonly Guid HazObs1Id = Guid.Parse("11111111-1111-1111-0002-000000000001");
+    public static readonly Guid HazObs2Id = Guid.Parse("11111111-1111-1111-0002-000000000002");
+    public static readonly Guid HazObs3Id = Guid.Parse("11111111-1111-1111-0002-000000000003");
+    public static readonly Guid HazObs4Id = Guid.Parse("11111111-1111-1111-0002-000000000004");
+    public static readonly Guid HazObs5Id = Guid.Parse("11111111-1111-1111-0002-000000000005");
+    public static readonly Guid HazObs6Id = Guid.Parse("11111111-1111-1111-0002-000000000006");
+    public static readonly Guid HazObs7Id = Guid.Parse("11111111-1111-1111-0002-000000000007");
+    public static readonly Guid HazObs8Id = Guid.Parse("11111111-1111-1111-0002-000000000008");
+    public static readonly Guid HazObs9Id = Guid.Parse("11111111-1111-1111-0002-000000000009");
+    public static readonly Guid HazObs10Id = Guid.Parse("11111111-1111-1111-0002-000000000010");
+
+    // =========================================================================
+    // EEG Entries - MCI TTX (Exercise 1) — 7 entries (partial progress)
+    // =========================================================================
+
+    public static readonly Guid MciEeg1Id = Guid.Parse("22222222-2222-2222-0001-000000000001");
+    public static readonly Guid MciEeg2Id = Guid.Parse("22222222-2222-2222-0001-000000000002");
+    public static readonly Guid MciEeg3Id = Guid.Parse("22222222-2222-2222-0001-000000000003");
+    public static readonly Guid MciEeg4Id = Guid.Parse("22222222-2222-2222-0001-000000000004");
+    public static readonly Guid MciEeg5Id = Guid.Parse("22222222-2222-2222-0001-000000000005");
+    public static readonly Guid MciEeg6Id = Guid.Parse("22222222-2222-2222-0001-000000000006");
+    public static readonly Guid MciEeg7Id = Guid.Parse("22222222-2222-2222-0001-000000000007");
+
+    // =========================================================================
+    // EEG Entries - Hazmat FE (Exercise 2) — 9 entries (complete coverage)
+    // =========================================================================
+
+    public static readonly Guid HazEeg1Id = Guid.Parse("22222222-2222-2222-0002-000000000001");
+    public static readonly Guid HazEeg2Id = Guid.Parse("22222222-2222-2222-0002-000000000002");
+    public static readonly Guid HazEeg3Id = Guid.Parse("22222222-2222-2222-0002-000000000003");
+    public static readonly Guid HazEeg4Id = Guid.Parse("22222222-2222-2222-0002-000000000004");
+    public static readonly Guid HazEeg5Id = Guid.Parse("22222222-2222-2222-0002-000000000005");
+    public static readonly Guid HazEeg6Id = Guid.Parse("22222222-2222-2222-0002-000000000006");
+    public static readonly Guid HazEeg7Id = Guid.Parse("22222222-2222-2222-0002-000000000007");
+    public static readonly Guid HazEeg8Id = Guid.Parse("22222222-2222-2222-0002-000000000008");
+    public static readonly Guid HazEeg9Id = Guid.Parse("22222222-2222-2222-0002-000000000009");
+
     #endregion
 
     /// <summary>
@@ -1694,7 +1765,7 @@ public static class BetaDataSeeder
                                  "4. Alert hospitals of potential MCI",
                 ControllerNotes = "This inject starts the exercise. Allow 3-5 minutes for initial dispatch " +
                                   "discussion before advancing.",
-                FiredAt = fired1, FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = fired1, FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase1Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -1719,7 +1790,7 @@ public static class BetaDataSeeder
                                  "2. Request mutual aid per MCI plan\n" +
                                  "3. Establish unified command with PD\n" +
                                  "4. Designate staging area",
-                FiredAt = fired2, FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = fired2, FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase1Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -1743,7 +1814,7 @@ public static class BetaDataSeeder
                                  "2. Begin hospital capacity polling\n" +
                                  "3. Activate mutual aid agreements\n" +
                                  "4. Notify County Executive",
-                FiredAt = fired3, FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = fired3, FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase1Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -1767,7 +1838,7 @@ public static class BetaDataSeeder
                                  "2. Confirm incident without speculation on casualties\n" +
                                  "3. Establish media staging area away from operations\n" +
                                  "4. Schedule first press briefing",
-                FiredAt = fired4, FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = fired4, FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase1Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -1790,7 +1861,7 @@ public static class BetaDataSeeder
                 ExpectedAction = "1. Provide concise situation summary\n" +
                                  "2. Advise County Exec on what she can/cannot say publicly\n" +
                                  "3. Recommend deferring to PIO on operational details",
-                FiredAt = fired5, FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = fired5, FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase1Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -1816,7 +1887,7 @@ public static class BetaDataSeeder
                                  "2. Assign hospital destinations based on capability\n" +
                                  "3. Request pediatric trauma capability confirmation\n" +
                                  "4. Set up Green patient holding area",
-                FiredAt = now.AddMinutes(-8), FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = now.AddMinutes(-8), FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase2Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -1839,7 +1910,7 @@ public static class BetaDataSeeder
                 ExpectedAction = "1. Designate secondary staging area\n" +
                                  "2. Coordinate with PD for traffic routing\n" +
                                  "3. Implement ambulance rotation plan",
-                FiredAt = now.AddMinutes(-3), FiredByUserId = SystemConstants.SystemUserIdString,
+                FiredAt = now.AddMinutes(-3), FiredByUserId = null,
                 MselId = MciMselId, PhaseId = MciPhase2Id,
                 CreatedAt = now.AddDays(-14), UpdatedAt = now,
                 CreatedBy = SystemConstants.SystemUserIdString, ModifiedBy = SystemConstants.SystemUserIdString
@@ -2188,7 +2259,7 @@ public static class BetaDataSeeder
             Status = InjectStatus.Released, Sequence = number, Priority = priority,
             TriggerType = TriggerType.Manual,
             Track = track, LocationName = "EOC", LocationType = "Command",
-            FiredAt = firedAt, FiredByUserId = SystemConstants.SystemUserIdString,
+            FiredAt = firedAt, FiredByUserId = null,
             MselId = mselId, PhaseId = phaseId,
             CreatedAt = createdAt, UpdatedAt = firedAt,
             CreatedBy = SystemConstants.SystemUserIdString,
@@ -2488,6 +2559,1065 @@ public static class BetaDataSeeder
 
             // WC Preliminary Draw links
             new InjectObjective { InjectId = WcPrelimInject1Id, ObjectiveId = WcPrelimObj2Id }
+        };
+    }
+
+    #endregion
+
+    // =============================================================================
+    // OBSERVATIONS & EEG ENTRIES
+    // =============================================================================
+
+    #region Seed Users, Observations & EEG Entries
+
+    /// <summary>
+    /// Seeds evaluator users, observations, and EEG entries for Active (MCI TTX) and
+    /// Completed (Hazmat FE) exercises. Creates dummy evaluator users with org memberships
+    /// and exercise participant records, then populates realistic observation and EEG data.
+    /// Idempotent - each step checks for its own data.
+    /// </summary>
+    public static async Task SeedObservationsAndEegAsync(AppDbContext context, ILogger? logger = null)
+    {
+        var now = DateTime.UtcNow;
+
+        // 1. Create seed evaluator users (needed for FK constraints)
+        if (!await context.Users.AnyAsync(u => u.Id == BetaEvaluator1Id))
+        {
+            var users = CreateBetaSeedUsers(now);
+            context.Users.AddRange(users);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} beta seed evaluator users", users.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta seed evaluator users already exist - skipping");
+        }
+
+        // 2. Create org memberships for evaluators
+        if (!await context.OrganizationMemberships.IgnoreQueryFilters().AnyAsync(m => m.Id == BetaMembership1Id))
+        {
+            var memberships = CreateBetaMemberships(now);
+            context.OrganizationMemberships.AddRange(memberships);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} beta org memberships", memberships.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta org memberships already exist - skipping");
+        }
+
+        // 3. Create exercise participant records
+        if (!await context.ExerciseParticipants.IgnoreQueryFilters().AnyAsync(p => p.Id == BetaParticipantEval1Mci))
+        {
+            var participants = CreateBetaParticipants(now);
+            context.ExerciseParticipants.AddRange(participants);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} beta exercise participants", participants.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta exercise participants already exist - skipping");
+        }
+
+        // 4. Create observations
+        if (!await context.Observations.IgnoreQueryFilters().AnyAsync(o => o.Id == MciObs1Id))
+        {
+            var observations = new List<Observation>();
+            observations.AddRange(CreateMciObservations(now));
+            observations.AddRange(CreateHazmatObservations(now));
+            context.Observations.AddRange(observations);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} beta observations", observations.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta observations already exist - skipping");
+        }
+
+        // 5. Create EEG entries
+        if (!await context.EegEntries.IgnoreQueryFilters().AnyAsync(e => e.Id == MciEeg1Id))
+        {
+            var entries = new List<EegEntry>();
+            entries.AddRange(CreateMciEegEntries(now));
+            entries.AddRange(CreateHazmatEegEntries(now));
+            context.EegEntries.AddRange(entries);
+            await context.SaveChangesAsync();
+            logger?.LogInformation("Created {Count} beta EEG entries", entries.Count);
+        }
+        else
+        {
+            logger?.LogDebug("Beta EEG entries already exist - skipping");
+        }
+
+        // 6. Tag observations with core capabilities (requires capability lookup by name)
+        var hasObsCapLinks = await context.ObservationCapabilities
+            .AnyAsync(oc => oc.ObservationId == MciObs1Id);
+        if (!hasObsCapLinks)
+        {
+            var capabilities = await context.Capabilities
+                .Where(c => c.OrganizationId == BetaOrganizationId)
+                .ToListAsync();
+
+            if (capabilities.Count == 0)
+            {
+                logger?.LogWarning("No capabilities found for beta org - skipping observation capability tagging");
+            }
+            else
+            {
+                var capLookup = capabilities.ToDictionary(c => c.Name, c => c.Id);
+                var tags = CreateObservationCapabilityTags(capLookup, logger);
+                if (tags.Count > 0)
+                {
+                    context.ObservationCapabilities.AddRange(tags);
+                    await context.SaveChangesAsync();
+                    logger?.LogInformation("Created {Count} observation-capability tags", tags.Count);
+                }
+            }
+        }
+        else
+        {
+            logger?.LogDebug("Beta observation-capability tags already exist - skipping");
+        }
+    }
+
+    // =========================================================================
+    // Observation-Capability Tags
+    // =========================================================================
+
+    private static List<ObservationCapability> CreateObservationCapabilityTags(
+        Dictionary<string, Guid> capLookup, ILogger? logger)
+    {
+        Guid? GetCapId(string name)
+        {
+            if (capLookup.TryGetValue(name, out var id)) return id;
+            logger?.LogDebug("Capability '{Name}' not found - skipping tag", name);
+            return null;
+        }
+
+        var ems = GetCapId("Public Health, Healthcare, and Emergency Medical Services");
+        var opComm = GetCapId("Operational Communications");
+        var massCare = GetCapId("Mass Care Services");
+        var security = GetCapId("On-scene Security, Protection, and Law Enforcement");
+        var sitAssess = GetCapId("Situational Assessment");
+        var envResp = GetCapId("Environmental Response/Health and Safety");
+
+        var tags = new List<ObservationCapability>();
+
+        void Tag(Guid obsId, Guid? capId)
+        {
+            if (capId.HasValue)
+                tags.Add(new ObservationCapability { ObservationId = obsId, CapabilityId = capId.Value });
+        }
+
+        // --- MCI TTX Observations ---
+        // Obs1: 911 dispatch & MCI protocol activation
+        Tag(MciObs1Id, opComm);
+        Tag(MciObs1Id, ems);
+        // Obs2: Scene size-up and START triage
+        Tag(MciObs2Id, ems);
+        // Obs3: EOC activation delays
+        Tag(MciObs3Id, sitAssess);
+        Tag(MciObs3Id, opComm);
+        // Obs4: Perimeter establishment
+        Tag(MciObs4Id, security);
+        // Obs5: Radio interoperability failure
+        Tag(MciObs5Id, opComm);
+        // Obs6 & Obs7: Draft observations — no tags
+        // Obs7 (draft but covers hospital surge): Mass Care
+        Tag(MciObs7Id, massCare);
+        // Obs8: Traffic management
+        Tag(MciObs8Id, security);
+
+        // --- Hazmat FE Observations ---
+        // Obs1: Chemical ID and CHEMTREC
+        Tag(HazObs1Id, envResp);
+        // Obs2: Shelter-in-place notification
+        Tag(HazObs2Id, security);
+        // Obs3: Zone establishment
+        Tag(HazObs3Id, envResp);
+        // Obs4: HAZMAT talk group
+        Tag(HazObs4Id, opComm);
+        // Obs5: Air monitoring gaps
+        Tag(HazObs5Id, envResp);
+        // Obs6: Evacuation route modification
+        Tag(HazObs6Id, security);
+        // Obs7: Mass decon corridor
+        Tag(HazObs7Id, ems);
+        Tag(HazObs7Id, envResp);
+        // Obs8: Backup communications
+        Tag(HazObs8Id, opComm);
+        // Obs9: Exposure tracking
+        Tag(HazObs9Id, ems);
+        // Obs10: CHEMTREC coordination
+        Tag(HazObs10Id, envResp);
+
+        return tags;
+    }
+
+    // =========================================================================
+    // Seed Users
+    // =========================================================================
+
+    private static List<ApplicationUser> CreateBetaSeedUsers(DateTime now)
+    {
+        return new List<ApplicationUser>
+        {
+            new ApplicationUser
+            {
+                Id = BetaEvaluator1Id,
+                UserName = "schen@coastal-esa.gov",
+                NormalizedUserName = "SCHEN@COASTAL-ESA.GOV",
+                Email = "schen@coastal-esa.gov",
+                NormalizedEmail = "SCHEN@COASTAL-ESA.GOV",
+                EmailConfirmed = true,
+                DisplayName = "Sarah Chen",
+                SystemRole = SystemRole.User,
+                Status = UserStatus.Active,
+                OrganizationId = BetaOrganizationId,
+                CurrentOrganizationId = BetaOrganizationId,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                CreatedAt = now.AddDays(-90)
+            },
+            new ApplicationUser
+            {
+                Id = BetaEvaluator2Id,
+                UserName = "jrodriguez@coastal-esa.gov",
+                NormalizedUserName = "JRODRIGUEZ@COASTAL-ESA.GOV",
+                Email = "jrodriguez@coastal-esa.gov",
+                NormalizedEmail = "JRODRIGUEZ@COASTAL-ESA.GOV",
+                EmailConfirmed = true,
+                DisplayName = "James Rodriguez",
+                SystemRole = SystemRole.User,
+                Status = UserStatus.Active,
+                OrganizationId = BetaOrganizationId,
+                CurrentOrganizationId = BetaOrganizationId,
+                SecurityStamp = Guid.NewGuid().ToString(),
+                CreatedAt = now.AddDays(-90)
+            }
+        };
+    }
+
+    private static List<OrganizationMembership> CreateBetaMemberships(DateTime now)
+    {
+        var system = SystemConstants.SystemUserIdString;
+        return new List<OrganizationMembership>
+        {
+            new OrganizationMembership
+            {
+                Id = BetaMembership1Id,
+                UserId = BetaEvaluator1Id,
+                OrganizationId = BetaOrganizationId,
+                Role = OrgRole.OrgUser,
+                Status = MembershipStatus.Active,
+                JoinedAt = now.AddDays(-90),
+                CreatedAt = now.AddDays(-90),
+                UpdatedAt = now.AddDays(-90),
+                CreatedBy = system,
+                ModifiedBy = system
+            },
+            new OrganizationMembership
+            {
+                Id = BetaMembership2Id,
+                UserId = BetaEvaluator2Id,
+                OrganizationId = BetaOrganizationId,
+                Role = OrgRole.OrgUser,
+                Status = MembershipStatus.Active,
+                JoinedAt = now.AddDays(-90),
+                CreatedAt = now.AddDays(-90),
+                UpdatedAt = now.AddDays(-90),
+                CreatedBy = system,
+                ModifiedBy = system
+            }
+        };
+    }
+
+    private static List<ExerciseParticipant> CreateBetaParticipants(DateTime now)
+    {
+        var system = SystemConstants.SystemUserIdString;
+        return new List<ExerciseParticipant>
+        {
+            // MCI TTX evaluators
+            new ExerciseParticipant
+            {
+                Id = BetaParticipantEval1Mci,
+                ExerciseId = MciTtxId,
+                UserId = BetaEvaluator1Id,
+                Role = ExerciseRole.Evaluator,
+                AssignedAt = now.AddDays(-14),
+                CreatedAt = now.AddDays(-14),
+                UpdatedAt = now.AddDays(-14),
+                CreatedBy = system,
+                ModifiedBy = system
+            },
+            new ExerciseParticipant
+            {
+                Id = BetaParticipantEval2Mci,
+                ExerciseId = MciTtxId,
+                UserId = BetaEvaluator2Id,
+                Role = ExerciseRole.Evaluator,
+                AssignedAt = now.AddDays(-14),
+                CreatedAt = now.AddDays(-14),
+                UpdatedAt = now.AddDays(-14),
+                CreatedBy = system,
+                ModifiedBy = system
+            },
+            // Hazmat FE evaluators
+            new ExerciseParticipant
+            {
+                Id = BetaParticipantEval1Haz,
+                ExerciseId = HazmatFeId,
+                UserId = BetaEvaluator1Id,
+                Role = ExerciseRole.Evaluator,
+                AssignedAt = now.AddDays(-60),
+                CreatedAt = now.AddDays(-60),
+                UpdatedAt = now.AddDays(-60),
+                CreatedBy = system,
+                ModifiedBy = system
+            },
+            new ExerciseParticipant
+            {
+                Id = BetaParticipantEval2Haz,
+                ExerciseId = HazmatFeId,
+                UserId = BetaEvaluator2Id,
+                Role = ExerciseRole.Evaluator,
+                AssignedAt = now.AddDays(-60),
+                CreatedAt = now.AddDays(-60),
+                UpdatedAt = now.AddDays(-60),
+                CreatedBy = system,
+                ModifiedBy = system
+            }
+        };
+    }
+
+    // =========================================================================
+    // Observations - MCI TTX (Active, mid-conduct) — 8 observations
+    // Mix of Draft/Complete, various ratings, some inject-linked
+    // =========================================================================
+
+    private static List<Observation> CreateMciObservations(DateTime now)
+    {
+        var eval1 = BetaEvaluator1Id;
+        var eval2 = BetaEvaluator2Id;
+
+        return new List<Observation>
+        {
+            new Observation
+            {
+                Id = MciObs1Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = MciInject1Id,
+                ObjectiveId = MciObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Performed,
+                Content = "911 dispatch received initial calls and activated MCI protocol within 2 minutes. " +
+                          "All required notifications (Fire, EMS, PD, Hospital) completed per SOP. " +
+                          "Dispatcher correctly identified charter bus involvement and requested " +
+                          "additional ambulance resources before first units arrived on scene.",
+                Recommendation = null,
+                ObservedAt = now.AddMinutes(-43),
+                Location = "911 Communications Center",
+                CreatedByUserId = eval1,
+                CreatedAt = now.AddMinutes(-40), UpdatedAt = now.AddMinutes(-40),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = MciObs2Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = MciInject2Id,
+                ObjectiveId = MciObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Satisfactory,
+                Content = "First-arriving Battalion Chief conducted scene size-up and established Incident " +
+                          "Command within 5 minutes. START triage initiated promptly. However, designation " +
+                          "of Triage Officer was delayed approximately 4 minutes while BC coordinated with " +
+                          "arriving engine companies. All patients ultimately tagged within 18 minutes.",
+                Recommendation = "Consider pre-designating triage officer role in dispatch assignment cards " +
+                                 "to eliminate on-scene negotiation delay.",
+                ObservedAt = now.AddMinutes(-36),
+                Location = "Highway 17, Mile Marker 42",
+                CreatedByUserId = eval1,
+                CreatedAt = now.AddMinutes(-33), UpdatedAt = now.AddMinutes(-33),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = MciObs3Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = MciInject3Id,
+                ObjectiveId = MciObj3Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Marginal,
+                Content = "EOC activation was delayed 11 minutes after MCI declaration. Emergency Management " +
+                          "Director reported the automated notification system sent alerts to only 4 of 7 " +
+                          "required staff members. Two department heads were reached by personal cell phone " +
+                          "by the Director. WebEOC board was not updated until 22 minutes after declaration.",
+                Recommendation = "Test and validate the automated EOC notification system monthly. Establish " +
+                                 "backup notification procedure using group text message as secondary channel.",
+                ObservedAt = now.AddMinutes(-28),
+                Location = "County EOC",
+                CreatedByUserId = eval2,
+                CreatedAt = now.AddMinutes(-25), UpdatedAt = now.AddMinutes(-25),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = MciObs4Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = MciInject2Id,
+                ObjectiveId = MciObj4Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Performed,
+                Content = "Law enforcement established inner and outer perimeters within 8 minutes of " +
+                          "first PD arrival. Traffic diversion points set at Highway 17/Route 9 and " +
+                          "Highway 17/County Road 12. Emergency vehicle corridor maintained throughout. " +
+                          "No unauthorized entry into the scene observed.",
+                Recommendation = null,
+                ObservedAt = now.AddMinutes(-35),
+                Location = "Highway 17 Perimeter",
+                CreatedByUserId = eval1,
+                CreatedAt = now.AddMinutes(-32), UpdatedAt = now.AddMinutes(-32),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = MciObs5Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = null,
+                ObjectiveId = MciObj2Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Unsatisfactory,
+                Content = "Significant interoperability failure: Fire and EMS units operated on separate " +
+                          "talk groups for 12 minutes during the critical initial response period. Mutual " +
+                          "aid units from Riverside FD were unable to contact County EMS Dispatch on the " +
+                          "assigned tactical channel. IC was unaware of the communication gap until a " +
+                          "runner physically relayed a patient count discrepancy.",
+                Recommendation = "Conduct quarterly interoperability radio drills between Fire, EMS, and " +
+                                 "mutual aid agencies. Program shared tactical channels into all portable " +
+                                 "radios. Include communication check as mandatory step in MCI checklist.",
+                ObservedAt = now.AddMinutes(-30),
+                Location = "Radio Communications",
+                CreatedByUserId = eval2,
+                CreatedAt = now.AddMinutes(-27), UpdatedAt = now.AddMinutes(-27),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = MciObs6Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = MciInject4Id,
+                ObjectiveId = null,
+                Status = ObservationStatus.Draft,
+                Rating = null,
+                Content = "PIO arrived at media staging area. Initial statement being prepared.",
+                Recommendation = null,
+                ObservedAt = now.AddMinutes(-20),
+                Location = "Media Staging Area",
+                CreatedByUserId = eval1,
+                CreatedAt = now.AddMinutes(-18), UpdatedAt = now.AddMinutes(-18),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = MciObs7Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = MciInject5Id,
+                ObjectiveId = null,
+                Status = ObservationStatus.Draft,
+                Rating = null,
+                Content = "Hospital surge protocol activated at Regional Medical Center and Community General.",
+                Recommendation = null,
+                ObservedAt = now.AddMinutes(-13),
+                Location = "Regional Medical Center",
+                CreatedByUserId = eval2,
+                CreatedAt = now.AddMinutes(-10), UpdatedAt = now.AddMinutes(-10),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = MciObs8Id,
+                ExerciseId = MciTtxId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = null,
+                ObjectiveId = MciObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Satisfactory,
+                Content = "Traffic management plan activated per county emergency traffic plan. DOT message " +
+                          "boards updated within 15 minutes. However, social media alerts were not posted " +
+                          "until 25 minutes after highway closure, resulting in continued traffic approaching " +
+                          "the scene from the eastbound direction.",
+                Recommendation = "Include social media notification as a parallel step in the traffic " +
+                                 "management plan activation checklist, not a sequential step.",
+                ObservedAt = now.AddMinutes(-32),
+                Location = "Highway 17 Traffic Control",
+                CreatedByUserId = eval1,
+                CreatedAt = now.AddMinutes(-29), UpdatedAt = now.AddMinutes(-29),
+                CreatedBy = eval1, ModifiedBy = eval1
+            }
+        };
+    }
+
+    // =========================================================================
+    // Observations - Hazmat FE (Completed, AAR-ready) — 10 observations
+    // All Complete with ratings and recommendations
+    // =========================================================================
+
+    private static List<Observation> CreateHazmatObservations(DateTime now)
+    {
+        var eval1 = BetaEvaluator1Id;
+        var eval2 = BetaEvaluator2Id;
+        var baseDate = now.AddDays(-30); // Exercise ran 30 days ago
+
+        return new List<Observation>
+        {
+            new Observation
+            {
+                Id = HazObs1Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject1Id,
+                ObjectiveId = HazmatObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Performed,
+                Content = "HAZMAT team deployed 4-gas monitor and photoionization detector within 6 minutes " +
+                          "of arrival. Chemical positively identified as chlorine via colorimetric tubes. " +
+                          "CHEMTREC contacted at 0918 and confirmed product identification. SDS obtained " +
+                          "from facility within 12 minutes of request.",
+                Recommendation = "Excellent performance. Consider sharing this response timeline as a " +
+                                 "benchmark for future HAZMAT training scenarios.",
+                ObservedAt = baseDate.AddHours(9).AddMinutes(15),
+                Location = "Bayshore Chemical Main Gate",
+                CreatedByUserId = eval1,
+                CreatedAt = baseDate.AddHours(9).AddMinutes(25), UpdatedAt = baseDate.AddHours(9).AddMinutes(25),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = HazObs2Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject1Id,
+                ObjectiveId = HazmatObj2Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Satisfactory,
+                Content = "Shelter-in-place notification sent via reverse 911 to affected zone within 14 " +
+                          "minutes. Social media alert posted 3 minutes later. However, notification text " +
+                          "used generic language ('chemical incident') rather than specific protective actions " +
+                          "('close windows, turn off HVAC systems'). School district notification was timely.",
+                Recommendation = "Update reverse 911 message templates to include specific protective actions " +
+                                 "for chemical releases. Pre-stage shelter-in-place templates with fill-in-the-blank " +
+                                 "fields for chemical name and affected zones.",
+                ObservedAt = baseDate.AddHours(9).AddMinutes(30),
+                Location = "EOC Communications",
+                CreatedByUserId = eval2,
+                CreatedAt = baseDate.AddHours(9).AddMinutes(40), UpdatedAt = baseDate.AddHours(9).AddMinutes(40),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = HazObs3Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject2Id,
+                ObjectiveId = HazmatObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Marginal,
+                Content = "Hot/warm/cold zone establishment was delayed. Initial hot zone was set at 150 feet " +
+                          "based on ERG but wind conditions required 300+ feet. Warm zone boundary was not " +
+                          "clearly marked with barrier tape until 25 minutes after zone declaration. Two " +
+                          "non-HAZMAT firefighters briefly entered the warm zone without proper PPE before " +
+                          "being redirected by the Safety Officer.",
+                Recommendation = "Conduct zone establishment drills with emphasis on wind-adjusted distances. " +
+                                 "Pre-stage zone marking kits on HAZMAT apparatus. Add mandatory PPE checkpoint " +
+                                 "at warm zone entry point to all HAZMAT SOPs.",
+                ObservedAt = baseDate.AddHours(10).AddMinutes(0),
+                Location = "Hot Zone Boundary",
+                CreatedByUserId = eval1,
+                CreatedAt = baseDate.AddHours(10).AddMinutes(15), UpdatedAt = baseDate.AddHours(10).AddMinutes(15),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = HazObs4Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject2Id,
+                ObjectiveId = HazmatObj3Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Performed,
+                Content = "HAZMAT talk group established within 8 minutes. All responding units confirmed on " +
+                          "frequency. Command channel separated from tactical channel per SOP. Mutual aid " +
+                          "units from Metro Fire patched in via regional interoperability channel. No " +
+                          "communication gaps observed during the assessment phase.",
+                Recommendation = "Strong performance. Document the channel plan used as a template for " +
+                                 "future HAZMAT responses involving mutual aid.",
+                ObservedAt = baseDate.AddHours(10).AddMinutes(10),
+                Location = "Incident Command Post",
+                CreatedByUserId = eval2,
+                CreatedAt = baseDate.AddHours(10).AddMinutes(20), UpdatedAt = baseDate.AddHours(10).AddMinutes(20),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = HazObs5Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject2Id,
+                ObjectiveId = HazmatObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Unsatisfactory,
+                Content = "Air monitoring network had significant coverage gaps. Only 3 of 6 planned downwind " +
+                          "monitoring points were established during the first hour. Wind shift at 1045 was " +
+                          "not detected by field monitors for approximately 18 minutes. Residential area in " +
+                          "the new downwind path was not alerted until 30 minutes after wind direction changed. " +
+                          "Contributing factor: one air monitor had depleted batteries.",
+                Recommendation = "Implement mandatory battery check protocol for all monitoring equipment at " +
+                                 "start of each shift. Establish minimum staffing for 6-point monitoring network " +
+                                 "in HAZMAT response SOP. Consider procurement of fixed continuous air monitors " +
+                                 "for facility perimeter.",
+                ObservedAt = baseDate.AddHours(11).AddMinutes(15),
+                Location = "Downwind Monitoring Station 3",
+                CreatedByUserId = eval1,
+                CreatedAt = baseDate.AddHours(11).AddMinutes(30), UpdatedAt = baseDate.AddHours(11).AddMinutes(30),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = HazObs6Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject3Id,
+                ObjectiveId = HazmatObj2Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Satisfactory,
+                Content = "Evacuation routes were modified within 10 minutes of wind shift notification. " +
+                          "School bus fleet was repositioned to new staging area. Evacuees were routed to " +
+                          "alternate shelter at Community Center. However, two evacuation route signs at " +
+                          "Oak Street and 4th Avenue were not updated, causing brief confusion for 3 vehicles.",
+                Recommendation = "Add a dedicated route signage team to the evacuation SOP. Use digital " +
+                                 "variable message signs at key intersections when available.",
+                ObservedAt = baseDate.AddHours(11).AddMinutes(45),
+                Location = "Evacuation Route Alpha",
+                CreatedByUserId = eval2,
+                CreatedAt = baseDate.AddHours(12).AddMinutes(0), UpdatedAt = baseDate.AddHours(12).AddMinutes(0),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = HazObs7Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject3Id,
+                ObjectiveId = HazmatObj4Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Performed,
+                Content = "Mass decontamination corridor established in 38 minutes using two-stage " +
+                          "gross/technical decon setup. All decon team members in proper Level B PPE. " +
+                          "Water supply established from hydrant at Station 4. Privacy screens deployed " +
+                          "for technical decon. Patient throughput approximately 15 per hour, within " +
+                          "expected parameters for this scenario.",
+                Recommendation = "Excellent execution. Recommend using this exercise as the basis for " +
+                                 "annual decon proficiency evaluation.",
+                ObservedAt = baseDate.AddHours(12).AddMinutes(30),
+                Location = "Decontamination Corridor",
+                CreatedByUserId = eval1,
+                CreatedAt = baseDate.AddHours(12).AddMinutes(45), UpdatedAt = baseDate.AddHours(12).AddMinutes(45),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = HazObs8Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject3Id,
+                ObjectiveId = HazmatObj3Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Marginal,
+                Content = "Backup communications were activated when primary repeater experienced interference. " +
+                          "However, satellite phone designated as secondary backup had a depleted battery and " +
+                          "was not operational. Cellular phone was used as tertiary backup successfully. " +
+                          "Field units reported intermittent coverage gaps during the 12-minute primary " +
+                          "repeater outage.",
+                Recommendation = "Add satellite phone battery check to daily apparatus checkout. Establish " +
+                                 "a communications equipment maintenance log with weekly verification. " +
+                                 "Consider adding a portable repeater to the HAZMAT cache.",
+                ObservedAt = baseDate.AddHours(13).AddMinutes(0),
+                Location = "Backup Communications Station",
+                CreatedByUserId = eval2,
+                CreatedAt = baseDate.AddHours(13).AddMinutes(15), UpdatedAt = baseDate.AddHours(13).AddMinutes(15),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new Observation
+            {
+                Id = HazObs9Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject3Id,
+                ObjectiveId = HazmatObj4Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Satisfactory,
+                Content = "Exposure tracking and patient registration system was functional throughout. " +
+                          "All patients entering decon were logged with name, exposure duration, and symptoms. " +
+                          "Hospital receiving data was transmitted electronically. Minor delay noted in " +
+                          "registration of non-ambulatory patients who required assistance from decon team " +
+                          "members, creating a brief bottleneck at the registration point.",
+                Recommendation = "Designate a dedicated registration assistant for non-ambulatory patients. " +
+                                 "Consider tablet-based registration to replace paper forms in wet environment.",
+                ObservedAt = baseDate.AddHours(13).AddMinutes(30),
+                Location = "Medical Staging Area",
+                CreatedByUserId = eval1,
+                CreatedAt = baseDate.AddHours(13).AddMinutes(45), UpdatedAt = baseDate.AddHours(13).AddMinutes(45),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new Observation
+            {
+                Id = HazObs10Id,
+                ExerciseId = HazmatFeId,
+                OrganizationId = BetaOrganizationId,
+                InjectId = HazmatInject1Id,
+                ObjectiveId = HazmatObj1Id,
+                Status = ObservationStatus.Complete,
+                Rating = ObservationRating.Performed,
+                Content = "Overall CHEMTREC coordination and information flow was excellent. Initial call " +
+                          "placed within 10 minutes of product identification. CHEMTREC provided detailed " +
+                          "response guidance including recommended isolation distances and PPE requirements. " +
+                          "Facility emergency coordinator was on-scene and cooperative throughout, providing " +
+                          "SDS and process information promptly.",
+                Recommendation = "Document the CHEMTREC coordination timeline as a best practice example. " +
+                                 "Consider adding facility emergency coordinator contact information to " +
+                                 "pre-incident plan database.",
+                ObservedAt = baseDate.AddHours(14).AddMinutes(0),
+                Location = "HAZMAT Staging Area",
+                CreatedByUserId = eval2,
+                CreatedAt = baseDate.AddHours(14).AddMinutes(15), UpdatedAt = baseDate.AddHours(14).AddMinutes(15),
+                CreatedBy = eval2, ModifiedBy = eval2
+            }
+        };
+    }
+
+    // =========================================================================
+    // EEG Entries - MCI TTX (Active, partial progress) — 7 of 11 tasks
+    // Shows mid-conduct evaluation with some tasks not yet assessed
+    // =========================================================================
+
+    private static List<EegEntry> CreateMciEegEntries(DateTime now)
+    {
+        var eval1 = BetaEvaluator1Id;
+        var eval2 = BetaEvaluator2Id;
+
+        return new List<EegEntry>
+        {
+            new EegEntry
+            {
+                Id = MciEeg1Id,
+                CriticalTaskId = MciTask_EMS_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = MciInject2Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "START triage was implemented within 10 minutes of first-arriving unit. " +
+                                  "All 47 patients were assessed and tagged with appropriate color codes. " +
+                                  "Triage officer maintained accurate patient count board. No re-triage " +
+                                  "discrepancies identified during secondary assessment.",
+                ObservedAt = now.AddMinutes(-35),
+                RecordedAt = now.AddMinutes(-32),
+                CreatedAt = now.AddMinutes(-32), UpdatedAt = now.AddMinutes(-32),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = MciEeg2Id,
+                CriticalTaskId = MciTask_EMS_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = MciInject4Id,
+                Rating = PerformanceRating.SomeChallenges,
+                ObservationText = "Patient distribution to hospitals was initiated per MCI plan. However, " +
+                                  "hospital capacity data from Regional Medical Center was delayed 8 minutes " +
+                                  "due to phone system issues. This resulted in 5 patients being transported " +
+                                  "to Regional before surge capacity was confirmed, temporarily overloading " +
+                                  "their trauma bay. Community General received appropriate patient load.",
+                ObservedAt = now.AddMinutes(-20),
+                RecordedAt = now.AddMinutes(-17),
+                CreatedAt = now.AddMinutes(-17), UpdatedAt = now.AddMinutes(-17),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = MciEeg3Id,
+                CriticalTaskId = MciTask_OpComm_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = MciInject1Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "Mutual aid talk groups were activated within 12 minutes of MCI declaration. " +
+                                  "All responding agencies confirmed on the assigned interoperability channel. " +
+                                  "Dispatch maintained clear radio discipline throughout. Channel patching " +
+                                  "between county and municipal systems completed without interruption.",
+                ObservedAt = now.AddMinutes(-40),
+                RecordedAt = now.AddMinutes(-37),
+                CreatedAt = now.AddMinutes(-37), UpdatedAt = now.AddMinutes(-37),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new EegEntry
+            {
+                Id = MciEeg4Id,
+                CriticalTaskId = MciTask_OpComm_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = MciInject3Id,
+                Rating = PerformanceRating.MajorChallenges,
+                ObservationText = "Field-to-EOC communication link took 25 minutes to establish after EOC " +
+                                  "activation. The designated liaison frequency was not programmed in 2 of " +
+                                  "4 field command radios. Backup frequency assignment was not communicated " +
+                                  "to field units. IC relied on cell phone for EOC updates during the gap. " +
+                                  "Unified Command briefing schedule was delayed as a result.",
+                ObservedAt = now.AddMinutes(-26),
+                RecordedAt = now.AddMinutes(-23),
+                CreatedAt = now.AddMinutes(-23), UpdatedAt = now.AddMinutes(-23),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new EegEntry
+            {
+                Id = MciEeg5Id,
+                CriticalTaskId = MciTask_Security_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = MciInject2Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "Inner and outer perimeters established within 8 minutes of first PD " +
+                                  "arrival. Traffic diversion set at two intersections per the emergency " +
+                                  "traffic plan. Scene access control maintained throughout with credential " +
+                                  "checking at the outer perimeter. Emergency vehicle corridor remained clear.",
+                ObservedAt = now.AddMinutes(-34),
+                RecordedAt = now.AddMinutes(-31),
+                CreatedAt = now.AddMinutes(-31), UpdatedAt = now.AddMinutes(-31),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = MciEeg6Id,
+                CriticalTaskId = MciTask_Security_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = null,
+                Rating = PerformanceRating.SomeChallenges,
+                ObservationText = "Emergency traffic corridors were established and DOT notified. However, " +
+                                  "electronic message boards on Highway 17 westbound were not updated for " +
+                                  "22 minutes due to a coordination delay between PD dispatch and DOT " +
+                                  "operations center. Eastbound boards updated within 10 minutes. " +
+                                  "Manual traffic control by officers was effective throughout.",
+                ObservedAt = now.AddMinutes(-28),
+                RecordedAt = now.AddMinutes(-25),
+                CreatedAt = now.AddMinutes(-25), UpdatedAt = now.AddMinutes(-25),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = MciEeg7Id,
+                CriticalTaskId = MciTask_SitAssess_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = MciInject3Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "Situation Unit activated promptly after EOC staffing. Field situation " +
+                                  "reports were received every 15 minutes per SOP. Situation status board " +
+                                  "maintained with current casualty figures, resource status, and hospital " +
+                                  "capacity. Initial situation report to County Executive completed within " +
+                                  "20 minutes of EOC activation.",
+                ObservedAt = now.AddMinutes(-22),
+                RecordedAt = now.AddMinutes(-19),
+                CreatedAt = now.AddMinutes(-19), UpdatedAt = now.AddMinutes(-19),
+                CreatedBy = eval2, ModifiedBy = eval2
+            }
+        };
+    }
+
+    // =========================================================================
+    // EEG Entries - Hazmat FE (Completed, full coverage) — all 9 tasks
+    // Complete evaluation with all critical tasks assessed
+    // =========================================================================
+
+    private static List<EegEntry> CreateHazmatEegEntries(DateTime now)
+    {
+        var eval1 = BetaEvaluator1Id;
+        var eval2 = BetaEvaluator2Id;
+        var baseDate = now.AddDays(-30);
+
+        return new List<EegEntry>
+        {
+            new EegEntry
+            {
+                Id = HazEeg1Id,
+                CriticalTaskId = HazTask_EnvResp_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = HazmatInject1Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "Hazardous material positively identified as chlorine gas within 18 minutes " +
+                                  "of HAZMAT team arrival using 4-gas meter and colorimetric detection tubes. " +
+                                  "CHEMTREC contacted immediately; product verification confirmed. Facility " +
+                                  "SDS obtained and cross-referenced. Response guidance disseminated to all " +
+                                  "units within 25 minutes of identification.",
+                ObservedAt = baseDate.AddHours(9).AddMinutes(20),
+                RecordedAt = baseDate.AddHours(9).AddMinutes(28),
+                CreatedAt = baseDate.AddHours(9).AddMinutes(28), UpdatedAt = baseDate.AddHours(9).AddMinutes(28),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = HazEeg2Id,
+                CriticalTaskId = HazTask_EnvResp_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = HazmatInject2Id,
+                Rating = PerformanceRating.SomeChallenges,
+                ObservationText = "Hot, warm, and cold zones established per ERG guidelines. However, initial " +
+                                  "warm zone was set too narrow at 150 feet given wind speed of 12 mph. Safety " +
+                                  "Officer identified the issue and expanded to 300 feet after 10 minutes. " +
+                                  "Zone boundary marking with tape and cones completed after expansion. Two " +
+                                  "brief unauthorized entries into warm zone corrected by Safety Officer.",
+                ObservedAt = baseDate.AddHours(10).AddMinutes(5),
+                RecordedAt = baseDate.AddHours(10).AddMinutes(12),
+                CreatedAt = baseDate.AddHours(10).AddMinutes(12), UpdatedAt = baseDate.AddHours(10).AddMinutes(12),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = HazEeg3Id,
+                CriticalTaskId = HazTask_EnvResp_3,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = HazmatInject2Id,
+                Rating = PerformanceRating.MajorChallenges,
+                ObservationText = "Air monitoring network established at only 3 of 6 planned downwind positions " +
+                                  "during the first hour. One monitor had depleted batteries and was non-functional. " +
+                                  "Staff shortage prevented covering the two furthest monitoring points. Wind " +
+                                  "direction shift at 1045 was not detected by field monitors for 18 minutes, " +
+                                  "resulting in a 30-minute notification delay to newly affected residential area.",
+                ObservedAt = baseDate.AddHours(11).AddMinutes(20),
+                RecordedAt = baseDate.AddHours(11).AddMinutes(28),
+                CreatedAt = baseDate.AddHours(11).AddMinutes(28), UpdatedAt = baseDate.AddHours(11).AddMinutes(28),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = HazEeg4Id,
+                CriticalTaskId = HazTask_Security_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = HazmatInject1Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "Shelter-in-place notification executed via reverse 911 within 12 minutes of " +
+                                  "initial hazard confirmation. Social media alert posted 3 minutes later on " +
+                                  "county emergency channels. School district notified and confirmed lockdown " +
+                                  "at all 4 schools in the affected zone within 8 minutes. Media advisory " +
+                                  "issued to local stations with shelter-in-place guidance.",
+                ObservedAt = baseDate.AddHours(9).AddMinutes(35),
+                RecordedAt = baseDate.AddHours(9).AddMinutes(42),
+                CreatedAt = baseDate.AddHours(9).AddMinutes(42), UpdatedAt = baseDate.AddHours(9).AddMinutes(42),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new EegEntry
+            {
+                Id = HazEeg5Id,
+                CriticalTaskId = HazTask_Security_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = HazmatInject3Id,
+                Rating = PerformanceRating.SomeChallenges,
+                ObservationText = "Evacuation routes identified and activated per county evacuation plan. Bus " +
+                                  "staging area established at Park & Ride lot. However, coordination with " +
+                                  "Lincoln Elementary was delayed 20 minutes because the school's emergency " +
+                                  "contact number was outdated in the county database. School was reached via " +
+                                  "the principal's personal cell. All students evacuated safely once contact " +
+                                  "was established.",
+                ObservedAt = baseDate.AddHours(12).AddMinutes(0),
+                RecordedAt = baseDate.AddHours(12).AddMinutes(8),
+                CreatedAt = baseDate.AddHours(12).AddMinutes(8), UpdatedAt = baseDate.AddHours(12).AddMinutes(8),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new EegEntry
+            {
+                Id = HazEeg6Id,
+                CriticalTaskId = HazTask_OpComm_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = HazmatInject2Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "HAZMAT tactical talk group activated and all units confirmed on frequency " +
+                                  "within 13 minutes. Command channel properly separated from tactical. " +
+                                  "Mutual aid units from Metro Fire patched via regional interoperability " +
+                                  "channel. HAZMAT Branch Director maintained clear radio discipline. " +
+                                  "No cross-talk or communication gaps observed during the assessment phase.",
+                ObservedAt = baseDate.AddHours(10).AddMinutes(15),
+                RecordedAt = baseDate.AddHours(10).AddMinutes(22),
+                CreatedAt = baseDate.AddHours(10).AddMinutes(22), UpdatedAt = baseDate.AddHours(10).AddMinutes(22),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new EegEntry
+            {
+                Id = HazEeg7Id,
+                CriticalTaskId = HazTask_OpComm_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval2,
+                TriggeringInjectId = HazmatInject3Id,
+                Rating = PerformanceRating.SomeChallenges,
+                ObservationText = "When primary repeater experienced interference, backup communications " +
+                                  "activation was attempted. Satellite phone (designated backup) had a " +
+                                  "depleted battery and could not be powered on. Team pivoted to cellular " +
+                                  "phones as tertiary backup within 4 minutes. Communication was maintained " +
+                                  "but with reduced reliability during the 12-minute primary outage period.",
+                ObservedAt = baseDate.AddHours(13).AddMinutes(5),
+                RecordedAt = baseDate.AddHours(13).AddMinutes(12),
+                CreatedAt = baseDate.AddHours(13).AddMinutes(12), UpdatedAt = baseDate.AddHours(13).AddMinutes(12),
+                CreatedBy = eval2, ModifiedBy = eval2
+            },
+            new EegEntry
+            {
+                Id = HazEeg8Id,
+                CriticalTaskId = HazTask_EMS_1,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = HazmatInject3Id,
+                Rating = PerformanceRating.Performed,
+                ObservationText = "Mass decontamination corridor was operational within 42 minutes of the " +
+                                  "decision to decon, well within the 60-minute standard. Two-stage " +
+                                  "gross/technical decon setup executed per HAZMAT SOP. All decon team " +
+                                  "members wore appropriate Level B PPE. Water supply from Station 4 " +
+                                  "hydrant was adequate. Patient throughput of 15 per hour achieved.",
+                ObservedAt = baseDate.AddHours(12).AddMinutes(45),
+                RecordedAt = baseDate.AddHours(12).AddMinutes(52),
+                CreatedAt = baseDate.AddHours(12).AddMinutes(52), UpdatedAt = baseDate.AddHours(12).AddMinutes(52),
+                CreatedBy = eval1, ModifiedBy = eval1
+            },
+            new EegEntry
+            {
+                Id = HazEeg9Id,
+                CriticalTaskId = HazTask_EMS_2,
+                OrganizationId = BetaOrganizationId,
+                EvaluatorId = eval1,
+                TriggeringInjectId = HazmatInject3Id,
+                Rating = PerformanceRating.SomeChallenges,
+                ObservationText = "Patient exposure tracking and registration system was functional. All " +
+                                  "patients passing through decon were logged with name, estimated exposure " +
+                                  "duration, and presenting symptoms. Hospital notification included exposure " +
+                                  "data. However, registration of non-ambulatory patients created a bottleneck " +
+                                  "as decon team members had to assist with data collection while maintaining " +
+                                  "decon throughput. Average registration time was 4 minutes for ambulatory " +
+                                  "vs 9 minutes for non-ambulatory patients.",
+                ObservedAt = baseDate.AddHours(13).AddMinutes(35),
+                RecordedAt = baseDate.AddHours(13).AddMinutes(42),
+                CreatedAt = baseDate.AddHours(13).AddMinutes(42), UpdatedAt = baseDate.AddHours(13).AddMinutes(42),
+                CreatedBy = eval1, ModifiedBy = eval1
+            }
         };
     }
 
