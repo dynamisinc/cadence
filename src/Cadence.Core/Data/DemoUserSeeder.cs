@@ -72,20 +72,18 @@ public class DemoUserSeeder
             return;
         }
 
-        // Check if already seeded
-        var adminExists = await _userManager.FindByIdAsync(DemoDataSeeder.AdminUserId);
-        if (adminExists != null)
-        {
-            _logger.LogInformation("Demo users already seeded - skipping");
-            return;
-        }
-
-        // Seed users
+        // Seed users (idempotent — skips existing, creates missing)
         var users = GetDemoUsers();
         var createdCount = 0;
 
         foreach (var user in users)
         {
+            var existing = await _userManager.FindByIdAsync(user.Id);
+            if (existing != null)
+            {
+                continue; // Already seeded
+            }
+
             var result = await _userManager.CreateAsync(user, DemoPassword);
 
             if (result.Succeeded)
@@ -102,7 +100,14 @@ public class DemoUserSeeder
             }
         }
 
-        _logger.LogInformation("Created {Count} demo users", createdCount);
+        if (createdCount > 0)
+        {
+            _logger.LogInformation("Created {Count} new demo users", createdCount);
+        }
+        else
+        {
+            _logger.LogDebug("All demo users already exist - no new users created");
+        }
 
         // Seed organization memberships for users that need org context
         await SeedOrganizationMembershipsAsync();
