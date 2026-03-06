@@ -88,10 +88,10 @@ jobs:
           echo "Download the \`zap-sarif\` artifact for SARIF findings (merged into consolidated security report)." >> $GITHUB_STEP_SUMMARY
 
   # ===========================================================================
-  # Job 2: Authenticated Full Scan (active scan behind login wall)
+  # Job 2: Authenticated API Scan (OpenAPI-driven active scan behind login wall)
   # ===========================================================================
-  zap-authenticated:
-    name: ZAP Authenticated Scan
+  zap-api-scan:
+    name: ZAP API Scan (Authenticated)
     runs-on: ubuntu-latest
     environment: UAT
 
@@ -116,8 +116,8 @@ jobs:
           echo "http_code=$HTTP_CODE" >> $GITHUB_OUTPUT
 
           if [ "$HTTP_CODE" != "200" ]; then
-            echo "::warning::Target ${{ steps.target.outputs.url }} returned HTTP $HTTP_CODE — skipping authenticated scan"
-            echo "## DAST Authenticated Scan Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "::warning::Target ${{ steps.target.outputs.url }} returned HTTP $HTTP_CODE — skipping API scan"
+            echo "## DAST API Scan Skipped" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Target \`${{ steps.target.outputs.url }}\` is not reachable (HTTP $HTTP_CODE)." >> $GITHUB_STEP_SUMMARY
           else
@@ -129,9 +129,9 @@ jobs:
         if: steps.reachable.outputs.http_code == '200'
         run: |
           if [ -z "${{ secrets.ZAP_AUTH_EMAIL }}" ] || [ -z "${{ secrets.ZAP_AUTH_PASSWORD }}" ]; then
-            echo "::warning::ZAP_AUTH_EMAIL or ZAP_AUTH_PASSWORD secrets not configured — skipping authenticated scan"
+            echo "::warning::ZAP_AUTH_EMAIL or ZAP_AUTH_PASSWORD secrets not configured — skipping API scan"
             echo "has_secrets=false" >> $GITHUB_OUTPUT
-            echo "## DAST Authenticated Scan Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "## DAST API Scan Skipped" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Auth secrets not configured. Add \`ZAP_AUTH_EMAIL\` and \`ZAP_AUTH_PASSWORD\` to the UAT environment." >> $GITHUB_STEP_SUMMARY
           else
@@ -150,9 +150,9 @@ jobs:
           TOKEN=$(echo "$RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('accessToken',''))" 2>/dev/null)
 
           if [ -z "$TOKEN" ]; then
-            echo "::warning::Authentication failed — skipping authenticated scan"
+            echo "::warning::Authentication failed — skipping API scan"
             echo "auth_success=false" >> $GITHUB_OUTPUT
-            echo "## DAST Authenticated Scan Skipped" >> $GITHUB_STEP_SUMMARY
+            echo "## DAST API Scan Skipped" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "Authentication failed. Verify ZAP scanner user exists on UAT and secrets are correct." >> $GITHUB_STEP_SUMMARY
           else
@@ -163,13 +163,33 @@ jobs:
             echo "Successfully authenticated as ${{ secrets.ZAP_AUTH_EMAIL }}"
           fi
 
-      - name: Run ZAP Full Scan (Authenticated)
+      - name: Check OpenAPI spec availability
+        id: openapi-check
         if: steps.auth.outputs.auth_success == 'true'
-        uses: zaproxy/action-full-scan@v0.13.0
+        run: |
+          SPEC_URL="${{ steps.target.outputs.url }}/openapi/v1.json"
+          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 15 \
+            -H "Authorization: Bearer ${{ steps.auth.outputs.token }}" \
+            "$SPEC_URL" 2>/dev/null) || HTTP_CODE="000"
+
+          if [ "$HTTP_CODE" == "200" ]; then
+            echo "spec_available=true" >> $GITHUB_OUTPUT
+            echo "target_spec=$SPEC_URL" >> $GITHUB_OUTPUT
+            echo "OpenAPI spec available at $SPEC_URL"
+          else
+            echo "spec_available=false" >> $GITHUB_OUTPUT
+            echo "target_spec=${{ steps.target.outputs.url }}" >> $GITHUB_OUTPUT
+            echo "::warning::OpenAPI spec not available (HTTP $HTTP_CODE) — falling back to target URL scan"
+          fi
+
+      - name: Run ZAP API Scan (Authenticated)
+        if: steps.auth.outputs.auth_success == 'true'
+        uses: zaproxy/action-api-scan@v0.10.0
         with:
-          target: "${{ steps.target.outputs.url }}"
+          target: "${{ steps.openapi-check.outputs.target_spec }}"
+          format: "openapi"
           rules_file_name: ".zap/rules.tsv"
-          cmd_options: "-a -j"
+          cmd_options: "-a"
           allow_issue_writing: false
           artifact_name: "zap-auth-report"
         env:
@@ -197,10 +217,15 @@ jobs:
       - name: Generate scan summary
         if: steps.auth.outputs.auth_success == 'true'
         run: |
-          echo "## ZAP Authenticated Full Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "## ZAP API Scan Results (Authenticated)" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Target:** \`${{ steps.target.outputs.url }}\`" >> $GITHUB_STEP_SUMMARY
-          echo "**Scan type:** Full Scan (active spider + active scan, authenticated)" >> $GITHUB_STEP_SUMMARY
+          echo "**Scan type:** API Scan (OpenAPI-driven, authenticated)" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.openapi-check.outputs.spec_available }}" == "true" ]; then
+            echo "**OpenAPI spec:** Available (\`/openapi/v1.json\`)" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "**OpenAPI spec:** Not available (URL-only scan)" >> $GITHUB_STEP_SUMMARY
+          fi
           echo "**Auth user:** \`${{ secrets.ZAP_AUTH_EMAIL }}\`" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "Download the \`zap-auth-report\` artifact for the full HTML report." >> $GITHUB_STEP_SUMMARY

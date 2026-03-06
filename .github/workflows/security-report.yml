@@ -241,6 +241,23 @@ jobs:
           # Also compute per-tool breakdown
           tool_counts = Counter(f["tool"] for f in findings)
 
+          # Deduplicate findings by (tool, level, rule) for the HTML table
+          from collections import defaultdict
+          grouped = defaultdict(lambda: {"message": "", "locations": [], "count": 0})
+          for f in findings:
+              key = (f["tool"], f["level"], f["rule"])
+              entry = grouped[key]
+              if entry["count"] == 0:
+                  entry["message"] = f["message"]
+                  entry["tool"] = f["tool"]
+                  entry["level"] = f["level"]
+                  entry["rule"] = f["rule"]
+              if f["location"] and f["location"] not in entry["locations"]:
+                  entry["locations"].append(f["location"])
+              entry["count"] += 1
+          deduped = list(grouped.values())
+          deduped.sort(key=lambda d: (level_order.get(d["level"], 99), -d["count"]))
+
           # Generate HTML report
           now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
           h = f"""<!DOCTYPE html>
@@ -256,6 +273,7 @@ jobs:
             .summary {{ display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }}
             .card {{ padding: 1rem; border-radius: 8px; min-width: 140px; text-align: center; color: white; }}
             .card-sub {{ font-size: 0.75em; opacity: 0.9; margin-top: 4px; }}
+            td code {{ font-size: 0.85em; word-break: break-all; }}
           </style></head><body>
           <h1>Cadence Security Report</h1>
           <p><strong>Generated:</strong> {now}</p>
@@ -287,12 +305,22 @@ jobs:
               h += f'<td>{len(tool_rules)}</td><td>{tool_dupes}</td></tr>'
           h += '</table>'
 
-          h += '<h2>All Findings</h2><table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Message</th><th>Location</th></tr>'
+          h += '<h2>Findings (Deduplicated by Rule)</h2>'
+          h += '<table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Instances</th><th>Message</th><th>Locations</th></tr>'
 
-          for f in findings:
-              badge = f'<span class="badge" style="background:{level_colors[f["level"]]}">{level_labels[f["level"]]}</span>'
-              h += f'<tr><td>{badge}</td><td>{html.escape(f["tool"])}</td><td>{html.escape(f["rule"])}</td>'
-              h += f'<td>{html.escape(f["message"][:200])}</td><td><code>{html.escape(f["location"])}</code></td></tr>'
+          for d in deduped:
+              badge = f'<span class="badge" style="background:{level_colors[d["level"]]}">{level_labels[d["level"]]}</span>'
+              locs = d["locations"]
+              if not locs:
+                  loc_html = "<em>N/A</em>"
+              elif len(locs) <= 3:
+                  loc_html = "<br>".join(f"<code>{html.escape(l)}</code>" for l in locs)
+              else:
+                  loc_html = "<br>".join(f"<code>{html.escape(l)}</code>" for l in locs[:3])
+                  loc_html += f"<br><em>...and {len(locs) - 3} more</em>"
+              h += f'<tr><td>{badge}</td><td>{html.escape(d["tool"])}</td><td>{html.escape(d["rule"])}</td>'
+              h += f'<td style="text-align:center">{d["count"]}</td>'
+              h += f'<td>{html.escape(d["message"][:200])}</td><td>{loc_html}</td></tr>'
 
           h += '</table></body></html>'
 
@@ -305,6 +333,7 @@ jobs:
           with open(os.environ["GITHUB_OUTPUT"], "a") as f:
               f.write("has_sarif=true\n")
               f.write(f"total={len(findings)}\n")
+              f.write(f"unique_findings={len(deduped)}\n")
               f.write(f"errors={level_counts.get('error', 0)}\n")
               f.write(f"warnings={level_counts.get('warning', 0)}\n")
               f.write(f"notes={level_counts.get('note', 0)}\n")
@@ -333,13 +362,13 @@ jobs:
           echo "| IaC (Checkov) | ${{ steps.iac.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| DAST (ZAP HTML) | ${{ steps.dast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| DAST Baseline (SARIF) | ${{ steps.zap-sarif.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| DAST Authenticated (SARIF) | ${{ steps.zap-auth-sarif.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| DAST API Scan (SARIF) | ${{ steps.zap-auth-sarif.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ steps.report.outputs.has_sarif }}" == "true" ]; then
             echo "### Findings Summary" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Total findings:** ${{ steps.report.outputs.total }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Total instances:** ${{ steps.report.outputs.total }} | **Unique findings:** ${{ steps.report.outputs.unique_findings }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "| Severity | Total | Unique Rules | Duplicates |" >> $GITHUB_STEP_SUMMARY
             echo "|----------|-------|--------------|------------|" >> $GITHUB_STEP_SUMMARY
