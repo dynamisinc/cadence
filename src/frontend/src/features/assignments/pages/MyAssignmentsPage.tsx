@@ -110,7 +110,7 @@ export function MyAssignmentsPage() {
 
   return (
     <Box padding={CobraStyles.Padding.MainWindow}>
-      <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" />
+      <PageHeader title="My Assignments" icon={faClipboardList} subtitle="Your exercise role assignments, grouped by status" chips={<HelpTooltip helpKey="assignments.overview" compact />} />
 
       {/* Active Section - always show */}
       <AssignmentSection

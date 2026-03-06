@@ -793,12 +793,7 @@ export const ExerciseConductPage = () => {
         title="Exercise Conduct"
         icon={faDesktop}
         subtitle={exercise ? `Conduct ${exercise.name}` : undefined}
-        chips={
-          <>
-            <HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} compact />
-            <HelpTooltip helpKey="conduct.clock" exerciseRole={effectiveRole ?? undefined} compact />
-          </>
-        }
+        chips={<HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} />}
         mb={2}
       />
 
