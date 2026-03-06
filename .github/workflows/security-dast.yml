@@ -106,7 +106,7 @@ jobs:
   # Job 2: Authenticated Scan (quick=baseline with auth, full=OpenAPI API scan)
   # ===========================================================================
   zap-authenticated:
-    name: "ZAP Authenticated Scan (${{ env.SCAN_MODE }})"
+    name: ZAP Authenticated Scan
     runs-on: ubuntu-latest
     environment: UAT
 
