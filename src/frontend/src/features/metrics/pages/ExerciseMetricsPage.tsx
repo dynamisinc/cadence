@@ -16,7 +16,8 @@ import {
   Alert,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { PageHeader } from '@/shared/components'
+import { PageHeader, HelpTooltip } from '@/shared/components'
+import { useExerciseRole } from '../../auth'
 import {
   faFire,
   faClipboardList,
@@ -57,6 +58,7 @@ export const ExerciseMetricsPage = () => {
   const [activeTab, setActiveTab] = useState(0)
 
   const { exercise, loading: isLoading, error } = useExercise(exerciseId ?? '')
+  const { effectiveRole } = useExerciseRole(exerciseId ?? null)
 
   // Set breadcrumbs with exercise name
   useBreadcrumbs(
@@ -100,6 +102,7 @@ export const ExerciseMetricsPage = () => {
         title="Exercise Metrics"
         icon={faChartBar}
         subtitle={`After-action review data for ${exercise.name}`}
+        chips={<HelpTooltip helpKey="metrics.overview" exerciseRole={effectiveRole ?? undefined} compact />}
       />
 
       {/* Tabs */}

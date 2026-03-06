@@ -38,6 +38,13 @@ vi.mock('@/features/excel-export', () => ({
   useExportFullPackage: vi.fn(),
 }))
 
+vi.mock('../../auth', () => ({
+  useExerciseRole: vi.fn(() => ({
+    effectiveRole: 'ExerciseDirector',
+    can: vi.fn(() => true),
+  })),
+}))
+
 vi.mock('@/core/contexts', () => ({
   useBreadcrumbs: vi.fn(),
   useConnectivity: vi.fn(() => ({

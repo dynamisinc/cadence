@@ -57,6 +57,7 @@ import { useBreadcrumbs } from '../../../core/contexts'
 import { ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
 import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
 import { EffectiveRoleBadge } from '@/features/auth'
+import { HelpTooltip } from '@/shared/components'
 import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
 import type { UserDto } from '../../users/types'
 
@@ -100,7 +101,7 @@ export const ExerciseDetailPage = () => {
   const navigate = useNavigate()
   const location = useLocation()
   const { exercise, loading, error, updateExercise } = useExercise(id)
-  const { can } = useExerciseRole(id ?? null)
+  const { can, effectiveRole } = useExerciseRole(id ?? null)
   const queryClient = useQueryClient()
 
   // Derive edit state from URL path (ends with /edit)
@@ -374,6 +375,8 @@ export const ExerciseDetailPage = () => {
         marginBottom={3}
         actions={
           <>
+            {/* Contextual Help */}
+            <HelpTooltip helpKey="hub.overview" exerciseRole={effectiveRole ?? undefined} compact />
             {/* User's Exercise Role Badge */}
             <EffectiveRoleBadge exerciseId={id ?? null} showOverride />
             {canEdit && !isEditing && (

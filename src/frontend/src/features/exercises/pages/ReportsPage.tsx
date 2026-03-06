@@ -29,7 +29,8 @@ import {
 import CobraStyles from '@/theme/CobraStyles'
 import { CobraPrimaryButton, CobraLinkButton } from '@/theme/styledComponents'
 import { useBreadcrumbs } from '@/core/contexts'
-import { PageHeader } from '@/shared/components'
+import { PageHeader, HelpTooltip } from '@/shared/components'
+import { useExerciseRole } from '../../auth'
 import { useExercise, useMselSummary } from '../hooks'
 import {
   useExportMsel,
@@ -42,6 +43,7 @@ export const ReportsPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
+  const { effectiveRole } = useExerciseRole(exerciseId ?? null)
   const { data: mselSummary } = useMselSummary(exerciseId ?? '')
   const { observations } = useObservations(exerciseId ?? '')
   const [error, setError] = useState<string | null>(null)
@@ -153,6 +155,7 @@ export const ReportsPage = () => {
         title="Reports & Export"
         icon={faChartBar}
         subtitle="Export exercise data for analysis and documentation"
+        chips={<HelpTooltip helpKey="reports.overview" exerciseRole={effectiveRole ?? undefined} compact />}
         actions={
           <CobraLinkButton
             startIcon={<FontAwesomeIcon icon={faArrowLeft} />}

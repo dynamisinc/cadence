@@ -72,7 +72,7 @@ import {
   PERFORMANCE_RATING_SHORT_LABELS,
   type EegEntryDto,
 } from '../types'
-import { PageHeader } from '@/shared/components'
+import { PageHeader, HelpTooltip } from '@/shared/components'
 import CobraStyles from '@/theme/CobraStyles'
 
 type RatingFilterValue = 'all' | PerformanceRating
@@ -88,7 +88,7 @@ export const EegEntriesPage = () => {
   // Core data hooks
   const { user } = useAuth()
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
-  const { can } = useExerciseRole(exerciseId ?? null)
+  const { can, effectiveRole } = useExerciseRole(exerciseId ?? null)
   const {
     eegEntries,
     loading: entriesLoading,
@@ -269,6 +269,7 @@ export const EegEntriesPage = () => {
         title="EEG Entries"
         icon={faClipboardCheck}
         subtitle={`Exercise Evaluation Guide entries for ${exercise.name}`}
+        chips={<HelpTooltip helpKey="eeg.overview" exerciseRole={effectiveRole ?? undefined} compact />}
         actions={
           <Stack direction="row" spacing={2}>
             {/* Show Generate button only on Coverage tab */}

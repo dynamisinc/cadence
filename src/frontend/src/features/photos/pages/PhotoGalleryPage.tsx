@@ -66,7 +66,8 @@ import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
 import { AnnotationOverlay } from '../components/AnnotationOverlay'
 import { parseAnnotationsJson } from '../utils/parseAnnotations'
 import { AnnotationEditor } from '../components/AnnotationEditor'
-import { PageHeader } from '@/shared/components'
+import { PageHeader, HelpTooltip } from '@/shared/components'
+import { useExerciseRole } from '../../auth'
 
 // Filter chip options
 type LinkedFilterValue = 'all' | 'linked' | 'unlinked'
@@ -85,6 +86,7 @@ export const PhotoGalleryPage = () => {
 
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
+  const { effectiveRole } = useExerciseRole(exerciseId ?? null)
 
   // Filter state
   const [linkedFilter, setLinkedFilter] = useState<LinkedFilterValue>('all')
@@ -248,9 +250,12 @@ export const PhotoGalleryPage = () => {
         icon={faImages}
         subtitle="Browse and annotate photos captured during exercise conduct"
         chips={
-          <Typography variant="body2" color="text.secondary">
-            ({totalCount} {totalCount === 1 ? 'photo' : 'photos'})
-          </Typography>
+          <>
+            <HelpTooltip helpKey="photos.overview" exerciseRole={effectiveRole ?? undefined} compact />
+            <Typography variant="body2" color="text.secondary">
+              ({totalCount} {totalCount === 1 ? 'photo' : 'photos'})
+            </Typography>
+          </>
         }
         actions={
           <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
