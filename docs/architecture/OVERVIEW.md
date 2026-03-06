@@ -1,294 +1,339 @@
 # Architecture Overview
 
-This document describes the high-level architecture of Cadence.
+> **Last Updated:** 2026-03-06 | **Version:** 2.0
+
+This document describes the high-level architecture of Cadence, a HSEEP-compliant MSEL management platform.
 
 ---
 
 ## System Architecture
 
+```mermaid
+flowchart TB
+    subgraph Clients["Clients"]
+        SPA["React 19 SPA<br/>COBRA Styling + MUI 7<br/>PWA + Offline Support"]
+    end
+
+    subgraph SWA["Azure Static Web Apps"]
+        CDN["Global CDN<br/>Managed SSL<br/>Custom Domain"]
+    end
+
+    subgraph AppService["Azure App Service (B1 - Always Warm)"]
+        API["REST API<br/>.NET 10 + EF Core 10"]
+        Hub["SignalR Hub<br/>/hubs/exercise"]
+        Auth["JWT Authentication<br/>ASP.NET Core Identity"]
+        Middleware["Middleware Pipeline<br/>Serilog + CORS + Rate Limiting"]
+        BgService["InjectReadinessBackgroundService"]
+    end
+
+    subgraph Functions["Azure Functions (Consumption)"]
+        Health["HealthFunction"]
+    end
+
+    subgraph Data["Data Services"]
+        DB[("Azure SQL<br/>EF Core 10<br/>Org-scoped filters")]
+        Blob["Azure Blob Storage<br/>Exercise Photos"]
+        SignalR["Azure SignalR Service<br/>Real-time Events"]
+    end
+
+    subgraph Monitoring["Monitoring"]
+        AI["Application Insights<br/>Adaptive Sampling"]
+    end
+
+    SPA --> CDN
+    CDN -->|"/api/*"| API
+    CDN -->|"/hubs/*"| Hub
+    API --> DB
+    API --> Blob
+    Hub --> SignalR
+    Functions --> DB
+    API --> AI
+    BgService --> DB
 ```
-┌─────────────────────────────────────────────────────────────────────────┐
-│                              CLIENTS                                     │
-├─────────────────────────────────────────────────────────────────────────┤
-│   Browser (React SPA)          Mobile (Future)         Third-Party      │
-│   └─ COBRA Styling             └─ React Native         └─ REST API      │
-│   └─ MUI 7 Components          └─ Shared Types                          │
-└─────────────────────────────────────────────────────────────────────────┘
-                │                        │                    │
-                │         HTTPS          │                    │
-                ▼                        ▼                    ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         AZURE STATIC WEB APPS                            │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │  React SPA (Vite build)                                         │   │
-│   │  └─ Global CDN distribution                                     │   │
-│   │  └─ Managed SSL certificates                                    │   │
-│   │  └─ Custom domain support                                       │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
-                │
-                │  /api/* proxy
-                ▼
-┌─────────────────────────────────────────────────────────────────────────┐
-│                         AZURE FUNCTIONS                                  │
-│   ┌─────────────────────────────────────────────────────────────────┐   │
-│   │  .NET 10 Isolated Worker                                        │   │
-│   │  ├─ HTTP Triggers (REST API)                                    │   │
-│   │  ├─ SignalR Triggers (Real-time)                                │   │
-│   │  └─ Timer Triggers (Background jobs - future)                   │   │
-│   ├─────────────────────────────────────────────────────────────────┤   │
-│   │  Middleware Pipeline:                                           │   │
-│   │  ┌─────────┐ ┌──────────┐ ┌─────────────┐ ┌───────────────────┐ │   │
-│   │  │  CORS   │→│ Security │→│ Correlation │→│ Exception Handler │ │   │
-│   │  │         │ │ Headers  │ │     ID      │ │                   │ │   │
-│   │  └─────────┘ └──────────┘ └─────────────┘ └───────────────────┘ │   │
-│   └─────────────────────────────────────────────────────────────────┘   │
-└─────────────────────────────────────────────────────────────────────────┘
-                │                                      │
-                │                                      │
-                ▼                                      ▼
-┌───────────────────────────────┐    ┌────────────────────────────────────┐
-│        AZURE SQL              │    │      AZURE SIGNALR SERVICE         │
-│   ┌───────────────────────┐   │    │   ┌────────────────────────────┐   │
-│   │  Entity Framework     │   │    │   │  Serverless Mode           │   │
-│   │  Core 10              │   │    │   │  └─ Broadcast messages     │   │
-│   │  └─ Code-first        │   │    │   │  └─ User-targeted msgs     │   │
-│   │  └─ Migrations        │   │    │   │  └─ Group messaging        │   │
-│   │  └─ Soft deletes      │   │    │   └────────────────────────────┘   │
-│   └───────────────────────┘   │    └────────────────────────────────────┘
-└───────────────────────────────┘
-                │
-                ▼
-┌───────────────────────────────┐
-│    APPLICATION INSIGHTS       │
-│    (Optional)                 │
-│   └─ Structured logging       │
-│   └─ Performance metrics      │
-│   └─ Exception tracking       │
-└───────────────────────────────┘
-```
+
+### Why App Service + Functions Hybrid?
+
+| Component | Host | Reason |
+|-----------|------|--------|
+| REST API | **App Service (B1)** | Always warm - no cold starts for real-time exercise conduct |
+| SignalR Hub | App Service | Persistent WebSocket connections need always-on host |
+| Background Service | App Service | `InjectReadinessBackgroundService` monitors clock-driven inject readiness |
+| Health Check | Azure Functions | Lightweight, scale-to-zero |
 
 ---
 
 ## Project Structure
 
-### Modular "Features" Architecture
-
-The application is organized around **features** - self-contained modules that can be developed, tested, and potentially extracted independently.
-
 ```
-src/
-├── api/                          # Backend
-│   ├── Core/                     # Shared infrastructure
-│   │   ├── Data/                 # DbContext, base entities
-│   │   ├── Extensions/           # DI registration
-│   │   ├── Logging/              # Correlation, structured logs
-│   │   └── Middleware/           # Request pipeline
+cadence/
+├── src/
+│   ├── Cadence.Core/            # Domain logic (no web dependencies)
+│   │   ├── Models/Entities/     # 39 entity classes + enums
+│   │   ├── Features/            # 32 feature modules (services, DTOs, mappers)
+│   │   ├── Data/                # AppDbContext, interceptors, seeders
+│   │   ├── Hubs/                # IExerciseHubContext interface (abstraction only)
+│   │   └── Migrations/          # 125+ EF Core migrations
 │   │
-│   ├── Shared/                   # Cross-feature utilities
-│   │   └── Health/               # Health check endpoints
+│   ├── Cadence.WebApi/          # ASP.NET Core API (App Service)
+│   │   ├── Controllers/         # 35 API controllers
+│   │   ├── Hubs/                # ExerciseHub + ExerciseHubContext (SignalR)
+│   │   ├── Authorization/       # Exercise access/role handlers
+│   │   ├── Middleware/          # Serilog context + request logging
+│   │   └── Program.cs           # Pipeline configuration
 │   │
-│   ├── Features/                 # Feature modules
-│   │   └── Notes/                # Example feature
-│   │       ├── Functions/        # HTTP triggers
-│   │       ├── Models/           # Entities & DTOs
-│   │       ├── Services/         # Business logic
-│   │       └── Mappers/          # Entity ↔ DTO mapping
+│   ├── Cadence.Functions/       # Azure Functions (background jobs)
 │   │
-│   └── Hubs/                     # SignalR hub definitions
+│   ├── Cadence.Core.Tests/      # Backend unit/integration tests
+│   │
+│   └── frontend/                # React SPA
+│       └── src/
+│           ├── features/        # 26 feature modules
+│           ├── core/            # API client, offline sync, telemetry
+│           ├── shared/          # Reusable components, hooks, constants
+│           ├── contexts/        # AuthContext, OrganizationContext
+│           ├── theme/           # COBRA styling system
+│           └── types/           # Global TypeScript types
 │
-├── api.Tests/                    # Backend tests
+├── docs/
+│   ├── architecture/            # This directory
+│   ├── features/                # Feature specifications and stories
+│   ├── deployment/              # Deployment guides
+│   ├── COBRA_STYLING.md
+│   └── CODING_STANDARDS.md
 │
-└── frontend/                     # React SPA
-    └── src/
-        ├── core/                 # App-wide infrastructure
-        │   ├── components/       # Layout, ErrorBoundary
-        │   ├── services/         # API client
-        │   └── utils/            # Helpers, validation
-        │
-        ├── shared/               # Shared across features
-        │   └── hooks/            # useSignalR, usePermissions
-        │
-        ├── features/             # Feature modules
-        │   └── notes/            # Example feature
-        │       ├── components/   # UI components
-        │       ├── pages/        # Route pages
-        │       ├── hooks/        # useNotes
-        │       ├── services/     # API calls
-        │       └── types/        # TypeScript types
-        │
-        ├── theme/                # COBRA styling
-        │   ├── cobraTheme.ts     # MUI theme config
-        │   └── styledComponents/ # Branded components
-        │
-        └── admin/                # Admin features
-```
-
-### Key Principles
-
-1. **Features are self-contained** - Each feature has its own models, services, and UI
-2. **Core provides infrastructure** - Database, logging, auth shared across features
-3. **Frontend mirrors backend** - Same `features/` structure for consistency
-4. **Tests are colocated** - Frontend tests next to source files
-
----
-
-## Data Flow
-
-### Request Lifecycle
-
-```
-1. Browser makes HTTP request
-        │
-        ▼
-2. Azure Static Web App routes /api/* to Functions
-        │
-        ▼
-3. Azure Functions middleware pipeline:
-   ├─ CORS validation
-   ├─ Security headers added
-   ├─ Correlation ID generated
-   └─ Exception handling wrapped
-        │
-        ▼
-4. Function handler executes:
-   ├─ Parse & validate request
-   ├─ Call service layer
-   ├─ Service uses DbContext
-   └─ Return response + SignalR broadcast
-        │
-        ▼
-5. Response flows back through middleware
-        │
-        ▼
-6. Browser receives JSON response
-        │
-        ▼
-7. SignalR notifies other connected clients
-```
-
-### Real-Time Updates
-
-```
-Client A creates note:
-        │
-        ▼
-┌───────────────────────────────────────────────────────────┐
-│ POST /api/notes                                           │
-│ ┌─────────────┐    ┌─────────────┐    ┌───────────────┐  │
-│ │ NotesFunction│ → │ NotesService│ → │ DbContext.Save │  │
-│ └─────────────┘    └─────────────┘    └───────────────┘  │
-│        │                                                  │
-│        ▼                                                  │
-│ Return: HTTP 201 + SignalR message                       │
-└───────────────────────────────────────────────────────────┘
-        │
-        ├─────────────────────────────────────┐
-        ▼                                     ▼
-   Client A:                            Azure SignalR:
-   Receives 201 Created                 Broadcasts to all clients
-   Updates local state                          │
-                                               ▼
-                                         Client B, C, D:
-                                         Receive "noteCreated" event
-                                         Refresh notes list
+├── .github/workflows/           # CI/CD pipelines (11 workflows)
+└── scripts/                     # Development scripts
 ```
 
 ---
 
-## Technology Decisions
+## Core vs WebApi Separation
 
-### Backend
+The backend follows the **Dependency Inversion Principle** with two projects:
 
-| Choice | Rationale |
-|--------|-----------|
-| **.NET 10** | Latest LTS, best Azure integration |
-| **Azure Functions Isolated** | Cold start improvements, dependency injection |
-| **EF Core 10** | Code-first, migrations, LINQ queries |
-| **Serilog** | Structured logging, Application Insights sink |
+| Project | Purpose | Dependencies |
+|---------|---------|-------------|
+| **Cadence.Core** | Domain logic, entities, services, data access | EF Core, FluentValidation, Identity (no ASP.NET Core, no SignalR) |
+| **Cadence.WebApi** | HTTP pipeline, controllers, SignalR hubs | ASP.NET Core, SignalR, references Core |
 
-### Frontend
-
-| Choice | Rationale |
-|--------|-----------|
-| **React 19** | Latest stable, concurrent features |
-| **TypeScript 5** | Type safety, IDE support |
-| **Vite 7** | Fast builds, HMR, modern tooling |
-| **MUI 7** | COBRA-compatible components |
-
-### Infrastructure
-
-| Choice | Rationale |
-|--------|-----------|
-| **Azure Static Web Apps** | Global CDN, managed SSL, easy deploy |
-| **Azure Functions** | Serverless, pay-per-execution, auto-scale |
-| **Azure SQL** | Managed SQL Server, geo-replication |
-| **Azure SignalR Service** | Managed WebSockets, serverless mode |
+**Key pattern:** `IExerciseHubContext` is defined in Core (interface only). The SignalR implementation `ExerciseHubContext` lives in WebApi. This keeps Core testable without web infrastructure dependencies.
 
 ---
 
-## Security Model
+## Multi-Tenancy Model
 
-### Current (Development)
+Organization is the primary security and data isolation boundary.
+
+```mermaid
+flowchart LR
+    subgraph JWT["JWT Token"]
+        Claims["sub, email, role<br/>org_id, org_role"]
+    end
+
+    subgraph Backend["Backend Pipeline"]
+        OrgCtx["CurrentOrganizationContext<br/>extracts org claims"]
+        QF["Global Query Filters<br/>WHERE OrganizationId = @org"]
+        VI["OrganizationValidationInterceptor<br/>validates writes"]
+    end
+
+    JWT --> OrgCtx
+    OrgCtx --> QF
+    OrgCtx --> VI
+```
+
+- **Read-side:** Global query filters on `AppDbContext` automatically scope all queries to the current organization
+- **Write-side:** `OrganizationValidationInterceptor` validates that entities being saved belong to the current organization
+- **SysAdmin bypass:** System Admins can access data across organizations
+
+See [ROLE_ARCHITECTURE.md](./ROLE_ARCHITECTURE.md) for the full three-tier role hierarchy.
+
+---
+
+## Authentication Flow
+
+```mermaid
+sequenceDiagram
+    participant Browser
+    participant API
+    participant Identity
+    participant DB
+
+    Browser->>API: POST /api/auth/login {email, password}
+    API->>Identity: ValidateCredentials()
+    Identity->>DB: Check user + password hash
+    DB-->>Identity: User record
+    Identity-->>API: Success
+    API->>API: Generate JWT (access + refresh)
+    API-->>Browser: {accessToken, tokenExpiresIn}
+    Note over Browser: Store accessToken in memory<br/>refreshToken in httpOnly cookie
+
+    Browser->>API: GET /api/exercises (Authorization: Bearer <token>)
+    API->>API: Validate JWT, extract claims
+    API->>DB: Query with org filter
+    DB-->>API: Filtered results
+    API-->>Browser: ExerciseDto[]
+```
+
+**Token management:**
+- Access token: In-memory (React state), short-lived
+- Refresh token: httpOnly cookie, long-lived
+- Proactive refresh: Timer fires 2 minutes before expiry
+- Single-flight: Concurrent 401s share one refresh request
+
+---
+
+## HTTP Pipeline (Program.cs)
+
+The middleware pipeline executes in this order:
 
 ```
-┌─────────────┐        X-User-Id Header        ┌─────────────┐
-│   Browser   │ ───────────────────────────▶  │   Backend   │
-│             │                                │             │
-│  Mock user  │                                │  Trust      │
-│  selector   │                                │  header     │
-└─────────────┘                                └─────────────┘
-```
-
-### Production (Recommended)
-
-See [docs/guides/AUTHENTICATION.md](../guides/AUTHENTICATION.md) for implementation details.
-
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────┐
-│   Browser   │────▶│  Azure AD    │────▶│   Backend   │
-│   (MSAL)    │◀────│  B2C         │◀────│  (JWT)      │
-└─────────────┘     └──────────────┘     └─────────────┘
-        │                                        │
-        │  Access Token (JWT)                    │
-        └────────────────────────────────────────┘
+Request
+  │
+  ├── OpenAPI / Scalar (API docs)
+  ├── HTTPS Redirection
+  ├── Static Files (local photo uploads)
+  ├── CORS
+  ├── Rate Limiter (auth: 10/min, password-reset: 3/15min)
+  ├── Request/Response Logging (4xx/5xx with body details)
+  ├── Authentication (JWT Bearer validation)
+  ├── SerilogContextMiddleware (enrich logs with UserId, OrgId)
+  ├── Authorization (policies + exercise access handlers)
+  ├── Serilog Request Logging (structured HTTP summaries)
+  ├── Global Exception Handler
+  │
+  ├── MapControllers() → 35 API controllers
+  └── MapHub<ExerciseHub>("/hubs/exercise")
 ```
 
 ---
 
-## Scalability Considerations
+## Data Seeding Strategy
 
-### Horizontal Scaling
-
-| Component | Scaling Strategy |
-|-----------|-----------------|
-| Static Web App | Auto-scales globally via CDN |
-| Azure Functions | Consumption plan auto-scales to demand |
-| Azure SQL | Scale up/out, read replicas |
-| Azure SignalR | Unit-based scaling (1 unit = 1,000 connections) |
-
-### Performance Patterns
-
-1. **Database**
-   - Indexes on `UserId`, `IsDeleted`, `UpdatedAt`
-   - `AsNoTracking()` for read-only queries
-   - Connection pooling enabled
-
-2. **API**
-   - Response caching headers
-   - Pagination for list endpoints
-   - Correlation IDs for tracing
-
-3. **Frontend**
-   - Code splitting by route
-   - React.lazy for features
-   - Optimistic UI updates
+```
+Application Startup
+  │
+  ├── Stage 1: EssentialDataSeeder (ALL environments)
+  │   ├── Apply pending migrations
+  │   ├── Create default organization
+  │   ├── Seed HSEEP roles (ExerciseDirector, Controller, Evaluator, Observer)
+  │   └── Seed delivery methods (In-Person, Virtual, Phone, etc.)
+  │
+  └── Stage 2: DemoDataSeeder (non-Production, non-Testing only)
+      ├── Create demo organization
+      ├── Create demo users (incrementally)
+      ├── Create sample exercises with injects
+      └── Seed beta feature data
+```
 
 ---
 
-## Related Documentation
+## Real-Time Architecture
 
-- [GETTING_STARTED.md](../GETTING_STARTED.md) - Setup instructions
-- [CODING_STANDARDS.md](../CODING_STANDARDS.md) - Code conventions
-- [DEPLOYMENT.md](../DEPLOYMENT.md) - Azure deployment
-- [guides/](../guides/) - Implementation guides for production features
+SignalR is used for live updates during exercise conduct.
+
+- **Hub endpoint:** `/hubs/exercise`
+- **Groups:** `exercise-{exerciseId}` (exercise participants), `user-{userId}` (notifications)
+- **Azure SignalR Service:** Optional, configured via `Azure:SignalR:Enabled`
+- **Fallback:** In-process SignalR for local development
+
+See [SIGNALR_EVENTS.md](./SIGNALR_EVENTS.md) for the complete event catalog.
+
+---
+
+## Offline Architecture
+
+The frontend supports offline operation via Progressive Web App (PWA) capabilities:
+
+```mermaid
+flowchart TB
+    subgraph Online["Online Mode"]
+        API2["API Calls via Axios"]
+        RQ["React Query Cache<br/>1-min stale time"]
+        SR["SignalR Updates<br/>Cache invalidation"]
+    end
+
+    subgraph Offline["Offline Mode"]
+        IDB["IndexedDB (Dexie)<br/>exercises, injects,<br/>observations, photos"]
+        Queue["Pending Actions Queue<br/>Ordered, with retry"]
+    end
+
+    subgraph Reconnect["On Reconnect"]
+        Sync["OfflineSyncProvider<br/>Retry queue in order"]
+        Conflict["ConflictDialog<br/>Server vs local"]
+    end
+
+    Online -->|"goes offline"| Offline
+    Offline -->|"goes online"| Reconnect
+    Reconnect --> Online
+```
+
+**Service Worker strategy:**
+- API calls: `NetworkOnly` (app-level sync handles caching)
+- Fonts: `CacheFirst` (1-year expiry)
+- Images: `CacheFirst` (30-day expiry)
+
+---
+
+## Frontend Context Provider Hierarchy
+
+The React app uses a deep provider stack for global state:
+
+```
+QueryClientProvider (React Query)
+  └── ThemeProvider (MUI base)
+      └── ErrorBoundary
+          └── AuthProvider (JWT tokens, login/logout)
+              └── OrganizationProvider (memberships, org switching)
+                  └── UserPreferencesProvider (theme preference)
+                      └── ThemedApp (applies user-selected theme)
+                          └── EulaGate (agreement check)
+                              └── ExerciseNavigationProvider
+                                  └── ConnectivityProvider (online/offline)
+                                      └── OfflineSyncProvider
+                                          └── MobileBlocker
+                                              └── FeatureFlagsProvider
+                                                  └── NotificationToastProvider
+                                                      └── WhatsNewProvider
+                                                          └── RouterProvider
+```
+
+---
+
+## Deployment Architecture
+
+| Resource | SKU | Monthly Cost | Purpose |
+|----------|-----|-------------|---------|
+| App Service | B1 | ~$13 | Primary API + SignalR (always warm) |
+| Azure SQL | Basic | ~$5 | Application database |
+| SignalR Service | Free | $0 | Real-time WebSocket management |
+| Functions | Consumption | ~$0-1 | Health checks |
+| Static Web Apps | Standard | Included | React SPA hosting + CDN |
+| Storage Account | Standard LRS | ~$0.50 | Photo blob storage |
+| Application Insights | Standard | ~varies | Monitoring + telemetry |
+| **Total** | | **~$20/month** |
+
+### CI/CD Pipelines
+
+| Workflow | Trigger | Purpose |
+|----------|---------|---------|
+| `ci.yml` | Push/PR to main | Build, test, security audit |
+| `deploy-backend.yml` | CI success / manual | Deploy .NET API to App Service |
+| `deploy-frontend.yml` | CI success / manual | Deploy React SPA to Static Web Apps |
+| `deploy-infrastructure.yml` | Manual | Provision Azure resources |
+| `security-dast.yml` | Weekly + manual | OWASP ZAP scanning (auth + baseline) |
+| `security-sast.yml` | Weekly + PR/push | Semgrep static analysis |
+| `security-report.yml` | Post-scans | Consolidate SARIF findings |
+| `commitlint.yml` | On commits | Validate conventional commits |
+| `release-please.yml` | Push to main | Automated versioning + changelog |
+
+---
+
+## Related Documents
+
+- [DATA_MODEL.md](./DATA_MODEL.md) - Entity relationships and database schema
+- [API_DESIGN.md](./API_DESIGN.md) - REST API endpoint catalog
+- [ROLE_ARCHITECTURE.md](./ROLE_ARCHITECTURE.md) - Three-tier role hierarchy
+- [FRONTEND_ARCHITECTURE.md](./FRONTEND_ARCHITECTURE.md) - React application map
+- [BACKEND_ARCHITECTURE.md](./BACKEND_ARCHITECTURE.md) - .NET service layer map
+- [FEATURE_INVENTORY.md](./FEATURE_INVENTORY.md) - Complete feature catalog
+- [SIGNALR_EVENTS.md](./SIGNALR_EVENTS.md) - Real-time event reference
