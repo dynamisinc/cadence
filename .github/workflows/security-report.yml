@@ -229,6 +229,18 @@ jobs:
           level_labels = {"error": "Critical/Error", "warning": "Warning", "note": "Note", "none": "Info"}
           level_counts = Counter(f["level"] for f in findings)
 
+          # Compute unique rules and duplicates per severity
+          rules_by_level = {}
+          for level in ["error", "warning", "note", "none"]:
+              rules_in_level = set()
+              for f in findings:
+                  if f["level"] == level:
+                      rules_in_level.add(f["rule"])
+              rules_by_level[level] = rules_in_level
+
+          # Also compute per-tool breakdown
+          tool_counts = Counter(f["tool"] for f in findings)
+
           # Generate HTML report
           now = datetime.utcnow().strftime("%Y-%m-%d %H:%M UTC")
           h = f"""<!DOCTYPE html>
@@ -242,7 +254,8 @@ jobs:
             th {{ background: #f5f5f5; }} tr:hover {{ background: #fafafa; }}
             .badge {{ padding: 2px 8px; border-radius: 4px; color: white; font-size: 0.85em; }}
             .summary {{ display: flex; gap: 1rem; margin: 1rem 0; flex-wrap: wrap; }}
-            .card {{ padding: 1rem; border-radius: 8px; min-width: 120px; text-align: center; color: white; }}
+            .card {{ padding: 1rem; border-radius: 8px; min-width: 140px; text-align: center; color: white; }}
+            .card-sub {{ font-size: 0.75em; opacity: 0.9; margin-top: 4px; }}
           </style></head><body>
           <h1>Cadence Security Report</h1>
           <p><strong>Generated:</strong> {now}</p>
@@ -250,12 +263,31 @@ jobs:
 
           for level in ["error", "warning", "note", "none"]:
               count = level_counts.get(level, 0)
+              unique = len(rules_by_level[level])
+              dupes = count - unique
               h += f'<div class="card" style="background:{level_colors[level]}">'
               h += f'<div style="font-size:2em;font-weight:bold">{count}</div>'
-              h += f'<div>{level_labels[level]}</div></div>'
+              h += f'<div>{level_labels[level]}</div>'
+              if count > 0:
+                  h += f'<div class="card-sub">{unique} unique rule{"s" if unique != 1 else ""}'
+                  if dupes > 0:
+                      h += f', {dupes} duplicate{"s" if dupes != 1 else ""}'
+                  h += '</div>'
+              h += '</div>'
 
           h += f'</div><p><strong>Total findings:</strong> {len(findings)}</p>'
-          h += '<h2>Findings</h2><table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Message</th><th>Location</th></tr>'
+
+          # Per-tool breakdown table
+          h += '<h2>Findings by Tool</h2><table>'
+          h += '<tr><th>Tool</th><th>Total</th><th>Unique Rules</th><th>Duplicates</th></tr>'
+          for tool_name, tool_total in sorted(tool_counts.items()):
+              tool_rules = set(f["rule"] for f in findings if f["tool"] == tool_name)
+              tool_dupes = tool_total - len(tool_rules)
+              h += f'<tr><td>{html.escape(tool_name)}</td><td>{tool_total}</td>'
+              h += f'<td>{len(tool_rules)}</td><td>{tool_dupes}</td></tr>'
+          h += '</table>'
+
+          h += '<h2>All Findings</h2><table><tr><th>Severity</th><th>Tool</th><th>Rule</th><th>Message</th><th>Location</th></tr>'
 
           for f in findings:
               badge = f'<span class="badge" style="background:{level_colors[f["level"]]}">{level_labels[f["level"]]}</span>'
@@ -276,6 +308,12 @@ jobs:
               f.write(f"errors={level_counts.get('error', 0)}\n")
               f.write(f"warnings={level_counts.get('warning', 0)}\n")
               f.write(f"notes={level_counts.get('note', 0)}\n")
+              f.write(f"errors_unique={len(rules_by_level.get('error', set()))}\n")
+              f.write(f"warnings_unique={len(rules_by_level.get('warning', set()))}\n")
+              f.write(f"notes_unique={len(rules_by_level.get('note', set()))}\n")
+              # Per-tool summary
+              tool_summary = "; ".join(f"{t}: {c}" for t, c in sorted(tool_counts.items()))
+              f.write(f"tool_summary={tool_summary}\n")
           PYEOF
 
       - name: Generate executive summary
@@ -303,11 +341,29 @@ jobs:
             echo "" >> $GITHUB_STEP_SUMMARY
             echo "**Total findings:** ${{ steps.report.outputs.total }}" >> $GITHUB_STEP_SUMMARY
             echo "" >> $GITHUB_STEP_SUMMARY
-            echo "| Severity | Count |" >> $GITHUB_STEP_SUMMARY
-            echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
-            echo "| Critical/Error | ${{ steps.report.outputs.errors }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| Warning | ${{ steps.report.outputs.warnings }} |" >> $GITHUB_STEP_SUMMARY
-            echo "| Note/Info | ${{ steps.report.outputs.notes }} |" >> $GITHUB_STEP_SUMMARY
+            echo "| Severity | Total | Unique Rules | Duplicates |" >> $GITHUB_STEP_SUMMARY
+            echo "|----------|-------|--------------|------------|" >> $GITHUB_STEP_SUMMARY
+
+            ERRORS=${{ steps.report.outputs.errors }}
+            ERRORS_U=${{ steps.report.outputs.errors_unique }}
+            ERRORS_D=$((ERRORS - ERRORS_U))
+            echo "| Critical/Error | $ERRORS | $ERRORS_U | $ERRORS_D |" >> $GITHUB_STEP_SUMMARY
+
+            WARNINGS=${{ steps.report.outputs.warnings }}
+            WARNINGS_U=${{ steps.report.outputs.warnings_unique }}
+            WARNINGS_D=$((WARNINGS - WARNINGS_U))
+            echo "| Warning | $WARNINGS | $WARNINGS_U | $WARNINGS_D |" >> $GITHUB_STEP_SUMMARY
+
+            NOTES=${{ steps.report.outputs.notes }}
+            NOTES_U=${{ steps.report.outputs.notes_unique }}
+            NOTES_D=$((NOTES - NOTES_U))
+            echo "| Note/Info | $NOTES | $NOTES_U | $NOTES_D |" >> $GITHUB_STEP_SUMMARY
+
+            echo "" >> $GITHUB_STEP_SUMMARY
+
+            if [ -n "${{ steps.report.outputs.tool_summary }}" ]; then
+              echo "**By tool:** ${{ steps.report.outputs.tool_summary }}" >> $GITHUB_STEP_SUMMARY
+            fi
           else
             echo "No SARIF findings to summarize (no upstream scan artifacts available)." >> $GITHUB_STEP_SUMMARY
           fi
