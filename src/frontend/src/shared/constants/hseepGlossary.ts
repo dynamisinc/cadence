@@ -160,4 +160,68 @@ export const CONTEXTUAL_HELP: Record<string, ContextualHelp> = {
     details:
       'View exercises you are assigned to, grouped by status. Click an exercise to enter its conduct view.',
   },
+  'hub.overview': {
+    summary: 'Your exercise home base — details, setup, and team.',
+    details:
+      'The Hub shows exercise configuration, setup progress, MSEL completion, objectives, participants, and EEG setup. Use the tabs to navigate between sections.',
+    relatedTerms: ['msel', 'exerciseDirector'],
+    roleTips: {
+      ExerciseDirector:
+        'Configure exercise settings, assign participants, and track setup progress here.',
+      Controller:
+        'Review exercise details and check your assigned injects before conduct begins.',
+      Evaluator:
+        'Review objectives and participant assignments to prepare for evaluation.',
+    },
+  },
+  'eeg.overview': {
+    summary:
+      'Structured evaluation entries linked to capabilities and critical tasks.',
+    details:
+      'EEG entries rate player performance against specific critical tasks defined in the Exercise Evaluation Guide. Use the Coverage tab to see which tasks still need assessment.',
+    relatedTerms: ['eeg', 'evaluator', 'observation'],
+    roleTips: {
+      Evaluator:
+        'Create entries to document how players performed on each critical task.',
+      ExerciseDirector:
+        'Monitor coverage to ensure all critical tasks are being evaluated.',
+    },
+  },
+  'photos.overview': {
+    summary:
+      'Photos captured during exercise conduct. Click any photo to annotate it.',
+    details:
+      'Browse, filter, and annotate photos taken during the exercise. Photos can be linked to observations for evidence. Use the annotation tool to mark up important details directly on images.',
+    relatedTerms: ['observation', 'evaluator'],
+    roleTips: {
+      Evaluator:
+        'Capture and annotate photos as evidence for your observations.',
+      ExerciseDirector:
+        'Review photos to see exercise conduct from multiple perspectives.',
+    },
+  },
+  'reports.overview': {
+    summary: 'Export exercise data for analysis and after-action review.',
+    details:
+      'Download the MSEL, observations, or a full exercise package as Excel files. Use these exports for offline analysis, sharing with stakeholders, or building your After-Action Report.',
+    relatedTerms: ['msel', 'observation'],
+    roleTips: {
+      ExerciseDirector:
+        'Export the full package after exercise completion for after-action review.',
+      Evaluator:
+        'Export observations to review and refine before the AAR.',
+    },
+  },
+  'metrics.overview': {
+    summary: 'After-action review data — inject delivery, observations, and timeline.',
+    details:
+      'View exercise metrics including inject delivery rates, observation summaries, timeline analysis, controller and evaluator activity, rating distributions, and capability performance.',
+    relatedTerms: ['msel', 'observation', 'controller', 'evaluator'],
+    roleTips: {
+      ExerciseDirector:
+        'Use metrics to assess overall exercise effectiveness and identify improvement areas.',
+      Evaluator:
+        'Review observation and rating summaries to validate your evaluation coverage.',
+    },
+  },
 }
