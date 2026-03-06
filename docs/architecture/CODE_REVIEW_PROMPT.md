@@ -10,6 +10,23 @@ You are an orchestrator directing a comprehensive code review of the Cadence cod
 
 This is **Pass 1** of an iterative review-fix cycle. The output of this pass will be consumed by a swarm of fix agents in the next session. Expect multiple iterations: Review → Fix → Re-review → Fix → ...
 
+### Branching Strategy
+
+Each phase of the hardening process gets its own branch, merged to `main` before the next phase begins:
+
+| Phase | Branch | Contents | Merge Target |
+|-------|--------|----------|-------------|
+| **Foundation** | `maintenance/architecture-baseline` | Architecture docs, this prompt | `main` |
+| **Review Pass N** | `maintenance/code-review-vN` | Review finding reports in `docs/reviews/` | `main` |
+| **Fix Pass N** | `maintenance/code-hardening-vN` | Code changes addressing review findings | `main` (PR) |
+
+Workflow per iteration:
+1. **Review pass** creates `maintenance/code-review-vN` from `main`, dispatches reviewer agents, commits finding reports, merges to `main`
+2. **Fix pass** creates `maintenance/code-hardening-vN` from `main`, dispatches fix agents consuming `docs/reviews/SUMMARY.md`, commits code fixes, opens PR against `main`
+3. **Next review pass** creates `maintenance/code-review-v(N+1)` from `main` (which now includes prior fixes), re-reviews, compares against previous findings
+
+Pass numbers increment together: review-v1 → hardening-v1 → review-v2 → hardening-v2 → ...
+
 ### Context Foundation
 
 Before dispatching reviewers, each agent MUST read the relevant architecture docs as their map of the codebase. These were just created and accurately reflect the V1 state:
