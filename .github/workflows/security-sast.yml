@@ -38,7 +38,7 @@ jobs:
             --config p/owasp-top-ten \
             --sarif \
             --output semgrep-results.sarif \
-            --severity ERROR \
+            --severity ERROR WARNING \
             src/
         continue-on-error: true
 
@@ -83,4 +83,4 @@ jobs:
 
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Rule packs:** auto, csharp, typescript, react, secrets, owasp-top-ten" >> $GITHUB_STEP_SUMMARY
-          echo "**Severity filter:** ERROR only" >> $GITHUB_STEP_SUMMARY
+          echo "**Severity filter:** ERROR + WARNING" >> $GITHUB_STEP_SUMMARY
