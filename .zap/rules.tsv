@@ -5,3 +5,8 @@
 10020	WARN	(X-Frame-Options Header - should be set but not blocking)
 10021	WARN	(X-Content-Type-Options Header Missing - should be set but not blocking)
 10036	WARN	(Server Leaks Version Information - cosmetic but worth fixing)
+40012	WARN	(Cross Site Scripting Reflected - review findings from active scan)
+40014	WARN	(Cross Site Scripting Persistent - review findings from active scan)
+40018	WARN	(SQL Injection - review findings from active scan)
+40003	WARN	(CRLF Injection - review findings from active scan)
+10202	IGNORE	(Absence of Anti-CSRF Tokens - API uses JWT bearer auth, not cookies)

@@ -56,6 +56,7 @@ public static class DemoDataSeeder
     public static readonly string Evaluator1UserId = "22222222-2222-2222-2222-222222222266";
     public static readonly string Evaluator2UserId = "22222222-2222-2222-2222-222222222267";
     public static readonly string ObserverUserId = "22222222-2222-2222-2222-222222222277";
+    public static readonly string ZapScannerUserId = "22222222-2222-2222-2222-222222222288";
 
     // =========================================================================
     // Exercises

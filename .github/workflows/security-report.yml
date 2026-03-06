@@ -114,6 +114,65 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
 
+      - name: Download ZAP Baseline SARIF artifact
+        id: zap-sarif
+        run: |
+          echo "Fetching latest ZAP baseline SARIF artifact..."
+          # Get the latest completed DAST run ID
+          RUN_ID=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/security-dast.yml/runs?status=completed&per_page=5" \
+            --jq '.workflow_runs[0].id' 2>/dev/null) || true
+
+          if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            DOWNLOAD_URL=$(gh api \
+              "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name == "zap-sarif") | .archive_download_url' 2>/dev/null) || true
+
+            if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "null" ]; then
+              gh api "$DOWNLOAD_URL" > /tmp/zap-sarif.zip 2>/dev/null && \
+              unzip -o /tmp/zap-sarif.zip -d sarif-inputs/ 2>/dev/null && \
+              echo "found=true" >> $GITHUB_OUTPUT && \
+              echo "ZAP baseline SARIF downloaded successfully" || \
+              echo "found=false" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+              echo "::notice::No ZAP baseline SARIF artifact found"
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - name: Download ZAP Authenticated SARIF artifact
+        id: zap-auth-sarif
+        run: |
+          echo "Fetching latest ZAP authenticated SARIF artifact..."
+          RUN_ID=$(gh api \
+            "repos/${{ github.repository }}/actions/workflows/security-dast.yml/runs?status=completed&per_page=5" \
+            --jq '.workflow_runs[0].id' 2>/dev/null) || true
+
+          if [ -n "$RUN_ID" ] && [ "$RUN_ID" != "null" ]; then
+            DOWNLOAD_URL=$(gh api \
+              "repos/${{ github.repository }}/actions/runs/$RUN_ID/artifacts" \
+              --jq '.artifacts[] | select(.name == "zap-auth-sarif") | .archive_download_url' 2>/dev/null) || true
+
+            if [ -n "$DOWNLOAD_URL" ] && [ "$DOWNLOAD_URL" != "null" ]; then
+              gh api "$DOWNLOAD_URL" > /tmp/zap-auth-sarif.zip 2>/dev/null && \
+              unzip -o /tmp/zap-auth-sarif.zip -d sarif-inputs/ 2>/dev/null && \
+              echo "found=true" >> $GITHUB_OUTPUT && \
+              echo "ZAP authenticated SARIF downloaded successfully" || \
+              echo "found=false" >> $GITHUB_OUTPUT
+            else
+              echo "found=false" >> $GITHUB_OUTPUT
+              echo "::notice::No ZAP authenticated SARIF artifact found"
+            fi
+          else
+            echo "found=false" >> $GITHUB_OUTPUT
+          fi
+        env:
+          GH_TOKEN: ${{ github.token }}
+
       - name: Merge SARIF and generate reports
         id: report
         run: |
@@ -234,7 +293,9 @@ jobs:
           echo "|-----------|-----------|" >> $GITHUB_STEP_SUMMARY
           echo "| SAST (Semgrep) | ${{ steps.sast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
           echo "| IaC (Checkov) | ${{ steps.iac.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| DAST (ZAP) | ${{ steps.dast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| DAST (ZAP HTML) | ${{ steps.dast.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| DAST Baseline (SARIF) | ${{ steps.zap-sarif.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| DAST Authenticated (SARIF) | ${{ steps.zap-auth-sarif.outputs.found == 'true' && 'Yes' || 'No' }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
 
           if [ "${{ steps.report.outputs.has_sarif }}" == "true" ]; then

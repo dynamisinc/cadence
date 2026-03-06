@@ -104,10 +104,50 @@ public class DemoUserSeeder
 
         _logger.LogInformation("Created {Count} demo users", createdCount);
 
+        // Seed organization memberships for users that need org context
+        await SeedOrganizationMembershipsAsync();
+
         // Seed exercise participants
         await SeedExerciseParticipantsAsync();
 
         _logger.LogInformation("Demo user seeding complete");
+    }
+
+    /// <summary>
+    /// Seeds organization membership records for users that need explicit org context.
+    /// The ZAP security scanner user needs a membership record so its JWT includes org_role.
+    /// </summary>
+    private async Task SeedOrganizationMembershipsAsync()
+    {
+        var zapMembershipExists = await _context.OrganizationMemberships
+            .IgnoreQueryFilters()
+            .AnyAsync(m => m.UserId == DemoDataSeeder.ZapScannerUserId
+                        && m.OrganizationId == DemoDataSeeder.DemoOrganizationId);
+
+        if (zapMembershipExists)
+        {
+            _logger.LogDebug("ZAP scanner membership already seeded - skipping");
+            return;
+        }
+
+        var now = DateTime.UtcNow;
+        var membership = new OrganizationMembership
+        {
+            Id = Guid.NewGuid(),
+            UserId = DemoDataSeeder.ZapScannerUserId,
+            OrganizationId = DemoDataSeeder.DemoOrganizationId,
+            Role = OrgRole.OrgUser,
+            Status = MembershipStatus.Active,
+            JoinedAt = now,
+            InvitedById = DemoDataSeeder.AdminUserId,
+            CreatedAt = now,
+            UpdatedAt = now
+        };
+
+        _context.OrganizationMemberships.Add(membership);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Created ZAP scanner organization membership");
     }
 
     /// <summary>
@@ -308,6 +348,27 @@ public class DemoUserSeeder
                 Status = UserStatus.Active,
                 OrganizationId = orgId,
                 CreatedAt = now.AddMonths(-2),
+                CreatedById = DemoDataSeeder.AdminUserId,
+                SecurityStamp = Guid.NewGuid().ToString()
+            },
+
+            // =====================================================================
+            // ZAP Security Scanner (DAST authenticated scanning)
+            // =====================================================================
+            new ApplicationUser
+            {
+                Id = DemoDataSeeder.ZapScannerUserId,
+                UserName = "zap-scanner@cadence-test.com",
+                NormalizedUserName = "ZAP-SCANNER@CADENCE-TEST.COM",
+                Email = "zap-scanner@cadence-test.com",
+                NormalizedEmail = "ZAP-SCANNER@CADENCE-TEST.COM",
+                EmailConfirmed = true,
+                DisplayName = "ZAP Security Scanner",
+                SystemRole = SystemRole.User,
+                Status = UserStatus.Active,
+                OrganizationId = orgId,
+                CurrentOrganizationId = orgId,
+                CreatedAt = now.AddMonths(-1),
                 CreatedById = DemoDataSeeder.AdminUserId,
                 SecurityStamp = Guid.NewGuid().ToString()
             }
