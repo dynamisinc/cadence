@@ -47,7 +47,7 @@
     </PackageReference>
 
     <!-- SignalR -->
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.SignalRService" Version="1.14.0" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.SignalRService" Version="2.0.1" />
 
     <!-- Logging -->
     <PackageReference Include="Serilog" Version="4.1.0" />
