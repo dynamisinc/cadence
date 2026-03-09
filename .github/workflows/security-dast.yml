@@ -65,7 +65,7 @@ jobs:
 
       - name: Run ZAP Baseline Scan
         if: steps.reachable.outputs.http_code == '200'
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "${{ steps.target.outputs.url }}"
           rules_file_name: ".zap/rules.tsv"
@@ -187,7 +187,7 @@ jobs:
       # --- Quick mode: Authenticated baseline (passive spider + passive scan, ~1-2 min) ---
       - name: "Run ZAP Authenticated Baseline (quick mode)"
         if: steps.auth.outputs.auth_success == 'true' && steps.mode.outputs.scan_mode == 'quick'
-        uses: zaproxy/action-baseline@v0.14.0
+        uses: zaproxy/action-baseline@v0.15.0
         with:
           target: "${{ steps.target.outputs.url }}"
           rules_file_name: ".zap/rules.tsv"
