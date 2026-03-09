@@ -33,6 +33,7 @@ public class ExerciseApprovalSettingsService : IExerciseApprovalSettingsService
         CancellationToken ct = default)
     {
         var exercise = await _context.Exercises
+            .AsNoTracking()
             .Include(e => e.Organization)
             .FirstOrDefaultAsync(e => e.Id == exerciseId, ct);
 

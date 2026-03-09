@@ -18,6 +18,7 @@
 import { useState } from 'react'
 import type { FC } from 'react'
 import { Box, Typography, Menu, MenuItem, ListItemIcon, ListItemText, Divider, Chip, CircularProgress } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBuilding, faChevronDown, faCheck, faShieldHalved } from '@fortawesome/free-solid-svg-icons'
 import { useQuery } from '@tanstack/react-query'
@@ -47,6 +48,7 @@ function formatRole(role: string): string {
  * OrganizationSwitcher component
  */
 export const OrganizationSwitcher: FC = () => {
+  const theme = useTheme()
   const { currentOrg, memberships, isLoading, isPending, switchOrganization } = useOrganization()
   const { user } = useAuth()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -115,8 +117,8 @@ export const OrganizationSwitcher: FC = () => {
           px: 1,
         }}
       >
-        <FontAwesomeIcon icon={faBuilding} size="sm" style={{ color: '#ffffff' }} />
-        <Typography variant="body2" fontWeight={500} sx={{ color: '#ffffff' }}>
+        <FontAwesomeIcon icon={faBuilding} size="sm" style={{ color: theme.palette.common.white }} />
+        <Typography variant="body2" fontWeight={500} sx={{ color: theme.palette.common.white }}>
           {currentOrg?.name || 'No Organization'}
         </Typography>
       </Box>

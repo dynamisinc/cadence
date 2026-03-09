@@ -26,6 +26,7 @@ import {
 import apiClient from '../core/services/api'
 import { useAuth } from './AuthContext'
 import type { OrganizationMembership } from '@/features/organizations/types'
+import { devLog } from '../core/utils/logger'
 
 interface CurrentOrganization {
   id: string;
@@ -82,7 +83,7 @@ function parseOrgFromToken(token: string): CurrentOrganization | null {
     const orgSlug = payload.org_slug
     const orgRole = payload.org_role
 
-    console.log('[OrganizationContext] parseOrgFromToken - JWT org claims:', {
+    devLog('[OrganizationContext] parseOrgFromToken - JWT org claims:', {
       org_id: orgId,
       org_name: orgName,
       org_slug: orgSlug,
@@ -90,7 +91,7 @@ function parseOrgFromToken(token: string): CurrentOrganization | null {
     })
 
     if (!orgId || !orgName) {
-      console.log('[OrganizationContext] parseOrgFromToken - Missing org_id or org_name, returning null')
+      devLog('[OrganizationContext] parseOrgFromToken - Missing org_id or org_name, returning null')
       return null
     }
 
@@ -135,7 +136,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
    */
   const refreshMemberships = useCallback(async () => {
     if (!isAuthenticated) {
-      console.log('[OrganizationContext] Not authenticated, skipping membership fetch')
+      devLog('[OrganizationContext] Not authenticated, skipping membership fetch')
       setMemberships([])
       setCurrentOrg(null)
       setIsPending(false)
@@ -147,10 +148,10 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
     setIsFetching(true)
 
     try {
-      console.log('[OrganizationContext] Fetching user memberships')
+      devLog('[OrganizationContext] Fetching user memberships')
       const response = await apiClient.get<GetMembershipsResponse>('/users/me/organizations')
 
-      console.log('[OrganizationContext] Memberships fetched:', {
+      devLog('[OrganizationContext] Memberships fetched:', {
         currentOrgId: response.data.currentOrganizationId,
         membershipCount: response.data.memberships.length,
       })
@@ -163,7 +164,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
       if (accessToken) {
         const orgFromToken = parseOrgFromToken(accessToken)
         if (orgFromToken) {
-          console.log('[OrganizationContext] Current org from token:', orgFromToken)
+          devLog('[OrganizationContext] Current org from token:', orgFromToken)
           setCurrentOrg(orgFromToken)
           orgSet = true
         }
@@ -171,7 +172,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
 
       // User has no organizations - they're pending assignment (unless org was set from token)
       if (response.data.memberships.length === 0) {
-        console.log('[OrganizationContext] User has no memberships')
+        devLog('[OrganizationContext] User has no memberships')
         if (!orgSet) {
           // Only mark as pending if we couldn't get org from token
           setIsPending(true)
@@ -187,7 +188,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
         if (!orgSet) {
           const currentMembership = response.data.memberships.find(m => m.isCurrent)
           if (currentMembership) {
-            console.log('[OrganizationContext] Current org from membership:', currentMembership.organizationName)
+            devLog('[OrganizationContext] Current org from membership:', currentMembership.organizationName)
             setCurrentOrg({
               id: currentMembership.organizationId,
               name: currentMembership.organizationName,
@@ -197,7 +198,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
           } else if (response.data.memberships.length === 1) {
             // Single membership — auto-switch via backend to get proper JWT claims
             const membership = response.data.memberships[0]
-            console.log('[OrganizationContext] Single membership, auto-switching:', membership.organizationName)
+            devLog('[OrganizationContext] Single membership, auto-switching:', membership.organizationName)
             // Don't await — let it reload the page
             apiClient.post('/users/current-organization', {
               organizationId: membership.organizationId,
@@ -217,7 +218,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
             lastFetchedTokenRef.current = accessToken ?? null
           } else {
             // Multiple memberships, none selected — user needs to pick
-            console.log('[OrganizationContext] Multiple memberships but none selected, needs org selection')
+            devLog('[OrganizationContext] Multiple memberships but none selected, needs org selection')
           }
         }
       }
@@ -240,14 +241,14 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
   const switchOrganization = useCallback(
     async (orgId: string) => {
       if (isSwitchingRef.current) {
-        console.log('[OrganizationContext] Switch already in progress, ignoring')
+        devLog('[OrganizationContext] Switch already in progress, ignoring')
         return
       }
 
       isSwitchingRef.current = true
 
       try {
-        console.log('[OrganizationContext] Switching to organization:', orgId)
+        devLog('[OrganizationContext] Switching to organization:', orgId)
 
         // Call backend to switch organization
         const response = await apiClient.post<SwitchOrganizationResponse>(
@@ -255,7 +256,7 @@ export const OrganizationProvider: FC<OrganizationProviderProps> = ({ children }
           { organizationId: orgId },
         )
 
-        console.log('[OrganizationContext] Switch successful:', {
+        devLog('[OrganizationContext] Switch successful:', {
           orgId: response.data.organizationId,
           orgName: response.data.organizationName,
         })

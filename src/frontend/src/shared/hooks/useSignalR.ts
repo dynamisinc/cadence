@@ -21,14 +21,10 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react'
 import * as signalR from '@microsoft/signalr'
+import { devWarn } from '@/core/utils/logger'
+import type { ConnectionState } from './signalRTypes'
 
-/** SignalR connection states */
-export type ConnectionState =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'error'
+export type { ConnectionState }
 
 interface UseSignalROptions {
   /** Whether to automatically connect on mount (default: true) */
@@ -142,7 +138,7 @@ export const useSignalR = (options: UseSignalROptions = {}): UseSignalRReturn =>
       newConnection.onreconnecting(err => {
         setConnectionState('reconnecting')
         if (err) {
-          console.warn('SignalR reconnecting:', err.message)
+          devWarn('SignalR reconnecting:', err.message)
         }
       })
 

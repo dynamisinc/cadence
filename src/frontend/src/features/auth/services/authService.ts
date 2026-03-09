@@ -14,6 +14,7 @@ import type {
   AuthResponse,
   AuthMethod,
 } from '../types'
+import { devLog } from '@/core/utils/logger'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071'
 
@@ -33,7 +34,7 @@ const authApi = axios.create({
 // Add request/response logging for auth API
 authApi.interceptors.request.use(
   config => {
-    console.log(`[authService] Request: ${config.method?.toUpperCase()} ${config.url}`, {
+    devLog(`[authService] Request: ${config.method?.toUpperCase()} ${config.url}`, {
       withCredentials: config.withCredentials,
       timeout: config.timeout,
     })
@@ -47,7 +48,7 @@ authApi.interceptors.request.use(
 
 authApi.interceptors.response.use(
   response => {
-    console.log(`[authService] Response: ${response.status} ${response.config.url}`, {
+    devLog(`[authService] Response: ${response.status} ${response.config.url}`, {
       isSuccess: response.data?.isSuccess,
       hasAccessToken: !!response.data?.accessToken,
     })
@@ -99,12 +100,12 @@ export const authService = {
    * Returns new access token in response body
    */
   refreshToken: async (): Promise<AuthResponse> => {
-    console.log('[authService] refreshToken called - checking cookie presence...')
+    devLog('[authService] refreshToken called - checking cookie presence...')
     // Log cookie info (we can't read HttpOnly cookies, but we can check if any cookies exist)
-    console.log('[authService] Document cookies available:', document.cookie ? 'yes (non-HttpOnly)' : 'none visible')
+    devLog('[authService] Document cookies available:', document.cookie ? 'yes (non-HttpOnly)' : 'none visible')
 
     const response = await authApi.post<AuthResponse>('/refresh')
-    console.log('[authService] refreshToken response received:', {
+    devLog('[authService] refreshToken response received:', {
       isSuccess: response.data?.isSuccess,
       hasAccessToken: !!response.data?.accessToken,
       userId: response.data?.userId,

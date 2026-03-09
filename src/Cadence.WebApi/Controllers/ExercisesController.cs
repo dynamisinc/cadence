@@ -9,9 +9,14 @@ using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+// Note: AppDbContext is retained here for complex operations (GetExercises list, CreateExercise,
+// UpdateExercise, DuplicateExercise) that require significant refactoring beyond the scope of
+// AC-C03/AC-M04. GetExercise, GetMsels, GetExerciseSettings, and UpdateExerciseSettings have
+// been extracted to IExerciseCrudService.
 
 namespace Cadence.WebApi.Controllers;
 
@@ -26,6 +31,7 @@ namespace Cadence.WebApi.Controllers;
 public class ExercisesController : ControllerBase
 {
     private readonly AppDbContext _context;
+    private readonly IExerciseCrudService _exerciseCrudService;
     private readonly IExerciseDeleteService _deleteService;
     private readonly IMselService _mselService;
     private readonly ISetupProgressService _setupProgressService;
@@ -38,6 +44,7 @@ public class ExercisesController : ControllerBase
 
     public ExercisesController(
         AppDbContext context,
+        IExerciseCrudService exerciseCrudService,
         IExerciseDeleteService deleteService,
         IMselService mselService,
         ISetupProgressService setupProgressService,
@@ -49,6 +56,7 @@ public class ExercisesController : ControllerBase
         ILogger<ExercisesController> logger)
     {
         _context = context;
+        _exerciseCrudService = exerciseCrudService;
         _deleteService = deleteService;
         _mselService = mselService;
         _setupProgressService = setupProgressService;
@@ -87,7 +95,7 @@ public class ExercisesController : ControllerBase
             // No org context: show exercises from all organizations the user belongs to.
             // Must use IgnoreQueryFilters() because the DbContext org filter would match
             // OrgIdForFilter == Guid.Empty (no org context), returning nothing.
-            var userId = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var userId = User.TryGetUserId();
             if (string.IsNullOrEmpty(userId))
                 return Ok(Array.Empty<ExerciseDto>());
 
@@ -157,14 +165,12 @@ public class ExercisesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<ExerciseDto>> GetExercise(Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(id);
+        var exercise = await _exerciseCrudService.GetExerciseAsync(id);
 
         if (exercise == null)
-        {
             return NotFound();
-        }
 
-        return Ok(exercise.ToDto());
+        return Ok(exercise);
     }
 
     /// <summary>
@@ -173,7 +179,7 @@ public class ExercisesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<ExerciseDto>> CreateExercise(CreateExerciseRequest request)
     {
-        var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var currentUserId = User.TryGetUserId();
 
         // Validation
         if (string.IsNullOrWhiteSpace(request.Name))
@@ -634,12 +640,8 @@ public class ExercisesController : ControllerBase
     [HttpGet("{id:guid}/msels")]
     public async Task<ActionResult<IReadOnlyList<MselDto>>> GetMsels(Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(id);
-
-        if (exercise == null)
-        {
+        if (!await _exerciseCrudService.ExerciseExistsAsync(id))
             return NotFound();
-        }
 
         var msels = await _mselService.GetMselsForExerciseAsync(id);
 
@@ -694,8 +696,8 @@ public class ExercisesController : ControllerBase
     [HttpGet("{id:guid}/delete-summary")]
     public async Task<ActionResult<DeleteSummaryResponse>> GetDeleteSummary(Guid id)
     {
-        var userId = SystemConstants.SystemUserIdString;
-        var isAdmin = true;
+        var userId = User.TryGetUserId() ?? string.Empty;
+        var isAdmin = User.IsInRole("Admin") || User.IsInRole("OrgAdmin");
 
         var summary = await _deleteService.GetDeleteSummaryAsync(id, userId, isAdmin);
 
@@ -714,8 +716,8 @@ public class ExercisesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeleteExercise(Guid id)
     {
-        var userId = SystemConstants.SystemUserIdString;
-        var isAdmin = true;
+        var userId = User.TryGetUserId() ?? string.Empty;
+        var isAdmin = User.IsInRole("Admin") || User.IsInRole("OrgAdmin");
 
         var result = await _deleteService.DeleteExerciseAsync(id, userId, isAdmin);
 
@@ -750,21 +752,12 @@ public class ExercisesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult<ExerciseSettingsDto>> GetExerciseSettings(Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(id);
+        var settings = await _exerciseCrudService.GetExerciseSettingsAsync(id);
 
-        if (exercise == null)
-        {
+        if (settings == null)
             return NotFound();
-        }
 
-        return Ok(new ExerciseSettingsDto(
-            exercise.ClockMultiplier,
-            exercise.AutoFireEnabled,
-            exercise.ConfirmFireInject,
-            exercise.ConfirmSkipInject,
-            exercise.ConfirmClockControl,
-            exercise.MaxDuration
-        ));
+        return Ok(settings);
     }
 
     /// <summary>
@@ -781,83 +774,27 @@ public class ExercisesController : ControllerBase
         Guid id,
         [FromBody] UpdateExerciseSettingsRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(id);
-
-        if (exercise == null)
+        try
         {
-            return NotFound();
-        }
+            var settings = await _exerciseCrudService.UpdateExerciseSettingsAsync(id, request);
 
-        // Validate clock multiplier change
-        if (request.ClockMultiplier.HasValue)
+            if (settings == null)
+                return NotFound();
+
+            _logger.LogInformation(
+                "Updated settings for exercise {ExerciseId}: ClockMultiplier={ClockMultiplier}, AutoFire={AutoFire}",
+                id, settings.ClockMultiplier, settings.AutoFireEnabled);
+
+            return Ok(settings);
+        }
+        catch (ArgumentException ex)
         {
-            // Validate range
-            if (request.ClockMultiplier < 0.5m || request.ClockMultiplier > 20.0m)
-            {
-                return BadRequest(new { message = "Clock multiplier must be between 0.5 and 20" });
-            }
-
-            // Can only change when paused or draft
-            if (exercise.ClockState == ExerciseClockState.Running)
-            {
-                return BadRequest(new { message = "Cannot change clock multiplier while clock is running. Pause the exercise first." });
-            }
-
-            exercise.ClockMultiplier = request.ClockMultiplier.Value;
-            exercise.TimeScale = request.ClockMultiplier.Value;
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Update boolean settings (can be changed anytime)
-        if (request.AutoFireEnabled.HasValue)
+        catch (InvalidOperationException ex)
         {
-            exercise.AutoFireEnabled = request.AutoFireEnabled.Value;
+            return BadRequest(new { message = ex.Message });
         }
-
-        if (request.ConfirmFireInject.HasValue)
-        {
-            exercise.ConfirmFireInject = request.ConfirmFireInject.Value;
-        }
-
-        if (request.ConfirmSkipInject.HasValue)
-        {
-            exercise.ConfirmSkipInject = request.ConfirmSkipInject.Value;
-        }
-
-        if (request.ConfirmClockControl.HasValue)
-        {
-            exercise.ConfirmClockControl = request.ConfirmClockControl.Value;
-        }
-
-        // Validate and update max duration
-        if (request.MaxDuration.HasValue)
-        {
-            if (request.MaxDuration.Value <= TimeSpan.Zero)
-            {
-                return BadRequest(new { message = "Max duration must be greater than zero." });
-            }
-
-            if (request.MaxDuration.Value > TimeSpan.FromDays(14))
-            {
-                return BadRequest(new { message = "Max duration cannot exceed 336 hours (2 weeks)." });
-            }
-
-            exercise.MaxDuration = request.MaxDuration.Value;
-        }
-
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation(
-            "Updated settings for exercise {ExerciseId}: ClockMultiplier={ClockMultiplier}, AutoFire={AutoFire}",
-            id, exercise.ClockMultiplier, exercise.AutoFireEnabled);
-
-        return Ok(new ExerciseSettingsDto(
-            exercise.ClockMultiplier,
-            exercise.AutoFireEnabled,
-            exercise.ConfirmFireInject,
-            exercise.ConfirmSkipInject,
-            exercise.ConfirmClockControl,
-            exercise.MaxDuration
-        ));
     }
 
     // =========================================================================
@@ -901,8 +838,7 @@ public class ExercisesController : ControllerBase
     {
         try
         {
-            var userId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value
-                ?? throw new UnauthorizedAccessException("User not authenticated");
+            var userId = User.GetUserId();
 
             var settings = await _approvalSettingsService.UpdateApprovalSettingsAsync(
                 id,

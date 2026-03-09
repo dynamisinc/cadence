@@ -101,7 +101,7 @@ export const RoleOrientationPanel: FC<RoleOrientationPanelProps> = ({
                 onClick={() => navigate(card.path)}
                 role="link"
                 tabIndex={0}
-                onKeyDown={(e) => {
+                onKeyDown={e => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault()
                     navigate(card.path)

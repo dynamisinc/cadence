@@ -98,24 +98,28 @@ public class NotificationService : INotificationService
     {
         var now = DateTime.UtcNow;
 
-        // Fetch unread notifications and update them
-        var unreadNotifications = await _context.Notifications
+        // Count before updating so we can return how many were affected
+        var unreadCount = await _context.Notifications
             .Where(n => n.UserId == userId && !n.IsDeleted && !n.IsRead)
-            .ToListAsync(ct);
+            .CountAsync(ct);
 
-        foreach (var notification in unreadNotifications)
-        {
-            notification.IsRead = true;
-            notification.ReadAt = now;
-        }
+        if (unreadCount == 0)
+            return 0;
 
-        await _context.SaveChangesAsync(ct);
+        // Bulk update: avoids loading all rows into memory
+        await _context.Notifications
+            .Where(n => n.UserId == userId && !n.IsDeleted && !n.IsRead)
+            .ExecuteUpdateAsync(
+                setters => setters
+                    .SetProperty(n => n.IsRead, true)
+                    .SetProperty(n => n.ReadAt, now),
+                ct);
 
         _logger.LogInformation(
             "Marked {Count} notifications as read for user {UserId}",
-            unreadNotifications.Count, userId);
+            unreadCount, userId);
 
-        return unreadNotifications.Count;
+        return unreadCount;
     }
 
     /// <inheritdoc />
@@ -192,17 +196,15 @@ public class NotificationService : INotificationService
     /// <inheritdoc />
     public async Task<int> DeleteOldNotificationsAsync(DateTime olderThan, CancellationToken ct = default)
     {
-        var oldNotifications = await _context.Notifications
+        // Bulk delete: avoids loading all rows into memory
+        var deletedCount = await _context.Notifications
             .Where(n => n.CreatedAt < olderThan)
-            .ToListAsync(ct);
-
-        _context.Notifications.RemoveRange(oldNotifications);
-        await _context.SaveChangesAsync(ct);
+            .ExecuteDeleteAsync(ct);
 
         _logger.LogInformation(
             "Deleted {Count} notifications older than {OlderThan}",
-            oldNotifications.Count, olderThan);
+            deletedCount, olderThan);
 
-        return oldNotifications.Count;
+        return deletedCount;
     }
 }

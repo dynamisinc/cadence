@@ -8,6 +8,15 @@ namespace Cadence.Core.Tests.Features.Metrics;
 
 public class ExerciseMetricsServiceTests
 {
+    private static ExerciseMetricsService CreateMetricsService(AppDbContext context)
+    {
+        return new ExerciseMetricsService(
+            new ProgressMetricsService(context),
+            new InjectMetricsService(context),
+            new ObservationMetricsService(context),
+            new TimelineMetricsService(context));
+    }
+
     private (AppDbContext context, Organization org) CreateTestContext()
     {
         var context = TestDbContextFactory.Create();
@@ -107,7 +116,7 @@ public class ExerciseMetricsServiceTests
     {
         // Arrange
         var (context, _) = CreateTestContext();
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetExerciseProgressAsync(Guid.NewGuid());
@@ -133,7 +142,7 @@ public class ExerciseMetricsServiceTests
         injects[2].SkippedAt = DateTime.UtcNow;
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetExerciseProgressAsync(exercise.Id);
@@ -159,7 +168,7 @@ public class ExerciseMetricsServiceTests
         context.SaveChanges();
 
         var (msel, _) = CreateInjects(context, exercise, 1);
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetExerciseProgressAsync(exercise.Id);
@@ -182,7 +191,7 @@ public class ExerciseMetricsServiceTests
         context.SaveChanges();
 
         var (msel, _) = CreateInjects(context, exercise, 1);
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetExerciseProgressAsync(exercise.Id);
@@ -201,7 +210,7 @@ public class ExerciseMetricsServiceTests
     {
         // Arrange
         var (context, _) = CreateTestContext();
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetEvaluatorCoverageAsync(Guid.NewGuid());
@@ -220,7 +229,7 @@ public class ExerciseMetricsServiceTests
 
         // Capabilities are now organization-scoped, count active ones for this org
         var totalActiveCapabilities = context.Capabilities.Count(c => c.IsActive && c.OrganizationId == org.Id);
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetEvaluatorCoverageAsync(exercise.Id);
@@ -241,7 +250,7 @@ public class ExerciseMetricsServiceTests
     {
         // Arrange
         var (context, _) = CreateTestContext();
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetControllerActivityAsync(Guid.NewGuid());
@@ -286,7 +295,7 @@ public class ExerciseMetricsServiceTests
 
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetControllerActivityAsync(exercise.Id, onTimeToleranceMinutes: 2);
@@ -330,7 +339,7 @@ public class ExerciseMetricsServiceTests
         inject.FiredByUserId = userId;
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetControllerActivityAsync(exercise.Id);
@@ -354,7 +363,7 @@ public class ExerciseMetricsServiceTests
     {
         // Arrange
         var (context, _) = CreateTestContext();
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(Guid.NewGuid());
@@ -432,7 +441,7 @@ public class ExerciseMetricsServiceTests
         context.Set<ObservationCapability>().AddRange(obsCapability1, obsCapability2);
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);
@@ -498,7 +507,7 @@ public class ExerciseMetricsServiceTests
         }
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);
@@ -589,7 +598,7 @@ public class ExerciseMetricsServiceTests
         );
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);
@@ -676,7 +685,7 @@ public class ExerciseMetricsServiceTests
         });
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);
@@ -768,7 +777,7 @@ public class ExerciseMetricsServiceTests
         });
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);
@@ -865,7 +874,7 @@ public class ExerciseMetricsServiceTests
         });
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);
@@ -910,7 +919,7 @@ public class ExerciseMetricsServiceTests
         context.Observations.Add(obs);
         context.SaveChanges();
 
-        var service = new ExerciseMetricsService(context);
+        var service = CreateMetricsService(context);
 
         // Act
         var result = await service.GetCapabilityPerformanceAsync(exercise.Id);

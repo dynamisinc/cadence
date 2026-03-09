@@ -7,6 +7,7 @@
 
 import { useRegisterSW } from 'virtual:pwa-register/react'
 import { useCallback } from 'react'
+import { devLog } from '@/core/utils/logger'
 
 export interface UseServiceWorkerReturn {
   /** True when a new version is available and waiting to activate */
@@ -45,17 +46,17 @@ export function useServiceWorker(): UseServiceWorkerReturn {
   } = useRegisterSW({
     onRegistered(registration) {
       if (registration) {
-        console.log('[PWA] Service Worker registered successfully')
+        devLog('[PWA] Service Worker registered successfully')
       }
     },
     onRegisterError(error) {
       console.error('[PWA] Service Worker registration failed:', error)
     },
     onOfflineReady() {
-      console.log('[PWA] App is ready to work offline')
+      devLog('[PWA] App is ready to work offline')
     },
     onNeedRefresh() {
-      console.log('[PWA] New content available, please refresh')
+      devLog('[PWA] New content available, please refresh')
     },
   })
 

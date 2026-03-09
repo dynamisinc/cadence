@@ -19,8 +19,9 @@
  * @see authentication/S12 Deactivate User Account
  * @see authentication/S13 Global Role Assignment
  */
-import { useState, useEffect, Fragment } from 'react'
+import { useState, Fragment } from 'react'
 import type { FC } from 'react'
+import { useQueryClient } from '@tanstack/react-query'
 import {
   Box,
   Typography,
@@ -62,8 +63,7 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { PageHeader } from '@/shared/components'
 import { useBreadcrumbs } from '@/core/contexts'
 import { formatDate } from '../../../shared/utils/dateUtils'
-import { userService } from '../services/userService'
-import type { UserDto, UserMembershipDto } from '../types'
+import type { UserMembershipDto } from '../types'
 import { EditUserDialog } from '../components/EditUserDialog'
 import { RoleSelect } from '../components/RoleSelect'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
@@ -71,6 +71,17 @@ import { USER_ROLES } from '../types'
 import { organizationService } from '../../organizations/services/organizationService'
 import type { OrganizationListItem, OrgRole } from '../../organizations/types'
 import { AddUserToOrgDialog } from '../components/AddUserToOrgDialog'
+import {
+  useUserList,
+  useUserMemberships,
+  useUpdateUser,
+  useChangeUserRole,
+  useDeactivateUser,
+  useReactivateUser,
+  userKeys,
+} from '../hooks/useUsers'
+import { useOrganizations } from '../../organizations/hooks/useOrganizations'
+import { notify } from '@/shared/utils/notify'
 
 // Compact icon button style for table actions
 const compactIconButtonSx = {
@@ -95,6 +106,135 @@ const getRoleColor = (role: string) => {
 }
 
 /**
+ * ExpandedUserRow - Loads and displays membership data for an expanded user row.
+ *
+ * Uses React Query so each user's memberships are independently cached,
+ * fetched on demand, and automatically kept up to date.
+ */
+interface ExpandedUserRowProps {
+  userId: string;
+  userName: string;
+  availableOrgs: OrganizationListItem[];
+  onAddToOrg: (userId: string) => void;
+}
+
+const ExpandedUserRow: FC<ExpandedUserRowProps> = ({ userId, userName: _userName, availableOrgs, onAddToOrg }) => {
+  const queryClient = useQueryClient()
+  const { data: memberships = [], isLoading } = useUserMemberships(userId)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  const handleRemoveFromOrg = async (membership: UserMembershipDto) => {
+    try {
+      await organizationService.removeMember(membership.organizationId, membership.id)
+      queryClient.invalidateQueries({ queryKey: userKeys.memberships(userId) })
+    } catch {
+      setErrorMessage('Failed to remove user from organization')
+    }
+  }
+
+  const handleOrgRoleChange = async (membership: UserMembershipDto, newRole: string) => {
+    try {
+      await organizationService.updateMemberRole(
+        membership.organizationId,
+        membership.id,
+        { role: newRole as OrgRole },
+      )
+      queryClient.invalidateQueries({ queryKey: userKeys.memberships(userId) })
+    } catch {
+      setErrorMessage('Failed to update role')
+    }
+  }
+
+  return (
+    <Box sx={{ py: 2, px: 4, bgcolor: 'grey.50' }}>
+      {errorMessage && (
+        <Alert severity="error" onClose={() => setErrorMessage(null)} sx={{ mb: 1 }}>
+          {errorMessage}
+        </Alert>
+      )}
+      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
+        <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <FontAwesomeIcon icon={faBuilding} />
+          Organization Memberships
+        </Typography>
+        <CobraPrimaryButton
+          size="small"
+          startIcon={<FontAwesomeIcon icon={faPlus} />}
+          onClick={() => onAddToOrg(userId)}
+          disabled={availableOrgs.length === 0}
+          sx={{ fontSize: '0.75rem', py: 0.5 }}
+        >
+          Add to Org
+        </CobraPrimaryButton>
+      </Stack>
+
+      {isLoading ? (
+        <Stack spacing={1}>
+          <Skeleton height={32} />
+          <Skeleton height={32} />
+        </Stack>
+      ) : memberships.length === 0 ? (
+        <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
+          Not a member of any organization
+        </Typography>
+      ) : (
+        <Table size="small">
+          <TableHead>
+            <TableRow sx={{ '& th': { py: 0.75, fontWeight: 500, bgcolor: 'transparent' } }}>
+              <TableCell>Organization</TableCell>
+              <TableCell width={150}>Role</TableCell>
+              <TableCell width={120}>Joined</TableCell>
+              <TableCell width={60} align="right"></TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {memberships.map(membership => (
+              <TableRow key={membership.id} sx={{ '& td': { py: 0.5 } }}>
+                <TableCell>
+                  <Box>
+                    <Typography variant="body2">{membership.organizationName}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {membership.organizationSlug}
+                    </Typography>
+                  </Box>
+                </TableCell>
+                <TableCell>
+                  <Select
+                    value={membership.role}
+                    onChange={e => handleOrgRoleChange(membership, e.target.value)}
+                    size="small"
+                    sx={{ minWidth: 120, fontSize: '0.875rem' }}
+                  >
+                    <MenuItem value="OrgAdmin">OrgAdmin</MenuItem>
+                    <MenuItem value="OrgManager">OrgManager</MenuItem>
+                    <MenuItem value="OrgUser">OrgUser</MenuItem>
+                  </Select>
+                </TableCell>
+                <TableCell>
+                  <Typography variant="caption" color="text.secondary">
+                    {formatDate(membership.joinedAt)}
+                  </Typography>
+                </TableCell>
+                <TableCell align="right">
+                  <Tooltip title="Remove from organization">
+                    <CobraIconButton
+                      onClick={() => handleRemoveFromOrg(membership)}
+                      sx={{ ...compactIconButtonSx, color: 'error.main' }}
+                    >
+                      <FontAwesomeIcon icon={faTrash} />
+                    </CobraIconButton>
+                  </Tooltip>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </Box>
+  )
+}
+
+/**
  * User management page
  * Administrators only
  */
@@ -105,177 +245,102 @@ export const UserListPage: FC = () => {
     { label: 'Users' },
   ])
 
-  const [users, setUsers] = useState<UserDto[]>([])
-  const [pagination, setPagination] = useState({
-    page: 0, // 0-indexed for TablePagination
-    pageSize: 20,
-    totalCount: 0,
-    totalPages: 0,
-  })
+  // Pagination and filter state
+  const [page, setPage] = useState(0) // 0-indexed for TablePagination
+  const [pageSize, setPageSize] = useState(20)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('')
   const [statusFilter, setStatusFilter] = useState('')
   const [orgFilter, setOrgFilter] = useState('')
-  const [isLoading, setIsLoading] = useState(true)
-  const [editingUser, setEditingUser] = useState<UserDto | null>(null)
-  const [errorMessage, setErrorMessage] = useState<string | null>(null)
+
+  // Dialog state
+  const [editingUserId, setEditingUserId] = useState<string | null>(null)
+  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
+  const [addToOrgDialogUserId, setAddToOrgDialogUserId] = useState<string | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{
     open: boolean;
     title: string;
     message: string;
     onConfirm: () => void;
   }>({ open: false, title: '', message: '', onConfirm: () => {} })
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
-  // Expanded row state for org management
-  const [expandedUserId, setExpandedUserId] = useState<string | null>(null)
-  const [userMemberships, setUserMemberships] = useState<Record<string, UserMembershipDto[]>>({})
-  const [loadingMemberships, setLoadingMemberships] = useState<string | null>(null)
-
-  // Add to org dialog state
-  const [addToOrgDialogUserId, setAddToOrgDialogUserId] = useState<string | null>(null)
-  const [organizations, setOrganizations] = useState<OrganizationListItem[]>([])
-
-  /**
-   * Load users from API with current filters and pagination
-   */
-  const loadUsers = async () => {
-    setIsLoading(true)
-    setErrorMessage(null)
-    try {
-      const response = await userService.getUsers({
-        page: pagination.page + 1, // API is 1-indexed
-        pageSize: pagination.pageSize,
-        search: search || undefined,
-        role: roleFilter || undefined,
-        status: statusFilter || undefined,
-        organizationId: orgFilter || undefined,
-      })
-      setUsers(response.users)
-      setPagination(prev => ({
-        ...prev,
-        totalCount: response.pagination.totalCount,
-        totalPages: response.pagination.totalPages,
-      }))
-    } catch {
-      setErrorMessage('Failed to load users')
-    } finally {
-      setIsLoading(false)
-    }
+  // React Query data fetching
+  const userListParams = {
+    page: page + 1, // API is 1-indexed
+    pageSize,
+    search: search || undefined,
+    role: roleFilter || undefined,
+    status: statusFilter || undefined,
+    organizationId: orgFilter || undefined,
   }
 
-  // Load users when filters or pagination change
-  useEffect(() => {
-    loadUsers()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pagination.page, pagination.pageSize, search, roleFilter, statusFilter, orgFilter])
+  const {
+    data: userListData,
+    isLoading,
+    isFetching,
+  } = useUserList(userListParams)
 
-  // Pre-load memberships for all visible users
-  useEffect(() => {
-    const loadAllMemberships = async () => {
-      if (users.length === 0) return
+  const users = userListData?.users ?? []
+  const totalCount = userListData?.pagination.totalCount ?? 0
 
-      // Load memberships for users we don't have yet
-      const usersToLoad = users.filter(u => !userMemberships[u.id])
-      if (usersToLoad.length === 0) return
+  // Organizations for filter dropdown and add-to-org dialog
+  const { data: orgsData } = useOrganizations({ status: 'Active' })
+  const organizations = orgsData?.items ?? []
 
-      try {
-        const results = await Promise.all(
-          usersToLoad.map(async user => {
-            const memberships = await userService.getUserMemberships(user.id)
-            return { userId: user.id, memberships }
-          }),
-        )
-        setUserMemberships(prev => {
-          const newState = { ...prev }
-          results.forEach(({ userId, memberships }) => {
-            newState[userId] = memberships
-          })
-          return newState
-        })
-      } catch {
-        // Silent fail - memberships will load on expand
-      }
-    }
-    loadAllMemberships()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [users])
+  // Mutations
+  const updateUserMutation = useUpdateUser()
+  const changeRoleMutation = useChangeUserRole()
+  const deactivateUserMutation = useDeactivateUser()
+  const reactivateUserMutation = useReactivateUser()
+  const queryClient = useQueryClient()
 
-  // Load organizations for add-to-org dialog
-  useEffect(() => {
-    const loadOrgs = async () => {
-      try {
-        const response = await organizationService.getAll({ status: 'Active' })
-        setOrganizations(response.items)
-      } catch {
-        // Silent fail - orgs needed only for dialog
-      }
-    }
-    loadOrgs()
-  }, [])
+  // Find the user being edited
+  const editingUser = editingUserId ? users.find(u => u.id === editingUserId) ?? null : null
 
   /**
-   * Load memberships for a user when expanding
+   * Get organizations the user is NOT already a member of
    */
-  const loadMembershipsForUser = async (userId: string) => {
-    if (userMemberships[userId]) return // Already loaded
-
-    setLoadingMemberships(userId)
-    try {
-      const memberships = await userService.getUserMemberships(userId)
-      setUserMemberships(prev => ({ ...prev, [userId]: memberships }))
-    } catch {
-      setErrorMessage('Failed to load user memberships')
-    } finally {
-      setLoadingMemberships(null)
-    }
-  }
-
-  /**
-   * Toggle expanded row
-   */
-  const toggleExpandRow = async (userId: string) => {
-    if (expandedUserId === userId) {
-      setExpandedUserId(null)
-    } else {
-      setExpandedUserId(userId)
-      await loadMembershipsForUser(userId)
-    }
+  const getAvailableOrgs = (userId: string) => {
+    const membershipsData = queryClient.getQueryData<UserMembershipDto[]>(
+      userKeys.memberships(userId),
+    )
+    const memberOrgIds = new Set((membershipsData ?? []).map(m => m.organizationId))
+    return organizations.filter(org => !memberOrgIds.has(org.id))
   }
 
   /**
    * Handle role change for a user
    */
-  const handleRoleChange = async (user: UserDto, newRole: string) => {
-    try {
-      await userService.changeRole(user.id, { systemRole: newRole })
-      loadUsers()
-    } catch (error: unknown) {
-      const axiosError = error as { response?: { data?: { error?: string } } }
-      if (axiosError.response?.data?.error === 'last_administrator') {
-        setErrorMessage('Cannot remove the last Administrator. Assign another Administrator first.')
-      } else {
-        setErrorMessage('Failed to change user role')
-      }
-    }
+  const handleRoleChange = (userId: string, newRole: string) => {
+    changeRoleMutation.mutate(
+      { id: userId, request: { systemRole: newRole } },
+      {
+        onError: (err: unknown) => {
+          const axiosError = err as { response?: { data?: { error?: string } } }
+          if (axiosError.response?.data?.error === 'last_administrator') {
+            setErrorMessage('Cannot remove the last Administrator. Assign another Administrator first.')
+          } else {
+            setErrorMessage('Failed to change user role')
+          }
+        },
+      },
+    )
   }
 
   /**
    * Show confirmation dialog for deactivation
    */
-  const handleDeactivate = (user: UserDto) => {
+  const handleDeactivate = (userId: string, displayName: string) => {
     setConfirmDialog({
       open: true,
       title: 'Deactivate User',
-      message: `Are you sure you want to deactivate ${user.displayName}? They will no longer be able to log in.`,
-      onConfirm: async () => {
-        try {
-          await userService.deactivateUser(user.id)
-          loadUsers()
-          setConfirmDialog(prev => ({ ...prev, open: false }))
-        } catch {
-          setErrorMessage('Failed to deactivate user')
-          setConfirmDialog(prev => ({ ...prev, open: false }))
-        }
+      message: `Are you sure you want to deactivate ${displayName}? They will no longer be able to log in.`,
+      onConfirm: () => {
+        deactivateUserMutation.mutate(userId, {
+          onSettled: () => setConfirmDialog(prev => ({ ...prev, open: false })),
+          onError: () => setErrorMessage('Failed to deactivate user'),
+        })
       },
     })
   }
@@ -283,47 +348,25 @@ export const UserListPage: FC = () => {
   /**
    * Reactivate a deactivated user
    */
-  const handleReactivate = async (user: UserDto) => {
-    try {
-      await userService.reactivateUser(user.id)
-      loadUsers()
-    } catch {
-      setErrorMessage('Failed to reactivate user')
-    }
+  const handleReactivate = (userId: string) => {
+    reactivateUserMutation.mutate(userId, {
+      onError: () => setErrorMessage('Failed to reactivate user'),
+    })
   }
 
   /**
    * Handle user edit save
    */
   const handleEditSave = async (updates: { displayName?: string }) => {
-    if (editingUser) {
-      await userService.updateUser(editingUser.id, updates)
-      loadUsers()
-      setEditingUser(null)
+    if (editingUserId) {
+      await updateUserMutation.mutateAsync(
+        { id: editingUserId, request: updates },
+        {
+          onError: () => setErrorMessage('Failed to update user'),
+        },
+      )
+      setEditingUserId(null)
     }
-  }
-
-  /**
-   * Handle removing user from organization
-   */
-  const handleRemoveFromOrg = (membership: UserMembershipDto, userName: string) => {
-    setConfirmDialog({
-      open: true,
-      title: 'Remove from Organization',
-      message: `Remove ${userName} from ${membership.organizationName}? They will lose access to all resources in this organization.`,
-      onConfirm: async () => {
-        try {
-          await organizationService.removeMember(membership.organizationId, membership.id)
-          // Refresh memberships for this user
-          const updatedMemberships = await userService.getUserMemberships(membership.userId)
-          setUserMemberships(prev => ({ ...prev, [membership.userId]: updatedMemberships }))
-          setConfirmDialog(prev => ({ ...prev, open: false }))
-        } catch {
-          setErrorMessage('Failed to remove user from organization')
-          setConfirmDialog(prev => ({ ...prev, open: false }))
-        }
-      },
-    })
   }
 
   /**
@@ -335,41 +378,14 @@ export const UserListPage: FC = () => {
       if (!user) return
 
       await organizationService.addMember(orgId, { email: user.email, role })
-      // Refresh memberships
-      const updatedMemberships = await userService.getUserMemberships(userId)
-      setUserMemberships(prev => ({ ...prev, [userId]: updatedMemberships }))
+      // Invalidate this user's memberships cache to trigger a fresh fetch
+      queryClient.invalidateQueries({ queryKey: userKeys.memberships(userId) })
       setAddToOrgDialogUserId(null)
+      notify.success('User added to organization')
     } catch (error: unknown) {
       const axiosError = error as { response?: { data?: { message?: string } } }
       throw new Error(axiosError.response?.data?.message || 'Failed to add user to organization')
     }
-  }
-
-  /**
-   * Handle changing user's role in an organization
-   */
-  const handleOrgRoleChange = async (membership: UserMembershipDto, newRole: string) => {
-    try {
-      await organizationService.updateMemberRole(
-        membership.organizationId,
-        membership.id,
-        { role: newRole as OrgRole },
-      )
-      // Refresh memberships for this user
-      const updatedMemberships = await userService.getUserMemberships(membership.userId)
-      setUserMemberships(prev => ({ ...prev, [membership.userId]: updatedMemberships }))
-    } catch {
-      setErrorMessage('Failed to update role')
-    }
-  }
-
-  /**
-   * Get organizations the user is NOT a member of
-   */
-  const getAvailableOrgs = (userId: string) => {
-    const memberships = userMemberships[userId] || []
-    const memberOrgIds = new Set(memberships.map(m => m.organizationId))
-    return organizations.filter(org => !memberOrgIds.has(org.id))
   }
 
   return (
@@ -388,7 +404,10 @@ export const UserListPage: FC = () => {
         <CobraTextField
           placeholder="Search name or email..."
           value={search}
-          onChange={e => setSearch(e.target.value)}
+          onChange={e => {
+            setSearch(e.target.value)
+            setPage(0) // Reset to first page on search
+          }}
           size="small"
           InputProps={{
             startAdornment: (
@@ -401,7 +420,10 @@ export const UserListPage: FC = () => {
         />
         <Select
           value={roleFilter}
-          onChange={e => setRoleFilter(e.target.value)}
+          onChange={e => {
+            setRoleFilter(e.target.value)
+            setPage(0)
+          }}
           displayEmpty
           size="small"
           sx={{ minWidth: 120 }}
@@ -415,7 +437,10 @@ export const UserListPage: FC = () => {
         </Select>
         <Select
           value={statusFilter}
-          onChange={e => setStatusFilter(e.target.value)}
+          onChange={e => {
+            setStatusFilter(e.target.value)
+            setPage(0)
+          }}
           displayEmpty
           size="small"
           sx={{ minWidth: 110 }}
@@ -427,7 +452,10 @@ export const UserListPage: FC = () => {
         </Select>
         <Select
           value={orgFilter}
-          onChange={e => setOrgFilter(e.target.value)}
+          onChange={e => {
+            setOrgFilter(e.target.value)
+            setPage(0)
+          }}
           displayEmpty
           size="small"
           sx={{ minWidth: 160 }}
@@ -442,7 +470,7 @@ export const UserListPage: FC = () => {
       </Stack>
 
       {/* Users Table */}
-      <TableContainer component={Paper} variant="outlined">
+      <TableContainer component={Paper} variant="outlined" sx={{ opacity: isFetching ? 0.7 : 1 }}>
         <Table size="small">
           <TableHead>
             <TableRow sx={{ '& th': { fontWeight: 600, py: 1.5 } }}>
@@ -470,234 +498,165 @@ export const UserListPage: FC = () => {
                 </TableRow>
               ))
             ) : (
-              users.map(user => (
-                <Fragment key={user.id}>
-                  <TableRow
-                    hover
-                    sx={{
-                      '& td': { py: 1 },
-                      cursor: 'pointer',
-                      bgcolor: expandedUserId === user.id ? 'action.selected' : 'inherit',
-                    }}
-                    onClick={() => toggleExpandRow(user.id)}
-                  >
-                    {/* Expand indicator */}
-                    <TableCell sx={{ pr: 0 }}>
-                      <FontAwesomeIcon
-                        icon={expandedUserId === user.id ? faChevronDown : faChevronRight}
-                        style={{ fontSize: '0.75rem', color: '#666' }}
-                      />
-                    </TableCell>
-
-                    {/* User info - compact */}
-                    <TableCell>
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 500 }}>
-                          {user.displayName}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {user.email}
-                        </Typography>
-                      </Box>
-                    </TableCell>
-
-                    {/* System Role */}
-                    <TableCell onClick={e => e.stopPropagation()}>
-                      <RoleSelect
-                        value={user.systemRole}
-                        onChange={role => handleRoleChange(user, role)}
-                      />
-                    </TableCell>
-
-                    {/* Organizations - inline chips */}
-                    <TableCell>
-                      <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
-                        {userMemberships[user.id] === undefined ? (
-                          // Loading state
-                          <Skeleton variant="rounded" width={60} height={20} />
-                        ) : userMemberships[user.id].length === 0 ? (
-                          // No memberships
-                          <Typography variant="caption" color="text.disabled">
-                            None
-                          </Typography>
-                        ) : (
-                          // Show membership chips
-                          <>
-                            {userMemberships[user.id].slice(0, 2).map(m => (
-                              <Tooltip key={m.id} title={`${m.organizationName} (${m.role})`}>
-                                <Chip
-                                  size="small"
-                                  label={m.organizationSlug || m.organizationName.substring(0, 12)}
-                                  color={getRoleColor(m.role)}
-                                  sx={{ height: 20, fontSize: '0.7rem' }}
-                                />
-                              </Tooltip>
-                            ))}
-                            {userMemberships[user.id].length > 2 && (
-                              <Chip
-                                size="small"
-                                label={`+${userMemberships[user.id].length - 2}`}
-                                variant="outlined"
-                                sx={{ height: 20, fontSize: '0.7rem' }}
-                              />
-                            )}
-                          </>
-                        )}
-                      </Stack>
-                    </TableCell>
-
-                    {/* Status */}
-                    <TableCell>
-                      <Chip
-                        label={user.status}
-                        color={user.status === 'Active' ? 'success' : 'default'}
-                        size="small"
-                        sx={{ height: 22, fontSize: '0.75rem' }}
-                      />
-                    </TableCell>
-
-                    {/* Last Login */}
-                    <TableCell>
-                      <Typography variant="caption" color="text.secondary">
-                        {user.lastLoginAt
-                          ? formatDate(user.lastLoginAt)
-                          : 'Never'}
-                      </Typography>
-                    </TableCell>
-
-                    {/* Actions - compact */}
-                    <TableCell align="right" onClick={e => e.stopPropagation()}>
-                      <Stack direction="row" spacing={0.5} justifyContent="flex-end">
-                        <Tooltip title="Edit user">
-                          <CobraIconButton
-                            onClick={() => setEditingUser(user)}
-                            aria-label="Edit user"
-                            sx={compactIconButtonSx}
-                          >
-                            <FontAwesomeIcon icon={faPen} />
-                          </CobraIconButton>
-                        </Tooltip>
-                        {user.status === 'Active' ? (
-                          <Tooltip title="Deactivate user">
-                            <CobraIconButton
-                              onClick={() => handleDeactivate(user)}
-                              aria-label="Deactivate user"
-                              sx={{ ...compactIconButtonSx, color: 'warning.main' }}
-                            >
-                              <FontAwesomeIcon icon={faUserSlash} />
-                            </CobraIconButton>
-                          </Tooltip>
-                        ) : (
-                          <Tooltip title="Reactivate user">
-                            <CobraIconButton
-                              onClick={() => handleReactivate(user)}
-                              aria-label="Reactivate user"
-                              sx={{ ...compactIconButtonSx, color: 'success.main' }}
-                            >
-                              <FontAwesomeIcon icon={faUserCheck} />
-                            </CobraIconButton>
-                          </Tooltip>
-                        )}
-                      </Stack>
-                    </TableCell>
-                  </TableRow>
-
-                  {/* Expanded row for org management */}
-                  <TableRow key={`${user.id}-expanded`}>
-                    <TableCell
-                      colSpan={7}
-                      sx={{ py: 0, borderBottom: expandedUserId === user.id ? 1 : 0 }}
+              users.map(user => {
+                const memberships = queryClient.getQueryData<UserMembershipDto[]>(
+                  userKeys.memberships(user.id),
+                )
+                return (
+                  <Fragment key={user.id}>
+                    <TableRow
+                      hover
+                      sx={{
+                        '& td': { py: 1 },
+                        cursor: 'pointer',
+                        bgcolor: expandedUserId === user.id ? 'action.selected' : 'inherit',
+                      }}
+                      onClick={() =>
+                        setExpandedUserId(prev => prev === user.id ? null : user.id)
+                      }
                     >
-                      <Collapse in={expandedUserId === user.id} timeout="auto" unmountOnExit>
-                        <Box sx={{ py: 2, px: 4, bgcolor: 'grey.50' }}>
-                          <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 1.5 }}>
-                            <Typography variant="subtitle2" sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <FontAwesomeIcon icon={faBuilding} />
-                              Organization Memberships
-                            </Typography>
-                            <CobraPrimaryButton
-                              size="small"
-                              startIcon={<FontAwesomeIcon icon={faPlus} />}
-                              onClick={() => setAddToOrgDialogUserId(user.id)}
-                              disabled={getAvailableOrgs(user.id).length === 0}
-                              sx={{ fontSize: '0.75rem', py: 0.5 }}
-                            >
-                              Add to Org
-                            </CobraPrimaryButton>
-                          </Stack>
+                      {/* Expand indicator */}
+                      <TableCell sx={{ pr: 0 }}>
+                        <FontAwesomeIcon
+                          icon={expandedUserId === user.id ? faChevronDown : faChevronRight}
+                          style={{ fontSize: '0.75rem', color: '#666' }}
+                        />
+                      </TableCell>
 
-                          {loadingMemberships === user.id ? (
-                            <Stack spacing={1}>
-                              <Skeleton height={32} />
-                              <Skeleton height={32} />
-                            </Stack>
-                          ) : userMemberships[user.id]?.length === 0 ? (
-                            <Typography variant="body2" color="text.secondary" sx={{ py: 1 }}>
-                              Not a member of any organization
+                      {/* User info - compact */}
+                      <TableCell>
+                        <Box>
+                          <Typography variant="body2" sx={{ fontWeight: 500 }}>
+                            {user.displayName}
+                          </Typography>
+                          <Typography variant="caption" color="text.secondary">
+                            {user.email}
+                          </Typography>
+                        </Box>
+                      </TableCell>
+
+                      {/* System Role */}
+                      <TableCell onClick={e => e.stopPropagation()}>
+                        <RoleSelect
+                          value={user.systemRole}
+                          onChange={role => handleRoleChange(user.id, role)}
+                        />
+                      </TableCell>
+
+                      {/* Organizations - inline chips */}
+                      <TableCell>
+                        <Stack direction="row" spacing={0.5} flexWrap="wrap" gap={0.5}>
+                          {memberships === undefined ? (
+                            // Memberships not yet loaded - show placeholder
+                            <Typography variant="caption" color="text.disabled">
+                              Click to view
+                            </Typography>
+                          ) : memberships.length === 0 ? (
+                            // No memberships
+                            <Typography variant="caption" color="text.disabled">
+                              None
                             </Typography>
                           ) : (
-                            <Table size="small">
-                              <TableHead>
-                                <TableRow sx={{ '& th': { py: 0.75, fontWeight: 500, bgcolor: 'transparent' } }}>
-                                  <TableCell>Organization</TableCell>
-                                  <TableCell width={150}>Role</TableCell>
-                                  <TableCell width={120}>Joined</TableCell>
-                                  <TableCell width={60} align="right"></TableCell>
-                                </TableRow>
-                              </TableHead>
-                              <TableBody>
-                                {userMemberships[user.id]?.map(membership => (
-                                  <TableRow key={membership.id} sx={{ '& td': { py: 0.5 } }}>
-                                    <TableCell>
-                                      <Box>
-                                        <Typography variant="body2">{membership.organizationName}</Typography>
-                                        <Typography variant="caption" color="text.secondary">
-                                          {membership.organizationSlug}
-                                        </Typography>
-                                      </Box>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Select
-                                        value={membership.role}
-                                        onChange={e =>
-                                          handleOrgRoleChange(membership, e.target.value)
-                                        }
-                                        size="small"
-                                        sx={{ minWidth: 120, fontSize: '0.875rem' }}
-                                      >
-                                        <MenuItem value="OrgAdmin">OrgAdmin</MenuItem>
-                                        <MenuItem value="OrgManager">OrgManager</MenuItem>
-                                        <MenuItem value="OrgUser">OrgUser</MenuItem>
-                                      </Select>
-                                    </TableCell>
-                                    <TableCell>
-                                      <Typography variant="caption" color="text.secondary">
-                                        {formatDate(membership.joinedAt)}
-                                      </Typography>
-                                    </TableCell>
-                                    <TableCell align="right">
-                                      <Tooltip title="Remove from organization">
-                                        <CobraIconButton
-                                          onClick={() =>
-                                            handleRemoveFromOrg(membership, user.displayName)
-                                          }
-                                          sx={{ ...compactIconButtonSx, color: 'error.main' }}
-                                        >
-                                          <FontAwesomeIcon icon={faTrash} />
-                                        </CobraIconButton>
-                                      </Tooltip>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </TableBody>
-                            </Table>
+                            // Show membership chips
+                            <>
+                              {memberships.slice(0, 2).map(m => (
+                                <Tooltip key={m.id} title={`${m.organizationName} (${m.role})`}>
+                                  <Chip
+                                    size="small"
+                                    label={m.organizationSlug || m.organizationName.substring(0, 12)}
+                                    color={getRoleColor(m.role)}
+                                    sx={{ height: 20, fontSize: '0.7rem' }}
+                                  />
+                                </Tooltip>
+                              ))}
+                              {memberships.length > 2 && (
+                                <Chip
+                                  size="small"
+                                  label={`+${memberships.length - 2}`}
+                                  variant="outlined"
+                                  sx={{ height: 20, fontSize: '0.7rem' }}
+                                />
+                              )}
+                            </>
                           )}
-                        </Box>
-                      </Collapse>
-                    </TableCell>
-                  </TableRow>
-                </Fragment>
-              ))
+                        </Stack>
+                      </TableCell>
+
+                      {/* Status */}
+                      <TableCell>
+                        <Chip
+                          label={user.status}
+                          color={user.status === 'Active' ? 'success' : 'default'}
+                          size="small"
+                          sx={{ height: 22, fontSize: '0.75rem' }}
+                        />
+                      </TableCell>
+
+                      {/* Last Login */}
+                      <TableCell>
+                        <Typography variant="caption" color="text.secondary">
+                          {user.lastLoginAt
+                            ? formatDate(user.lastLoginAt)
+                            : 'Never'}
+                        </Typography>
+                      </TableCell>
+
+                      {/* Actions - compact */}
+                      <TableCell align="right" onClick={e => e.stopPropagation()}>
+                        <Stack direction="row" spacing={0.5} justifyContent="flex-end">
+                          <Tooltip title="Edit user">
+                            <CobraIconButton
+                              onClick={() => setEditingUserId(user.id)}
+                              aria-label="Edit user"
+                              sx={compactIconButtonSx}
+                            >
+                              <FontAwesomeIcon icon={faPen} />
+                            </CobraIconButton>
+                          </Tooltip>
+                          {user.status === 'Active' ? (
+                            <Tooltip title="Deactivate user">
+                              <CobraIconButton
+                                onClick={() => handleDeactivate(user.id, user.displayName)}
+                                aria-label="Deactivate user"
+                                sx={{ ...compactIconButtonSx, color: 'warning.main' }}
+                              >
+                                <FontAwesomeIcon icon={faUserSlash} />
+                              </CobraIconButton>
+                            </Tooltip>
+                          ) : (
+                            <Tooltip title="Reactivate user">
+                              <CobraIconButton
+                                onClick={() => handleReactivate(user.id)}
+                                aria-label="Reactivate user"
+                                sx={{ ...compactIconButtonSx, color: 'success.main' }}
+                              >
+                                <FontAwesomeIcon icon={faUserCheck} />
+                              </CobraIconButton>
+                            </Tooltip>
+                          )}
+                        </Stack>
+                      </TableCell>
+                    </TableRow>
+
+                    {/* Expanded row for org management */}
+                    <TableRow key={`${user.id}-expanded`}>
+                      <TableCell
+                        colSpan={7}
+                        sx={{ py: 0, borderBottom: expandedUserId === user.id ? 1 : 0 }}
+                      >
+                        <Collapse in={expandedUserId === user.id} timeout="auto" unmountOnExit>
+                          <ExpandedUserRow
+                            userId={user.id}
+                            userName={user.displayName}
+                            availableOrgs={getAvailableOrgs(user.id)}
+                            onAddToOrg={setAddToOrgDialogUserId}
+                          />
+                        </Collapse>
+                      </TableCell>
+                    </TableRow>
+                  </Fragment>
+                )
+              })
             )}
           </TableBody>
         </Table>
@@ -706,13 +665,14 @@ export const UserListPage: FC = () => {
       {/* Pagination */}
       <TablePagination
         component="div"
-        count={pagination.totalCount}
-        page={pagination.page}
-        onPageChange={(_, page) => setPagination(prev => ({ ...prev, page }))}
-        rowsPerPage={pagination.pageSize}
-        onRowsPerPageChange={e =>
-          setPagination(prev => ({ ...prev, pageSize: parseInt(e.target.value), page: 0 }))
-        }
+        count={totalCount}
+        page={page}
+        onPageChange={(_, newPage) => setPage(newPage)}
+        rowsPerPage={pageSize}
+        onRowsPerPageChange={e => {
+          setPageSize(parseInt(e.target.value))
+          setPage(0)
+        }}
         rowsPerPageOptions={[10, 20, 50]}
         sx={{ borderTop: 1, borderColor: 'divider' }}
       />
@@ -721,7 +681,7 @@ export const UserListPage: FC = () => {
       {editingUser && (
         <EditUserDialog
           user={editingUser}
-          onClose={() => setEditingUser(null)}
+          onClose={() => setEditingUserId(null)}
           onSave={handleEditSave}
         />
       )}

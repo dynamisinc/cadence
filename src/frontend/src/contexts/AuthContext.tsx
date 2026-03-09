@@ -26,6 +26,8 @@ import type {
 import { authService } from '../features/auth/services/authService'
 import { setAuthInterceptors } from '../core/services/api'
 import { setAuthenticatedUser, clearAuthenticatedUser, trackEvent } from '../core/services/telemetry'
+import { devLog, devWarn } from '../core/utils/logger'
+import { isNetworkError as checkIsNetworkError } from '../core/utils/networkErrors'
 
 interface AuthContextType {
   /** Currently authenticated user (null if not logged in) */
@@ -72,13 +74,13 @@ function cacheUserInfo(user: UserInfo | null): void {
   try {
     if (user) {
       localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user))
-      console.log('[AuthContext] Cached user info for offline support:', user.email)
+      devLog('[AuthContext] Cached user info for offline support:', user.email)
     } else {
       localStorage.removeItem(CACHED_USER_KEY)
-      console.log('[AuthContext] Cleared cached user info')
+      devLog('[AuthContext] Cleared cached user info')
     }
   } catch (err) {
-    console.warn('[AuthContext] Failed to cache user info:', err)
+    devWarn('[AuthContext] Failed to cache user info:', err)
   }
 }
 
@@ -90,11 +92,11 @@ function getCachedUserInfo(): UserInfo | null {
     const cached = localStorage.getItem(CACHED_USER_KEY)
     if (cached) {
       const user = JSON.parse(cached) as UserInfo
-      console.log('[AuthContext] Restored cached user info:', user.email)
+      devLog('[AuthContext] Restored cached user info:', user.email)
       return user
     }
   } catch (err) {
-    console.warn('[AuthContext] Failed to restore cached user info:', err)
+    devWarn('[AuthContext] Failed to restore cached user info:', err)
   }
   return null
 }
@@ -124,7 +126,7 @@ function classifyError(error: unknown): {
   const httpStatus = errorObj?.response?.status
   const errorCode = errorObj?.response?.data?.code
 
-  console.log('[AuthContext] classifyError analyzing:', {
+  devLog('[AuthContext] classifyError analyzing:', {
     message,
     code,
     httpStatus,
@@ -132,30 +134,8 @@ function classifyError(error: unknown): {
     errorName: errorObj?.name,
   })
 
-  // Network errors - API is unreachable
-  const networkErrorPatterns = [
-    'Network Error',
-    'ECONNREFUSED',
-    'ERR_NETWORK',
-    'ENOTFOUND',
-    'ETIMEDOUT',
-    'ECONNRESET',
-    'Failed to fetch',
-    'Load failed',
-    'net::',
-    'NetworkError',
-  ]
-
-  const isNetworkError =
-    code === 'ERR_NETWORK' ||
-    code === 'ECONNABORTED' ||
-    code === 'ECONNREFUSED' ||
-    code === 'ETIMEDOUT' ||
-    networkErrorPatterns.some(pattern =>
-      message.includes(pattern) || code.includes(pattern),
-    )
-
-  if (isNetworkError) {
+  // Network errors - API is unreachable (uses shared utility)
+  if (checkIsNetworkError(errorObj)) {
     return {
       isNetworkError: true,
       isTransientError: true,
@@ -265,7 +245,7 @@ function parseToken(token: string): { exp: number; user: UserInfo } | null {
       },
     }
 
-    console.log('[AuthContext] parseToken success:', {
+    devLog('[AuthContext] parseToken success:', {
       userId: parsed.user.id,
       email: parsed.user.email,
       role: parsed.user.role,
@@ -287,7 +267,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [_tokenExpiry, setTokenExpiry] = useState<number | null>(null)
   const refreshTimerRef = useRef<number | null>(null)
   const refreshInProgressRef = useRef<Promise<void> | null>(null)
   const consecutiveFailuresRef = useRef<number>(0)
@@ -305,7 +284,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const logAuthState = useCallback((context: string) => {
     const currentUser = userRef.current
     const currentToken = accessTokenRef.current
-    console.log(`[AuthContext] ${context} - Current state:`, {
+    devLog(`[AuthContext] ${context} - Current state:`, {
       hasUser: !!currentUser,
       userId: currentUser?.id,
       userEmail: currentUser?.email,
@@ -327,7 +306,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     const refreshIn = expiresAt - Date.now() - 2 * 60 * 1000 // 2 minutes before expiry
     const refreshInSeconds = Math.round(refreshIn / 1000)
 
-    console.log('[AuthContext] scheduleRefresh:', {
+    devLog('[AuthContext] scheduleRefresh:', {
       expiresAt: new Date(expiresAt).toISOString(),
       refreshIn: `${refreshInSeconds}s`,
       willRefresh: refreshIn > 0,
@@ -335,13 +314,13 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
     if (refreshIn > 0) {
       refreshTimerRef.current = setTimeout(async () => {
-        console.log('[AuthContext] Scheduled refresh timer fired')
+        devLog('[AuthContext] Scheduled refresh timer fired')
         try {
           await refreshAccessToken()
-          console.log('[AuthContext] Scheduled refresh succeeded')
+          devLog('[AuthContext] Scheduled refresh succeeded')
         } catch (err) {
           // Token refresh failed - will redirect to login on next API call
-          console.warn('[AuthContext] Scheduled refresh failed:', err)
+          devWarn('[AuthContext] Scheduled refresh failed:', err)
         }
       }, refreshIn)
     }
@@ -360,12 +339,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const refreshAccessToken = useCallback(async () => {
     // Single-flight: if refresh is already in progress, wait for it
     if (refreshInProgressRef.current) {
-      console.log('[AuthContext] refreshAccessToken - already in progress, waiting...')
+      devLog('[AuthContext] refreshAccessToken - already in progress, waiting...')
       return refreshInProgressRef.current
     }
 
     const doRefresh = async () => {
-      console.log('[AuthContext] refreshAccessToken starting...')
+      devLog('[AuthContext] refreshAccessToken starting...')
       logAuthState('Before refresh')
 
       let lastError: unknown = null
@@ -374,14 +353,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         try {
           if (attempt > 0) {
             const delay = REFRESH_CONFIG.retryDelayMs * Math.pow(2, attempt - 1)
-            console.log(`[AuthContext] Retry attempt ${attempt}/${REFRESH_CONFIG.maxRetries} after ${delay}ms delay`)
+            devLog(`[AuthContext] Retry attempt ${attempt}/${REFRESH_CONFIG.maxRetries} after ${delay}ms delay`)
             await sleep(delay)
           }
 
-          console.log(`[AuthContext] Calling authService.refreshToken() (attempt ${attempt + 1})`)
+          devLog(`[AuthContext] Calling authService.refreshToken() (attempt ${attempt + 1})`)
           const response = await authService.refreshToken()
 
-          console.log('[AuthContext] authService.refreshToken() response:', {
+          devLog('[AuthContext] authService.refreshToken() response:', {
             isSuccess: response.isSuccess,
             hasAccessToken: !!response.accessToken,
             userId: response.userId,
@@ -391,10 +370,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           if (response.isSuccess && response.accessToken) {
             const parsed = parseToken(response.accessToken)
             if (parsed) {
-              console.log('[AuthContext] Token refresh successful, updating state')
+              devLog('[AuthContext] Token refresh successful, updating state')
               setAccessToken(response.accessToken)
               setUser(parsed.user)
-              setTokenExpiry(parsed.exp)
               scheduleRefresh(parsed.exp)
               consecutiveFailuresRef.current = 0 // Reset failure counter
               cacheUserInfo(parsed.user) // Cache for offline support
@@ -407,14 +385,14 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           } else {
             // Server returned success=false - this is a definite auth failure
             const errorMsg = response.error?.message || 'Token refresh failed'
-            console.log('[AuthContext] Server returned isSuccess=false:', errorMsg)
+            devLog('[AuthContext] Server returned isSuccess=false:', errorMsg)
             throw new Error(errorMsg)
           }
         } catch (error) {
           lastError = error
           const classification = classifyError(error)
 
-          console.log(`[AuthContext] Refresh attempt ${attempt + 1} failed:`, {
+          devLog(`[AuthContext] Refresh attempt ${attempt + 1} failed:`, {
             ...classification,
             attempt: attempt + 1,
             maxRetries: REFRESH_CONFIG.maxRetries,
@@ -422,19 +400,19 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
           // If it's a definite auth error, don't retry
           if (classification.isAuthError && !classification.isTransientError) {
-            console.log('[AuthContext] Auth error detected, not retrying')
+            devLog('[AuthContext] Auth error detected, not retrying')
             break
           }
 
           // If it's not transient and we've exhausted retries, break
           if (!classification.isTransientError && attempt >= REFRESH_CONFIG.maxRetries) {
-            console.log('[AuthContext] Non-transient error and max retries reached')
+            devLog('[AuthContext] Non-transient error and max retries reached')
             break
           }
 
           // If it's transient, continue to next retry (unless max reached)
           if (classification.isTransientError && attempt < REFRESH_CONFIG.maxRetries) {
-            console.log('[AuthContext] Transient error, will retry...')
+            devLog('[AuthContext] Transient error, will retry...')
             continue
           }
         }
@@ -444,7 +422,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       const finalClassification = classifyError(lastError)
       consecutiveFailuresRef.current++
 
-      console.log('[AuthContext] All refresh attempts failed:', {
+      devLog('[AuthContext] All refresh attempts failed:', {
         ...finalClassification,
         consecutiveFailures: consecutiveFailuresRef.current,
         currentUser: userRef.current?.email,
@@ -452,7 +430,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
       // Network/transient errors: preserve auth state for offline mode
       if (finalClassification.isNetworkError || finalClassification.isTransientError) {
-        console.warn(
+        devWarn(
           '[AuthContext] Refresh failed due to network/transient error - PRESERVING auth state for offline mode',
           { user: userRef.current?.email, reason: finalClassification.reason },
         )
@@ -463,16 +441,15 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       // Auth errors: only clear state if we have consecutive failures
       // This prevents a single bad response from logging out the user
       if (consecutiveFailuresRef.current >= 2) {
-        console.log(
+        devLog(
           '[AuthContext] Multiple consecutive auth failures - clearing auth state',
           { consecutiveFailures: consecutiveFailuresRef.current },
         )
         setAccessToken(null)
         setUser(null)
-        setTokenExpiry(null)
         cacheUserInfo(null) // Clear cached user on confirmed auth failure
       } else {
-        console.warn(
+        devWarn(
           '[AuthContext] First auth failure - preserving state, will clear on next failure',
           { consecutiveFailures: consecutiveFailuresRef.current },
         )
@@ -496,16 +473,16 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    */
   useEffect(() => {
     const initAuth = async () => {
-      console.log('[AuthContext] initAuth starting...')
-      console.log('[AuthContext] Browser online status:', navigator.onLine)
+      devLog('[AuthContext] initAuth starting...')
+      devLog('[AuthContext] Browser online status:', navigator.onLine)
 
       try {
         await refreshAccessToken()
-        console.log('[AuthContext] initAuth: refreshAccessToken succeeded')
+        devLog('[AuthContext] initAuth: refreshAccessToken succeeded')
       } catch (error) {
         // Token refresh failed
         const classification = classifyError(error)
-        console.log('[AuthContext] initAuth: refreshAccessToken failed:', {
+        devLog('[AuthContext] initAuth: refreshAccessToken failed:', {
           ...classification,
           browserOnline: navigator.onLine,
         })
@@ -514,7 +491,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         if (classification.isNetworkError || classification.isTransientError) {
           const cachedUser = getCachedUserInfo()
           if (cachedUser) {
-            console.log('[AuthContext] initAuth: Restoring user from cache for offline mode')
+            devLog('[AuthContext] initAuth: Restoring user from cache for offline mode')
             setUser(cachedUser)
             // Note: No access token, so API calls will fail, but UI will show user as logged in
             // When back online, the next API call will trigger a refresh
@@ -522,7 +499,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         }
       } finally {
         setIsLoading(false)
-        console.log('[AuthContext] initAuth complete, isLoading=false')
+        devLog('[AuthContext] initAuth complete, isLoading=false')
       }
     }
     initAuth()
@@ -544,7 +521,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    * API calls can happen before interceptors are set up.
    */
   useLayoutEffect(() => {
-    console.log('[AuthContext] Setting up auth interceptors', {
+    devLog('[AuthContext] Setting up auth interceptors', {
       hasToken: !!accessToken,
     })
     setAuthInterceptors(
@@ -560,10 +537,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key === 'logout') {
-        console.log('[AuthContext] Cross-tab logout detected')
+        devLog('[AuthContext] Cross-tab logout detected')
         setUser(null)
         setAccessToken(null)
-        setTokenExpiry(null)
         window.location.href = '/login'
       }
     }
@@ -575,7 +551,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    * Log auth state changes for debugging
    */
   useEffect(() => {
-    console.log('[AuthContext] Auth state changed:', {
+    devLog('[AuthContext] Auth state changed:', {
       hasUser: !!user,
       userId: user?.id,
       userEmail: user?.email,
@@ -589,16 +565,15 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    * Sets access token in memory and refresh token in HttpOnly cookie
    */
   const login = async (request: LoginRequest): Promise<AuthResponse> => {
-    console.log('[AuthContext] login called for:', request.email)
+    devLog('[AuthContext] login called for:', request.email)
     const response = await authService.login(request)
 
     if (response.isSuccess && response.accessToken) {
       const parsed = parseToken(response.accessToken)
       if (parsed) {
-        console.log('[AuthContext] login successful, setting user state')
+        devLog('[AuthContext] login successful, setting user state')
         setAccessToken(response.accessToken)
         setUser(parsed.user)
-        setTokenExpiry(parsed.exp)
         scheduleRefresh(parsed.exp)
         consecutiveFailuresRef.current = 0
         cacheUserInfo(parsed.user) // Cache for offline support
@@ -608,7 +583,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         trackEvent('Login', { method: 'password' })
       }
     } else {
-      console.log('[AuthContext] login failed:', response.error)
+      devLog('[AuthContext] login failed:', response.error)
       trackEvent('LoginFailed', { error: response.error?.code || 'unknown' })
     }
 
@@ -620,16 +595,15 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    * Sets access token in memory and refresh token in HttpOnly cookie
    */
   const register = async (request: RegistrationRequest): Promise<AuthResponse> => {
-    console.log('[AuthContext] register called for:', request.email)
+    devLog('[AuthContext] register called for:', request.email)
     const response = await authService.register(request)
 
     if (response.isSuccess && response.accessToken) {
       const parsed = parseToken(response.accessToken)
       if (parsed) {
-        console.log('[AuthContext] registration successful, setting user state')
+        devLog('[AuthContext] registration successful, setting user state')
         setAccessToken(response.accessToken)
         setUser(parsed.user)
-        setTokenExpiry(parsed.exp)
         scheduleRefresh(parsed.exp)
         consecutiveFailuresRef.current = 0
         cacheUserInfo(parsed.user) // Cache for offline support
@@ -639,7 +613,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
         trackEvent('Registration')
       }
     } else {
-      console.log('[AuthContext] registration failed:', response.error)
+      devLog('[AuthContext] registration failed:', response.error)
       trackEvent('RegistrationFailed', { error: response.error?.code || 'unknown' })
     }
 
@@ -651,21 +625,20 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
    * Clears local state and notifies other tabs
    */
   const logout = async () => {
-    console.log('[AuthContext] logout called')
+    devLog('[AuthContext] logout called')
     try {
       // Call backend to clear refresh token cookie
       await authService.logout()
-      console.log('[AuthContext] Backend logout succeeded')
+      devLog('[AuthContext] Backend logout succeeded')
     } catch (err) {
       // Continue with local logout even if server call fails
-      console.warn('[AuthContext] Backend logout failed, continuing with local logout:', err)
+      devWarn('[AuthContext] Backend logout failed, continuing with local logout:', err)
     }
 
     // Clear local state
-    console.log('[AuthContext] Clearing local auth state')
+    devLog('[AuthContext] Clearing local auth state')
     setUser(null)
     setAccessToken(null)
-    setTokenExpiry(null)
     consecutiveFailuresRef.current = 0
     cacheUserInfo(null) // Clear cached user
 

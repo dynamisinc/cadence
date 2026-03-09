@@ -12,6 +12,7 @@
 
 import { useState, useCallback } from 'react'
 import type { FC } from 'react'
+import { devLog } from '@/core/utils/logger'
 import { useParams } from 'react-router-dom'
 import { Box, Alert } from '@mui/material'
 import { faHome, faUsers } from '@fortawesome/free-solid-svg-icons'
@@ -179,7 +180,7 @@ export const ExerciseParticipantsPage: FC<ExerciseParticipantsPageProps> = ({
       try {
         await resendInvitation(invitationId)
         // Success toast could be added here
-        console.log(`Invitation resent to ${email}`)
+        devLog(`Invitation resent to ${email}`)
       } catch (error) {
         console.error('Failed to resend invitation:', error)
         // Error toast could be added here

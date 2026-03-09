@@ -27,6 +27,9 @@ public class BulkParticipantImportService : IBulkParticipantImportService
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<BulkParticipantImportService> _logger;
 
+    // TODO (CD-C01): Migrate _sessions to IDistributedCache (Redis or SQL) so import state
+    // survives App Service restarts and scale-out scenarios. The static dictionary is
+    // single-instance only and will lose sessions on restart or when running multiple instances.
     private static readonly ConcurrentDictionary<Guid, ImportSession> _sessions = new();
     private const int SessionTimeoutMinutes = 30;
 
@@ -80,6 +83,10 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         };
 
         _sessions.TryAdd(session.SessionId, session);
+
+        // Purge expired sessions on each upload to prevent unbounded memory growth.
+        // This lazy-sweep approach avoids a background timer while still bounding session count.
+        PurgeExpiredSessions();
 
         _logger.LogInformation(
             "Created import session {SessionId} for exercise {ExerciseId} with {RowCount} rows",
@@ -178,94 +185,109 @@ public class BulkParticipantImportService : IBulkParticipantImportService
 
         var rowOutcomes = new List<ImportRowOutcome>();
 
-        // Process each classified row
-        foreach (var classifiedRow in session.ClassifiedRows)
+        // Use a transaction so all-or-nothing semantics apply to the full import batch.
+        // TODO: migrate _sessions to IDistributedCache (Redis/SQL) so import state
+        //       survives App Service restarts and scale-out. Tracked: CD-C01.
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            var row = classifiedRow.ParsedRow;
-            var rowStatus = BulkImportRowStatus.Success;
-            string? rowMessage = null;
-
-            try
+            // Process each classified row, staging all EF changes without intermediate saves.
+            // ProcessInviteRowAsync calls IOrganizationInvitationService which saves internally;
+            // those changes are within the same transaction scope via the shared DbContext.
+            foreach (var classifiedRow in session.ClassifiedRows)
             {
-                switch (classifiedRow.Classification)
+                var row = classifiedRow.ParsedRow;
+                var rowStatus = BulkImportRowStatus.Success;
+                string? rowMessage = null;
+
+                try
                 {
-                    case ParticipantClassification.Assign:
-                        await ProcessAssignRowAsync(exerciseId, importingUserId, classifiedRow, importRecord.Id);
-                        importRecord.AssignedCount++;
-                        rowStatus = BulkImportRowStatus.Success;
-                        rowMessage = "Participant assigned to exercise";
-                        break;
-
-                    case ParticipantClassification.Update:
-                        var updateResult = await ProcessUpdateRowAsync(exerciseId, classifiedRow, importRecord.Id);
-                        if (updateResult.WasUpdated)
-                        {
-                            importRecord.UpdatedCount++;
+                    switch (classifiedRow.Classification)
+                    {
+                        case ParticipantClassification.Assign:
+                            ProcessAssignRow(exerciseId, importingUserId, classifiedRow);
+                            importRecord.AssignedCount++;
                             rowStatus = BulkImportRowStatus.Success;
-                            rowMessage = $"Role updated from {updateResult.PreviousRole} to {row.ExerciseRole}";
-                        }
-                        else
-                        {
-                            importRecord.SkippedCount++;
-                            rowStatus = BulkImportRowStatus.Skipped;
-                            rowMessage = "No change needed - already assigned with this role";
-                        }
-                        break;
+                            rowMessage = "Participant assigned to exercise";
+                            break;
 
-                    case ParticipantClassification.Invite:
-                        await ProcessInviteRowAsync(exerciseId, organizationId, importingUserId, classifiedRow, importRecord.Id);
-                        importRecord.InvitedCount++;
-                        rowStatus = BulkImportRowStatus.Success;
-                        rowMessage = "Organization invitation created with pending exercise assignment";
-                        break;
+                        case ParticipantClassification.Update:
+                            var updateResult = await ProcessUpdateRowAsync(exerciseId, classifiedRow);
+                            if (updateResult.WasUpdated)
+                            {
+                                importRecord.UpdatedCount++;
+                                rowStatus = BulkImportRowStatus.Success;
+                                rowMessage = $"Role updated from {updateResult.PreviousRole} to {row.ExerciseRole}";
+                            }
+                            else
+                            {
+                                importRecord.SkippedCount++;
+                                rowStatus = BulkImportRowStatus.Skipped;
+                                rowMessage = "No change needed - already assigned with this role";
+                            }
+                            break;
 
-                    case ParticipantClassification.Error:
-                        importRecord.ErrorCount++;
-                        rowStatus = BulkImportRowStatus.Failed;
-                        rowMessage = classifiedRow.ErrorMessage ?? "Validation error";
-                        break;
+                        case ParticipantClassification.Invite:
+                            await ProcessInviteRowAsync(exerciseId, organizationId, importingUserId, classifiedRow, importRecord.Id);
+                            importRecord.InvitedCount++;
+                            rowStatus = BulkImportRowStatus.Success;
+                            rowMessage = "Organization invitation created with pending exercise assignment";
+                            break;
+
+                        case ParticipantClassification.Error:
+                            importRecord.ErrorCount++;
+                            rowStatus = BulkImportRowStatus.Failed;
+                            rowMessage = classifiedRow.ErrorMessage ?? "Validation error";
+                            break;
+                    }
                 }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Error processing row {RowNumber} (email: {Email})", row.RowNumber, row.Email);
+                    importRecord.ErrorCount++;
+                    rowStatus = BulkImportRowStatus.Failed;
+                    rowMessage = $"Processing failed: {ex.Message}";
+                }
+
+                var outcome = new ImportRowOutcome
+                {
+                    RowNumber = row.RowNumber,
+                    Email = row.Email,
+                    ExerciseRole = row.ExerciseRole,
+                    Classification = classifiedRow.Classification,
+                    Status = rowStatus,
+                    Message = rowMessage
+                };
+
+                rowOutcomes.Add(outcome);
+
+                // Stage row result entity (saved in the batch below)
+                var rowResult = new BulkImportRowResult
+                {
+                    Id = Guid.NewGuid(),
+                    BulkImportRecordId = importRecord.Id,
+                    RowNumber = row.RowNumber,
+                    Email = row.Email,
+                    ExerciseRole = row.ExerciseRole,
+                    DisplayName = row.DisplayName,
+                    Classification = classifiedRow.Classification,
+                    Status = outcome.Status,
+                    ErrorMessage = outcome.Message,
+                    PreviousExerciseRole = classifiedRow.CurrentExerciseRole?.ToString()
+                };
+
+                _context.BulkImportRowResults.Add(rowResult);
             }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Error processing row {RowNumber} (email: {Email})", row.RowNumber, row.Email);
-                importRecord.ErrorCount++;
-                rowStatus = BulkImportRowStatus.Failed;
-                rowMessage = $"Processing failed: {ex.Message}";
-            }
 
-            var outcome = new ImportRowOutcome
-            {
-                RowNumber = row.RowNumber,
-                Email = row.Email,
-                ExerciseRole = row.ExerciseRole,
-                Classification = classifiedRow.Classification,
-                Status = rowStatus,
-                Message = rowMessage
-            };
-
-            rowOutcomes.Add(outcome);
-
-            // Create row result entity
-            var rowResult = new BulkImportRowResult
-            {
-                Id = Guid.NewGuid(),
-                BulkImportRecordId = importRecord.Id,
-                RowNumber = row.RowNumber,
-                Email = row.Email,
-                ExerciseRole = row.ExerciseRole,
-                DisplayName = row.DisplayName,
-                Classification = classifiedRow.Classification,
-                Status = outcome.Status,
-                ErrorMessage = outcome.Message,
-                PreviousExerciseRole = classifiedRow.CurrentExerciseRole?.ToString()
-            };
-
-            _context.BulkImportRowResults.Add(rowResult);
+            // Single SaveChangesAsync for all assign/update/row-result entities
+            await _context.SaveChangesAsync();
+            await transaction.CommitAsync();
         }
-
-        // Save all changes
-        await _context.SaveChangesAsync();
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
 
         // Clean up session
         _sessions.TryRemove(sessionId, out _);
@@ -421,7 +443,25 @@ public class BulkParticipantImportService : IBulkParticipantImportService
 
     #region Private Helper Methods
 
-    private async Task ProcessAssignRowAsync(Guid exerciseId, string importingUserId, ClassifiedParticipantRow classifiedRow, Guid importRecordId)
+    /// <summary>
+    /// Removes all expired sessions from the in-memory dictionary.
+    /// Called lazily on each upload to bound dictionary growth without a background timer.
+    /// </summary>
+    private static void PurgeExpiredSessions()
+    {
+        foreach (var kvp in _sessions)
+        {
+            if (kvp.Value.IsExpired)
+            {
+                _sessions.TryRemove(kvp.Key, out _);
+            }
+        }
+    }
+
+    /// <summary>
+    /// Stages an ExerciseParticipant entity for a new assignment (no SaveChanges - batched by caller).
+    /// </summary>
+    private void ProcessAssignRow(Guid exerciseId, string importingUserId, ClassifiedParticipantRow classifiedRow)
     {
         var participant = new ExerciseParticipant
         {
@@ -434,10 +474,13 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         };
 
         _context.ExerciseParticipants.Add(participant);
-        await _context.SaveChangesAsync();
+        // SaveChanges deferred to caller for batch efficiency
     }
 
-    private async Task<(bool WasUpdated, string? PreviousRole)> ProcessUpdateRowAsync(Guid exerciseId, ClassifiedParticipantRow classifiedRow, Guid importRecordId)
+    /// <summary>
+    /// Updates an existing participant's role in EF change tracker (no SaveChanges - batched by caller).
+    /// </summary>
+    private async Task<(bool WasUpdated, string? PreviousRole)> ProcessUpdateRowAsync(Guid exerciseId, ClassifiedParticipantRow classifiedRow)
     {
         var participant = await _context.ExerciseParticipants
             .Where(p => p.ExerciseId == exerciseId && p.UserId == classifiedRow.ExistingUserId)
@@ -456,7 +499,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
 
         var previousRole = participant.Role.ToString();
         participant.Role = newRole;
-        await _context.SaveChangesAsync();
+        // SaveChanges deferred to caller for batch efficiency
 
         return (true, previousRole);
     }
@@ -499,7 +542,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
             }
         }
 
-        // Create PendingExerciseAssignment
+        // Stage PendingExerciseAssignment entity (saved in batch by caller)
         var pendingAssignment = new PendingExerciseAssignment
         {
             Id = Guid.NewGuid(),
@@ -511,7 +554,7 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         };
 
         _context.PendingExerciseAssignments.Add(pendingAssignment);
-        await _context.SaveChangesAsync();
+        // SaveChanges deferred to caller for batch efficiency
     }
 
     private (byte[] Content, string ContentType, string FileName) GenerateCsvTemplate()

@@ -7,6 +7,17 @@ namespace Cadence.Core.Features.Autocomplete.Services;
 public interface IAutocompleteService
 {
     /// <summary>
+    /// Resolves the organization ID for an exercise by its ID.
+    /// Returns null if the exercise does not exist.
+    /// Used for pre-condition checks and organization-scoping of autocomplete queries.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>The organization ID, or null if the exercise is not found</returns>
+    Task<Guid?> GetExerciseOrganizationIdAsync(Guid exerciseId, CancellationToken ct = default);
+
+
+    /// <summary>
     /// Gets track suggestions for an organization, ordered by usage frequency.
     /// </summary>
     Task<List<string>> GetTrackSuggestionsAsync(Guid organizationId, string? filter = null, int limit = 20);

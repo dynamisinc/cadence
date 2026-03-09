@@ -612,6 +612,57 @@ public class OrganizationInvitationServiceTests : IDisposable
     }
 
     [Fact]
+    public async Task AcceptInvitationAsync_PendingUser_ActivatesUser()
+    {
+        var invite = await _sut.CreateInvitationAsync(
+            _testOrg.Id, new("pending@example.com"), _adminUser.Id);
+
+        // Create a user in Pending status (pre-created by admin before registration)
+        var pendingUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(),
+            Email = "pending@example.com",
+            UserName = "pending@example.com",
+            DisplayName = "Pending User",
+            SystemRole = SystemRole.User,
+            Status = UserStatus.Pending  // Pending before invitation acceptance
+        };
+        _context.ApplicationUsers.Add(pendingUser);
+        await _context.SaveChangesAsync();
+
+        await _sut.AcceptInvitationAsync(invite.Code, pendingUser.Id);
+
+        var updatedUser = await _context.ApplicationUsers.FindAsync(pendingUser.Id);
+        Assert.NotNull(updatedUser);
+        Assert.Equal(UserStatus.Active, updatedUser!.Status);
+    }
+
+    [Fact]
+    public async Task AcceptInvitationAsync_ActiveUser_RemainsActive()
+    {
+        var invite = await _sut.CreateInvitationAsync(
+            _testOrg.Id, new("active@example.com"), _adminUser.Id);
+
+        var activeUser = new ApplicationUser
+        {
+            Id = Guid.NewGuid().ToString(),
+            Email = "active@example.com",
+            UserName = "active@example.com",
+            DisplayName = "Active User",
+            SystemRole = SystemRole.User,
+            Status = UserStatus.Active
+        };
+        _context.ApplicationUsers.Add(activeUser);
+        await _context.SaveChangesAsync();
+
+        await _sut.AcceptInvitationAsync(invite.Code, activeUser.Id);
+
+        var updatedUser = await _context.ApplicationUsers.FindAsync(activeUser.Id);
+        Assert.NotNull(updatedUser);
+        Assert.Equal(UserStatus.Active, updatedUser!.Status);
+    }
+
+    [Fact]
     public async Task AcceptInvitationAsync_ExpiredCode_ThrowsNotFoundException()
     {
         _context.OrganizationInvites.Add(new OrganizationInvite

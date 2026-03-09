@@ -27,6 +27,7 @@ public class ObjectiveService : IObjectiveService
     public async Task<IEnumerable<ObjectiveDto>> GetObjectivesByExerciseAsync(Guid exerciseId)
     {
         var objectives = await _context.Objectives
+            .AsNoTracking()
             .Include(o => o.InjectObjectives)
             .Where(o => o.ExerciseId == exerciseId)
             .OrderBy(o => o.ObjectiveNumber)
@@ -39,6 +40,7 @@ public class ObjectiveService : IObjectiveService
     public async Task<IEnumerable<ObjectiveSummaryDto>> GetObjectiveSummariesAsync(Guid exerciseId)
     {
         var objectives = await _context.Objectives
+            .AsNoTracking()
             .Where(o => o.ExerciseId == exerciseId)
             .OrderBy(o => o.ObjectiveNumber)
             .ToListAsync();
@@ -50,6 +52,7 @@ public class ObjectiveService : IObjectiveService
     public async Task<ObjectiveDto?> GetObjectiveAsync(Guid exerciseId, Guid id)
     {
         var objective = await _context.Objectives
+            .AsNoTracking()
             .Include(o => o.InjectObjectives)
             .FirstOrDefaultAsync(o => o.Id == id && o.ExerciseId == exerciseId);
 

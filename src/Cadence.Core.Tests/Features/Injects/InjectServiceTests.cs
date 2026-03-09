@@ -2,6 +2,7 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Services;
+using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.Core.Tests.Helpers;
@@ -18,11 +19,13 @@ public class InjectServiceTests
 {
     private readonly Mock<IExerciseHubContext> _hubContextMock;
     private readonly Mock<IApprovalPermissionService> _approvalPermissionServiceMock;
+    private readonly Mock<IApprovalNotificationService> _approvalNotificationServiceMock;
 
     public InjectServiceTests()
     {
         _hubContextMock = new Mock<IExerciseHubContext>();
         _approvalPermissionServiceMock = new Mock<IApprovalPermissionService>();
+        _approvalNotificationServiceMock = new Mock<IApprovalNotificationService>();
 
         // Set up default permission check to allow approval (non-self-approval case)
         _approvalPermissionServiceMock
@@ -33,6 +36,26 @@ public class InjectServiceTests
                 IsSelfApproval: false,
                 RequiresConfirmation: false,
                 Message: null));
+
+        // Set up notification service mocks to no-op by default
+        _approvalNotificationServiceMock
+            .Setup(x => x.NotifyInjectSubmittedAsync(It.IsAny<Inject>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _approvalNotificationServiceMock
+            .Setup(x => x.NotifyInjectApprovedAsync(It.IsAny<Inject>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _approvalNotificationServiceMock
+            .Setup(x => x.NotifyInjectRejectedAsync(It.IsAny<Inject>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _approvalNotificationServiceMock
+            .Setup(x => x.NotifyInjectRevertedAsync(It.IsAny<Inject>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _approvalNotificationServiceMock
+            .Setup(x => x.NotifyBatchApprovedAsync(It.IsAny<string>(), It.IsAny<List<Inject>>(), It.IsAny<string?>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
+        _approvalNotificationServiceMock
+            .Setup(x => x.NotifyBatchRejectedAsync(It.IsAny<string>(), It.IsAny<List<Inject>>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .Returns(Task.CompletedTask);
     }
 
     /// <summary>
@@ -110,7 +133,11 @@ public class InjectServiceTests
 
     private InjectService CreateService(AppDbContext context)
     {
-        return new InjectService(context, _hubContextMock.Object, _approvalPermissionServiceMock.Object);
+        return new InjectService(
+            context,
+            _hubContextMock.Object,
+            _approvalPermissionServiceMock.Object,
+            _approvalNotificationServiceMock.Object);
     }
 
     private Inject CreateInject(

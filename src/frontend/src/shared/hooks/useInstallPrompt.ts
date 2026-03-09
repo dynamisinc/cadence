@@ -6,6 +6,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react'
+import { devLog } from '@/core/utils/logger'
 
 /**
  * Extended Event interface for beforeinstallprompt event.
@@ -64,14 +65,14 @@ export function useInstallPrompt(): UseInstallPromptReturn {
       e.preventDefault()
       // Store the event for later use
       setInstallPrompt(e as BeforeInstallPromptEvent)
-      console.log('[PWA] Install prompt captured')
+      devLog('[PWA] Install prompt captured')
     }
 
     // Listen for successful installation
     const handleAppInstalled = () => {
       setIsInstalled(true)
       setInstallPrompt(null)
-      console.log('[PWA] App was installed')
+      devLog('[PWA] App was installed')
     }
 
     window.addEventListener('beforeinstallprompt', handleBeforeInstall)
@@ -85,7 +86,7 @@ export function useInstallPrompt(): UseInstallPromptReturn {
 
   const promptInstall = useCallback(async (): Promise<boolean> => {
     if (!installPrompt) {
-      console.log('[PWA] No install prompt available')
+      devLog('[PWA] No install prompt available')
       return false
     }
 
@@ -95,7 +96,7 @@ export function useInstallPrompt(): UseInstallPromptReturn {
 
       // Wait for the user's choice
       const { outcome } = await installPrompt.userChoice
-      console.log(`[PWA] User ${outcome} the install prompt`)
+      devLog(`[PWA] User ${outcome} the install prompt`)
 
       // Clear the stored prompt (can only be used once)
       setInstallPrompt(null)

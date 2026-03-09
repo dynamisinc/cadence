@@ -98,15 +98,20 @@ public class ExerciseDeleteService : IExerciseDeleteService
             try
             {
                 // Delete in order of dependencies (children first):
-                // 1. ExpectedOutcomes (child of Inject)
-                // 2. InjectObjectives (junction between Inject and Objective)
-                // 3. Observations (references Inject, Exercise, Objective)
-                // 4. Injects (child of MSEL)
-                // 5. Msels (child of Exercise) - also clears ActiveMselId
-                // 6. ExerciseParticipants (child of Exercise)
-                // 7. Objectives (child of Exercise)
-                // 8. Phases (child of Exercise)
-                // 9. Exercise itself
+                //  1. ExpectedOutcomes (child of Inject)
+                //  2. InjectObjectives (junction between Inject and Objective)
+                //  3. InjectCriticalTasks (junction between Inject and CriticalTask)
+                //  4. Observations (references Inject, Exercise, Objective)
+                //  5. Injects (child of MSEL)
+                //  6. Msels (child of Exercise) - also clears ActiveMselId
+                //  7. ExerciseParticipants (child of Exercise)
+                //  8. Objectives (child of Exercise)
+                //  9. Phases (child of Exercise)
+                // 10. EegEntries (child of CriticalTask, which is child of CapabilityTarget)
+                // 11. CriticalTasks (child of CapabilityTarget)
+                // 12. CapabilityTargets (child of Exercise)
+                // 13. ExercisePhotos (child of Exercise)
+                // 14. Exercise itself
 
                 // Clear ActiveMselId to avoid FK constraint using bulk update (no change tracking)
                 await _context.Exercises
@@ -126,6 +131,22 @@ public class ExerciseDeleteService : IExerciseDeleteService
                     .Select(i => i.Id)
                     .ToListAsync();
 
+                // Get all CapabilityTarget IDs for this exercise
+                var capabilityTargetIds = await _context.CapabilityTargets
+                    .IgnoreQueryFilters()
+                    .Where(ct => ct.ExerciseId == exerciseId)
+                    .Select(ct => ct.Id)
+                    .ToListAsync();
+
+                // Get all CriticalTask IDs for these CapabilityTargets
+                var criticalTaskIds = capabilityTargetIds.Count > 0
+                    ? await _context.CriticalTasks
+                        .IgnoreQueryFilters()
+                        .Where(ct => capabilityTargetIds.Contains(ct.CapabilityTargetId))
+                        .Select(ct => ct.Id)
+                        .ToListAsync()
+                    : [];
+
                 // 1. Delete ExpectedOutcomes for all injects
                 if (injectIds.Count > 0)
                 {
@@ -138,15 +159,22 @@ public class ExerciseDeleteService : IExerciseDeleteService
                     await _context.InjectObjectives
                         .Where(io => injectIds.Contains(io.InjectId))
                         .ExecuteDeleteAsync();
+
+                    // 3. Delete InjectCriticalTasks for all injects
+                    // InjectCriticalTask has RESTRICT on the CriticalTask side to avoid cascade cycles,
+                    // so must be deleted explicitly before CriticalTasks are removed.
+                    await _context.InjectCriticalTasks
+                        .Where(ict => injectIds.Contains(ict.InjectId))
+                        .ExecuteDeleteAsync();
                 }
 
-                // 3. Delete Observations for this exercise
+                // 4. Delete Observations for this exercise
                 await _context.Observations
                     .IgnoreQueryFilters()
                     .Where(o => o.ExerciseId == exerciseId)
                     .ExecuteDeleteAsync();
 
-                // 4. Delete Injects for all MSELs
+                // 5. Delete Injects for all MSELs
                 if (mselIds.Count > 0)
                 {
                     await _context.Injects
@@ -155,31 +183,61 @@ public class ExerciseDeleteService : IExerciseDeleteService
                         .ExecuteDeleteAsync();
                 }
 
-                // 5. Delete Msels for this exercise
+                // 6. Delete Msels for this exercise
                 await _context.Msels
                     .IgnoreQueryFilters()
                     .Where(m => m.ExerciseId == exerciseId)
                     .ExecuteDeleteAsync();
 
-                // 6. Delete ExerciseParticipants for this exercise
+                // 7. Delete ExerciseParticipants for this exercise
                 await _context.ExerciseParticipants
                     .IgnoreQueryFilters()
                     .Where(p => p.ExerciseId == exerciseId)
                     .ExecuteDeleteAsync();
 
-                // 7. Delete Objectives for this exercise
+                // 8. Delete Objectives for this exercise
                 await _context.Objectives
                     .IgnoreQueryFilters()
                     .Where(o => o.ExerciseId == exerciseId)
                     .ExecuteDeleteAsync();
 
-                // 8. Delete Phases for this exercise
+                // 9. Delete Phases for this exercise
                 await _context.Phases
                     .IgnoreQueryFilters()
                     .Where(p => p.ExerciseId == exerciseId)
                     .ExecuteDeleteAsync();
 
-                // 9. Delete the Exercise itself
+                // 10. Delete EegEntries for all CriticalTasks in this exercise
+                if (criticalTaskIds.Count > 0)
+                {
+                    await _context.EegEntries
+                        .IgnoreQueryFilters()
+                        .Where(e => criticalTaskIds.Contains(e.CriticalTaskId))
+                        .ExecuteDeleteAsync();
+
+                    // 11. Delete CriticalTasks for all CapabilityTargets in this exercise
+                    await _context.CriticalTasks
+                        .IgnoreQueryFilters()
+                        .Where(ct => capabilityTargetIds.Contains(ct.CapabilityTargetId))
+                        .ExecuteDeleteAsync();
+                }
+
+                // 12. Delete CapabilityTargets for this exercise
+                if (capabilityTargetIds.Count > 0)
+                {
+                    await _context.CapabilityTargets
+                        .IgnoreQueryFilters()
+                        .Where(ct => ct.ExerciseId == exerciseId)
+                        .ExecuteDeleteAsync();
+                }
+
+                // 13. Delete ExercisePhotos for this exercise
+                await _context.ExercisePhotos
+                    .IgnoreQueryFilters()
+                    .Where(p => p.ExerciseId == exerciseId)
+                    .ExecuteDeleteAsync();
+
+                // 14. Delete the Exercise itself
                 await _context.Exercises
                     .Where(e => e.Id == exerciseId)
                     .ExecuteDeleteAsync();

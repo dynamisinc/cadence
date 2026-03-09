@@ -419,6 +419,22 @@ public class ExerciseStatusService : IExerciseStatusService
         return result;
     }
 
+    /// <inheritdoc />
+    public async Task<IReadOnlyList<ExerciseStatus>?> GetAvailableTransitionsAsync(
+        Guid exerciseId,
+        CancellationToken ct = default)
+    {
+        var exercise = await _context.Exercises
+            .Where(e => e.Id == exerciseId && !e.IsDeleted)
+            .Select(e => new { e.Status })
+            .FirstOrDefaultAsync(ct);
+
+        if (exercise == null)
+            return null;
+
+        return GetAvailableTransitions(exercise.Status);
+    }
+
     private async Task<Exercise?> GetExerciseAsync(Guid exerciseId)
     {
         return await _context.Exercises

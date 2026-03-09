@@ -1,9 +1,8 @@
-using Cadence.Core.Data;
 using Cadence.Core.Features.Autocomplete.Services;
 using Cadence.Core.Hubs;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -18,18 +17,15 @@ namespace Cadence.WebApi.Controllers;
 public class AutocompleteController : ControllerBase
 {
     private readonly IAutocompleteService _service;
-    private readonly AppDbContext _context;
     private readonly ICurrentOrganizationContext _orgContext;
     private readonly ILogger<AutocompleteController> _logger;
 
     public AutocompleteController(
         IAutocompleteService service,
-        AppDbContext context,
         ICurrentOrganizationContext orgContext,
         ILogger<AutocompleteController> logger)
     {
         _service = service;
-        _context = context;
         _orgContext = orgContext;
         _logger = logger;
     }
@@ -38,6 +34,7 @@ public class AutocompleteController : ControllerBase
     /// Get track suggestions for an exercise's organization.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/tracks")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<string>>> GetTrackSuggestions(
         Guid exerciseId,
         [FromQuery] string? filter = null,
@@ -54,6 +51,7 @@ public class AutocompleteController : ControllerBase
     /// Get target suggestions for an exercise's organization.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/targets")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<string>>> GetTargetSuggestions(
         Guid exerciseId,
         [FromQuery] string? filter = null,
@@ -70,6 +68,7 @@ public class AutocompleteController : ControllerBase
     /// Get source suggestions for an exercise's organization.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/sources")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<string>>> GetSourceSuggestions(
         Guid exerciseId,
         [FromQuery] string? filter = null,
@@ -86,6 +85,7 @@ public class AutocompleteController : ControllerBase
     /// Get location name suggestions for an exercise's organization.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/location-names")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<string>>> GetLocationNameSuggestions(
         Guid exerciseId,
         [FromQuery] string? filter = null,
@@ -102,6 +102,7 @@ public class AutocompleteController : ControllerBase
     /// Get location type suggestions for an exercise's organization.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/location-types")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<string>>> GetLocationTypeSuggestions(
         Guid exerciseId,
         [FromQuery] string? filter = null,
@@ -118,6 +119,7 @@ public class AutocompleteController : ControllerBase
     /// Get responsible controller suggestions for an exercise's organization.
     /// </summary>
     [HttpGet("exercises/{exerciseId:guid}/responsible-controllers")]
+    [AuthorizeExerciseAccess]
     public async Task<ActionResult<IEnumerable<string>>> GetResponsibleControllerSuggestions(
         Guid exerciseId,
         [FromQuery] string? filter = null,
@@ -136,10 +138,7 @@ public class AutocompleteController : ControllerBase
     /// </summary>
     private async Task<(Guid? OrganizationId, ActionResult? Error)> ValidateExerciseAccessAsync(Guid exerciseId)
     {
-        var organizationId = await _context.Exercises
-            .Where(e => e.Id == exerciseId)
-            .Select(e => (Guid?)e.OrganizationId)
-            .FirstOrDefaultAsync();
+        var organizationId = await _service.GetExerciseOrganizationIdAsync(exerciseId);
 
         if (organizationId == null)
             return (null, NotFound(new { message = "Exercise not found" }));

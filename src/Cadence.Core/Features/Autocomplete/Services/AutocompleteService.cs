@@ -22,6 +22,15 @@ public class AutocompleteService : IAutocompleteService
     }
 
     /// <inheritdoc />
+    public async Task<Guid?> GetExerciseOrganizationIdAsync(Guid exerciseId, CancellationToken ct = default)
+    {
+        return await _context.Exercises
+            .Where(e => e.Id == exerciseId)
+            .Select(e => (Guid?)e.OrganizationId)
+            .FirstOrDefaultAsync(ct);
+    }
+
+    /// <inheritdoc />
     public async Task<List<string>> GetTrackSuggestionsAsync(Guid organizationId, string? filter = null, int limit = 20)
     {
         return await GetSuggestionsAsync(organizationId, i => i.Track, SuggestionFieldNames.Track, filter, limit);

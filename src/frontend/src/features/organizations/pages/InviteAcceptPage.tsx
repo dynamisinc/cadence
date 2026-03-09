@@ -45,6 +45,7 @@ import { organizationService } from '../services/organizationService'
 import type { Invitation } from '../types'
 import { getOrgRoleLabel } from '../types'
 import { notify } from '@/shared/utils/notify'
+import { devLog } from '@/core/utils/logger'
 import { formatDate } from '@/shared/utils/dateUtils'
 
 type PageState =
@@ -86,9 +87,9 @@ export const InviteAcceptPage: FC = () => {
       }
 
       try {
-        console.log('[InviteAcceptPage] Validating code:', code)
+        devLog('[InviteAcceptPage] Validating code:', code)
         const invite = await organizationService.validateInvitation(code)
-        console.log('[InviteAcceptPage] Validation success:', invite)
+        devLog('[InviteAcceptPage] Validation success:', invite)
         setInvitation(invite)
         setState('valid')
       } catch (error) {
@@ -129,9 +130,9 @@ export const InviteAcceptPage: FC = () => {
     setState('accepting')
 
     try {
-      console.log('[InviteAcceptPage] Accepting invitation:', code)
+      devLog('[InviteAcceptPage] Accepting invitation:', code)
       await organizationService.acceptInvitation(code)
-      console.log('[InviteAcceptPage] Invitation accepted successfully')
+      devLog('[InviteAcceptPage] Invitation accepted successfully')
       setState('accepted')
       notify.success(`Welcome! You've joined ${invitation?.organizationName || 'the organization'}`)
 

@@ -21,6 +21,7 @@ public class MselService : IMselService
     public async Task<MselSummaryDto?> GetActiveMselSummaryAsync(Guid exerciseId)
     {
         var exercise = await _context.Exercises
+            .AsNoTracking()
             .Include(e => e.Phases)
             .Include(e => e.Objectives)
             .FirstOrDefaultAsync(e => e.Id == exerciseId && !e.IsDeleted);
@@ -30,6 +31,7 @@ public class MselService : IMselService
 
         // Get the active MSEL
         var msel = await _context.Msels
+            .AsNoTracking()
             .Include(m => m.Injects.Where(i => !i.IsDeleted))
             .FirstOrDefaultAsync(m => m.ExerciseId == exerciseId && m.IsActive && !m.IsDeleted);
 
@@ -43,6 +45,7 @@ public class MselService : IMselService
     public async Task<IReadOnlyList<MselDto>> GetMselsForExerciseAsync(Guid exerciseId)
     {
         var msels = await _context.Msels
+            .AsNoTracking()
             .Where(m => m.ExerciseId == exerciseId && !m.IsDeleted)
             .OrderByDescending(m => m.Version)
             .Select(m => new MselDto
@@ -66,6 +69,7 @@ public class MselService : IMselService
     public async Task<MselSummaryDto?> GetMselSummaryAsync(Guid mselId)
     {
         var msel = await _context.Msels
+            .AsNoTracking()
             .Include(m => m.Exercise)
                 .ThenInclude(e => e.Phases)
             .Include(m => m.Exercise)

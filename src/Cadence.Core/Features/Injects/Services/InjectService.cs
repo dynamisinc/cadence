@@ -2,6 +2,7 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Injects.Models.DTOs;
+using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -16,15 +17,18 @@ public class InjectService : IInjectService
     private readonly AppDbContext _context;
     private readonly IExerciseHubContext _hubContext;
     private readonly IApprovalPermissionService _approvalPermissionService;
+    private readonly IApprovalNotificationService _approvalNotificationService;
 
     public InjectService(
         AppDbContext context,
         IExerciseHubContext hubContext,
-        IApprovalPermissionService approvalPermissionService)
+        IApprovalPermissionService approvalPermissionService,
+        IApprovalNotificationService approvalNotificationService)
     {
         _context = context;
         _hubContext = hubContext;
         _approvalPermissionService = approvalPermissionService;
+        _approvalNotificationService = approvalNotificationService;
     }
 
     /// <inheritdoc />
@@ -244,10 +248,11 @@ public class InjectService : IInjectService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var dto = inject.ToDto();
-        await _hubContext.NotifyInjectSubmitted(exerciseId, dto);
+        // Delegate broadcast and user notification to ApprovalNotificationService
+        // (single point of truth for approval-related SignalR events + in-app notifications)
+        await _approvalNotificationService.NotifyInjectSubmittedAsync(inject, cancellationToken);
 
-        return dto;
+        return inject.ToDto();
     }
 
     /// <inheritdoc />
@@ -342,10 +347,11 @@ public class InjectService : IInjectService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var dto = inject.ToDto();
-        await _hubContext.NotifyInjectApproved(exerciseId, dto);
+        // Delegate broadcast and user notification to ApprovalNotificationService
+        // (single point of truth for approval-related SignalR events + in-app notifications)
+        await _approvalNotificationService.NotifyInjectApprovedAsync(inject, cancellationToken);
 
-        return dto;
+        return inject.ToDto();
     }
 
     /// <inheritdoc />
@@ -405,10 +411,11 @@ public class InjectService : IInjectService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var dto = inject.ToDto();
-        await _hubContext.NotifyInjectRejected(exerciseId, dto);
+        // Delegate broadcast and user notification to ApprovalNotificationService
+        // (single point of truth for approval-related SignalR events + in-app notifications)
+        await _approvalNotificationService.NotifyInjectRejectedAsync(inject, cancellationToken);
 
-        return dto;
+        return inject.ToDto();
     }
 
     /// <inheritdoc />
@@ -455,6 +462,8 @@ public class InjectService : IInjectService
         // Get organization self-approval policy (need org context)
         var org = await _context.Organizations.FindAsync(new object[] { exercise.OrganizationId }, cancellationToken);
         var selfApprovalPolicy = org?.SelfApprovalPolicy ?? SelfApprovalPolicy.NeverAllowed;
+
+        var approvedInjects = new List<Inject>();
 
         foreach (var inject in injects)
         {
@@ -519,6 +528,7 @@ public class InjectService : IInjectService
 
             result.ApprovedCount++;
             result.ProcessedInjects.Add(inject.ToDto());
+            approvedInjects.Add(inject);
         }
 
         // Validate at least one inject was approved
@@ -530,11 +540,9 @@ public class InjectService : IInjectService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Broadcast SignalR notification for each approved inject
-        foreach (var dto in result.ProcessedInjects)
-        {
-            await _hubContext.NotifyInjectApproved(exerciseId, dto);
-        }
+        // Delegate broadcast and user notification to ApprovalNotificationService
+        // (single point of truth for approval-related SignalR events + in-app notifications)
+        await _approvalNotificationService.NotifyBatchApprovedAsync(userId, approvedInjects, notes, cancellationToken);
 
         return result;
     }
@@ -594,6 +602,8 @@ public class InjectService : IInjectService
             .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
             .ToListAsync(cancellationToken);
 
+        var rejectedInjects = new List<Inject>();
+
         foreach (var inject in injects)
         {
             // Skip non-submitted injects
@@ -633,15 +643,14 @@ public class InjectService : IInjectService
 
             result.RejectedCount++;
             result.ProcessedInjects.Add(inject.ToDto());
+            rejectedInjects.Add(inject);
         }
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        // Broadcast SignalR notification for each rejected inject
-        foreach (var dto in result.ProcessedInjects)
-        {
-            await _hubContext.NotifyInjectRejected(exerciseId, dto);
-        }
+        // Delegate broadcast and user notification to ApprovalNotificationService
+        // (single point of truth for approval-related SignalR events + in-app notifications)
+        await _approvalNotificationService.NotifyBatchRejectedAsync(userId, rejectedInjects, reason, cancellationToken);
 
         return result;
     }
@@ -710,10 +719,11 @@ public class InjectService : IInjectService
 
         await _context.SaveChangesAsync(cancellationToken);
 
-        var dto = inject.ToDto();
-        await _hubContext.NotifyInjectReverted(exerciseId, dto);
+        // Delegate broadcast and user notification to ApprovalNotificationService
+        // (single point of truth for approval-related SignalR events + in-app notifications)
+        await _approvalNotificationService.NotifyInjectRevertedAsync(inject, cancellationToken);
 
-        return dto;
+        return inject.ToDto();
     }
 
     private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)

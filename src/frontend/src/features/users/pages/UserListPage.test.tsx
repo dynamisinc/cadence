@@ -2,7 +2,12 @@
  * UserListPage Component Tests
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '../../../test/test-utils'
+import { render as baseRender, screen, waitFor } from '@testing-library/react'
+import { ThemeProvider } from '@mui/material/styles'
+import { cobraTheme } from '../../../theme/cobraTheme'
+import { BreadcrumbProvider } from '../../../core/contexts/BreadcrumbContext'
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import type { ReactNode } from 'react'
 import userEvent from '@testing-library/user-event'
 import { UserListPage } from './UserListPage'
 import { userService } from '../services/userService'
@@ -65,6 +70,41 @@ const mockUserList: UserListResponse = {
     totalPages: 1,
   },
 }
+
+/**
+ * Create a full provider wrapper that includes theme, breadcrumbs, and React Query.
+ * The UserListPage now uses React Query hooks so tests must wrap with QueryClientProvider.
+ */
+function createWrapper() {
+  const queryClient = new QueryClient({
+    defaultOptions: {
+      queries: {
+        retry: false, // Disable retries in tests for fast failure
+        staleTime: 0,
+      },
+    },
+  })
+
+  const Wrapper = ({ children }: { children: ReactNode }) => (
+    <QueryClientProvider client={queryClient}>
+      <ThemeProvider theme={cobraTheme}>
+        <BreadcrumbProvider>
+          {children}
+        </BreadcrumbProvider>
+      </ThemeProvider>
+    </QueryClientProvider>
+  )
+  Wrapper.displayName = 'TestProviders'
+
+  return Wrapper
+}
+
+function render(ui: React.ReactElement) {
+  return baseRender(ui, { wrapper: createWrapper() })
+}
+
+// Re-export screen and waitFor from testing-library
+export { screen, waitFor }
 
 describe('UserListPage', () => {
   beforeEach(() => {
@@ -223,6 +263,7 @@ describe('UserListPage', () => {
       ...mockUserList.users[1],
       status: 'Deactivated',
     })
+    vi.mocked(userService.getUsers).mockResolvedValue(mockUserList)
 
     render(<UserListPage />)
 

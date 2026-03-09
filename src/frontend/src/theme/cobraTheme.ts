@@ -155,6 +155,55 @@ export const cadenceBreakpoints = {
   },
 }
 
+/**
+ * Shared component size defaults applied to both light and dark themes.
+ * Extracted to avoid duplication between cobraTheme and createCobraTheme.
+ */
+const sharedComponentSizeDefaults = {
+  MuiTextField: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiAutocomplete: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiSelect: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiInputLabel: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiButtonGroup: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiToggleButtonGroup: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiButton: {
+    defaultProps: {
+      size: 'small' as const,
+    },
+  },
+  MuiTableCell: {
+    styleOverrides: {
+      head: {
+        fontWeight: 600,
+      },
+    },
+  },
+}
+
 export const cobraTheme = createTheme({
   breakpoints: cadenceBreakpoints,
   cssStyling: {
@@ -246,6 +295,7 @@ export const cobraTheme = createTheme({
     },
   },
   components: {
+    ...sharedComponentSizeDefaults,
     MuiIconButton: {
       styleOverrides: {
         root: {
@@ -253,52 +303,10 @@ export const cobraTheme = createTheme({
         },
       },
     },
-    MuiTextField: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
-    MuiAutocomplete: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
-    MuiSelect: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
-    MuiInputLabel: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
-    MuiButtonGroup: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
-    MuiToggleButtonGroup: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
-    MuiButton: {
-      defaultProps: {
-        size: 'small',
-      },
-    },
     MuiTableHead: {
       styleOverrides: {
         root: {
           backgroundColor: 'rgba(0, 0, 0, 0.04)',
-        },
-      },
-    },
-    MuiTableCell: {
-      styleOverrides: {
-        head: {
-          fontWeight: 600,
         },
       },
     },
@@ -546,6 +554,7 @@ export function createCobraTheme(mode: 'light' | 'dark') {
       },
     },
     components: {
+      ...sharedComponentSizeDefaults,
       MuiIconButton: {
         styleOverrides: {
           root: {
@@ -553,52 +562,10 @@ export function createCobraTheme(mode: 'light' | 'dark') {
           },
         },
       },
-      MuiTextField: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
-      MuiAutocomplete: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
-      MuiSelect: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
-      MuiInputLabel: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
-      MuiButtonGroup: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
-      MuiToggleButtonGroup: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
-      MuiButton: {
-        defaultProps: {
-          size: 'small',
-        },
-      },
       MuiTableHead: {
         styleOverrides: {
           root: {
             backgroundColor: isDark ? 'rgba(255, 255, 255, 0.04)' : 'rgba(0, 0, 0, 0.04)',
-          },
-        },
-      },
-      MuiTableCell: {
-        styleOverrides: {
-          head: {
-            fontWeight: 600,
           },
         },
       },

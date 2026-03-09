@@ -1,3 +1,4 @@
+using System.Linq.Expressions;
 using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Models.Entities;
 
@@ -135,6 +136,46 @@ public record CapabilityTagDto(
 /// </summary>
 public static class ObservationMapper
 {
+    /// <summary>
+    /// Reusable EF Core projection expression for mapping an Observation entity to ObservationDto.
+    /// Use this in <c>.Select(ObservationMapper.ToObservationDtoExpression)</c> to avoid
+    /// duplicating the 18-field projection across multiple query sites.
+    /// </summary>
+    public static readonly Expression<Func<Observation, ObservationDto>> ToObservationDtoExpression = o =>
+        new ObservationDto(
+            o.Id,
+            o.ExerciseId,
+            o.InjectId,
+            o.ObjectiveId,
+            o.Content,
+            o.Rating,
+            o.Recommendation,
+            o.ObservedAt,
+            o.Location,
+            o.Status,
+            o.CreatedAt,
+            o.UpdatedAt,
+            o.CreatedBy,
+            o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
+            o.Inject != null ? o.Inject.Title : null,
+            o.Inject != null ? (int?)o.Inject.InjectNumber : null,
+            o.ObservationCapabilities
+                .Select(oc => new CapabilityTagDto(
+                    oc.Capability.Id,
+                    oc.Capability.Name,
+                    oc.Capability.Category))
+                .ToList(),
+            o.Photos
+                .Where(p => !p.IsDeleted)
+                .OrderBy(p => p.DisplayOrder)
+                .Select(p => new PhotoTagDto(
+                    p.Id,
+                    p.ThumbnailUri,
+                    p.CapturedAt,
+                    p.DisplayOrder))
+                .ToList()
+        );
+
     public static ObservationDto ToDto(this Observation entity) => new(
         entity.Id,
         entity.ExerciseId,

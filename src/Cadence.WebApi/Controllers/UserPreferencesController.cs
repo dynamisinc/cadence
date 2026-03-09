@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Features.Users.Services;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -100,10 +100,7 @@ public class UserPreferencesController : ControllerBase
         return Ok(preferences);
     }
 
-    private string? GetCurrentUserId()
-    {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier);
-    }
+    private string? GetCurrentUserId() => User.TryGetUserId();
 
     private static bool IsValidTheme(string value)
     {

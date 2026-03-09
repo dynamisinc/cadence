@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Assignments.Services;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -32,7 +32,7 @@ public class AssignmentsController : ControllerBase
     [HttpGet("my")]
     public async Task<IActionResult> GetMyAssignments(CancellationToken ct)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.TryGetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             _logger.LogWarning("GetMyAssignments called without authenticated user");
@@ -52,7 +52,7 @@ public class AssignmentsController : ControllerBase
     [HttpGet("my/{exerciseId:guid}")]
     public async Task<IActionResult> GetMyAssignment(Guid exerciseId, CancellationToken ct)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.TryGetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             _logger.LogWarning("GetMyAssignment called without authenticated user");

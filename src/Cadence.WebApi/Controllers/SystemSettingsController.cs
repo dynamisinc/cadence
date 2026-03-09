@@ -2,14 +2,14 @@ using System.Security.Claims;
 using Cadence.Core.Features.Feedback.Services;
 using Cadence.Core.Features.SystemSettings.Models.DTOs;
 using Cadence.Core.Features.SystemSettings.Services;
-using Microsoft.AspNetCore.Authorization;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Cadence.WebApi.Controllers;
 
 [ApiController]
 [Route("api/system-settings")]
-[Authorize(Roles = "Admin")]
+[AuthorizeAdmin]
 public class SystemSettingsController : ControllerBase
 {
     private readonly ISystemSettingsService _settingsService;

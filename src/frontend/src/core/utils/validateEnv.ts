@@ -4,6 +4,7 @@
  * Validates required environment variables on app startup.
  * Throws detailed errors in development, logs warnings in production.
  */
+import { devLog, devWarn } from './logger'
 
 interface EnvConfig {
   /** Variable name */
@@ -79,9 +80,9 @@ export function checkEnvironment(): void {
   const result = validateEnvironment()
   const isDev = import.meta.env.DEV
 
-  // Log warnings in all modes
+  // Log warnings in development only
   for (const warning of result.warnings) {
-    console.warn(`[Env Warning] ${warning}`)
+    devWarn(`[Env Warning] ${warning}`)
   }
 
   // Handle errors
@@ -102,7 +103,7 @@ export function checkEnvironment(): void {
       console.error(`[Env Error] ${errorMessage}`)
     }
   } else if (isDev) {
-    console.log('[Env] Environment validation passed')
+    devLog('[Env] Environment validation passed')
   }
 }
 

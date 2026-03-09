@@ -1,8 +1,9 @@
 using Cadence.Core.Features.BulkParticipantImport.Models.DTOs;
 using Cadence.Core.Features.BulkParticipantImport.Services;
+using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -12,6 +13,7 @@ namespace Cadence.WebApi.Controllers;
 /// </summary>
 [ApiController]
 [Authorize]
+[AuthorizeExerciseAccess]
 [Route("api/exercises/{exerciseId:guid}/participants/bulk-import")]
 public class BulkParticipantImportController : ControllerBase
 {
@@ -69,7 +71,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error parsing participant file for exercise {ExerciseId}", exerciseId);
-            return StatusCode(500, new { message = "An error occurred while parsing the file" });
+            return Problem(detail: "An error occurred while parsing the file", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -110,7 +112,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating preview for session {SessionId}", sessionId);
-            return StatusCode(500, new { message = "An error occurred while generating the preview" });
+            return Problem(detail: "An error occurred while generating the preview", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -152,7 +154,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error confirming import for session {SessionId}", sessionId);
-            return StatusCode(500, new { message = "An error occurred while processing the import" });
+            return Problem(detail: "An error occurred while processing the import", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -177,7 +179,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving import history for exercise {ExerciseId}", exerciseId);
-            return StatusCode(500, new { message = "An error occurred while retrieving import history" });
+            return Problem(detail: "An error occurred while retrieving import history", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -210,7 +212,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving import record {ImportRecordId}", importRecordId);
-            return StatusCode(500, new { message = "An error occurred while retrieving the import record" });
+            return Problem(detail: "An error occurred while retrieving the import record", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -231,7 +233,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving row results for import record {ImportRecordId}", importRecordId);
-            return StatusCode(500, new { message = "An error occurred while retrieving row results" });
+            return Problem(detail: "An error occurred while retrieving row results", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -256,7 +258,7 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error retrieving pending assignments for exercise {ExerciseId}", exerciseId);
-            return StatusCode(500, new { message = "An error occurred while retrieving pending assignments" });
+            return Problem(detail: "An error occurred while retrieving pending assignments", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -281,10 +283,9 @@ public class BulkParticipantImportController : ControllerBase
         catch (Exception ex)
         {
             _logger.LogError(ex, "Error generating template with format {Format}", format);
-            return StatusCode(500, new { message = "An error occurred while generating the template" });
+            return Problem(detail: "An error occurred while generating the template", statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
-    private string GetUserId() => User.FindFirstValue(ClaimTypes.NameIdentifier)
-        ?? throw new UnauthorizedAccessException("User ID not found in claims");
+    private string GetUserId() => User.GetUserId();
 }

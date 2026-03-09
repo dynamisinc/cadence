@@ -5,6 +5,7 @@ using Cadence.Core.Features.Organizations.Models.DTOs;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Hubs;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -525,20 +526,12 @@ public class OrganizationsController : ControllerBase
     // =========================================================================
 
     /// <summary>
-    /// Get current authenticated user's ID from JWT claims.
+    /// Gets the current authenticated user's ID from JWT claims.
     /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
+    private string GetCurrentUserId() => User.GetUserId();
 
     /// <summary>
-    /// Get the current organization ID from the organization context.
+    /// Gets the current organization ID from the organization context.
     /// </summary>
     private Guid? GetCurrentOrganizationId()
     {

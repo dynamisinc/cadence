@@ -1,8 +1,8 @@
-using Cadence.Core.Constants;
-using Cadence.Core.Data;
+using System.Security.Claims;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Models.Entities;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -14,18 +14,16 @@ namespace Cadence.WebApi.Controllers;
 [ApiController]
 [Route("api/exercises/{exerciseId:guid}")]
 [Authorize]
+[AuthorizeExerciseAccess]
 public class ExerciseStatusController : ControllerBase
 {
-    private readonly AppDbContext _context;
     private readonly IExerciseStatusService _statusService;
     private readonly ILogger<ExerciseStatusController> _logger;
 
     public ExerciseStatusController(
-        AppDbContext context,
         IExerciseStatusService statusService,
         ILogger<ExerciseStatusController> logger)
     {
-        _context = context;
         _statusService = statusService;
         _logger = logger;
     }
@@ -37,7 +35,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("activate")]
     public async Task<ActionResult<ExerciseDto>> ActivateExercise(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.ActivateAsync(exerciseId, userId);
 
@@ -58,7 +56,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("pause")]
     public async Task<ActionResult<ExerciseDto>> PauseExercise(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.PauseAsync(exerciseId, userId);
 
@@ -78,7 +76,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("resume")]
     public async Task<ActionResult<ExerciseDto>> ResumeExercise(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.ResumeAsync(exerciseId, userId);
 
@@ -99,7 +97,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("complete")]
     public async Task<ActionResult<ExerciseDto>> CompleteExercise(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.CompleteAsync(exerciseId, userId);
 
@@ -120,7 +118,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("archive")]
     public async Task<ActionResult<ExerciseDto>> ArchiveExercise(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.ArchiveAsync(exerciseId, userId);
 
@@ -141,7 +139,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("unarchive")]
     public async Task<ActionResult<ExerciseDto>> UnarchiveExercise(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.UnarchiveAsync(exerciseId, userId);
 
@@ -162,7 +160,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("revert-to-draft")]
     public async Task<ActionResult<ExerciseDto>> RevertToDraft(Guid exerciseId)
     {
-        var userId = SystemConstants.SystemUserIdString;
+        var userId = GetCurrentUserId();
 
         var result = await _statusService.RevertToDraftAsync(exerciseId, userId);
 
@@ -184,14 +182,10 @@ public class ExerciseStatusController : ControllerBase
     [HttpGet("available-transitions")]
     public async Task<ActionResult<IReadOnlyList<ExerciseStatus>>> GetAvailableTransitions(Guid exerciseId)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
+        var transitions = await _statusService.GetAvailableTransitionsAsync(exerciseId);
 
-        if (exercise == null)
-        {
+        if (transitions == null)
             return NotFound();
-        }
-
-        var transitions = _statusService.GetAvailableTransitions(exercise.Status);
 
         return Ok(transitions);
     }
@@ -215,5 +209,16 @@ public class ExerciseStatusController : ControllerBase
         {
             return NotFound(new { message = "Exercise not found" });
         }
+    }
+
+    /// <summary>
+    /// Gets the authenticated user's ID from JWT claims.
+    /// </summary>
+    private string GetCurrentUserId()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedAccessException("User not authenticated");
+        return userId;
     }
 }

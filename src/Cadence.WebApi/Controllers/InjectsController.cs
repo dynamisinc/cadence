@@ -10,6 +10,7 @@ using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -1320,28 +1321,12 @@ public class InjectsController : ControllerBase
     }
 
     /// <summary>
-    /// Get current authenticated user's ID from JWT claims as Guid (for audit fields).
+    /// Gets the current authenticated user's ID from JWT claims.
     /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
+    private string GetCurrentUserId() => User.GetUserId();
 
     /// <summary>
-    /// Get current authenticated user's ID from JWT claims as string (for ApplicationUser FK).
+    /// Gets the current authenticated user's ID from JWT claims as a string (for ApplicationUser FK).
     /// </summary>
-    private string GetCurrentUserIdString()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
+    private string GetCurrentUserIdString() => User.GetUserId();
 }

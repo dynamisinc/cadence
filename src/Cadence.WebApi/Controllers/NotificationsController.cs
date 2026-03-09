@@ -1,5 +1,5 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Notifications.Services;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -37,7 +37,7 @@ public class NotificationsController : ControllerBase
         [FromQuery] int offset = 0,
         CancellationToken ct = default)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.TryGetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
@@ -59,7 +59,7 @@ public class NotificationsController : ControllerBase
     [HttpGet("unread-count")]
     public async Task<IActionResult> GetUnreadCount(CancellationToken ct)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.TryGetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
@@ -78,7 +78,7 @@ public class NotificationsController : ControllerBase
     [HttpPost("{id:guid}/read")]
     public async Task<IActionResult> MarkAsRead(Guid id, CancellationToken ct)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.TryGetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();
@@ -101,7 +101,7 @@ public class NotificationsController : ControllerBase
     [HttpPost("read-all")]
     public async Task<IActionResult> MarkAllAsRead(CancellationToken ct)
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.TryGetUserId();
         if (string.IsNullOrEmpty(userId))
         {
             return Unauthorized();

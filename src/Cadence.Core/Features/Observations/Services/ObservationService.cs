@@ -2,7 +2,6 @@ using Cadence.Core.Data;
 using Cadence.Core.Features.Notifications.Models.DTOs;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Observations.Models.DTOs;
-using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Features.Photos.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -61,39 +60,7 @@ public class ObservationService : IObservationService
             .AsNoTracking()
             .Where(o => o.ExerciseId == exerciseId)
             .OrderByDescending(o => o.ObservedAt)
-            .Select(o => new ObservationDto(
-                o.Id,
-                o.ExerciseId,
-                o.InjectId,
-                o.ObjectiveId,
-                o.Content,
-                o.Rating,
-                o.Recommendation,
-                o.ObservedAt,
-                o.Location,
-                o.Status,
-                o.CreatedAt,
-                o.UpdatedAt,
-                o.CreatedBy,
-                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
-                o.Inject != null ? o.Inject.Title : null,
-                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
-                o.ObservationCapabilities
-                    .Select(oc => new CapabilityTagDto(
-                        oc.Capability.Id,
-                        oc.Capability.Name,
-                        oc.Capability.Category))
-                    .ToList(),
-                o.Photos
-                    .Where(p => !p.IsDeleted)
-                    .OrderBy(p => p.DisplayOrder)
-                    .Select(p => new PhotoTagDto(
-                        p.Id,
-                        p.ThumbnailUri,
-                        p.CapturedAt,
-                        p.DisplayOrder))
-                    .ToList()
-            ))
+            .Select(ObservationMapper.ToObservationDtoExpression)
             .ToListAsync();
 
         return observations.Select(WithResolvedPhotoUrls);
@@ -106,39 +73,7 @@ public class ObservationService : IObservationService
             .AsNoTracking()
             .Where(o => o.InjectId == injectId)
             .OrderByDescending(o => o.ObservedAt)
-            .Select(o => new ObservationDto(
-                o.Id,
-                o.ExerciseId,
-                o.InjectId,
-                o.ObjectiveId,
-                o.Content,
-                o.Rating,
-                o.Recommendation,
-                o.ObservedAt,
-                o.Location,
-                o.Status,
-                o.CreatedAt,
-                o.UpdatedAt,
-                o.CreatedBy,
-                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
-                o.Inject != null ? o.Inject.Title : null,
-                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
-                o.ObservationCapabilities
-                    .Select(oc => new CapabilityTagDto(
-                        oc.Capability.Id,
-                        oc.Capability.Name,
-                        oc.Capability.Category))
-                    .ToList(),
-                o.Photos
-                    .Where(p => !p.IsDeleted)
-                    .OrderBy(p => p.DisplayOrder)
-                    .Select(p => new PhotoTagDto(
-                        p.Id,
-                        p.ThumbnailUri,
-                        p.CapturedAt,
-                        p.DisplayOrder))
-                    .ToList()
-            ))
+            .Select(ObservationMapper.ToObservationDtoExpression)
             .ToListAsync();
 
         return observations.Select(WithResolvedPhotoUrls);
@@ -150,39 +85,7 @@ public class ObservationService : IObservationService
         var dto = await _context.Observations
             .AsNoTracking()
             .Where(o => o.Id == id)
-            .Select(o => new ObservationDto(
-                o.Id,
-                o.ExerciseId,
-                o.InjectId,
-                o.ObjectiveId,
-                o.Content,
-                o.Rating,
-                o.Recommendation,
-                o.ObservedAt,
-                o.Location,
-                o.Status,
-                o.CreatedAt,
-                o.UpdatedAt,
-                o.CreatedBy,
-                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
-                o.Inject != null ? o.Inject.Title : null,
-                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
-                o.ObservationCapabilities
-                    .Select(oc => new CapabilityTagDto(
-                        oc.Capability.Id,
-                        oc.Capability.Name,
-                        oc.Capability.Category))
-                    .ToList(),
-                o.Photos
-                    .Where(p => !p.IsDeleted)
-                    .OrderBy(p => p.DisplayOrder)
-                    .Select(p => new PhotoTagDto(
-                        p.Id,
-                        p.ThumbnailUri,
-                        p.CapturedAt,
-                        p.DisplayOrder))
-                    .ToList()
-            ))
+            .Select(ObservationMapper.ToObservationDtoExpression)
             .FirstOrDefaultAsync();
 
         return dto != null ? WithResolvedPhotoUrls(dto) : null;
@@ -251,39 +154,7 @@ public class ObservationService : IObservationService
         var dto = await _context.Observations
             .AsNoTracking()
             .Where(o => o.Id == observation.Id)
-            .Select(o => new ObservationDto(
-                o.Id,
-                o.ExerciseId,
-                o.InjectId,
-                o.ObjectiveId,
-                o.Content,
-                o.Rating,
-                o.Recommendation,
-                o.ObservedAt,
-                o.Location,
-                o.Status,
-                o.CreatedAt,
-                o.UpdatedAt,
-                o.CreatedBy,
-                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
-                o.Inject != null ? o.Inject.Title : null,
-                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
-                o.ObservationCapabilities
-                    .Select(oc => new CapabilityTagDto(
-                        oc.Capability.Id,
-                        oc.Capability.Name,
-                        oc.Capability.Category))
-                    .ToList(),
-                o.Photos
-                    .Where(p => !p.IsDeleted)
-                    .OrderBy(p => p.DisplayOrder)
-                    .Select(p => new PhotoTagDto(
-                        p.Id,
-                        p.ThumbnailUri,
-                        p.CapturedAt,
-                        p.DisplayOrder))
-                    .ToList()
-            ))
+            .Select(ObservationMapper.ToObservationDtoExpression)
             .FirstAsync();
 
         dto = WithResolvedPhotoUrls(dto);
@@ -422,39 +293,7 @@ public class ObservationService : IObservationService
         var dto = await _context.Observations
             .AsNoTracking()
             .Where(o => o.Id == observation.Id)
-            .Select(o => new ObservationDto(
-                o.Id,
-                o.ExerciseId,
-                o.InjectId,
-                o.ObjectiveId,
-                o.Content,
-                o.Rating,
-                o.Recommendation,
-                o.ObservedAt,
-                o.Location,
-                o.Status,
-                o.CreatedAt,
-                o.UpdatedAt,
-                o.CreatedBy,
-                o.CreatedByUser != null ? o.CreatedByUser.DisplayName : null,
-                o.Inject != null ? o.Inject.Title : null,
-                o.Inject != null ? (int?)o.Inject.InjectNumber : null,
-                o.ObservationCapabilities
-                    .Select(oc => new CapabilityTagDto(
-                        oc.Capability.Id,
-                        oc.Capability.Name,
-                        oc.Capability.Category))
-                    .ToList(),
-                o.Photos
-                    .Where(p => !p.IsDeleted)
-                    .OrderBy(p => p.DisplayOrder)
-                    .Select(p => new PhotoTagDto(
-                        p.Id,
-                        p.ThumbnailUri,
-                        p.CapturedAt,
-                        p.DisplayOrder))
-                    .ToList()
-            ))
+            .Select(ObservationMapper.ToObservationDtoExpression)
             .FirstAsync();
 
         dto = WithResolvedPhotoUrls(dto);
