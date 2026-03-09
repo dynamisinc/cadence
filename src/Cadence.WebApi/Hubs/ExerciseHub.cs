@@ -1,3 +1,5 @@
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.SignalR;
 
 namespace Cadence.WebApi.Hubs;
@@ -7,6 +9,7 @@ namespace Cadence.WebApi.Hubs;
 /// Clients join exercise-specific groups to receive updates.
 /// Also supports user-specific groups for notifications.
 /// </summary>
+[Authorize]
 public class ExerciseHub : Hub
 {
     private readonly ILogger<ExerciseHub> _logger;
@@ -39,11 +42,20 @@ public class ExerciseHub : Hub
     }
 
     /// <summary>
-    /// Join a user-specific group for notifications.
-    /// Called automatically when user authenticates.
+    /// Join the user-specific notification group for the authenticated caller.
+    /// The user ID is derived from the server-side JWT claims — the client cannot supply or override it.
     /// </summary>
-    public async Task JoinUserGroup(string userId)
+    public async Task JoinUserGroup()
     {
+        var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            _logger.LogWarning(
+                "Client {ConnectionId} attempted JoinUserGroup but has no authenticated user ID",
+                Context.ConnectionId);
+            return;
+        }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, $"user-{userId}");
         _logger.LogInformation(
             "Client {ConnectionId} joined user group {UserId}",
@@ -51,10 +63,17 @@ public class ExerciseHub : Hub
     }
 
     /// <summary>
-    /// Leave a user-specific group.
+    /// Leave the user-specific notification group for the authenticated caller.
+    /// The user ID is derived from the server-side JWT claims — the client cannot supply or override it.
     /// </summary>
-    public async Task LeaveUserGroup(string userId)
+    public async Task LeaveUserGroup()
     {
+        var userId = Context.User?.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+        {
+            return;
+        }
+
         await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"user-{userId}");
         _logger.LogInformation(
             "Client {ConnectionId} left user group {UserId}",

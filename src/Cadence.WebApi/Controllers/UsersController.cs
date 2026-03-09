@@ -8,6 +8,7 @@ using Cadence.Core.Features.Users.Models.DTOs;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -454,14 +455,36 @@ public class UsersController : ControllerBase
 
     /// <summary>
     /// Get a specific user's organization memberships.
-    /// Admin-only endpoint for user management page.
+    /// Users can retrieve their own memberships. Admins can retrieve any user's memberships.
     /// </summary>
     /// <param name="userId">User ID to get memberships for.</param>
     [HttpGet("{userId:guid}/memberships")]
     [ProducesResponseType(typeof(IEnumerable<MembershipDto>), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(StatusCodes.Status403Forbidden)]
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserMemberships(Guid userId)
     {
+        var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(currentUserIdClaim))
+        {
+            return Unauthorized();
+        }
+
+        var currentUserId = Guid.Parse(currentUserIdClaim);
+
+        // Users can retrieve their own memberships; Admins can retrieve any user's memberships.
+        var isAdmin = User.Claims.Any(c =>
+            c.Type == "SystemRole" && c.Value == SystemRole.Admin.ToString());
+
+        if (currentUserId != userId && !isAdmin)
+        {
+            _logger.LogWarning(
+                "User {CurrentUserId} attempted to access memberships for user {RequestedUserId} without authorization",
+                currentUserId, userId);
+            return Forbid();
+        }
+
         // Verify user exists
         var user = await _userService.GetUserByIdAsync(userId);
         if (user == null)
@@ -472,22 +495,14 @@ public class UsersController : ControllerBase
         var memberships = await _membershipService.GetUserMembershipsAsync(userId.ToString());
 
         _logger.LogInformation(
-            "Admin retrieved {Count} memberships for user {UserId}",
-            memberships.Count(), userId);
+            "Retrieved {Count} memberships for user {UserId} (requested by {CurrentUserId})",
+            memberships.Count(), userId, currentUserId);
 
         return Ok(memberships);
     }
 
     /// <summary>
-    /// Get current authenticated user's ID from JWT claims.
+    /// Gets the current authenticated user's ID from JWT claims.
     /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
+    private string GetCurrentUserId() => User.GetUserId();
 }

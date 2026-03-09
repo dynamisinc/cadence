@@ -99,9 +99,11 @@ export const useExecuteImport = () => {
   return useMutation({
     mutationFn: (request: ExecuteImportRequest) => excelImportService.executeImport(request),
     onSuccess: (_, variables) => {
-      // Invalidate injects cache for the exercise
-      queryClient.invalidateQueries({ queryKey: ['injects', variables.exerciseId] })
-      queryClient.invalidateQueries({ queryKey: ['msel', variables.exerciseId] })
+      // Invalidate injects cache for the exercise using the correct key structure
+      // injectKeys.all(exerciseId) = ['exercises', exerciseId, 'injects']
+      queryClient.invalidateQueries({ queryKey: ['exercises', variables.exerciseId, 'injects'] })
+      // Also invalidate MSEL data which displays injects in grouped form
+      queryClient.invalidateQueries({ queryKey: ['exercises', variables.exerciseId, 'msel'] })
     },
   })
 }

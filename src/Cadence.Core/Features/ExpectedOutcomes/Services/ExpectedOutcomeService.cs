@@ -1,5 +1,6 @@
 using Cadence.Core.Data;
 using Cadence.Core.Features.ExpectedOutcomes.Models.DTOs;
+using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.Core.Features.ExpectedOutcomes.Services;
@@ -14,6 +15,25 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     public ExpectedOutcomeService(AppDbContext context)
     {
         _context = context;
+    }
+
+    /// <inheritdoc />
+    public async Task<InjectValidationResult> ValidateInjectAsync(Guid injectId, CancellationToken ct = default)
+    {
+        var result = await _context.Injects
+            .Where(i => i.Id == injectId)
+            .Select(i => new
+            {
+                ExerciseStatus = i.Msel!.Exercise.Status
+            })
+            .FirstOrDefaultAsync(ct);
+
+        if (result == null)
+            return new InjectValidationResult(InjectExists: false, ExerciseIsArchived: false);
+
+        return new InjectValidationResult(
+            InjectExists: true,
+            ExerciseIsArchived: result.ExerciseStatus == ExerciseStatus.Archived);
     }
 
     /// <inheritdoc />

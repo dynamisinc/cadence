@@ -38,7 +38,7 @@ export const ExerciseRolePrimerSection: FC = () => {
 
       <Collapse in={!isDismissed}>
         <Grid container spacing={1.5}>
-          {EXERCISE_ROLE_PRIMERS.map((primer) => (
+          {EXERCISE_ROLE_PRIMERS.map(primer => (
             <Grid key={primer.role} size={{ xs: 12, sm: 6, md: 3 }}>
               <Paper
                 variant="outlined"

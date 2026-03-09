@@ -1,4 +1,4 @@
-using Cadence.Core.Constants;
+using System.Security.Claims;
 using Cadence.Core.Features.Objectives.Models.DTOs;
 using Cadence.Core.Features.Objectives.Services;
 using Microsoft.AspNetCore.Authorization;
@@ -76,8 +76,7 @@ public class ObjectivesController : ControllerBase
 
         try
         {
-            // System user until auth is implemented
-            var createdBy = SystemConstants.SystemUserIdString;
+            var createdBy = GetCurrentUserId();
 
             var objective = await _objectiveService.CreateObjectiveAsync(exerciseId, request, createdBy);
 
@@ -111,8 +110,7 @@ public class ObjectivesController : ControllerBase
 
         try
         {
-            // System user until auth is implemented
-            var modifiedBy = SystemConstants.SystemUserIdString;
+            var modifiedBy = GetCurrentUserId();
 
             var objective = await _objectiveService.UpdateObjectiveAsync(exerciseId, id, request, modifiedBy);
 
@@ -140,8 +138,7 @@ public class ObjectivesController : ControllerBase
     {
         try
         {
-            // System user until auth is implemented
-            var deletedBy = SystemConstants.SystemUserIdString;
+            var deletedBy = GetCurrentUserId();
 
             var deleted = await _objectiveService.DeleteObjectiveAsync(exerciseId, id, deletedBy);
 
@@ -176,6 +173,17 @@ public class ObjectivesController : ControllerBase
 
         var isAvailable = await _objectiveService.IsObjectiveNumberUniqueAsync(exerciseId, number, excludeId);
         return Ok(new { isAvailable });
+    }
+
+    /// <summary>
+    /// Gets the authenticated user's ID from JWT claims.
+    /// </summary>
+    private string GetCurrentUserId()
+    {
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedAccessException("User not authenticated");
+        return userId;
     }
 
     private static string? ValidateObjectiveRequest(string name, string? objectiveNumber, string? description)

@@ -27,6 +27,7 @@ public class AssignmentService : IAssignmentService
 
         // Get all active assignments for the user with exercise data
         var assignments = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Include(p => p.Exercise)
                 .ThenInclude(e => e.ActiveMsel)
                     .ThenInclude(m => m!.Injects)
@@ -100,6 +101,7 @@ public class AssignmentService : IAssignmentService
     public async Task<AssignmentDto?> GetAssignmentAsync(string userId, Guid exerciseId, CancellationToken ct = default)
     {
         var assignment = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Include(p => p.Exercise)
                 .ThenInclude(e => e.ActiveMsel)
                     .ThenInclude(m => m!.Injects)

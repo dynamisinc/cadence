@@ -1,4 +1,5 @@
-import { Box, Paper, Typography, Chip, Skeleton, Button } from '@mui/material'
+import { Box, Paper, Typography, Chip, Skeleton } from '@mui/material'
+import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircle, faArrowRight } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
@@ -78,13 +79,13 @@ export function VersionInfoCard() {
         )}
       </Box>
 
-      <Button
+      <CobraLinkButton
         size="small"
         endIcon={<FontAwesomeIcon icon={faArrowRight} />}
         onClick={() => navigate('/about')}
       >
         View release notes
-      </Button>
+      </CobraLinkButton>
     </Paper>
   )
 }

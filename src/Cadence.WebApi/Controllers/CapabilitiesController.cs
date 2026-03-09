@@ -1,6 +1,7 @@
 using Cadence.Core.Features.Capabilities.Models.DTOs;
 using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Hubs;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -108,11 +109,13 @@ public class CapabilitiesController : ControllerBase
 
     /// <summary>
     /// Create a new capability for an organization.
+    /// Requires OrgAdmin role or system Admin.
     /// </summary>
     /// <param name="organizationId">The organization ID.</param>
     /// <param name="request">The create request.</param>
     /// <returns>The created capability.</returns>
     [HttpPost]
+    [AuthorizeOrgAdmin]
     public async Task<ActionResult<CapabilityDto>> CreateCapability(
         Guid organizationId,
         CreateCapabilityRequest request)
@@ -149,12 +152,14 @@ public class CapabilitiesController : ControllerBase
 
     /// <summary>
     /// Update an existing capability.
+    /// Requires OrgAdmin role or system Admin.
     /// </summary>
     /// <param name="organizationId">The organization ID.</param>
     /// <param name="id">The capability ID.</param>
     /// <param name="request">The update request.</param>
     /// <returns>The updated capability, or 404 if not found.</returns>
     [HttpPut("{id:guid}")]
+    [AuthorizeOrgAdmin]
     public async Task<ActionResult<CapabilityDto>> UpdateCapability(
         Guid organizationId,
         Guid id,
@@ -194,11 +199,13 @@ public class CapabilitiesController : ControllerBase
     /// <summary>
     /// Soft-delete a capability by setting it to inactive.
     /// The capability is preserved for historical data but hidden from selection UIs.
+    /// Requires OrgAdmin role or system Admin.
     /// </summary>
     /// <param name="organizationId">The organization ID.</param>
     /// <param name="id">The capability ID.</param>
     /// <returns>204 No Content on success, 404 if not found.</returns>
     [HttpDelete("{id:guid}")]
+    [AuthorizeOrgAdmin]
     public async Task<IActionResult> DeleteCapability(Guid organizationId, Guid id)
     {
         var accessError = ValidateOrganizationAccess(organizationId);
@@ -218,11 +225,13 @@ public class CapabilitiesController : ControllerBase
 
     /// <summary>
     /// Reactivate a previously deactivated capability.
+    /// Requires OrgAdmin role or system Admin.
     /// </summary>
     /// <param name="organizationId">The organization ID.</param>
     /// <param name="id">The capability ID.</param>
     /// <returns>204 No Content on success, 404 if not found.</returns>
     [HttpPost("{id:guid}/reactivate")]
+    [AuthorizeOrgAdmin]
     public async Task<IActionResult> ReactivateCapability(Guid organizationId, Guid id)
     {
         var accessError = ValidateOrganizationAccess(organizationId);
@@ -288,11 +297,13 @@ public class CapabilitiesController : ControllerBase
     /// <summary>
     /// Import a predefined capability library into an organization.
     /// Skips capabilities that already exist by name (case-insensitive).
+    /// Requires OrgAdmin role or system Admin.
     /// </summary>
     /// <param name="organizationId">The organization ID.</param>
     /// <param name="request">Import request containing library name.</param>
     /// <returns>Import result with counts and imported capability names.</returns>
     [HttpPost("import")]
+    [AuthorizeOrgAdmin]
     public async Task<ActionResult<ImportLibraryResult>> ImportLibrary(
         Guid organizationId,
         [FromBody] ImportLibraryRequest request)

@@ -19,6 +19,9 @@ public class ExcelImportService : IExcelImportService
     private readonly IInjectService _injectService;
     private readonly ILogger<ExcelImportService> _logger;
 
+    // TODO (CD-C01): Migrate _sessions to IDistributedCache (Redis or SQL) so import state
+    // survives App Service restarts and scale-out scenarios. The static dictionary is
+    // single-instance only and will lose sessions on restart or when running multiple instances.
     // In-memory session storage - sessions are stored in static memory for simplicity.
     // LIMITATION: This does not work in multi-instance deployments (Azure Scale Out, K8s replicas).
     // For production with multiple instances, replace with Redis or database-backed session storage.

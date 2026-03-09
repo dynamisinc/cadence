@@ -17,6 +17,8 @@
  * @module core/services
  */
 import axios, { type AxiosError } from 'axios'
+import { devLog, devWarn } from '../utils/logger'
+import { isNetworkError } from '../utils/networkErrors'
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:5071'
 
@@ -73,7 +75,7 @@ apiClient.interceptors.request.use(
       config.headers.Authorization = `Bearer ${token}`
     }
 
-    console.log(`[apiClient] Request: ${config.method?.toUpperCase()} ${config.url}`, {
+    devLog(`[apiClient] Request: ${config.method?.toUpperCase()} ${config.url}`, {
       correlationId: correlationId.substring(0, 8),
       hasAuthToken: !!token,
       tokenLength: token?.length,
@@ -93,7 +95,7 @@ apiClient.interceptors.request.use(
  */
 apiClient.interceptors.response.use(
   response => {
-    console.log(`[apiClient] Response: ${response.status} ${response.config.url}`)
+    devLog(`[apiClient] Response: ${response.status} ${response.config.url}`)
     return response
   },
   async (error: AxiosError) => {
@@ -107,11 +109,11 @@ apiClient.interceptors.response.use(
       hasResponse: !!error.response,
     }
 
-    console.log('[apiClient] Response error:', errorInfo)
+    devLog('[apiClient] Response error:', errorInfo)
 
     // If 401 and we haven't retried yet, try to refresh token
     if (error.response?.status === 401 && !originalRequest?._retry && refreshAccessToken) {
-      console.log('[apiClient] Got 401, attempting token refresh...')
+      devLog('[apiClient] Got 401, attempting token refresh...')
       originalRequest._retry = true
 
       try {
@@ -119,17 +121,17 @@ apiClient.interceptors.response.use(
         // This prevents multiple concurrent 401 responses from triggering
         // multiple refresh requests to the server
         if (!refreshPromise) {
-          console.log('[apiClient] Starting new refresh request')
+          devLog('[apiClient] Starting new refresh request')
           refreshPromise = refreshAccessToken().finally(() => {
             refreshPromise = null
           })
         } else {
-          console.log('[apiClient] Joining existing refresh request')
+          devLog('[apiClient] Joining existing refresh request')
         }
 
         // All concurrent requests wait for the same refresh promise
         await refreshPromise
-        console.log('[apiClient] Token refresh succeeded, retrying original request')
+        devLog('[apiClient] Token refresh succeeded, retrying original request')
 
         // Retry original request with new token
         const token = getAccessToken?.()
@@ -146,25 +148,11 @@ apiClient.interceptors.response.use(
           code: (refreshError as AxiosError)?.code,
           status: (refreshError as AxiosError)?.response?.status,
         }
-        console.log('[apiClient] Token refresh failed:', refreshErrorInfo)
+        devLog('[apiClient] Token refresh failed:', refreshErrorInfo)
 
-        const isNetworkError =
-          refreshError instanceof Error &&
-          (refreshError.message === 'Network Error' ||
-            refreshError.message.includes('ECONNREFUSED') ||
-            refreshError.message.includes('ERR_NETWORK') ||
-            refreshError.message.includes('ETIMEDOUT') ||
-            refreshError.message.includes('ECONNRESET') ||
-            refreshError.message.includes('Failed to fetch') ||
-            refreshError.message.includes('timeout') ||
-            // Axios network errors have no response
-            (refreshError as AxiosError).code === 'ERR_NETWORK' ||
-            (refreshError as AxiosError).code === 'ECONNABORTED' ||
-            (refreshError as AxiosError).code === 'ETIMEDOUT')
-
-        if (isNetworkError) {
+        if (isNetworkError(refreshError)) {
           // Network error - don't redirect, let offline handling deal with it
-          console.warn('[apiClient] Token refresh failed due to network error - staying in offline mode', {
+          devWarn('[apiClient] Token refresh failed due to network error - staying in offline mode', {
             errorMessage: (refreshError as Error)?.message,
             errorCode: (refreshError as AxiosError)?.code,
           })
@@ -174,7 +162,7 @@ apiClient.interceptors.response.use(
         // Check if this is a transient server error (5xx)
         const serverStatus = (refreshError as AxiosError)?.response?.status
         if (serverStatus && serverStatus >= 500) {
-          console.warn('[apiClient] Token refresh failed due to server error - staying in offline mode', {
+          devWarn('[apiClient] Token refresh failed due to server error - staying in offline mode', {
             status: serverStatus,
           })
           return Promise.reject(error)
@@ -182,11 +170,11 @@ apiClient.interceptors.response.use(
 
         // Auth failure (invalid credentials, expired refresh token)
         // Only redirect if we're sure it's an auth failure
-        console.log('[apiClient] Auth failure detected, will redirect to login')
+        devLog('[apiClient] Auth failure detected, will redirect to login')
         const returnUrl = window.location.pathname
         if (returnUrl !== '/login' && returnUrl !== '/register') {
           sessionStorage.setItem('returnUrl', returnUrl)
-          console.log('[apiClient] Saved return URL:', returnUrl)
+          devLog('[apiClient] Saved return URL:', returnUrl)
         }
         window.location.href = '/login?expired=true'
         return Promise.reject(error)
@@ -218,13 +206,13 @@ apiClient.interceptors.response.use(
  * @returns true if API is reachable, false otherwise
  */
 export async function checkApiHealth(): Promise<boolean> {
-  console.log('[apiClient] checkApiHealth called')
+  devLog('[apiClient] checkApiHealth called')
   try {
     const response = await apiClient.get('/health', {
       timeout: 5000, // 5 second timeout for health check
     })
     const isHealthy = response.status === 200
-    console.log('[apiClient] checkApiHealth result:', {
+    devLog('[apiClient] checkApiHealth result:', {
       status: response.status,
       isHealthy,
       data: response.data,
@@ -236,7 +224,7 @@ export async function checkApiHealth(): Promise<boolean> {
       code: (error as AxiosError)?.code,
       status: (error as AxiosError)?.response?.status,
     }
-    console.log('[apiClient] checkApiHealth failed:', errorInfo)
+    devLog('[apiClient] checkApiHealth failed:', errorInfo)
     return false
   }
 }

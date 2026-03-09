@@ -1,10 +1,8 @@
-using Cadence.Core.Constants;
-using Cadence.Core.Data;
+using System.Security.Claims;
 using Cadence.Core.Features.Phases.Models.DTOs;
-using Cadence.Core.Models.Entities;
+using Cadence.Core.Features.Phases.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -18,12 +16,12 @@ namespace Cadence.WebApi.Controllers;
 [Authorize]
 public class PhasesController : ControllerBase
 {
-    private readonly AppDbContext _context;
+    private readonly IPhaseService _phaseService;
     private readonly ILogger<PhasesController> _logger;
 
-    public PhasesController(AppDbContext context, ILogger<PhasesController> logger)
+    public PhasesController(IPhaseService phaseService, ILogger<PhasesController> logger)
     {
-        _context = context;
+        _phaseService = phaseService;
         _logger = logger;
     }
 
@@ -33,27 +31,12 @@ public class PhasesController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<PhaseDto>>> GetPhases(Guid exerciseId)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
-        {
+        var phases = await _phaseService.GetPhasesAsync(exerciseId);
+
+        if (phases == null)
             return NotFound(new { message = "Exercise not found" });
-        }
 
-        var phases = await _context.Phases
-            .Where(p => p.ExerciseId == exerciseId)
-            .OrderBy(p => p.Sequence)
-            .ToListAsync();
-
-        // Get inject counts per phase
-        var injectCounts = await _context.Injects
-            .Where(i => i.Msel!.ExerciseId == exerciseId && i.PhaseId != null)
-            .GroupBy(i => i.PhaseId)
-            .Select(g => new { PhaseId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.PhaseId!.Value, x => x.Count);
-
-        var dtos = phases.Select(p => p.ToDto(injectCounts.GetValueOrDefault(p.Id, 0)));
-
-        return Ok(dtos);
+        return Ok(phases);
     }
 
     /// <summary>
@@ -62,24 +45,12 @@ public class PhasesController : ControllerBase
     [HttpGet("{id:guid}")]
     public async Task<ActionResult<PhaseDto>> GetPhase(Guid exerciseId, Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
-        {
-            return NotFound(new { message = "Exercise not found" });
-        }
-
-        var phase = await _context.Phases
-            .FirstOrDefaultAsync(p => p.Id == id && p.ExerciseId == exerciseId);
+        var phase = await _phaseService.GetPhaseAsync(exerciseId, id);
 
         if (phase == null)
-        {
             return NotFound(new { message = "Phase not found" });
-        }
 
-        var injectCount = await _context.Injects
-            .CountAsync(i => i.PhaseId == id);
-
-        return Ok(phase.ToDto(injectCount));
+        return Ok(phase);
     }
 
     /// <summary>
@@ -88,48 +59,31 @@ public class PhasesController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<PhaseDto>> CreatePhase(Guid exerciseId, CreatePhaseRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
-        }
+            var phase = await _phaseService.CreatePhaseAsync(exerciseId, request, GetCurrentUserId());
 
-        // Validate request
-        var validationError = ValidatePhaseRequest(request.Name, request.Description);
-        if (validationError != null)
+            _logger.LogInformation("Created phase {PhaseId}: {PhaseName} for exercise {ExerciseId}",
+                phase.Id, phase.Name, exerciseId);
+
+            return CreatedAtAction(
+                nameof(GetPhase),
+                new { exerciseId, id = phase.Id },
+                phase
+            );
+        }
+        catch (KeyNotFoundException ex)
         {
-            return BadRequest(new { message = validationError });
+            return NotFound(new { message = ex.Message });
         }
-
-        // Check status-based restrictions
-        if (exercise.Status == ExerciseStatus.Archived)
+        catch (ArgumentException ex)
         {
-            return BadRequest(new { message = "Archived exercises cannot be modified" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Get next sequence number
-        var maxSequence = await _context.Phases
-            .Where(p => p.ExerciseId == exerciseId)
-            .MaxAsync(p => (int?)p.Sequence) ?? 0;
-
-        // Create phase (system user until auth is implemented)
-        var createdBy = SystemConstants.SystemUserIdString;
-        var phase = request.ToEntity(exerciseId, maxSequence + 1, createdBy);
-
-        // Set OrganizationId from the parent exercise for data isolation
-        phase.OrganizationId = exercise.OrganizationId;
-
-        _context.Phases.Add(phase);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Created phase {PhaseId}: {PhaseName} for exercise {ExerciseId}",
-            phase.Id, phase.Name, exerciseId);
-
-        return CreatedAtAction(
-            nameof(GetPhase),
-            new { exerciseId, id = phase.Id },
-            phase.ToDto(0)
-        );
+        catch (InvalidOperationException ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
     /// <summary>
@@ -138,43 +92,25 @@ public class PhasesController : ControllerBase
     [HttpPut("{id:guid}")]
     public async Task<ActionResult<PhaseDto>> UpdatePhase(Guid exerciseId, Guid id, UpdatePhaseRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
+            var phase = await _phaseService.UpdatePhaseAsync(exerciseId, id, request, GetCurrentUserId());
+
+            if (phase == null)
+                return NotFound(new { message = "Phase not found" });
+
+            _logger.LogInformation("Updated phase {PhaseId}: {PhaseName}", id, phase.Name);
+
+            return Ok(phase);
         }
-
-        var phase = await _context.Phases
-            .FirstOrDefaultAsync(p => p.Id == id && p.ExerciseId == exerciseId);
-
-        if (phase == null)
+        catch (ArgumentException ex)
         {
-            return NotFound(new { message = "Phase not found" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Validate request
-        var validationError = ValidatePhaseRequest(request.Name, request.Description);
-        if (validationError != null)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = validationError });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Check status-based restrictions
-        if (exercise.Status == ExerciseStatus.Archived)
-        {
-            return BadRequest(new { message = "Archived exercises cannot be modified" });
-        }
-
-        // Update phase (system user until auth is implemented)
-        phase.UpdateFromRequest(request, SystemConstants.SystemUserIdString);
-        await _context.SaveChangesAsync();
-
-        var injectCount = await _context.Injects
-            .CountAsync(i => i.PhaseId == id);
-
-        _logger.LogInformation("Updated phase {PhaseId}: {PhaseName}", phase.Id, phase.Name);
-
-        return Ok(phase.ToDto(injectCount));
     }
 
     /// <summary>
@@ -183,41 +119,21 @@ public class PhasesController : ControllerBase
     [HttpDelete("{id:guid}")]
     public async Task<ActionResult> DeletePhase(Guid exerciseId, Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
-        }
+            var deleted = await _phaseService.DeletePhaseAsync(exerciseId, id);
 
-        if (exercise.Status == ExerciseStatus.Archived)
+            if (!deleted)
+                return NotFound(new { message = "Phase not found" });
+
+            _logger.LogInformation("Deleted phase {PhaseId} from exercise {ExerciseId}", id, exerciseId);
+
+            return NoContent();
+        }
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = "Archived exercises cannot be modified" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        var phase = await _context.Phases
-            .FirstOrDefaultAsync(p => p.Id == id && p.ExerciseId == exerciseId);
-
-        if (phase == null)
-        {
-            return NotFound(new { message = "Phase not found" });
-        }
-
-        // Check if phase has injects
-        var injectCount = await _context.Injects
-            .CountAsync(i => i.PhaseId == id);
-
-        if (injectCount > 0)
-        {
-            return BadRequest(new { message = $"Cannot delete phase with {injectCount} inject(s). Move or delete the injects first." });
-        }
-
-        // Hard delete (phases don't need soft delete since they're organizational)
-        _context.Phases.Remove(phase);
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Deleted phase {PhaseId}: {PhaseName}", phase.Id, phase.Name);
-
-        return NoContent();
     }
 
     /// <summary>
@@ -226,86 +142,36 @@ public class PhasesController : ControllerBase
     [HttpPut("reorder")]
     public async Task<ActionResult<IEnumerable<PhaseDto>>> ReorderPhases(Guid exerciseId, ReorderPhasesRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
-        }
+            var phases = await _phaseService.ReorderPhasesAsync(exerciseId, request, GetCurrentUserId());
 
-        if (exercise.Status == ExerciseStatus.Archived)
+            if (phases == null)
+                return NotFound(new { message = "Exercise not found" });
+
+            _logger.LogInformation("Reordered {Count} phases for exercise {ExerciseId}",
+                request.PhaseIds.Count, exerciseId);
+
+            return Ok(phases);
+        }
+        catch (ArgumentException ex)
         {
-            return BadRequest(new { message = "Archived exercises cannot be modified" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        if (request.PhaseIds.Count == 0)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = "PhaseIds list is required" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Get all phases for this exercise
-        var phases = await _context.Phases
-            .Where(p => p.ExerciseId == exerciseId)
-            .ToListAsync();
-
-        // Validate all IDs are valid and belong to this exercise
-        var phaseDict = phases.ToDictionary(p => p.Id);
-        foreach (var phaseId in request.PhaseIds)
-        {
-            if (!phaseDict.ContainsKey(phaseId))
-            {
-                return BadRequest(new { message = $"Phase {phaseId} not found in this exercise" });
-            }
-        }
-
-        // Update sequences (system user until auth is implemented)
-        for (int i = 0; i < request.PhaseIds.Count; i++)
-        {
-            var phase = phaseDict[request.PhaseIds[i]];
-            phase.Sequence = i + 1;
-            phase.ModifiedBy = SystemConstants.SystemUserIdString;
-        }
-
-        await _context.SaveChangesAsync();
-
-        // Get inject counts
-        var injectCounts = await _context.Injects
-            .Where(i => i.Msel!.ExerciseId == exerciseId && i.PhaseId != null)
-            .GroupBy(i => i.PhaseId)
-            .Select(g => new { PhaseId = g.Key, Count = g.Count() })
-            .ToDictionaryAsync(x => x.PhaseId!.Value, x => x.Count);
-
-        var orderedPhases = phases
-            .OrderBy(p => p.Sequence)
-            .Select(p => p.ToDto(injectCounts.GetValueOrDefault(p.Id, 0)));
-
-        _logger.LogInformation("Reordered {Count} phases for exercise {ExerciseId}",
-            request.PhaseIds.Count, exerciseId);
-
-        return Ok(orderedPhases);
     }
 
-    private static string? ValidatePhaseRequest(string name, string? description)
+    /// <summary>
+    /// Gets the authenticated user's ID from JWT claims.
+    /// </summary>
+    private string GetCurrentUserId()
     {
-        // Name validation
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return "Name is required";
-        }
-        if (name.Length < 3)
-        {
-            return "Name must be at least 3 characters";
-        }
-        if (name.Length > 100)
-        {
-            return "Name must be 100 characters or less";
-        }
-
-        // Description validation
-        if (description?.Length > 500)
-        {
-            return "Description must be 500 characters or less";
-        }
-
-        return null;
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        if (string.IsNullOrEmpty(userId))
+            throw new UnauthorizedAccessException("User not authenticated");
+        return userId;
     }
 }

@@ -29,6 +29,7 @@ public class ExerciseParticipantService : IExerciseParticipantService
         CancellationToken ct = default)
     {
         var participants = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Include(p => p.User)
             .Where(p => p.ExerciseId == exerciseId && !p.IsDeleted)
             .ToListAsync(ct);
@@ -59,6 +60,7 @@ public class ExerciseParticipantService : IExerciseParticipantService
         CancellationToken ct = default)
     {
         var participant = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Include(p => p.User)
             .Where(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted)
             .FirstOrDefaultAsync(ct);
@@ -79,6 +81,7 @@ public class ExerciseParticipantService : IExerciseParticipantService
     {
         // Check for exercise-specific role
         var participant = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Where(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted)
             .FirstOrDefaultAsync(ct);
 
@@ -285,6 +288,7 @@ public class ExerciseParticipantService : IExerciseParticipantService
         CancellationToken ct = default)
     {
         var assignments = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Include(p => p.Exercise)
             .Where(p => p.UserId == userId && !p.IsDeleted && !p.Exercise.IsDeleted)
             .OrderByDescending(p => p.AssignedAt)

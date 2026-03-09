@@ -5,6 +5,7 @@
  */
 
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { devWarn } from '../../../core/utils/logger'
 import {
   Box,
   Typography,
@@ -61,8 +62,8 @@ export const FileUploadStep = ({
 }: FileUploadStepProps) => {
   // Warn if both templateUrl and onDownloadTemplate are provided
   useEffect(() => {
-    if (import.meta.env.DEV && templateUrl && onDownloadTemplate) {
-      console.warn(
+    if (templateUrl && onDownloadTemplate) {
+      devWarn(
         'FileUploadStep: Both templateUrl and onDownloadTemplate are provided. ' +
           'onDownloadTemplate will take precedence. templateUrl is deprecated.',
       )

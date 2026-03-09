@@ -198,14 +198,30 @@ try
     builder.Services.AddCadenceAuthorization();
 
     // Add CORS
+    // In development: allow any origin (convenient for local dev on different ports)
+    // In production: restrict to configured AllowedOrigins to prevent cross-origin credential attacks
     builder.Services.AddCors(options =>
     {
         options.AddDefaultPolicy(policy =>
         {
-            policy.SetIsOriginAllowed(_ => true) // Allow any origin for development
-                  .AllowAnyHeader()
-                  .AllowAnyMethod()
-                  .AllowCredentials();
+            if (builder.Environment.IsDevelopment())
+            {
+                policy.SetIsOriginAllowed(_ => true)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
+            else
+            {
+                var allowedOrigins = builder.Configuration
+                    .GetSection("Cors:AllowedOrigins")
+                    .Get<string[]>() ?? [];
+
+                policy.WithOrigins(allowedOrigins)
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            }
         });
     });
 
@@ -376,6 +392,15 @@ try
         {
             var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
             logger.LogError(ex, "Unhandled exception");
+
+            // Guard against modifying a response that has already started streaming.
+            // Writing to a started response causes an InvalidOperationException.
+            if (context.Response.HasStarted)
+            {
+                logger.LogWarning("Response has already started; cannot write error body for exception: {ExceptionType}", ex.GetType().Name);
+                throw;
+            }
+
             context.Response.StatusCode = 500;
 
             if (app.Environment.IsDevelopment())

@@ -322,6 +322,16 @@ public class OrganizationInvitationService : IOrganizationInvitationService
             {
                 user.OrganizationId = invite.OrganizationId;
             }
+
+            // Activate the account if it was created in Pending status
+            // (e.g. pre-created by a system admin before the user registered).
+            if (user.Status == UserStatus.Pending)
+            {
+                user.Status = UserStatus.Active;
+                _logger.LogInformation(
+                    "Activated pending user {UserId} upon accepting invitation {InviteId}",
+                    userId, invite.Id);
+            }
         }
 
         // Bypass org validation: the user's JWT org context differs from the invited org,

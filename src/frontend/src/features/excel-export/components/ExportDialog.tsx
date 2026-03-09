@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { devLog } from '@/core/utils/logger'
 import {
   Dialog,
   DialogTitle,
@@ -56,7 +57,7 @@ export function ExportDialog({
     exportMutation.mutate(request, {
       onSuccess: info => {
         // Could show a success toast here
-        console.log('Export complete:', info)
+        devLog('Export complete:', info)
         onClose()
       },
     })

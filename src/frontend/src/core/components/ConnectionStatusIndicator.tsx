@@ -14,6 +14,7 @@
 
 import React, { useState } from 'react'
 import { Box, Tooltip, Typography, Chip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faWifi,
@@ -23,6 +24,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import { useConnectivity, type ConnectivityState } from '../contexts/ConnectivityContext'
 import { PendingActionsPopover } from './PendingActionsPopover'
+import type { Theme } from '@mui/material/styles'
 
 interface StatusConfig {
   color: string
@@ -33,44 +35,53 @@ interface StatusConfig {
   tooltip: string
 }
 
-const statusConfigs: Record<ConnectivityState | 'live', StatusConfig> = {
-  live: {
-    color: '#22c55e', // green-500
-    bgColor: 'rgba(34, 197, 94, 0.1)',
-    icon: faTowerBroadcast,
-    label: 'Live',
-    tooltip: 'Connected to exercise — receiving real-time updates',
-  },
-  online: {
-    color: '#22c55e', // green-500
-    bgColor: 'rgba(34, 197, 94, 0.1)',
-    icon: faWifi,
-    label: '',
-    tooltip: 'Connected',
-  },
-  connecting: {
-    color: '#f59e0b', // amber-500
-    bgColor: 'rgba(245, 158, 11, 0.1)',
-    icon: faSpinner,
-    spin: true,
-    label: 'Connecting',
-    tooltip: 'Establishing connection...',
-  },
-  reconnecting: {
-    color: '#f59e0b', // amber-500
-    bgColor: 'rgba(245, 158, 11, 0.1)',
-    icon: faSpinner,
-    spin: true,
-    label: 'Reconnecting',
-    tooltip: 'Connection lost. Attempting to reconnect...',
-  },
-  offline: {
-    color: '#ef4444', // red-500
-    bgColor: 'rgba(239, 68, 68, 0.1)',
-    icon: faTriangleExclamation,
-    label: 'Offline',
-    tooltip: 'You are offline. Changes will sync when connection restores.',
-  },
+function buildStatusConfigs(theme: Theme): Record<ConnectivityState | 'live', StatusConfig> {
+  const successColor = theme.palette.success.main
+  const successBg = `${theme.palette.success.main}1a` // 10% opacity
+  const warningColor = theme.palette.warning.main
+  const warningBg = `${theme.palette.warning.main}1a` // 10% opacity
+  const errorColor = theme.palette.error.main
+  const errorBg = `${theme.palette.error.main}1a` // 10% opacity
+
+  return {
+    live: {
+      color: successColor,
+      bgColor: successBg,
+      icon: faTowerBroadcast,
+      label: 'Live',
+      tooltip: 'Connected to exercise — receiving real-time updates',
+    },
+    online: {
+      color: successColor,
+      bgColor: successBg,
+      icon: faWifi,
+      label: '',
+      tooltip: 'Connected',
+    },
+    connecting: {
+      color: warningColor,
+      bgColor: warningBg,
+      icon: faSpinner,
+      spin: true,
+      label: 'Connecting',
+      tooltip: 'Establishing connection...',
+    },
+    reconnecting: {
+      color: warningColor,
+      bgColor: warningBg,
+      icon: faSpinner,
+      spin: true,
+      label: 'Reconnecting',
+      tooltip: 'Connection lost. Attempting to reconnect...',
+    },
+    offline: {
+      color: errorColor,
+      bgColor: errorBg,
+      icon: faTriangleExclamation,
+      label: 'Offline',
+      tooltip: 'You are offline. Changes will sync when connection restores.',
+    },
+  }
 }
 
 interface ConnectionStatusIndicatorProps {
@@ -84,12 +95,14 @@ export const ConnectionStatusIndicator: React.FC<ConnectionStatusIndicatorProps>
   compact = true,
   className,
 }) => {
+  const theme = useTheme()
   const { connectivityState, isInExercise, isSignalRJoined, pendingCount } = useConnectivity()
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
   // Show "Live" when in exercise, connected, and joined the exercise group
   const isLive = isInExercise && connectivityState === 'online' && isSignalRJoined
   const displayState = isLive ? 'live' : connectivityState
+  const statusConfigs = buildStatusConfigs(theme)
   const config = statusConfigs[displayState]
 
   // In compact mode, hide when online (not in exercise) with no pending

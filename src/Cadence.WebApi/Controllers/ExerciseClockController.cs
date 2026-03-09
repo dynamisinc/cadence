@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Cadence.Core.Features.ExerciseClock.Models.DTOs;
 using Cadence.Core.Features.ExerciseClock.Services;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -53,7 +53,7 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var startedBy = GetCurrentUserIdString();
+            var startedBy = GetCurrentUserId();
 
             var clockState = await _clockService.StartClockAsync(exerciseId, startedBy);
 
@@ -171,23 +171,8 @@ public class ExerciseClockController : ControllerBase
     // Private Helpers
     // =========================================================================
 
-    private string GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
-
-    private string GetCurrentUserIdString()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
+    /// <summary>
+    /// Gets the current authenticated user's ID from JWT claims.
+    /// </summary>
+    private string GetCurrentUserId() => User.GetUserId();
 }

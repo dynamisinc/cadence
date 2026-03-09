@@ -211,6 +211,7 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     objectiveIds: [],
     updatedAt: cached.updatedAt,
     createdAt: cached.updatedAt, // Use updatedAt as fallback
+    modifiedBy: null, // Not tracked in cache
     // Phase G fields - not tracked in cache
     sourceReference: null,
     priority: null,

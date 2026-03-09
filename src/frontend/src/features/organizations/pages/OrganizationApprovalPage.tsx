@@ -31,6 +31,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldHalved, faSave, faUndo, faBuilding } from '@fortawesome/free-solid-svg-icons'
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 import { notify } from '@/shared/utils/notify'
+import { devLog } from '@/core/utils/logger'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import {
   ApprovalRoles,
@@ -113,7 +114,7 @@ export const OrganizationApprovalPage: FC = () => {
 
   useEffect(() => {
     if (permissions) {
-      console.log('[ApprovalPage] Loading permissions from API:', permissions)
+      devLog('[ApprovalPage] Loading permissions from API:', permissions)
       setAuthorizedRoles(permissions.authorizedRoles)
       setSelfApprovalPolicy(permissions.selfApprovalPolicy as SelfApprovalPolicy)
     }
@@ -170,7 +171,7 @@ export const OrganizationApprovalPage: FC = () => {
     try {
       // Save approval policy if changed
       if (organization && approvalPolicy !== organization.injectApprovalPolicy) {
-        console.log('[ApprovalPage] Saving policy:', approvalPolicy)
+        devLog('[ApprovalPage] Saving policy:', approvalPolicy)
         await updatePolicy.mutateAsync(approvalPolicy)
       }
       // Save permissions if changed
@@ -178,8 +179,8 @@ export const OrganizationApprovalPage: FC = () => {
         authorizedRoles !== permissions.authorizedRoles ||
         selfApprovalPolicy !== permissions.selfApprovalPolicy
       )) {
-        console.log('[ApprovalPage] Saving permissions:', { authorizedRoles, selfApprovalPolicy })
-        console.log('[ApprovalPage] Original permissions:', {
+        devLog('[ApprovalPage] Saving permissions:', { authorizedRoles, selfApprovalPolicy })
+        devLog('[ApprovalPage] Original permissions:', {
           authorizedRoles: permissions.authorizedRoles,
           selfApprovalPolicy: permissions.selfApprovalPolicy,
         })

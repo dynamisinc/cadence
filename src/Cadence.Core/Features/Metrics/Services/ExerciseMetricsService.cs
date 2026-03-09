@@ -1,4 +1,3 @@
-using Cadence.Core.Data;
 using Cadence.Core.Features.Metrics.Models.DTOs;
 
 namespace Cadence.Core.Features.Metrics.Services;
@@ -27,19 +26,6 @@ public class ExerciseMetricsService : IExerciseMetricsService
         _injectService = injectService;
         _observationService = observationService;
         _timelineService = timelineService;
-    }
-
-    /// <summary>
-    /// Constructor for backward compatibility with just DbContext.
-    /// Creates internal service instances.
-    /// </summary>
-    public ExerciseMetricsService(AppDbContext context)
-        : this(
-            new ProgressMetricsService(context),
-            new InjectMetricsService(context),
-            new ObservationMetricsService(context),
-            new TimelineMetricsService(context))
-    {
     }
 
     /// <inheritdoc />

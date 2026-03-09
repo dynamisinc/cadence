@@ -72,6 +72,8 @@ export interface InjectDto {
   revertedByName: string | null
   revertedAt: string | null // DateTime as ISO string
   revertReason: string | null
+  /** Name of the user who last modified this inject */
+  modifiedBy: string | null
   // EEG Linking (S05)
   linkedCriticalTaskCount: number
 }

@@ -55,7 +55,7 @@ function resolveContent(props: HelpTooltipProps): ContextualHelp | null {
   return null
 }
 
-export const HelpTooltip: FC<HelpTooltipProps> = (props) => {
+export const HelpTooltip: FC<HelpTooltipProps> = props => {
   const { exerciseRole, size = 'sm', compact = false } = props
   const [anchorEl, setAnchorEl] = useState<HTMLElement | null>(null)
 
@@ -138,7 +138,7 @@ export const HelpTooltip: FC<HelpTooltipProps> = (props) => {
               >
                 HSEEP Terms
               </Typography>
-              {content.relatedTerms.map((termKey) => {
+              {content.relatedTerms.map(termKey => {
                 const entry = HSEEP_GLOSSARY[termKey]
                 if (!entry) return null
                 return (

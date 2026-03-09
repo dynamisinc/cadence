@@ -10,6 +10,7 @@
 
 import { useState } from 'react'
 import { Box, Stack } from '@mui/material'
+import { devWarn } from '@/core/utils/logger'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCamera, faImage, faSpinner } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
@@ -67,7 +68,7 @@ export const PhotoCapture = ({
           locationAccuracy = position.coords.accuracy
         } catch (error) {
           // GPS unavailable or denied - continue without location
-          console.warn('GPS location unavailable:', error)
+          devWarn('GPS location unavailable:', error)
         }
       }
 

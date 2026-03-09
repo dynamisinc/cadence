@@ -1,6 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { BrowserRouter } from 'react-router-dom'
+import { ThemeProvider } from '@mui/material/styles'
+import { cobraTheme } from '@/theme/cobraTheme'
 import { VersionInfoCard } from './VersionInfoCard'
 
 // Mock the version module
@@ -23,9 +25,11 @@ import { apiClient } from '@/core/services/api'
 
 const renderCard = () => {
   return render(
-    <BrowserRouter>
-      <VersionInfoCard />
-    </BrowserRouter>,
+    <ThemeProvider theme={cobraTheme}>
+      <BrowserRouter>
+        <VersionInfoCard />
+      </BrowserRouter>
+    </ThemeProvider>,
   )
 }
 

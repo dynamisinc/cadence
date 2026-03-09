@@ -17,17 +17,13 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react'
 import * as signalR from '@microsoft/signalr'
+import { devLog, devWarn } from '@/core/utils/logger'
+import type { ConnectionState } from './signalRTypes'
 import type { InjectDto } from '../../features/injects/types'
 import type { ObservationDto } from '../../features/observations/types'
 import type { ExerciseClockDto } from '../../features/exercise-clock/types'
 
-/** SignalR connection states */
-export type ConnectionState =
-  | 'disconnected'
-  | 'connecting'
-  | 'connected'
-  | 'reconnecting'
-  | 'error'
+export type { ConnectionState }
 
 interface UseExerciseSignalROptions {
   /** Exercise ID to join */
@@ -159,7 +155,7 @@ export const useExerciseSignalR = (
       await connection.invoke('JoinExercise', id)
       currentExerciseIdRef.current = id
       setIsJoined(true)
-      console.log(`Joined exercise group: ${id}`)
+      devLog(`Joined exercise group: ${id}`)
     } catch (err) {
       console.error('Failed to join exercise group:', err)
       setError(`Failed to join exercise: ${err instanceof Error ? err.message : 'Unknown error'}`)
@@ -174,7 +170,7 @@ export const useExerciseSignalR = (
       await connection.invoke('LeaveExercise', id)
       currentExerciseIdRef.current = null
       setIsJoined(false)
-      console.log(`Left exercise group: ${id}`)
+      devLog(`Left exercise group: ${id}`)
     } catch (err) {
       console.error('Failed to leave exercise group:', err)
     }
@@ -317,7 +313,7 @@ export const useExerciseSignalR = (
         setConnectionState('reconnecting')
         setIsJoined(false)
         if (err) {
-          console.warn('SignalR reconnecting:', err.message)
+          devWarn('SignalR reconnecting:', err.message)
         }
       })
 

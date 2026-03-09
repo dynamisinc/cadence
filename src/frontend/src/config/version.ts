@@ -3,8 +3,11 @@
  *
  * @example
  * import { appVersion } from '@/config/version';
- * console.log(`Running Cadence v${appVersion.version}`);
+ * import { devLog } from '@/core/utils/logger';
+ * devLog(`Running Cadence v${appVersion.version}`);
  */
+import { devLog } from '@/core/utils/logger'
+
 export const appVersion = {
   /** Semantic version from package.json */
   version: __APP_VERSION__,
@@ -15,9 +18,7 @@ export const appVersion = {
 } as const
 
 // Log version on app initialization (helps with support/debugging)
-if (import.meta.env.DEV) {
-  console.log(
-    `%c🎯 Cadence v${appVersion.version} (${appVersion.commitSha})`,
-    'color: #1976d2; font-weight: bold;',
-  )
-}
+devLog(
+  `%c Cadence v${appVersion.version} (${appVersion.commitSha})`,
+  'color: #1976d2; font-weight: bold;',
+)

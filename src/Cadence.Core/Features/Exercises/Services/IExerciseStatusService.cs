@@ -89,6 +89,15 @@ public interface IExerciseStatusService
     IReadOnlyList<ExerciseStatus> GetAvailableTransitions(ExerciseStatus currentStatus);
 
     /// <summary>
+    /// Gets the available status transitions for an exercise by ID.
+    /// Returns null if the exercise is not found.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="ct">Cancellation token</param>
+    /// <returns>List of available target statuses, or null if exercise not found</returns>
+    Task<IReadOnlyList<ExerciseStatus>?> GetAvailableTransitionsAsync(Guid exerciseId, CancellationToken ct = default);
+
+    /// <summary>
     /// Validates whether an exercise can be published.
     /// When approval is enabled, checks for unapproved injects (Draft or Submitted).
     /// </summary>

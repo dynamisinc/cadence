@@ -6,9 +6,10 @@
  * @module features/exercises/components
  */
 
-import { Alert, Button } from '@mui/material'
+import { Alert } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClock, faArrowRight } from '@fortawesome/free-solid-svg-icons'
+import { CobraLinkButton } from '@/theme/styledComponents'
 import { useApprovalStatus } from '../hooks'
 
 interface PendingApprovalAlertProps {
@@ -50,14 +51,14 @@ export const PendingApprovalAlert = ({
       severity="info"
       icon={<FontAwesomeIcon icon={faClock} />}
       action={
-        <Button
-          color="inherit"
+        <CobraLinkButton
           size="small"
           onClick={onReviewClick}
           endIcon={<FontAwesomeIcon icon={faArrowRight} />}
+          sx={{ color: 'inherit' }}
         >
           Review Now
-        </Button>
+        </CobraLinkButton>
       }
       sx={{ mb: 2 }}
     >

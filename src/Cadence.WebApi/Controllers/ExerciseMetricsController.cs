@@ -1,5 +1,6 @@
 using Cadence.Core.Features.Metrics.Models.DTOs;
 using Cadence.Core.Features.Metrics.Services;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -11,6 +12,7 @@ namespace Cadence.WebApi.Controllers;
 [ApiController]
 [Route("api/exercises/{exerciseId:guid}")]
 [Authorize]
+[AuthorizeExerciseAccess]
 public class ExerciseMetricsController : ControllerBase
 {
     private readonly IExerciseMetricsService _metricsService;

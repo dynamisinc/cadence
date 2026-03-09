@@ -8,10 +8,10 @@
  * - Logout option
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import {
   Box,
-  Button,
   Menu,
   Typography,
   Divider,
@@ -22,12 +22,13 @@ import {
   Chip,
   Stack,
 } from '@mui/material'
+import { CobraLinkButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faRightFromBracket, faDumbbell, faPlay, faGear, faCircleInfo, faCommentDots } from '@fortawesome/free-solid-svg-icons'
 import { cobraTheme } from '../../theme/cobraTheme'
 import { useAuth } from '../../contexts/AuthContext'
 import { roleResolutionService, getRoleColor, getRoleDisplayName } from '@/features/auth'
-import type { ExerciseRole, ExerciseAssignmentDto } from '@/features/auth'
+import type { ExerciseRole } from '@/features/auth'
 import { useExerciseNavigation } from '@/shared/contexts'
 import { UserSettingsDialog } from '@/features/settings'
 import { FeedbackDialog } from '@/features/feedback'
@@ -59,34 +60,18 @@ export const ProfileMenu: React.FC = () => {
   const { currentExercise, isInExerciseContext } = useExerciseNavigation()
   const navigate = useNavigate()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [exerciseAssignments, setExerciseAssignments] = useState<ExerciseAssignmentDto[]>([])
-  const [isLoadingAssignments, setIsLoadingAssignments] = useState(false)
   const [settingsOpen, setSettingsOpen] = useState(false)
   const [feedbackOpen, setFeedbackOpen] = useState(false)
 
   const open = Boolean(anchorEl)
 
-  // Fetch exercise assignments when menu opens
-  useEffect(() => {
-    if (!open || !user) {
-      return
-    }
-
-    const fetchAssignments = async () => {
-      try {
-        setIsLoadingAssignments(true)
-        const assignments = await roleResolutionService.getUserExerciseAssignments(user.id)
-        setExerciseAssignments(assignments)
-      } catch (error) {
-        console.error('Failed to fetch exercise assignments:', error)
-        setExerciseAssignments([])
-      } finally {
-        setIsLoadingAssignments(false)
-      }
-    }
-
-    fetchAssignments()
-  }, [open, user])
+  // Fetch exercise assignments when menu opens using React Query
+  const { data: exerciseAssignments = [], isLoading: isLoadingAssignments } = useQuery({
+    queryKey: ['exerciseAssignments', user?.id],
+    queryFn: () => roleResolutionService.getUserExerciseAssignments(user!.id),
+    enabled: open && !!user,
+    staleTime: 30_000, // 30 seconds - assignments don't change frequently
+  })
 
   // Don't render if no user - prevents showing "Guest User" when API is offline
   if (!user) {
@@ -137,12 +122,11 @@ export const ProfileMenu: React.FC = () => {
 
   return (
     <>
-      <Button
+      <CobraLinkButton
         onClick={handleClick}
         data-testid="profile-menu-button"
         sx={{
           color: 'white',
-          textTransform: 'none',
           display: 'flex',
           alignItems: 'center',
           gap: 1,
@@ -182,17 +166,19 @@ export const ProfileMenu: React.FC = () => {
           </Typography>
         </Box>
         <FontAwesomeIcon icon={faChevronDown} size="sm" />
-      </Button>
+      </CobraLinkButton>
 
       <Menu
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
         data-testid="profile-menu-dropdown"
-        PaperProps={{
-          sx: {
-            minWidth: 300,
-            maxWidth: 360,
+        slotProps={{
+          paper: {
+            sx: {
+              minWidth: 300,
+              maxWidth: 360,
+            },
           },
         }}
       >

@@ -2,6 +2,7 @@ using System.Security.Claims;
 using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Features.Photos.Services;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -316,15 +317,7 @@ public class PhotosController : ControllerBase
     }
 
     /// <summary>
-    /// Get current authenticated user's ID from JWT claims.
+    /// Gets the current authenticated user's ID from JWT claims.
     /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-        {
-            throw new UnauthorizedAccessException("User not authenticated");
-        }
-        return userIdClaim;
-    }
+    private string GetCurrentUserId() => User.GetUserId();
 }

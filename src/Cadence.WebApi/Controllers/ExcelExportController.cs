@@ -1,6 +1,7 @@
 using System.Globalization;
 using Cadence.Core.Features.ExcelExport.Models.DTOs;
 using Cadence.Core.Features.ExcelExport.Services;
+using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -73,6 +74,7 @@ public class ExcelExportController : ControllerBase
     /// <param name="filename">Custom filename (without extension)</param>
     /// <returns>Downloadable file</returns>
     [HttpGet("exercises/{exerciseId:guid}/msel")]
+    [AuthorizeExerciseAccess]
     [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -143,6 +145,7 @@ public class ExcelExportController : ControllerBase
     /// <param name="filename">Custom filename (without extension)</param>
     /// <returns>Downloadable Excel file</returns>
     [HttpGet("exercises/{exerciseId:guid}/observations")]
+    [AuthorizeExerciseAccess]
     [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
@@ -188,6 +191,7 @@ public class ExcelExportController : ControllerBase
     /// <param name="filename">Custom filename for the ZIP (without extension)</param>
     /// <returns>Downloadable ZIP file</returns>
     [HttpGet("exercises/{exerciseId:guid}/full")]
+    [AuthorizeExerciseAccess]
     [ProducesResponseType(typeof(FileResult), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]

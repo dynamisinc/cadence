@@ -9,6 +9,7 @@
  */
 import { useState } from 'react'
 import type { FC } from 'react'
+import { devLog } from '@/core/utils/logger'
 import { Box, Typography, Paper, Alert } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons'
@@ -29,7 +30,7 @@ export const PendingUserPage: FC = () => {
 
     // TODO: Implement organization code redemption API call
     // This will be part of P1 stories (OM-08)
-    console.log('Joining organization with code:', orgCode)
+    devLog('Joining organization with code:', orgCode)
 
     // For now, just show a message
     alert('Organization code redemption will be implemented in a future release.')

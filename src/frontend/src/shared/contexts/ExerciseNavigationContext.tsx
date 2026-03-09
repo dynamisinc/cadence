@@ -24,6 +24,7 @@ import {
 } from 'react'
 import type { ReactNode } from 'react'
 import type { ExerciseStatus, HseepRole } from '@/types'
+import { devWarn } from '@/core/utils/logger'
 
 /**
  * Exercise data stored in navigation context
@@ -63,7 +64,7 @@ function loadFromStorage(): ExerciseNavigationData | null {
       return JSON.parse(stored) as ExerciseNavigationData
     }
   } catch (error) {
-    console.warn('Failed to load exercise navigation context from storage:', error)
+    devWarn('Failed to load exercise navigation context from storage:', error)
   }
   return null
 }
@@ -79,7 +80,7 @@ function saveToStorage(data: ExerciseNavigationData | null): void {
       sessionStorage.removeItem(STORAGE_KEY)
     }
   } catch (error) {
-    console.warn('Failed to save exercise navigation context to storage:', error)
+    devWarn('Failed to save exercise navigation context to storage:', error)
   }
 }
 

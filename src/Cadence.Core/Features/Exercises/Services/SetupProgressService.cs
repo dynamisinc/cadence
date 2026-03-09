@@ -34,6 +34,7 @@ public class SetupProgressService : ISetupProgressService
     public async Task<SetupProgressDto?> GetSetupProgressAsync(Guid exerciseId)
     {
         var exercise = await _context.Exercises
+            .AsNoTracking()
             .Include(e => e.Phases.Where(p => !p.IsDeleted))
             .Include(e => e.Objectives.Where(o => !o.IsDeleted))
             .Include(e => e.Participants)
@@ -44,6 +45,7 @@ public class SetupProgressService : ISetupProgressService
 
         // Get active MSEL with inject count
         var mselInfo = await _context.Msels
+            .AsNoTracking()
             .Where(m => m.ExerciseId == exerciseId && m.IsActive && !m.IsDeleted)
             .Select(m => new
             {

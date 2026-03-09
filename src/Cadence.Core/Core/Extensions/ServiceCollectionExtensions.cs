@@ -16,6 +16,7 @@ using Cadence.Core.Features.Msel.Services;
 using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Features.Objectives.Services;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.Core.Features.Phases.Services;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
 using Cadence.Core.Features.Eeg.Services;
@@ -41,6 +42,8 @@ public static class ServiceCollectionExtensions
         services.AddValidatorsFromAssemblyContaining<AppDbContext>();
 
         // Add Feature Services
+        services.AddScoped<IPhaseService, PhaseService>();
+        services.AddScoped<IExerciseCrudService, ExerciseCrudService>();
         services.AddScoped<IObjectiveService, ObjectiveService>();
         services.AddScoped<IObservationService, ObservationService>();
         services.AddScoped<IPhotoService, PhotoService>();
@@ -67,6 +70,10 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IAssignmentService, AssignmentService>();
         services.AddScoped<INotificationService, NotificationService>();
         services.AddScoped<IApprovalNotificationService, ApprovalNotificationService>();
+        services.AddScoped<IProgressMetricsService, ProgressMetricsService>();
+        services.AddScoped<IInjectMetricsService, InjectMetricsService>();
+        services.AddScoped<IObservationMetricsService, ObservationMetricsService>();
+        services.AddScoped<ITimelineMetricsService, TimelineMetricsService>();
         services.AddScoped<IExerciseMetricsService, ExerciseMetricsService>();
         services.AddScoped<IExerciseCapabilityService, ExerciseCapabilityService>();
         services.AddScoped<ICapabilityService, CapabilityService>();
