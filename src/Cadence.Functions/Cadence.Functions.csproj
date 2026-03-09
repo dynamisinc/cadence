@@ -28,7 +28,7 @@
     <!-- Azure Functions - using latest preview for .NET 10 support -->
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="2.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http.AspNetCore" Version="2.0.0" />
-    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.0" OutputItemType="Analyzer" />
+    <PackageReference Include="Microsoft.Azure.Functions.Worker.Sdk" Version="2.0.7" OutputItemType="Analyzer" />
 
     <!-- Application Insights -->
     <PackageReference Include="Microsoft.ApplicationInsights.WorkerService" Version="3.0.0" />

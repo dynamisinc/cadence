@@ -34,7 +34,7 @@ jobs:
       migrations_changed: ${{ steps.changes.outputs.migrations }}
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
@@ -76,7 +76,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -124,7 +124,7 @@ jobs:
     steps:
       - name: Checkout code (for migrations)
         if: needs.check-changes.outputs.migrations_changed == 'true'
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup .NET (for migrations)
         if: needs.check-changes.outputs.migrations_changed == 'true'
@@ -176,7 +176,7 @@ jobs:
           DOTNET_ENVIRONMENT: Production
 
       - name: Download artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: web-api
           path: ./web-api
