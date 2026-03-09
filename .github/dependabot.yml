@@ -6,20 +6,22 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "security"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
       microsoft:
         patterns:
           - "Microsoft.*"
+      all-minor-patch:
+        patterns:
+          - "*"
         update-types:
           - "minor"
           - "patch"
-      entity-framework:
-        patterns:
-          - "Microsoft.EntityFrameworkCore*"
 
   # NuGet packages - WebApi (primary API)
   - package-ecosystem: "nuget"
@@ -27,20 +29,19 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
-      - "security"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
-      microsoft:
+      all-minor-patch:
         patterns:
-          - "Microsoft.*"
+          - "*"
         update-types:
           - "minor"
           - "patch"
-      azure:
-        patterns:
-          - "Azure.*"
 
   # NuGet packages - Functions (background jobs)
   - package-ecosystem: "nuget"
@@ -48,10 +49,19 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 5
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
-      - "security"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+    groups:
+      all-minor-patch:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+          - "patch"
 
   # npm packages (React frontend)
   - package-ecosystem: "npm"
@@ -59,34 +69,34 @@ updates:
     schedule:
       interval: "weekly"
       day: "monday"
-    open-pull-requests-limit: 10
+    open-pull-requests-limit: 5
     labels:
       - "dependencies"
-      - "security"
+    ignore:
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
     groups:
-      mui:
-        patterns:
-          - "@mui/*"
-          - "@emotion/*"
-      fortawesome:
-        patterns:
-          - "@fortawesome/*"
-      testing:
-        patterns:
-          - "@testing-library/*"
-          - "vitest"
-          - "@vitest/*"
-      tanstack:
-        patterns:
-          - "@tanstack/*"
+      production:
+        dependency-type: "production"
+        update-types:
+          - "minor"
+          - "patch"
+      dev-dependencies:
+        dependency-type: "development"
+        update-types:
+          - "minor"
+          - "patch"
 
   # GitHub Actions versions
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      interval: "weekly"
-      day: "monday"
-    open-pull-requests-limit: 5
+      interval: "monthly"
+    open-pull-requests-limit: 3
     labels:
       - "dependencies"
       - "ci"
+    groups:
+      actions:
+        patterns:
+          - "*"
