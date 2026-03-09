@@ -16,7 +16,7 @@ public class EulaService : IEulaService
 
     public async Task<EulaStatusDto> GetStatusAsync(string userId)
     {
-        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await _context.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
 
         // No EULA configured
         if (settings == null || string.IsNullOrEmpty(settings.EulaVersion) || string.IsNullOrEmpty(settings.EulaContent))
@@ -51,7 +51,7 @@ public class EulaService : IEulaService
             throw new ArgumentException("EULA version is required.", nameof(version));
 
         // Validate version matches the currently configured EULA
-        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await _context.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
         if (settings == null || string.IsNullOrEmpty(settings.EulaVersion))
             throw new InvalidOperationException("No EULA is currently configured.");
 
