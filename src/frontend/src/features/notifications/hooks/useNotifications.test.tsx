@@ -511,6 +511,79 @@ describe('useNotifications', () => {
     })
   })
 
+  describe('optimistic update — multi-pagination (FF-M02)', () => {
+    beforeEach(() => {
+      vi.mocked(markAsRead).mockResolvedValue()
+    })
+
+    it('updates ALL cached list entries regardless of pagination params', async () => {
+      const { Wrapper, queryClient } = createWrapper()
+
+      // Pre-populate cache with MULTIPLE list queries at different limits
+      const page10Response: NotificationsResponse = {
+        items: [...mockNotifications],
+        totalCount: 3,
+        unreadCount: 2,
+      }
+      const page20Response: NotificationsResponse = {
+        items: [...mockNotifications],
+        totalCount: 3,
+        unreadCount: 2,
+      }
+
+      queryClient.setQueryData([...NOTIFICATIONS_QUERY_KEY, { limit: 10 }], page10Response)
+      queryClient.setQueryData([...NOTIFICATIONS_QUERY_KEY, { limit: 20 }], page20Response)
+
+      const { result } = renderHook(() => useMarkAsRead(), { wrapper: Wrapper })
+
+      act(() => {
+        result.current.mutate('notif-1')
+      })
+
+      // Both cache entries should be updated — not just one
+      await waitFor(() => {
+        const data10 = queryClient.getQueryData<NotificationsResponse>([
+          ...NOTIFICATIONS_QUERY_KEY,
+          { limit: 10 },
+        ])
+        const data20 = queryClient.getQueryData<NotificationsResponse>([
+          ...NOTIFICATIONS_QUERY_KEY,
+          { limit: 20 },
+        ])
+
+        // Both should mark notif-1 as read
+        expect(data10?.items.find(n => n.id === 'notif-1')?.isRead).toBe(true)
+        expect(data20?.items.find(n => n.id === 'notif-1')?.isRead).toBe(true)
+
+        // Both should decrement unread count
+        expect(data10?.unreadCount).toBe(1)
+        expect(data20?.unreadCount).toBe(1)
+      })
+    })
+
+    it('isNotificationsResponse guard prevents corruption of plain-number unread-count cache', async () => {
+      const { Wrapper, queryClient } = createWrapper()
+
+      // Pre-populate cache with both list data and plain number (unread count)
+      queryClient.setQueryData([...NOTIFICATIONS_QUERY_KEY, { limit: 10 }], mockResponse)
+      queryClient.setQueryData(UNREAD_COUNT_QUERY_KEY, 2)
+
+      const { result } = renderHook(() => useMarkAsRead(), { wrapper: Wrapper })
+
+      act(() => {
+        result.current.mutate('notif-1')
+      })
+
+      await waitFor(() => {
+        // The unread-count entry should remain a plain number (updated via separate logic),
+        // NOT be corrupted into a NotificationsResponse object
+        const unreadCount = queryClient.getQueryData<number>(UNREAD_COUNT_QUERY_KEY)
+        expect(typeof unreadCount).toBe('number')
+        expect(unreadCount).toBe(1)
+      })
+    })
+  })
+
   describe('addNotificationToCache', () => {
     it('adds notification to cache', () => {
       const queryClient = new QueryClient()

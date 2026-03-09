@@ -465,13 +465,15 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserMemberships(Guid userId)
     {
-        var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(currentUserIdClaim))
+        Guid currentUserId;
+        try
+        {
+            currentUserId = Guid.Parse(GetCurrentUserId());
+        }
+        catch (UnauthorizedAccessException)
         {
             return Unauthorized();
         }
-
-        var currentUserId = Guid.Parse(currentUserIdClaim);
 
         // Users can retrieve their own memberships; Admins can retrieve any user's memberships.
         var isAdmin = User.Claims.Any(c =>
