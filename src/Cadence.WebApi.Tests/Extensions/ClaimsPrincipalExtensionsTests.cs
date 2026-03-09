@@ -1,0 +1,177 @@
+using System.Security.Claims;
+using Cadence.WebApi.Extensions;
+using FluentAssertions;
+
+namespace Cadence.WebApi.Tests.Extensions;
+
+/// <summary>
+/// Unit tests for <see cref="ClaimsPrincipalExtensions"/>.
+/// Verifies consistent claim extraction behaviour for user ID and organization ID.
+/// </summary>
+public class ClaimsPrincipalExtensionsTests
+{
+    // =========================================================================
+    // GetUserId Tests
+    // =========================================================================
+
+    #region GetUserId
+
+    [Fact]
+    public void GetUserId_ValidNameIdentifierClaim_ReturnsUserId()
+    {
+        // Arrange
+        var expectedUserId = Guid.NewGuid().ToString();
+        var principal = BuildPrincipal(new Claim(ClaimTypes.NameIdentifier, expectedUserId));
+
+        // Act
+        var result = principal.GetUserId();
+
+        // Assert
+        result.Should().Be(expectedUserId);
+    }
+
+    [Fact]
+    public void GetUserId_MissingClaim_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange — principal has no NameIdentifier claim
+        var principal = BuildPrincipal(new Claim("email", "user@example.com"));
+
+        // Act & Assert
+        var act = () => principal.GetUserId();
+        act.Should().Throw<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public void GetUserId_EmptyClaim_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange — NameIdentifier claim exists but its value is an empty string
+        var principal = BuildPrincipal(new Claim(ClaimTypes.NameIdentifier, string.Empty));
+
+        // Act & Assert
+        var act = () => principal.GetUserId();
+        act.Should().Throw<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public void GetUserId_NullIdentity_ThrowsUnauthorizedAccessException()
+    {
+        // Arrange — ClaimsPrincipal with no identity at all
+        var principal = new ClaimsPrincipal();
+
+        // Act & Assert
+        var act = () => principal.GetUserId();
+        act.Should().Throw<UnauthorizedAccessException>();
+    }
+
+    #endregion
+
+    // =========================================================================
+    // TryGetUserId Tests
+    // =========================================================================
+
+    #region TryGetUserId
+
+    [Fact]
+    public void TryGetUserId_ValidClaim_ReturnsUserId()
+    {
+        // Arrange
+        var expectedUserId = Guid.NewGuid().ToString();
+        var principal = BuildPrincipal(new Claim(ClaimTypes.NameIdentifier, expectedUserId));
+
+        // Act
+        var result = principal.TryGetUserId();
+
+        // Assert
+        result.Should().Be(expectedUserId);
+    }
+
+    [Fact]
+    public void TryGetUserId_MissingClaim_ReturnsNull()
+    {
+        // Arrange — no NameIdentifier claim present
+        var principal = BuildPrincipal(new Claim("email", "user@example.com"));
+
+        // Act
+        var result = principal.TryGetUserId();
+
+        // Assert
+        // Note: When the claim is completely absent, FindFirstValue returns null.
+        // When the claim value is an empty string, FindFirstValue returns "".
+        // This method delegates directly to FindFirstValue, so the empty-string
+        // case returns "" rather than null. Only a truly missing claim yields null.
+        result.Should().BeNull();
+    }
+
+    #endregion
+
+    // =========================================================================
+    // GetOrganizationId Tests
+    // =========================================================================
+
+    #region GetOrganizationId
+
+    [Fact]
+    public void GetOrganizationId_ValidGuidClaim_ReturnsGuid()
+    {
+        // Arrange
+        var expectedOrgId = Guid.NewGuid();
+        var principal = BuildPrincipal(new Claim("org_id", expectedOrgId.ToString()));
+
+        // Act
+        var result = principal.GetOrganizationId();
+
+        // Assert
+        result.Should().Be(expectedOrgId);
+    }
+
+    [Fact]
+    public void GetOrganizationId_MissingClaim_ReturnsNull()
+    {
+        // Arrange — no org_id claim present
+        var principal = BuildPrincipal(new Claim("email", "user@example.com"));
+
+        // Act
+        var result = principal.GetOrganizationId();
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetOrganizationId_EmptyClaim_ReturnsNull()
+    {
+        // Arrange — org_id claim exists but value is empty
+        var principal = BuildPrincipal(new Claim("org_id", string.Empty));
+
+        // Act
+        var result = principal.GetOrganizationId();
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public void GetOrganizationId_MalformedGuid_ReturnsNull()
+    {
+        // Arrange — org_id contains a non-GUID string
+        var principal = BuildPrincipal(new Claim("org_id", "not-a-valid-guid"));
+
+        // Act
+        var result = principal.GetOrganizationId();
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    #endregion
+
+    // =========================================================================
+    // Helpers
+    // =========================================================================
+
+    private static ClaimsPrincipal BuildPrincipal(params Claim[] claims)
+    {
+        var identity = new ClaimsIdentity(claims, authenticationType: "TestAuth");
+        return new ClaimsPrincipal(identity);
+    }
+}
