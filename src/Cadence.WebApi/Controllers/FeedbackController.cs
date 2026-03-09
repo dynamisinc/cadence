@@ -176,7 +176,9 @@ public class FeedbackController : ControllerBase
             _logger.LogError(ex,
                 "[Feedback] Bug report FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
                 refNumber, userCtx.Email, sw.ElapsedMilliseconds);
-            return StatusCode(500, new { message = "Failed to submit bug report. Please try again." });
+            return Problem(
+                detail: "Failed to submit bug report. Please try again.",
+                statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -248,7 +250,9 @@ public class FeedbackController : ControllerBase
             _logger.LogError(ex,
                 "[Feedback] Feature request FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
                 refNumber, userCtx.Email, sw.ElapsedMilliseconds);
-            return StatusCode(500, new { message = "Failed to submit feature request. Please try again." });
+            return Problem(
+                detail: "Failed to submit feature request. Please try again.",
+                statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -320,7 +324,9 @@ public class FeedbackController : ControllerBase
             _logger.LogError(ex,
                 "[Feedback] General feedback FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
                 refNumber, userCtx.Email, sw.ElapsedMilliseconds);
-            return StatusCode(500, new { message = "Failed to submit feedback. Please try again." });
+            return Problem(
+                detail: "Failed to submit feedback. Please try again.",
+                statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 
@@ -399,7 +405,9 @@ public class FeedbackController : ControllerBase
             _logger.LogError(ex,
                 "[Feedback] Error report FAILED - Ref: {RefNumber}, User: {Email}, ElapsedMs: {ElapsedMs}",
                 refNumber, userCtx.Email, sw.ElapsedMilliseconds);
-            return StatusCode(500, new { message = "Failed to submit error report. Please try again." });
+            return Problem(
+                detail: "Failed to submit error report. Please try again.",
+                statusCode: StatusCodes.Status500InternalServerError);
         }
     }
 

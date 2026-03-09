@@ -35,7 +35,7 @@ public class UserPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPreferences()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.TryGetUserId();
         if (userId == null)
         {
             return Unauthorized();
@@ -56,7 +56,7 @@ public class UserPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdatePreferences([FromBody] UpdateUserPreferencesRequest request)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.TryGetUserId();
         if (userId == null)
         {
             return Unauthorized();
@@ -90,7 +90,7 @@ public class UserPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> ResetPreferences()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.TryGetUserId();
         if (userId == null)
         {
             return Unauthorized();
@@ -99,8 +99,6 @@ public class UserPreferencesController : ControllerBase
         var preferences = await _preferencesService.ResetPreferencesAsync(userId);
         return Ok(preferences);
     }
-
-    private string? GetCurrentUserId() => User.TryGetUserId();
 
     private static bool IsValidTheme(string value)
     {

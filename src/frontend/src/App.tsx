@@ -186,6 +186,21 @@ const PublicLayout = () => {
 }
 
 /**
+ * Admin Layout Component
+ *
+ * Guards all /admin/* routes with a SystemRole.Admin requirement.
+ * Renders as a layout route — child routes render at the Outlet.
+ * Authentication is already enforced by the parent RootLayout.
+ */
+const AdminLayout = () => {
+  return (
+    <ProtectedRoute requiredRole={SystemRole.Admin}>
+      <Outlet />
+    </ProtectedRoute>
+  )
+}
+
+/**
  * Router configuration using createBrowserRouter (Data Mode)
  *
  * This enables modern React Router features including:
@@ -371,78 +386,21 @@ const router = createBrowserRouter([
         ],
       },
 
-      // Admin pages - Admin system role required
+      // Admin pages - Admin system role required (enforced once by AdminLayout)
       {
         path: 'admin',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <AdminPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/archived-exercises',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <ArchivedExercisesPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/users',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <UserListPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/capabilities',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <CapabilityLibraryPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/organizations',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <OrganizationListPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/organizations/new',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <CreateOrganizationPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/organizations/:id',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <EditOrganizationPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/delivery-methods',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <DeliveryMethodsManagementPage />
-          </ProtectedRoute>
-        ),
-      },
-      {
-        path: 'admin/feedback',
-        element: (
-          <ProtectedRoute requiredRole={SystemRole.Admin}>
-            <FeedbackReportListPage />
-          </ProtectedRoute>
-        ),
+        element: <AdminLayout />,
+        children: [
+          { index: true, element: <AdminPage /> },
+          { path: 'archived-exercises', element: <ArchivedExercisesPage /> },
+          { path: 'users', element: <UserListPage /> },
+          { path: 'capabilities', element: <CapabilityLibraryPage /> },
+          { path: 'organizations', element: <OrganizationListPage /> },
+          { path: 'organizations/new', element: <CreateOrganizationPage /> },
+          { path: 'organizations/:id', element: <EditOrganizationPage /> },
+          { path: 'delivery-methods', element: <DeliveryMethodsManagementPage /> },
+          { path: 'feedback', element: <FeedbackReportListPage /> },
+        ],
       },
 
       // 404 page - explicit route

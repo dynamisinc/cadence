@@ -103,7 +103,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
         var isAdmin = User.Claims.Any(c =>
             c.Type == "role" && c.Value == SystemRole.Admin.ToString());
 
@@ -167,7 +167,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChangeRole(Guid id, [FromBody] ChangeRoleRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -201,7 +201,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateUser(Guid id, [FromBody] DeactivateUserRequest? request = null)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -228,7 +228,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReactivateUser(Guid id)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -468,7 +468,7 @@ public class UsersController : ControllerBase
         Guid currentUserId;
         try
         {
-            currentUserId = Guid.Parse(GetCurrentUserId());
+            currentUserId = Guid.Parse(User.GetUserId());
         }
         catch (UnauthorizedAccessException)
         {
@@ -503,8 +503,4 @@ public class UsersController : ControllerBase
         return Ok(memberships);
     }
 
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }
