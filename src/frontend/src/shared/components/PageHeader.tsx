@@ -10,7 +10,8 @@
  */
 
 import type { FC, ReactNode } from 'react'
-import { Box, IconButton, Stack, Typography } from '@mui/material'
+import { Box, Stack, Typography } from '@mui/material'
+import { CobraIconButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
@@ -53,9 +54,9 @@ export const PageHeader: FC<PageHeaderProps> = ({
     >
       <Stack direction="row" alignItems="center" spacing={1.5}>
         {showBackButton && (
-          <IconButton onClick={onBackClick} size="small" aria-label="Go back">
+          <CobraIconButton onClick={onBackClick} size="small" aria-label="Go back">
             <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
+          </CobraIconButton>
         )}
 
         {icon && (

@@ -73,7 +73,9 @@ export function useUpdateUser() {
     onSuccess: (updatedUser: UserDto) => {
       // Invalidate all user lists (filters/pages may vary)
       queryClient.invalidateQueries({ queryKey: userKeys.lists() })
-      // Update the specific user detail cache entry if present
+      // Eager cache update from trusted mutation response (distinct from AR-P02).
+      // SignalR event handlers must use invalidateQueries, but mutation onSuccess
+      // callbacks may use setQueryData with the server-returned data.
       queryClient.setQueryData(userKeys.detail(updatedUser.id), updatedUser)
       notify.success('User updated')
     },

@@ -111,7 +111,8 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            var createdBy = User.GetUserId();
+            var createdBy = User.TryGetUserId();
+            if (createdBy == null) return Unauthorized();
             var observation = await _observationService.CreateObservationAsync(exerciseId, request, createdBy);
 
             return CreatedAtAction(
@@ -157,7 +158,8 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            var modifiedBy = User.GetUserId();
+            var modifiedBy = User.TryGetUserId();
+            if (modifiedBy == null) return Unauthorized();
             var observation = await _observationService.UpdateObservationAsync(id, request, modifiedBy);
 
             if (observation == null)
@@ -181,7 +183,8 @@ public class ObservationsController : ControllerBase
     [AuthorizeExerciseDirector]
     public async Task<IActionResult> DeleteObservation(Guid id)
     {
-        var deletedBy = User.GetUserId();
+        var deletedBy = User.TryGetUserId();
+        if (deletedBy == null) return Unauthorized();
         var deleted = await _observationService.DeleteObservationAsync(id, deletedBy);
 
         if (!deleted)

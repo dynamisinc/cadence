@@ -50,6 +50,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         }}
       >
         {/* Mobile Menu Toggle */}
+        {/* COBRA exception: hamburger menu requires color="inherit" for white-on-dark header */}
         <IconButton
           color="inherit"
           onClick={onMobileMenuToggle}

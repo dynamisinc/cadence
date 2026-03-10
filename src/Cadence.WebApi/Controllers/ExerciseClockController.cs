@@ -53,7 +53,8 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var startedBy = User.GetUserId();
+            var startedBy = User.TryGetUserId();
+            if (startedBy == null) return Unauthorized();
 
             var clockState = await _clockService.StartClockAsync(exerciseId, startedBy);
 
@@ -77,7 +78,8 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var pausedBy = User.GetUserId();
+            var pausedBy = User.TryGetUserId();
+            if (pausedBy == null) return Unauthorized();
 
             var clockState = await _clockService.PauseClockAsync(exerciseId, pausedBy);
 
@@ -101,7 +103,8 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var stoppedBy = User.GetUserId();
+            var stoppedBy = User.TryGetUserId();
+            if (stoppedBy == null) return Unauthorized();
 
             var clockState = await _clockService.StopClockAsync(exerciseId, stoppedBy);
 
@@ -125,7 +128,8 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var resetBy = User.GetUserId();
+            var resetBy = User.TryGetUserId();
+            if (resetBy == null) return Unauthorized();
 
             var clockState = await _clockService.ResetClockAsync(exerciseId, resetBy);
 
@@ -151,7 +155,8 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var setBy = User.GetUserId();
+            var setBy = User.TryGetUserId();
+            if (setBy == null) return Unauthorized();
 
             var clockState = await _clockService.SetClockTimeAsync(exerciseId, request.ElapsedTime, setBy);
 

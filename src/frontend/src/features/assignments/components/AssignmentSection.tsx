@@ -5,7 +5,8 @@
  * Completed section is collapsed by default.
  */
 import { useState } from 'react'
-import { Box, Typography, Skeleton, Alert, Collapse, IconButton, Chip } from '@mui/material'
+import { Box, Typography, Skeleton, Alert, Collapse, Chip } from '@mui/material'
+import { CobraIconButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPlay,
@@ -86,7 +87,7 @@ export function AssignmentSection({
         }}
       >
         {/* Expand/Collapse Icon */}
-        <IconButton
+        <CobraIconButton
           size="small"
           onClick={e => {
             e.stopPropagation()
@@ -99,7 +100,7 @@ export function AssignmentSection({
             icon={isExpanded ? faChevronDown : faChevronRight}
             style={{ fontSize: '0.875rem' }}
           />
-        </IconButton>
+        </CobraIconButton>
 
         {/* Section Icon */}
         <FontAwesomeIcon

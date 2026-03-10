@@ -51,6 +51,7 @@ export function NotificationBell() {
 
   return (
     <>
+      {/* COBRA exception: notification bell requires color="inherit" for white-on-dark header */}
       <IconButton
         ref={buttonRef}
         onClick={handleClick}

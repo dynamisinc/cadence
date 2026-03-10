@@ -76,7 +76,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var currentUserId = User.GetUserId();
+            var currentUserId = User.TryGetUserId();
+            if (currentUserId == null) return Unauthorized();
             var injects = await _injectCrudService.GetInjectsAsync(
                 exerciseId, status, currentUserId, mySubmissionsOnly);
             return Ok(injects);
@@ -141,7 +142,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var inject = await _injectCrudService.CreateInjectAsync(exerciseId, request, userId);
 
             return CreatedAtAction(
@@ -168,7 +170,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var (dto, statusReverted) = await _injectCrudService.UpdateInjectAsync(
                 exerciseId, id, request, userId);
 
@@ -203,7 +206,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             await _injectCrudService.DeleteInjectAsync(exerciseId, id, userId);
             return NoContent();
         }
@@ -272,7 +276,8 @@ public class InjectsController : ControllerBase
             }
         }
 
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         inject.Status = InjectStatus.Released;
         inject.FiredAt = DateTime.UtcNow;
@@ -348,7 +353,8 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = "Skip reason must be 500 characters or less" });
         }
 
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         inject.Status = InjectStatus.Deferred;
         inject.SkippedAt = DateTime.UtcNow;
@@ -406,7 +412,8 @@ public class InjectsController : ControllerBase
             return BadRequest(new { message = "Inject is already in draft" });
         }
 
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         inject.Status = InjectStatus.Draft;
         inject.FiredAt = null;
@@ -476,7 +483,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var result = await _injectService.SubmitForApprovalAsync(exerciseId, id, userId);
 
             _logger.LogInformation("Inject {InjectId} submitted for approval by {UserId}", id, userId);
@@ -507,7 +515,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             InjectDto result;
 
             // Use the confirmation-aware method when self-approval flag is provided (S11)
@@ -557,7 +566,8 @@ public class InjectsController : ControllerBase
                 return BadRequest(new { message = "Rejection reason must be at least 10 characters" });
             }
 
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var result = await _injectService.RejectInjectAsync(exerciseId, id, userId, request.Reason);
 
             _logger.LogInformation("Rejected inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
@@ -593,7 +603,8 @@ public class InjectsController : ControllerBase
                 return BadRequest(new { message = "InjectIds is required and must contain at least one inject" });
             }
 
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var result = await _injectService.BatchApproveAsync(exerciseId, request.InjectIds, request.Notes, userId);
 
             _logger.LogInformation("Batch approved {Count} injects in exercise {ExerciseId} by user {UserId}",
@@ -639,7 +650,8 @@ public class InjectsController : ControllerBase
                 return BadRequest(new { message = "Rejection reason must be at least 10 characters" });
             }
 
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var result = await _injectService.BatchRejectAsync(exerciseId, request.InjectIds, request.Reason, userId);
 
             _logger.LogInformation("Batch rejected {Count} injects in exercise {ExerciseId} by user {UserId}: {Reason}",
@@ -681,7 +693,8 @@ public class InjectsController : ControllerBase
                 return BadRequest(new { message = "Revert reason must be at least 10 characters" });
             }
 
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var result = await _injectService.RevertApprovalAsync(exerciseId, id, userId, request.Reason);
 
             _logger.LogInformation("Reverted inject {InjectId} in exercise {ExerciseId} by user {UserId}: {Reason}",
@@ -714,7 +727,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var result = await _approvalPermissionService.CanApproveInjectAsync(userId, id);
             return Ok(result);
         }
@@ -734,7 +748,8 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var userId = User.GetUserId();
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
             var canApprove = await _approvalPermissionService.CanApproveAsync(userId, exerciseId);
             return Ok(new { canApprove });
         }
@@ -824,7 +839,8 @@ public class InjectsController : ControllerBase
         _context.InjectCriticalTasks.RemoveRange(inject.LinkedCriticalTasks);
 
         // Add new links with audit fields
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
         var now = DateTime.UtcNow;
         foreach (var taskId in validTaskIds)
         {

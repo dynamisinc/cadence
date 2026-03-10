@@ -35,7 +35,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("activate")]
     public async Task<ActionResult<ExerciseDto>> ActivateExercise(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.ActivateAsync(exerciseId, userId);
 
@@ -56,7 +57,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("pause")]
     public async Task<ActionResult<ExerciseDto>> PauseExercise(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.PauseAsync(exerciseId, userId);
 
@@ -76,7 +78,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("resume")]
     public async Task<ActionResult<ExerciseDto>> ResumeExercise(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.ResumeAsync(exerciseId, userId);
 
@@ -97,7 +100,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("complete")]
     public async Task<ActionResult<ExerciseDto>> CompleteExercise(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.CompleteAsync(exerciseId, userId);
 
@@ -118,7 +122,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("archive")]
     public async Task<ActionResult<ExerciseDto>> ArchiveExercise(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.ArchiveAsync(exerciseId, userId);
 
@@ -139,7 +144,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("unarchive")]
     public async Task<ActionResult<ExerciseDto>> UnarchiveExercise(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.UnarchiveAsync(exerciseId, userId);
 
@@ -160,7 +166,8 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("revert-to-draft")]
     public async Task<ActionResult<ExerciseDto>> RevertToDraft(Guid exerciseId)
     {
-        var userId = User.GetUserId();
+        var userId = User.TryGetUserId();
+        if (userId == null) return Unauthorized();
 
         var result = await _statusService.RevertToDraftAsync(exerciseId, userId);
 
