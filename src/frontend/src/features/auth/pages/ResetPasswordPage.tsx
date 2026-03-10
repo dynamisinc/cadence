@@ -31,6 +31,9 @@ import { PasswordRequirements } from '../components/PasswordRequirements'
 import { authService } from '../services/authService'
 import { validatePassword, isPasswordValid } from '../types'
 
+/** Delay before redirecting to login after successful password reset (ms) */
+const REDIRECT_AFTER_RESET_DELAY_MS = 3000
+
 /**
  * Password reset completion page (accessed via email link)
  */
@@ -107,8 +110,8 @@ export const ResetPasswordPage: FC = () => {
       await authService.completePasswordReset(token, newPassword)
       setIsSuccess(true)
 
-      // Redirect to login after 3 seconds
-      setTimeout(() => navigate('/login'), 3000)
+      // Redirect to login after a short delay
+      setTimeout(() => navigate('/login'), REDIRECT_AFTER_RESET_DELAY_MS)
     } catch (err: unknown) {
       interface ErrorData {
         code?: string

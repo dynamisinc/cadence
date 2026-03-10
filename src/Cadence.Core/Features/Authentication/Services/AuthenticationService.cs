@@ -434,18 +434,7 @@ public class AuthenticationService : IAuthenticationService
             });
         }
 
-        // Future: Add Entra when enabled
-        // if (_options.Entra.Enabled)
-        // {
-        //     methods.Add(new AuthMethod
-        //     {
-        //         Provider = "Entra",
-        //         DisplayName = "Sign in with Microsoft",
-        //         Icon = "microsoft",
-        //         IsEnabled = true,
-        //         IsExternal = true
-        //     });
-        // }
+        // Future: Entra ID support (see external auth story)
 
         return methods;
     }

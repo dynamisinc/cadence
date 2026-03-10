@@ -1,14 +1,9 @@
-import { useState, useMemo } from 'react'
+import { useMemo } from 'react'
 import { useNavigate, useParams, useLocation } from 'react-router-dom'
 import {
   Box,
-  Typography,
   Paper,
   Skeleton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material'
 import { faHome } from '@fortawesome/free-solid-svg-icons'
 
@@ -17,10 +12,6 @@ import { useInjects } from '../hooks'
 import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
-import {
-  CobraPrimaryButton,
-  CobraSecondaryButton,
-} from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { PageHeader } from '@/shared/components'
 import { TriggerType } from '../../../types'
@@ -85,16 +76,9 @@ export const CreateInjectPage = () => {
       : undefined,
   )
 
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
-  // TODO: Track form changes for unsaved warning - for now always false
-  const hasChanges = false
-
+  // TODO: Wire useUnsavedChangesWarning with form dirty tracking
   const handleBackClick = () => {
-    if (hasChanges) {
-      setShowUnsavedDialog(true)
-    } else {
-      navigate(`/exercises/${exerciseId}/msel`)
-    }
+    navigate(`/exercises/${exerciseId}/msel`)
   }
 
   const handleSubmit = async (request: CreateInjectRequest) => {
@@ -108,20 +92,7 @@ export const CreateInjectPage = () => {
   }
 
   const handleCancel = () => {
-    if (hasChanges) {
-      setShowUnsavedDialog(true)
-    } else {
-      navigate(`/exercises/${exerciseId}/msel`)
-    }
-  }
-
-  const handleConfirmLeave = () => {
-    setShowUnsavedDialog(false)
     navigate(`/exercises/${exerciseId}/msel`)
-  }
-
-  const handleCancelLeave = () => {
-    setShowUnsavedDialog(false)
   }
 
   return (
@@ -146,23 +117,6 @@ export const CreateInjectPage = () => {
         />
       </Paper>
 
-      {/* Unsaved Changes Dialog */}
-      <Dialog open={showUnsavedDialog} onClose={handleCancelLeave}>
-        <DialogTitle>Unsaved Changes</DialogTitle>
-        <DialogContent>
-          <Typography>
-            You have unsaved changes. Are you sure you want to leave?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <CobraSecondaryButton onClick={handleCancelLeave}>
-            Keep Editing
-          </CobraSecondaryButton>
-          <CobraPrimaryButton onClick={handleConfirmLeave}>
-            Discard Changes
-          </CobraPrimaryButton>
-        </DialogActions>
-      </Dialog>
     </Box>
   )
 }

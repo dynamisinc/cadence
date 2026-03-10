@@ -10,12 +10,13 @@
  */
 
 import { useMemo, useState } from 'react'
-import { Box, Typography, Chip, Stack, Paper, Alert, Collapse, IconButton } from '@mui/material'
+import { Box, Typography, Chip, Stack, Paper, Alert, Collapse } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldAlt, faXmark, faLightbulb, faChevronDown, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { groupCapabilitiesByCategory } from '../../capabilities/types'
 import type { CapabilityDto } from '../../capabilities/types'
+import { CobraIconButton } from '@/theme/styledComponents'
 
 interface TargetCapabilitiesSelectorProps {
   /** Organization ID (for multi-tenant support) */
@@ -92,9 +93,9 @@ export const TargetCapabilitiesSelector = ({
         sx={{ cursor: 'pointer' }}
         onClick={() => setExpanded(prev => !prev)}
       >
-        <IconButton size="small" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
+        <CobraIconButton size="small" aria-label={isExpanded ? 'Collapse' : 'Expand'}>
           <FontAwesomeIcon icon={isExpanded ? faChevronDown : faChevronRight} size="sm" />
-        </IconButton>
+        </CobraIconButton>
         <FontAwesomeIcon icon={faShieldAlt} />
         <Typography variant="subtitle1" fontWeight="bold">
           Target Capabilities

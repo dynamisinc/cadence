@@ -63,6 +63,9 @@ const initialFormState: FormState = {
   password: '',
 }
 
+/** Duration to show the "Copied!" feedback before resetting (ms) */
+const COPY_FEEDBACK_DURATION_MS = 2000
+
 /**
  * Email validation regex
  */
@@ -178,7 +181,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
     try {
       await navigator.clipboard.writeText(form.password)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS)
     } catch {
       // Clipboard API may not be available
       console.error('Failed to copy password')

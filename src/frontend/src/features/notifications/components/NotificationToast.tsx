@@ -3,7 +3,7 @@
  *
  * Single toast notification display.
  */
-import { Box, Typography, IconButton, Paper } from '@mui/material'
+import { Box, Typography, Paper } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faXmark,
@@ -19,6 +19,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import type { Toast, NotificationType, NotificationPriority } from '../types'
 import { getToastConfig } from '../hooks/useNotificationToast'
+import { CobraIconButton } from '@/theme/styledComponents'
 
 interface NotificationToastProps {
   toast: Toast
@@ -115,16 +116,17 @@ export function NotificationToast({
         </Box>
 
         {/* Close Button */}
-        <IconButton
+        <CobraIconButton
           size="small"
           onClick={e => {
             e.stopPropagation()
             onDismiss(toast.id)
           }}
+          aria-label="Dismiss notification"
           sx={{ ml: 1 }}
         >
           <FontAwesomeIcon icon={faXmark} style={{ fontSize: '0.875rem' }} />
-        </IconButton>
+        </CobraIconButton>
       </Box>
     </Paper>
   )

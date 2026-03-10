@@ -15,6 +15,7 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
 import CobraStyles from '@/theme/CobraStyles'
+import { notify } from '@/shared/utils/notify'
 
 /**
  * PendingUserPage component
@@ -33,7 +34,7 @@ export const PendingUserPage: FC = () => {
     devLog('Joining organization with code:', orgCode)
 
     // For now, just show a message
-    alert('Organization code redemption will be implemented in a future release.')
+    notify.info('Organization code redemption will be implemented in a future release.')
     setIsSubmitting(false)
   }
 
