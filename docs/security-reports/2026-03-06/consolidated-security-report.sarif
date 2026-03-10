@@ -1,0 +1,2365 @@
+{
+  "version": "2.1.0",
+  "$schema": "https://json.schemastore.org/sarif-2.1.0.json",
+  "runs": [
+    {
+      "invocations": [
+        {
+          "executionSuccessful": true,
+          "toolExecutionNotifications": [
+            {
+              "descriptor": {
+                "id": "SemgrepError"
+              },
+              "level": "error",
+              "message": {
+                "text": "Invalid scanning root: WARNING"
+              }
+            }
+          ]
+        }
+      ],
+      "results": [],
+      "tool": {
+        "driver": {
+          "name": "Semgrep OSS",
+          "rules": [],
+          "semanticVersion": "1.153.1"
+        }
+      }
+    },
+    {
+      "tool": {
+        "driver": {
+          "name": "OWASP ZAP",
+          "informationUri": "https://www.zaproxy.org/",
+          "version": "2.17.0",
+          "rules": [
+            {
+              "id": "zap-10035",
+              "name": "Strict-Transport-SecurityHeaderNotSet",
+              "shortDescription": {
+                "text": "Strict-Transport-Security Header Not Set"
+              },
+              "fullDescription": {
+                "text": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "confidence": 90.0,
+                "zapRiskCode": 1,
+                "tags": [
+                  "CWE-319"
+                ]
+              },
+              "help": {
+                "text": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.",
+                "markdown": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security."
+              }
+            },
+            {
+              "id": "zap-10049",
+              "name": "Non-StorableContent",
+              "shortDescription": {
+                "text": "Non-Storable Content"
+              },
+              "fullDescription": {
+                "text": "The response contents are not storable by caching components such as proxy servers. If the response does not contain sensitive, personal or user-specific information, it may benefit from being stored and cached, to improve performance."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "confidence": 60.0,
+                "zapRiskCode": 0,
+                "tags": [
+                  "CWE-524"
+                ]
+              },
+              "help": {
+                "text": "The content may be marked as storable by ensuring that the following conditions are satisfied: The request method must be understood by the cache and defined as being cacheable (\"GET\", \"HEAD\", and \"POST\" are currently defined as cacheable) The response status code must be understood by the cache (one of the 1XX, 2XX, 3XX, 4XX, or 5XX response classes are generally understood) The \"no-store\" cache directive must not appear in the request or response header fields For caching by \"shared\" caches such as \"proxy\" caches, the \"private\" response directive must not appear in the response For caching by \"shared\" caches such as \"proxy\" caches, the \"Authorization\" header field must not appear in the request, unless the response explicitly allows it (using one of the \"must-revalidate\", \"public\", or \"s-maxage\" Cache-Control response directives) In addition to the conditions above, at least one of the following conditions must also be satisfied by the response: It must contain an \"Expires\" header field It must contain a \"max-age\" response directive For \"shared\" caches such as \"proxy\" caches, it must contain a \"s-maxage\" response directive It must contain a \"Cache Control Extension\" that allows it to be cached It must have a status code that is defined as cacheable by default (200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501).",
+                "markdown": "The content may be marked as storable by ensuring that the following conditions are satisfied: The request method must be understood by the cache and defined as being cacheable (\"GET\", \"HEAD\", and \"POST\" are currently defined as cacheable) The response status code must be understood by the cache (one of the 1XX, 2XX, 3XX, 4XX, or 5XX response classes are generally understood) The \"no-store\" cache directive must not appear in the request or response header fields For caching by \"shared\" caches such as \"proxy\" caches, the \"private\" response directive must not appear in the response For caching by \"shared\" caches such as \"proxy\" caches, the \"Authorization\" header field must not appear in the request, unless the response explicitly allows it (using one of the \"must-revalidate\", \"public\", or \"s-maxage\" Cache-Control response directives) In addition to the conditions above, at least one of the following conditions must also be satisfied by the response: It must contain an \"Expires\" header field It must contain a \"max-age\" response directive For \"shared\" caches such as \"proxy\" caches, it must contain a \"s-maxage\" response directive It must contain a \"Cache Control Extension\" that allows it to be cached It must have a status code that is defined as cacheable by default (200, 203, 204, 206, 300, 301, 404, 405, 410, 414, 501)."
+              }
+            },
+            {
+              "id": "zap-90005",
+              "name": "Sec-Fetch-DestHeaderisMissing",
+              "shortDescription": {
+                "text": "Sec-Fetch-Dest Header is Missing"
+              },
+              "fullDescription": {
+                "text": "Specifies how and where the data would be used. For instance, if the value is audio, then the requested resource must be audio data and not any other type of resource."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "confidence": 90.0,
+                "zapRiskCode": 0,
+                "tags": [
+                  "CWE-352"
+                ]
+              },
+              "help": {
+                "text": "Ensure that Sec-Fetch-Dest header is included in request headers.",
+                "markdown": "Ensure that Sec-Fetch-Dest header is included in request headers."
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "zap-10035",
+          "level": "warning",
+          "message": {
+            "text": "Strict-Transport-Security Header Not Set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/favicon.ico"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10035",
+          "level": "warning",
+          "message": {
+            "text": "Strict-Transport-Security Header Not Set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Non-Storable Content | Evidence: authorization:"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Non-Storable Content | Evidence: authorization:"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Non-Storable Content | Evidence: authorization:"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/favicon.ico"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Non-Storable Content | Evidence: authorization:"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Non-Storable Content | Evidence: authorization:"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Dest Header is Missing | Parameter: Sec-Fetch-Dest"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Dest"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Dest Header is Missing | Parameter: Sec-Fetch-Dest"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Dest"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Dest Header is Missing | Parameter: Sec-Fetch-Dest"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Dest"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Mode Header is Missing | Parameter: Sec-Fetch-Mode"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Mode"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Mode Header is Missing | Parameter: Sec-Fetch-Mode"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Mode"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Mode Header is Missing | Parameter: Sec-Fetch-Mode"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Mode"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Site Header is Missing | Parameter: Sec-Fetch-Site"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Site"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Site Header is Missing | Parameter: Sec-Fetch-Site"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Site"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Site Header is Missing | Parameter: Sec-Fetch-Site"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Site"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-User Header is Missing | Parameter: Sec-Fetch-User"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-User"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-User Header is Missing | Parameter: Sec-Fetch-User"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-User"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-User Header is Missing | Parameter: Sec-Fetch-User"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-User"
+          }
+        }
+      ]
+    },
+    {
+      "tool": {
+        "driver": {
+          "name": "OWASP ZAP",
+          "informationUri": "https://www.zaproxy.org/",
+          "version": "2.17.0",
+          "rules": [
+            {
+              "id": "zap-10035",
+              "name": "Strict-Transport-SecurityHeaderNotSet",
+              "shortDescription": {
+                "text": "Strict-Transport-Security Header Not Set"
+              },
+              "fullDescription": {
+                "text": "HTTP Strict Transport Security (HSTS) is a web security policy mechanism whereby a web server declares that complying user agents (such as a web browser) are to interact with it using only secure HTTPS connections (i.e. HTTP layered over TLS/SSL). HSTS is an IETF standards track protocol and is specified in RFC 6797."
+              },
+              "defaultConfiguration": {
+                "level": "warning"
+              },
+              "properties": {
+                "confidence": 90.0,
+                "zapRiskCode": 1,
+                "tags": [
+                  "CWE-319"
+                ]
+              },
+              "help": {
+                "text": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security.",
+                "markdown": "Ensure that your web server, application server, load balancer, etc. is configured to enforce Strict-Transport-Security."
+              }
+            },
+            {
+              "id": "zap-90005",
+              "name": "Sec-Fetch-DestHeaderisMissing",
+              "shortDescription": {
+                "text": "Sec-Fetch-Dest Header is Missing"
+              },
+              "fullDescription": {
+                "text": "Specifies how and where the data would be used. For instance, if the value is audio, then the requested resource must be audio data and not any other type of resource."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "confidence": 90.0,
+                "zapRiskCode": 0,
+                "tags": [
+                  "CWE-352"
+                ]
+              },
+              "help": {
+                "text": "Ensure that Sec-Fetch-Dest header is included in request headers.",
+                "markdown": "Ensure that Sec-Fetch-Dest header is included in request headers."
+              }
+            },
+            {
+              "id": "zap-10049",
+              "name": "StorableandCacheableContent",
+              "shortDescription": {
+                "text": "Storable and Cacheable Content"
+              },
+              "fullDescription": {
+                "text": "The response contents are storable by caching components such as proxy servers, and may be retrieved directly from the cache, rather than from the origin server by the caching servers, in response to similar requests from other users. If the response data is sensitive, personal or user-specific, this may result in sensitive information being leaked. In some cases, this may even result in a user gaining complete control of the session of another user, depending on the configuration of the caching components in use in their environment. This is primarily an issue where \"shared\" caching servers such as \"proxy\" caches are configured on the local network. This configuration is typically found in corporate or educational environments, for instance."
+              },
+              "defaultConfiguration": {
+                "level": "note"
+              },
+              "properties": {
+                "confidence": 60.0,
+                "zapRiskCode": 0,
+                "tags": [
+                  "CWE-524"
+                ]
+              },
+              "help": {
+                "text": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user: Cache-Control: no-cache, no-store, must-revalidate, private Pragma: no-cache Expires: 0 This configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request.",
+                "markdown": "Validate that the response does not contain sensitive, personal or user-specific information. If it does, consider the use of the following HTTP response headers, to limit, or prevent the content being stored and retrieved from the cache by another user: Cache-Control: no-cache, no-store, must-revalidate, private Pragma: no-cache Expires: 0 This configuration directs both HTTP 1.0 and HTTP 1.1 compliant caching servers to not store the response, and to not retrieve the response (without validation) from the cache, in response to a similar request."
+              }
+            }
+          ]
+        }
+      },
+      "results": [
+        {
+          "ruleId": "zap-10035",
+          "level": "warning",
+          "message": {
+            "text": "Strict-Transport-Security Header Not Set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10035",
+          "level": "warning",
+          "message": {
+            "text": "Strict-Transport-Security Header Not Set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10035",
+          "level": "warning",
+          "message": {
+            "text": "Strict-Transport-Security Header Not Set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10035",
+          "level": "warning",
+          "message": {
+            "text": "Strict-Transport-Security Header Not Set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Dest Header is Missing | Parameter: Sec-Fetch-Dest"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Dest"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Dest Header is Missing | Parameter: Sec-Fetch-Dest"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Dest"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Dest Header is Missing | Parameter: Sec-Fetch-Dest"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Dest"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Mode Header is Missing | Parameter: Sec-Fetch-Mode"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Mode"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Mode Header is Missing | Parameter: Sec-Fetch-Mode"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Mode"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Mode Header is Missing | Parameter: Sec-Fetch-Mode"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Mode"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Site Header is Missing | Parameter: Sec-Fetch-Site"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Site"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Site Header is Missing | Parameter: Sec-Fetch-Site"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Site"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-Site Header is Missing | Parameter: Sec-Fetch-Site"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-Site"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-User Header is Missing | Parameter: Sec-Fetch-User"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-User"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-User Header is Missing | Parameter: Sec-Fetch-User"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-User"
+          }
+        },
+        {
+          "ruleId": "zap-90005",
+          "level": "note",
+          "message": {
+            "text": "Sec-Fetch-User Header is Missing | Parameter: Sec-Fetch-User"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ],
+          "properties": {
+            "parameter": "Sec-Fetch-User"
+          }
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Storable and Cacheable Content"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Storable and Cacheable Content"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Storable and Cacheable Content"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/favicon.ico"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Storable and Cacheable Content"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/robots.txt"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "zap-10049",
+          "level": "note",
+          "message": {
+            "text": "Storable and Cacheable Content"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "https://app-cadence-api-uat.azurewebsites.net/sitemap.xml"
+                }
+              },
+              "properties": {
+                "method": "GET"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "tool": {
+        "driver": {
+          "name": "Checkov",
+          "version": "3.2.507",
+          "informationUri": "https://checkov.io",
+          "rules": [
+            {
+              "id": "CKV_AZURE_67",
+              "name": "Ensure that 'HTTP Version' is the latest, if used to run the Function app",
+              "shortDescription": {
+                "text": "Ensure that 'HTTP Version' is the latest, if used to run the Function app"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'HTTP Version' is the latest, if used to run the Function app"
+              },
+              "help": {
+                "text": "Ensure that 'HTTP Version' is the latest, if used to run the Function app\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/ensure-that-http-version-is-the-latest-if-used-to-run-the-function-app"
+            },
+            {
+              "id": "CKV_AZURE_16",
+              "name": "Ensure that Register with Azure Active Directory is enabled on App Service",
+              "shortDescription": {
+                "text": "Ensure that Register with Azure Active Directory is enabled on App Service"
+              },
+              "fullDescription": {
+                "text": "Ensure that Register with Azure Active Directory is enabled on App Service"
+              },
+              "help": {
+                "text": "Ensure that Register with Azure Active Directory is enabled on App Service\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-iam-policies/bc-azr-iam-1"
+            },
+            {
+              "id": "CKV_AZURE_212",
+              "name": "Ensure App Service has a minimum number of instances for failover",
+              "shortDescription": {
+                "text": "Ensure App Service has a minimum number of instances for failover"
+              },
+              "fullDescription": {
+                "text": "Ensure App Service has a minimum number of instances for failover"
+              },
+              "help": {
+                "text": "Ensure App Service has a minimum number of instances for failover\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/azr-general-212"
+            },
+            {
+              "id": "CKV_AZURE_18",
+              "name": "Ensure that 'HTTP Version' is the latest if used to run the web app",
+              "shortDescription": {
+                "text": "Ensure that 'HTTP Version' is the latest if used to run the web app"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'HTTP Version' is the latest if used to run the web app"
+              },
+              "help": {
+                "text": "Ensure that 'HTTP Version' is the latest if used to run the web app\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-networking-policies/bc-azr-networking-8"
+            },
+            {
+              "id": "CKV_AZURE_213",
+              "name": "Ensure that App Service configures health check",
+              "shortDescription": {
+                "text": "Ensure that App Service configures health check"
+              },
+              "fullDescription": {
+                "text": "Ensure that App Service configures health check"
+              },
+              "help": {
+                "text": "Ensure that App Service configures health check\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-networking-policies/azr-networking-213"
+            },
+            {
+              "id": "CKV_AZURE_71",
+              "name": "Ensure that Managed identity provider is enabled for web apps",
+              "shortDescription": {
+                "text": "Ensure that Managed identity provider is enabled for web apps"
+              },
+              "fullDescription": {
+                "text": "Ensure that Managed identity provider is enabled for web apps"
+              },
+              "help": {
+                "text": "Ensure that Managed identity provider is enabled for web apps\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/ensure-that-managed-identity-provider-is-enabled-for-app-services"
+            },
+            {
+              "id": "CKV_AZURE_17",
+              "name": "Ensure the web app has 'Client Certificates (Incoming client certificates)' set",
+              "shortDescription": {
+                "text": "Ensure the web app has 'Client Certificates (Incoming client certificates)' set"
+              },
+              "fullDescription": {
+                "text": "Ensure the web app has 'Client Certificates (Incoming client certificates)' set"
+              },
+              "help": {
+                "text": "Ensure the web app has 'Client Certificates (Incoming client certificates)' set\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-networking-policies/bc-azr-networking-7"
+            },
+            {
+              "id": "CKV_AZURE_222",
+              "name": "Ensure that Azure Web App public network access is disabled",
+              "shortDescription": {
+                "text": "Ensure that Azure Web App public network access is disabled"
+              },
+              "fullDescription": {
+                "text": "Ensure that Azure Web App public network access is disabled"
+              },
+              "help": {
+                "text": "Ensure that Azure Web App public network access is disabled\nResource: Microsoft.Web/sites.webApp"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-networking-policies/azr-networking-63"
+            },
+            {
+              "id": "CKV_AZURE_225",
+              "name": "Ensure the App Service Plan is zone redundant",
+              "shortDescription": {
+                "text": "Ensure the App Service Plan is zone redundant"
+              },
+              "fullDescription": {
+                "text": "Ensure the App Service Plan is zone redundant"
+              },
+              "help": {
+                "text": "Ensure the App Service Plan is zone redundant\nResource: Microsoft.Web/serverfarms.appServicePlan"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-storage-policies/bc-azure-225"
+            },
+            {
+              "id": "CKV2_AZURE_27",
+              "name": "Ensure Azure AD authentication is enabled for Azure SQL (MSSQL)",
+              "shortDescription": {
+                "text": "Ensure Azure AD authentication is enabled for Azure SQL (MSSQL)"
+              },
+              "fullDescription": {
+                "text": "Ensure Azure AD authentication is enabled for Azure SQL (MSSQL)"
+              },
+              "help": {
+                "text": "Ensure Azure AD authentication is enabled for Azure SQL (MSSQL)\nResource: Microsoft.Sql/servers.sqlServer"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/azr-general-85"
+            },
+            {
+              "id": "CKV_AZURE_113",
+              "name": "Ensure that SQL server disables public network access",
+              "shortDescription": {
+                "text": "Ensure that SQL server disables public network access"
+              },
+              "fullDescription": {
+                "text": "Ensure that SQL server disables public network access"
+              },
+              "help": {
+                "text": "Ensure that SQL server disables public network access\nResource: Microsoft.Sql/servers.sqlServer"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-networking-policies/ensure-that-sql-server-disables-public-network-access"
+            },
+            {
+              "id": "CKV_AZURE_229",
+              "name": "Ensure the Azure SQL Database Namespace is zone redundant",
+              "shortDescription": {
+                "text": "Ensure the Azure SQL Database Namespace is zone redundant"
+              },
+              "fullDescription": {
+                "text": "Ensure the Azure SQL Database Namespace is zone redundant"
+              },
+              "help": {
+                "text": "Ensure the Azure SQL Database Namespace is zone redundant\nResource: Microsoft.Sql/servers/databases.sqlDatabase"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-storage-policies/bc-azure-229"
+            },
+            {
+              "id": "CKV_AZURE_27",
+              "name": "Ensure that 'Email service and co-administrators' is 'Enabled' for MSSQL servers",
+              "shortDescription": {
+                "text": "Ensure that 'Email service and co-administrators' is 'Enabled' for MSSQL servers"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'Email service and co-administrators' is 'Enabled' for MSSQL servers"
+              },
+              "help": {
+                "text": "Ensure that 'Email service and co-administrators' is 'Enabled' for MSSQL servers\nResource: Microsoft.Sql/servers/databases.sqlDatabase"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/bc-azr-general-8"
+            },
+            {
+              "id": "CKV_AZURE_26",
+              "name": "Ensure that 'Send Alerts To' is enabled for MSSQL servers",
+              "shortDescription": {
+                "text": "Ensure that 'Send Alerts To' is enabled for MSSQL servers"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'Send Alerts To' is enabled for MSSQL servers"
+              },
+              "help": {
+                "text": "Ensure that 'Send Alerts To' is enabled for MSSQL servers\nResource: Microsoft.Sql/servers/databases.sqlDatabase"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/bc-azr-general-7"
+            },
+            {
+              "id": "CKV_AZURE_35",
+              "name": "Ensure default network access rule for Storage Accounts is set to deny",
+              "shortDescription": {
+                "text": "Ensure default network access rule for Storage Accounts is set to deny"
+              },
+              "fullDescription": {
+                "text": "Ensure default network access rule for Storage Accounts is set to deny"
+              },
+              "help": {
+                "text": "Ensure default network access rule for Storage Accounts is set to deny\nResource: Microsoft.Storage/storageAccounts.storageAccount"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-networking-policies/set-default-network-access-rule-for-storage-accounts-to-deny"
+            },
+            {
+              "id": "CKV_AZURE_43",
+              "name": "Ensure Storage Accounts adhere to the naming rules",
+              "shortDescription": {
+                "text": "Ensure Storage Accounts adhere to the naming rules"
+              },
+              "fullDescription": {
+                "text": "Ensure Storage Accounts adhere to the naming rules"
+              },
+              "help": {
+                "text": "Ensure Storage Accounts adhere to the naming rules\nResource: Microsoft.Storage/storageAccounts.storageAccount"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-storage-policies/ensure-storage-accounts-adhere-to-the-naming-rules"
+            },
+            {
+              "id": "CKV_AZURE_206",
+              "name": "Ensure that Storage Accounts use replication",
+              "shortDescription": {
+                "text": "Ensure that Storage Accounts use replication"
+              },
+              "fullDescription": {
+                "text": "Ensure that Storage Accounts use replication"
+              },
+              "help": {
+                "text": "Ensure that Storage Accounts use replication\nResource: Microsoft.Storage/storageAccounts.storageAccount"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/azr-general-206"
+            },
+            {
+              "id": "CKV_AZURE_84",
+              "name": "Ensure that Azure Defender is set to On for Storage",
+              "shortDescription": {
+                "text": "Ensure that Azure Defender is set to On for Storage"
+              },
+              "fullDescription": {
+                "text": "Ensure that Azure Defender is set to On for Storage"
+              },
+              "help": {
+                "text": "Ensure that Azure Defender is set to On for Storage\nResource: Microsoft.Security/pricings.defenderCspm"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/ensure-that-azure-defender-is-set-to-on-for-storage"
+            },
+            {
+              "id": "CKV_AZURE_19",
+              "name": "Ensure that standard pricing tier is selected",
+              "shortDescription": {
+                "text": "Ensure that standard pricing tier is selected"
+              },
+              "fullDescription": {
+                "text": "Ensure that standard pricing tier is selected"
+              },
+              "help": {
+                "text": "Ensure that standard pricing tier is selected\nResource: Microsoft.Security/pricings.defenderCspm"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/ensure-standard-pricing-tier-is-selected"
+            },
+            {
+              "id": "CKV_AZURE_87",
+              "name": "Ensure that Azure Defender is set to On for Key Vault",
+              "shortDescription": {
+                "text": "Ensure that Azure Defender is set to On for Key Vault"
+              },
+              "fullDescription": {
+                "text": "Ensure that Azure Defender is set to On for Key Vault"
+              },
+              "help": {
+                "text": "Ensure that Azure Defender is set to On for Key Vault\nResource: Microsoft.Security/pricings.defenderCspm"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/ensure-that-azure-defender-is-set-to-on-for-key-vault"
+            },
+            {
+              "id": "CKV_AZURE_21",
+              "name": "Ensure that 'Send email notification for high severity alerts' is set to 'On'",
+              "shortDescription": {
+                "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'"
+              },
+              "help": {
+                "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'\nResource: Microsoft.Security/securityContacts.securityContact"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/azr-general-21"
+            },
+            {
+              "id": "CKV_AZURE_22",
+              "name": "Ensure that 'Send email notification for high severity alerts' is set to 'On'",
+              "shortDescription": {
+                "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'"
+              },
+              "help": {
+                "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'\nResource: Microsoft.Security/securityContacts.securityContact"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/bc-azr-general-5"
+            },
+            {
+              "id": "CKV_AZURE_20",
+              "name": "Ensure that security contact 'Phone number' is set",
+              "shortDescription": {
+                "text": "Ensure that security contact 'Phone number' is set"
+              },
+              "fullDescription": {
+                "text": "Ensure that security contact 'Phone number' is set"
+              },
+              "help": {
+                "text": "Ensure that security contact 'Phone number' is set\nResource: Microsoft.Security/securityContacts.securityContact"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/bc-azr-general-3"
+            },
+            {
+              "id": "CKV_AZURE_24",
+              "name": "Ensure that 'Auditing' Retention is 'greater than 90 days' for SQL servers",
+              "shortDescription": {
+                "text": "Ensure that 'Auditing' Retention is 'greater than 90 days' for SQL servers"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'Auditing' Retention is 'greater than 90 days' for SQL servers"
+              },
+              "help": {
+                "text": "Ensure that 'Auditing' Retention is 'greater than 90 days' for SQL servers\nResource: Microsoft.Sql/servers.sqlServer"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-logging-policies/bc-azr-logging-3"
+            },
+            {
+              "id": "CKV_AZURE_25",
+              "name": "Azure SQL Server threat detection alerts are enabled for all threat types",
+              "shortDescription": {
+                "text": "Azure SQL Server threat detection alerts are enabled for all threat types"
+              },
+              "fullDescription": {
+                "text": "Azure SQL Server threat detection alerts are enabled for all threat types"
+              },
+              "help": {
+                "text": "Azure SQL Server threat detection alerts are enabled for all threat types\nResource: Microsoft.Sql/servers.sqlServer"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-general-policies/bc-azr-general-6"
+            },
+            {
+              "id": "CKV_AZURE_23",
+              "name": "Ensure that 'Auditing' is set to 'On' for SQL servers",
+              "shortDescription": {
+                "text": "Ensure that 'Auditing' is set to 'On' for SQL servers"
+              },
+              "fullDescription": {
+                "text": "Ensure that 'Auditing' is set to 'On' for SQL servers"
+              },
+              "help": {
+                "text": "Ensure that 'Auditing' is set to 'On' for SQL servers\nResource: Microsoft.Sql/servers.sqlServer"
+              },
+              "defaultConfiguration": {
+                "level": "error"
+              },
+              "helpUri": "https://docs.prismacloud.io/en/enterprise-edition/policy-reference/azure-policies/azure-logging-policies/bc-azr-logging-2"
+            }
+          ],
+          "organization": "bridgecrew"
+        }
+      },
+      "results": [
+        {
+          "ruleId": "CKV_AZURE_67",
+          "ruleIndex": 0,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'HTTP Version' is the latest, if used to run the Function app"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_16",
+          "ruleIndex": 1,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Register with Azure Active Directory is enabled on App Service"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_212",
+          "ruleIndex": 2,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure App Service has a minimum number of instances for failover"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_18",
+          "ruleIndex": 3,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'HTTP Version' is the latest if used to run the web app"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_213",
+          "ruleIndex": 4,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that App Service configures health check"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_71",
+          "ruleIndex": 5,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Managed identity provider is enabled for web apps"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_17",
+          "ruleIndex": 6,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure the web app has 'Client Certificates (Incoming client certificates)' set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_222",
+          "ruleIndex": 7,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Azure Web App public network access is disabled"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/webapp.bicep"
+                },
+                "region": {
+                  "startLine": 24,
+                  "endLine": 138,
+                  "snippet": {
+                    "text": "resource webApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: webAppName\n  location: location\n  kind: 'app,linux'\n  properties: {\n    serverFarmId: appServicePlanId\n    reserved: true\n    httpsOnly: true\n    clientAffinityEnabled: false\n    siteConfig: {\n      linuxFxVersion: 'DOTNETCORE|10.0'\n      use32BitWorkerProcess: true\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      http20Enabled: false\n      webSocketsEnabled: false\n      cors: frontendUrl != '' ? {\n        allowedOrigins: [frontendUrl]\n        supportCredentials: true\n      } : null\n      appSettings: [\n        // Application Insights\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        // ASP.NET Core\n        {\n          name: 'ASPNETCORE_ENVIRONMENT'\n          value: aspnetcoreEnvironment\n        }\n        // Database (via connection string format for EF Core)\n        {\n          name: 'ConnectionStrings__DefaultConnection'\n          value: sqlConnectionString\n        }\n        // Blob Storage\n        {\n          name: 'Azure__BlobStorage__ConnectionString'\n          value: storageConnectionString\n        }\n        {\n          name: 'Azure__BlobStorage__PhotoContainerName'\n          value: blobStorageContainerName\n        }\n        {\n          name: 'Azure__BlobStorage__Provider'\n          value: blobStorageProvider\n        }\n        // Email\n        {\n          name: 'Email__Provider'\n          value: emailProvider\n        }\n        {\n          name: 'Email__ConnectionString'\n          value: emailConnectionString\n        }\n        {\n          name: 'Email__DefaultSenderAddress'\n          value: emailDefaultSenderAddress\n        }\n        {\n          name: 'Email__DefaultSenderName'\n          value: emailDefaultSenderName\n        }\n        {\n          name: 'Email__SupportAddress'\n          value: emailSupportAddress\n        }\n        // Authentication\n        {\n          name: 'Authentication__FrontendBaseUrl'\n          value: frontendUrl\n        }\n        {\n          name: 'Authentication__Jwt__AccessTokenMinutes'\n          value: string(jwtAccessTokenMinutes)\n        }\n        {\n          name: 'Authentication__Jwt__RefreshTokenHours'\n          value: string(jwtRefreshTokenHours)\n        }\n        {\n          name: 'Authentication__Jwt__RememberMeDays'\n          value: string(jwtRememberMeDays)\n        }\n        // Serilog Application Insights sink\n        {\n          name: 'Serilog__WriteTo__1__Name'\n          value: 'ApplicationInsights'\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__connectionString'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'Serilog__WriteTo__1__Args__telemetryConverter'\n          value: 'Serilog.Sinks.ApplicationInsights.TelemetryConverters.TraceTelemetryConverter, Serilog.Sinks.ApplicationInsights'\n        }\n        // JWT Secret Key (set via --parameters, not stored in repo)\n        {\n          name: 'Authentication__Jwt__SecretKey'\n          value: jwtSecretKey\n        }\n        // Cookie config for cross-origin SPA\n        {\n          name: 'Authentication__Cookie__SameSite'\n          value: 'None'\n        }\n      ]\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_225",
+          "ruleIndex": 8,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure the App Service Plan is zone redundant"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/appserviceplan.bicep"
+                },
+                "region": {
+                  "startLine": 7,
+                  "endLine": 19,
+                  "snippet": {
+                    "text": "resource appServicePlan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: planName\n  location: location\n  kind: 'linux'\n  sku: {\n    name: skuName\n    tier: skuTier\n  }\n  properties: {\n    reserved: true // Required for Linux\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV2_AZURE_27",
+          "ruleIndex": 9,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure Azure AD authentication is enabled for Azure SQL (MSSQL)"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 13,
+                  "endLine": 31,
+                  "snippet": {
+                    "text": "resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {\n  name: serverName\n  location: location\n  properties: {\n    administratorLogin: adminLogin\n    administratorLoginPassword: adminPassword\n    minimalTlsVersion: '1.2'\n    publicNetworkAccess: 'Enabled'\n    administrators: entraAdminObjectId != '' ? {\n      administratorType: 'ActiveDirectory'\n      azureADOnlyAuthentication: false\n      login: entraAdminLogin\n      sid: entraAdminObjectId\n      tenantId: subscription().tenantId\n      principalType: 'User'\n    } : null\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_113",
+          "ruleIndex": 10,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that SQL server disables public network access"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 13,
+                  "endLine": 31,
+                  "snippet": {
+                    "text": "resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {\n  name: serverName\n  location: location\n  properties: {\n    administratorLogin: adminLogin\n    administratorLoginPassword: adminPassword\n    minimalTlsVersion: '1.2'\n    publicNetworkAccess: 'Enabled'\n    administrators: entraAdminObjectId != '' ? {\n      administratorType: 'ActiveDirectory'\n      azureADOnlyAuthentication: false\n      login: entraAdminLogin\n      sid: entraAdminObjectId\n      tenantId: subscription().tenantId\n      principalType: 'User'\n    } : null\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_229",
+          "ruleIndex": 11,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure the Azure SQL Database Namespace is zone redundant"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 33,
+                  "endLine": 54,
+                  "snippet": {
+                    "text": "resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  sku: {\n    name: 'GP_S_Gen5'\n    tier: 'GeneralPurpose'\n    family: 'Gen5'\n    capacity: 2\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: maxSizeBytes\n    autoPauseDelay: autoPauseDelay\n    minCapacity: json('0.5')\n    useFreeLimit: true\n    freeLimitExhaustionBehavior: 'BillOverUsage'\n    requestedBackupStorageRedundancy: 'Local'\n    zoneRedundant: false\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_27",
+          "ruleIndex": 12,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Email service and co-administrators' is 'Enabled' for MSSQL servers"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 33,
+                  "endLine": 54,
+                  "snippet": {
+                    "text": "resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  sku: {\n    name: 'GP_S_Gen5'\n    tier: 'GeneralPurpose'\n    family: 'Gen5'\n    capacity: 2\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: maxSizeBytes\n    autoPauseDelay: autoPauseDelay\n    minCapacity: json('0.5')\n    useFreeLimit: true\n    freeLimitExhaustionBehavior: 'BillOverUsage'\n    requestedBackupStorageRedundancy: 'Local'\n    zoneRedundant: false\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_26",
+          "ruleIndex": 13,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Send Alerts To' is enabled for MSSQL servers"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 33,
+                  "endLine": 54,
+                  "snippet": {
+                    "text": "resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  sku: {\n    name: 'GP_S_Gen5'\n    tier: 'GeneralPurpose'\n    family: 'Gen5'\n    capacity: 2\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: maxSizeBytes\n    autoPauseDelay: autoPauseDelay\n    minCapacity: json('0.5')\n    useFreeLimit: true\n    freeLimitExhaustionBehavior: 'BillOverUsage'\n    requestedBackupStorageRedundancy: 'Local'\n    zoneRedundant: false\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_35",
+          "ruleIndex": 14,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure default network access rule for Storage Accounts is set to deny"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/storage.bicep"
+                },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 21,
+                  "snippet": {
+                    "text": "resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    minimumTlsVersion: 'TLS1_2'\n    supportsHttpsTrafficOnly: true\n    allowBlobPublicAccess: false\n    allowCrossTenantReplication: false\n    accessTier: 'Hot'\n    largeFileSharesState: 'Enabled'\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_43",
+          "ruleIndex": 15,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure Storage Accounts adhere to the naming rules"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/storage.bicep"
+                },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 21,
+                  "snippet": {
+                    "text": "resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    minimumTlsVersion: 'TLS1_2'\n    supportsHttpsTrafficOnly: true\n    allowBlobPublicAccess: false\n    allowCrossTenantReplication: false\n    accessTier: 'Hot'\n    largeFileSharesState: 'Enabled'\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_206",
+          "ruleIndex": 16,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Storage Accounts use replication"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/storage.bicep"
+                },
+                "region": {
+                  "startLine": 5,
+                  "endLine": 21,
+                  "snippet": {
+                    "text": "resource storageAccount 'Microsoft.Storage/storageAccounts@2023-05-01' = {\n  name: storageAccountName\n  location: location\n  sku: {\n    name: 'Standard_LRS'\n  }\n  kind: 'StorageV2'\n  properties: {\n    minimumTlsVersion: 'TLS1_2'\n    supportsHttpsTrafficOnly: true\n    allowBlobPublicAccess: false\n    allowCrossTenantReplication: false\n    accessTier: 'Hot'\n    largeFileSharesState: 'Enabled'\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_84",
+          "ruleIndex": 17,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Azure Defender is set to On for Storage"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/defender.bicep"
+                },
+                "region": {
+                  "startLine": 15,
+                  "endLine": 20,
+                  "snippet": {
+                    "text": "resource defenderCspm 'Microsoft.Security/pricings@2024-01-01' = {\n  name: 'CloudPosture'\n  properties: {\n    pricingTier: 'Free'\n  }\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_19",
+          "ruleIndex": 18,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that standard pricing tier is selected"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/defender.bicep"
+                },
+                "region": {
+                  "startLine": 15,
+                  "endLine": 20,
+                  "snippet": {
+                    "text": "resource defenderCspm 'Microsoft.Security/pricings@2024-01-01' = {\n  name: 'CloudPosture'\n  properties: {\n    pricingTier: 'Free'\n  }\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_87",
+          "ruleIndex": 19,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Azure Defender is set to On for Key Vault"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/defender.bicep"
+                },
+                "region": {
+                  "startLine": 15,
+                  "endLine": 20,
+                  "snippet": {
+                    "text": "resource defenderCspm 'Microsoft.Security/pricings@2024-01-01' = {\n  name: 'CloudPosture'\n  properties: {\n    pricingTier: 'Free'\n  }\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_21",
+          "ruleIndex": 20,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/defender.bicep"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 36,
+                  "snippet": {
+                    "text": "resource securityContact 'Microsoft.Security/securityContacts@2020-01-01-preview' = {\n  name: 'default'\n  properties: {\n    emails: securityContactEmail\n    notificationsByRole: {\n      state: 'On'\n      roles: ['Owner', 'Contributor']\n    }\n    alertNotifications: {\n      state: securityContactEmail != '' ? 'On' : 'Off'\n      minimalSeverity: 'High'\n    }\n  }\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_22",
+          "ruleIndex": 21,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Send email notification for high severity alerts' is set to 'On'"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/defender.bicep"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 36,
+                  "snippet": {
+                    "text": "resource securityContact 'Microsoft.Security/securityContacts@2020-01-01-preview' = {\n  name: 'default'\n  properties: {\n    emails: securityContactEmail\n    notificationsByRole: {\n      state: 'On'\n      roles: ['Owner', 'Contributor']\n    }\n    alertNotifications: {\n      state: securityContactEmail != '' ? 'On' : 'Off'\n      minimalSeverity: 'High'\n    }\n  }\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_20",
+          "ruleIndex": 22,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that security contact 'Phone number' is set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/defender.bicep"
+                },
+                "region": {
+                  "startLine": 23,
+                  "endLine": 36,
+                  "snippet": {
+                    "text": "resource securityContact 'Microsoft.Security/securityContacts@2020-01-01-preview' = {\n  name: 'default'\n  properties: {\n    emails: securityContactEmail\n    notificationsByRole: {\n      state: 'On'\n      roles: ['Owner', 'Contributor']\n    }\n    alertNotifications: {\n      state: securityContactEmail != '' ? 'On' : 'Off'\n      minimalSeverity: 'High'\n    }\n  }\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_225",
+          "ruleIndex": 8,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure the App Service Plan is zone redundant"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 10,
+                  "endLine": 22,
+                  "snippet": {
+                    "text": "resource hostingPlan 'Microsoft.Web/serverfarms@2023-12-01' = {\n  name: '${functionAppName}-plan'\n  location: location\n  kind: 'linux'\n  sku: {\n    name: 'Y1'\n    tier: 'Dynamic'\n  }\n  properties: {\n    reserved: true\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_67",
+          "ruleIndex": 0,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'HTTP Version' is the latest, if used to run the Function app"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 86,
+                  "snippet": {
+                    "text": "resource functionApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: hostingPlan.id\n    reserved: true\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'DOTNET-ISOLATED|10.0'\n      use32BitWorkerProcess: false\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet-isolated'\n        }\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'AzureSignalRConnectionString'\n          value: signalRConnectionString\n        }\n        {\n          name: 'SqlConnectionString'\n          value: sqlConnectionString\n        }\n      ]\n      cors: {\n        allowedOrigins: [\n          'https://portal.azure.com'\n        ]\n      }\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_212",
+          "ruleIndex": 2,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure App Service has a minimum number of instances for failover"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 86,
+                  "snippet": {
+                    "text": "resource functionApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: hostingPlan.id\n    reserved: true\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'DOTNET-ISOLATED|10.0'\n      use32BitWorkerProcess: false\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet-isolated'\n        }\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'AzureSignalRConnectionString'\n          value: signalRConnectionString\n        }\n        {\n          name: 'SqlConnectionString'\n          value: sqlConnectionString\n        }\n      ]\n      cors: {\n        allowedOrigins: [\n          'https://portal.azure.com'\n        ]\n      }\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_18",
+          "ruleIndex": 3,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'HTTP Version' is the latest if used to run the web app"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 86,
+                  "snippet": {
+                    "text": "resource functionApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: hostingPlan.id\n    reserved: true\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'DOTNET-ISOLATED|10.0'\n      use32BitWorkerProcess: false\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet-isolated'\n        }\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'AzureSignalRConnectionString'\n          value: signalRConnectionString\n        }\n        {\n          name: 'SqlConnectionString'\n          value: sqlConnectionString\n        }\n      ]\n      cors: {\n        allowedOrigins: [\n          'https://portal.azure.com'\n        ]\n      }\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_213",
+          "ruleIndex": 4,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that App Service configures health check"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 86,
+                  "snippet": {
+                    "text": "resource functionApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: hostingPlan.id\n    reserved: true\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'DOTNET-ISOLATED|10.0'\n      use32BitWorkerProcess: false\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet-isolated'\n        }\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'AzureSignalRConnectionString'\n          value: signalRConnectionString\n        }\n        {\n          name: 'SqlConnectionString'\n          value: sqlConnectionString\n        }\n      ]\n      cors: {\n        allowedOrigins: [\n          'https://portal.azure.com'\n        ]\n      }\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_17",
+          "ruleIndex": 6,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure the web app has 'Client Certificates (Incoming client certificates)' set"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 86,
+                  "snippet": {
+                    "text": "resource functionApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: hostingPlan.id\n    reserved: true\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'DOTNET-ISOLATED|10.0'\n      use32BitWorkerProcess: false\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet-isolated'\n        }\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'AzureSignalRConnectionString'\n          value: signalRConnectionString\n        }\n        {\n          name: 'SqlConnectionString'\n          value: sqlConnectionString\n        }\n      ]\n      cors: {\n        allowedOrigins: [\n          'https://portal.azure.com'\n        ]\n      }\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_222",
+          "ruleIndex": 7,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that Azure Web App public network access is disabled"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/functionapp.bicep"
+                },
+                "region": {
+                  "startLine": 28,
+                  "endLine": 86,
+                  "snippet": {
+                    "text": "resource functionApp 'Microsoft.Web/sites@2023-12-01' = {\n  name: functionAppName\n  location: location\n  kind: 'functionapp,linux'\n  identity: {\n    type: 'SystemAssigned'\n  }\n  properties: {\n    serverFarmId: hostingPlan.id\n    reserved: true\n    httpsOnly: true\n    siteConfig: {\n      linuxFxVersion: 'DOTNET-ISOLATED|10.0'\n      use32BitWorkerProcess: false\n      minTlsVersion: '1.2'\n      ftpsState: 'FtpsOnly'\n      appSettings: [\n        {\n          name: 'AzureWebJobsStorage'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTAZUREFILECONNECTIONSTRING'\n          value: 'DefaultEndpointsProtocol=https;AccountName=${storageAccount.name};EndpointSuffix=${environment().suffixes.storage};AccountKey=${storageAccount.listKeys().keys[0].value}'\n        }\n        {\n          name: 'WEBSITE_CONTENTSHARE'\n          value: toLower(functionAppName)\n        }\n        {\n          name: 'FUNCTIONS_EXTENSION_VERSION'\n          value: '~4'\n        }\n        {\n          name: 'FUNCTIONS_WORKER_RUNTIME'\n          value: 'dotnet-isolated'\n        }\n        {\n          name: 'APPLICATIONINSIGHTS_CONNECTION_STRING'\n          value: appInsightsConnectionString\n        }\n        {\n          name: 'AzureSignalRConnectionString'\n          value: signalRConnectionString\n        }\n        {\n          name: 'SqlConnectionString'\n          value: sqlConnectionString\n        }\n      ]\n      cors: {\n        allowedOrigins: [\n          'https://portal.azure.com'\n        ]\n      }\n    }\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_24",
+          "ruleIndex": 23,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Auditing' Retention is 'greater than 90 days' for SQL servers"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 13,
+                  "endLine": 31,
+                  "snippet": {
+                    "text": "resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {\n  name: serverName\n  location: location\n  properties: {\n    administratorLogin: adminLogin\n    administratorLoginPassword: adminPassword\n    minimalTlsVersion: '1.2'\n    publicNetworkAccess: 'Enabled'\n    administrators: entraAdminObjectId != '' ? {\n      administratorType: 'ActiveDirectory'\n      azureADOnlyAuthentication: false\n      login: entraAdminLogin\n      sid: entraAdminObjectId\n      tenantId: subscription().tenantId\n      principalType: 'User'\n    } : null\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_25",
+          "ruleIndex": 24,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Azure SQL Server threat detection alerts are enabled for all threat types"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 13,
+                  "endLine": 31,
+                  "snippet": {
+                    "text": "resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {\n  name: serverName\n  location: location\n  properties: {\n    administratorLogin: adminLogin\n    administratorLoginPassword: adminPassword\n    minimalTlsVersion: '1.2'\n    publicNetworkAccess: 'Enabled'\n    administrators: entraAdminObjectId != '' ? {\n      administratorType: 'ActiveDirectory'\n      azureADOnlyAuthentication: false\n      login: entraAdminLogin\n      sid: entraAdminObjectId\n      tenantId: subscription().tenantId\n      principalType: 'User'\n    } : null\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_25",
+          "ruleIndex": 24,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Azure SQL Server threat detection alerts are enabled for all threat types"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 33,
+                  "endLine": 54,
+                  "snippet": {
+                    "text": "resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  sku: {\n    name: 'GP_S_Gen5'\n    tier: 'GeneralPurpose'\n    family: 'Gen5'\n    capacity: 2\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: maxSizeBytes\n    autoPauseDelay: autoPauseDelay\n    minCapacity: json('0.5')\n    useFreeLimit: true\n    freeLimitExhaustionBehavior: 'BillOverUsage'\n    requestedBackupStorageRedundancy: 'Local'\n    zoneRedundant: false\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_23",
+          "ruleIndex": 25,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Auditing' is set to 'On' for SQL servers"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 13,
+                  "endLine": 31,
+                  "snippet": {
+                    "text": "resource sqlServer 'Microsoft.Sql/servers@2023-08-01-preview' = {\n  name: serverName\n  location: location\n  properties: {\n    administratorLogin: adminLogin\n    administratorLoginPassword: adminPassword\n    minimalTlsVersion: '1.2'\n    publicNetworkAccess: 'Enabled'\n    administrators: entraAdminObjectId != '' ? {\n      administratorType: 'ActiveDirectory'\n      azureADOnlyAuthentication: false\n      login: entraAdminLogin\n      sid: entraAdminObjectId\n      tenantId: subscription().tenantId\n      principalType: 'User'\n    } : null\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        },
+        {
+          "ruleId": "CKV_AZURE_23",
+          "ruleIndex": 25,
+          "level": "error",
+          "attachments": [],
+          "message": {
+            "text": "Ensure that 'Auditing' is set to 'On' for SQL servers"
+          },
+          "locations": [
+            {
+              "physicalLocation": {
+                "artifactLocation": {
+                  "uri": "infrastructure/modules/database.bicep"
+                },
+                "region": {
+                  "startLine": 33,
+                  "endLine": 54,
+                  "snippet": {
+                    "text": "resource sqlDatabase 'Microsoft.Sql/servers/databases@2023-08-01-preview' = {\n  parent: sqlServer\n  name: databaseName\n  location: location\n  sku: {\n    name: 'GP_S_Gen5'\n    tier: 'GeneralPurpose'\n    family: 'Gen5'\n    capacity: 2\n  }\n  properties: {\n    collation: 'SQL_Latin1_General_CP1_CI_AS'\n    maxSizeBytes: maxSizeBytes\n    autoPauseDelay: autoPauseDelay\n    minCapacity: json('0.5')\n    useFreeLimit: true\n    freeLimitExhaustionBehavior: 'BillOverUsage'\n    requestedBackupStorageRedundancy: 'Local'\n    zoneRedundant: false\n  }\n  tags: tags\n}\n"
+                  }
+                }
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
