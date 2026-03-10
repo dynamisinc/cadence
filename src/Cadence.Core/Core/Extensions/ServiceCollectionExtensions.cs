@@ -19,6 +19,7 @@ using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Features.Phases.Services;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
+using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Photos.Services;
@@ -119,6 +120,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AuthenticationEmailService>();
         services.AddScoped<Cadence.Core.Features.Authentication.Services.IEmailService>(sp =>
             sp.GetRequiredService<AuthenticationEmailService>());
+
+        // Authentication Services
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
 
         // System Settings Services
         services.AddScoped<ISystemSettingsService, SystemSettingsService>();
