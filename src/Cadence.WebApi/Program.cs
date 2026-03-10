@@ -344,6 +344,42 @@ try
 
     app.UseHttpsRedirection();
 
+    // Global Exception Handler — outermost request-processing middleware.
+    // Placed before CORS, auth, and all other middleware so that exceptions from ANY
+    // downstream middleware (including authentication/authorization) produce structured
+    // JSON error responses instead of unformatted 500s.
+    app.Use(async (context, next) =>
+    {
+        try
+        {
+            await next();
+        }
+        catch (Exception ex)
+        {
+            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
+            logger.LogError(ex, "Unhandled exception");
+
+            // Guard against modifying a response that has already started streaming.
+            // Writing to a started response causes an InvalidOperationException.
+            if (context.Response.HasStarted)
+            {
+                logger.LogWarning("Response has already started; cannot write error body for exception: {ExceptionType}", ex.GetType().Name);
+                throw;
+            }
+
+            context.Response.StatusCode = 500;
+
+            if (app.Environment.IsDevelopment())
+            {
+                await context.Response.WriteAsJsonAsync(new { message = ex.Message, stackTrace = ex.StackTrace });
+            }
+            else
+            {
+                await context.Response.WriteAsJsonAsync(new { message = "An internal error occurred." });
+            }
+        }
+    });
+
     // Serve local photo uploads in development (wwwroot/uploads/)
     var uploadsRoot = Path.Combine(app.Environment.ContentRootPath, "wwwroot");
     Directory.CreateDirectory(uploadsRoot);
@@ -379,39 +415,6 @@ try
             if (!string.IsNullOrEmpty(exerciseId))
                 diagnosticContext.Set("ExerciseId", exerciseId);
         };
-    });
-
-    // Global Exception Handler (Simple version for now)
-    app.Use(async (context, next) =>
-    {
-        try
-        {
-            await next();
-        }
-        catch (Exception ex)
-        {
-            var logger = context.RequestServices.GetRequiredService<ILogger<Program>>();
-            logger.LogError(ex, "Unhandled exception");
-
-            // Guard against modifying a response that has already started streaming.
-            // Writing to a started response causes an InvalidOperationException.
-            if (context.Response.HasStarted)
-            {
-                logger.LogWarning("Response has already started; cannot write error body for exception: {ExceptionType}", ex.GetType().Name);
-                throw;
-            }
-
-            context.Response.StatusCode = 500;
-
-            if (app.Environment.IsDevelopment())
-            {
-                await context.Response.WriteAsJsonAsync(new { message = ex.Message, stackTrace = ex.StackTrace });
-            }
-            else
-            {
-                await context.Response.WriteAsJsonAsync(new { message = "An internal error occurred." });
-            }
-        }
     });
 
     app.MapControllers();

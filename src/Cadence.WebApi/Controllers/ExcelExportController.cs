@@ -1,9 +1,12 @@
 using System.Globalization;
+using Cadence.Core.Data;
 using Cadence.Core.Features.ExcelExport.Models.DTOs;
 using Cadence.Core.Features.ExcelExport.Services;
+using Cadence.Core.Hubs;
 using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -18,13 +21,19 @@ public class ExcelExportController : ControllerBase
 {
     private readonly IExcelExportService _service;
     private readonly ILogger<ExcelExportController> _logger;
+    private readonly ICurrentOrganizationContext _orgContext;
+    private readonly AppDbContext _context;
 
     public ExcelExportController(
         IExcelExportService service,
-        ILogger<ExcelExportController> logger)
+        ILogger<ExcelExportController> logger,
+        ICurrentOrganizationContext orgContext,
+        AppDbContext context)
     {
         _service = service;
         _logger = logger;
+        _orgContext = orgContext;
+        _context = context;
     }
 
     /// <summary>
@@ -38,6 +47,9 @@ public class ExcelExportController : ControllerBase
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ExportMselPost([FromBody] ExportMselRequest request)
     {
+        var accessError = await ValidateExerciseOrgAccessAsync(request.ExerciseId);
+        if (accessError != null) return accessError;
+
         try
         {
             var result = await _service.ExportMselAsync(request);
@@ -229,5 +241,34 @@ public class ExcelExportController : ControllerBase
             _logger.LogError(ex, "Error exporting full package for exercise {ExerciseId}", exerciseId);
             return BadRequest(new { message = "Failed to export full package" });
         }
+    }
+
+    /// <summary>
+    /// Validates that the exercise exists and belongs to the current user's organization.
+    /// Used for endpoints where exerciseId comes from the request body (not the route),
+    /// so [AuthorizeExerciseAccess] cannot extract it.
+    /// </summary>
+    private async Task<IActionResult?> ValidateExerciseOrgAccessAsync(Guid exerciseId)
+    {
+        var exercise = await _context.Exercises
+            .AsNoTracking()
+            .Where(e => e.Id == exerciseId)
+            .Select(e => new { e.OrganizationId })
+            .FirstOrDefaultAsync();
+
+        if (exercise == null)
+            return NotFound(new { message = "Exercise not found" });
+
+        if (!_orgContext.IsSysAdmin &&
+            (!_orgContext.CurrentOrganizationId.HasValue ||
+             _orgContext.CurrentOrganizationId.Value != exercise.OrganizationId))
+        {
+            _logger.LogWarning(
+                "User attempted export for exercise {ExerciseId} in org {ExerciseOrgId} but current org is {CurrentOrgId}",
+                exerciseId, exercise.OrganizationId, _orgContext.CurrentOrganizationId);
+            return StatusCode(403);
+        }
+
+        return null; // Access granted
     }
 }

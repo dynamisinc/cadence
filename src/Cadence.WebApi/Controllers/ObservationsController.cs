@@ -1,9 +1,12 @@
+using Cadence.Core.Data;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
+using Cadence.Core.Hubs;
 using Cadence.WebApi.Authorization;
 using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -19,11 +22,19 @@ public class ObservationsController : ControllerBase
 {
     private readonly IObservationService _observationService;
     private readonly ILogger<ObservationsController> _logger;
+    private readonly ICurrentOrganizationContext _orgContext;
+    private readonly AppDbContext _context;
 
-    public ObservationsController(IObservationService observationService, ILogger<ObservationsController> logger)
+    public ObservationsController(
+        IObservationService observationService,
+        ILogger<ObservationsController> logger,
+        ICurrentOrganizationContext orgContext,
+        AppDbContext context)
     {
         _observationService = observationService;
         _logger = logger;
+        _orgContext = orgContext;
+        _context = context;
     }
 
     /// <summary>
@@ -41,8 +52,11 @@ public class ObservationsController : ControllerBase
     /// Get all observations for a specific inject.
     /// </summary>
     [HttpGet("injects/{injectId:guid}/observations")]
-    public async Task<ActionResult<IEnumerable<ObservationDto>>> GetObservationsByInject(Guid injectId)
+    public async Task<IActionResult> GetObservationsByInject(Guid injectId)
     {
+        var accessError = await ValidateInjectOrgAccessAsync(injectId);
+        if (accessError != null) return accessError;
+
         var observations = await _observationService.GetObservationsByInjectAsync(injectId);
         return Ok(observations);
     }
@@ -51,8 +65,11 @@ public class ObservationsController : ControllerBase
     /// Get a single observation by ID.
     /// </summary>
     [HttpGet("observations/{id:guid}")]
-    public async Task<ActionResult<ObservationDto>> GetObservation(Guid id)
+    public async Task<IActionResult> GetObservation(Guid id)
     {
+        var accessError = await ValidateObservationOrgAccessAsync(id);
+        if (accessError != null) return accessError;
+
         var observation = await _observationService.GetObservationAsync(id);
 
         if (observation == null)
@@ -173,6 +190,54 @@ public class ObservationsController : ControllerBase
         }
 
         return NoContent();
+    }
+
+    /// <summary>
+    /// Validates that the inject's exercise belongs to the current user's organization.
+    /// </summary>
+    private async Task<IActionResult?> ValidateInjectOrgAccessAsync(Guid injectId)
+    {
+        var orgId = await _context.Injects
+            .AsNoTracking()
+            .Where(i => i.Id == injectId)
+            .Select(i => i.Msel.Exercise.OrganizationId)
+            .FirstOrDefaultAsync();
+
+        if (orgId == default)
+            return NotFound(new { message = "Inject not found" });
+
+        if (!_orgContext.IsSysAdmin &&
+            (!_orgContext.CurrentOrganizationId.HasValue ||
+             _orgContext.CurrentOrganizationId.Value != orgId))
+        {
+            return StatusCode(403);
+        }
+
+        return null;
+    }
+
+    /// <summary>
+    /// Validates that the observation belongs to the current user's organization.
+    /// </summary>
+    private async Task<IActionResult?> ValidateObservationOrgAccessAsync(Guid observationId)
+    {
+        var orgId = await _context.Observations
+            .AsNoTracking()
+            .Where(o => o.Id == observationId)
+            .Select(o => o.OrganizationId)
+            .FirstOrDefaultAsync();
+
+        if (orgId == default)
+            return NotFound();
+
+        if (!_orgContext.IsSysAdmin &&
+            (!_orgContext.CurrentOrganizationId.HasValue ||
+             _orgContext.CurrentOrganizationId.Value != orgId))
+        {
+            return StatusCode(403);
+        }
+
+        return null;
     }
 
 }
