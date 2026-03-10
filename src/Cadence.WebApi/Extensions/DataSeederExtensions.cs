@@ -8,20 +8,50 @@ namespace Cadence.WebApi.Extensions;
 
 /// <summary>
 /// Extension methods for data seeding.
-/// 
-/// Two seeding stages:
-/// 1. Essential seeding (ALL environments): Default organization required for app function
-/// 2. Demo seeding (ALL except Production): Demo org, users, exercises for UAT/demos
-/// 
-/// Usage in Program.cs:
+///
+/// <para><strong>Three seeding stages (must be called in order):</strong></para>
+/// <list type="number">
+///   <item><term>Essential</term><description>ALL environments — migrations + default organization (required for app function)</description></item>
+///   <item><term>Demo</term><description>Non-production — demo org, users, exercises, capabilities, observations</description></item>
+///   <item><term>Beta</term><description>Non-production — beta org, exercises, capabilities, EEG data, observations</description></item>
+/// </list>
+///
+/// <para><strong>Entity dependency order within each seeder:</strong></para>
 /// <code>
-/// // Stage 1: Essential data - ALL environments
+/// Organization
+///   └─► Exercise
+///         ├─► MSEL
+///         │     └─► Inject ──► InjectObjective (join)
+///         ├─► Phase
+///         ├─► Objective
+///         ├─► ExerciseParticipant (role assignments)
+///         ├─► Capability (via ICapabilityImportService)
+///         │     └─► CapabilityTarget
+///         │           └─► CriticalTask
+///         │                 └─► InjectCriticalTask (join)
+///         ├─► Observation (references Inject, Objective, Evaluator)
+///         └─► EegEntry (references Observation, CapabilityTarget, CriticalTask)
+/// </code>
+///
+/// <para><strong>Idempotency:</strong> All seeders use fixed GUIDs and check for existing data
+/// before inserting. Safe to run repeatedly without duplicating records.</para>
+///
+/// <para><strong>Failure behavior:</strong></para>
+/// <list type="bullet">
+///   <item>Essential: Throws — app cannot start without essential data</item>
+///   <item>Demo/Beta: Logs error and continues — app functions without demo/beta data</item>
+/// </list>
+///
+/// <para><strong>Usage in Program.cs:</strong></para>
+/// <code>
+/// // Stage 1: Essential data — ALL environments
 /// await app.SeedEssentialDataAsync();
-/// 
-/// // Stage 2: Demo data - ALL except Production
+///
+/// // Stage 2 &amp; 3: Demo + Beta data — non-production only
 /// if (!app.Environment.IsProduction())
 /// {
 ///     await app.SeedDemoDataAsync();
+///     await app.SeedBetaDataAsync();
 /// }
 /// </code>
 /// </summary>
