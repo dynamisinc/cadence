@@ -1,7 +1,12 @@
 import { render, screen, fireEvent } from '@testing-library/react'
 import { describe, it, expect, vi } from 'vitest'
+import { ThemeProvider } from '@mui/material/styles'
 import { faGear } from '@fortawesome/free-solid-svg-icons'
+import { cobraTheme } from '@/theme/cobraTheme'
 import { PageHeader } from './PageHeader'
+
+const renderWithTheme = (ui: React.ReactElement) =>
+  render(<ThemeProvider theme={cobraTheme}>{ui}</ThemeProvider>)
 
 describe('PageHeader', () => {
   it('renders title as h1 element', () => {
@@ -40,7 +45,7 @@ describe('PageHeader', () => {
   })
 
   it('renders back button when showBackButton is true', () => {
-    render(<PageHeader title="Test" showBackButton />)
+    renderWithTheme(<PageHeader title="Test" showBackButton />)
     expect(screen.getByRole('button', { name: 'Go back' })).toBeInTheDocument()
   })
 
@@ -51,7 +56,7 @@ describe('PageHeader', () => {
 
   it('calls onBackClick when back button is clicked', () => {
     const handleBack = vi.fn()
-    render(<PageHeader title="Test" showBackButton onBackClick={handleBack} />)
+    renderWithTheme(<PageHeader title="Test" showBackButton onBackClick={handleBack} />)
     fireEvent.click(screen.getByRole('button', { name: 'Go back' }))
     expect(handleBack).toHaveBeenCalledOnce()
   })

@@ -9,10 +9,10 @@
  */
 
 import { useState } from 'react'
-import { Paper, Typography, IconButton, Box } from '@mui/material'
+import { Paper, Typography, Box } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faDownload, faXmark } from '@fortawesome/free-solid-svg-icons'
-import { CobraPrimaryButton } from '../../theme/styledComponents'
+import { CobraPrimaryButton, CobraIconButton } from '../../theme/styledComponents'
 import { useInstallPrompt } from '../../shared/hooks'
 import { shouldShowBanner, persistDismiss } from './installBannerUtils'
 
@@ -88,14 +88,14 @@ export function InstallBanner() {
         Install
       </CobraPrimaryButton>
 
-      <IconButton
+      <CobraIconButton
         size="small"
         onClick={handleDismiss}
         aria-label="Dismiss install banner"
         sx={{ ml: -1 }}
       >
         <FontAwesomeIcon icon={faXmark} />
-      </IconButton>
+      </CobraIconButton>
     </Paper>
   )
 }

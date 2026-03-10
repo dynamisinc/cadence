@@ -143,7 +143,7 @@ export const ProfileMenu: React.FC = () => {
             fontSize: '0.875rem',
             fontWeight: 'bold',
             backgroundColor: cobraTheme.palette.secondary.main,
-            color: '#ffffff',
+            color: cobraTheme.palette.common.white,
           }}
         >
           {userInitials}
@@ -192,7 +192,7 @@ export const ProfileMenu: React.FC = () => {
                 fontSize: '1.25rem',
                 fontWeight: 'bold',
                 backgroundColor: cobraTheme.palette.buttonPrimary.main,
-                color: '#ffffff',
+                color: cobraTheme.palette.common.white,
               }}
             >
               {userInitials}

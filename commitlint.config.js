@@ -65,6 +65,8 @@ module.exports = {
         'database',
         'logging',
         'infra',
+        'minor',
+        'validators',
       ],
     ],
     'header-max-length': [2, 'always', 120],

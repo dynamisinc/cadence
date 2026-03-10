@@ -13,9 +13,10 @@
  */
 
 import { useState } from 'react'
-import { Snackbar, Alert, Button, Box, Typography, Collapse, List, ListItem, ListItemIcon, ListItemText, Link } from '@mui/material'
+import { Snackbar, Alert, Box, Typography, Collapse, List, ListItem, ListItemIcon, ListItemText, Link } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faStar, faBug } from '@fortawesome/free-solid-svg-icons'
+import { CobraPrimaryButton, CobraLinkButton } from '@/theme/styledComponents'
 import { useServiceWorker } from '../../shared/hooks'
 import { useReleaseNotes } from '../../features/version/hooks/useReleaseNotes'
 
@@ -85,14 +86,14 @@ export function UpdatePrompt() {
             {/* Show recent changes to give context, with link to full notes */}
             {hasChanges && (
               <>
-                <Button
+                <CobraLinkButton
                   size="small"
                   onClick={() => setExpanded(!expanded)}
                   endIcon={<FontAwesomeIcon icon={expanded ? faChevronUp : faChevronDown} size="xs" />}
                   sx={{ mt: 0.5, mb: 0.5, p: 0, minWidth: 'auto', textTransform: 'none' }}
                 >
                   {expanded ? 'Hide' : 'Recent changes'}
-                </Button>
+                </CobraLinkButton>
 
                 <Collapse in={expanded}>
                   <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
@@ -136,22 +137,19 @@ export function UpdatePrompt() {
             )}
 
             <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-              <Button
-                color="inherit"
+              <CobraPrimaryButton
                 size="small"
-                variant="outlined"
                 onClick={() => updateServiceWorker()}
                 startIcon={<FontAwesomeIcon icon={faArrowsRotate} size="sm" />}
               >
                 Update now
-              </Button>
-              <Button
-                color="inherit"
+              </CobraPrimaryButton>
+              <CobraLinkButton
                 size="small"
                 onClick={dismissNotification}
               >
                 Later
-              </Button>
+              </CobraLinkButton>
             </Box>
           </Box>
         </Alert>

@@ -239,66 +239,32 @@ export const ExerciseConductPage = () => {
       : undefined,
   )
 
-  // SignalR real-time handlers
-  const handleInjectFired = useCallback(
-    (inject: InjectDto) => {
-      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), old =>
-        old?.map(i => (i.id === inject.id ? inject : i)) ?? [],
-      )
-    },
-    [exerciseId, queryClient],
-  )
+  // SignalR real-time event handlers — AR-P02 pattern.
+  // Use invalidateQueries (not setQueryData) so React Query refetches authoritative
+  // server state. SignalR events are notifications that data changed, not the data itself.
+  const handleInjectFired = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: injectKeys.all(exerciseId!) })
+  }, [exerciseId, queryClient])
 
-  const handleInjectStatusChanged = useCallback(
-    (inject: InjectDto) => {
-      queryClient.setQueryData<InjectDto[]>(injectKeys.all(exerciseId!), old =>
-        old?.map(i => (i.id === inject.id ? inject : i)) ?? [],
-      )
-    },
-    [exerciseId, queryClient],
-  )
+  const handleInjectStatusChanged = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: injectKeys.all(exerciseId!) })
+  }, [exerciseId, queryClient])
 
-  const handleClockChanged = useCallback(
-    (clockDto: ExerciseClockDto) => {
-      queryClient.setQueryData<ExerciseClockDto>(clockQueryKey(exerciseId!), clockDto)
-    },
-    [exerciseId, queryClient],
-  )
+  const handleClockChanged = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: clockQueryKey(exerciseId!) })
+  }, [exerciseId, queryClient])
 
-  const handleObservationAdded = useCallback(
-    (observation: ObservationDto) => {
-      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old => {
-        // Check if observation already exists (from optimistic update or prior SignalR)
-        // to avoid duplicates when the creator receives their own broadcast
-        const existing = old?.find(o => o.id === observation.id)
-        if (existing) {
-          // Update existing observation with server data
-          return old!.map(o => (o.id === observation.id ? observation : o))
-        }
-        // New observation from another client
-        return [observation, ...(old ?? [])]
-      })
-    },
-    [exerciseId, queryClient],
-  )
+  const handleObservationAdded = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
+  }, [exerciseId, queryClient])
 
-  const handleObservationUpdated = useCallback(
-    (observation: ObservationDto) => {
-      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old =>
-        old?.map(o => (o.id === observation.id ? observation : o)) ?? [],
-      )
-    },
-    [exerciseId, queryClient],
-  )
+  const handleObservationUpdated = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
+  }, [exerciseId, queryClient])
 
-  const handleObservationDeleted = useCallback(
-    (observationId: string) => {
-      queryClient.setQueryData<ObservationDto[]>(observationsQueryKey(exerciseId!), old =>
-        old?.filter(o => o.id !== observationId) ?? [],
-      )
-    },
-    [exerciseId, queryClient],
-  )
+  const handleObservationDeleted = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
+  }, [exerciseId, queryClient])
 
   // Handle EEG entry created - invalidate coverage queries
   const handleEegEntryCreated = useCallback(() => {

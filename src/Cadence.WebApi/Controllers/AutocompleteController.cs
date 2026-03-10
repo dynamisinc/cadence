@@ -1,5 +1,4 @@
 using Cadence.Core.Features.Autocomplete.Services;
-using Cadence.Core.Hubs;
 using Cadence.WebApi.Authorization;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -17,17 +16,10 @@ namespace Cadence.WebApi.Controllers;
 public class AutocompleteController : ControllerBase
 {
     private readonly IAutocompleteService _service;
-    private readonly ICurrentOrganizationContext _orgContext;
-    private readonly ILogger<AutocompleteController> _logger;
 
-    public AutocompleteController(
-        IAutocompleteService service,
-        ICurrentOrganizationContext orgContext,
-        ILogger<AutocompleteController> logger)
+    public AutocompleteController(IAutocompleteService service)
     {
         _service = service;
-        _orgContext = orgContext;
-        _logger = logger;
     }
 
     /// <summary>
@@ -40,7 +32,7 @@ public class AutocompleteController : ControllerBase
         [FromQuery] string? filter = null,
         [FromQuery] int limit = 20)
     {
-        var (organizationId, error) = await ValidateExerciseAccessAsync(exerciseId);
+        var (organizationId, error) = await GetExerciseOrganizationIdAsync(exerciseId);
         if (error != null) return error;
 
         var suggestions = await _service.GetTrackSuggestionsAsync(organizationId!.Value, filter, limit);
@@ -57,7 +49,7 @@ public class AutocompleteController : ControllerBase
         [FromQuery] string? filter = null,
         [FromQuery] int limit = 20)
     {
-        var (organizationId, error) = await ValidateExerciseAccessAsync(exerciseId);
+        var (organizationId, error) = await GetExerciseOrganizationIdAsync(exerciseId);
         if (error != null) return error;
 
         var suggestions = await _service.GetTargetSuggestionsAsync(organizationId!.Value, filter, limit);
@@ -74,7 +66,7 @@ public class AutocompleteController : ControllerBase
         [FromQuery] string? filter = null,
         [FromQuery] int limit = 20)
     {
-        var (organizationId, error) = await ValidateExerciseAccessAsync(exerciseId);
+        var (organizationId, error) = await GetExerciseOrganizationIdAsync(exerciseId);
         if (error != null) return error;
 
         var suggestions = await _service.GetSourceSuggestionsAsync(organizationId!.Value, filter, limit);
@@ -91,7 +83,7 @@ public class AutocompleteController : ControllerBase
         [FromQuery] string? filter = null,
         [FromQuery] int limit = 20)
     {
-        var (organizationId, error) = await ValidateExerciseAccessAsync(exerciseId);
+        var (organizationId, error) = await GetExerciseOrganizationIdAsync(exerciseId);
         if (error != null) return error;
 
         var suggestions = await _service.GetLocationNameSuggestionsAsync(organizationId!.Value, filter, limit);
@@ -108,7 +100,7 @@ public class AutocompleteController : ControllerBase
         [FromQuery] string? filter = null,
         [FromQuery] int limit = 20)
     {
-        var (organizationId, error) = await ValidateExerciseAccessAsync(exerciseId);
+        var (organizationId, error) = await GetExerciseOrganizationIdAsync(exerciseId);
         if (error != null) return error;
 
         var suggestions = await _service.GetLocationTypeSuggestionsAsync(organizationId!.Value, filter, limit);
@@ -125,7 +117,7 @@ public class AutocompleteController : ControllerBase
         [FromQuery] string? filter = null,
         [FromQuery] int limit = 20)
     {
-        var (organizationId, error) = await ValidateExerciseAccessAsync(exerciseId);
+        var (organizationId, error) = await GetExerciseOrganizationIdAsync(exerciseId);
         if (error != null) return error;
 
         var suggestions = await _service.GetResponsibleControllerSuggestionsAsync(organizationId!.Value, filter, limit);
@@ -133,29 +125,15 @@ public class AutocompleteController : ControllerBase
     }
 
     /// <summary>
-    /// Validates the user has access to the exercise's organization.
-    /// Returns the organization ID if access is granted, or an error ActionResult if denied.
+    /// Resolves the organization ID for the given exercise.
+    /// Authorization is handled by [AuthorizeExerciseAccess].
     /// </summary>
-    private async Task<(Guid? OrganizationId, ActionResult? Error)> ValidateExerciseAccessAsync(Guid exerciseId)
+    private async Task<(Guid? OrganizationId, ActionResult? Error)> GetExerciseOrganizationIdAsync(Guid exerciseId)
     {
         var organizationId = await _service.GetExerciseOrganizationIdAsync(exerciseId);
 
         if (organizationId == null)
             return (null, NotFound(new { message = "Exercise not found" }));
-
-        // SysAdmins can access any organization
-        if (_orgContext.IsSysAdmin)
-            return (organizationId, null);
-
-        // Regular users must have a current organization context matching the exercise's org
-        if (!_orgContext.CurrentOrganizationId.HasValue ||
-            _orgContext.CurrentOrganizationId.Value != organizationId.Value)
-        {
-            _logger.LogWarning(
-                "User attempted to access autocomplete for exercise {ExerciseId} in organization {ExerciseOrgId} but is in organization {CurrentOrgId}",
-                exerciseId, organizationId.Value, _orgContext.CurrentOrganizationId);
-            return (null, Forbid());
-        }
 
         return (organizationId, null);
     }

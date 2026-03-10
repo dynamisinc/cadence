@@ -6,7 +6,8 @@
  * When grouping by phase, can optionally show phase management controls.
  */
 
-import { Box, Typography, IconButton, Badge, Tooltip, Stack } from '@mui/material'
+import { Box, Typography, Badge, Tooltip, Stack } from '@mui/material'
+import { CobraIconButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faChevronDown,
@@ -153,12 +154,12 @@ export const GroupHeader = ({
       role="button"
       aria-expanded={expanded}
     >
-      <IconButton size="small" sx={{ p: 0.5 }} tabIndex={-1}>
+      <CobraIconButton size="small" sx={{ p: 0.5 }} tabIndex={-1}>
         <FontAwesomeIcon
           icon={expanded ? faChevronDown : faChevronRight}
           size="sm"
         />
-      </IconButton>
+      </CobraIconButton>
 
       <Typography variant="subtitle2" fontWeight={600} sx={{ flexGrow: 1 }}>
         {name}
@@ -170,41 +171,41 @@ export const GroupHeader = ({
           {/* Move up */}
           <Tooltip title="Move phase up">
             <span>
-              <IconButton
+              <CobraIconButton
                 size="small"
                 onClick={e => handleManagementClick(e, phaseManagement.onMoveUp)}
                 disabled={phaseManagement.isFirst || phaseManagement.isLoading}
                 sx={{ p: 0.5 }}
               >
                 <FontAwesomeIcon icon={faChevronUp} size="xs" />
-              </IconButton>
+              </CobraIconButton>
             </span>
           </Tooltip>
 
           {/* Move down */}
           <Tooltip title="Move phase down">
             <span>
-              <IconButton
+              <CobraIconButton
                 size="small"
                 onClick={e => handleManagementClick(e, phaseManagement.onMoveDown)}
                 disabled={phaseManagement.isLast || phaseManagement.isLoading}
                 sx={{ p: 0.5 }}
               >
                 <FontAwesomeIcon icon={faChevronDown} size="xs" />
-              </IconButton>
+              </CobraIconButton>
             </span>
           </Tooltip>
 
           {/* Edit */}
           <Tooltip title="Edit phase">
-            <IconButton
+            <CobraIconButton
               size="small"
               onClick={e => handleManagementClick(e, phaseManagement.onEdit)}
               disabled={phaseManagement.isLoading}
               sx={{ p: 0.5 }}
             >
               <FontAwesomeIcon icon={faPen} size="xs" />
-            </IconButton>
+            </CobraIconButton>
           </Tooltip>
 
           {/* Delete - disabled if has injects */}
@@ -216,7 +217,7 @@ export const GroupHeader = ({
             }
           >
             <span>
-              <IconButton
+              <CobraIconButton
                 size="small"
                 onClick={e => handleManagementClick(e, phaseManagement.onDelete)}
                 disabled={count > 0 || phaseManagement.isLoading}
@@ -224,7 +225,7 @@ export const GroupHeader = ({
                 sx={{ p: 0.5 }}
               >
                 <FontAwesomeIcon icon={faTrash} size="xs" />
-              </IconButton>
+              </CobraIconButton>
             </span>
           </Tooltip>
         </Stack>
