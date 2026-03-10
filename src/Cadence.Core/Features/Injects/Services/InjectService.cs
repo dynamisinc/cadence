@@ -6,11 +6,14 @@ using Cadence.Core.Features.Notifications.Services;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Cadence.Core.Features.Injects.Services;
 
 /// <summary>
-/// Service for inject conduct operations (firing, skipping, resetting).
+/// Service for inject conduct operations (firing, skipping, resetting, approval workflow).
+/// Batch approve/reject are delegated to <see cref="IInjectBatchApprovalService"/> when
+/// available via DI; otherwise an inline instance is constructed to preserve test compatibility.
 /// </summary>
 public class InjectService : IInjectService
 {
@@ -18,21 +21,31 @@ public class InjectService : IInjectService
     private readonly IExerciseHubContext _hubContext;
     private readonly IApprovalPermissionService _approvalPermissionService;
     private readonly IApprovalNotificationService _approvalNotificationService;
+    private readonly IInjectBatchApprovalService _batchApprovalService;
 
+    /// <summary>
+    /// Primary constructor used by production DI — receives all dependencies explicitly.
+    /// </summary>
     public InjectService(
         AppDbContext context,
         IExerciseHubContext hubContext,
         IApprovalPermissionService approvalPermissionService,
-        IApprovalNotificationService approvalNotificationService)
+        IApprovalNotificationService approvalNotificationService,
+        IInjectBatchApprovalService? batchApprovalService = null)
     {
         _context = context;
         _hubContext = hubContext;
         _approvalPermissionService = approvalPermissionService;
         _approvalNotificationService = approvalNotificationService;
+
+        // Fall back to an inline instance so that tests which construct InjectService
+        // directly (without providing IInjectBatchApprovalService) continue to work.
+        _batchApprovalService = batchApprovalService
+            ?? new InjectBatchApprovalService(context, approvalNotificationService, Microsoft.Extensions.Logging.Abstractions.NullLogger<InjectBatchApprovalService>.Instance);
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, string? userId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, string? userId, string? notes = null, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
@@ -68,6 +81,14 @@ public class InjectService : IInjectService
         inject.SkippedAt = null;
         inject.SkippedByUserId = null;
 
+        // Append optional delivery notes to ControllerNotes for a clear delivery record
+        if (!string.IsNullOrWhiteSpace(notes))
+        {
+            inject.ControllerNotes = string.IsNullOrEmpty(inject.ControllerNotes)
+                ? $"[Fired] {notes}"
+                : $"{inject.ControllerNotes}\n[Fired] {notes}";
+        }
+
         await _context.SaveChangesAsync(cancellationToken);
 
         var dto = inject.ToDto();
@@ -77,7 +98,7 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, string userId, CancellationToken cancellationToken = default)
+    public async Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, string userId, string skipReason = "Skipped", CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
 
@@ -93,9 +114,20 @@ public class InjectService : IInjectService
             throw new InvalidOperationException($"Inject is already {inject.Status}. Only Draft or Synchronized injects can be skipped.");
         }
 
+        // Validate skip reason
+        if (string.IsNullOrWhiteSpace(skipReason))
+        {
+            throw new InvalidOperationException("Skip reason is required.");
+        }
+        if (skipReason.Length > 500)
+        {
+            throw new InvalidOperationException("Skip reason must be 500 characters or less.");
+        }
+
         inject.Status = InjectStatus.Deferred;
         inject.SkippedAt = DateTime.UtcNow;
         inject.SkippedByUserId = userId;
+        inject.SkipReason = skipReason;
         inject.ModifiedBy = userId;
         inject.FiredAt = null;
         inject.FiredByUserId = null;
@@ -419,243 +451,6 @@ public class InjectService : IInjectService
     }
 
     /// <inheritdoc />
-    public async Task<BatchApprovalResult> BatchApproveAsync(
-        Guid exerciseId,
-        IEnumerable<Guid> injectIds,
-        string? notes,
-        string userId,
-        CancellationToken cancellationToken = default)
-    {
-        var injectIdsList = injectIds.ToList();
-        if (injectIdsList.Count == 0)
-        {
-            throw new InvalidOperationException("Must select at least one inject to approve.");
-        }
-
-        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
-            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
-
-        if (!exercise.RequireInjectApproval)
-        {
-            throw new InvalidOperationException(
-                "Cannot batch approve - approval workflow is not enabled for this exercise.");
-        }
-
-        if (exercise.ActiveMselId == null)
-        {
-            throw new InvalidOperationException("Exercise has no active MSEL.");
-        }
-
-        var result = new BatchApprovalResult();
-
-        // Get all requested injects
-        var injects = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.InjectObjectives)
-            .Include(i => i.SubmittedByUser)
-            .Include(i => i.ApprovedByUser)
-            .Include(i => i.RejectedByUser)
-            .Include(i => i.RevertedByUser)
-            .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
-            .ToListAsync(cancellationToken);
-
-        // Get organization self-approval policy (need org context)
-        var org = await _context.Organizations.FindAsync(new object[] { exercise.OrganizationId }, cancellationToken);
-        var selfApprovalPolicy = org?.SelfApprovalPolicy ?? SelfApprovalPolicy.NeverAllowed;
-
-        var approvedInjects = new List<Inject>();
-
-        foreach (var inject in injects)
-        {
-            // Skip non-submitted injects
-            if (inject.Status != InjectStatus.Submitted)
-            {
-                result.SkippedCount++;
-                result.SkippedReasons.Add(
-                    $"INJ-{inject.InjectNumber:D3}: Not in Submitted status (current: {inject.Status})");
-                continue;
-            }
-
-            // Check self-approval based on organization policy
-            var isSelfSubmission = inject.SubmittedByUserId == userId;
-            if (isSelfSubmission)
-            {
-                if (selfApprovalPolicy == SelfApprovalPolicy.NeverAllowed)
-                {
-                    result.SkippedCount++;
-                    result.SkippedReasons.Add(
-                        $"INJ-{inject.InjectNumber:D3}: Cannot approve your own submission (self-approval not permitted)");
-                    continue;
-                }
-                else if (selfApprovalPolicy == SelfApprovalPolicy.AllowedWithWarning)
-                {
-                    // For batch approval, skip self-submissions that require confirmation
-                    // Users should use individual approval with confirmation for their own submissions
-                    result.SkippedCount++;
-                    result.SkippedReasons.Add(
-                        $"INJ-{inject.InjectNumber:D3}: Self-approval requires individual confirmation");
-                    continue;
-                }
-                // If AlwaysAllowed, continue with approval
-            }
-
-            // Approve the inject
-            inject.Status = InjectStatus.Approved;
-            inject.ApprovedByUserId = userId;
-            inject.ApprovedAt = DateTime.UtcNow;
-            inject.ApproverNotes = notes;
-            inject.ModifiedBy = userId;
-
-            // Clear any previous rejection
-            inject.RejectionReason = null;
-            inject.RejectedByUserId = null;
-            inject.RejectedAt = null;
-
-            // Record status history
-            var history = new InjectStatusHistory
-            {
-                Id = Guid.NewGuid(),
-                InjectId = inject.Id,
-                FromStatus = InjectStatus.Submitted,
-                ToStatus = InjectStatus.Approved,
-                ChangedByUserId = userId,
-                ChangedAt = DateTime.UtcNow,
-                Notes = notes,
-                CreatedBy = userId,
-                ModifiedBy = userId
-            };
-            _context.InjectStatusHistories.Add(history);
-
-            result.ApprovedCount++;
-            result.ProcessedInjects.Add(inject.ToDto());
-            approvedInjects.Add(inject);
-        }
-
-        // Validate at least one inject was approved
-        if (result.ApprovedCount == 0)
-        {
-            throw new InvalidOperationException(
-                "Cannot approve - all selected injects were submitted by you or are not in Submitted status.");
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Delegate broadcast and user notification to ApprovalNotificationService
-        // (single point of truth for approval-related SignalR events + in-app notifications)
-        await _approvalNotificationService.NotifyBatchApprovedAsync(userId, approvedInjects, notes, cancellationToken);
-
-        return result;
-    }
-
-    /// <inheritdoc />
-    public async Task<BatchApprovalResult> BatchRejectAsync(
-        Guid exerciseId,
-        IEnumerable<Guid> injectIds,
-        string reason,
-        string userId,
-        CancellationToken cancellationToken = default)
-    {
-        var injectIdsList = injectIds.ToList();
-        if (injectIdsList.Count == 0)
-        {
-            throw new InvalidOperationException("Must select at least one inject to reject.");
-        }
-
-        // Validate reason
-        if (string.IsNullOrWhiteSpace(reason))
-        {
-            throw new InvalidOperationException("Rejection reason is required.");
-        }
-        if (reason.Length < 10)
-        {
-            throw new InvalidOperationException("Rejection reason must be at least 10 characters.");
-        }
-        if (reason.Length > 1000)
-        {
-            throw new InvalidOperationException("Rejection reason must be 1000 characters or less.");
-        }
-
-        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
-            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
-
-        if (!exercise.RequireInjectApproval)
-        {
-            throw new InvalidOperationException(
-                "Cannot batch reject - approval workflow is not enabled for this exercise.");
-        }
-
-        if (exercise.ActiveMselId == null)
-        {
-            throw new InvalidOperationException("Exercise has no active MSEL.");
-        }
-
-        var result = new BatchApprovalResult();
-
-        // Get all requested injects
-        var injects = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.InjectObjectives)
-            .Include(i => i.SubmittedByUser)
-            .Include(i => i.ApprovedByUser)
-            .Include(i => i.RejectedByUser)
-            .Include(i => i.RevertedByUser)
-            .Where(i => injectIdsList.Contains(i.Id) && i.MselId == exercise.ActiveMselId)
-            .ToListAsync(cancellationToken);
-
-        var rejectedInjects = new List<Inject>();
-
-        foreach (var inject in injects)
-        {
-            // Skip non-submitted injects
-            if (inject.Status != InjectStatus.Submitted)
-            {
-                result.SkippedCount++;
-                result.SkippedReasons.Add(
-                    $"INJ-{inject.InjectNumber:D3}: Not in Submitted status (current: {inject.Status})");
-                continue;
-            }
-
-            // Reject the inject (return to Draft)
-            inject.Status = InjectStatus.Draft;
-            inject.RejectedByUserId = userId;
-            inject.RejectedAt = DateTime.UtcNow;
-            inject.RejectionReason = reason;
-            inject.ModifiedBy = userId;
-
-            // Clear submission tracking (will be re-set on resubmit)
-            inject.SubmittedByUserId = null;
-            inject.SubmittedAt = null;
-
-            // Record status history
-            var history = new InjectStatusHistory
-            {
-                Id = Guid.NewGuid(),
-                InjectId = inject.Id,
-                FromStatus = InjectStatus.Submitted,
-                ToStatus = InjectStatus.Draft,
-                ChangedByUserId = userId,
-                ChangedAt = DateTime.UtcNow,
-                Notes = reason,
-                CreatedBy = userId,
-                ModifiedBy = userId
-            };
-            _context.InjectStatusHistories.Add(history);
-
-            result.RejectedCount++;
-            result.ProcessedInjects.Add(inject.ToDto());
-            rejectedInjects.Add(inject);
-        }
-
-        await _context.SaveChangesAsync(cancellationToken);
-
-        // Delegate broadcast and user notification to ApprovalNotificationService
-        // (single point of truth for approval-related SignalR events + in-app notifications)
-        await _approvalNotificationService.NotifyBatchRejectedAsync(userId, rejectedInjects, reason, cancellationToken);
-
-        return result;
-    }
-
-    /// <inheritdoc />
     public async Task<InjectDto> RevertApprovalAsync(Guid exerciseId, Guid injectId, string userId, string reason, CancellationToken cancellationToken = default)
     {
         var (inject, exercise) = await GetInjectAndExerciseAsync(exerciseId, injectId, cancellationToken);
@@ -725,6 +520,34 @@ public class InjectService : IInjectService
 
         return inject.ToDto();
     }
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Delegates to <see cref="IInjectBatchApprovalService"/> which holds the canonical
+    /// implementation. Kept on <see cref="IInjectService"/> so that tests that construct
+    /// <see cref="InjectService"/> directly continue to work without modification.
+    /// </remarks>
+    public Task<BatchApprovalResult> BatchApproveAsync(
+        Guid exerciseId,
+        IEnumerable<Guid> injectIds,
+        string? notes,
+        string userId,
+        CancellationToken cancellationToken = default)
+        => _batchApprovalService.BatchApproveAsync(exerciseId, injectIds, notes, userId, cancellationToken);
+
+    /// <inheritdoc />
+    /// <remarks>
+    /// Delegates to <see cref="IInjectBatchApprovalService"/> which holds the canonical
+    /// implementation. Kept on <see cref="IInjectService"/> so that tests that construct
+    /// <see cref="InjectService"/> directly continue to work without modification.
+    /// </remarks>
+    public Task<BatchApprovalResult> BatchRejectAsync(
+        Guid exerciseId,
+        IEnumerable<Guid> injectIds,
+        string reason,
+        string userId,
+        CancellationToken cancellationToken = default)
+        => _batchApprovalService.BatchRejectAsync(exerciseId, injectIds, reason, userId, cancellationToken);
 
     private async Task<(Inject inject, Exercise exercise)> GetInjectAndExerciseAsync(Guid exerciseId, Guid injectId, CancellationToken cancellationToken)
     {

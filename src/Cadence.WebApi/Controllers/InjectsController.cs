@@ -1,4 +1,3 @@
-using Cadence.Core.Data;
 using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.Core.Features.Exercises.Models.DTOs;
@@ -12,7 +11,6 @@ using Cadence.WebApi.Extensions;
 using FluentValidation;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 
 namespace Cadence.WebApi.Controllers;
 
@@ -26,10 +24,10 @@ namespace Cadence.WebApi.Controllers;
 [Authorize]
 public class InjectsController : ControllerBase
 {
-    private readonly AppDbContext _context;
     private readonly ILogger<InjectsController> _logger;
     private readonly IExerciseHubContext _hubContext;
     private readonly IInjectService _injectService;
+    private readonly IInjectBatchApprovalService _injectBatchApprovalService;
     private readonly IInjectCrudService _injectCrudService;
     private readonly IApprovalPermissionService _approvalPermissionService;
     private readonly ICriticalTaskService _criticalTaskService;
@@ -38,18 +36,18 @@ public class InjectsController : ControllerBase
     /// Initializes a new instance of <see cref="InjectsController"/>.
     /// </summary>
     public InjectsController(
-        AppDbContext context,
         ILogger<InjectsController> logger,
         IExerciseHubContext hubContext,
         IInjectService injectService,
+        IInjectBatchApprovalService injectBatchApprovalService,
         IInjectCrudService injectCrudService,
         IApprovalPermissionService approvalPermissionService,
         ICriticalTaskService criticalTaskService)
     {
-        _context = context;
         _logger = logger;
         _hubContext = hubContext;
         _injectService = injectService;
+        _injectBatchApprovalService = injectBatchApprovalService;
         _injectCrudService = injectCrudService;
         _approvalPermissionService = approvalPermissionService;
         _criticalTaskService = criticalTaskService;
@@ -223,10 +221,6 @@ public class InjectsController : ControllerBase
 
     // =========================================================================
     // Conduct Operations (Fire / Skip / Reset)
-    // These remain in the controller because their parameter signatures
-    // (Notes, Reason) do not match the IInjectService interface, and they
-    // also perform delivery-mode validation and SignalR broadcasting
-    // that is tightly coupled to the HTTP request context.
     // =========================================================================
 
     /// <summary>
@@ -236,75 +230,26 @@ public class InjectsController : ControllerBase
     [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> FireInject(Guid exerciseId, Guid id, FireInjectRequest? request = null)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
+
+            var dto = await _injectService.FireInjectAsync(exerciseId, id, userId, request?.Notes);
+
+            _logger.LogInformation("Fired inject {InjectId} in exercise {ExerciseId} at {FiredAt}",
+                id, exerciseId, DateTime.UtcNow);
+
+            return Ok(dto);
         }
-
-        var inject = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.FiredByUser)
-            .Include(i => i.SkippedByUser)
-            .Include(i => i.InjectObjectives)
-            .Include(i => i.SubmittedByUser)
-            .Include(i => i.ApprovedByUser)
-            .Include(i => i.RejectedByUser)
-            .Include(i => i.RevertedByUser)
-            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
-
-        if (inject == null)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = "Inject not found" });
+            return NotFound(new { message = ex.Message });
         }
-
-        // Validate inject can be fired based on delivery mode.
-        // Clock-driven mode: inject must be Synchronized.
-        // Facilitator-paced mode: inject can be Draft or Synchronized.
-        if (exercise.DeliveryMode == DeliveryMode.ClockDriven)
+        catch (InvalidOperationException ex)
         {
-            if (inject.Status != InjectStatus.Synchronized)
-            {
-                return BadRequest(new { message = $"Inject must be Synchronized to fire in clock-driven mode. Current status: {inject.Status}" });
-            }
+            return BadRequest(new { message = ex.Message });
         }
-        else // FacilitatorPaced
-        {
-            if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
-            {
-                return BadRequest(new { message = $"Inject is already {inject.Status}. Only Draft or Synchronized injects can be fired." });
-            }
-        }
-
-        var userId = User.TryGetUserId();
-        if (userId == null) return Unauthorized();
-
-        inject.Status = InjectStatus.Released;
-        inject.FiredAt = DateTime.UtcNow;
-        inject.FiredByUserId = userId;
-        inject.ModifiedBy = userId;
-
-        // Append optional notes to ControllerNotes for a clear delivery record
-        if (!string.IsNullOrWhiteSpace(request?.Notes))
-        {
-            inject.ControllerNotes = string.IsNullOrEmpty(inject.ControllerNotes)
-                ? $"[Fired] {request.Notes}"
-                : $"{inject.ControllerNotes}\n[Fired] {request.Notes}";
-        }
-
-        await _context.SaveChangesAsync();
-
-        // Reload user navigation property after setting FiredBy
-        await _context.Entry(inject).Reference(i => i.FiredByUser).LoadAsync();
-
-        var dto = inject.ToDto();
-
-        await _hubContext.NotifyInjectFired(exerciseId, dto);
-
-        _logger.LogInformation("Fired inject {InjectId}: {InjectTitle} at {FiredAt}",
-            inject.Id, inject.Title, inject.FiredAt);
-
-        return Ok(dto);
     }
 
     /// <summary>
@@ -314,67 +259,26 @@ public class InjectsController : ControllerBase
     [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> SkipInject(Guid exerciseId, Guid id, SkipInjectRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
+
+            var dto = await _injectService.SkipInjectAsync(exerciseId, id, userId, request.Reason);
+
+            _logger.LogInformation("Skipped inject {InjectId} in exercise {ExerciseId} - Reason: {SkipReason}",
+                id, exerciseId, request.Reason);
+
+            return Ok(dto);
         }
-
-        var inject = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.FiredByUser)
-            .Include(i => i.SkippedByUser)
-            .Include(i => i.InjectObjectives)
-            .Include(i => i.SubmittedByUser)
-            .Include(i => i.ApprovedByUser)
-            .Include(i => i.RejectedByUser)
-            .Include(i => i.RevertedByUser)
-            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
-
-        if (inject == null)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = "Inject not found" });
+            return NotFound(new { message = ex.Message });
         }
-
-        // Injects can be skipped from Draft or Synchronized status
-        if (inject.Status != InjectStatus.Draft && inject.Status != InjectStatus.Synchronized)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = $"Only Draft or Synchronized injects can be skipped. Current status: {inject.Status}" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Validate skip reason
-        if (string.IsNullOrWhiteSpace(request.Reason))
-        {
-            return BadRequest(new { message = "Skip reason is required" });
-        }
-
-        if (request.Reason.Length > 500)
-        {
-            return BadRequest(new { message = "Skip reason must be 500 characters or less" });
-        }
-
-        var userId = User.TryGetUserId();
-        if (userId == null) return Unauthorized();
-
-        inject.Status = InjectStatus.Deferred;
-        inject.SkippedAt = DateTime.UtcNow;
-        inject.SkippedByUserId = userId;
-        inject.SkipReason = request.Reason;
-        inject.ModifiedBy = userId;
-
-        await _context.SaveChangesAsync();
-
-        // Reload user navigation property after setting SkippedBy
-        await _context.Entry(inject).Reference(i => i.SkippedByUser).LoadAsync();
-
-        var dto = inject.ToDto();
-
-        await _hubContext.NotifyInjectSkipped(exerciseId, dto);
-
-        _logger.LogInformation("Skipped inject {InjectId}: {InjectTitle} - Reason: {SkipReason}",
-            inject.Id, inject.Title, inject.SkipReason);
-
-        return Ok(dto);
     }
 
     /// <summary>
@@ -384,55 +288,26 @@ public class InjectsController : ControllerBase
     [AuthorizeExerciseController]
     public async Task<ActionResult<InjectDto>> ResetInject(Guid exerciseId, Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
+
+            var dto = await _injectService.ResetInjectAsync(exerciseId, id, userId);
+
+            _logger.LogInformation("Reset inject {InjectId} in exercise {ExerciseId} to pending",
+                id, exerciseId);
+
+            return Ok(dto);
         }
-
-        var inject = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.FiredByUser)
-            .Include(i => i.SkippedByUser)
-            .Include(i => i.InjectObjectives)
-            .Include(i => i.SubmittedByUser)
-            .Include(i => i.ApprovedByUser)
-            .Include(i => i.RejectedByUser)
-            .Include(i => i.RevertedByUser)
-            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
-
-        if (inject == null)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = "Inject not found" });
+            return NotFound(new { message = ex.Message });
         }
-
-        // Only released or deferred injects can be reset
-        if (inject.Status == InjectStatus.Draft)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = "Inject is already in draft" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        var userId = User.TryGetUserId();
-        if (userId == null) return Unauthorized();
-
-        inject.Status = InjectStatus.Draft;
-        inject.FiredAt = null;
-        inject.FiredByUserId = null;
-        inject.SkippedAt = null;
-        inject.SkippedByUserId = null;
-        inject.SkipReason = null;
-        inject.ModifiedBy = userId;
-
-        await _context.SaveChangesAsync();
-
-        var dto = inject.ToDto();
-
-        await _hubContext.NotifyInjectReset(exerciseId, dto);
-
-        _logger.LogInformation("Reset inject {InjectId}: {InjectTitle} to pending",
-            inject.Id, inject.Title);
-
-        return Ok(dto);
     }
 
     /// <summary>
@@ -605,7 +480,7 @@ public class InjectsController : ControllerBase
 
             var userId = User.TryGetUserId();
             if (userId == null) return Unauthorized();
-            var result = await _injectService.BatchApproveAsync(exerciseId, request.InjectIds, request.Notes, userId);
+            var result = await _injectBatchApprovalService.BatchApproveAsync(exerciseId, request.InjectIds, request.Notes, userId);
 
             _logger.LogInformation("Batch approved {Count} injects in exercise {ExerciseId} by user {UserId}",
                 result.ApprovedCount, exerciseId, userId);
@@ -652,7 +527,7 @@ public class InjectsController : ControllerBase
 
             var userId = User.TryGetUserId();
             if (userId == null) return Unauthorized();
-            var result = await _injectService.BatchRejectAsync(exerciseId, request.InjectIds, request.Reason, userId);
+            var result = await _injectBatchApprovalService.BatchRejectAsync(exerciseId, request.InjectIds, request.Reason, userId);
 
             _logger.LogInformation("Batch rejected {Count} injects in exercise {ExerciseId} by user {UserId}: {Reason}",
                 result.RejectedCount, exerciseId, userId, request.Reason);
@@ -771,27 +646,15 @@ public class InjectsController : ControllerBase
     [AuthorizeExerciseAccess]
     public async Task<ActionResult<List<Guid>>> GetLinkedCriticalTasks(Guid exerciseId, Guid id)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
+            var taskIds = await _criticalTaskService.GetLinkedCriticalTaskIdsForInjectAsync(id);
+            return Ok(taskIds);
         }
-
-        // Verify inject belongs to this exercise
-        var inject = await _context.Injects
-            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
-
-        if (inject == null)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = "Inject not found" });
+            return NotFound(new { message = ex.Message });
         }
-
-        var taskIds = await _context.InjectCriticalTasks
-            .Where(ict => ict.InjectId == id)
-            .Select(ict => ict.CriticalTaskId)
-            .ToListAsync();
-
-        return Ok(taskIds);
     }
 
     /// <summary>
@@ -806,79 +669,27 @@ public class InjectsController : ControllerBase
         Guid id,
         [FromBody] SetLinkedCriticalTasksRequest request)
     {
-        var exercise = await _context.Exercises.FindAsync(exerciseId);
-        if (exercise == null)
+        try
         {
-            return NotFound(new { message = "Exercise not found" });
+            var userId = User.TryGetUserId();
+            if (userId == null) return Unauthorized();
+
+            var dtos = await _criticalTaskService.SetLinkedCriticalTasksForInjectAsync(
+                exerciseId, id, request.CriticalTaskIds, userId);
+
+            _logger.LogInformation(
+                "Updated critical task links for inject {InjectId} in exercise {ExerciseId}: {TaskCount} tasks linked",
+                id, exerciseId, dtos.Count);
+
+            return Ok(dtos);
         }
-
-        // Verify inject belongs to this exercise
-        var inject = await _context.Injects
-            .Include(i => i.LinkedCriticalTasks)
-            .FirstOrDefaultAsync(i => i.Id == id && i.MselId == exercise.ActiveMselId);
-
-        if (inject == null)
+        catch (KeyNotFoundException ex)
         {
-            return NotFound(new { message = "Inject not found" });
+            return NotFound(new { message = ex.Message });
         }
-
-        // Validate all task IDs belong to this exercise
-        var validTaskIds = await _context.CriticalTasks
-            .Where(ct => request.CriticalTaskIds.Contains(ct.Id))
-            .Where(ct => ct.CapabilityTarget.ExerciseId == exerciseId)
-            .Select(ct => ct.Id)
-            .ToListAsync();
-
-        var invalidTaskIds = request.CriticalTaskIds.Except(validTaskIds).ToList();
-        if (invalidTaskIds.Count > 0)
+        catch (InvalidOperationException ex)
         {
-            return BadRequest(new { message = $"Invalid or cross-exercise task IDs: {string.Join(", ", invalidTaskIds)}" });
+            return BadRequest(new { message = ex.Message });
         }
-
-        // Clear existing links
-        _context.InjectCriticalTasks.RemoveRange(inject.LinkedCriticalTasks);
-
-        // Add new links with audit fields
-        var userId = User.TryGetUserId();
-        if (userId == null) return Unauthorized();
-        var now = DateTime.UtcNow;
-        foreach (var taskId in validTaskIds)
-        {
-            inject.LinkedCriticalTasks.Add(new InjectCriticalTask
-            {
-                InjectId = id,
-                CriticalTaskId = taskId,
-                CreatedAt = now,
-                CreatedBy = userId
-            });
-        }
-
-        inject.ModifiedBy = userId;
-        await _context.SaveChangesAsync();
-
-        _logger.LogInformation("Updated critical task links for inject {InjectId}: {TaskCount} tasks linked",
-            id, validTaskIds.Count);
-
-        // Return the linked tasks with full details
-        var linkedTasks = await _context.CriticalTasks
-            .Include(ct => ct.LinkedInjects)
-            .Include(ct => ct.EegEntries)
-            .Where(ct => validTaskIds.Contains(ct.Id))
-            .OrderBy(ct => ct.SortOrder)
-            .ToListAsync();
-
-        var dtos = linkedTasks.Select(ct => new CriticalTaskDto(
-            ct.Id,
-            ct.CapabilityTargetId,
-            ct.TaskDescription,
-            ct.Standard,
-            ct.SortOrder,
-            ct.LinkedInjects?.Count ?? 0,
-            ct.EegEntries?.Count ?? 0,
-            ct.CreatedAt,
-            ct.UpdatedAt
-        )).ToList();
-
-        return Ok(dtos);
     }
 }

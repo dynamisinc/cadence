@@ -54,4 +54,25 @@ public interface ICriticalTaskService
     /// Get linked inject IDs for a critical task.
     /// </summary>
     Task<IEnumerable<Guid>> GetLinkedInjectIdsAsync(Guid criticalTaskId);
+
+    /// <summary>
+    /// Get linked critical task IDs for a given inject.
+    /// </summary>
+    /// <param name="injectId">The inject ID to look up linked critical tasks for.</param>
+    Task<IEnumerable<Guid>> GetLinkedCriticalTaskIdsForInjectAsync(Guid injectId);
+
+    /// <summary>
+    /// Set the linked critical tasks for an inject, replacing all existing links.
+    /// Validates that all provided task IDs belong to the specified exercise.
+    /// </summary>
+    /// <param name="exerciseId">The exercise ID used to validate task ownership.</param>
+    /// <param name="injectId">The inject ID whose critical task links will be replaced.</param>
+    /// <param name="criticalTaskIds">The critical task IDs to link.</param>
+    /// <param name="userId">User ID for audit fields.</param>
+    /// <returns>The linked critical tasks with full details.</returns>
+    Task<List<CriticalTaskDto>> SetLinkedCriticalTasksForInjectAsync(
+        Guid exerciseId,
+        Guid injectId,
+        IEnumerable<Guid> criticalTaskIds,
+        string userId);
 }

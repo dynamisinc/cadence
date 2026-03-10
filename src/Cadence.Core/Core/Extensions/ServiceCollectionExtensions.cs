@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IObservationService, ObservationService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IInjectService, InjectService>();
+        services.AddScoped<IInjectBatchApprovalService, InjectBatchApprovalService>();
         services.AddScoped<IInjectCrudService, InjectCrudService>();
         services.AddScoped<IInjectReadinessService, InjectReadinessService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
@@ -63,6 +64,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
         services.AddScoped<IAutocompleteService, AutocompleteService>();
         services.AddScoped<IOrganizationSuggestionService, OrganizationSuggestionService>();
+        // ImportSessionStore is a singleton because session state must outlive individual
+        // HTTP requests. The DI-provided instance is injected into ExcelImportService.
+        services.AddSingleton<IImportSessionStore, ImportSessionStore>();
         services.AddScoped<IExcelImportService, ExcelImportService>();
         LegacyExcelReader.EnsureEncodingRegistered(); // Required for .xls (BIFF) file support
         services.AddScoped<IExcelExportService, ExcelExportService>();
