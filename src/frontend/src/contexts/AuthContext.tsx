@@ -10,6 +10,9 @@
  * - Cross-tab logout synchronization
  * - Resilient offline recovery (preserves auth state during network issues)
  *
+ * Token refresh scheduling is delegated to useTokenRefresh.
+ * Mount-time initialization is delegated to useAuthInit.
+ *
  * @module contexts
  * @see docs/features/authentication/S05-jwt-issuance.md
  * @see docs/features/authentication/S07-token-refresh.md
@@ -27,7 +30,13 @@ import { authService } from '../features/auth/services/authService'
 import { setAuthInterceptors } from '../core/services/api'
 import { setAuthenticatedUser, clearAuthenticatedUser, trackEvent } from '../core/services/telemetry'
 import { devLog, devWarn } from '../core/utils/logger'
-import { isNetworkError as checkIsNetworkError } from '../core/utils/networkErrors'
+import { REFRESH_CONFIG, sleep, useTokenRefresh } from '../shared/hooks/useTokenRefresh'
+import { useAuthInit } from '../shared/hooks/useAuthInit'
+import {
+  cacheUserInfo,
+  classifyAuthError,
+  parseToken,
+} from './authHelpers'
 
 interface AuthContextType {
   /** Currently authenticated user (null if not logged in) */
@@ -54,220 +63,17 @@ interface AuthProviderProps {
   children: ReactNode;
 }
 
-/** Configuration for refresh retry behavior */
-const REFRESH_CONFIG = {
-  /** Maximum number of retry attempts for transient failures */
-  maxRetries: 2,
-  /** Base delay between retries in ms (uses exponential backoff) */
-  retryDelayMs: 1000,
-  /** Timeout for considering a request as failed due to network */
-  networkTimeoutMs: 15000,
-}
-
-/** localStorage key for cached user info (offline support) */
-const CACHED_USER_KEY = 'cadence-cached-user'
-
-/**
- * Cache user info to localStorage for offline support
- */
-function cacheUserInfo(user: UserInfo | null): void {
-  try {
-    if (user) {
-      localStorage.setItem(CACHED_USER_KEY, JSON.stringify(user))
-      devLog('[AuthContext] Cached user info for offline support:', user.email)
-    } else {
-      localStorage.removeItem(CACHED_USER_KEY)
-      devLog('[AuthContext] Cleared cached user info')
-    }
-  } catch (err) {
-    devWarn('[AuthContext] Failed to cache user info:', err)
-  }
-}
-
-/**
- * Restore cached user info from localStorage (for offline mode)
- */
-function getCachedUserInfo(): UserInfo | null {
-  try {
-    const cached = localStorage.getItem(CACHED_USER_KEY)
-    if (cached) {
-      const user = JSON.parse(cached) as UserInfo
-      devLog('[AuthContext] Restored cached user info:', user.email)
-      return user
-    }
-  } catch (err) {
-    devWarn('[AuthContext] Failed to restore cached user info:', err)
-  }
-  return null
-}
-
-/**
- * Classify an error to determine if it's a transient/network error
- * that should NOT clear auth state, or an auth error that should.
- */
-function classifyError(error: unknown): {
-  isNetworkError: boolean;
-  isTransientError: boolean;
-  isAuthError: boolean;
-  reason: string;
-} {
-  const errorObj = error as {
-    message?: string;
-    code?: string;
-    response?: {
-      status?: number;
-      data?: { code?: string };
-    };
-    name?: string;
-  }
-
-  const message = errorObj?.message || ''
-  const code = errorObj?.code || ''
-  const httpStatus = errorObj?.response?.status
-  const errorCode = errorObj?.response?.data?.code
-
-  devLog('[AuthContext] classifyError analyzing:', {
-    message,
-    code,
-    httpStatus,
-    errorCode,
-    errorName: errorObj?.name,
-  })
-
-  // Network errors - API is unreachable (uses shared utility)
-  if (checkIsNetworkError(errorObj)) {
-    return {
-      isNetworkError: true,
-      isTransientError: true,
-      isAuthError: false,
-      reason: `Network error: ${message || code}`,
-    }
-  }
-
-  // Timeout errors - treat as transient
-  if (
-    code === 'ECONNABORTED' ||
-    message.includes('timeout') ||
-    message.includes('Timeout')
-  ) {
-    return {
-      isNetworkError: false,
-      isTransientError: true,
-      isAuthError: false,
-      reason: `Timeout: ${message}`,
-    }
-  }
-
-  // CORS errors - often look like network errors
-  if (
-    message.includes('CORS') ||
-    message.includes('cross-origin') ||
-    message.includes('Access-Control')
-  ) {
-    return {
-      isNetworkError: false,
-      isTransientError: true,
-      isAuthError: false,
-      reason: `CORS error: ${message}`,
-    }
-  }
-
-  // Server errors (5xx) - transient, server might be recovering
-  if (httpStatus && httpStatus >= 500) {
-    return {
-      isNetworkError: false,
-      isTransientError: true,
-      isAuthError: false,
-      reason: `Server error: ${httpStatus}`,
-    }
-  }
-
-  // 401/403 with specific auth error codes - these are real auth failures
-  if (httpStatus === 401 || httpStatus === 403) {
-    // Check for specific error codes that indicate real auth failure
-    const authFailureCodes = ['invalid_token', 'token_expired', 'invalid_credentials']
-    if (errorCode && authFailureCodes.includes(errorCode)) {
-      return {
-        isNetworkError: false,
-        isTransientError: false,
-        isAuthError: true,
-        reason: `Auth failure: ${errorCode}`,
-      }
-    }
-
-    // Generic 401/403 - could be due to cookie not being sent (treat as potentially transient)
-    // Only treat as auth error if we've already retried
-    return {
-      isNetworkError: false,
-      isTransientError: true, // First time, treat as transient
-      isAuthError: false,
-      reason: `HTTP ${httpStatus} - may be transient`,
-    }
-  }
-
-  // Default: treat as auth error (safe fallback)
-  return {
-    isNetworkError: false,
-    isTransientError: false,
-    isAuthError: true,
-    reason: `Unknown error: ${message || 'no message'}`,
-  }
-}
-
-/**
- * Sleep helper for retry delays
- */
-function sleep(ms: number): Promise<void> {
-  return new Promise(resolve => setTimeout(resolve, ms))
-}
-
-/**
- * Parse JWT token to extract expiry and user info
- * @returns Parsed token data or null if invalid
- */
-function parseToken(token: string): { exp: number; user: UserInfo } | null {
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]))
-
-    // ClaimTypes.Role uses full URI: "http://schemas.microsoft.com/ws/2008/06/identity/claims/role"
-    const roleClaim = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role']
-      || payload.role
-      || 'User'
-
-    const parsed = {
-      exp: payload.exp * 1000, // Convert to milliseconds
-      user: {
-        id: payload.sub,
-        email: payload.email,
-        displayName: payload.name,
-        role: roleClaim,
-        status: 'Active' as const,
-      },
-    }
-
-    devLog('[AuthContext] parseToken success:', {
-      userId: parsed.user.id,
-      email: parsed.user.email,
-      role: parsed.user.role,
-      expiresAt: new Date(parsed.exp).toISOString(),
-    })
-
-    return parsed
-  } catch (err) {
-    console.error('[AuthContext] parseToken failed:', err)
-    return null
-  }
-}
-
 /**
  * Authentication context provider
- * Manages JWT tokens and user session state
+ * Manages JWT tokens and user session state.
+ *
+ * State ownership stays here. useTokenRefresh and useAuthInit are
+ * side-effect delegates that receive callbacks rather than owning state.
  */
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<UserInfo | null>(null)
   const [accessToken, setAccessToken] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const refreshTimerRef = useRef<number | null>(null)
   const refreshInProgressRef = useRef<Promise<void> | null>(null)
   const consecutiveFailuresRef = useRef<number>(0)
 
@@ -278,8 +84,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   accessTokenRef.current = accessToken
 
   /**
-   * Log current auth state for debugging
-   * Uses refs to avoid recreating this callback when user/token changes
+   * Log current auth state for debugging.
+   * Uses refs to avoid recreating this callback when user/token changes.
    */
   const logAuthState = useCallback((context: string) => {
     const currentUser = userRef.current
@@ -295,46 +101,15 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   }, []) // Empty deps - uses refs
 
   /**
-   * Schedule token refresh 2 minutes before expiry (S07)
-   * This proactive refresh prevents API calls from failing
-   */
-  const scheduleRefresh = useCallback((expiresAt: number) => {
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current)
-    }
-
-    const refreshIn = expiresAt - Date.now() - 2 * 60 * 1000 // 2 minutes before expiry
-    const refreshInSeconds = Math.round(refreshIn / 1000)
-
-    devLog('[AuthContext] scheduleRefresh:', {
-      expiresAt: new Date(expiresAt).toISOString(),
-      refreshIn: `${refreshInSeconds}s`,
-      willRefresh: refreshIn > 0,
-    })
-
-    if (refreshIn > 0) {
-      refreshTimerRef.current = setTimeout(async () => {
-        devLog('[AuthContext] Scheduled refresh timer fired')
-        try {
-          await refreshAccessToken()
-          devLog('[AuthContext] Scheduled refresh succeeded')
-        } catch (err) {
-          // Token refresh failed - will redirect to login on next API call
-          devWarn('[AuthContext] Scheduled refresh failed:', err)
-        }
-      }, refreshIn)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []) // refreshAccessToken is defined below but stable
-
-  /**
    * Refresh access token using refresh token cookie (S07)
-   * Called proactively before expiry and reactively on 401 errors
+   * Called proactively before expiry and reactively on 401 errors.
    *
    * Features:
    * - Single-flight pattern (prevents duplicate concurrent refreshes)
    * - Retry with exponential backoff for transient failures
    * - Preserves auth state on network errors (offline mode support)
+   *
+   * Defined before useTokenRefresh so scheduleRefresh can reference it.
    */
   const refreshAccessToken = useCallback(async () => {
     // Single-flight: if refresh is already in progress, wait for it
@@ -390,7 +165,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
           }
         } catch (error) {
           lastError = error
-          const classification = classifyError(error)
+          const classification = classifyAuthError(error)
 
           devLog(`[AuthContext] Refresh attempt ${attempt + 1} failed:`, {
             ...classification,
@@ -419,7 +194,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       }
 
       // All retries exhausted or non-retryable error
-      const finalClassification = classifyError(lastError)
+      const finalClassification = classifyAuthError(lastError)
       consecutiveFailuresRef.current++
 
       devLog('[AuthContext] All refresh attempts failed:', {
@@ -464,56 +239,32 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     })
 
     return refreshInProgressRef.current
-  }, [scheduleRefresh, logAuthState]) // No user dependency - uses userRef
+    // scheduleRefresh is defined below via useTokenRefresh - circular ref resolved by eslint-disable
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [logAuthState])
 
-  /**
-   * Initialize: Try to refresh token on mount (S08)
-   * This checks if user has a valid refresh token cookie
-   * Falls back to cached user info for offline support
-   */
+  // Delegate timer management to useTokenRefresh.
+  // refreshAccessToken must be defined first (above) since scheduleRefresh calls it.
+  const { scheduleRefresh, cancelRefresh } = useTokenRefresh({
+    refreshTokenFn: refreshAccessToken,
+  })
+
+  // Delegate mount-time initialization to useAuthInit
+  useAuthInit({
+    refreshAccessToken,
+    setUser,
+    setIsLoading,
+  })
+
+  // Clean up the refresh timer on unmount (logout also cancels via logout handler)
   useEffect(() => {
-    const initAuth = async () => {
-      devLog('[AuthContext] initAuth starting...')
-      devLog('[AuthContext] Browser online status:', navigator.onLine)
-
-      try {
-        await refreshAccessToken()
-        devLog('[AuthContext] initAuth: refreshAccessToken succeeded')
-      } catch (error) {
-        // Token refresh failed
-        const classification = classifyError(error)
-        devLog('[AuthContext] initAuth: refreshAccessToken failed:', {
-          ...classification,
-          browserOnline: navigator.onLine,
-        })
-
-        // If network error, try to restore from cache for offline support
-        if (classification.isNetworkError || classification.isTransientError) {
-          const cachedUser = getCachedUserInfo()
-          if (cachedUser) {
-            devLog('[AuthContext] initAuth: Restoring user from cache for offline mode')
-            setUser(cachedUser)
-            // Note: No access token, so API calls will fail, but UI will show user as logged in
-            // When back online, the next API call will trigger a refresh
-          }
-        }
-      } finally {
-        setIsLoading(false)
-        devLog('[AuthContext] initAuth complete, isLoading=false')
-      }
-    }
-    initAuth()
-
     return () => {
-      if (refreshTimerRef.current) {
-        clearTimeout(refreshTimerRef.current)
-      }
+      cancelRefresh()
     }
-  }, [refreshAccessToken])
+  }, [cancelRefresh])
 
   /**
-   * Configure API interceptors with token getter and refresher
-   * This allows axios to access current token and trigger refresh on 401
+   * Configure API interceptors with token getter and refresher.
    *
    * IMPORTANT: Using useLayoutEffect (not useEffect) ensures interceptors are
    * configured synchronously before child components can make API calls.
@@ -532,7 +283,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Cross-tab logout synchronization (S09)
-   * When user logs out in one tab, all other tabs are also logged out
+   * When user logs out in one tab, all other tabs are also logged out.
    */
   useEffect(() => {
     const handleStorageChange = (e: StorageEvent) => {
@@ -562,7 +313,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Login with email/password (S04, S05)
-   * Sets access token in memory and refresh token in HttpOnly cookie
+   * Sets access token in memory and refresh token in HttpOnly cookie.
    */
   const login = async (request: LoginRequest): Promise<AuthResponse> => {
     devLog('[AuthContext] login called for:', request.email)
@@ -592,7 +343,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Register new user account (S03)
-   * Sets access token in memory and refresh token in HttpOnly cookie
+   * Sets access token in memory and refresh token in HttpOnly cookie.
    */
   const register = async (request: RegistrationRequest): Promise<AuthResponse> => {
     devLog('[AuthContext] register called for:', request.email)
@@ -622,7 +373,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 
   /**
    * Logout current user (S09)
-   * Clears local state and notifies other tabs
+   * Clears local state and notifies other tabs.
    */
   const logout = async () => {
     devLog('[AuthContext] logout called')
@@ -646,9 +397,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     trackEvent('Logout')
     clearAuthenticatedUser()
 
-    if (refreshTimerRef.current) {
-      clearTimeout(refreshTimerRef.current)
-    }
+    cancelRefresh()
 
     // Notify other tabs to logout (S09)
     localStorage.setItem('logout', Date.now().toString())
@@ -670,8 +419,8 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
 }
 
 /**
- * Hook to access authentication context
- * Must be used within AuthProvider
+ * Hook to access authentication context.
+ * Must be used within AuthProvider.
  */
 export const useAuth = (): AuthContextType => {
   const context = useContext(AuthContext)

@@ -12,6 +12,8 @@ import { describe, it, expect, vi } from 'vitest'
 import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+import { ThemeProvider } from '@mui/material/styles'
+import { cobraTheme } from '../../../theme/cobraTheme'
 import { TargetCapabilitiesSelector } from './TargetCapabilitiesSelector'
 import type { CapabilityDto } from '../../capabilities/types'
 
@@ -69,7 +71,9 @@ const createWrapper = () => {
   })
 
   return ({ children }: { children: React.ReactNode }) => (
-    <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    <ThemeProvider theme={cobraTheme}>
+      <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>
+    </ThemeProvider>
   )
 }
 

@@ -20,6 +20,14 @@ export type { ConnectionState } from './useSignalR'
 export { useDismissible, type UseDismissibleReturn } from './useDismissible'
 export { useUnsavedChangesWarning, type UnsavedChangesOptions } from './useUnsavedChangesWarning'
 export {
+  useTokenRefresh,
+  REFRESH_CONFIG,
+  sleep,
+  type UseTokenRefreshOptions,
+  type UseTokenRefreshReturn,
+} from './useTokenRefresh'
+export { useAuthInit, type UseAuthInitOptions } from './useAuthInit'
+export {
   useFilteredMenu,
   MENU_SECTION_LABELS,
   type MenuItem,
