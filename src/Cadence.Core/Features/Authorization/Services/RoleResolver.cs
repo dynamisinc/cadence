@@ -30,6 +30,7 @@ public class RoleResolver : IRoleResolver
     public async Task<ExerciseRole?> GetExerciseRoleAsync(string userId, Guid exerciseId)
     {
         var participant = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Where(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted)
             .FirstOrDefaultAsync();
 
@@ -40,7 +41,9 @@ public class RoleResolver : IRoleResolver
     public async Task<bool> CanAccessExerciseAsync(string userId, Guid exerciseId)
     {
         // Check if user is a system admin
-        var user = await _context.ApplicationUsers.FindAsync(userId);
+        var user = await _context.ApplicationUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             return false;
@@ -56,6 +59,7 @@ public class RoleResolver : IRoleResolver
         if (_orgContext.CurrentOrgRole is OrgRole.OrgAdmin or OrgRole.OrgManager)
         {
             var exerciseBelongsToOrg = await _context.Exercises
+                .AsNoTracking()
                 .AnyAsync(e => e.Id == exerciseId && e.OrganizationId == _orgContext.CurrentOrganizationId && !e.IsDeleted);
             if (exerciseBelongsToOrg)
             {
@@ -65,6 +69,7 @@ public class RoleResolver : IRoleResolver
 
         // Other users must be assigned as participants
         var isParticipant = await _context.ExerciseParticipants
+            .AsNoTracking()
             .AnyAsync(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted);
 
         return isParticipant;
@@ -74,7 +79,9 @@ public class RoleResolver : IRoleResolver
     public async Task<bool> HasExerciseRoleAsync(string userId, Guid exerciseId, ExerciseRole minimumRole)
     {
         // Check if user is a system admin
-        var user = await _context.ApplicationUsers.FindAsync(userId);
+        var user = await _context.ApplicationUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId);
         if (user == null)
         {
             return false;
@@ -91,6 +98,7 @@ public class RoleResolver : IRoleResolver
 
         // Check exercise-specific role
         var participant = await _context.ExerciseParticipants
+            .AsNoTracking()
             .Where(p => p.ExerciseId == exerciseId && p.UserId == userId && !p.IsDeleted)
             .FirstOrDefaultAsync();
 
@@ -106,7 +114,9 @@ public class RoleResolver : IRoleResolver
     /// <inheritdoc />
     public async Task<SystemRole?> GetSystemRoleAsync(string userId)
     {
-        var user = await _context.ApplicationUsers.FindAsync(userId);
+        var user = await _context.ApplicationUsers
+            .AsNoTracking()
+            .FirstOrDefaultAsync(u => u.Id == userId);
         return user?.SystemRole;
     }
 

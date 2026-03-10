@@ -21,6 +21,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     public async Task<InjectValidationResult> ValidateInjectAsync(Guid injectId, CancellationToken ct = default)
     {
         var result = await _context.Injects
+            .AsNoTracking()
             .Where(i => i.Id == injectId)
             .Select(i => new
             {
@@ -40,6 +41,7 @@ public class ExpectedOutcomeService : IExpectedOutcomeService
     public async Task<List<ExpectedOutcomeDto>> GetByInjectIdAsync(Guid injectId)
     {
         var outcomes = await _context.ExpectedOutcomes
+            .AsNoTracking()
             .Where(o => o.InjectId == injectId)
             .OrderBy(o => o.SortOrder)
             .ToListAsync();

@@ -36,7 +36,7 @@ public class GitHubIssueService : IGitHubIssueService
         string? reporterName,
         string? orgName)
     {
-        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await _context.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
         if (settings == null || string.IsNullOrEmpty(settings.GitHubToken) ||
             string.IsNullOrEmpty(settings.GitHubOwner) || string.IsNullOrEmpty(settings.GitHubRepo))
         {
@@ -87,7 +87,7 @@ public class GitHubIssueService : IGitHubIssueService
 
     public async Task CloseIssueAsync(int issueNumber, string? comment = null)
     {
-        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await _context.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
         if (settings == null || string.IsNullOrEmpty(settings.GitHubToken) ||
             string.IsNullOrEmpty(settings.GitHubOwner) || string.IsNullOrEmpty(settings.GitHubRepo))
             return;
@@ -117,7 +117,7 @@ public class GitHubIssueService : IGitHubIssueService
 
     public async Task AddIssueCommentAsync(int issueNumber, string comment)
     {
-        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await _context.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
         if (settings == null || string.IsNullOrEmpty(settings.GitHubToken) ||
             string.IsNullOrEmpty(settings.GitHubOwner) || string.IsNullOrEmpty(settings.GitHubRepo))
             return;
@@ -135,7 +135,7 @@ public class GitHubIssueService : IGitHubIssueService
 
     public async Task<(bool Success, string Message)> TestConnectionAsync()
     {
-        var settings = await _context.SystemSettings.FirstOrDefaultAsync();
+        var settings = await _context.SystemSettings.AsNoTracking().FirstOrDefaultAsync();
         if (settings == null || string.IsNullOrEmpty(settings.GitHubToken))
             return (false, "GitHub token is not configured.");
 

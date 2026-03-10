@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Photos.Models.DTOs;
 using Cadence.Core.Features.Photos.Services;
 using Cadence.WebApi.Authorization;
@@ -66,7 +65,7 @@ public class PhotosController : ControllerBase
 
         try
         {
-            var capturedById = GetCurrentUserId();
+            var capturedById = User.GetUserId();
 
             // Extract idempotency key from header if present
             var idempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault();
@@ -151,7 +150,7 @@ public class PhotosController : ControllerBase
     {
         try
         {
-            var modifiedBy = GetCurrentUserId();
+            var modifiedBy = User.GetUserId();
             var photo = await _photoService.UpdatePhotoAsync(photoId, request, modifiedBy);
 
             if (photo == null)
@@ -181,7 +180,7 @@ public class PhotosController : ControllerBase
     [AuthorizeExerciseAccess]
     public async Task<IActionResult> DeletePhoto(Guid exerciseId, Guid photoId)
     {
-        var deletedBy = GetCurrentUserId();
+        var deletedBy = User.GetUserId();
         var deleted = await _photoService.DeletePhotoAsync(photoId, deletedBy);
 
         if (!deleted)
@@ -231,7 +230,7 @@ public class PhotosController : ControllerBase
 
         try
         {
-            var capturedById = GetCurrentUserId();
+            var capturedById = User.GetUserId();
 
             // Extract idempotency key from header if present
             var idempotencyKey = Request.Headers["X-Idempotency-Key"].FirstOrDefault();
@@ -285,7 +284,7 @@ public class PhotosController : ControllerBase
     [AuthorizeExerciseDirector]
     public async Task<ActionResult<PhotoDto>> RestorePhoto(Guid exerciseId, Guid photoId)
     {
-        var restoredBy = GetCurrentUserId();
+        var restoredBy = User.GetUserId();
         var photo = await _photoService.RestorePhotoAsync(photoId, restoredBy);
 
         if (photo == null)
@@ -305,7 +304,7 @@ public class PhotosController : ControllerBase
     [AuthorizeExerciseDirector]
     public async Task<IActionResult> PermanentDeletePhoto(Guid exerciseId, Guid photoId)
     {
-        var deletedBy = GetCurrentUserId();
+        var deletedBy = User.GetUserId();
         var deleted = await _photoService.PermanentDeletePhotoAsync(photoId, deletedBy);
 
         if (!deleted)
@@ -316,8 +315,4 @@ public class PhotosController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }

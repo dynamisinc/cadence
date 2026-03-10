@@ -21,6 +21,7 @@ public class DeliveryMethodService : IDeliveryMethodService
     public async Task<List<DeliveryMethodDto>> GetAllAsync()
     {
         var methods = await _context.DeliveryMethods
+            .AsNoTracking()
             .Where(dm => dm.IsActive)
             .OrderBy(dm => dm.SortOrder)
             .ToListAsync();
@@ -32,6 +33,7 @@ public class DeliveryMethodService : IDeliveryMethodService
     public async Task<List<DeliveryMethodDto>> GetAllIncludingInactiveAsync()
     {
         var methods = await _context.DeliveryMethods
+            .AsNoTracking()
             .OrderBy(dm => dm.SortOrder)
             .ThenBy(dm => dm.Name)
             .ToListAsync();

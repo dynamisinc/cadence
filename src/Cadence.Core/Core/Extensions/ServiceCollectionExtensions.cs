@@ -48,6 +48,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IObservationService, ObservationService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IInjectService, InjectService>();
+        services.AddScoped<IInjectCrudService, InjectCrudService>();
         services.AddScoped<IInjectReadinessService, InjectReadinessService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
         services.AddScoped<IExerciseStatusService, ExerciseStatusService>();

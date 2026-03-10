@@ -53,7 +53,7 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var startedBy = GetCurrentUserId();
+            var startedBy = User.GetUserId();
 
             var clockState = await _clockService.StartClockAsync(exerciseId, startedBy);
 
@@ -77,7 +77,7 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var pausedBy = GetCurrentUserId();
+            var pausedBy = User.GetUserId();
 
             var clockState = await _clockService.PauseClockAsync(exerciseId, pausedBy);
 
@@ -101,7 +101,7 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var stoppedBy = GetCurrentUserId();
+            var stoppedBy = User.GetUserId();
 
             var clockState = await _clockService.StopClockAsync(exerciseId, stoppedBy);
 
@@ -125,7 +125,7 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var resetBy = GetCurrentUserId();
+            var resetBy = User.GetUserId();
 
             var clockState = await _clockService.ResetClockAsync(exerciseId, resetBy);
 
@@ -151,7 +151,7 @@ public class ExerciseClockController : ControllerBase
     {
         try
         {
-            var setBy = GetCurrentUserId();
+            var setBy = User.GetUserId();
 
             var clockState = await _clockService.SetClockTimeAsync(exerciseId, request.ElapsedTime, setBy);
 
@@ -167,12 +167,4 @@ public class ExerciseClockController : ControllerBase
         }
     }
 
-    // =========================================================================
-    // Private Helpers
-    // =========================================================================
-
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }

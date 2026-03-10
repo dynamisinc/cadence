@@ -182,7 +182,7 @@ public class FeedbackService : IFeedbackService
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        var query = _context.FeedbackReports.AsQueryable();
+        var query = _context.FeedbackReports.AsNoTracking().AsQueryable();
 
         if (type.HasValue)
             query = query.Where(r => r.Type == type.Value);

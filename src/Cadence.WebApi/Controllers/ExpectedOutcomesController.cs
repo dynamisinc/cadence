@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Cadence.Core.Features.ExpectedOutcomes.Models.DTOs;
 using Cadence.Core.Features.ExpectedOutcomes.Services;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -74,7 +74,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var outcome = await _service.CreateAsync(injectId, request, GetCurrentUserId());
+            var outcome = await _service.CreateAsync(injectId, request, User.GetUserId());
 
             _logger.LogInformation("Created expected outcome {OutcomeId} for inject {InjectId}",
                 outcome.Id, injectId);
@@ -111,7 +111,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var outcome = await _service.UpdateAsync(id, request, GetCurrentUserId());
+            var outcome = await _service.UpdateAsync(id, request, User.GetUserId());
 
             _logger.LogInformation("Updated expected outcome {OutcomeId}", id);
 
@@ -141,7 +141,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var outcome = await _service.EvaluateAsync(id, request, GetCurrentUserId());
+            var outcome = await _service.EvaluateAsync(id, request, User.GetUserId());
 
             _logger.LogInformation("Evaluated expected outcome {OutcomeId}: WasAchieved={WasAchieved}",
                 id, request.WasAchieved);
@@ -169,7 +169,7 @@ public class ExpectedOutcomesController : ControllerBase
 
         try
         {
-            var success = await _service.ReorderAsync(injectId, request, GetCurrentUserId());
+            var success = await _service.ReorderAsync(injectId, request, User.GetUserId());
             if (!success)
                 return NotFound(new { message = "Inject not found" });
 
@@ -201,7 +201,7 @@ public class ExpectedOutcomesController : ControllerBase
         if (existingOutcome == null || existingOutcome.InjectId != injectId)
             return NotFound(new { message = "Expected outcome not found" });
 
-        var success = await _service.DeleteAsync(id, GetCurrentUserId());
+        var success = await _service.DeleteAsync(id, User.GetUserId());
         if (!success)
             return NotFound(new { message = "Expected outcome not found" });
 
@@ -210,14 +210,4 @@ public class ExpectedOutcomesController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Gets the authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-            throw new UnauthorizedAccessException("User not authenticated");
-        return userId;
-    }
 }

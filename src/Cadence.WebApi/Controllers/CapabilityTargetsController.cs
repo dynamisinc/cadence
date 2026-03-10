@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -72,7 +72,7 @@ public class CapabilityTargetsController : ControllerBase
 
         try
         {
-            var createdBy = GetCurrentUserId();
+            var createdBy = User.GetUserId();
             var target = await _capabilityTargetService.CreateAsync(exerciseId, request, createdBy);
 
             return CreatedAtAction(
@@ -104,7 +104,7 @@ public class CapabilityTargetsController : ControllerBase
 
         try
         {
-            var modifiedBy = GetCurrentUserId();
+            var modifiedBy = User.GetUserId();
             var target = await _capabilityTargetService.UpdateAsync(id, request, modifiedBy);
 
             if (target == null)
@@ -126,7 +126,7 @@ public class CapabilityTargetsController : ControllerBase
     [AuthorizeExerciseDirector]
     public async Task<IActionResult> Delete(Guid exerciseId, Guid id)
     {
-        var deletedBy = GetCurrentUserId();
+        var deletedBy = User.GetUserId();
         var deleted = await _capabilityTargetService.DeleteAsync(id, deletedBy);
 
         if (!deleted)
@@ -151,11 +151,4 @@ public class CapabilityTargetsController : ControllerBase
         return NoContent();
     }
 
-    private string GetCurrentUserId()
-    {
-        var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userIdClaim))
-            throw new UnauthorizedAccessException("User not authenticated");
-        return userIdClaim;
-    }
 }

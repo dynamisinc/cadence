@@ -130,7 +130,7 @@ public class BulkParticipantImportController : ControllerBase
     {
         try
         {
-            var userId = GetUserId();
+            var userId = User.GetUserId();
             var result = await _importService.ConfirmImportAsync(exerciseId, sessionId, userId);
 
             _logger.LogInformation(
@@ -287,5 +287,4 @@ public class BulkParticipantImportController : ControllerBase
         }
     }
 
-    private string GetUserId() => User.GetUserId();
 }

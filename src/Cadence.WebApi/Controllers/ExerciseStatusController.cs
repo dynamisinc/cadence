@@ -1,8 +1,8 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Models.Entities;
 using Cadence.WebApi.Authorization;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,7 +35,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("activate")]
     public async Task<ActionResult<ExerciseDto>> ActivateExercise(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.ActivateAsync(exerciseId, userId);
 
@@ -56,7 +56,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("pause")]
     public async Task<ActionResult<ExerciseDto>> PauseExercise(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.PauseAsync(exerciseId, userId);
 
@@ -76,7 +76,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("resume")]
     public async Task<ActionResult<ExerciseDto>> ResumeExercise(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.ResumeAsync(exerciseId, userId);
 
@@ -97,7 +97,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("complete")]
     public async Task<ActionResult<ExerciseDto>> CompleteExercise(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.CompleteAsync(exerciseId, userId);
 
@@ -118,7 +118,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("archive")]
     public async Task<ActionResult<ExerciseDto>> ArchiveExercise(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.ArchiveAsync(exerciseId, userId);
 
@@ -139,7 +139,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("unarchive")]
     public async Task<ActionResult<ExerciseDto>> UnarchiveExercise(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.UnarchiveAsync(exerciseId, userId);
 
@@ -160,7 +160,7 @@ public class ExerciseStatusController : ControllerBase
     [HttpPost("revert-to-draft")]
     public async Task<ActionResult<ExerciseDto>> RevertToDraft(Guid exerciseId)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.GetUserId();
 
         var result = await _statusService.RevertToDraftAsync(exerciseId, userId);
 
@@ -211,14 +211,4 @@ public class ExerciseStatusController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Gets the authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-            throw new UnauthorizedAccessException("User not authenticated");
-        return userId;
-    }
 }

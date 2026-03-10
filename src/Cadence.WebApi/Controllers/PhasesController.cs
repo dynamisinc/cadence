@@ -1,6 +1,6 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Phases.Models.DTOs;
 using Cadence.Core.Features.Phases.Services;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -61,7 +61,7 @@ public class PhasesController : ControllerBase
     {
         try
         {
-            var phase = await _phaseService.CreatePhaseAsync(exerciseId, request, GetCurrentUserId());
+            var phase = await _phaseService.CreatePhaseAsync(exerciseId, request, User.GetUserId());
 
             _logger.LogInformation("Created phase {PhaseId}: {PhaseName} for exercise {ExerciseId}",
                 phase.Id, phase.Name, exerciseId);
@@ -94,7 +94,7 @@ public class PhasesController : ControllerBase
     {
         try
         {
-            var phase = await _phaseService.UpdatePhaseAsync(exerciseId, id, request, GetCurrentUserId());
+            var phase = await _phaseService.UpdatePhaseAsync(exerciseId, id, request, User.GetUserId());
 
             if (phase == null)
                 return NotFound(new { message = "Phase not found" });
@@ -144,7 +144,7 @@ public class PhasesController : ControllerBase
     {
         try
         {
-            var phases = await _phaseService.ReorderPhasesAsync(exerciseId, request, GetCurrentUserId());
+            var phases = await _phaseService.ReorderPhasesAsync(exerciseId, request, User.GetUserId());
 
             if (phases == null)
                 return NotFound(new { message = "Exercise not found" });
@@ -164,14 +164,4 @@ public class PhasesController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Gets the authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId()
-    {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(userId))
-            throw new UnauthorizedAccessException("User not authenticated");
-        return userId;
-    }
 }

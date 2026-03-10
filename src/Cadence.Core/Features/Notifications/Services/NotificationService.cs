@@ -107,12 +107,14 @@ public class NotificationService : INotificationService
             return 0;
 
         // Bulk update: avoids loading all rows into memory
+        // Note: ExecuteUpdateAsync bypasses SaveChanges, so UpdatedAt must be set explicitly
         await _context.Notifications
             .Where(n => n.UserId == userId && !n.IsDeleted && !n.IsRead)
             .ExecuteUpdateAsync(
                 setters => setters
                     .SetProperty(n => n.IsRead, true)
-                    .SetProperty(n => n.ReadAt, now),
+                    .SetProperty(n => n.ReadAt, now)
+                    .SetProperty(n => n.UpdatedAt, now),
                 ct);
 
         _logger.LogInformation(
@@ -197,8 +199,9 @@ public class NotificationService : INotificationService
     public async Task<int> DeleteOldNotificationsAsync(DateTime olderThan, CancellationToken ct = default)
     {
         // Bulk delete: avoids loading all rows into memory
+        // Note: ExecuteDeleteAsync bypasses query filters, so explicitly exclude soft-deleted records
         var deletedCount = await _context.Notifications
-            .Where(n => n.CreatedAt < olderThan)
+            .Where(n => !n.IsDeleted && n.CreatedAt < olderThan)
             .ExecuteDeleteAsync(ct);
 
         _logger.LogInformation(

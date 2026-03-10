@@ -1,7 +1,7 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Email.Models;
 using Cadence.Core.Features.Email.Models.DTOs;
 using Cadence.Core.Features.Email.Services;
+using Cadence.WebApi.Extensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -50,7 +50,7 @@ public class EmailPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> GetPreferences()
     {
-        var userId = GetCurrentUserId();
+        var userId = User.TryGetUserId();
         if (userId == null) return Unauthorized();
 
         var prefs = await _preferenceService.GetPreferencesAsync(userId);
@@ -80,7 +80,7 @@ public class EmailPreferencesController : ControllerBase
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdatePreference([FromBody] UpdateEmailPreferenceRequest request)
     {
-        var userId = GetCurrentUserId();
+        var userId = User.TryGetUserId();
         if (userId == null) return Unauthorized();
 
         if (!Enum.TryParse<EmailCategory>(request.Category, ignoreCase: true, out var category))
@@ -101,8 +101,4 @@ public class EmailPreferencesController : ControllerBase
         return await GetPreferences();
     }
 
-    private string? GetCurrentUserId()
-    {
-        return User.FindFirstValue(ClaimTypes.NameIdentifier);
-    }
 }

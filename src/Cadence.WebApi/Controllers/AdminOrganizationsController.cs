@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Organizations.Models.DTOs;
@@ -86,7 +85,7 @@ public class AdminOrganizationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateOrganization([FromBody] CreateOrganizationRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -133,7 +132,7 @@ public class AdminOrganizationsController : ControllerBase
 
             _logger.LogInformation(
                 "Organization {OrgId} updated by SysAdmin {UserId}",
-                id, GetCurrentUserId());
+                id, User.GetUserId());
 
             return Ok(organization);
         }
@@ -167,7 +166,7 @@ public class AdminOrganizationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ArchiveOrganization(Guid id)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
         var organization = await _organizationService.ArchiveAsync(id, currentUserId);
 
         if (organization == null)
@@ -191,7 +190,7 @@ public class AdminOrganizationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateOrganization(Guid id)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
         var organization = await _organizationService.DeactivateAsync(id, currentUserId);
 
         if (organization == null)
@@ -215,7 +214,7 @@ public class AdminOrganizationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> RestoreOrganization(Guid id)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
         var organization = await _organizationService.RestoreAsync(id, currentUserId);
 
         if (organization == null)
@@ -266,7 +265,7 @@ public class AdminOrganizationsController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> AddOrganizationMember(Guid id, [FromBody] AddMemberRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -313,7 +312,7 @@ public class AdminOrganizationsController : ControllerBase
 
             _logger.LogInformation(
                 "SysAdmin {AdminId} updated membership {MembershipId} role to {Role} in organization {OrgId}",
-                GetCurrentUserId(), membershipId, request.Role, id);
+                User.GetUserId(), membershipId, request.Role, id);
 
             return Ok(membership);
         }
@@ -340,12 +339,12 @@ public class AdminOrganizationsController : ControllerBase
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             var result = await _membershipService.RemoveMembershipAsync(membershipId, currentUserId);
 
             _logger.LogInformation(
                 "SysAdmin {AdminId} removed membership {MembershipId} from organization {OrgId}",
-                GetCurrentUserId(), membershipId, id);
+                User.GetUserId(), membershipId, id);
 
             return Ok(result);
         }
@@ -386,7 +385,7 @@ public class AdminOrganizationsController : ControllerBase
 
             _logger.LogInformation(
                 "SysAdmin {AdminId} updated organization {OrgId} approval policy to {Policy}",
-                GetCurrentUserId(), id, request.InjectApprovalPolicy);
+                User.GetUserId(), id, request.InjectApprovalPolicy);
 
             return Ok(organization);
         }
@@ -437,7 +436,7 @@ public class AdminOrganizationsController : ControllerBase
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             var permissions = await _approvalPermissionService.UpdateApprovalPermissionsAsync(
                 id,
                 request,
@@ -455,8 +454,4 @@ public class AdminOrganizationsController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }

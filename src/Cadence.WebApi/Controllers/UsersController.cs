@@ -103,9 +103,8 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status409Conflict)]
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
-        var currentUserId = GetCurrentUserId();
-        var isAdmin = User.Claims.Any(c =>
-            c.Type == "role" && c.Value == SystemRole.Admin.ToString());
+        var currentUserId = User.GetUserId();
+        var isAdmin = User.IsSystemAdmin();
 
         try
         {
@@ -167,7 +166,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ChangeRole(Guid id, [FromBody] ChangeRoleRequest request)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -201,7 +200,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> DeactivateUser(Guid id, [FromBody] DeactivateUserRequest? request = null)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -228,7 +227,7 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> ReactivateUser(Guid id)
     {
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -271,8 +270,7 @@ public class UsersController : ControllerBase
         var currentUserId = Guid.Parse(userIdClaim);
 
         // Check authorization: User can get their own assignments, Admin can get any user's
-        var isAdmin = User.Claims.Any(c =>
-            c.Type == "role" && c.Value == SystemRole.Admin.ToString());
+        var isAdmin = User.IsSystemAdmin();
 
         if (currentUserId != userId && !isAdmin)
         {
@@ -465,17 +463,18 @@ public class UsersController : ControllerBase
     [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<IActionResult> GetUserMemberships(Guid userId)
     {
-        var currentUserIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        if (string.IsNullOrEmpty(currentUserIdClaim))
+        Guid currentUserId;
+        try
+        {
+            currentUserId = Guid.Parse(User.GetUserId());
+        }
+        catch (UnauthorizedAccessException)
         {
             return Unauthorized();
         }
 
-        var currentUserId = Guid.Parse(currentUserIdClaim);
-
         // Users can retrieve their own memberships; Admins can retrieve any user's memberships.
-        var isAdmin = User.Claims.Any(c =>
-            c.Type == "SystemRole" && c.Value == SystemRole.Admin.ToString());
+        var isAdmin = User.IsSystemAdmin();
 
         if (currentUserId != userId && !isAdmin)
         {
@@ -501,8 +500,4 @@ public class UsersController : ControllerBase
         return Ok(memberships);
     }
 
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }

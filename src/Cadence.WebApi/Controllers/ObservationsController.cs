@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Observations.Models.DTOs;
 using Cadence.Core.Features.Observations.Services;
 using Cadence.WebApi.Authorization;
@@ -95,7 +94,7 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            var createdBy = GetCurrentUserId();
+            var createdBy = User.GetUserId();
             var observation = await _observationService.CreateObservationAsync(exerciseId, request, createdBy);
 
             return CreatedAtAction(
@@ -141,7 +140,7 @@ public class ObservationsController : ControllerBase
 
         try
         {
-            var modifiedBy = GetCurrentUserId();
+            var modifiedBy = User.GetUserId();
             var observation = await _observationService.UpdateObservationAsync(id, request, modifiedBy);
 
             if (observation == null)
@@ -165,7 +164,7 @@ public class ObservationsController : ControllerBase
     [AuthorizeExerciseDirector]
     public async Task<IActionResult> DeleteObservation(Guid id)
     {
-        var deletedBy = GetCurrentUserId();
+        var deletedBy = User.GetUserId();
         var deleted = await _observationService.DeleteObservationAsync(id, deletedBy);
 
         if (!deleted)
@@ -176,8 +175,4 @@ public class ObservationsController : ControllerBase
         return NoContent();
     }
 
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }

@@ -1,5 +1,4 @@
 using System.Globalization;
-using System.Security.Claims;
 using Cadence.Core.Features.Eeg.Models.DTOs;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.WebApi.Authorization;
@@ -140,7 +139,7 @@ public class EegEntriesController : ControllerBase
 
         try
         {
-            var evaluatorId = GetCurrentUserId();
+            var evaluatorId = User.GetUserId();
             var entry = await _eegEntryService.CreateAsync(modifiedRequest, evaluatorId);
 
             return CreatedAtAction(
@@ -172,7 +171,7 @@ public class EegEntriesController : ControllerBase
 
         try
         {
-            var modifiedBy = GetCurrentUserId();
+            var modifiedBy = User.GetUserId();
             var entry = await _eegEntryService.UpdateAsync(id, request, modifiedBy);
 
             if (entry == null)
@@ -194,7 +193,7 @@ public class EegEntriesController : ControllerBase
     [AuthorizeExerciseDirector]
     public async Task<IActionResult> Delete(Guid exerciseId, Guid id)
     {
-        var deletedBy = GetCurrentUserId();
+        var deletedBy = User.GetUserId();
         var deleted = await _eegEntryService.DeleteAsync(id, deletedBy);
 
         if (!deleted)
@@ -353,8 +352,4 @@ public class EegEntriesController : ControllerBase
         }
     }
 
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 }

@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Cadence.Core.Features.Exercises.Models.DTOs;
 using Cadence.Core.Features.Exercises.Services;
 using Cadence.Core.Features.Organizations.Models.DTOs;
@@ -97,7 +96,7 @@ public class OrganizationsController : ControllerBase
 
             _logger.LogInformation(
                 "OrgAdmin {UserId} updated organization {OrgId}",
-                GetCurrentUserId(), orgId);
+                User.GetUserId(), orgId);
 
             return Ok(organization);
         }
@@ -147,7 +146,7 @@ public class OrganizationsController : ControllerBase
             return NotFound(new { message = "No organization context" });
         }
 
-        var currentUserId = GetCurrentUserId();
+        var currentUserId = User.GetUserId();
 
         try
         {
@@ -196,7 +195,7 @@ public class OrganizationsController : ControllerBase
 
             _logger.LogInformation(
                 "OrgAdmin {AdminId} updated membership {MembershipId} role to {Role} in organization {OrgId}",
-                GetCurrentUserId(), membershipId, request.Role, orgId);
+                User.GetUserId(), membershipId, request.Role, orgId);
 
             return Ok(membership);
         }
@@ -228,7 +227,7 @@ public class OrganizationsController : ControllerBase
 
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             var result = await _membershipService.RemoveMembershipAsync(membershipId, currentUserId);
 
             _logger.LogInformation(
@@ -287,7 +286,7 @@ public class OrganizationsController : ControllerBase
 
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             var invitation = await _invitationService.CreateInvitationAsync(
                 orgId.Value, request, currentUserId);
 
@@ -317,7 +316,7 @@ public class OrganizationsController : ControllerBase
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             var invitation = await _invitationService.ResendInvitationAsync(
                 invitationId, currentUserId);
 
@@ -349,7 +348,7 @@ public class OrganizationsController : ControllerBase
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             await _invitationService.CancelInvitationAsync(invitationId, currentUserId);
 
             _logger.LogInformation(
@@ -398,7 +397,7 @@ public class OrganizationsController : ControllerBase
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             await _invitationService.AcceptInvitationAsync(code, currentUserId);
 
             return Ok(new { message = "Invitation accepted successfully" });
@@ -462,7 +461,7 @@ public class OrganizationsController : ControllerBase
 
         try
         {
-            var currentUserId = GetCurrentUserId();
+            var currentUserId = User.GetUserId();
             var permissions = await _approvalPermissionService.UpdateApprovalPermissionsAsync(
                 orgId.Value,
                 request,
@@ -511,7 +510,7 @@ public class OrganizationsController : ControllerBase
 
             _logger.LogInformation(
                 "OrgAdmin {AdminId} updated organization {OrgId} approval policy to {Policy}",
-                GetCurrentUserId(), orgId, request.InjectApprovalPolicy);
+                User.GetUserId(), orgId, request.InjectApprovalPolicy);
 
             return Ok(organization);
         }
@@ -524,11 +523,6 @@ public class OrganizationsController : ControllerBase
     // =========================================================================
     // Helper Methods
     // =========================================================================
-
-    /// <summary>
-    /// Gets the current authenticated user's ID from JWT claims.
-    /// </summary>
-    private string GetCurrentUserId() => User.GetUserId();
 
     /// <summary>
     /// Gets the current organization ID from the organization context.
