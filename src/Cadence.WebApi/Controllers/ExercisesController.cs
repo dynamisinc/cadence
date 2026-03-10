@@ -156,7 +156,8 @@ public class ExercisesController : ControllerBase
     [HttpPost("{id:guid}/duplicate")]
     public async Task<ActionResult<ExerciseDto>> DuplicateExercise(Guid id, [FromBody] DuplicateExerciseRequest? request = null)
     {
-        var exercise = await _exerciseCrudService.DuplicateExerciseAsync(id, request);
+        var userId = User.GetUserId();
+        var exercise = await _exerciseCrudService.DuplicateExerciseAsync(id, request, userId);
 
         if (exercise == null)
             return NotFound(new { message = "Exercise not found" });
@@ -245,7 +246,7 @@ public class ExercisesController : ControllerBase
     public async Task<ActionResult<DeleteSummaryResponse>> GetDeleteSummary(Guid id)
     {
         var userId = User.TryGetUserId() ?? string.Empty;
-        var isAdmin = User.IsInRole("Admin") || User.IsInRole("OrgAdmin");
+        var isAdmin = User.IsAdminOrOrgAdmin();
 
         var summary = await _deleteService.GetDeleteSummaryAsync(id, userId, isAdmin);
 
@@ -262,7 +263,7 @@ public class ExercisesController : ControllerBase
     public async Task<ActionResult> DeleteExercise(Guid id)
     {
         var userId = User.TryGetUserId() ?? string.Empty;
-        var isAdmin = User.IsInRole("Admin") || User.IsInRole("OrgAdmin");
+        var isAdmin = User.IsAdminOrOrgAdmin();
 
         var result = await _deleteService.DeleteExerciseAsync(id, userId, isAdmin);
 

@@ -492,7 +492,7 @@ public class ExerciseCrudServiceTests
         var service = CreateService(context);
 
         // Act
-        var result = await service.DuplicateExerciseAsync(source.Id, null);
+        var result = await service.DuplicateExerciseAsync(source.Id, null, "test-user");
 
         // Assert
         result.Should().NotBeNull();
@@ -560,7 +560,7 @@ public class ExerciseCrudServiceTests
         var service = CreateService(context);
 
         // Act
-        var result = await service.DuplicateExerciseAsync(source.Id, null);
+        var result = await service.DuplicateExerciseAsync(source.Id, null, "test-user");
 
         // Assert
         result.Should().NotBeNull();
@@ -595,7 +595,7 @@ public class ExerciseCrudServiceTests
         var service = CreateService(context);
 
         // Act
-        var result = await service.DuplicateExerciseAsync(Guid.NewGuid(), null);
+        var result = await service.DuplicateExerciseAsync(Guid.NewGuid(), null, "test-user");
 
         // Assert
         result.Should().BeNull();

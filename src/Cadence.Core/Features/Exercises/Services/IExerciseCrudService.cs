@@ -57,6 +57,7 @@ public interface IExerciseCrudService
     Task<ExerciseDto?> DuplicateExerciseAsync(
         Guid sourceExerciseId,
         DuplicateExerciseRequest? request,
+        string userId,
         CancellationToken ct = default);
 
     /// <summary>

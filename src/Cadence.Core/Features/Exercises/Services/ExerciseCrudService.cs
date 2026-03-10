@@ -151,7 +151,7 @@ public class ExerciseCrudService : IExerciseCrudService
 
         var organizationId = _orgContext.CurrentOrganizationId.Value;
 
-        var exercise = request.ToEntity(organizationId, SystemConstants.SystemUserIdString);
+        var exercise = request.ToEntity(organizationId, userId);
         _context.Exercises.Add(exercise);
         await _context.SaveChangesAsync(ct);
 
@@ -255,7 +255,7 @@ public class ExerciseCrudService : IExerciseCrudService
         exercise.Location = request.Location;
         exercise.TimeZoneId = request.TimeZoneId;
         exercise.IsPracticeMode = request.IsPracticeMode;
-        exercise.ModifiedBy = SystemConstants.SystemUserIdString;
+        exercise.ModifiedBy = userId;
 
         await _context.SaveChangesAsync(ct);
 
@@ -274,6 +274,7 @@ public class ExerciseCrudService : IExerciseCrudService
     public async Task<ExerciseDto?> DuplicateExerciseAsync(
         Guid sourceExerciseId,
         DuplicateExerciseRequest? request,
+        string userId,
         CancellationToken ct = default)
     {
         var source = await _context.Exercises
@@ -309,8 +310,8 @@ public class ExerciseCrudService : IExerciseCrudService
             ClockStartedAt = null,
             ClockElapsedBeforePause = null,
             ClockStartedBy = null,
-            CreatedBy = SystemConstants.SystemUserIdString,
-            ModifiedBy = SystemConstants.SystemUserIdString,
+            CreatedBy = userId,
+            ModifiedBy = userId,
         };
         _context.Exercises.Add(newExercise);
 
@@ -334,8 +335,8 @@ public class ExerciseCrudService : IExerciseCrudService
                 EndTime = sourcePhase.EndTime,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId,
-                CreatedBy = SystemConstants.SystemUserIdString,
-                ModifiedBy = SystemConstants.SystemUserIdString,
+                CreatedBy = userId,
+                ModifiedBy = userId,
             });
         }
 
@@ -353,8 +354,8 @@ public class ExerciseCrudService : IExerciseCrudService
                 Description = sourceObjective.Description,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId,
-                CreatedBy = SystemConstants.SystemUserIdString,
-                ModifiedBy = SystemConstants.SystemUserIdString,
+                CreatedBy = userId,
+                ModifiedBy = userId,
             });
         }
 
@@ -374,8 +375,8 @@ public class ExerciseCrudService : IExerciseCrudService
                 IsActive = true,
                 ExerciseId = newExercise.Id,
                 OrganizationId = source.OrganizationId,
-                CreatedBy = SystemConstants.SystemUserIdString,
-                ModifiedBy = SystemConstants.SystemUserIdString,
+                CreatedBy = userId,
+                ModifiedBy = userId,
             });
 
             // Copy injects (reset status to Draft)
@@ -411,8 +412,8 @@ public class ExerciseCrudService : IExerciseCrudService
                     PhaseId = sourceInject.PhaseId.HasValue && phaseIdMap.TryGetValue(sourceInject.PhaseId.Value, out var mappedPhaseId)
                         ? mappedPhaseId
                         : null,
-                    CreatedBy = SystemConstants.SystemUserIdString,
-                    ModifiedBy = SystemConstants.SystemUserIdString,
+                    CreatedBy = userId,
+                    ModifiedBy = userId,
                 });
 
                 // Copy inject-objective links

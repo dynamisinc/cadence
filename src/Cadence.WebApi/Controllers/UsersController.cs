@@ -104,8 +104,7 @@ public class UsersController : ControllerBase
     public async Task<IActionResult> CreateUser([FromBody] CreateUserRequest request)
     {
         var currentUserId = User.GetUserId();
-        var isAdmin = User.Claims.Any(c =>
-            c.Type == "role" && c.Value == SystemRole.Admin.ToString());
+        var isAdmin = User.IsSystemAdmin();
 
         try
         {
@@ -271,8 +270,7 @@ public class UsersController : ControllerBase
         var currentUserId = Guid.Parse(userIdClaim);
 
         // Check authorization: User can get their own assignments, Admin can get any user's
-        var isAdmin = User.Claims.Any(c =>
-            c.Type == "role" && c.Value == SystemRole.Admin.ToString());
+        var isAdmin = User.IsSystemAdmin();
 
         if (currentUserId != userId && !isAdmin)
         {
@@ -476,8 +474,7 @@ public class UsersController : ControllerBase
         }
 
         // Users can retrieve their own memberships; Admins can retrieve any user's memberships.
-        var isAdmin = User.Claims.Any(c =>
-            c.Type == "SystemRole" && c.Value == SystemRole.Admin.ToString());
+        var isAdmin = User.IsSystemAdmin();
 
         if (currentUserId != userId && !isAdmin)
         {

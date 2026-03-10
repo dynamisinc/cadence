@@ -236,6 +236,8 @@ export function cachedInjectToDto(cached: CachedInject): InjectDto & { pendingSy
     revertedByName: null,
     revertedAt: null,
     revertReason: null,
+    // Audit fields - not tracked in cache
+    modifiedBy: null,
     // Critical task linking - not tracked in cache
     linkedCriticalTaskCount: 0,
     pendingSync: cached.pendingSync,

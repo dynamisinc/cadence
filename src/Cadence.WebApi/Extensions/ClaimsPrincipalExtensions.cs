@@ -42,6 +42,34 @@ public static class ClaimsPrincipalExtensions
     }
 
     /// <summary>
+    /// Checks if the user is a System Admin (platform-wide Admin role).
+    /// </summary>
+    public static bool IsSystemAdmin(this ClaimsPrincipal principal)
+    {
+        return principal.IsInRole("Admin");
+    }
+
+    /// <summary>
+    /// Checks if the user is an OrgAdmin in their current organization context.
+    /// </summary>
+    /// <remarks>
+    /// OrgAdmin is stored in the custom "org_role" claim, not in ClaimTypes.Role,
+    /// so User.IsInRole("OrgAdmin") will always return false. Use this method instead.
+    /// </remarks>
+    public static bool IsOrgAdmin(this ClaimsPrincipal principal)
+    {
+        return principal.FindFirstValue("org_role") == "OrgAdmin";
+    }
+
+    /// <summary>
+    /// Checks if the user has admin-level access (System Admin or OrgAdmin).
+    /// </summary>
+    public static bool IsAdminOrOrgAdmin(this ClaimsPrincipal principal)
+    {
+        return principal.IsSystemAdmin() || principal.IsOrgAdmin();
+    }
+
+    /// <summary>
     /// Gets the current organization ID from the org_id claim.
     /// </summary>
     /// <param name="principal">The claims principal (User property of ControllerBase).</param>

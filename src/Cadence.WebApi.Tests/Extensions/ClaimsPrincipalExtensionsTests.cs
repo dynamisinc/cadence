@@ -166,6 +166,115 @@ public class ClaimsPrincipalExtensionsTests
     #endregion
 
     // =========================================================================
+    // IsSystemAdmin Tests
+    // =========================================================================
+
+    #region IsSystemAdmin
+
+    [Fact]
+    public void IsSystemAdmin_AdminRole_ReturnsTrue()
+    {
+        var principal = BuildPrincipal(new Claim(ClaimTypes.Role, "Admin"));
+
+        principal.IsSystemAdmin().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsSystemAdmin_UserRole_ReturnsFalse()
+    {
+        var principal = BuildPrincipal(new Claim(ClaimTypes.Role, "User"));
+
+        principal.IsSystemAdmin().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsSystemAdmin_NoRoleClaim_ReturnsFalse()
+    {
+        var principal = BuildPrincipal(new Claim("email", "user@example.com"));
+
+        principal.IsSystemAdmin().Should().BeFalse();
+    }
+
+    #endregion
+
+    // =========================================================================
+    // IsOrgAdmin Tests
+    // =========================================================================
+
+    #region IsOrgAdmin
+
+    [Fact]
+    public void IsOrgAdmin_OrgAdminRole_ReturnsTrue()
+    {
+        var principal = BuildPrincipal(new Claim("org_role", "OrgAdmin"));
+
+        principal.IsOrgAdmin().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsOrgAdmin_OrgUserRole_ReturnsFalse()
+    {
+        var principal = BuildPrincipal(new Claim("org_role", "OrgUser"));
+
+        principal.IsOrgAdmin().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsOrgAdmin_NoOrgRoleClaim_ReturnsFalse()
+    {
+        var principal = BuildPrincipal(new Claim("email", "user@example.com"));
+
+        principal.IsOrgAdmin().Should().BeFalse();
+    }
+
+    [Fact]
+    public void IsOrgAdmin_IsInRoleDoesNotWork_ExtensionDoes()
+    {
+        // Verify that IsInRole("OrgAdmin") returns false (the bug this fixes)
+        // while IsOrgAdmin() returns true
+        var principal = BuildPrincipal(new Claim("org_role", "OrgAdmin"));
+
+        principal.IsInRole("OrgAdmin").Should().BeFalse("org_role is not in ClaimTypes.Role");
+        principal.IsOrgAdmin().Should().BeTrue("extension checks org_role claim directly");
+    }
+
+    #endregion
+
+    // =========================================================================
+    // IsAdminOrOrgAdmin Tests
+    // =========================================================================
+
+    #region IsAdminOrOrgAdmin
+
+    [Fact]
+    public void IsAdminOrOrgAdmin_SystemAdmin_ReturnsTrue()
+    {
+        var principal = BuildPrincipal(new Claim(ClaimTypes.Role, "Admin"));
+
+        principal.IsAdminOrOrgAdmin().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAdminOrOrgAdmin_OrgAdmin_ReturnsTrue()
+    {
+        var principal = BuildPrincipal(new Claim("org_role", "OrgAdmin"));
+
+        principal.IsAdminOrOrgAdmin().Should().BeTrue();
+    }
+
+    [Fact]
+    public void IsAdminOrOrgAdmin_RegularUser_ReturnsFalse()
+    {
+        var principal = BuildPrincipal(
+            new Claim(ClaimTypes.Role, "User"),
+            new Claim("org_role", "OrgUser"));
+
+        principal.IsAdminOrOrgAdmin().Should().BeFalse();
+    }
+
+    #endregion
+
+    // =========================================================================
     // Helpers
     // =========================================================================
 
