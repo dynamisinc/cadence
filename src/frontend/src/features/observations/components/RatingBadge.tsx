@@ -2,10 +2,11 @@
  * RatingBadge Component
  *
  * Displays a P/S/M/U observation rating as a colored badge.
- * Uses HSEEP standard colors for each rating level.
+ * Uses HSEEP standard colors for each rating level via COBRA theme tokens.
  */
 
 import { Chip, Tooltip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import {
   ObservationRating,
   ObservationRatingLabels,
@@ -19,40 +20,22 @@ interface RatingBadgeProps {
 }
 
 /**
- * Get rating-specific colors
+ * Maps ObservationRating to the corresponding COBRA rating palette key.
  */
-const getRatingColors = (rating: ObservationRating | null | undefined) => {
+const ratingToPaletteKey = (
+  rating: ObservationRating | null | undefined,
+): 'performed' | 'satisfactory' | 'marginal' | 'unsatisfactory' | 'unrated' => {
   switch (rating) {
     case ObservationRating.Performed:
-      return {
-        bgcolor: '#e8f5e9', // Light green
-        color: '#2e7d32', // Dark green
-        borderColor: '#4caf50',
-      }
+      return 'performed'
     case ObservationRating.Satisfactory:
-      return {
-        bgcolor: '#e3f2fd', // Light blue
-        color: '#1565c0', // Dark blue
-        borderColor: '#2196f3',
-      }
+      return 'satisfactory'
     case ObservationRating.Marginal:
-      return {
-        bgcolor: '#fff3e0', // Light orange
-        color: '#e65100', // Dark orange
-        borderColor: '#ff9800',
-      }
+      return 'marginal'
     case ObservationRating.Unsatisfactory:
-      return {
-        bgcolor: '#ffebee', // Light red
-        color: '#c62828', // Dark red
-        borderColor: '#f44336',
-      }
+      return 'unsatisfactory'
     default:
-      return {
-        bgcolor: '#f5f5f5', // Light gray
-        color: '#757575', // Dark gray
-        borderColor: '#9e9e9e',
-      }
+      return 'unrated'
   }
 }
 
@@ -61,11 +44,14 @@ export const RatingBadge = ({
   showLabel = false,
   size = 'small',
 }: RatingBadgeProps) => {
+  const theme = useTheme()
+
   if (!rating) {
     return null
   }
 
-  const colors = getRatingColors(rating)
+  const paletteKey = ratingToPaletteKey(rating)
+  const colors = theme.palette.rating[paletteKey]
   const label = showLabel
     ? ObservationRatingLabels[rating]
     : ObservationRatingShortLabels[rating]
@@ -77,9 +63,9 @@ export const RatingBadge = ({
         label={label}
         size={size}
         sx={{
-          bgcolor: colors.bgcolor,
-          color: colors.color,
-          border: `1px solid ${colors.borderColor}`,
+          bgcolor: colors.bg,
+          color: colors.text,
+          border: `1px solid ${colors.border}`,
           fontWeight: 600,
           minWidth: showLabel ? 'auto' : 32,
           '& .MuiChip-label': {

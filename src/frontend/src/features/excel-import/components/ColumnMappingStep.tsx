@@ -41,6 +41,7 @@ import {
   faChevronRight,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { useTheme } from '@mui/material/styles'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { InjectPreviewCard } from './InjectPreviewCard'
 import type { ColumnInfo, ColumnMapping, RowValidationResult } from '../types'
@@ -372,6 +373,7 @@ const MappingRow = ({
   onMappingChange,
   getSampleValue,
 }: MappingRowProps) => {
+  const theme = useTheme()
   const hasSuggestion =
     mapping.suggestedColumnIndex !== null && mapping.suggestedColumnIndex !== undefined
   const isAutoMapped = hasSuggestion && mapping.sourceColumnIndex === mapping.suggestedColumnIndex
@@ -396,7 +398,7 @@ const MappingRow = ({
       <TableCell>
         <Stack direction="row" spacing={1} alignItems="center">
           {mapping.isRequired && (
-            <FontAwesomeIcon icon={faAsterisk} size="xs" style={{ color: '#d32f2f' }} />
+            <FontAwesomeIcon icon={faAsterisk} size="xs" style={{ color: theme.palette.roleColor.exerciseDirector }} />
           )}
           <Box>
             <Typography variant="body2" fontWeight="medium">

@@ -7,6 +7,7 @@
 
 import { useState } from 'react'
 import { Box, Stack, Typography, Collapse, Paper, ClickAwayListener } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPlay,
@@ -66,6 +67,7 @@ export const FloatingClockChip = ({
   isStopping = false,
   isResetting = false,
 }: FloatingClockChipProps) => {
+  const theme = useTheme()
   const [expanded, setExpanded] = useState(false)
 
   const isRunning = clockState?.state === 'Running'
@@ -138,7 +140,7 @@ export const FloatingClockChip = ({
             <Stack direction="row" alignItems="center" spacing={1.5}>
               <FontAwesomeIcon
                 icon={faClock}
-                style={{ color: isRunning ? '#2e7d32' : isPaused ? '#ed6c02' : undefined }}
+                style={{ color: isRunning ? theme.palette.clockStatus.running : isPaused ? theme.palette.clockStatus.paused : undefined }}
               />
               <Typography
                 variant="h6"

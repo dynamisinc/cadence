@@ -14,6 +14,7 @@
 
 import { useState } from 'react'
 import { Snackbar, Alert, Box, Typography, Collapse, List, ListItem, ListItemIcon, ListItemText, Link } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowsRotate, faCheck, faChevronDown, faChevronUp, faStar, faBug } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraLinkButton } from '@/theme/styledComponents'
@@ -23,6 +24,7 @@ import { useReleaseNotes } from '../../features/version/hooks/useReleaseNotes'
 const MAX_ITEMS_TO_SHOW = 3
 
 export function UpdatePrompt() {
+  const theme = useTheme()
   const { needRefresh, offlineReady, updateServiceWorker, dismissNotification } = useServiceWorker()
   const { releaseNotes } = useReleaseNotes()
   const [expanded, setExpanded] = useState(false)
@@ -106,7 +108,7 @@ export function UpdatePrompt() {
                           <FontAwesomeIcon
                             icon={change.type === 'feature' ? faStar : faBug}
                             size="xs"
-                            color={change.type === 'feature' ? '#4caf50' : '#ff9800'}
+                            color={change.type === 'feature' ? theme.palette.semantic.success : theme.palette.semantic.warning}
                           />
                         </ListItemIcon>
                         <ListItemText

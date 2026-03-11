@@ -58,6 +58,7 @@ import {
   faHome,
   faShieldHalved,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTheme } from '@mui/material/styles'
 import { CobraTextField, CobraIconButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { PageHeader } from '@/shared/components'
@@ -239,6 +240,7 @@ const ExpandedUserRow: FC<ExpandedUserRowProps> = ({ userId, userName: _userName
  * Administrators only
  */
 export const UserListPage: FC = () => {
+  const theme = useTheme()
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
     { label: 'System Settings', path: '/admin', icon: faShieldHalved },
@@ -519,7 +521,7 @@ export const UserListPage: FC = () => {
                       <TableCell sx={{ pr: 0 }}>
                         <FontAwesomeIcon
                           icon={expandedUserId === user.id ? faChevronDown : faChevronRight}
-                          style={{ fontSize: '0.75rem', color: '#666' }}
+                          style={{ fontSize: '0.75rem', color: theme.palette.neutral[600] }}
                         />
                       </TableCell>
 

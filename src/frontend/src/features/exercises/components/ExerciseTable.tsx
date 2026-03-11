@@ -1,5 +1,7 @@
 import { useMemo, useState, useEffect, Fragment } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material'
 import {
   Box,
   Typography,
@@ -107,6 +109,7 @@ export const ExerciseTable = ({
   size = 'medium',
   hideArchived = true,
 }: ExerciseTableProps) => {
+  const theme = useTheme()
   const navigate = useNavigate()
   const { user } = useAuth()
   const [exerciseAssignments, setExerciseAssignments] = useState<
@@ -402,7 +405,7 @@ export const ExerciseTable = ({
                     >
                       <FontAwesomeIcon
                         icon={isExpanded ? faChevronDown : faChevronRight}
-                        style={{ fontSize: '0.875rem', color: '#666' }}
+                        style={{ fontSize: '0.875rem', color: theme.palette.neutral[600] }}
                       />
                     </IconButton>
                   </TableCell>
@@ -673,7 +676,7 @@ const EmptyState = ({ canManage, onCreateClick, variant }: EmptyStateProps) => {
             width: 80,
             height: 80,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+            background: `linear-gradient(135deg, ${alpha(theme.palette.semantic.info, 0.12)} 0%, ${alpha(theme.palette.semantic.info, 0.25)} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',

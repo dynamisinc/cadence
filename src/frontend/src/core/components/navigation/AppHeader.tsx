@@ -89,7 +89,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             data-testid="app-title"
             sx={{
               fontWeight: 'bold',
-              color: '#ffffff',
+              color: theme.palette.common.white,
               pl: { xs: 1, md: 2 },
             }}
           >

@@ -8,6 +8,7 @@
 
 import { useMemo } from 'react'
 import { Box, Typography, Stack, Chip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faShieldAlt, faStar } from '@fortawesome/free-solid-svg-icons'
 import type { CapabilityDto } from '@/features/capabilities/types'
@@ -32,6 +33,7 @@ export const ObservationCapabilitySelector = ({
   onChange,
   disabled = false,
 }: ObservationCapabilitySelectorProps) => {
+  const theme = useTheme()
   // Split into target and other capabilities
   const { targetCapabilities, otherCapabilities } = useMemo(() => {
     const target = capabilities.filter(c => targetCapabilityIds.includes(c.id))
@@ -65,7 +67,7 @@ export const ObservationCapabilitySelector = ({
       {targetCapabilities.length > 0 && (
         <Box sx={{ mb: 2 }}>
           <Stack direction="row" spacing={0.5} alignItems="center" sx={{ mb: 1 }}>
-            <FontAwesomeIcon icon={faStar} size="sm" color="#FFD700" />
+            <FontAwesomeIcon icon={faStar} size="sm" color={theme.palette.semantic.gold} />
             <Typography variant="caption" fontWeight="medium">
               Target Capabilities
             </Typography>

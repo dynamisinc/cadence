@@ -4,6 +4,7 @@
  * Displays a single exercise assignment with role, status, and progress.
  */
 import { Card, CardActionArea, CardContent, Typography, Box, Chip, LinearProgress } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPlay,
@@ -51,23 +52,27 @@ function formatDate(dateString: string): string {
 /**
  * Get clock state icon and color.
  */
-function getClockStateDisplay(clockState: string | null): {
+function getClockStateDisplay(
+  clockState: string | null,
+  clockStatusPalette: { running: string; paused: string; stopped: string },
+): {
   icon: typeof faPlay
   color: string
   label: string
 } {
   switch (clockState) {
     case 'Running':
-      return { icon: faPlay, color: '#4caf50', label: 'Running' }
+      return { icon: faPlay, color: clockStatusPalette.running, label: 'Running' }
     case 'Paused':
-      return { icon: faPause, color: '#ff9800', label: 'Paused' }
+      return { icon: faPause, color: clockStatusPalette.paused, label: 'Paused' }
     default:
-      return { icon: faStop, color: '#9e9e9e', label: 'Stopped' }
+      return { icon: faStop, color: clockStatusPalette.stopped, label: 'Stopped' }
   }
 }
 
 export function AssignmentCard({ assignment, sectionType, showOrganization }: AssignmentCardProps) {
   const navigate = useNavigate()
+  const theme = useTheme()
 
   const handleClick = () => {
     const route = getDefaultRouteForRole(
@@ -83,7 +88,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
       ? (assignment.firedInjects / assignment.totalInjects) * 100
       : 0
 
-  const clockDisplay = getClockStateDisplay(assignment.clockState)
+  const clockDisplay = getClockStateDisplay(assignment.clockState, theme.palette.clockStatus)
   const roleColor = getRoleColor(assignment.role)
 
   return (
@@ -109,7 +114,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
                 <Box display="flex" alignItems="center" gap={0.5} mb={0.5}>
                   <FontAwesomeIcon
                     icon={faBuilding}
-                    style={{ color: '#888', fontSize: '0.75rem' }}
+                    style={{ color: theme.palette.neutral[400], fontSize: '0.75rem' }}
                   />
                   <Typography variant="caption" color="text.secondary">
                     {assignment.organizationName}
@@ -149,7 +154,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
               <Box display="flex" alignItems="center" gap={1}>
                 <FontAwesomeIcon
                   icon={faCheckCircle}
-                  style={{ color: '#4caf50' }}
+                  style={{ color: theme.palette.semantic.success }}
                 />
                 <Typography variant="body2" color="text.secondary">
                   Completed
@@ -164,7 +169,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
             <Box display="flex" alignItems="center" gap={1}>
               <FontAwesomeIcon
                 icon={faCalendarAlt}
-                style={{ color: '#666', fontSize: '0.875rem' }}
+                style={{ color: theme.palette.neutral[600], fontSize: '0.875rem' }}
               />
               <Typography variant="body2" color="text.secondary">
                 {formatDate(assignment.scheduledDate)}
@@ -177,7 +182,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
               <Box display="flex" alignItems="center" gap={1}>
                 <FontAwesomeIcon
                   icon={faMapMarkerAlt}
-                  style={{ color: '#666', fontSize: '0.875rem' }}
+                  style={{ color: theme.palette.neutral[600], fontSize: '0.875rem' }}
                 />
                 <Typography variant="body2" color="text.secondary">
                   {assignment.location}
@@ -192,7 +197,7 @@ export function AssignmentCard({ assignment, sectionType, showOrganization }: As
               <Box display="flex" alignItems="center" gap={1}>
                 <FontAwesomeIcon
                   icon={faClock}
-                  style={{ color: '#ff9800', fontSize: '0.875rem' }}
+                  style={{ color: theme.palette.semantic.warning, fontSize: '0.875rem' }}
                 />
                 <Typography
                   variant="body2"

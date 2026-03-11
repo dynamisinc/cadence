@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { screen } from '@testing-library/react'
+import { render } from '../../../test/test-utils'
 import { InjectTypeChip } from './InjectTypeChip'
 import { InjectType } from '../../../types'
 
@@ -36,7 +37,7 @@ describe('InjectTypeChip', () => {
     const { container } = render(<InjectTypeChip type={InjectType.Adaptive} />)
     const chip = container.querySelector('.MuiChip-root')
     expect(chip).toBeInTheDocument()
-    // Check for purple background
-    expect(chip).toHaveStyle({ backgroundColor: 'rgb(232, 222, 248)' })
+    // Check for purple background - alpha(semantic.purple, 0.12) = rgba(156, 39, 176, 0.12)
+    expect(chip).toHaveStyle({ backgroundColor: 'rgba(156, 39, 176, 0.12)' })
   })
 })

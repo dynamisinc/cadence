@@ -30,6 +30,7 @@ import {
   faCheck,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { useTheme } from '@mui/material/styles'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import type { FileAnalysisResult, WorksheetSelectionResult } from '../types'
 
@@ -64,6 +65,7 @@ export const WorksheetSelectionStep = ({
     : 0
 
   const [selectedIndex, setSelectedIndex] = useState<number>(initialIndex)
+  const theme = useTheme()
 
   // Auto-select the initial worksheet when the component mounts
   useEffect(() => {
@@ -91,7 +93,7 @@ export const WorksheetSelectionStep = ({
       {/* File Info */}
       <Paper sx={{ p: 2, mb: 3, backgroundColor: 'grey.50' }}>
         <Stack direction="row" spacing={2} alignItems="center">
-          <FontAwesomeIcon icon={faFileExcel} size="lg" style={{ color: '#217346' }} />
+          <FontAwesomeIcon icon={faFileExcel} size="lg" style={{ color: theme.palette.semantic.excel }} />
           <Box>
             <Typography variant="subtitle1" fontWeight="medium">
               {analysisResult.fileName}

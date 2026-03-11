@@ -7,6 +7,7 @@
  * devLog(`Running Cadence v${appVersion.version}`);
  */
 import { devLog } from '@/core/utils/logger'
+import { cobraTheme } from '@/theme/cobraTheme'
 
 export const appVersion = {
   /** Semantic version from package.json */
@@ -20,5 +21,5 @@ export const appVersion = {
 // Log version on app initialization (helps with support/debugging)
 devLog(
   `%c Cadence v${appVersion.version} (${appVersion.commitSha})`,
-  'color: #1976d2; font-weight: bold;',
+  `color: ${cobraTheme.palette.semantic.info}; font-weight: bold;`,
 )

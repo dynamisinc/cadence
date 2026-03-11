@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { Menu, MenuItem, ListItemIcon, ListItemText, CircularProgress, Alert } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faFileExcel,
@@ -26,6 +27,7 @@ export function ExportButton({
   disabled = false,
   size = 'medium',
 }: ExportButtonProps): React.ReactElement {
+  const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const [error, setError] = useState<string | null>(null)
   const open = Boolean(anchorEl)
@@ -118,21 +120,21 @@ export function ExportButton({
       >
         <MenuItem onClick={() => handleExport('msel')}>
           <ListItemIcon>
-            <FontAwesomeIcon icon={faFileExcel} style={{ color: '#217346' }} />
+            <FontAwesomeIcon icon={faFileExcel} style={{ color: theme.palette.semantic.excel }} />
           </ListItemIcon>
           <ListItemText primary="Export MSEL" secondary="Excel file with injects" />
         </MenuItem>
 
         <MenuItem onClick={() => handleExport('observations')}>
           <ListItemIcon>
-            <FontAwesomeIcon icon={faClipboardList} style={{ color: '#217346' }} />
+            <FontAwesomeIcon icon={faClipboardList} style={{ color: theme.palette.semantic.excel }} />
           </ListItemIcon>
           <ListItemText primary="Export Observations" secondary="Excel file with observations" />
         </MenuItem>
 
         <MenuItem onClick={() => handleExport('full')}>
           <ListItemIcon>
-            <FontAwesomeIcon icon={faFileArchive} style={{ color: '#6b7280' }} />
+            <FontAwesomeIcon icon={faFileArchive} style={{ color: theme.palette.neutral[500] }} />
           </ListItemIcon>
           <ListItemText
             primary="Export Full Package"

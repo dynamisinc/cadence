@@ -4,6 +4,7 @@
  * Manages toast notifications based on priority.
  */
 import { useState, useCallback, useRef, useEffect } from 'react'
+import { cobraTheme } from '@/theme/cobraTheme'
 import type { NotificationDto, NotificationPriority, Toast, ToastConfig } from '../types'
 
 /** Maximum number of visible toasts */
@@ -14,20 +15,20 @@ const TOAST_CONFIG: Record<NotificationPriority, ToastConfig> = {
   High: {
     showToast: true,
     autoDismissMs: null, // Never auto-dismiss
-    backgroundColor: '#fff3e0',
-    borderColor: '#ff9800',
+    backgroundColor: cobraTheme.palette.rating.marginal.bg,
+    borderColor: cobraTheme.palette.semantic.warning,
   },
   Medium: {
     showToast: true,
     autoDismissMs: 10000, // 10 seconds
-    backgroundColor: '#e3f2fd',
-    borderColor: '#2196f3',
+    backgroundColor: cobraTheme.palette.rating.satisfactory.bg,
+    borderColor: cobraTheme.palette.rating.satisfactory.border,
   },
   Low: {
     showToast: false, // Bell only
     autoDismissMs: 5000, // 5 seconds
-    backgroundColor: '#f5f5f5',
-    borderColor: '#9e9e9e',
+    backgroundColor: cobraTheme.palette.neutral[50],
+    borderColor: cobraTheme.palette.rating.unrated.border,
   },
 }
 

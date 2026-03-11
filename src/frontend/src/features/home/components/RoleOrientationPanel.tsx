@@ -8,6 +8,7 @@
 import type { FC } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Box, Grid, Paper, Stack, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCircleQuestion } from '@fortawesome/free-solid-svg-icons'
 
@@ -29,6 +30,7 @@ export const RoleOrientationPanel: FC<RoleOrientationPanelProps> = ({
   orgName,
 }) => {
   const navigate = useNavigate()
+  const theme = useTheme()
   const { isDismissed, dismiss, reset } = useDismissible('home-orientation')
 
   const orientation = orgRole
@@ -56,7 +58,7 @@ export const RoleOrientationPanel: FC<RoleOrientationPanelProps> = ({
       sx={{
         p: 3,
         mb: 3,
-        background: 'linear-gradient(135deg, #f5f7fa 0%, #e4e8ec 100%)',
+        background: `linear-gradient(135deg, ${theme.palette.neutral[50]} 0%, ${theme.palette.neutral[200]} 100%)`,
       }}
     >
       <Stack spacing={2}>

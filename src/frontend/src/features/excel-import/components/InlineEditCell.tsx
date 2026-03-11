@@ -7,6 +7,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { Box } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { CobraTextField } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen } from '@fortawesome/free-solid-svg-icons'
@@ -34,6 +35,7 @@ export const InlineEditCell = ({
   issueSeverity,
   onSave,
 }: InlineEditCellProps) => {
+  const theme = useTheme()
   const [isEditing, setIsEditing] = useState(false)
   const [editValue, setEditValue] = useState(value)
   const inputRef = useRef<HTMLInputElement>(null)
@@ -131,7 +133,7 @@ export const InlineEditCell = ({
           whiteSpace: 'nowrap',
         }}
       >
-        {value || <em style={{ color: '#999' }}>empty</em>}
+        {value || <em style={{ color: theme.palette.neutral[400] }}>empty</em>}
       </Box>
       {hasIssue && (
         <FontAwesomeIcon

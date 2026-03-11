@@ -7,6 +7,7 @@
 
 import { useParams } from 'react-router-dom'
 import { Box, Typography, Paper } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHardHat, faHome } from '@fortawesome/free-solid-svg-icons'
 import CobraStyles from '@/theme/CobraStyles'
@@ -19,6 +20,7 @@ interface PlaceholderPageProps {
 }
 
 export const PlaceholderPage = ({ featureName, description }: PlaceholderPageProps) => {
+  const theme = useTheme()
   const { id: exerciseId } = useParams<{ id: string }>()
   const { exercise } = useExercise(exerciseId)
 
@@ -48,7 +50,7 @@ export const PlaceholderPage = ({ featureName, description }: PlaceholderPagePro
         <FontAwesomeIcon
           icon={faHardHat}
           size="3x"
-          style={{ color: '#f59e0b', marginBottom: 16 }}
+          style={{ color: theme.palette.semantic.warningAmber, marginBottom: 16 }}
         />
         <Typography variant="h5" gutterBottom>
           {featureName}

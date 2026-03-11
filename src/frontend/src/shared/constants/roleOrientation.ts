@@ -18,6 +18,7 @@ import {
   faEye,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { cobraTheme } from '../../theme/cobraTheme'
 import type { OrgRole } from '../../features/organizations/types'
 
 export interface OrientationCard {
@@ -122,28 +123,28 @@ export const EXERCISE_ROLE_PRIMERS: ExerciseRolePrimer[] = [
   {
     role: 'Exercise Director',
     icon: faStar,
-    color: '#d32f2f',
+    color: cobraTheme.palette.roleColor.exerciseDirector,
     summary:
       'Overall exercise authority. Makes Go/No-Go decisions and manages all aspects.',
   },
   {
     role: 'Controller',
     icon: faGamepad,
-    color: '#1976d2',
+    color: cobraTheme.palette.roleColor.controller,
     summary:
       'Fires injects and manages scenario flow. Guides the exercise narrative.',
   },
   {
     role: 'Evaluator',
     icon: faBinoculars,
-    color: '#2e7d32',
+    color: cobraTheme.palette.roleColor.evaluator,
     summary:
       'Records observations and documents player performance against objectives.',
   },
   {
     role: 'Observer',
     icon: faEye,
-    color: '#757575',
+    color: cobraTheme.palette.roleColor.observer,
     summary: 'Watches exercise conduct without interfering. Read-only access.',
   },
 ]

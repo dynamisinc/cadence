@@ -37,6 +37,7 @@ import {
   faBuilding,
   faClipboardList,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTheme } from '@mui/material/styles'
 import { CobraPrimaryButton, CobraSecondaryButton } from '@/theme/styledComponents'
 import { AuthLayout } from '@/features/auth/components/AuthLayout'
 import { useAuth } from '@/contexts/AuthContext'
@@ -60,6 +61,7 @@ type PageState =
 export const InviteAcceptPage: FC = () => {
   const { code } = useParams<{ code: string }>()
   const navigate = useNavigate()
+  const theme = useTheme()
   const { isAuthenticated, user, refreshAccessToken } = useAuth()
   const { currentOrg, isLoading: isOrgLoading } = useOrganization()
 
@@ -218,7 +220,7 @@ export const InviteAcceptPage: FC = () => {
             <FontAwesomeIcon
               icon={faExclamationTriangle}
               size="3x"
-              style={{ color: '#f44336' }}
+              style={{ color: theme.palette.semantic.error }}
             />
           </Box>
 
@@ -258,7 +260,7 @@ export const InviteAcceptPage: FC = () => {
             <FontAwesomeIcon
               icon={faCheckCircle}
               size="3x"
-              style={{ color: '#4caf50' }}
+              style={{ color: theme.palette.semantic.success }}
             />
           </Box>
 
@@ -283,7 +285,7 @@ export const InviteAcceptPage: FC = () => {
             <FontAwesomeIcon
               icon={faCheckCircle}
               size="3x"
-              style={{ color: '#4caf50' }}
+              style={{ color: theme.palette.semantic.success }}
             />
           </Box>
 
@@ -310,7 +312,7 @@ export const InviteAcceptPage: FC = () => {
             <FontAwesomeIcon
               icon={faExclamationTriangle}
               size="3x"
-              style={{ color: '#f44336' }}
+              style={{ color: theme.palette.semantic.error }}
             />
           </Box>
 
@@ -359,7 +361,7 @@ export const InviteAcceptPage: FC = () => {
               {invitation.organizationName && (
                 <>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <FontAwesomeIcon icon={faBuilding} style={{ color: '#666' }} />
+                    <FontAwesomeIcon icon={faBuilding} style={{ color: theme.palette.neutral[600] }} />
                     <Box sx={{ flex: 1 }}>
                       <Typography variant="caption" color="text.secondary">
                         Organization
@@ -374,7 +376,7 @@ export const InviteAcceptPage: FC = () => {
               )}
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <FontAwesomeIcon icon={faEnvelope} style={{ color: '#666' }} />
+                <FontAwesomeIcon icon={faEnvelope} style={{ color: theme.palette.neutral[600] }} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="caption" color="text.secondary">
                     Invited Email
@@ -388,7 +390,7 @@ export const InviteAcceptPage: FC = () => {
               <Divider />
 
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <FontAwesomeIcon icon={faUserShield} style={{ color: '#666' }} />
+                <FontAwesomeIcon icon={faUserShield} style={{ color: theme.palette.neutral[600] }} />
                 <Box sx={{ flex: 1 }}>
                   <Typography variant="caption" color="text.secondary">
                     Assigned Role
@@ -415,7 +417,7 @@ export const InviteAcceptPage: FC = () => {
           {invitation.pendingExercises && invitation.pendingExercises.length > 0 && (
             <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-                <FontAwesomeIcon icon={faClipboardList} style={{ color: '#666' }} />
+                <FontAwesomeIcon icon={faClipboardList} style={{ color: theme.palette.neutral[600] }} />
                 <Typography variant="subtitle2">
                   Exercise Assignments
                 </Typography>
@@ -473,7 +475,7 @@ export const InviteAcceptPage: FC = () => {
             {invitation.organizationName && (
               <>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <FontAwesomeIcon icon={faBuilding} style={{ color: '#666' }} />
+                  <FontAwesomeIcon icon={faBuilding} style={{ color: theme.palette.neutral[600] }} />
                   <Box sx={{ flex: 1 }}>
                     <Typography variant="caption" color="text.secondary">
                       Organization
@@ -488,7 +490,7 @@ export const InviteAcceptPage: FC = () => {
             )}
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <FontAwesomeIcon icon={faEnvelope} style={{ color: '#666' }} />
+              <FontAwesomeIcon icon={faEnvelope} style={{ color: theme.palette.neutral[600] }} />
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                   Invited Email
@@ -502,7 +504,7 @@ export const InviteAcceptPage: FC = () => {
             <Divider />
 
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <FontAwesomeIcon icon={faUserShield} style={{ color: '#666' }} />
+              <FontAwesomeIcon icon={faUserShield} style={{ color: theme.palette.neutral[600] }} />
               <Box sx={{ flex: 1 }}>
                 <Typography variant="caption" color="text.secondary">
                   Your Role
@@ -529,7 +531,7 @@ export const InviteAcceptPage: FC = () => {
         {invitation.pendingExercises && invitation.pendingExercises.length > 0 && (
           <Paper sx={{ p: 2, bgcolor: 'background.default' }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-              <FontAwesomeIcon icon={faClipboardList} style={{ color: '#666' }} />
+              <FontAwesomeIcon icon={faClipboardList} style={{ color: theme.palette.neutral[600] }} />
               <Typography variant="subtitle2">
                 Exercise Assignments
               </Typography>

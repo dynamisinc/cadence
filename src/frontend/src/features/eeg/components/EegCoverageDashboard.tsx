@@ -30,6 +30,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 
 import { CobraLinkButton } from '@/theme/styledComponents'
+import { cobraTheme } from '@/theme/cobraTheme'
 import { useEegCoverage } from '../hooks/useEegEntries'
 import {
   PerformanceRating,
@@ -225,7 +226,11 @@ const CompactSummary = ({
         <Stack direction="row" alignItems="center" spacing={1}>
           <FontAwesomeIcon
             icon={faClipboardCheck}
-            style={{ color: hasWarning ? '#ed6c02' : '#2e7d32' }}
+            style={{
+              color: hasWarning
+                ? cobraTheme.palette.semantic.warning
+                : cobraTheme.palette.rating.performed.text,
+            }}
           />
           <Typography variant="body2" fontWeight={600}>
             EEG: {coverage.evaluatedTasks}/{coverage.totalTasks} tasks{' '}
@@ -255,7 +260,10 @@ const CompactSummary = ({
 
         {unevaluatedCount > 0 && (
           <Stack direction="row" alignItems="center" spacing={0.5}>
-            <FontAwesomeIcon icon={faTriangleExclamation} style={{ color: '#ed6c02' }} />
+            <FontAwesomeIcon
+              icon={faTriangleExclamation}
+              style={{ color: cobraTheme.palette.semantic.warning }}
+            />
             <Typography variant="body2" color="warning.main">
               {unevaluatedCount} tasks pending
             </Typography>
@@ -382,7 +390,10 @@ export const EegCoverageDashboard = ({
         />
         {coverage.coveragePercentage < 50 && coverage.totalTasks > 0 && (
           <Stack direction="row" alignItems="center" spacing={0.5} mt={1}>
-            <FontAwesomeIcon icon={faTriangleExclamation} style={{ color: '#ed6c02' }} />
+            <FontAwesomeIcon
+              icon={faTriangleExclamation}
+              style={{ color: cobraTheme.palette.semantic.warning }}
+            />
             <Typography variant="body2" color="warning.main">
               {coverage.totalTasks - coverage.evaluatedTasks} tasks need evaluation
             </Typography>
@@ -492,7 +503,10 @@ export const EegCoverageDashboard = ({
             onClick={() => setUnevaluatedExpanded(!unevaluatedExpanded)}
           >
             <Stack direction="row" alignItems="center" spacing={1}>
-              <FontAwesomeIcon icon={faTriangleExclamation} style={{ color: '#ed6c02' }} />
+              <FontAwesomeIcon
+              icon={faTriangleExclamation}
+              style={{ color: cobraTheme.palette.semantic.warning }}
+            />
               <Typography variant="subtitle2" color="warning.main">
                 Tasks Needing Evaluation ({coverage.unevaluatedTasks.length})
               </Typography>

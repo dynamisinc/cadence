@@ -37,6 +37,7 @@ import {
   faCamera,
   faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
+import { useTheme } from '@mui/material/styles'
 import { useQueryClient } from '@tanstack/react-query'
 
 import { useExercise } from '../../exercises/hooks'
@@ -68,6 +69,7 @@ import type { ObservationDto } from '../types'
 type RatingFilterValue = 'all' | ObservationRating | 'unrated'
 
 export const ObservationsPage = () => {
+  const theme = useTheme()
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
@@ -544,7 +546,7 @@ export const ObservationsPage = () => {
           <FontAwesomeIcon
             icon={faEye}
             size="3x"
-            style={{ color: '#9e9e9e', marginBottom: 16 }}
+            style={{ color: theme.palette.neutral[500], marginBottom: 16 }}
           />
           <Typography variant="h6" gutterBottom>
             {hasActiveFilters ? 'No matching observations' : 'No observations yet'}

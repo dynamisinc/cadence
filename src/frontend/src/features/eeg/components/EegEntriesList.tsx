@@ -7,6 +7,7 @@
  */
 
 import { useState, useMemo } from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Typography,
@@ -114,6 +115,7 @@ const EntryDetailDialog = ({
   onDelete?: () => void
   onInjectClick?: (injectId: string) => void
 }) => {
+  const theme = useTheme()
   if (!entry) return null
 
   // Use backend-provided wasEdited flag
@@ -251,7 +253,7 @@ const EntryDetailDialog = ({
                   Triggered by Inject
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1} mt={0.5}>
-                  <FontAwesomeIcon icon={faLink} style={{ color: '#666' }} />
+                  <FontAwesomeIcon icon={faLink} style={{ color: theme.palette.neutral[600] }} />
                   <Typography
                     variant="body2"
                     sx={{
@@ -374,6 +376,7 @@ export const EegEntriesList = ({
   onInjectClick,
   deletingId,
 }: EegEntriesListProps) => {
+  const theme = useTheme()
   // State
   const [sortField, setSortField] = useState<SortField>('observedAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')

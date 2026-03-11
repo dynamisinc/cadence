@@ -11,6 +11,7 @@
 
 import { useRef, useEffect } from 'react'
 import { Box, Stack, InputAdornment, Tooltip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faMagnifyingGlass,
@@ -105,6 +106,7 @@ export const InjectFilterBar = ({
   onExpandAll,
   onCollapseAll,
 }: InjectFilterBarProps) => {
+  const theme = useTheme()
   const searchInputRef = useRef<HTMLInputElement>(null)
 
   // Build phase options including "Unassigned"
@@ -157,7 +159,7 @@ export const InjectFilterBar = ({
               <InputAdornment position="start">
                 <FontAwesomeIcon
                   icon={faMagnifyingGlass}
-                  style={{ fontSize: '0.875rem', color: '#9e9e9e' }}
+                  style={{ fontSize: '0.875rem', color: theme.palette.neutral[500] }}
                 />
               </InputAdornment>
             ),

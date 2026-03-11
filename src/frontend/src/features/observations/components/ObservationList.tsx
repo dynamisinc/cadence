@@ -28,6 +28,7 @@ import {
   DialogContent,
 } from '@mui/material'
 import { CobraLinkButton } from '@/theme/styledComponents'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faPen, faTrash, faSpinner, faCamera, faXmark, faChevronLeft, faChevronRight } from '@fortawesome/free-solid-svg-icons'
 import { RatingBadge } from './RatingBadge'
@@ -67,6 +68,8 @@ export const ObservationList = ({
   onInjectClick,
   showFilterBar = true,
 }: ObservationListProps) => {
+  const theme = useTheme()
+
   // Filter state
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
 
@@ -284,7 +287,7 @@ export const ObservationList = ({
                               role="button"
                               aria-label={`View ${observation.photos.length} photo${observation.photos.length === 1 ? '' : 's'}`}
                             >
-                              <FontAwesomeIcon icon={faCamera} size="xs" color="#757575" />
+                              <FontAwesomeIcon icon={faCamera} size="xs" color={theme.palette.neutral[500]} />
                               <Typography variant="caption" color="text.secondary">
                                 {observation.photos.length}
                               </Typography>

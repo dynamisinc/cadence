@@ -8,6 +8,7 @@
 
 import { useState, useMemo, useEffect } from 'react'
 import type { FC } from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Typography,
@@ -62,6 +63,7 @@ export const LinkedInjectsDialog: FC<LinkedInjectsDialogProps> = ({
   task,
   onClose,
 }) => {
+  const theme = useTheme()
   const [searchQuery, setSearchQuery] = useState('')
 
   // Only fetch when dialog is open and we have a task
@@ -229,7 +231,7 @@ export const LinkedInjectsDialog: FC<LinkedInjectsDialogProps> = ({
                     startAdornment: (
                       <FontAwesomeIcon
                         icon={faMagnifyingGlass}
-                        style={{ marginRight: 8, color: '#999' }}
+                        style={{ marginRight: 8, color: theme.palette.neutral[400] }}
                       />
                     ),
                   },

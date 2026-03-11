@@ -11,6 +11,7 @@ import { useState } from 'react'
 import type { FC } from 'react'
 import { devLog } from '@/core/utils/logger'
 import { Box, Typography, Paper, Alert } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHourglassHalf } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraTextField } from '@/theme/styledComponents'
@@ -21,6 +22,7 @@ import { notify } from '@/shared/utils/notify'
  * PendingUserPage component
  */
 export const PendingUserPage: FC = () => {
+  const theme = useTheme()
   const [orgCode, setOrgCode] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -60,7 +62,7 @@ export const PendingUserPage: FC = () => {
       >
         {/* Icon */}
         <Box sx={{ mb: 2 }}>
-          <FontAwesomeIcon icon={faHourglassHalf} size="3x" color="#757575" />
+          <FontAwesomeIcon icon={faHourglassHalf} size="3x" color={theme.palette.neutral[500]} />
         </Box>
 
         {/* Title */}

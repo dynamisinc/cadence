@@ -205,7 +205,7 @@ describe('FloatingClockChip', () => {
 
       // Clock icon should have green color
       const clockIcon = container.querySelector('svg[data-icon="clock"]')
-      expect(clockIcon).toHaveStyle({ color: '#2e7d32' })
+      expect(clockIcon).toHaveStyle({ color: '#4caf50' })
     })
 
     it('shows orange clock icon when paused', () => {
@@ -224,7 +224,7 @@ describe('FloatingClockChip', () => {
 
       // Clock icon should have orange color
       const clockIcon = container.querySelector('svg[data-icon="clock"]')
-      expect(clockIcon).toHaveStyle({ color: '#ed6c02' })
+      expect(clockIcon).toHaveStyle({ color: '#ff9800' })
     })
 
     it('shows default clock icon color when stopped', () => {
@@ -243,8 +243,8 @@ describe('FloatingClockChip', () => {
 
       // Clock icon should not have explicit color
       const clockIcon = container.querySelector('svg[data-icon="clock"]')
-      expect(clockIcon).not.toHaveStyle({ color: '#2e7d32' })
-      expect(clockIcon).not.toHaveStyle({ color: '#ed6c02' })
+      expect(clockIcon).not.toHaveStyle({ color: '#4caf50' })
+      expect(clockIcon).not.toHaveStyle({ color: '#ff9800' })
     })
   })
 

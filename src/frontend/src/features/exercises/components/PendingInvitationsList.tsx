@@ -19,6 +19,7 @@ import {
   Alert,
   CircularProgress,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faChevronDown,
@@ -49,6 +50,7 @@ export const PendingInvitationsList = ({
   onResend,
   isResending = false,
 }: PendingInvitationsListProps) => {
+  const theme = useTheme()
   const [expanded, setExpanded] = useState(true)
   const [resendingId, setResendingId] = useState<string | null>(null)
 
@@ -68,12 +70,12 @@ export const PendingInvitationsList = ({
   const getStatusIcon = (status: string) => {
     switch (status) {
       case 'Accepted':
-        return <FontAwesomeIcon icon={faCheckCircle} style={{ color: '#2e7d32' }} />
+        return <FontAwesomeIcon icon={faCheckCircle} style={{ color: theme.palette.semantic.success }} />
       case 'Expired':
-        return <FontAwesomeIcon icon={faTimesCircle} style={{ color: '#d32f2f' }} />
+        return <FontAwesomeIcon icon={faTimesCircle} style={{ color: theme.palette.semantic.error }} />
       case 'Pending':
       default:
-        return <FontAwesomeIcon icon={faClock} style={{ color: '#ed6c02' }} />
+        return <FontAwesomeIcon icon={faClock} style={{ color: theme.palette.semantic.warning }} />
     }
   }
 
@@ -128,7 +130,7 @@ export const PendingInvitationsList = ({
           <FontAwesomeIcon
             icon={faEnvelope}
             size="lg"
-            style={{ color: '#ed6c02' }}
+            style={{ color: theme.palette.semantic.warning }}
           />
           <Typography variant="h6">
             Pending Invitations ({pendingAssignments.length})

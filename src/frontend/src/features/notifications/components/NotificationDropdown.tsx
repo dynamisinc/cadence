@@ -4,6 +4,7 @@
  * Dropdown menu showing recent notifications.
  */
 import { Box, Typography, Divider, List, CircularProgress, Alert } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faInbox } from '@fortawesome/free-solid-svg-icons'
 import { useNavigate } from 'react-router-dom'
@@ -29,6 +30,7 @@ export function NotificationDropdown({
   onClose,
 }: NotificationDropdownProps) {
   const navigate = useNavigate()
+  const theme = useTheme()
 
   const handleNotificationClick = (notification: NotificationDto) => {
     // Mark as read
@@ -91,7 +93,7 @@ export function NotificationDropdown({
         >
           <FontAwesomeIcon
             icon={faInbox}
-            style={{ fontSize: '2rem', marginBottom: '0.5rem', color: '#ccc' }}
+            style={{ fontSize: '2rem', marginBottom: '0.5rem', color: theme.palette.neutral[300] }}
           />
           <Typography variant="body2">No notifications</Typography>
         </Box>

@@ -30,6 +30,16 @@ declare module '@mui/material/styles' {
       drawerOpenWidth: number;
     };
   }
+  interface StatusColor {
+    bg: string;
+    text: string;
+  }
+  interface RatingColor {
+    bg: string;
+    text: string;
+    border: string;
+    main: string;
+  }
   interface Palette {
     breadcrumb: {
       background: string;
@@ -49,15 +59,38 @@ declare module '@mui/material/styles' {
       light: string;
       main: string;
     };
+    clockStatus: {
+      running: string;
+      paused: string;
+      stopped: string;
+    };
     grid: {
       light: string;
       main: string;
+    };
+    injectStatus: {
+      draft: StatusColor;
+      submitted: StatusColor;
+      approved: StatusColor;
+      synchronized: StatusColor;
+      released: StatusColor;
+      complete: StatusColor;
+      deferred: StatusColor;
+      obsolete: StatusColor;
     };
     linkButton: {
       contrastText: string;
       dark: string;
       light: string;
       main?: string;
+    };
+    neutral: {
+      50: string;
+      200: string;
+      300: string;
+      400: string;
+      500: string;
+      600: string;
     };
     notifications: {
       error: string;
@@ -67,6 +100,30 @@ declare module '@mui/material/styles' {
       successText: string;
       warning: string;
       warningText: string;
+    };
+    rating: {
+      performed: RatingColor;
+      satisfactory: RatingColor;
+      marginal: RatingColor;
+      unsatisfactory: RatingColor;
+      unrated: RatingColor;
+    };
+    roleColor: {
+      exerciseDirector: string;
+      controller: string;
+      evaluator: string;
+      observer: string;
+    };
+    semantic: {
+      success: string;
+      error: string;
+      warning: string;
+      warningAmber: string;
+      info: string;
+      purple: string;
+      cyan: string;
+      gold: string;
+      excel: string;
     };
     statusChart: {
       grey: string;
@@ -96,15 +153,38 @@ declare module '@mui/material/styles' {
       light: string;
       main?: string;
     };
+    clockStatus?: {
+      running: string;
+      paused: string;
+      stopped: string;
+    };
     grid: {
       light: string;
       main: string;
+    };
+    injectStatus?: {
+      draft: { bg: string; text: string };
+      submitted: { bg: string; text: string };
+      approved: { bg: string; text: string };
+      synchronized: { bg: string; text: string };
+      released: { bg: string; text: string };
+      complete: { bg: string; text: string };
+      deferred: { bg: string; text: string };
+      obsolete: { bg: string; text: string };
     };
     linkButton?: {
       contrastText: string;
       dark: string;
       light: string;
       main?: string;
+    };
+    neutral?: {
+      50: string;
+      200: string;
+      300: string;
+      400: string;
+      500: string;
+      600: string;
     };
     notifications?: {
       error: string;
@@ -114,6 +194,30 @@ declare module '@mui/material/styles' {
       successText: string;
       warning: string;
       warningText: string;
+    };
+    rating?: {
+      performed: { bg: string; text: string; border: string; main: string };
+      satisfactory: { bg: string; text: string; border: string; main: string };
+      marginal: { bg: string; text: string; border: string; main: string };
+      unsatisfactory: { bg: string; text: string; border: string; main: string };
+      unrated: { bg: string; text: string; border: string; main: string };
+    };
+    roleColor?: {
+      exerciseDirector: string;
+      controller: string;
+      evaluator: string;
+      observer: string;
+    };
+    semantic?: {
+      success: string;
+      error: string;
+      warning: string;
+      warningAmber: string;
+      info: string;
+      purple: string;
+      cyan: string;
+      gold: string;
+      excel: string;
     };
     statusChart?: {
       grey: string;
@@ -278,6 +382,53 @@ export const cobraTheme = createTheme({
       successText: '#008000',
       warning: '#F9F9BE',
       warningText: '#6F4E37',
+    },
+    clockStatus: {
+      running: '#4caf50',
+      paused: '#ff9800',
+      stopped: '#757575',
+    },
+    injectStatus: {
+      draft: { bg: '#E0E0E0', text: '#616161' },
+      submitted: { bg: '#FFE0B2', text: '#F57C00' },
+      approved: { bg: '#C8E6C9', text: '#388E3C' },
+      synchronized: { bg: '#BBDEFB', text: '#1976D2' },
+      released: { bg: '#E1BEE7', text: '#7B1FA2' },
+      complete: { bg: '#A5D6A7', text: '#1B5E20' },
+      deferred: { bg: '#FFCC80', text: '#E65100' },
+      obsolete: { bg: '#F5F5F5', text: '#9E9E9E' },
+    },
+    neutral: {
+      50: '#f5f5f5',
+      200: '#eeeeee',
+      300: '#cccccc',
+      400: '#999999',
+      500: '#757575',
+      600: '#666666',
+    },
+    rating: {
+      performed: { bg: '#e8f5e9', text: '#2e7d32', border: '#4caf50', main: '#4CAF50' },
+      satisfactory: { bg: '#e3f2fd', text: '#1565c0', border: '#2196f3', main: '#2196F3' },
+      marginal: { bg: '#fff3e0', text: '#e65100', border: '#ff9800', main: '#FFC107' },
+      unsatisfactory: { bg: '#ffebee', text: '#c62828', border: '#f44336', main: '#F44336' },
+      unrated: { bg: '#f5f5f5', text: '#757575', border: '#9e9e9e', main: '#9E9E9E' },
+    },
+    roleColor: {
+      exerciseDirector: '#d32f2f',
+      controller: '#1976d2',
+      evaluator: '#2e7d32',
+      observer: '#757575',
+    },
+    semantic: {
+      success: '#4caf50',
+      error: '#f44336',
+      warning: '#ff9800',
+      warningAmber: '#f59e0b',
+      info: '#1976d2',
+      purple: '#9c27b0',
+      cyan: '#00bcd4',
+      gold: '#FFD700',
+      excel: '#217346',
     },
     statusChart: {
       grey: '#C0C0C0',
@@ -537,6 +688,53 @@ export function createCobraTheme(mode: 'light' | 'dark') {
         successText: isDark ? '#50c878' : '#008000',
         warning: isDark ? '#4a4020' : '#F9F9BE',
         warningText: isDark ? '#d4a574' : '#6F4E37',
+      },
+      clockStatus: {
+        running: isDark ? '#66bb6a' : '#4caf50',
+        paused: isDark ? '#ffa726' : '#ff9800',
+        stopped: isDark ? '#9e9e9e' : '#757575',
+      },
+      injectStatus: {
+        draft: { bg: isDark ? '#424242' : '#E0E0E0', text: isDark ? '#bdbdbd' : '#616161' },
+        submitted: { bg: isDark ? '#4a3000' : '#FFE0B2', text: isDark ? '#ffb74d' : '#F57C00' },
+        approved: { bg: isDark ? '#1b3a1b' : '#C8E6C9', text: isDark ? '#81c784' : '#388E3C' },
+        synchronized: { bg: isDark ? '#0d2744' : '#BBDEFB', text: isDark ? '#64b5f6' : '#1976D2' },
+        released: { bg: isDark ? '#2a1540' : '#E1BEE7', text: isDark ? '#ce93d8' : '#7B1FA2' },
+        complete: { bg: isDark ? '#1a4020' : '#A5D6A7', text: isDark ? '#a5d6a7' : '#1B5E20' },
+        deferred: { bg: isDark ? '#4a2800' : '#FFCC80', text: isDark ? '#ffb74d' : '#E65100' },
+        obsolete: { bg: isDark ? '#303030' : '#F5F5F5', text: isDark ? '#757575' : '#9E9E9E' },
+      },
+      neutral: {
+        50: isDark ? '#303030' : '#f5f5f5',
+        200: isDark ? '#404040' : '#eeeeee',
+        300: isDark ? '#505050' : '#cccccc',
+        400: isDark ? '#707070' : '#999999',
+        500: isDark ? '#9e9e9e' : '#757575',
+        600: isDark ? '#b0b0b0' : '#666666',
+      },
+      rating: {
+        performed: { bg: isDark ? '#1a3a1a' : '#e8f5e9', text: isDark ? '#81c784' : '#2e7d32', border: isDark ? '#66bb6a' : '#4caf50', main: '#4CAF50' },
+        satisfactory: { bg: isDark ? '#0d2744' : '#e3f2fd', text: isDark ? '#64b5f6' : '#1565c0', border: isDark ? '#42a5f5' : '#2196f3', main: '#2196F3' },
+        marginal: { bg: isDark ? '#3e2800' : '#fff3e0', text: isDark ? '#ffb74d' : '#e65100', border: isDark ? '#ffa726' : '#ff9800', main: '#FFC107' },
+        unsatisfactory: { bg: isDark ? '#4a1a1a' : '#ffebee', text: isDark ? '#ef9a9a' : '#c62828', border: isDark ? '#ef5350' : '#f44336', main: '#F44336' },
+        unrated: { bg: isDark ? '#303030' : '#f5f5f5', text: isDark ? '#9e9e9e' : '#757575', border: isDark ? '#616161' : '#9e9e9e', main: '#9E9E9E' },
+      },
+      roleColor: {
+        exerciseDirector: isDark ? '#ef5350' : '#d32f2f',
+        controller: isDark ? '#42a5f5' : '#1976d2',
+        evaluator: isDark ? '#66bb6a' : '#2e7d32',
+        observer: isDark ? '#9e9e9e' : '#757575',
+      },
+      semantic: {
+        success: isDark ? '#66bb6a' : '#4caf50',
+        error: isDark ? '#ef5350' : '#f44336',
+        warning: isDark ? '#ffa726' : '#ff9800',
+        warningAmber: isDark ? '#fbbf24' : '#f59e0b',
+        info: isDark ? '#42a5f5' : '#1976d2',
+        purple: isDark ? '#ce93d8' : '#9c27b0',
+        cyan: isDark ? '#4dd0e1' : '#00bcd4',
+        gold: '#FFD700',
+        excel: '#217346',
       },
       statusChart: {
         grey: '#C0C0C0',

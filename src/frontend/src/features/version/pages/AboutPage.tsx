@@ -13,6 +13,7 @@ import {
   Skeleton,
   Alert,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faCircle,
@@ -193,6 +194,7 @@ interface ReleaseCardProps {
 }
 
 function ReleaseCard({ release }: ReleaseCardProps) {
+  const theme = useTheme()
   return (
     <Card variant="outlined">
       <CardContent>
@@ -208,7 +210,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
         {release.features.length > 0 && (
           <Box sx={{ mb: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-              <FontAwesomeIcon icon={faStar} size="sm" color="#4caf50" />
+              <FontAwesomeIcon icon={faStar} size="sm" color={theme.palette.semantic.success} />
               <Typography variant="subtitle2" fontWeight="bold">
                 Features
               </Typography>
@@ -229,7 +231,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
         {release.fixes.length > 0 && (
           <Box sx={{ mb: 1.5 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-              <FontAwesomeIcon icon={faBug} size="sm" color="#ff9800" />
+              <FontAwesomeIcon icon={faBug} size="sm" color={theme.palette.semantic.warning} />
               <Typography variant="subtitle2" fontWeight="bold">
                 Fixes
               </Typography>
@@ -250,7 +252,7 @@ function ReleaseCard({ release }: ReleaseCardProps) {
         {release.breaking && release.breaking.length > 0 && (
           <Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.5 }}>
-              <FontAwesomeIcon icon={faTriangleExclamation} size="sm" color="#f44336" />
+              <FontAwesomeIcon icon={faTriangleExclamation} size="sm" color={theme.palette.semantic.error} />
               <Typography variant="subtitle2" fontWeight="bold">
                 Breaking Changes
               </Typography>

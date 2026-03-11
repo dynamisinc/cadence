@@ -11,6 +11,8 @@
  * @module features/injects
  */
 import { Box, Paper, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faListCheck, faMagnifyingGlass, faPlus } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -36,6 +38,8 @@ export const InjectEmptyState = ({
   hasFilters = false,
   onClearFilters,
 }: InjectEmptyStateProps) => {
+  const theme = useTheme()
+
   if (hasInjects) {
     // Filtered to empty (search/filter result)
     return (
@@ -63,7 +67,7 @@ export const InjectEmptyState = ({
         >
           <FontAwesomeIcon
             icon={faMagnifyingGlass}
-            style={{ fontSize: 40, color: '#9e9e9e' }}
+            style={{ fontSize: 40, color: theme.palette.neutral[500] }}
           />
         </Box>
         <Typography variant="h6" gutterBottom>
@@ -104,7 +108,7 @@ export const InjectEmptyState = ({
             width: 100,
             height: 100,
             borderRadius: '50%',
-            background: 'linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%)',
+            background: `linear-gradient(135deg, ${alpha(theme.palette.semantic.info, 0.12)} 0%, ${alpha(theme.palette.semantic.info, 0.25)} 100%)`,
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -112,7 +116,7 @@ export const InjectEmptyState = ({
             boxShadow: '0 4px 20px rgba(33, 150, 243, 0.15)',
           }}
         >
-          <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 50, color: '#1976d2' }} />
+          <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 50, color: theme.palette.semantic.info }} />
         </Box>
         <Typography variant="h5" gutterBottom fontWeight={500}>
           Create Your First Inject
@@ -160,7 +164,7 @@ export const InjectEmptyState = ({
           margin: '0 auto 16px',
         }}
       >
-        <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 40, color: '#9e9e9e' }} />
+        <FontAwesomeIcon icon={faListCheck} style={{ fontSize: 40, color: theme.palette.neutral[500] }} />
       </Box>
       <Typography variant="h6" gutterBottom>
         No Injects Yet

@@ -18,6 +18,7 @@ import {
   Typography,
   Box,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faSpinner, faEnvelope, faArrowLeft } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraLinkButton, CobraTextField } from '../../../theme/styledComponents'
@@ -29,6 +30,7 @@ import { authService } from '../services/authService'
  * Password reset request page
  */
 export const ForgotPasswordPage: FC = () => {
+  const theme = useTheme()
   const [email, setEmail] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [emailError, setEmailError] = useState('')
@@ -82,7 +84,7 @@ export const ForgotPasswordPage: FC = () => {
           <Box sx={{ textAlign: 'center', py: 2 }}>
             <FontAwesomeIcon
               icon={faEnvelope}
-              style={{ fontSize: 48, color: '#1e3a5f', marginBottom: 16 }}
+              style={{ fontSize: 48, color: theme.palette.buttonPrimary.main, marginBottom: 16 }}
             />
             <Typography variant="body1" paragraph>
               If an account exists for <strong>{email}</strong>, we've sent a password reset link.

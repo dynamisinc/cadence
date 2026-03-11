@@ -25,6 +25,7 @@ import {
   Typography,
   Box,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faEye, faEyeSlash, faUserPlus, faCopy, faCheck } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
@@ -78,6 +79,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
   onClose,
   onUserCreated,
 }) => {
+  const theme = useTheme()
   const [form, setForm] = useState<FormState>(initialFormState)
   const [errors, setErrors] = useState<FormErrors>({})
   const [showPassword, setShowPassword] = useState(false)
@@ -230,7 +232,7 @@ export const CreateUserModal: FC<CreateUserModalProps> = ({
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.5 }}>
                   <Typography variant="body2">
                     <strong>Password:</strong>{' '}
-                    <code style={{ fontFamily: 'monospace', backgroundColor: '#f5f5f5', padding: '2px 6px', borderRadius: '4px' }}>
+                    <code style={{ fontFamily: 'monospace', backgroundColor: theme.palette.neutral[50], padding: '2px 6px', borderRadius: '4px' }}>
                       {showPassword ? form.password : '••••••••'}
                     </code>
                   </Typography>

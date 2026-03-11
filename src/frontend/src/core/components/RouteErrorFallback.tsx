@@ -127,7 +127,7 @@ export const RouteErrorFallback = () => {
             icon={faLifeRing}
             style={{
               fontSize: isTablet ? '36px' : '28px',
-              color: '#1e3a5f',
+              color: theme.palette.buttonPrimary.main,
             }}
           />
         </Box>
@@ -236,7 +236,7 @@ export const RouteErrorFallback = () => {
                       icon={copied ? faCheck : faCopy}
                       style={{
                         fontSize: '14px',
-                        color: copied ? '#08682a' : undefined,
+                        color: copied ? theme.palette.success.main : undefined,
                       }}
                     />
                   </IconButton>

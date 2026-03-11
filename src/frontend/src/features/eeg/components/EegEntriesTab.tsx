@@ -13,6 +13,7 @@
  */
 
 import { useState, useMemo } from 'react'
+import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Typography,
@@ -112,6 +113,7 @@ export const EegEntriesTab = ({
   onInjectClick,
   onCoverageDetailsClick,
 }: EegEntriesTabProps) => {
+  const theme = useTheme()
   // Filter state — owned here since it is exclusive to this tab
   const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
   const [searchQuery, setSearchQuery] = useState('')
@@ -314,7 +316,7 @@ export const EegEntriesTab = ({
             <FontAwesomeIcon
               icon={faClipboardCheck}
               size="3x"
-              style={{ color: '#bdbdbd' }}
+              style={{ color: theme.palette.neutral[300] }}
             />
           </Box>
           <Typography variant="h6" gutterBottom>

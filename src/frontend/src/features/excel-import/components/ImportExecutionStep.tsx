@@ -29,6 +29,7 @@ import {
   faSpinner,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { useTheme } from '@mui/material/styles'
 import { CobraPrimaryButton, CobraSecondaryButton } from '../../../theme/styledComponents'
 import { ImportStrategy, type ImportStrategyType, type ImportResult } from '../types'
 
@@ -71,6 +72,7 @@ export const ImportExecutionStep = ({
   onViewMsel,
   onImportAnother,
 }: ImportExecutionStepProps) => {
+  const theme = useTheme()
   const [strategy, setStrategy] = useState<ImportStrategyType>(ImportStrategy.Append)
   const [skipErrorRows, setSkipErrorRows] = useState(hasErrors)
   const [createMissingPhases, setCreateMissingPhases] = useState(true)
@@ -92,7 +94,7 @@ export const ImportExecutionStep = ({
         <FontAwesomeIcon
           icon={faCheck}
           size="4x"
-          style={{ color: '#2e7d32', marginBottom: 24 }}
+          style={{ color: theme.palette.roleColor.evaluator, marginBottom: 24 }}
         />
         <Typography variant="h5" gutterBottom>
           Import {importResult.success ? 'Successful' : 'Completed with Issues'}!
@@ -177,7 +179,7 @@ export const ImportExecutionStep = ({
           icon={faSpinner}
           spin
           size="3x"
-          style={{ color: '#1976d2', marginBottom: 24 }}
+          style={{ color: theme.palette.semantic.info, marginBottom: 24 }}
         />
         <Typography variant="h6" gutterBottom>
           Importing {rowCount} rows...

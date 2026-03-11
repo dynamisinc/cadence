@@ -1,5 +1,6 @@
 import { Chip } from '@mui/material'
-import { cobraTheme } from '../../../theme/cobraTheme'
+import { useTheme } from '@mui/material/styles'
+import { alpha } from '@mui/material'
 import type { InjectType } from '../../../types'
 
 interface InjectTypeChipProps {
@@ -7,56 +8,53 @@ interface InjectTypeChipProps {
 }
 
 /**
- * Get inject type chip colors
+ * Type chip for injects with visual distinction
+ *
+ * Only shown for non-Standard types to reduce visual noise
  *
  * Types:
- * - Standard: Default/neutral (regular scheduled inject)
+ * - Standard: Default/neutral (regular scheduled inject) — not rendered
  * - Contingency: Blue/info (backup if players deviate)
  * - Adaptive: Purple/light (branch based on player decision)
  * - Complexity: Orange (increase difficulty for advanced players)
  */
-const getInjectTypeChipColor = (
-  type: string,
-): { bg: string; text: string } => {
-  const typeLower = type.toLowerCase()
-
-  switch (typeLower) {
-    case 'contingency':
-      return {
-        bg: cobraTheme.palette.grid.main,
-        text: cobraTheme.palette.info.dark,
-      }
-    case 'adaptive':
-      return {
-        bg: '#E8DEF8', // Light purple
-        text: '#4A148C', // Deep purple
-      }
-    case 'complexity':
-      return {
-        bg: cobraTheme.palette.notifications.warning,
-        text: cobraTheme.palette.notifications.warningText,
-      }
-    case 'standard':
-    default:
-      return {
-        bg: cobraTheme.palette.primary.light,
-        text: cobraTheme.palette.text.secondary,
-      }
-  }
-}
-
-/**
- * Type chip for injects with visual distinction
- *
- * Only shown for non-Standard types to reduce visual noise
- */
 export const InjectTypeChip = ({ type }: InjectTypeChipProps) => {
+  const theme = useTheme()
+
   // Don't show chip for standard injects (default) or if type is not set
   if (!type || type === 'Standard') {
     return null
   }
 
-  const colors = getInjectTypeChipColor(type)
+  const typeLower = type.toLowerCase()
+
+  const getColors = (): { bg: string; text: string } => {
+    switch (typeLower) {
+      case 'contingency':
+        return {
+          bg: theme.palette.grid.main,
+          text: theme.palette.info.dark,
+        }
+      case 'adaptive':
+        return {
+          bg: alpha(theme.palette.semantic.purple, 0.12),
+          text: theme.palette.semantic.purple,
+        }
+      case 'complexity':
+        return {
+          bg: theme.palette.notifications.warning,
+          text: theme.palette.notifications.warningText,
+        }
+      case 'standard':
+      default:
+        return {
+          bg: theme.palette.primary.light,
+          text: theme.palette.text.secondary,
+        }
+    }
+  }
+
+  const colors = getColors()
 
   return (
     <Chip
