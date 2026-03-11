@@ -221,7 +221,7 @@ export const FileUploadStep = ({
             <FontAwesomeIcon
               icon={faCheck}
               size="3x"
-              style={{ color: theme.palette.roleColor.evaluator, marginBottom: 16 }}
+              style={{ color: theme.palette.semantic.success, marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
               {selectedFile.name}

@@ -52,12 +52,10 @@ export type Annotation = CircleAnnotation | ArrowAnnotation | TextAnnotation
 /** Available annotation tools */
 export type AnnotationTool = 'circle' | 'arrow' | 'text'
 
-import { cobraTheme } from '@/theme/cobraTheme'
-
 /** Annotation rendering constants */
 export const ANNOTATION_STYLE = {
   /** Stroke color for all annotations */
-  strokeColor: cobraTheme.palette.semantic.error,
+  strokeColor: '#FF0000',
   /** Stroke width in pixels (at native resolution) */
   strokeWidth: 3,
   /** Fill color for text background */

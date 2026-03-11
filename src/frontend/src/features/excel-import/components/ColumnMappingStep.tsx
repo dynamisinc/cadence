@@ -398,7 +398,7 @@ const MappingRow = ({
       <TableCell>
         <Stack direction="row" spacing={1} alignItems="center">
           {mapping.isRequired && (
-            <FontAwesomeIcon icon={faAsterisk} size="xs" style={{ color: theme.palette.roleColor.exerciseDirector }} />
+            <FontAwesomeIcon icon={faAsterisk} size="xs" style={{ color: theme.palette.semantic.error }} />
           )}
           <Box>
             <Typography variant="body2" fontWeight="medium">

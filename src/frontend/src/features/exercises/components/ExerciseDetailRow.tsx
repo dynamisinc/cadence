@@ -163,7 +163,7 @@ export const ExerciseDetailRow = ({
           <Box display="flex" alignItems="center" gap={1}>
             <FontAwesomeIcon
               icon={faBolt}
-              style={{ color: theme.palette.clockStatus.paused, fontSize: '0.875rem' }}
+              style={{ color: theme.palette.semantic.warning, fontSize: '0.875rem' }}
             />
             <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 500 }}>
               {exercise.readyInjectCount}{' '}

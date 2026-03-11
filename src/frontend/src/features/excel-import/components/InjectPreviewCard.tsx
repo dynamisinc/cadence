@@ -145,7 +145,7 @@ export const InjectPreviewCard = ({
               <Stack key={idx} direction="row" spacing={1} alignItems="center">
                 <FontAwesomeIcon
                   icon={faExclamationTriangle}
-                  style={{ color: issue.severity === 'Error' ? theme.palette.roleColor.exerciseDirector : theme.palette.semantic.warning, fontSize: '0.875rem' }}
+                  style={{ color: issue.severity === 'Error' ? theme.palette.semantic.error : theme.palette.semantic.warning, fontSize: '0.875rem' }}
                 />
                 <Typography variant="body2">
                   <strong>{issue.field}:</strong> {issue.message}

@@ -6,7 +6,7 @@
  * Read-only - no interactivity (for gallery/preview views).
  *
  * Uses a normalized coordinate system (0-1) that scales to any display size.
- * All annotations are rendered in red (#FF0000) with drop shadow for visibility.
+ * All annotations are rendered in pure red (#FF0000) with drop shadow for visibility.
  *
  * @module features/photos/components
  */

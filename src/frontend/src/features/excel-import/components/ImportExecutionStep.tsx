@@ -94,7 +94,7 @@ export const ImportExecutionStep = ({
         <FontAwesomeIcon
           icon={faCheck}
           size="4x"
-          style={{ color: theme.palette.roleColor.evaluator, marginBottom: 24 }}
+          style={{ color: theme.palette.semantic.success, marginBottom: 24 }}
         />
         <Typography variant="h5" gutterBottom>
           Import {importResult.success ? 'Successful' : 'Completed with Issues'}!
