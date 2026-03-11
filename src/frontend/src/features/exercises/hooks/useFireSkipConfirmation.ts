@@ -19,9 +19,9 @@ interface UseFireSkipConfirmationParams {
   /** Whether the exercise settings require skip confirmation */
   confirmSkipInject: boolean | undefined
   /** Mutation function to fire an inject */
-  fireInject: (injectId: string) => Promise<void>
+  fireInject: (injectId: string) => Promise<unknown>
   /** Mutation function to skip an inject */
-  skipInject: (injectId: string, request: { reason: string }) => Promise<void>
+  skipInject: (injectId: string, request: { reason: string }) => Promise<unknown>
   /** The full list of injects (to look up inject by id) */
   injects: InjectDto[]
 }

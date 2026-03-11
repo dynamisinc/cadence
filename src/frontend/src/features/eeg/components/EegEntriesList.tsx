@@ -376,7 +376,6 @@ export const EegEntriesList = ({
   onInjectClick,
   deletingId,
 }: EegEntriesListProps) => {
-  const theme = useTheme()
   // State
   const [sortField, setSortField] = useState<SortField>('observedAt')
   const [sortOrder, setSortOrder] = useState<SortOrder>('desc')

@@ -16,8 +16,6 @@ import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box,
-  Typography,
-  Paper,
   Stack,
   CircularProgress,
   Alert,
@@ -274,7 +272,7 @@ export const EegEntriesPage = () => {
           eegEntries={eegEntries}
           entriesLoading={entriesLoading}
           entriesError={entriesError}
-          coverage={coverage}
+          coverage={coverage ?? null}
           canCreate={canCreate}
           canEdit={canEdit}
           canDelete={canDelete}

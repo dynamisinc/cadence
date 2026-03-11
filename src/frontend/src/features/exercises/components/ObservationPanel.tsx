@@ -10,7 +10,7 @@
  * @module features/exercises
  */
 
-import { FC, useState } from 'react'
+import { useState, type FC } from 'react'
 import {
   Box,
   Paper,
@@ -166,7 +166,6 @@ export const ObservationPanel: FC<ObservationPanelProps> = ({
   const handleOpenObservationForm = () => {
     setShowObservationForm(true)
   }
-
 
   // =========================================================================
   // EEG Entry handlers

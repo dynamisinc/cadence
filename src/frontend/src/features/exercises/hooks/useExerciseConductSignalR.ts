@@ -13,7 +13,7 @@
 import { useCallback, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { useConnectivity } from '../../../core/contexts'
-import { useExerciseSignalR } from '../../../shared/hooks'
+import { useExerciseSignalR, type ConnectionState } from '../../../shared/hooks'
 import { clockQueryKey } from '../../exercise-clock'
 import { injectKeys } from '../../injects'
 import { observationsQueryKey } from '../../observations'
@@ -34,7 +34,7 @@ interface UseExerciseConductSignalRParams {
 
 export interface UseExerciseConductSignalRReturn {
   /** Current SignalR connection state */
-  connectionState: string | null
+  connectionState: ConnectionState
   /** Whether this client has joined the exercise group */
   isJoined: boolean
 }

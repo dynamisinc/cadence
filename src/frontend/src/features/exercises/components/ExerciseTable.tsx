@@ -594,6 +594,7 @@ interface EmptyStateProps {
 }
 
 const EmptyState = ({ canManage, onCreateClick, variant }: EmptyStateProps) => {
+  const theme = useTheme()
   // Filtered to empty (all archived)
   if (variant === 'all-filtered') {
     return (

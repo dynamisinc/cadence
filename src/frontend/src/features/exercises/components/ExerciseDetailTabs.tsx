@@ -10,7 +10,7 @@
  * @module features/exercises
  */
 
-import { FC } from 'react'
+import type { FC } from 'react'
 import {
   Box,
   Tabs,

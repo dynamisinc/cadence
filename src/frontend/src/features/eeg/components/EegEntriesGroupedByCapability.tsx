@@ -7,7 +7,6 @@
  */
 
 import { useState, useMemo } from 'react'
-import { useTheme } from '@mui/material/styles'
 import {
   Box,
   Typography,
@@ -39,6 +38,7 @@ import {
   CobraSecondaryButton,
   CobraDeleteButton,
 } from '@/theme/styledComponents'
+import { cobraTheme } from '@/theme/cobraTheme'
 import {
   PerformanceRating,
   PERFORMANCE_RATING_SHORT_LABELS,
@@ -366,7 +366,7 @@ const EntryDetailDialog = ({
                   Triggered by Inject
                 </Typography>
                 <Stack direction="row" alignItems="center" spacing={1} mt={0.5}>
-                  <FontAwesomeIcon icon={faLink} style={{ color: theme.palette.neutral[600] }} />
+                  <FontAwesomeIcon icon={faLink} style={{ color: cobraTheme.palette.neutral[600] }} />
                   <Typography
                     variant="body2"
                     sx={{
@@ -483,7 +483,6 @@ export const EegEntriesGroupedByCapability = ({
   onInjectClick,
   deletingId,
 }: EegEntriesGroupedByCapabilityProps) => {
-  const theme = useTheme()
   const [selectedEntry, setSelectedEntry] = useState<EegEntryDto | null>(null)
   const [deleteEntry, setDeleteEntry] = useState<EegEntryDto | null>(null)
 

@@ -504,9 +504,9 @@ export const EegCoverageDashboard = ({
           >
             <Stack direction="row" alignItems="center" spacing={1}>
               <FontAwesomeIcon
-              icon={faTriangleExclamation}
-              style={{ color: cobraTheme.palette.semantic.warning }}
-            />
+                icon={faTriangleExclamation}
+                style={{ color: cobraTheme.palette.semantic.warning }}
+              />
               <Typography variant="subtitle2" color="warning.main">
                 Tasks Needing Evaluation ({coverage.unevaluatedTasks.length})
               </Typography>

@@ -12,6 +12,7 @@
 import { useCallback, useRef, useEffect } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
 import { notify } from '@/shared/utils/notify'
+import type { SignalRState } from '../../../core/contexts/ConnectivityContext'
 import { ExerciseClockState } from '../../../types'
 import {
   clockQueryKey,
@@ -53,7 +54,7 @@ export interface UseReconnectionHandlerReturn {
 export const useReconnectionHandler = ({
   exerciseId,
   clockState,
-  elapsedTimeMs,
+  elapsedTimeMs: _elapsedTimeMs,
 }: UseReconnectionHandlerParams): UseReconnectionHandlerReturn => {
   const queryClient = useQueryClient()
 
@@ -178,13 +179,13 @@ export const useConnectionStateSync = ({
   setSignalRState,
   setIsSignalRJoined,
 }: {
-  connectionState: string | null
+  connectionState: SignalRState | null
   isJoined: boolean
   elapsedTimeMs: number
   handleReconnected: () => Promise<void>
   previousElapsedTimeMsRef: React.MutableRefObject<number>
   disconnectedAtRef: React.MutableRefObject<number | null>
-  setSignalRState: (state: string | null) => void
+  setSignalRState: (state: SignalRState | null) => void
   setIsSignalRJoined: (joined: boolean) => void
 }) => {
   const previousConnectionStateRef = useRef<string | null>(null)
