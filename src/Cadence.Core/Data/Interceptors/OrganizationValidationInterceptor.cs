@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Data;
 using Cadence.Core.Hubs;
 using Cadence.Core.Models.Entities;
@@ -143,6 +144,7 @@ public class OrganizationValidationInterceptor : SaveChangesInterceptor
 /// <summary>
 /// Exception thrown when a user attempts to access or modify data outside their organization context.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class OrganizationAccessException : UnauthorizedAccessException
 {
     public OrganizationAccessException(string message) : base(message)

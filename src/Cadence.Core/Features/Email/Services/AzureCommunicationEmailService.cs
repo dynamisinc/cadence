@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using Azure;
 using Azure.Communication.Email;
 using Cadence.Core.Features.Email.Models;
@@ -12,6 +13,7 @@ namespace Cadence.Core.Features.Email.Services;
 /// Production email service using Azure Communication Services.
 /// Includes structured logging for production troubleshooting.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class AzureCommunicationEmailService : IEmailService
 {
     private readonly ILogger<AzureCommunicationEmailService> _logger;

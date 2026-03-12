@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Constants;
 using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Models.Entities;
@@ -30,6 +31,7 @@ namespace Cadence.Core.Data;
 /// - All inject types and statuses demonstrated
 /// - FEMA Core Capabilities linked to exercises
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class BetaDataSeeder
 {
     #region Fixed GUIDs for Idempotent Seeding

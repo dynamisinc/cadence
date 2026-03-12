@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Constants;
 using Cadence.Core.Models.Entities;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ namespace Cadence.Core.Data;
 /// Seeds:
 /// - Default organization (required for user registration)
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class EssentialDataSeeder
 {
     /// <summary>

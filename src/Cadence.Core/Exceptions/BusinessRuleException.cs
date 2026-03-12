@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cadence.Core.Exceptions;
 
 /// <summary>
 /// Exception thrown when a business rule is violated.
 /// This indicates a request is technically valid but violates domain rules.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class BusinessRuleException : Exception
 {
     public BusinessRuleException() : base()

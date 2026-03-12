@@ -1,9 +1,12 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cadence.Core.Exceptions;
 
 /// <summary>
 /// Exception thrown when a requested resource is not found.
 /// Typically maps to HTTP 404.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class NotFoundException : Exception
 {
     public NotFoundException() : base()

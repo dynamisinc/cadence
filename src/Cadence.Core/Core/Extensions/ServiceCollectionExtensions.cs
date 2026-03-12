@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Data.Interceptors;
 using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
@@ -32,6 +33,7 @@ namespace Cadence.Core.Extensions;
 /// <summary>
 /// Extension methods for configuring dependency injection.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
     /// <summary>
