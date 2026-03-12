@@ -38,4 +38,8 @@
     <EmbeddedResource Include="Features\Capabilities\Data\PredefinedCapabilityLibraries.json" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="Cadence.Core.Tests" />
+  </ItemGroup>
+
 </Project>
