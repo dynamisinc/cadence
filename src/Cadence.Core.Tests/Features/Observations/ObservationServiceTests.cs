@@ -1396,4 +1396,198 @@ public class ObservationServiceTests
     }
 
     #endregion
+
+    #region Exercise Status Validation Tests
+
+    [Theory]
+    [InlineData(ExerciseStatus.Draft)]
+    [InlineData(ExerciseStatus.Completed)]
+    [InlineData(ExerciseStatus.Archived)]
+    public async Task CreateObservationAsync_NonActiveNonPausedExercise_ThrowsInvalidOperationException(ExerciseStatus status)
+    {
+        var (context, _, exercise) = CreateTestContext();
+        exercise.Status = status;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+
+        var act = () => service.CreateObservationAsync(exercise.Id, request, Guid.NewGuid().ToString());
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Cannot add observations*");
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_PausedExercise_Succeeds()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        exercise.Status = ExerciseStatus.Paused;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+
+        var result = await service.CreateObservationAsync(exercise.Id, request, Guid.NewGuid().ToString());
+
+        result.Should().NotBeNull();
+        result.Content.Should().Be("Test observation");
+    }
+
+    [Theory]
+    [InlineData(ExerciseStatus.Draft)]
+    [InlineData(ExerciseStatus.Completed)]
+    [InlineData(ExerciseStatus.Archived)]
+    public async Task UpdateObservationAsync_NonActiveNonPausedExercise_ThrowsInvalidOperationException(ExerciseStatus status)
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+
+        exercise.Status = status;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Updated content" };
+
+        var act = () => service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Cannot update observations*");
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_PausedExercise_Succeeds()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+
+        exercise.Status = ExerciseStatus.Paused;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Updated content" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result.Should().NotBeNull();
+        result!.Content.Should().Be("Updated content");
+    }
+
+    #endregion
+
+    #region Draft-to-Complete Promotion Tests
+
+    [Fact]
+    public async Task UpdateObservationAsync_DraftWithSubstantiveContent_PromotesToComplete()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            Content = "Photo captured — add details",
+            Status = ObservationStatus.Draft,
+            ObservedAt = DateTime.UtcNow,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.Observations.Add(observation);
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Real observation content" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Complete);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_DraftWithPhotoPlaceholder_StaysDraft()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            Content = "",
+            Status = ObservationStatus.Draft,
+            ObservedAt = DateTime.UtcNow,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.Observations.Add(observation);
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Photo captured \u2014 add details" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Draft);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_DraftWithWhitespaceContent_StaysDraft()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            Content = "",
+            Status = ObservationStatus.Draft,
+            ObservedAt = DateTime.UtcNow,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.Observations.Add(observation);
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "   " };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Draft);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_CompleteObservation_StaysComplete()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise); // Default is Complete
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Updated content" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Complete);
+    }
+
+    #endregion
+
+    #region Delete Cascade Photo Tests
+
+    [Fact]
+    public async Task DeleteObservationAsync_CascadeSoftDeletesPhotos()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+
+        _photoServiceMock
+            .Setup(p => p.SoftDeletePhotosForObservationAsync(observation.Id, It.IsAny<string>()))
+            .ReturnsAsync(3);
+
+        var service = CreateService(context);
+
+        await service.DeleteObservationAsync(observation.Id, "deleter");
+
+        _photoServiceMock.Verify(
+            p => p.SoftDeletePhotosForObservationAsync(observation.Id, "deleter"),
+            Times.Once);
+    }
+
+    #endregion
 }
