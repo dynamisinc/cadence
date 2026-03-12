@@ -83,6 +83,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const accessTokenRef = useRef(accessToken)
   accessTokenRef.current = accessToken
 
+  // Ref for scheduleRefresh to break the circular dependency between
+  // refreshAccessToken (defined first) and useTokenRefresh (defined after).
+  // This ensures refreshAccessToken always calls the latest scheduleRefresh
+  // without needing it in the useCallback dependency array.
+  const scheduleRefreshRef = useRef<(expiresAt: number) => void>(() => {})
+
   /**
    * Log current auth state for debugging.
    * Uses refs to avoid recreating this callback when user/token changes.
@@ -148,7 +154,7 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
               devLog('[AuthContext] Token refresh successful, updating state')
               setAccessToken(response.accessToken)
               setUser(parsed.user)
-              scheduleRefresh(parsed.exp)
+              scheduleRefreshRef.current(parsed.exp)
               consecutiveFailuresRef.current = 0 // Reset failure counter
               cacheUserInfo(parsed.user) // Cache for offline support
               logAuthState('After successful refresh')
@@ -239,8 +245,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
     })
 
     return refreshInProgressRef.current
-    // scheduleRefresh is defined below via useTokenRefresh - circular ref resolved by eslint-disable
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [logAuthState])
 
   // Delegate timer management to useTokenRefresh.
@@ -248,6 +252,9 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const { scheduleRefresh, cancelRefresh } = useTokenRefresh({
     refreshTokenFn: refreshAccessToken,
   })
+
+  // Keep the ref in sync so refreshAccessToken always uses the latest scheduleRefresh
+  scheduleRefreshRef.current = scheduleRefresh
 
   // Delegate mount-time initialization to useAuthInit
   useAuthInit({

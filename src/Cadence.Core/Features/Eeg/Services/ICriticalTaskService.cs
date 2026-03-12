@@ -57,9 +57,11 @@ public interface ICriticalTaskService
 
     /// <summary>
     /// Get linked critical task IDs for a given inject.
+    /// Validates that the inject belongs to the specified exercise.
     /// </summary>
+    /// <param name="exerciseId">The exercise ID used to validate inject ownership.</param>
     /// <param name="injectId">The inject ID to look up linked critical tasks for.</param>
-    Task<IEnumerable<Guid>> GetLinkedCriticalTaskIdsForInjectAsync(Guid injectId);
+    Task<IEnumerable<Guid>> GetLinkedCriticalTaskIdsForInjectAsync(Guid exerciseId, Guid injectId);
 
     /// <summary>
     /// Set the linked critical tasks for an inject, replacing all existing links.

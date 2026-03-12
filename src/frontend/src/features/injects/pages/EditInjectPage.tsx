@@ -4,7 +4,6 @@ import {
   Typography,
   Stack,
   Paper,
-  IconButton,
   Skeleton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -18,8 +17,10 @@ import { usePhases } from '../../phases/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
 import {
   CobraPrimaryButton,
+  CobraIconButton,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { useUnsavedChangesWarning } from '@/shared/hooks/useUnsavedChangesWarning'
 import type { UpdateInjectRequest } from '../types'
 
 /**
@@ -55,7 +56,9 @@ export const EditInjectPage = () => {
       : undefined,
   )
 
-  // TODO: Wire useUnsavedChangesWarning with form dirty tracking
+  // TODO: Replace `false` with actual form dirty state (e.g. from InjectForm's isDirty)
+  const { UnsavedChangesDialog } = useUnsavedChangesWarning(false)
+
   const handleBackClick = () => {
     navigate(`/exercises/${exerciseId}/injects/${injectId}`)
   }
@@ -90,9 +93,9 @@ export const EditInjectPage = () => {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
         <Stack direction="row" alignItems="center" spacing={1} marginBottom={3}>
-          <IconButton onClick={handleBackClick} size="small">
+          <CobraIconButton onClick={handleBackClick} size="small">
             <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
+          </CobraIconButton>
           <Skeleton variant="text" width={200} height={40} />
         </Stack>
         <Paper sx={{ p: 3 }}>
@@ -114,9 +117,9 @@ export const EditInjectPage = () => {
         marginBottom={1}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton onClick={handleBackClick} size="small">
+          <CobraIconButton onClick={handleBackClick} size="small">
             <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
+          </CobraIconButton>
           <Box>
             <Typography variant="caption" color="text.secondary">
               INJ-{inject.injectNumber.toString().padStart(3, '0')}
@@ -149,6 +152,7 @@ export const EditInjectPage = () => {
         />
       </Paper>
 
+      <UnsavedChangesDialog />
     </Box>
   )
 }

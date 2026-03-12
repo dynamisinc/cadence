@@ -13,6 +13,7 @@ import { useExercise } from '../../exercises/hooks/useExercise'
 import { usePhases } from '../../phases/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
 import CobraStyles from '../../../theme/CobraStyles'
+import { useUnsavedChangesWarning } from '@/shared/hooks/useUnsavedChangesWarning'
 import { PageHeader } from '@/shared/components'
 import { TriggerType } from '../../../types'
 import type { CreateInjectRequest, InjectDto, InjectFormValues } from '../types'
@@ -76,7 +77,9 @@ export const CreateInjectPage = () => {
       : undefined,
   )
 
-  // TODO: Wire useUnsavedChangesWarning with form dirty tracking
+  // TODO: Replace `false` with actual form dirty state (e.g. from InjectForm's isDirty)
+  const { UnsavedChangesDialog } = useUnsavedChangesWarning(false)
+
   const handleBackClick = () => {
     navigate(`/exercises/${exerciseId}/msel`)
   }
@@ -117,6 +120,7 @@ export const CreateInjectPage = () => {
         />
       </Paper>
 
+      <UnsavedChangesDialog />
     </Box>
   )
 }

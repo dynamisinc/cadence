@@ -48,6 +48,13 @@ public class PasswordResetService : IPasswordResetService
     /// <inheritdoc />
     public async Task<bool> RequestPasswordResetAsync(string email, string? ipAddress = null)
     {
+        // Check rate limiting before proceeding
+        if (await IsRateLimitedAsync(email))
+        {
+            _logger.LogWarning("Password reset rate-limited for email (too many recent requests)");
+            return true; // Don't reveal rate limiting to prevent enumeration
+        }
+
         var user = await _userManager.FindByEmailAsync(email);
         if (user == null)
         {
@@ -82,6 +89,12 @@ public class PasswordResetService : IPasswordResetService
         await _context.SaveChangesAsync();
 
         // Construct the frontend reset URL and send email
+        if (string.IsNullOrWhiteSpace(_options.FrontendBaseUrl))
+        {
+            _logger.LogError("FrontendBaseUrl is not configured. Cannot send password reset email for user {UserId}", user.Id);
+            return true; // Don't reveal configuration issues to the caller
+        }
+
         var resetUrl = $"{_options.FrontendBaseUrl}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
 
         if (_emailService != null)
@@ -206,6 +219,52 @@ public class PasswordResetService : IPasswordResetService
         }
 
         return authResult;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> ValidateTokenAsync(string token)
+    {
+        var tokenHash = _tokenService.HashToken(token);
+        var resetToken = await _context.PasswordResetTokens
+            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && t.UsedAt == null);
+
+        return resetToken != null && resetToken.ExpiresAt >= DateTime.UtcNow;
+    }
+
+    /// <inheritdoc />
+    public async Task<bool> IsRateLimitedAsync(string email)
+    {
+        // Rate limit: max 3 reset requests per email within a 15-minute window
+        const int maxRequests = 3;
+        var window = DateTime.UtcNow.AddMinutes(-15);
+
+        var user = await _userManager.FindByEmailAsync(email);
+        if (user == null)
+            return false; // Don't reveal whether the email exists
+
+        var recentTokenCount = await _context.PasswordResetTokens
+            .CountAsync(t => t.UserId == user.Id && t.CreatedAt >= window);
+
+        return recentTokenCount >= maxRequests;
+    }
+
+    /// <inheritdoc />
+    public async Task<int> CleanupExpiredTokensAsync(DateTime olderThan)
+    {
+        var expiredTokens = await _context.PasswordResetTokens
+            .Where(t => t.CreatedAt < olderThan && (t.UsedAt != null || t.ExpiresAt < DateTime.UtcNow))
+            .ToListAsync();
+
+        if (expiredTokens.Count == 0)
+            return 0;
+
+        _context.PasswordResetTokens.RemoveRange(expiredTokens);
+        await _context.SaveChangesAsync();
+
+        _logger.LogInformation("Cleaned up {Count} expired password reset tokens older than {OlderThan}",
+            expiredTokens.Count, olderThan);
+
+        return expiredTokens.Count;
     }
 
     // =========================================================================

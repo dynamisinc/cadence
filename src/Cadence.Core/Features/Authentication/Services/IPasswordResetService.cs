@@ -32,4 +32,28 @@ public interface IPasswordResetService
         string newPassword,
         string? ipAddress = null,
         string? deviceInfo = null);
+
+    /// <summary>
+    /// Validate a password reset token. Checks if token exists, is not expired,
+    /// and has not been used.
+    /// </summary>
+    /// <param name="token">The password reset token to validate.</param>
+    /// <returns>True if the token is valid; false otherwise.</returns>
+    Task<bool> ValidateTokenAsync(string token);
+
+    /// <summary>
+    /// Check whether the specified email is currently rate-limited for password reset requests.
+    /// Should be called before issuing a new reset token.
+    /// </summary>
+    /// <param name="email">Email address to check.</param>
+    /// <returns>True if rate-limited (should not issue a new token); false otherwise.</returns>
+    Task<bool> IsRateLimitedAsync(string email);
+
+    /// <summary>
+    /// Remove expired and used password reset tokens older than the specified date.
+    /// Intended to be called by a maintenance/cleanup Azure Function on a schedule.
+    /// </summary>
+    /// <param name="olderThan">Remove tokens created before this date.</param>
+    /// <returns>The number of tokens removed.</returns>
+    Task<int> CleanupExpiredTokensAsync(DateTime olderThan);
 }

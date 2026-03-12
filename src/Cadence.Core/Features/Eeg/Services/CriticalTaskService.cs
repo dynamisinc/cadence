@@ -198,8 +198,15 @@ public class CriticalTaskService : ICriticalTaskService
             .ToListAsync();
     }
 
-    public async Task<IEnumerable<Guid>> GetLinkedCriticalTaskIdsForInjectAsync(Guid injectId)
+    public async Task<IEnumerable<Guid>> GetLinkedCriticalTaskIdsForInjectAsync(Guid exerciseId, Guid injectId)
     {
+        // Validate that the inject belongs to the specified exercise
+        var injectBelongsToExercise = await _context.Injects
+            .AnyAsync(i => i.Id == injectId && i.Msel.ExerciseId == exerciseId);
+
+        if (!injectBelongsToExercise)
+            throw new KeyNotFoundException($"Inject {injectId} not found in exercise {exerciseId}");
+
         return await _context.InjectCriticalTasks
             .Where(ict => ict.InjectId == injectId)
             .Select(ict => ict.CriticalTaskId)
@@ -212,6 +219,13 @@ public class CriticalTaskService : ICriticalTaskService
         IEnumerable<Guid> criticalTaskIds,
         string userId)
     {
+        // Validate that the inject belongs to the specified exercise
+        var injectBelongsToExercise = await _context.Injects
+            .AnyAsync(i => i.Id == injectId && i.Msel.ExerciseId == exerciseId);
+
+        if (!injectBelongsToExercise)
+            throw new KeyNotFoundException($"Inject {injectId} not found in exercise {exerciseId}");
+
         var criticalTaskIdsList = criticalTaskIds.ToList();
 
         // Validate all task IDs belong to this exercise

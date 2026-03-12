@@ -20,7 +20,6 @@ import {
   TableCell,
   Typography,
   Stack,
-  IconButton,
   Tooltip,
   Checkbox,
 } from '@mui/material'
@@ -32,6 +31,7 @@ import {
   faTrash,
   faCopy,
 } from '@fortawesome/free-solid-svg-icons'
+import { CobraIconButton } from '@/theme/styledComponents'
 import { InjectStatusChip } from './InjectStatusChip'
 import { SubmitForApprovalButton } from './SubmitForApprovalButton'
 import { HighlightedText } from '@/shared/components/HighlightedText'
@@ -201,24 +201,24 @@ export const MselInjectRow = ({
               (approvalEnabled ? inject.status === InjectStatus.Approved : isPending) && (
                 <>
                   <Tooltip title="Fire inject">
-                    <IconButton
+                    <CobraIconButton
                       size="small"
                       color="success"
                       onClick={onFire}
                       disabled={isFiring || isSkipping}
                     >
                       <FontAwesomeIcon icon={faPlay} size="sm" />
-                    </IconButton>
+                    </CobraIconButton>
                   </Tooltip>
                   <Tooltip title="Skip inject">
-                    <IconButton
+                    <CobraIconButton
                       size="small"
                       color="warning"
                       onClick={onSkip}
                       disabled={isFiring || isSkipping}
                     >
                       <FontAwesomeIcon icon={faForwardStep} size="sm" />
-                    </IconButton>
+                    </CobraIconButton>
                   </Tooltip>
                 </>
               )
@@ -226,31 +226,31 @@ export const MselInjectRow = ({
             {canManage && (
               <>
                 <Tooltip title="Edit inject">
-                  <IconButton
+                  <CobraIconButton
                     size="small"
                     color="primary"
                     onClick={onEdit}
                   >
                     <FontAwesomeIcon icon={faPen} size="sm" />
-                  </IconButton>
+                  </CobraIconButton>
                 </Tooltip>
                 <Tooltip title="Duplicate inject">
-                  <IconButton
+                  <CobraIconButton
                     size="small"
                     color="primary"
                     onClick={onDuplicate}
                   >
                     <FontAwesomeIcon icon={faCopy} size="sm" />
-                  </IconButton>
+                  </CobraIconButton>
                 </Tooltip>
                 <Tooltip title="Delete inject">
-                  <IconButton
+                  <CobraIconButton
                     size="small"
                     color="error"
                     onClick={onDelete}
                   >
                     <FontAwesomeIcon icon={faTrash} size="sm" />
-                  </IconButton>
+                  </CobraIconButton>
                 </Tooltip>
               </>
             )}

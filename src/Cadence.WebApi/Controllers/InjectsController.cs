@@ -648,7 +648,7 @@ public class InjectsController : ControllerBase
     {
         try
         {
-            var taskIds = await _criticalTaskService.GetLinkedCriticalTaskIdsForInjectAsync(id);
+            var taskIds = await _criticalTaskService.GetLinkedCriticalTaskIdsForInjectAsync(exerciseId, id);
             return Ok(taskIds);
         }
         catch (KeyNotFoundException ex)

@@ -16,7 +16,6 @@ import {
   Paper,
   Stack,
   Typography,
-  IconButton,
   Divider,
   Dialog,
   DialogContent,
@@ -31,7 +30,7 @@ import {
 import { useNavigate } from 'react-router-dom'
 import { useQueryClient } from '@tanstack/react-query'
 
-import { CobraPrimaryButton } from '../../../theme/styledComponents'
+import { CobraPrimaryButton, CobraIconButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
 import { ObservationForm, ObservationList } from '../../observations'
 import { EegEntryForm, EegCoverageDashboard } from '../../eeg/components'
@@ -212,7 +211,7 @@ export const ObservationPanel: FC<ObservationPanelProps> = ({
         >
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography variant="h6">Observations</Typography>
-            <IconButton
+            <CobraIconButton
               size="small"
               onClick={() => setObservationsExpanded(!observationsExpanded)}
               aria-label={observationsExpanded ? 'Collapse observations' : 'Expand observations'}
@@ -220,7 +219,7 @@ export const ObservationPanel: FC<ObservationPanelProps> = ({
               <FontAwesomeIcon
                 icon={observationsExpanded ? faChevronUp : faChevronDown}
               />
-            </IconButton>
+            </CobraIconButton>
           </Stack>
 
           {canAddObservations && !showObservationForm && (
