@@ -6,6 +6,7 @@
  */
 import { useMemo } from 'react'
 import { Box, Typography, Alert } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faClipboardList, faHome } from '@fortawesome/free-solid-svg-icons'
 import { useBreadcrumbs } from '@/core/contexts'
@@ -22,6 +23,7 @@ export function MyAssignmentsPage() {
     { label: 'My Assignments' },
   ])
 
+  const theme = useTheme()
   const { data, isLoading, isError, error, refetch } = useMyAssignments()
 
   // Show organization name on cards when assignments span multiple organizations
@@ -93,7 +95,7 @@ export function MyAssignmentsPage() {
         >
           <FontAwesomeIcon
             icon={faClipboardList}
-            style={{ fontSize: '4rem', color: '#ccc', marginBottom: '1rem' }}
+            style={{ fontSize: '4rem', color: theme.palette.neutral[300], marginBottom: '1rem' }}
           />
           <Typography variant="h5" color="text.secondary" gutterBottom>
             No Assignments Yet

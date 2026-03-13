@@ -6,11 +6,6 @@ import {
   Typography,
   Paper,
   CircularProgress,
-  Grid,
-  LinearProgress,
-  Stack,
-  Tabs,
-  Tab,
   Menu,
   MenuItem,
   ListItemIcon,
@@ -18,14 +13,11 @@ import {
   Divider,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import { faHome, faPen, faCopy, faBoxArchive, faTrash, faUsers, faEllipsisVertical, faGear, faClipboardCheck } from '@fortawesome/free-solid-svg-icons'
-import { formatDate } from '../../../shared/utils/dateUtils'
+import { faHome, faPen, faCopy, faBoxArchive, faTrash, faEllipsisVertical, faGear } from '@fortawesome/free-solid-svg-icons'
 
 import {
   useExercise,
   useSetupProgress,
-  useDuplicateExercise,
-  useExerciseStatus,
   useMselSummary,
   useExerciseParticipants,
   exerciseCapabilityKeys,
@@ -35,16 +27,12 @@ import {
   ExerciseForm,
   ExerciseHeader,
   ExerciseStatusActions,
-  SetupProgress,
   DuplicateExerciseDialog,
   ArchiveExerciseDialog,
   DeleteExerciseDialog,
   ExerciseSettingsDialog,
-  TargetCapabilitiesDisplay,
+  ExerciseDetailTabs,
 } from '../components'
-import { ObjectiveList } from '../../objectives'
-import { CapabilityTargetList } from '../../eeg'
-import { ExerciseParticipantsPage } from './ExerciseParticipantsPage'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -54,34 +42,12 @@ import CobraStyles from '../../../theme/CobraStyles'
 import { useUnsavedChangesWarning } from '../../../shared/hooks'
 import { useExerciseRole } from '../../auth/hooks/useExerciseRole'
 import { useBreadcrumbs } from '../../../core/contexts'
-import { ExerciseStatus, DeliveryMode, TimelineMode } from '../../../types'
-import { getExerciseTypeFullName } from '../../../theme/cobraTheme'
+import { ExerciseStatus } from '../../../types'
 import { EffectiveRoleBadge } from '@/features/auth'
 import { HelpTooltip } from '@/shared/components'
+import { useExerciseActions } from '../hooks/useExerciseActions'
 import type { CreateExerciseFormValues, UpdateExerciseRequest } from '../types'
 import type { UserDto } from '../../users/types'
-
-/**
- * Tab Panel Component
- */
-interface TabPanelProps {
-  children?: React.ReactNode
-  index: number
-  value: number
-}
-
-function TabPanel({ children, value, index }: TabPanelProps) {
-  return (
-    <div
-      role="tabpanel"
-      hidden={value !== index}
-      id={`exercise-tabpanel-${index}`}
-      aria-labelledby={`exercise-tab-${index}`}
-    >
-      {value === index && <Box sx={{ pt: 3 }}>{children}</Box>}
-    </div>
-  )
-}
 
 /**
  * Exercise Detail Page (S02, S14)
@@ -108,12 +74,7 @@ export const ExerciseDetailPage = () => {
   const isEditing = location.pathname.endsWith('/edit')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [isDirty, setIsDirty] = useState(false)
-  const [duplicateDialogOpen, setDuplicateDialogOpen] = useState(false)
-  const [archiveDialogOpen, setArchiveDialogOpen] = useState(false)
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
-  const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
   const [activeTab, setActiveTab] = useState(0)
-  const [moreMenuAnchor, setMoreMenuAnchor] = useState<null | HTMLElement>(null)
 
   // Setup progress for Draft exercises
   const {
@@ -124,12 +85,6 @@ export const ExerciseDetailPage = () => {
 
   // MSEL summary for progress display
   const { data: mselSummary } = useMselSummary(id ?? '')
-
-  // Duplicate exercise mutation
-  const { duplicate, isDuplicating } = useDuplicateExercise()
-
-  // Archive/delete actions
-  const { archive, isTransitioning: isArchiving } = useExerciseStatus(id ?? '')
 
   // Exercise participants (for director display)
   const { participants } = useExerciseParticipants(id ?? '')
@@ -151,6 +106,38 @@ export const ExerciseDetailPage = () => {
       createdAt: director.addedAt,
     }
   }, [director])
+
+  // Lifecycle action dialogs + mutations (extracted hook)
+  const {
+    duplicateDialogOpen,
+    archiveDialogOpen,
+    deleteDialogOpen,
+    settingsDialogOpen,
+    openDuplicateDialog,
+    closeDuplicateDialog,
+    openArchiveDialog,
+    closeArchiveDialog,
+    openDeleteDialog,
+    closeDeleteDialog,
+    openSettingsDialog,
+    closeSettingsDialog,
+    moreMenuAnchor,
+    handleMoreMenuOpen,
+    handleMoreMenuClose,
+    canDelete,
+    canArchive,
+    duplicate,
+    isDuplicating,
+    archive,
+    isArchiving,
+    handleArchived,
+    handleDeleted,
+  } = useExerciseActions({
+    exerciseId: id ?? '',
+    exercise: exercise ?? null,
+    canEditExercise: can('edit_exercise'),
+    canDeleteExercise: can('delete_exercise'),
+  })
 
   // Set custom breadcrumbs with exercise name (show loading placeholder while fetching)
   useBreadcrumbs([
@@ -264,59 +251,6 @@ export const ExerciseDetailPage = () => {
     navigate(`/exercises/${id}`, { replace: true })
   }
 
-  const handleArchived = () => {
-    // Navigate back to exercises list after archive
-    navigate('/exercises')
-  }
-
-  const handleDeleted = () => {
-    // Navigate back to exercises list after delete
-    navigate('/exercises')
-  }
-
-  // More menu handlers
-  const handleMoreMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMoreMenuAnchor(event.currentTarget)
-  }
-
-  const handleMoreMenuClose = () => {
-    setMoreMenuAnchor(null)
-  }
-
-  // Determine if exercise can be deleted (never published OR already archived)
-  const canDelete = useMemo(() => {
-    if (!exercise || !can('delete_exercise')) return false
-    return !exercise.hasBeenPublished || exercise.status === ExerciseStatus.Archived
-  }, [exercise, can])
-
-  // Can archive if not already archived and user can edit
-  const canArchive = useMemo(() => {
-    if (!exercise || !can('edit_exercise')) return false
-    return exercise.status !== ExerciseStatus.Archived
-  }, [exercise, can])
-
-  const formatDateLong = (dateStr: string) => {
-    try {
-      return formatDate(dateStr)
-    } catch {
-      return dateStr
-    }
-  }
-
-  const formatTime = (timeStr: string | null) => {
-    if (!timeStr) return null
-    try {
-      // Time comes as HH:MM:SS, format to 12-hour
-      const [hours, minutes] = timeStr.split(':')
-      const hour = parseInt(hours, 10)
-      const ampm = hour >= 12 ? 'PM' : 'AM'
-      const hour12 = hour % 12 || 12
-      return `${hour12}:${minutes} ${ampm}`
-    } catch {
-      return timeStr
-    }
-  }
-
   // Loading state
   if (loading && !exercise) {
     return (
@@ -422,7 +356,7 @@ export const ExerciseDetailPage = () => {
                   <MenuItem
                     onClick={() => {
                       handleMoreMenuClose()
-                      setSettingsDialogOpen(true)
+                      openSettingsDialog()
                     }}
                   >
                     <ListItemIcon>
@@ -434,7 +368,7 @@ export const ExerciseDetailPage = () => {
                   <MenuItem
                     onClick={() => {
                       handleMoreMenuClose()
-                      setDuplicateDialogOpen(true)
+                      openDuplicateDialog()
                     }}
                   >
                     <ListItemIcon>
@@ -446,7 +380,7 @@ export const ExerciseDetailPage = () => {
                     <MenuItem
                       onClick={() => {
                         handleMoreMenuClose()
-                        setArchiveDialogOpen(true)
+                        openArchiveDialog()
                       }}
                     >
                       <ListItemIcon>
@@ -461,7 +395,7 @@ export const ExerciseDetailPage = () => {
                       key="delete-item"
                       onClick={() => {
                         handleMoreMenuClose()
-                        setDeleteDialogOpen(true)
+                        openDeleteDialog()
                       }}
                       sx={{ color: 'error.main' }}
                     >
@@ -505,381 +439,28 @@ export const ExerciseDetailPage = () => {
           />
         </Paper>
       ) : (
-        <>
-          {/* Tabs */}
-          <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
-            <Tabs
-              value={activeTab}
-              onChange={(_, newValue) => setActiveTab(newValue)}
-              aria-label="exercise detail tabs"
-            >
-              <Tab label="Details" id="exercise-tab-0" aria-controls="exercise-tabpanel-0" />
-              <Tab label="Objectives" id="exercise-tab-1" aria-controls="exercise-tabpanel-1" />
-              <Tab
-                label="Participants"
-                icon={<FontAwesomeIcon icon={faUsers} />}
-                iconPosition="start"
-                id="exercise-tab-2"
-                aria-controls="exercise-tabpanel-2"
-              />
-              <Tab
-                label="EEG Setup"
-                icon={<FontAwesomeIcon icon={faClipboardCheck} />}
-                iconPosition="start"
-                id="exercise-tab-3"
-                aria-controls="exercise-tabpanel-3"
-              />
-            </Tabs>
-          </Box>
-
-          {/* Tab Panels */}
-          <TabPanel value={activeTab} index={0}>
-            <Stack spacing={2}>
-              {/* Top row: Two cards side-by-side for Draft, single column otherwise */}
-              <Grid
-                container
-                spacing={2}
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: '1fr',
-                    md: exercise.status === ExerciseStatus.Draft
-                      ? 'repeat(2, 1fr)'
-                      : '1fr',
-                  },
-                  gap: 2,
-                  alignItems: 'start',
-                }}
-              >
-                {/* Left column: Exercise Details */}
-                <Grid>
-                  <Paper sx={{ p: 2 }}>
-
-                    <Typography variant="h6" fontWeight={600} sx={{ mb: 1.5 }}>
-                      Exercise Details
-                    </Typography>
-
-                    {/* Description */}
-                    {exercise.description && (
-                      <Box sx={{ mb: 1.5 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.5 }}
-                        >
-                          Description
-                        </Typography>
-                        <Typography variant="body2" sx={{ whiteSpace: 'pre-wrap' }}>
-                          {exercise.description}
-                        </Typography>
-                      </Box>
-                    )}
-
-                    {/* Two-column grid for metadata */}
-                    <Grid container spacing={1.5}>
-                      {/* Schedule */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Date
-                        </Typography>
-                        <Typography variant="body2">
-                          {formatDateLong(exercise.scheduledDate)}
-                        </Typography>
-                      </Grid>
-
-                      {/* Time */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Time
-                        </Typography>
-                        <Typography variant="body2">
-                          {exercise.startTime ? formatTime(exercise.startTime) : 'TBD'}
-                          {exercise.endTime && ` - ${formatTime(exercise.endTime)}`}
-                        </Typography>
-                      </Grid>
-
-                      {/* Time Zone */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Time Zone
-                        </Typography>
-                        <Typography variant="body2">{exercise.timeZoneId}</Typography>
-                      </Grid>
-
-                      {/* Location */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Location
-                        </Typography>
-                        <Typography variant="body2">
-                          {exercise.location || 'Not specified'}
-                        </Typography>
-                      </Grid>
-
-                      {/* Exercise Director */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Exercise Director
-                        </Typography>
-                        <Typography variant="body2">
-                          {director?.displayName || 'Not assigned'}
-                        </Typography>
-                        {director?.email && (
-                          <Typography variant="caption" color="text.secondary">
-                            {director.email}
-                          </Typography>
-                        )}
-                      </Grid>
-
-                      {/* Exercise Type */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Exercise Type
-                        </Typography>
-                        <Typography variant="body2">
-                          {getExerciseTypeFullName(exercise.exerciseType)}
-                        </Typography>
-                      </Grid>
-
-                      {/* Practice Mode */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Mode
-                        </Typography>
-                        <Typography variant="body2">
-                          {exercise.isPracticeMode ? 'Practice Mode' : 'Live Exercise'}
-                        </Typography>
-                      </Grid>
-
-                      {/* Delivery Mode */}
-                      <Grid size={{ xs: 12, sm: 6 }}>
-                        <Typography
-                          variant="body2"
-                          color="text.secondary"
-                          fontWeight={500}
-                          sx={{ mb: 0.25 }}
-                        >
-                          Inject Delivery
-                        </Typography>
-                        <Typography variant="body2">
-                          {exercise.deliveryMode === DeliveryMode.ClockDriven
-                            ? 'Clock-driven'
-                            : 'Facilitator-paced'}
-                        </Typography>
-                      </Grid>
-
-                      {/* Timeline Mode (only for Clock-driven) */}
-                      {exercise.deliveryMode === DeliveryMode.ClockDriven && (
-                        <Grid size={{ xs: 12, sm: 6 }}>
-                          <Typography
-                            variant="body2"
-                            color="text.secondary"
-                            fontWeight={500}
-                            sx={{ mb: 0.25 }}
-                          >
-                            Timeline
-                          </Typography>
-                          <Typography variant="body2">
-                            {exercise.timelineMode === TimelineMode.RealTime &&
-                          'Real-time (1:1)'}
-                            {exercise.timelineMode === TimelineMode.Compressed &&
-                          `Compressed (${exercise.clockMultiplier}x)`}
-                            {exercise.timelineMode === TimelineMode.StoryOnly &&
-                          'Story-only'}
-                          </Typography>
-                        </Grid>
-                      )}
-
-                      {/* Created / Updated info */}
-                      <Grid size={12}>
-                        <Box
-                          sx={{
-                            mt: 1.5,
-                            pt: 1.5,
-                            borderTop: 1,
-                            borderColor: 'divider',
-                          }}
-                        >
-                          <Typography variant="caption" color="text.secondary">
-                            Created {formatDate(exercise.createdAt)}
-                            {exercise.updatedAt !== exercise.createdAt && (
-                              <>
-                                {' · '}
-                                Last updated{' '}
-                                {formatDate(exercise.updatedAt)}
-                              </>
-                            )}
-                          </Typography>
-                        </Box>
-                      </Grid>
-                    </Grid>
-                  </Paper>
-                </Grid>
-
-                {/* Right column: Setup Progress (Draft only) */}
-                {exercise.status === ExerciseStatus.Draft && (
-                  <Grid>
-                    <SetupProgress
-                      progress={setupProgress}
-                      isLoading={setupProgressLoading}
-                      error={setupProgressError}
-                    />
-                  </Grid>
-                )}
-              </Grid>
-
-              {/* Target Capabilities (S04) */}
-              <TargetCapabilitiesDisplay exerciseId={id!} />
-
-              {/* Bottom row: MSEL Progress */}
-              {mselSummary && mselSummary.totalInjects > 0 && (
-                <Paper sx={{ p: 2.5 }}>
-                  <Stack
-                    direction={{ xs: 'column', sm: 'row' }}
-                    spacing={2}
-                    alignItems={{ sm: 'center' }}
-                    justifyContent="space-between"
-                  >
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="subtitle1" fontWeight={600}>
-                        MSEL Progress
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {mselSummary.releasedCount + mselSummary.deferredCount} of{' '}
-                        {mselSummary.totalInjects} injects completed
-                      </Typography>
-                    </Box>
-
-                    <Stack
-                      direction="row"
-                      spacing={3}
-                      sx={{ minWidth: { sm: 300 } }}
-                      alignItems="center"
-                    >
-                      <Box sx={{ flex: 1 }}>
-                        <LinearProgress
-                          variant="determinate"
-                          value={mselSummary.completionPercentage}
-                          sx={{
-                            height: 8,
-                            borderRadius: 4,
-                            backgroundColor: 'grey.200',
-                            '& .MuiLinearProgress-bar': {
-                              borderRadius: 4,
-                              backgroundColor:
-                            mselSummary.completionPercentage === 100
-                              ? 'success.main'
-                              : 'primary.main',
-                            },
-                          }}
-                        />
-                      </Box>
-                      <Typography
-                        variant="body2"
-                        fontWeight={600}
-                        sx={{ minWidth: 45, textAlign: 'right' }}
-                      >
-                        {mselSummary.completionPercentage}%
-                      </Typography>
-                    </Stack>
-
-                    <Stack direction="row" spacing={2}>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h6" fontWeight={600}>
-                          {mselSummary.draftCount}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Draft
-                        </Typography>
-                      </Box>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h6" fontWeight={600} color="success.main">
-                          {mselSummary.releasedCount}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Released
-                        </Typography>
-                      </Box>
-                      <Box sx={{ textAlign: 'center' }}>
-                        <Typography variant="h6" fontWeight={600} color="warning.main">
-                          {mselSummary.deferredCount}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          Deferred
-                        </Typography>
-                      </Box>
-                    </Stack>
-                  </Stack>
-                </Paper>
-              )}
-            </Stack>
-          </TabPanel>
-
-          {/* Objectives Tab */}
-          <TabPanel value={activeTab} index={1}>
-            <Paper sx={{ p: 3 }}>
-              <ObjectiveList exerciseId={exercise.id} canEdit={canEdit} />
-            </Paper>
-          </TabPanel>
-
-          {/* Participants Tab */}
-          <TabPanel value={activeTab} index={2}>
-            <ExerciseParticipantsPage exerciseId={id} />
-          </TabPanel>
-
-          {/* EEG Setup Tab */}
-          <TabPanel value={activeTab} index={3}>
-            <Paper sx={{ p: 3 }}>
-              <CapabilityTargetList exerciseId={exercise.id} canEdit={canEdit} />
-            </Paper>
-          </TabPanel>
-        </>
+        <ExerciseDetailTabs
+          exercise={exercise}
+          exerciseId={id!}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          canEdit={canEdit}
+          setupProgress={setupProgress}
+          setupProgressLoading={setupProgressLoading}
+          setupProgressError={setupProgressError}
+          mselSummary={mselSummary}
+          director={director}
+        />
       )}
 
       {/* Duplicate Exercise Dialog */}
       <DuplicateExerciseDialog
         open={duplicateDialogOpen}
         exercise={exercise}
-        onClose={() => setDuplicateDialogOpen(false)}
+        onClose={closeDuplicateDialog}
         onSubmit={async request => {
           await duplicate({ exerciseId: exercise.id, request })
-          setDuplicateDialogOpen(false)
+          closeDuplicateDialog()
         }}
         isSubmitting={isDuplicating}
       />
@@ -888,7 +469,7 @@ export const ExerciseDetailPage = () => {
       <ArchiveExerciseDialog
         open={archiveDialogOpen}
         exercise={exercise}
-        onClose={() => setArchiveDialogOpen(false)}
+        onClose={closeArchiveDialog}
         onConfirm={async () => {
           await archive()
           handleArchived()
@@ -900,7 +481,7 @@ export const ExerciseDetailPage = () => {
       <DeleteExerciseDialog
         open={deleteDialogOpen}
         exercise={exercise}
-        onClose={() => setDeleteDialogOpen(false)}
+        onClose={closeDeleteDialog}
         onDeleted={handleDeleted}
       />
 
@@ -909,7 +490,7 @@ export const ExerciseDetailPage = () => {
         open={settingsDialogOpen}
         exerciseId={exercise.id}
         exerciseName={exercise.name}
-        onClose={() => setSettingsDialogOpen(false)}
+        onClose={closeSettingsDialog}
       />
 
       {/* Unsaved changes dialog for navigation blocking */}

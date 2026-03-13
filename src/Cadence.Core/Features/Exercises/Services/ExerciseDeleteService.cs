@@ -89,7 +89,35 @@ public class ExerciseDeleteService : IExerciseDeleteService
             summary.InjectCount, summary.PhaseCount, summary.ObservationCount,
             summary.ParticipantCount, summary.ObjectiveCount, summary.MselCount);
 
-        // Perform cascade delete using execution strategy to support retrying execution strategy
+        await PerformCascadeDeleteAsync(exerciseId);
+
+        _logger.LogInformation(
+            "Successfully deleted exercise {ExerciseId} '{ExerciseName}'. Reason: {DeleteReason}",
+            exerciseId, exercise.Name, deleteReason);
+
+        return DeleteExerciseResult.Succeeded();
+    }
+
+    /// <summary>
+    /// Executes all cascade delete operations inside a transaction, in dependency order (children first).
+    /// Delete order:
+    ///  1. ExpectedOutcomes (child of Inject)
+    ///  2. InjectObjectives (junction between Inject and Objective)
+    ///  3. InjectCriticalTasks (junction between Inject and CriticalTask)
+    ///  4. Observations (references Inject, Exercise, Objective)
+    ///  5. Injects (child of MSEL)
+    ///  6. Msels (child of Exercise) - also clears ActiveMselId
+    ///  7. ExerciseParticipants (child of Exercise)
+    ///  8. Objectives (child of Exercise)
+    ///  9. Phases (child of Exercise)
+    /// 10. EegEntries (child of CriticalTask, which is child of CapabilityTarget)
+    /// 11. CriticalTasks (child of CapabilityTarget)
+    /// 12. CapabilityTargets (child of Exercise)
+    /// 13. ExercisePhotos (child of Exercise)
+    /// 14. Exercise itself
+    /// </summary>
+    private async Task PerformCascadeDeleteAsync(Guid exerciseId)
+    {
         var strategy = _context.Database.CreateExecutionStrategy();
 
         await strategy.ExecuteAsync(async () =>
@@ -97,22 +125,6 @@ public class ExerciseDeleteService : IExerciseDeleteService
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Delete in order of dependencies (children first):
-                //  1. ExpectedOutcomes (child of Inject)
-                //  2. InjectObjectives (junction between Inject and Objective)
-                //  3. InjectCriticalTasks (junction between Inject and CriticalTask)
-                //  4. Observations (references Inject, Exercise, Objective)
-                //  5. Injects (child of MSEL)
-                //  6. Msels (child of Exercise) - also clears ActiveMselId
-                //  7. ExerciseParticipants (child of Exercise)
-                //  8. Objectives (child of Exercise)
-                //  9. Phases (child of Exercise)
-                // 10. EegEntries (child of CriticalTask, which is child of CapabilityTarget)
-                // 11. CriticalTasks (child of CapabilityTarget)
-                // 12. CapabilityTargets (child of Exercise)
-                // 13. ExercisePhotos (child of Exercise)
-                // 14. Exercise itself
-
                 // Clear ActiveMselId to avoid FK constraint using bulk update (no change tracking)
                 await _context.Exercises
                     .Where(e => e.Id == exerciseId)
@@ -138,35 +150,8 @@ public class ExerciseDeleteService : IExerciseDeleteService
                     .Select(ct => ct.Id)
                     .ToListAsync();
 
-                // Get all CriticalTask IDs for these CapabilityTargets
-                var criticalTaskIds = capabilityTargetIds.Count > 0
-                    ? await _context.CriticalTasks
-                        .IgnoreQueryFilters()
-                        .Where(ct => capabilityTargetIds.Contains(ct.CapabilityTargetId))
-                        .Select(ct => ct.Id)
-                        .ToListAsync()
-                    : [];
-
-                // 1. Delete ExpectedOutcomes for all injects
-                if (injectIds.Count > 0)
-                {
-                    await _context.ExpectedOutcomes
-                        .IgnoreQueryFilters()
-                        .Where(eo => injectIds.Contains(eo.InjectId))
-                        .ExecuteDeleteAsync();
-
-                    // 2. Delete InjectObjectives for all injects
-                    await _context.InjectObjectives
-                        .Where(io => injectIds.Contains(io.InjectId))
-                        .ExecuteDeleteAsync();
-
-                    // 3. Delete InjectCriticalTasks for all injects
-                    // InjectCriticalTask has RESTRICT on the CriticalTask side to avoid cascade cycles,
-                    // so must be deleted explicitly before CriticalTasks are removed.
-                    await _context.InjectCriticalTasks
-                        .Where(ict => injectIds.Contains(ict.InjectId))
-                        .ExecuteDeleteAsync();
-                }
+                // Steps 1-3: delete inject-level junction tables and children
+                await DeleteInjectDependenciesAsync(injectIds);
 
                 // 4. Delete Observations for this exercise
                 await _context.Observations
@@ -207,29 +192,8 @@ public class ExerciseDeleteService : IExerciseDeleteService
                     .Where(p => p.ExerciseId == exerciseId)
                     .ExecuteDeleteAsync();
 
-                // 10. Delete EegEntries for all CriticalTasks in this exercise
-                if (criticalTaskIds.Count > 0)
-                {
-                    await _context.EegEntries
-                        .IgnoreQueryFilters()
-                        .Where(e => criticalTaskIds.Contains(e.CriticalTaskId))
-                        .ExecuteDeleteAsync();
-
-                    // 11. Delete CriticalTasks for all CapabilityTargets in this exercise
-                    await _context.CriticalTasks
-                        .IgnoreQueryFilters()
-                        .Where(ct => capabilityTargetIds.Contains(ct.CapabilityTargetId))
-                        .ExecuteDeleteAsync();
-                }
-
-                // 12. Delete CapabilityTargets for this exercise
-                if (capabilityTargetIds.Count > 0)
-                {
-                    await _context.CapabilityTargets
-                        .IgnoreQueryFilters()
-                        .Where(ct => ct.ExerciseId == exerciseId)
-                        .ExecuteDeleteAsync();
-                }
+                // Steps 10-12: delete capability tree (EegEntries, CriticalTasks, CapabilityTargets)
+                await DeleteCapabilityTreeAsync(capabilityTargetIds);
 
                 // 13. Delete ExercisePhotos for this exercise
                 await _context.ExercisePhotos
@@ -255,12 +219,72 @@ public class ExerciseDeleteService : IExerciseDeleteService
                 throw;
             }
         });
+    }
 
-        _logger.LogInformation(
-            "Successfully deleted exercise {ExerciseId} '{ExerciseName}'. Reason: {DeleteReason}",
-            exerciseId, exercise.Name, deleteReason);
+    /// <summary>
+    /// Deletes inject-level dependencies (steps 1-3): ExpectedOutcomes, InjectObjectives, and InjectCriticalTasks.
+    /// No-ops when <paramref name="injectIds"/> is empty.
+    /// </summary>
+    private async Task DeleteInjectDependenciesAsync(List<Guid> injectIds)
+    {
+        if (injectIds.Count == 0)
+            return;
 
-        return DeleteExerciseResult.Succeeded();
+        // 1. Delete ExpectedOutcomes for all injects
+        await _context.ExpectedOutcomes
+            .IgnoreQueryFilters()
+            .Where(eo => injectIds.Contains(eo.InjectId))
+            .ExecuteDeleteAsync();
+
+        // 2. Delete InjectObjectives for all injects
+        await _context.InjectObjectives
+            .Where(io => injectIds.Contains(io.InjectId))
+            .ExecuteDeleteAsync();
+
+        // 3. Delete InjectCriticalTasks for all injects
+        // InjectCriticalTask has RESTRICT on the CriticalTask side to avoid cascade cycles,
+        // so must be deleted explicitly before CriticalTasks are removed.
+        await _context.InjectCriticalTasks
+            .Where(ict => injectIds.Contains(ict.InjectId))
+            .ExecuteDeleteAsync();
+    }
+
+    /// <summary>
+    /// Deletes the capability tree (steps 10-12): EegEntries, CriticalTasks, and CapabilityTargets.
+    /// No-ops when <paramref name="capabilityTargetIds"/> is empty.
+    /// </summary>
+    private async Task DeleteCapabilityTreeAsync(List<Guid> capabilityTargetIds)
+    {
+        if (capabilityTargetIds.Count == 0)
+            return;
+
+        // Get all CriticalTask IDs for these CapabilityTargets
+        var criticalTaskIds = await _context.CriticalTasks
+            .IgnoreQueryFilters()
+            .Where(ct => capabilityTargetIds.Contains(ct.CapabilityTargetId))
+            .Select(ct => ct.Id)
+            .ToListAsync();
+
+        // 10. Delete EegEntries for all CriticalTasks in this exercise
+        if (criticalTaskIds.Count > 0)
+        {
+            await _context.EegEntries
+                .IgnoreQueryFilters()
+                .Where(e => criticalTaskIds.Contains(e.CriticalTaskId))
+                .ExecuteDeleteAsync();
+
+            // 11. Delete CriticalTasks for all CapabilityTargets in this exercise
+            await _context.CriticalTasks
+                .IgnoreQueryFilters()
+                .Where(ct => capabilityTargetIds.Contains(ct.CapabilityTargetId))
+                .ExecuteDeleteAsync();
+        }
+
+        // 12. Delete CapabilityTargets for this exercise
+        await _context.CapabilityTargets
+            .IgnoreQueryFilters()
+            .Where(ct => capabilityTargetIds.Contains(ct.Id))
+            .ExecuteDeleteAsync();
     }
 
     /// <summary>

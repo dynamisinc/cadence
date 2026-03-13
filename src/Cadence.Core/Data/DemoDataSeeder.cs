@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Constants;
 using Cadence.Core.Features.Capabilities.Services;
 using Cadence.Core.Models.Entities;
@@ -29,6 +30,7 @@ namespace Cadence.Core.Data;
 /// - 15+ observations with all P/S/M/U ratings
 /// - FEMA Core Capabilities linked to exercises and observations
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class DemoDataSeeder
 {
     #region Fixed GUIDs for Idempotent Seeding

@@ -15,7 +15,9 @@ namespace Cadence.Core.Tests.Features.Users;
 
 /// <summary>
 /// Tests for user management service.
-/// Covers: S10 (User List), S11 (Edit User), S12 (Deactivate), S13 (Role Assignment)
+/// Covers: S10 (User List), S11 (Edit User), S12 (Deactivate), S13 (Role Assignment),
+/// CreateUserAsync, UpdateCurrentOrganizationAsync, GetUserInfoAsync,
+/// GetCurrentOrganizationIdAsync, GetCurrentUserProfileAsync, UpdatePhoneNumberAsync.
 /// </summary>
 public class UserServiceTests
 {
@@ -59,10 +61,7 @@ public class UserServiceTests
 
     #region S10: View User List
 
-    // NOTE: GetUsersAsync tests require mocking IAsyncQueryProvider which is complex.
-    // These should be integration tests instead. The core business logic is tested in other methods.
-
-    [Fact(Skip = "Requires integration test with real UserManager")]
+    [Fact]
     public async Task GetUsersAsync_WithNoFilters_ReturnsAllActiveUsers()
     {
         // Arrange
@@ -71,7 +70,7 @@ public class UserServiceTests
         var user2 = CreateUser("bob@example.com", "Bob", ExerciseRole.Evaluator, org.Id);
 
         _userManagerMock.Setup(x => x.Users)
-            .Returns(new[] { user1, user2 }.AsQueryable());
+            .Returns(new[] { user1, user2 }.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -85,7 +84,7 @@ public class UserServiceTests
         result.Users.Should().Contain(u => u.Email == "bob@example.com");
     }
 
-    [Fact(Skip = "Requires integration test with real UserManager")]
+    [Fact]
     public async Task GetUsersAsync_WithSearchFilter_ReturnsMatchingUsers()
     {
         // Arrange
@@ -94,7 +93,7 @@ public class UserServiceTests
         var user2 = CreateUser("bob@example.com", "Bob Jones", ExerciseRole.Evaluator, org.Id);
 
         _userManagerMock.Setup(x => x.Users)
-            .Returns(new[] { user1, user2 }.AsQueryable());
+            .Returns(new[] { user1, user2 }.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -106,7 +105,7 @@ public class UserServiceTests
         result.Users.First().Email.Should().Be("alice@example.com");
     }
 
-    [Fact(Skip = "Requires integration test with real UserManager")]
+    [Fact]
     public async Task GetUsersAsync_WithRoleFilter_ReturnsUsersWithThatRole()
     {
         // Arrange
@@ -121,7 +120,7 @@ public class UserServiceTests
         user2.SystemRole = SystemRole.User;
 
         _userManagerMock.Setup(x => x.Users)
-            .Returns(new[] { user1, user2, user3 }.AsQueryable());
+            .Returns(new[] { user1, user2, user3 }.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -133,7 +132,7 @@ public class UserServiceTests
         result.Users.Should().AllSatisfy(u => u.SystemRole.Should().Be("Manager"));
     }
 
-    [Fact(Skip = "Requires integration test with real UserManager")]
+    [Fact]
     public async Task GetUsersAsync_WithPagination_ReturnsCorrectPage()
     {
         // Arrange
@@ -143,7 +142,7 @@ public class UserServiceTests
             .ToArray();
 
         _userManagerMock.Setup(x => x.Users)
-            .Returns(users.AsQueryable());
+            .Returns(users.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -317,7 +316,7 @@ public class UserServiceTests
         _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
             .ReturnsAsync(IdentityResult.Success);
         _userManagerMock.Setup(x => x.Users)
-            .Returns(new[] { user, admin }.AsQueryable());
+            .Returns(new[] { user, admin }.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -349,7 +348,7 @@ public class UserServiceTests
             () => sut.ChangeRoleAsync(userId, "InvalidRole", adminId.ToString()));
     }
 
-    [Fact(Skip = "Requires integration test with real UserManager")]
+    [Fact]
     public async Task ChangeRoleAsync_LastAdministrator_ThrowsInvalidOperationException()
     {
         // Arrange
@@ -357,11 +356,12 @@ public class UserServiceTests
         var userId = Guid.NewGuid();
         var adminId = Guid.NewGuid();
         var user = CreateUser("admin@example.com", "Admin", ExerciseRole.Administrator, org.Id, userId);
+        user.SystemRole = SystemRole.Admin;
 
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync(user);
         _userManagerMock.Setup(x => x.Users)
-            .Returns(new[] { user }.AsQueryable());
+            .Returns(new[] { user }.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -370,7 +370,7 @@ public class UserServiceTests
             () => sut.ChangeRoleAsync(userId, "User", adminId.ToString()));
     }
 
-    [Fact(Skip = "Requires integration test with real UserManager")]
+    [Fact]
     public async Task ChangeRoleAsync_NotLastAdministrator_Succeeds()
     {
         // Arrange
@@ -379,13 +379,15 @@ public class UserServiceTests
         var adminId = Guid.NewGuid();
         var user = CreateUser("admin1@example.com", "Admin 1", ExerciseRole.Administrator, org.Id, userId);
         var admin2 = CreateUser("admin2@example.com", "Admin 2", ExerciseRole.Administrator, org.Id, adminId);
+        user.SystemRole = SystemRole.Admin;
+        admin2.SystemRole = SystemRole.Admin;
 
         _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
             .ReturnsAsync(user);
         _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
             .ReturnsAsync(IdentityResult.Success);
         _userManagerMock.Setup(x => x.Users)
-            .Returns(new[] { user, admin2 }.AsQueryable());
+            .Returns(new[] { user, admin2 }.AsAsyncQueryable());
 
         var sut = CreateUserService(context);
 
@@ -395,6 +397,490 @@ public class UserServiceTests
         // Assert
         result.SystemRole.Should().Be("Manager");
         _userManagerMock.Verify(x => x.UpdateAsync(It.IsAny<ApplicationUser>()), Times.Once);
+    }
+
+    #endregion
+
+    #region CreateUserAsync
+
+    [Fact]
+    public async Task CreateUserAsync_ValidRequest_ReturnsUserDto()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var creatorId = Guid.NewGuid().ToString();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "New User",
+            Email = "newuser@example.com",
+            Password = "Password123!"
+        };
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            .ReturnsAsync((ApplicationUser?)null);
+        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.CreateUserAsync(request, creatorId, isCreatorAdmin: false);
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Email.Should().Be("newuser@example.com");
+        result.DisplayName.Should().Be("New User");
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_DuplicateEmail_ThrowsInvalidOperationException()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var creatorId = Guid.NewGuid().ToString();
+        var existingUser = CreateUser("existing@example.com", "Existing", ExerciseRole.Observer, org.Id);
+        var request = new CreateUserRequest
+        {
+            DisplayName = "Duplicate",
+            Email = "existing@example.com",
+            Password = "Password123!"
+        };
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            .ReturnsAsync(existingUser);
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => sut.CreateUserAsync(request, creatorId, isCreatorAdmin: false));
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_MissingDisplayName_ThrowsArgumentException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "",
+            Email = "user@example.com",
+            Password = "Password123!"
+        };
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.CreateUserAsync(request, "creator", isCreatorAdmin: false));
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_MissingEmail_ThrowsArgumentException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "Valid Name",
+            Email = "",
+            Password = "Password123!"
+        };
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.CreateUserAsync(request, "creator", isCreatorAdmin: false));
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_MissingPassword_ThrowsArgumentException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "Valid Name",
+            Email = "user@example.com",
+            Password = ""
+        };
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.CreateUserAsync(request, "creator", isCreatorAdmin: false));
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_AdminSetsRole_UsesRequestedRole()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var creatorId = Guid.NewGuid().ToString();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "New Manager",
+            Email = "manager@example.com",
+            Password = "Password123!",
+            SystemRole = SystemRole.Manager
+        };
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            .ReturnsAsync((ApplicationUser?)null);
+        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.CreateUserAsync(request, creatorId, isCreatorAdmin: true);
+
+        // Assert
+        result.SystemRole.Should().Be("Manager");
+        _userManagerMock.Verify(x => x.CreateAsync(
+            It.Is<ApplicationUser>(u => u.SystemRole == SystemRole.Manager),
+            request.Password), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_NonAdminIgnoresRole_DefaultsToUser()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var creatorId = Guid.NewGuid().ToString();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "Attempted Admin",
+            Email = "notadmin@example.com",
+            Password = "Password123!",
+            SystemRole = SystemRole.Admin
+        };
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            .ReturnsAsync((ApplicationUser?)null);
+        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.CreateUserAsync(request, creatorId, isCreatorAdmin: false);
+
+        // Assert — role escalation was silently ignored
+        result.SystemRole.Should().Be("User");
+        _userManagerMock.Verify(x => x.CreateAsync(
+            It.Is<ApplicationUser>(u => u.SystemRole == SystemRole.User),
+            request.Password), Times.Once);
+    }
+
+    [Fact]
+    public async Task CreateUserAsync_PasswordValidationFails_ThrowsArgumentException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var creatorId = Guid.NewGuid().ToString();
+        var request = new CreateUserRequest
+        {
+            DisplayName = "New User",
+            Email = "newuser@example.com",
+            Password = "weak"
+        };
+
+        _userManagerMock.Setup(x => x.FindByEmailAsync(request.Email))
+            .ReturnsAsync((ApplicationUser?)null);
+        _userManagerMock.Setup(x => x.CreateAsync(It.IsAny<ApplicationUser>(), request.Password))
+            .ReturnsAsync(IdentityResult.Failed(new IdentityError
+            {
+                Code = "PasswordTooShort",
+                Description = "Passwords must be at least 6 characters."
+            }));
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.CreateUserAsync(request, creatorId, isCreatorAdmin: false));
+    }
+
+    #endregion
+
+    #region UpdateCurrentOrganizationAsync
+
+    [Fact]
+    public async Task UpdateCurrentOrganizationAsync_ValidUser_UpdatesOrgId()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+        var newOrgId = Guid.NewGuid();
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+        _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        await sut.UpdateCurrentOrganizationAsync(userId.ToString(), newOrgId);
+
+        // Assert
+        _userManagerMock.Verify(x => x.UpdateAsync(
+            It.Is<ApplicationUser>(u => u.CurrentOrganizationId == newOrgId)), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateCurrentOrganizationAsync_NonExistentUser_ThrowsKeyNotFoundException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var userId = Guid.NewGuid().ToString();
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.UpdateCurrentOrganizationAsync(userId, Guid.NewGuid()));
+    }
+
+    #endregion
+
+    #region GetUserInfoAsync
+
+    [Fact]
+    public async Task GetUserInfoAsync_ExistingUser_ReturnsUserInfo()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+        user.SystemRole = SystemRole.Manager;
+        user.LastLoginAt = new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc);
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.GetUserInfoAsync(userId.ToString());
+
+        // Assert
+        result.Should().NotBeNull();
+        result.Id.Should().Be(userId);
+        result.Email.Should().Be("alice@example.com");
+        result.DisplayName.Should().Be("Alice");
+        result.Role.Should().Be("Manager");
+        result.Status.Should().Be("Active");
+        result.LastLoginAt.Should().Be(new DateTime(2026, 1, 15, 10, 0, 0, DateTimeKind.Utc));
+    }
+
+    [Fact]
+    public async Task GetUserInfoAsync_NonExistentUser_ThrowsKeyNotFoundException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var userId = Guid.NewGuid().ToString();
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.GetUserInfoAsync(userId));
+    }
+
+    #endregion
+
+    #region GetCurrentOrganizationIdAsync
+
+    [Fact]
+    public async Task GetCurrentOrganizationIdAsync_UserWithOrg_ReturnsOrgId()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+        user.CurrentOrganizationId = org.Id;
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.GetCurrentOrganizationIdAsync(userId.ToString());
+
+        // Assert
+        result.Should().Be(org.Id);
+    }
+
+    [Fact]
+    public async Task GetCurrentOrganizationIdAsync_NonExistentUser_ReturnsNull()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var userId = Guid.NewGuid().ToString();
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.GetCurrentOrganizationIdAsync(userId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    #endregion
+
+    #region GetCurrentUserProfileAsync
+
+    [Fact]
+    public async Task GetCurrentUserProfileAsync_ExistingUser_ReturnsProfile()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+        user.PhoneNumber = "555-1234";
+        user.SystemRole = SystemRole.Manager;
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.GetCurrentUserProfileAsync(userId.ToString());
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(userId.ToString());
+        result.Email.Should().Be("alice@example.com");
+        result.DisplayName.Should().Be("Alice");
+        result.PhoneNumber.Should().Be("555-1234");
+        result.SystemRole.Should().Be("Manager");
+        result.Status.Should().Be("Active");
+    }
+
+    [Fact]
+    public async Task GetCurrentUserProfileAsync_NonExistentUser_ReturnsNull()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var userId = Guid.NewGuid().ToString();
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.GetCurrentUserProfileAsync(userId);
+
+        // Assert
+        result.Should().BeNull();
+    }
+
+    #endregion
+
+    #region UpdatePhoneNumberAsync
+
+    [Fact]
+    public async Task UpdatePhoneNumberAsync_ValidPhone_UpdatesPhone()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+        _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.UpdatePhoneNumberAsync(userId.ToString(), "555-9876");
+
+        // Assert
+        result.Should().NotBeNull();
+        result.PhoneNumber.Should().Be("555-9876");
+        _userManagerMock.Verify(x => x.UpdateAsync(
+            It.Is<ApplicationUser>(u => u.PhoneNumber == "555-9876")), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePhoneNumberAsync_TooLongPhone_ThrowsArgumentException()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+        var tooLong = new string('1', 26); // 26 chars — exceeds the 25-char limit
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<ArgumentException>(
+            () => sut.UpdatePhoneNumberAsync(userId.ToString(), tooLong));
+    }
+
+    [Fact]
+    public async Task UpdatePhoneNumberAsync_EmptyString_NormalizesToNull()
+    {
+        // Arrange
+        var (context, org) = CreateTestContext();
+        var userId = Guid.NewGuid();
+        var user = CreateUser("alice@example.com", "Alice", ExerciseRole.Controller, org.Id, userId);
+        user.PhoneNumber = "555-0000";
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId.ToString()))
+            .ReturnsAsync(user);
+        _userManagerMock.Setup(x => x.UpdateAsync(It.IsAny<ApplicationUser>()))
+            .ReturnsAsync(IdentityResult.Success);
+
+        var sut = CreateUserService(context);
+
+        // Act
+        var result = await sut.UpdatePhoneNumberAsync(userId.ToString(), "");
+
+        // Assert
+        result.PhoneNumber.Should().BeNull();
+        _userManagerMock.Verify(x => x.UpdateAsync(
+            It.Is<ApplicationUser>(u => u.PhoneNumber == null)), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdatePhoneNumberAsync_NonExistentUser_ThrowsKeyNotFoundException()
+    {
+        // Arrange
+        var (context, _) = CreateTestContext();
+        var userId = Guid.NewGuid().ToString();
+
+        _userManagerMock.Setup(x => x.FindByIdAsync(userId))
+            .ReturnsAsync((ApplicationUser?)null);
+
+        var sut = CreateUserService(context);
+
+        // Act & Assert
+        await Assert.ThrowsAsync<KeyNotFoundException>(
+            () => sut.UpdatePhoneNumberAsync(userId, "555-1234"));
     }
 
     #endregion

@@ -4,6 +4,7 @@
  * Displays a single notification in the dropdown.
  */
 import { Box, Typography, ListItemButton, ListItemIcon, ListItemText } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faExclamationCircle,
@@ -27,26 +28,32 @@ interface NotificationItemProps {
 /**
  * Get icon for notification type.
  */
-function getNotificationIcon(type: NotificationType) {
+function getNotificationIcon(
+  type: NotificationType,
+  palette: {
+    semantic: { warning: string; success: string; info: string; purple: string; cyan: string }
+    neutral: { 600: string }
+  },
+) {
   switch (type) {
     case 'InjectReady':
-      return { icon: faExclamationCircle, color: '#ff9800' }
+      return { icon: faExclamationCircle, color: palette.semantic.warning }
     case 'InjectFired':
-      return { icon: faPlay, color: '#4caf50' }
+      return { icon: faPlay, color: palette.semantic.success }
     case 'ClockStarted':
-      return { icon: faClock, color: '#2196f3' }
+      return { icon: faClock, color: palette.semantic.info }
     case 'ClockPaused':
-      return { icon: faPause, color: '#ff9800' }
+      return { icon: faPause, color: palette.semantic.warning }
     case 'ExerciseCompleted':
-      return { icon: faCheckCircle, color: '#4caf50' }
+      return { icon: faCheckCircle, color: palette.semantic.success }
     case 'AssignmentCreated':
-      return { icon: faUserPlus, color: '#9c27b0' }
+      return { icon: faUserPlus, color: palette.semantic.purple }
     case 'ObservationCreated':
-      return { icon: faEye, color: '#00bcd4' }
+      return { icon: faEye, color: palette.semantic.cyan }
     case 'ExerciseStatusChanged':
-      return { icon: faCircle, color: '#2196f3' }
+      return { icon: faCircle, color: palette.semantic.info }
     default:
-      return { icon: faBell, color: '#666' }
+      return { icon: faBell, color: palette.neutral[600] }
   }
 }
 
@@ -70,7 +77,8 @@ function formatTimeAgo(dateString: string): string {
 }
 
 export function NotificationItem({ notification, onClick }: NotificationItemProps) {
-  const { icon, color } = getNotificationIcon(notification.type)
+  const theme = useTheme()
+  const { icon, color } = getNotificationIcon(notification.type, theme.palette)
 
   return (
     <ListItemButton

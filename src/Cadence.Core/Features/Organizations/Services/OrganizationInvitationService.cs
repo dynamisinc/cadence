@@ -373,80 +373,7 @@ public class OrganizationInvitationService : IOrganizationInvitationService
 
         foreach (var assignment in pendingAssignments)
         {
-            try
-            {
-                // Validate exercise is still in Draft or Active status
-                if (assignment.Exercise.Status != ExerciseStatus.Draft &&
-                    assignment.Exercise.Status != ExerciseStatus.Active)
-                {
-                    assignment.Status = PendingAssignmentStatus.Cancelled;
-                    _logger.LogWarning(
-                        "Pending assignment {AssignmentId} cancelled: exercise {ExerciseId} is in {Status} status",
-                        assignment.Id, assignment.ExerciseId, assignment.Exercise.Status);
-                    continue;
-                }
-
-                // Validate Exercise Director role requirement
-                var effectiveRole = assignment.ExerciseRole;
-                if (effectiveRole == ExerciseRole.ExerciseDirector &&
-                    user?.SystemRole == SystemRole.User)
-                {
-                    // Downgrade to Observer and log warning
-                    effectiveRole = ExerciseRole.Observer;
-                    _logger.LogWarning(
-                        "Pending assignment {AssignmentId}: Exercise Director role downgraded to Observer " +
-                        "because user {UserId} has User system role (requires Admin or Manager)",
-                        assignment.Id, userId);
-                }
-
-                // Check if participant already exists (e.g., added manually between import and acceptance)
-                var existingParticipant = await _context.ExerciseParticipants
-                    .IgnoreQueryFilters()
-                    .FirstOrDefaultAsync(ep =>
-                        ep.ExerciseId == assignment.ExerciseId &&
-                        ep.UserId == userId);
-
-                if (existingParticipant != null)
-                {
-                    if (existingParticipant.IsDeleted)
-                    {
-                        // Reactivate soft-deleted participant
-                        existingParticipant.IsDeleted = false;
-                        existingParticipant.DeletedAt = null;
-                        existingParticipant.DeletedBy = null;
-                        existingParticipant.Role = effectiveRole;
-                        existingParticipant.AssignedAt = DateTime.UtcNow;
-                    }
-                    // else: already assigned, skip
-                }
-                else
-                {
-                    // Create new exercise participant
-                    var participant = new ExerciseParticipant
-                    {
-                        Id = Guid.NewGuid(),
-                        ExerciseId = assignment.ExerciseId,
-                        UserId = userId,
-                        Role = effectiveRole,
-                        AssignedAt = DateTime.UtcNow,
-                        AssignedById = assignment.CreatedBy
-                    };
-                    _context.ExerciseParticipants.Add(participant);
-                }
-
-                assignment.Status = PendingAssignmentStatus.Activated;
-
-                _logger.LogInformation(
-                    "Pending assignment {AssignmentId} activated: user {UserId} assigned as {Role} in exercise {ExerciseId}",
-                    assignment.Id, userId, effectiveRole, assignment.ExerciseId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex,
-                    "Failed to activate pending assignment {AssignmentId} for user {UserId}",
-                    assignment.Id, userId);
-                // Don't fail the entire invitation acceptance for a failed assignment
-            }
+            await ActivateSingleAssignment(assignment, userId, user);
         }
 
         // Save all assignment activations
@@ -459,6 +386,91 @@ public class OrganizationInvitationService : IOrganizationInvitationService
         finally
         {
             _context.BypassOrgValidation = false;
+        }
+    }
+
+    /// <summary>
+    /// Activates a single pending exercise assignment for the accepting user.
+    /// Validates the exercise is still in an eligible status, determines the effective role
+    /// (downgrading ExerciseDirector to Observer for plain Users), then creates or reactivates
+    /// the ExerciseParticipant record. Errors are caught and logged so a failure on one
+    /// assignment does not abort the others.
+    /// </summary>
+    private async Task ActivateSingleAssignment(PendingExerciseAssignment assignment, string userId, ApplicationUser? user)
+    {
+        try
+        {
+            // Validate exercise is still in Draft or Active status
+            if (assignment.Exercise.Status != ExerciseStatus.Draft &&
+                assignment.Exercise.Status != ExerciseStatus.Active)
+            {
+                assignment.Status = PendingAssignmentStatus.Cancelled;
+                _logger.LogWarning(
+                    "Pending assignment {AssignmentId} cancelled: exercise {ExerciseId} is in {Status} status",
+                    assignment.Id, assignment.ExerciseId, assignment.Exercise.Status);
+                return;
+            }
+
+            // Validate Exercise Director role requirement
+            var effectiveRole = assignment.ExerciseRole;
+            if (effectiveRole == ExerciseRole.ExerciseDirector &&
+                user?.SystemRole == SystemRole.User)
+            {
+                // Downgrade to Observer and log warning
+                effectiveRole = ExerciseRole.Observer;
+                _logger.LogWarning(
+                    "Pending assignment {AssignmentId}: Exercise Director role downgraded to Observer " +
+                    "because user {UserId} has User system role (requires Admin or Manager)",
+                    assignment.Id, userId);
+            }
+
+            // Check if participant already exists (e.g., added manually between import and acceptance)
+            var existingParticipant = await _context.ExerciseParticipants
+                .IgnoreQueryFilters()
+                .FirstOrDefaultAsync(ep =>
+                    ep.ExerciseId == assignment.ExerciseId &&
+                    ep.UserId == userId);
+
+            if (existingParticipant != null)
+            {
+                if (existingParticipant.IsDeleted)
+                {
+                    // Reactivate soft-deleted participant
+                    existingParticipant.IsDeleted = false;
+                    existingParticipant.DeletedAt = null;
+                    existingParticipant.DeletedBy = null;
+                    existingParticipant.Role = effectiveRole;
+                    existingParticipant.AssignedAt = DateTime.UtcNow;
+                }
+                // else: already assigned, skip
+            }
+            else
+            {
+                // Create new exercise participant
+                var participant = new ExerciseParticipant
+                {
+                    Id = Guid.NewGuid(),
+                    ExerciseId = assignment.ExerciseId,
+                    UserId = userId,
+                    Role = effectiveRole,
+                    AssignedAt = DateTime.UtcNow,
+                    AssignedById = assignment.CreatedBy
+                };
+                _context.ExerciseParticipants.Add(participant);
+            }
+
+            assignment.Status = PendingAssignmentStatus.Activated;
+
+            _logger.LogInformation(
+                "Pending assignment {AssignmentId} activated: user {UserId} assigned as {Role} in exercise {ExerciseId}",
+                assignment.Id, userId, effectiveRole, assignment.ExerciseId);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex,
+                "Failed to activate pending assignment {AssignmentId} for user {UserId}",
+                assignment.Id, userId);
+            // Don't fail the entire invitation acceptance for a failed assignment
         }
     }
 

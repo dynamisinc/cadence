@@ -27,3 +27,7 @@ export {
   approvalKeys,
 } from './useApprovalSettings'
 export { usePendingAssignments } from './usePendingAssignments'
+export { useExerciseActions } from './useExerciseActions'
+export { useFireSkipConfirmation } from './useFireSkipConfirmation'
+export { useExerciseConductSignalR } from './useExerciseConductSignalR'
+export { useReconnectionHandler, useConnectionStateSync } from './useReconnectionHandler'

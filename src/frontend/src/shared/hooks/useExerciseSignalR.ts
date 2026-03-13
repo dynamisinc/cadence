@@ -17,6 +17,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react'
 import * as signalR from '@microsoft/signalr'
+import { useAuth } from '@/contexts/AuthContext'
 import { devLog, devWarn } from '@/core/utils/logger'
 import type { ConnectionState } from './signalRTypes'
 import type { InjectDto } from '../../features/injects/types'
@@ -61,6 +62,8 @@ interface UseExerciseSignalROptions {
   onInjectRejected?: (inject: InjectDto) => void
   /** Called when an inject approval is reverted */
   onInjectReverted?: (inject: InjectDto) => void
+  /** Called when a new EEG entry is created */
+  onEegEntryCreated?: () => void
 }
 
 interface UseExerciseSignalRReturn {
@@ -107,7 +110,15 @@ export const useExerciseSignalR = (
     onInjectApproved,
     onInjectRejected,
     onInjectReverted,
+    onEegEntryCreated,
   } = options
+
+  const { accessToken } = useAuth()
+  const accessTokenRef = useRef(accessToken)
+  // Update ref in effect to avoid setting refs during render
+  useEffect(() => {
+    accessTokenRef.current = accessToken
+  }, [accessToken])
 
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected')
   const [isJoined, setIsJoined] = useState(false)
@@ -128,7 +139,9 @@ export const useExerciseSignalR = (
     const hubUrl = getHubUrl()
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl)
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => accessTokenRef.current || '',
+      })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext: signalR.RetryContext) => {
           // Exponential backoff: 0s, 2s, 4s, 8s, 16s, max 30s
@@ -230,6 +243,11 @@ export const useExerciseSignalR = (
       if (onInjectReverted) {
         connection.on('InjectReverted', onInjectReverted)
       }
+
+      // EEG events
+      if (onEegEntryCreated) {
+        connection.on('EegEntryCreated', onEegEntryCreated)
+      }
     },
     [
       onInjectFired,
@@ -246,6 +264,7 @@ export const useExerciseSignalR = (
       onInjectApproved,
       onInjectRejected,
       onInjectReverted,
+      onEegEntryCreated,
     ],
   )
 
@@ -268,6 +287,7 @@ export const useExerciseSignalR = (
     connection.off('InjectApproved')
     connection.off('InjectRejected')
     connection.off('InjectReverted')
+    connection.off('EegEntryCreated')
   }, [])
 
   /**

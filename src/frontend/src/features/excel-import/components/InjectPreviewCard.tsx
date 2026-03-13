@@ -13,6 +13,7 @@ import {
   Divider,
   Paper,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faClock,
@@ -70,6 +71,7 @@ export const InjectPreviewCard = ({
   mappings: _mappings,
   rowIndex,
 }: InjectPreviewCardProps) => {
+  const theme = useTheme()
   const { values, status, issues } = rowData
 
   // Extract values from the mapped data
@@ -130,7 +132,7 @@ export const InjectPreviewCard = ({
           </Stack>
           <Typography variant="h6" fontWeight={500}>
             {injectNumber && `#${injectNumber} - `}
-            {title || <em style={{ color: '#999' }}>No title mapped</em>}
+            {title || <em style={{ color: theme.palette.neutral[400] }}>No title mapped</em>}
           </Typography>
         </Box>
       </Stack>
@@ -143,7 +145,7 @@ export const InjectPreviewCard = ({
               <Stack key={idx} direction="row" spacing={1} alignItems="center">
                 <FontAwesomeIcon
                   icon={faExclamationTriangle}
-                  style={{ color: issue.severity === 'Error' ? '#d32f2f' : '#ed6c02', fontSize: '0.875rem' }}
+                  style={{ color: issue.severity === 'Error' ? theme.palette.semantic.error : theme.palette.semantic.warning, fontSize: '0.875rem' }}
                 />
                 <Typography variant="body2">
                   <strong>{issue.field}:</strong> {issue.message}
@@ -329,7 +331,7 @@ export const InjectPreviewCard = ({
               borderRadius: 1,
             }}
           >
-            {description || <em style={{ color: '#999' }}>No description mapped</em>}
+            {description || <em style={{ color: theme.palette.neutral[400] }}>No description mapped</em>}
           </Typography>
         </Box>
 

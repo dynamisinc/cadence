@@ -224,5 +224,25 @@ public class TimeParsingHelperTests
         result.Should().BeFalse();
     }
 
+    [Fact]
+    public void TryParseDateTime_UnhandledType_ReturnsFalse()
+    {
+        var result = TimeParsingHelper.TryParseDateTime(42, out _);
+
+        result.Should().BeFalse();
+    }
+
+    #endregion
+
+    #region TryParseTime Additional Tests
+
+    [Fact]
+    public void TryParseTime_ExcelSerialGreaterThanOne_ReturnsFalse()
+    {
+        var result = TimeParsingHelper.TryParseTime(1.5d, out _);
+
+        result.Should().BeFalse();
+    }
+
     #endregion
 }

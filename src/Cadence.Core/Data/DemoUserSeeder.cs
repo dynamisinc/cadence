@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Constants;
 using Cadence.Core.Models.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -32,6 +33,7 @@ namespace Cadence.Core.Data;
 /// rjohnson@metrocounty.gov        | User       | Observer
 /// ============================================================
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class DemoUserSeeder
 {
     private readonly UserManager<ApplicationUser> _userManager;

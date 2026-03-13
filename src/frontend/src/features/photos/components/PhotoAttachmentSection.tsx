@@ -154,7 +154,6 @@ export const PhotoAttachmentSection: FC<PhotoAttachmentSectionProps> = ({
           startIcon={<FontAwesomeIcon icon={faPlus} />}
           sx={{
             flexShrink: 0,
-            height: 60,
             minWidth: 100,
           }}
         >

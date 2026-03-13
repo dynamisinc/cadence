@@ -4,7 +4,7 @@
  * Bell icon with unread count badge and dropdown.
  */
 import { useState, useRef } from 'react'
-import { IconButton, Badge, Popover } from '@mui/material'
+import { Badge, Popover } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faBell } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -14,6 +14,7 @@ import {
   useMarkAllAsRead,
 } from '../hooks/useNotifications'
 import { NotificationDropdown } from './NotificationDropdown'
+import { CobraIconButton } from '@/theme/styledComponents'
 
 export function NotificationBell() {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
@@ -51,14 +52,13 @@ export function NotificationBell() {
 
   return (
     <>
-      {/* COBRA exception: notification bell requires color="inherit" for white-on-dark header */}
-      <IconButton
+      <CobraIconButton
         ref={buttonRef}
         onClick={handleClick}
-        color="inherit"
         aria-label="notifications"
         aria-haspopup="true"
         aria-expanded={isOpen}
+        sx={{ color: 'inherit' }}
       >
         <Badge
           badgeContent={badgeContent}
@@ -68,7 +68,7 @@ export function NotificationBell() {
         >
           <FontAwesomeIcon icon={faBell} />
         </Badge>
-      </IconButton>
+      </CobraIconButton>
 
       <Popover
         open={isOpen}

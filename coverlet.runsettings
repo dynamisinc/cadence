@@ -5,9 +5,9 @@
       <DataCollector friendlyName="XPlat Code Coverage">
         <Configuration>
           <Format>cobertura</Format>
-          <ExcludeByFile>**/obj/**/*.cs;**/Migrations/*.cs;**/*.g.cs</ExcludeByFile>
-          <Exclude>[*]*.Migrations.*;[*.Tests]*;[Dynamis.*.Tests]*</Exclude>
-          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute</ExcludeByAttribute>
+          <ExcludeByFile>**/obj/**/*.cs;**/Migrations/*.cs;**/*.g.cs;**/*Seeder.cs</ExcludeByFile>
+          <Exclude>[*]Cadence.Core.Migrations.*;[*]Cadence.Core.Data.*Seeder;[*.Tests]*;[Cadence.WebApi]Cadence.WebApi.Program;[Cadence.Core]Cadence.Core.Data.AppDbContext;[Cadence.Core]Cadence.Core.Data.AppDbContextFactory;[Cadence.Core]Cadence.Core.Infrastructure.*</Exclude>
+          <ExcludeByAttribute>Obsolete,GeneratedCodeAttribute,CompilerGeneratedAttribute,ExcludeFromCodeCoverageAttribute</ExcludeByAttribute>
         </Configuration>
       </DataCollector>
     </DataCollectors>

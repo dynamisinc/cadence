@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { Box, Typography } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { CobraIconButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faXmark } from '@fortawesome/free-solid-svg-icons'
@@ -19,6 +20,7 @@ const getMajorMinor = (version: string) => {
 }
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
+  const theme = useTheme()
   const [fading, setFading] = useState(false)
   const [hovered, setHovered] = useState(false)
   const fadeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -63,7 +65,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: { xs: '#1e3a5f', md: 'rgba(0, 0, 0, 0.5)' },
+        backgroundColor: { xs: theme.palette.buttonPrimary.main, md: 'rgba(0, 0, 0, 0.5)' },
         opacity: fading ? 0 : 1,
         transition: `opacity ${FADE_MS}ms ease-out`,
         pointerEvents: fading ? 'none' : 'auto',
@@ -81,7 +83,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          backgroundColor: '#1e3a5f',
+          backgroundColor: theme.palette.buttonPrimary.main,
           // Mobile: full screen
           width: { xs: '100%', md: 480 },
           height: { xs: '100%', md: 'auto' },
@@ -103,7 +105,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
             color: 'rgba(255, 255, 255, 0.6)',
             opacity: hovered ? 1 : 0,
             transition: 'opacity 200ms ease',
-            '&:hover': { color: '#ffffff' },
+            '&:hover': { color: theme.palette.common.white },
           }}
         >
           <FontAwesomeIcon icon={faXmark} size="lg" />
@@ -130,7 +132,7 @@ export const SplashScreen: React.FC<SplashScreenProps> = ({ onComplete }) => {
         <Typography
           variant="h3"
           sx={{
-            color: '#ffffff',
+            color: theme.palette.common.white,
             fontWeight: 700,
             letterSpacing: 6,
             mb: 1,

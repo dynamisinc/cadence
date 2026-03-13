@@ -4,46 +4,34 @@
  * Standalone page for viewing and managing all EEG entries in an exercise.
  * Features:
  * - Tab navigation between Entries and Coverage views
- * - Filtering and sorting capabilities
  * - Full CRUD capabilities for evaluator observations
  * Accessible via in-exercise navigation at /exercises/:id/eeg-entries.
+ *
+ * Tab content is delegated to:
+ * - EegEntriesTab  — entries list with filtering and view-mode switching
+ * - EegCoverageTab — capability target coverage dashboard
  */
 
-import { useState, useMemo, useCallback, useEffect } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import {
   Box,
-  Typography,
-  Paper,
   Stack,
   CircularProgress,
   Alert,
   Dialog,
   DialogContent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  Chip,
-  InputAdornment,
   Tabs,
   Tab,
-  ToggleButtonGroup,
-  ToggleButton,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHome,
   faPlus,
-  faSearch,
-  faTimes,
   faClipboardCheck,
   faFileExport,
   faFileWord,
   faChartBar,
-  faList,
-  faLayerGroup,
-  faUsers,
 } from '@fortawesome/free-solid-svg-icons'
 import { useQueryClient } from '@tanstack/react-query'
 import { notify } from '@/shared/utils/notify'
@@ -53,31 +41,21 @@ import { useExerciseRole } from '../../auth'
 import { useAuth } from '../../../contexts/AuthContext'
 import { useEegEntries, eegEntryKeys, useEegCoverage } from '../hooks/useEegEntries'
 import { useInjects } from '../../injects/hooks'
-import { EegEntriesList } from '../components/EegEntriesList'
 import { EegEntryForm } from '../components/EegEntryForm'
-import { EegCoverageDashboard } from '../components/EegCoverageDashboard'
 import { EegExportDialog } from '../components/EegExportDialog'
 import { EegDocumentDialog } from '../components/EegDocumentDialog'
-import { EegEntriesGroupedByCapability } from '../components/EegEntriesGroupedByCapability'
-import { EegEntriesGroupedByEvaluator } from '../components/EegEntriesGroupedByEvaluator'
+import { EegEntriesTab } from '../components/EegEntriesTab'
+import { EegCoverageTab } from '../components/EegCoverageTab'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
-  CobraLinkButton,
-  CobraTextField,
 } from '../../../theme/styledComponents'
 import { useBreadcrumbs } from '../../../core/contexts'
-import {
-  PerformanceRating,
-  PERFORMANCE_RATING_SHORT_LABELS,
-  type EegEntryDto,
-} from '../types'
+import { type EegEntryDto } from '../types'
 import { PageHeader, HelpTooltip } from '@/shared/components'
 import CobraStyles from '@/theme/CobraStyles'
 
-type RatingFilterValue = 'all' | PerformanceRating
 type TabValue = 'entries' | 'coverage'
-type ViewMode = 'list' | 'byCapability' | 'byEvaluator'
 
 export const EegEntriesPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
@@ -103,7 +81,7 @@ export const EegEntriesPage = () => {
     return tabParam === 'coverage' ? 'coverage' : 'entries'
   })
 
-  // UI state
+  // Dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [editingEntry, setEditingEntry] = useState<EegEntryDto | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
@@ -112,13 +90,6 @@ export const EegEntriesPage = () => {
   const [preSelectedCapabilityTargetId, setPreSelectedCapabilityTargetId] =
     useState<string | null>(null)
   const [preSelectedTaskId, setPreSelectedTaskId] = useState<string | null>(null)
-
-  // Filter state
-  const [ratingFilter, setRatingFilter] = useState<RatingFilterValue>('all')
-  const [searchQuery, setSearchQuery] = useState('')
-
-  // View mode state (for Entries tab)
-  const [viewMode, setViewMode] = useState<ViewMode>('list')
 
   // Set breadcrumbs
   useBreadcrumbs(
@@ -146,29 +117,6 @@ export const EegEntriesPage = () => {
   const canEdit = can('add_observation')
   const canDelete = can('delete_observation') // Directors only can delete
   const canExport = can('delete_observation') // Directors can export
-
-  // Filter entries
-  const filteredEntries = useMemo(() => {
-    let result = [...eegEntries]
-
-    // Rating filter
-    if (ratingFilter !== 'all') {
-      result = result.filter(entry => entry.rating === ratingFilter)
-    }
-
-    // Search filter (searches observation text, task description, evaluator name)
-    if (searchQuery.trim()) {
-      const query = searchQuery.toLowerCase()
-      result = result.filter(
-        entry =>
-          entry.observationText.toLowerCase().includes(query) ||
-          entry.criticalTask?.taskDescription?.toLowerCase().includes(query) ||
-          entry.evaluatorName?.toLowerCase().includes(query),
-      )
-    }
-
-    return result
-  }, [eegEntries, ratingFilter, searchQuery])
 
   // Handlers
   const handleCreateClick = () => {
@@ -205,13 +153,11 @@ export const EegEntriesPage = () => {
   }
 
   const handleDelete = async (entryId: string) => {
-    // We need to use the task-level hook to delete, which requires the task ID
     const entry = eegEntries.find(e => e.id === entryId)
     if (!entry) return
 
     setDeletingId(entryId)
     try {
-      // Direct API call for delete since we need exerciseId
       const { eegEntryService } = await import('../services/eegService')
       await eegEntryService.delete(exerciseId!, entryId)
       queryClient.invalidateQueries({ queryKey: eegEntryKeys.byExercise(exerciseId!) })
@@ -234,16 +180,9 @@ export const EegEntriesPage = () => {
     setSearchParams({ tab: newValue })
   }
 
-  const clearFilters = () => {
-    setRatingFilter('all')
-    setSearchQuery('')
-  }
-
-  const hasActiveFilters = ratingFilter !== 'all' || searchQuery.trim()
-
-  // Check if EEG tasks are configured
-  const hasNoTasks = coverage && coverage.totalTasks === 0
-  const hasNoEntries = eegEntries.length === 0
+  const handleCoverageDetailsClick = useCallback(() => {
+    handleTabChange({} as React.SyntheticEvent, 'coverage')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // Loading state
   if (exerciseLoading) {
@@ -328,246 +267,31 @@ export const EegEntriesPage = () => {
 
       {/* Entries Tab */}
       {activeTab === 'entries' && (
-        <Box role="tabpanel" aria-labelledby="entries-tab">
-          {/* No tasks configured alert */}
-          {hasNoTasks && (
-            <Alert severity="info" sx={{ mb: 3 }}>
-              <Typography variant="subtitle2" gutterBottom>
-                No critical tasks configured
-              </Typography>
-              <Typography variant="body2">
-                Add capability targets and critical tasks in the EEG Setup to enable evaluation
-                tracking.
-              </Typography>
-            </Alert>
-          )}
-
-          {/* Compact coverage summary */}
-          {!hasNoTasks && (
-            <Box sx={{ mb: 3 }}>
-              <EegCoverageDashboard
-                exerciseId={exerciseId!}
-                compact
-                onDetailsClick={() => handleTabChange({} as React.SyntheticEvent, 'coverage')}
-              />
-            </Box>
-          )}
-
-          {/* View Mode Toggle */}
-          <Paper sx={{ p: 2, mb: 2 }}>
-            <Stack direction="row" spacing={2} alignItems="center">
-              <Typography variant="body2" fontWeight={600}>
-                View:
-              </Typography>
-              <ToggleButtonGroup
-                value={viewMode}
-                exclusive
-                onChange={(_, newValue) => {
-                  if (newValue) setViewMode(newValue)
-                }}
-                size="small"
-                aria-label="View mode"
-              >
-                <ToggleButton value="list" aria-label="List view">
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <FontAwesomeIcon icon={faList} size="sm" />
-                    <span>List</span>
-                  </Stack>
-                </ToggleButton>
-                <ToggleButton value="byCapability" aria-label="Group by capability">
-                  <Stack direction="row" spacing={0.5} alignItems="center">
-                    <FontAwesomeIcon icon={faLayerGroup} size="sm" />
-                    <span>By Capability</span>
-                  </Stack>
-                </ToggleButton>
-                {canDelete && (
-                  <ToggleButton value="byEvaluator" aria-label="Group by evaluator">
-                    <Stack direction="row" spacing={0.5} alignItems="center">
-                      <FontAwesomeIcon icon={faUsers} size="sm" />
-                      <span>By Evaluator</span>
-                    </Stack>
-                  </ToggleButton>
-                )}
-              </ToggleButtonGroup>
-            </Stack>
-          </Paper>
-
-          {/* Filters */}
-          <Paper sx={{ p: 2, mb: 3 }}>
-            <Stack
-              direction={{ xs: 'column', sm: 'row' }}
-              spacing={2}
-              alignItems={{ sm: 'center' }}
-            >
-              {/* Search */}
-              <CobraTextField
-                placeholder="Search entries..."
-                value={searchQuery}
-                onChange={e => setSearchQuery(e.target.value)}
-                size="small"
-                sx={{ minWidth: 250 }}
-                slotProps={{
-                  input: {
-                    startAdornment: (
-                      <InputAdornment position="start">
-                        <FontAwesomeIcon icon={faSearch} />
-                      </InputAdornment>
-                    ),
-                    endAdornment: searchQuery && (
-                      <InputAdornment position="end">
-                        <CobraLinkButton size="small" onClick={() => setSearchQuery('')}>
-                          <FontAwesomeIcon icon={faTimes} />
-                        </CobraLinkButton>
-                      </InputAdornment>
-                    ),
-                  },
-                }}
-              />
-
-              {/* Rating Filter */}
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel id="rating-filter-label">Rating</InputLabel>
-                <Select
-                  labelId="rating-filter-label"
-                  value={ratingFilter}
-                  onChange={e => setRatingFilter(e.target.value as RatingFilterValue)}
-                  label="Rating"
-                >
-                  <MenuItem value="all">All Ratings</MenuItem>
-                  {Object.values(PerformanceRating).map(rating => (
-                    <MenuItem key={rating} value={rating}>
-                      {PERFORMANCE_RATING_SHORT_LABELS[rating]} - {rating.replace(/([A-Z])/g, ' $1').trim()}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
-
-              {/* Clear Filters */}
-              {hasActiveFilters && (
-                <CobraLinkButton onClick={clearFilters}>
-                  Clear Filters
-                </CobraLinkButton>
-              )}
-
-              {/* Results Count */}
-              <Box sx={{ flex: 1 }} />
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                role="status"
-                aria-live="polite"
-                aria-atomic="true"
-              >
-                {filteredEntries.length} of {eegEntries.length} entries
-              </Typography>
-            </Stack>
-
-            {/* Active Filters Display */}
-            {hasActiveFilters && (
-              <Stack direction="row" spacing={1} sx={{ mt: 2 }} flexWrap="wrap">
-                {ratingFilter !== 'all' && (
-                  <Chip
-                    label={`Rating: ${PERFORMANCE_RATING_SHORT_LABELS[ratingFilter]}`}
-                    onDelete={() => setRatingFilter('all')}
-                    size="small"
-                  />
-                )}
-                {searchQuery && (
-                  <Chip
-                    label={`Search: "${searchQuery}"`}
-                    onDelete={() => setSearchQuery('')}
-                    size="small"
-                  />
-                )}
-              </Stack>
-            )}
-          </Paper>
-
-          {/* Empty state when no entries */}
-          {hasNoEntries && !entriesLoading ? (
-            <Paper sx={{ p: 4, textAlign: 'center' }}>
-              <Box sx={{ mb: 2 }}>
-                <FontAwesomeIcon
-                  icon={faClipboardCheck}
-                  size="3x"
-                  style={{ color: '#bdbdbd' }}
-                />
-              </Box>
-              <Typography variant="h6" gutterBottom>
-                No EEG entries yet
-              </Typography>
-              <Typography variant="body2" color="text.secondary" paragraph>
-                {hasNoTasks
-                  ? 'Configure critical tasks in EEG Setup before adding entries.'
-                  : 'Record structured observations during exercise conduct using the EEG Entry form.'}
-              </Typography>
-              {canCreate && !hasNoTasks && (
-                <CobraPrimaryButton
-                  startIcon={<FontAwesomeIcon icon={faPlus} />}
-                  onClick={handleCreateClick}
-                >
-                  Add First Entry
-                </CobraPrimaryButton>
-              )}
-            </Paper>
-          ) : (
-            /* Entries Views - Conditional based on viewMode */
-            <Paper sx={{ p: 2 }}>
-              {viewMode === 'list' && (
-                <EegEntriesList
-                  entries={filteredEntries}
-                  loading={entriesLoading}
-                  error={entriesError}
-                  canEdit={canEdit}
-                  canDelete={canDelete}
-                  currentUserId={user?.id}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onInjectClick={handleInjectClick}
-                  deletingId={deletingId}
-                />
-              )}
-              {viewMode === 'byCapability' && (
-                <EegEntriesGroupedByCapability
-                  entries={filteredEntries}
-                  loading={entriesLoading}
-                  error={entriesError}
-                  canEdit={canEdit}
-                  canDelete={canDelete}
-                  currentUserId={user?.id}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onInjectClick={handleInjectClick}
-                  deletingId={deletingId}
-                />
-              )}
-              {viewMode === 'byEvaluator' && canDelete && (
-                <EegEntriesGroupedByEvaluator
-                  entries={filteredEntries}
-                  loading={entriesLoading}
-                  error={entriesError}
-                  canEdit={canEdit}
-                  canDelete={canDelete}
-                  currentUserId={user?.id}
-                  onEdit={handleEdit}
-                  onDelete={handleDelete}
-                  onInjectClick={handleInjectClick}
-                  deletingId={deletingId}
-                />
-              )}
-            </Paper>
-          )}
-        </Box>
+        <EegEntriesTab
+          exerciseId={exerciseId!}
+          eegEntries={eegEntries}
+          entriesLoading={entriesLoading}
+          entriesError={entriesError}
+          coverage={coverage ?? null}
+          canCreate={canCreate}
+          canEdit={canEdit}
+          canDelete={canDelete}
+          currentUserId={user?.id}
+          deletingId={deletingId}
+          onCreateClick={handleCreateClick}
+          onEdit={handleEdit}
+          onDelete={handleDelete}
+          onInjectClick={handleInjectClick}
+          onCoverageDetailsClick={handleCoverageDetailsClick}
+        />
       )}
 
       {/* Coverage Tab */}
       {activeTab === 'coverage' && (
-        <Box role="tabpanel" aria-labelledby="coverage-tab">
-          <EegCoverageDashboard
-            exerciseId={exerciseId!}
-            onAssessTask={canCreate ? handleAssessTask : undefined}
-          />
-        </Box>
+        <EegCoverageTab
+          exerciseId={exerciseId!}
+          onAssessTask={canCreate ? handleAssessTask : undefined}
+        />
       )}
 
       {/* Create Entry Dialog */}

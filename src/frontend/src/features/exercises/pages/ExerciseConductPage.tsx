@@ -9,82 +9,87 @@
  * Uses SignalR for real-time updates across all connected clients.
  */
 
-import { useState, useCallback, useMemo, useEffect, useRef } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { notify } from '@/shared/utils/notify'
 import {
   Box,
+  Chip,
   Typography,
   Paper,
   Stack,
   CircularProgress,
   Alert,
-  Divider,
   IconButton,
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
   Dialog,
+  DialogTitle,
   DialogContent,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faHome,
-  faPlus,
-  faChevronDown,
-  faChevronUp,
   faGaugeHigh,
   faBookOpen,
   faGrip,
   faWindowMaximize,
   faGear,
-  faClipboardCheck,
   faDesktop,
+  faScrewdriverWrench,
 } from '@fortawesome/free-solid-svg-icons'
-import { useQueryClient } from '@tanstack/react-query'
 
 import { useExercise, useExerciseSettings } from '../hooks'
 import {
-  ExerciseHeader,
   NarrativeView,
   StickyClockHeader,
   FloatingClockChip,
   ClockDrivenConductView,
   FacilitatorPacedConductView,
   ExerciseSettingsDialog,
+  ExerciseTypeChip,
+  ExerciseStatusChip,
 } from '../components'
+import { ObservationPanel } from '../components/ObservationPanel'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
-import { useBreadcrumbs, useConnectivity } from '../../../core/contexts'
-import { useExerciseSignalR } from '../../../shared/hooks'
-import { ExerciseStatus, InjectStatus, ExerciseClockState, DeliveryMode } from '../../../types'
+import { useBreadcrumbs } from '../../../core/contexts'
+import { ExerciseStatus, ExerciseClockState, InjectStatus, DeliveryMode } from '../../../types'
 import { EffectiveRoleBadge, useExerciseRole } from '@/features/auth'
 
 // Feature imports
-import { ClockDisplay, ClockControls, ExerciseProgress, useExerciseClock, clockQueryKey, parseElapsedTime, formatElapsedTime, ClockControlConfirmationDialog, SetClockTimeDialog, type ClockAction } from '../../exercise-clock'
-import { ReadyToFireBadge, ReadyNotification, useInjects, injectKeys, calculateScheduledOffset, FireConfirmationDialog, SkipConfirmationDialog } from '../../injects'
 import {
-  ObservationForm,
-  ObservationList,
-  useObservations,
-  observationsQueryKey,
-} from '../../observations'
-import { EegEntryForm, EegCoverageDashboard } from '../../eeg/components'
-import { eegEntryKeys } from '../../eeg/hooks/useEegEntries'
+  ClockDisplay,
+  ClockControls,
+  ExerciseProgress,
+  useExerciseClock,
+  ClockControlConfirmationDialog,
+  SetClockTimeDialog,
+  type ClockAction,
+} from '../../exercise-clock'
+import {
+  ReadyToFireBadge,
+  ReadyNotification,
+  useInjects,
+  calculateScheduledOffset,
+  FireConfirmationDialog,
+  SkipConfirmationDialog,
+} from '../../injects'
+import { useObservations, ObservationForm } from '../../observations'
+import type { ObservationDto, CreateObservationRequest } from '../../observations/types'
 import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
 import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
-import { HelpTooltip, PageHeader } from '@/shared/components'
-import { useObjectiveSummaries } from '../../objectives/hooks'
+import { HelpTooltip } from '@/shared/components'
 import { QuickPhotoFab } from '../../photos'
-import type { ObservationDto } from '../../observations/types'
-import type { InjectDto } from '../../injects/types'
-import type { ExerciseClockDto } from '../../exercise-clock/types'
+
+// Extracted hooks
+import { useFireSkipConfirmation } from '../hooks/useFireSkipConfirmation'
+import { useExerciseConductSignalR } from '../hooks/useExerciseConductSignalR'
 
 export const ExerciseConductPage = () => {
   const { id: exerciseId } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const queryClient = useQueryClient()
 
   // Core data hooks
   const { exercise, loading: exerciseLoading, error: exerciseError } = useExercise(exerciseId)
@@ -114,6 +119,15 @@ export const ExerciseConductPage = () => {
     skipInject,
     resetInject,
   } = useInjects(exerciseId!)
+
+  // Exercise settings for confirmation dialogs
+  const {
+    confirmFireInject,
+    confirmSkipInject,
+    confirmClockControl,
+  } = useExerciseSettings(exerciseId)
+
+  // Observations — kept at page level so both NarrativeView and ObservationPanel share the same data
   const {
     observations,
     loading: observationsLoading,
@@ -122,76 +136,91 @@ export const ExerciseConductPage = () => {
     updateObservation,
     deleteObservation,
   } = useObservations(exerciseId!)
-  const { summaries: _objectives } = useObjectiveSummaries(exerciseId!)
-  const { capabilities } = useCapabilities(false) // Active capabilities only
-  const { targetCapabilities } = useExerciseTargetCapabilities(exerciseId)
-
-  // Exercise settings for confirmation dialogs
-  const {
-    confirmFireInject,
-    confirmSkipInject,
-    confirmClockControl,
-    settings: _exerciseSettings,
-    isLoading: _settingsLoading,
-  } = useExerciseSettings(exerciseId)
 
   // UI state
-  const [showObservationForm, setShowObservationForm] = useState(false)
-  const [editingObservation, setEditingObservation] = useState<ObservationDto | null>(null)
-  const [isSubmittingObservation, setIsSubmittingObservation] = useState(false)
-  const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null)
-  const [observationsExpanded, setObservationsExpanded] = useState(true)
   const [showStopConfirm, setShowStopConfirm] = useState(false)
   const [openInjectId, setOpenInjectId] = useState<string | null>(null)
   const [settingsDialogOpen, setSettingsDialogOpen] = useState(false)
-
-  // Confirmation dialog state
-  const [fireConfirmInject, setFireConfirmInject] = useState<InjectDto | null>(null)
-  const [skipConfirmInject, setSkipConfirmInject] = useState<InjectDto | null>(null)
-  const [clockConfirmAction, setClockConfirmAction] = useState<ClockAction | null>(null)
   const [showSetTimeDialog, setShowSetTimeDialog] = useState(false)
-  const [pendingSkipInjectId, setPendingSkipInjectId] = useState<string | null>(null)
+  const [clockConfirmAction, setClockConfirmAction] = useState<ClockAction | null>(null)
 
-  // User-level "don't ask again" flags with localStorage persistence (per-exercise)
-  const getStorageKey = useCallback(
-    (type: string) => `cadence:skipConfirmation:${exerciseId}:${type}`,
-    [exerciseId],
-  )
+  // Pre-selected inject ID for observations (set when adding from inject drawer)
+  const [preSelectedInjectId, setPreSelectedInjectId] = useState<string | null>(null)
 
-  const [skipFireConfirmation, setSkipFireConfirmation] = useState(() => {
-    if (!exerciseId) return false
-    return localStorage.getItem(`cadence:skipConfirmation:${exerciseId}:fire`) === 'true'
-  })
-  const [skipSkipConfirmation, setSkipSkipConfirmation] = useState(() => {
-    if (!exerciseId) return false
-    return localStorage.getItem(`cadence:skipConfirmation:${exerciseId}:skip`) === 'true'
-  })
+  // Capabilities for observation form dialog
+  const { capabilities } = useCapabilities(false)
+  const { targetCapabilities } = useExerciseTargetCapabilities(exerciseId!)
+
+  // Observation dialog state — opened from inject detail drawer
+  const [observationDialogInjectId, setObservationDialogInjectId] = useState<string | null>(null)
+  const [isDialogSubmitting, setIsDialogSubmitting] = useState(false)
+
+  // Observation panel state — managed here so ObservationPanel can be a controlled component
+  const [showObservationForm, setShowObservationForm] = useState(false)
+  const [editingObservation, setEditingObservation] = useState<ObservationDto | null>(null)
+  const [deletingObservationId, setDeletingObservationId] = useState<string | null>(null)
+
+  // Observation mutation handlers — passed down to ObservationPanel
+  const handleSubmitObservation = async (data: CreateObservationRequest) => {
+    if (editingObservation) {
+      await updateObservation(editingObservation.id, data)
+    } else {
+      await createObservation(data)
+    }
+  }
+
+  const handleDeleteObservation = async (observationId: string) => {
+    setDeletingObservationId(observationId)
+    try {
+      await deleteObservation(observationId)
+    } finally {
+      setDeletingObservationId(null)
+    }
+  }
+
+  // User-level "don't ask again" flag for clock (localStorage-persisted per exercise)
   const [skipClockConfirmation, setSkipClockConfirmation] = useState(() => {
     if (!exerciseId) return false
     return localStorage.getItem(`cadence:skipConfirmation:${exerciseId}:clock`) === 'true'
   })
 
-  // Persist "don't ask again" choices to localStorage
-  const handleSkipFireConfirmation = useCallback(() => {
-    setSkipFireConfirmation(true)
-    if (exerciseId) {
-      localStorage.setItem(getStorageKey('fire'), 'true')
-    }
-  }, [exerciseId, getStorageKey])
-
-  const handleSkipSkipConfirmation = useCallback(() => {
-    setSkipSkipConfirmation(true)
-    if (exerciseId) {
-      localStorage.setItem(getStorageKey('skip'), 'true')
-    }
-  }, [exerciseId, getStorageKey])
-
   const handleSkipClockConfirmation = useCallback(() => {
     setSkipClockConfirmation(true)
     if (exerciseId) {
-      localStorage.setItem(getStorageKey('clock'), 'true')
+      localStorage.setItem(`cadence:skipConfirmation:${exerciseId}:clock`, 'true')
     }
-  }, [exerciseId, getStorageKey])
+  }, [exerciseId])
+
+  // Fire/skip confirmation state machine (extracted hook)
+  const {
+    fireConfirmInject,
+    skipConfirmInject,
+    pendingSkipInjectId,
+    handleFireWithConfirmation,
+    handleFireConfirmed,
+    handleFireCancelled,
+    handleSkipWithConfirmation,
+    handleSkipPreConfirmation,
+    handleSkipConfirmProceed,
+    handleSkipConfirmCancelled,
+    handlePendingSkipClear,
+    handleSkipFireConfirmation,
+    handleSkipSkipConfirmation,
+  } = useFireSkipConfirmation({
+    exerciseId,
+    confirmFireInject,
+    confirmSkipInject,
+    fireInject,
+    skipInject,
+    injects,
+  })
+
+  // SignalR real-time subscriptions + connectivity sync (extracted hook)
+  useExerciseConductSignalR({
+    exerciseId: exerciseId!,
+    clockState,
+    elapsedTimeMs,
+  })
 
   // View mode state with localStorage persistence
   const [viewMode, setViewMode] = useState<'controller' | 'narrative'>(() => {
@@ -239,197 +268,6 @@ export const ExerciseConductPage = () => {
       : undefined,
   )
 
-  // SignalR real-time event handlers — AR-P02 pattern.
-  // Use invalidateQueries (not setQueryData) so React Query refetches authoritative
-  // server state. SignalR events are notifications that data changed, not the data itself.
-  const handleInjectFired = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: injectKeys.all(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  const handleInjectStatusChanged = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: injectKeys.all(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  const handleClockChanged = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: clockQueryKey(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  const handleObservationAdded = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  const handleObservationUpdated = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  const handleObservationDeleted = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  // Handle EEG entry created - invalidate coverage queries
-  const handleEegEntryCreated = useCallback(() => {
-    queryClient.invalidateQueries({ queryKey: eegEntryKeys.coverage(exerciseId!) })
-  }, [exerciseId, queryClient])
-
-  // Track clock state and elapsed time before disconnection to detect changes during offline period
-  const previousClockStateRef = useRef<ExerciseClockState | null>(null)
-  const previousElapsedTimeMsRef = useRef<number>(0)
-  const disconnectedAtRef = useRef<number | null>(null)
-
-  // Update clock state ref whenever it changes
-  useEffect(() => {
-    if (clockState?.state) {
-      previousClockStateRef.current = clockState.state
-    }
-  }, [clockState?.state])
-
-  // Handle SignalR reconnection - refresh state and notify user of changes
-  const handleReconnected = useCallback(async () => {
-    const previousState = previousClockStateRef.current
-    const previousElapsedMs = previousElapsedTimeMsRef.current
-    const wasDisconnectedAt = disconnectedAtRef.current
-
-    // Clear the disconnected timestamp
-    disconnectedAtRef.current = null
-
-    // Refresh clock and inject data - use refetchQueries to wait for completion
-    await Promise.all([
-      queryClient.refetchQueries({ queryKey: clockQueryKey(exerciseId!) }),
-      queryClient.refetchQueries({ queryKey: injectKeys.all(exerciseId!) }),
-      queryClient.refetchQueries({ queryKey: observationsQueryKey(exerciseId!) }),
-    ])
-
-    // Now get the fresh data
-    const currentClockData = queryClient.getQueryData<ExerciseClockDto>(clockQueryKey(exerciseId!))
-    const currentState = currentClockData?.state
-    const currentElapsedMs = currentClockData?.elapsedTime
-      ? parseElapsedTime(currentClockData.elapsedTime)
-      : 0
-
-    // Calculate time delta for informative message
-    const timeDeltaMs = currentElapsedMs - previousElapsedMs
-    const timeDeltaFormatted = formatElapsedTime(Math.abs(timeDeltaMs))
-
-    // Calculate how long we were disconnected
-    const disconnectedDuration = wasDisconnectedAt ? Date.now() - wasDisconnectedAt : 0
-    // Only show notification if offline > 2 seconds
-    const wasDisconnectedLongEnough = disconnectedDuration > 2000
-
-    if (!wasDisconnectedLongEnough) {
-      // Brief disconnection, just update refs silently
-      if (currentState) {
-        previousClockStateRef.current = currentState
-      }
-      previousElapsedTimeMsRef.current = currentElapsedMs
-      return
-    }
-
-    if (previousState && currentState && previousState !== currentState) {
-      // Clock state changed while offline
-      if (currentState === ExerciseClockState.Running) {
-        const currentTimeStr = formatElapsedTime(currentElapsedMs)
-        const message = previousState === ExerciseClockState.Stopped
-          ? `Exercise clock was started while you were offline. Current time: ${currentTimeStr}`
-          : 'Exercise clock resumed while you were offline. ' +
-            `Clock jumped forward by ${timeDeltaFormatted}. Current time: ${currentTimeStr}`
-        notify.warning(message, { autoClose: false })
-      } else if (
-        currentState === ExerciseClockState.Paused &&
-        previousState === ExerciseClockState.Running
-      ) {
-        notify.warning(
-          `Exercise clock was paused while you were offline at ${formatElapsedTime(currentElapsedMs)}.`,
-          { autoClose: 8000 },
-        )
-      } else if (currentState === ExerciseClockState.Stopped) {
-        notify.warning(
-          'Exercise was stopped while you were offline. The exercise has ended.',
-          { autoClose: false },
-        )
-      }
-    } else if (currentState === ExerciseClockState.Running && timeDeltaMs > 5000) {
-      // Same state but significant time jump (>5 seconds) while offline
-      notify.warning(
-        `Clock synchronized. Time jumped forward by ${timeDeltaFormatted}. Current time: ${formatElapsedTime(currentElapsedMs)}`,
-        { autoClose: false },
-      )
-    } else if (!previousState && currentState === ExerciseClockState.Running) {
-      // First time connecting and clock is already running
-      notify.info(
-        `Exercise clock is running. Current time: ${formatElapsedTime(currentElapsedMs)}`,
-        { autoClose: 5000 },
-      )
-    }
-
-    // Update the refs with the current state
-    if (currentState) {
-      previousClockStateRef.current = currentState
-    }
-    previousElapsedTimeMsRef.current = currentElapsedMs
-  }, [exerciseId, queryClient])
-
-  // Connect to SignalR
-  const { connectionState, isJoined } = useExerciseSignalR({
-    exerciseId: exerciseId!,
-    onInjectFired: handleInjectFired,
-    onInjectStatusChanged: handleInjectStatusChanged,
-    onClockStarted: handleClockChanged,
-    onClockPaused: handleClockChanged,
-    onClockReset: handleClockChanged,
-    onClockChanged: handleClockChanged,
-    onObservationAdded: handleObservationAdded,
-    onObservationUpdated: handleObservationUpdated,
-    onObservationDeleted: handleObservationDeleted,
-    onReconnected: handleReconnected,
-    enabled: !!exerciseId,
-  })
-
-  // Sync SignalR state with global connectivity context
-  const { setSignalRState, setIsInExercise, setIsSignalRJoined } = useConnectivity()
-  const previousConnectionStateRef = useRef<typeof connectionState | null>(null)
-
-  useEffect(() => {
-    // Mark that we're in exercise conduct mode
-    setIsInExercise(true)
-    return () => {
-      setIsInExercise(false)
-      setSignalRState(null)
-      setIsSignalRJoined(false)
-    }
-  // setSignalRState, setIsInExercise, setIsSignalRJoined are stable (no state deps)
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  useEffect(() => {
-    // Report SignalR connection state and join status to global context
-    setSignalRState(connectionState)
-    setIsSignalRJoined(isJoined)
-
-    const wasConnected = previousConnectionStateRef.current === 'connected'
-    const isNowDisconnected = connectionState === 'disconnected' ||
-                              connectionState === 'error' ||
-                              connectionState === 'reconnecting'
-    const wasDisconnected = previousConnectionStateRef.current === 'disconnected' ||
-                            previousConnectionStateRef.current === 'error' ||
-                            previousConnectionStateRef.current === 'reconnecting'
-    const isNowConnected = connectionState === 'connected'
-
-    // Capture elapsed time when we go offline
-    if (wasConnected && isNowDisconnected) {
-      previousElapsedTimeMsRef.current = elapsedTimeMs
-      disconnectedAtRef.current = Date.now()
-    }
-
-    // Trigger reconnection handler when transitioning from disconnected/error to connected
-    // This handles cases where the SignalR auto-reconnect doesn't fire the onreconnected callback
-    if (wasDisconnected && isNowConnected && previousConnectionStateRef.current !== null) {
-      // Connection was restored - trigger the reconnection handler
-      handleReconnected()
-    }
-
-    previousConnectionStateRef.current = connectionState
-  }, [connectionState, isJoined, setSignalRState, setIsSignalRJoined, handleReconnected, elapsedTimeMs])
-
   // Permission checks using role-based access control
   const canControl = useMemo(() => {
     // Controllers and Exercise Directors can control injects/clock
@@ -456,86 +294,28 @@ export const ExerciseConductPage = () => {
     }).length
   }, [injects, exerciseStartTime, elapsedTimeMs])
 
-  // Handle adding observation from inject drawer - pre-select the inject
-  const [preSelectedInjectId, setPreSelectedInjectId] = useState<string | null>(null)
-
-  // EEG Entry state
-  const [showEegEntryForm, setShowEegEntryForm] = useState(false)
-  const [eegPreSelectedTaskId, setEegPreSelectedTaskId] = useState<string | null>(null)
-  const [eegPreSelectedCapabilityTargetId, setEegPreSelectedCapabilityTargetId] =
-    useState<string | null>(null)
-
-  // Handlers
-  const handleSubmitObservation = async (data: Parameters<typeof createObservation>[0]) => {
-    setIsSubmittingObservation(true)
-    try {
-      if (editingObservation) {
-        await updateObservation(editingObservation.id, data)
-        setEditingObservation(null)
-      } else {
-        await createObservation(data)
-      }
-      setShowObservationForm(false)
-      setPreSelectedInjectId(null) // Clear pre-selected inject after submission
-    } finally {
-      setIsSubmittingObservation(false)
-    }
-  }
-
-  const handleEditObservation = (observation: ObservationDto) => {
-    setEditingObservation(observation)
-    setShowObservationForm(true)
-  }
-
-  const handleDeleteObservation = async (observationId: string) => {
-    setDeletingObservationId(observationId)
-    try {
-      await deleteObservation(observationId)
-    } finally {
-      setDeletingObservationId(null)
-    }
-  }
-
-  // Handle clicking inject link in observation
+  // Handle clicking inject link in observation list
   const handleInjectClick = (injectId: string) => {
     setOpenInjectId(injectId)
   }
 
-  // Handle adding observation from inject drawer
+  // Handle adding observation from inject drawer — open dialog so drawer stays visible
   const handleAddObservationForInject = (injectId: string) => {
-    setPreSelectedInjectId(injectId)
-    setShowObservationForm(true)
-    setOpenInjectId(null) // Close the drawer
+    setObservationDialogInjectId(injectId)
   }
 
-  // Clear pre-selected inject when form is closed
-  const handleCancelObservationFormWithReset = () => {
-    setShowObservationForm(false)
-    setEditingObservation(null)
-    setPreSelectedInjectId(null)
+  const handleObservationDialogSubmit = async (data: CreateObservationRequest) => {
+    setIsDialogSubmitting(true)
+    try {
+      await createObservation(data)
+      setObservationDialogInjectId(null)
+    } finally {
+      setIsDialogSubmitting(false)
+    }
   }
 
-  // Handle EEG Entry form open/close
-  const handleOpenEegEntry = () => {
-    setShowEegEntryForm(true)
-  }
-
-  const handleCloseEegEntry = () => {
-    setShowEegEntryForm(false)
-    setEegPreSelectedTaskId(null)
-    setEegPreSelectedCapabilityTargetId(null)
-  }
-
-  const handleEegEntrySaved = () => {
-    // Invalidate coverage when entry saved
-    handleEegEntryCreated()
-  }
-
-  // Handle assess task from coverage dashboard
-  const handleAssessTask = (taskId: string, capabilityTargetId: string) => {
-    setEegPreSelectedTaskId(taskId)
-    setEegPreSelectedCapabilityTargetId(capabilityTargetId)
-    setShowEegEntryForm(true)
+  const handleObservationDialogClose = () => {
+    setObservationDialogInjectId(null)
   }
 
   // Stop clock with confirmation
@@ -551,94 +331,15 @@ export const ExerciseConductPage = () => {
   // Handle jump to inject (facilitator-paced mode)
   // Skips all injects between current and target, then the target becomes current
   const handleJumpTo = async (_targetInjectId: string, skipInjectIds: string[]) => {
-    // Skip all injects in the skipInjectIds list
     for (const injectId of skipInjectIds) {
       await skipInject(injectId, { reason: 'Jumped to later inject' })
     }
-    // The target inject will naturally become the current inject
-    // since all prior pending injects have been skipped
   }
 
   // =========================================================================
-  // Confirmation-wrapped handlers
+  // Clock control with optional confirmation
   // =========================================================================
 
-  // Fire inject with optional confirmation
-  const handleFireWithConfirmation = useCallback(
-    async (injectId: string) => {
-      const inject = injects.find(i => i.id === injectId)
-      if (!inject) return
-
-      // Check if we need to show confirmation
-      if (confirmFireInject && !skipFireConfirmation) {
-        setFireConfirmInject(inject)
-      } else {
-        // Fire immediately
-        await fireInject(injectId)
-      }
-    },
-    [injects, confirmFireInject, skipFireConfirmation, fireInject],
-  )
-
-  const handleFireConfirmed = useCallback(async () => {
-    if (fireConfirmInject) {
-      await fireInject(fireConfirmInject.id)
-      setFireConfirmInject(null)
-    }
-  }, [fireConfirmInject, fireInject])
-
-  const handleFireCancelled = useCallback(() => {
-    setFireConfirmInject(null)
-  }, [])
-
-  // Skip inject with optional confirmation (then goes to reason dialog)
-  // The skip reason dialog is always shown (in the child component)
-  // This is the extra "are you sure?" step before that
-  const handleSkipWithConfirmation = useCallback(
-    async (injectId: string, request: { reason: string }) => {
-      // Skip reason dialog is handled by the child component (ReadyToFireSection)
-      // This handler is called AFTER the reason is provided
-      // So we just forward to skipInject
-      await skipInject(injectId, request)
-    },
-    [skipInject],
-  )
-
-  // For the pre-confirmation step (before reason dialog)
-  const handleSkipPreConfirmation = useCallback(
-    (injectId: string) => {
-      const inject = injects.find(i => i.id === injectId)
-      if (!inject) return null
-
-      // Check if we need to show the "are you sure?" confirmation
-      if (confirmSkipInject && !skipSkipConfirmation) {
-        setSkipConfirmInject(inject)
-        return true // Indicates confirmation is needed
-      }
-      return false // No confirmation needed, proceed to reason dialog
-    },
-    [injects, confirmSkipInject, skipSkipConfirmation],
-  )
-
-  const handleSkipConfirmProceed = useCallback(() => {
-    // User confirmed they want to skip, now they need to provide a reason
-    // Set pendingSkipInjectId to trigger the reason dialog in ReadyToFireSection
-    if (skipConfirmInject?.id) {
-      setPendingSkipInjectId(skipConfirmInject.id)
-    }
-    setSkipConfirmInject(null)
-  }, [skipConfirmInject])
-
-  const handleSkipConfirmCancelled = useCallback(() => {
-    setSkipConfirmInject(null)
-    setPendingSkipInjectId(null)
-  }, [])
-
-  const handlePendingSkipClear = useCallback(() => {
-    setPendingSkipInjectId(null)
-  }, [])
-
-  // Clock control with optional confirmation
   const handleClockAction = useCallback(
     async (action: ClockAction) => {
       // Stop always shows confirmation (it's destructive)
@@ -647,11 +348,9 @@ export const ExerciseConductPage = () => {
         return
       }
 
-      // Check if we need to show confirmation for other actions
       if (confirmClockControl && !skipClockConfirmation) {
         setClockConfirmAction(action)
       } else {
-        // Execute immediately
         if (action === 'start' || action === 'resume') {
           await startClock()
         } else if (action === 'pause') {
@@ -675,7 +374,6 @@ export const ExerciseConductPage = () => {
     setClockConfirmAction(null)
   }, [])
 
-  // Wrapped clock handlers for components
   const handleStartWithConfirmation = useCallback(() => {
     const action = clockState?.state === ExerciseClockState.Paused ? 'resume' : 'start'
     handleClockAction(action)
@@ -754,88 +452,120 @@ export const ExerciseConductPage = () => {
         boxSizing: 'border-box',
       }}
     >
-      {/* Page Header */}
-      <PageHeader
-        title="Exercise Conduct"
-        icon={faDesktop}
-        subtitle={exercise ? `Conduct ${exercise.name}` : undefined}
-        chips={<HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} />}
-        mb={2}
-      />
-
-      {/* Exercise Info Header */}
-      <ExerciseHeader
-        exercise={exercise}
-        marginBottom={3}
-        actions={
-          <>
-            {/* User's Exercise Role Badge */}
-            <EffectiveRoleBadge exerciseId={exerciseId ?? null} showOverride />
-
-            {/* View Mode Toggle */}
-            <ToggleButtonGroup
-              value={viewMode}
-              exclusive
-              onChange={handleViewModeChange}
-              size="small"
-              aria-label="view mode"
-            >
-              <ToggleButton value="controller" aria-label="controller view">
-                <FontAwesomeIcon icon={faGaugeHigh} style={{ marginRight: 6 }} />
-                Controller
-              </ToggleButton>
-              <ToggleButton value="narrative" aria-label="narrative view">
-                <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: 6 }} />
-                Narrative
-              </ToggleButton>
-            </ToggleButtonGroup>
-
-            {/* Layout Mode Toggle (only in Controller view) */}
-            {viewMode === 'controller' && (
-              <ToggleButtonGroup
-                value={layoutMode}
-                exclusive
-                onChange={handleLayoutModeChange}
+      {/* Consolidated Conduct Header — exercise name, chips, and all controls in one row */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2, flexShrink: 0, flexWrap: 'wrap', gap: 1 }}
+      >
+        {/* Left: icon + exercise name + chips + help */}
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              color: 'primary.main',
+              fontSize: 22,
+              flexShrink: 0,
+            }}
+          >
+            <FontAwesomeIcon icon={faDesktop} />
+          </Box>
+          <Typography
+            variant="h5"
+            component="h1"
+            fontWeight={600}
+            noWrap
+            sx={{ minWidth: 0 }}
+          >
+            {exercise.name}
+          </Typography>
+          {exercise.isPracticeMode && (
+            <Tooltip title="Practice Mode — excluded from production reports" arrow>
+              <Chip
+                icon={<FontAwesomeIcon icon={faScrewdriverWrench} size="xs" />}
+                label="Practice"
                 size="small"
-                aria-label="layout mode"
-              >
-                <Tooltip title="Classic layout with clock panel" arrow>
-                  <ToggleButton value="classic" aria-label="classic layout">
-                    <FontAwesomeIcon icon={faGrip} />
-                  </ToggleButton>
-                </Tooltip>
-                <Tooltip title="Sticky clock header" arrow>
-                  <ToggleButton value="sticky" aria-label="sticky header layout">
-                    <FontAwesomeIcon icon={faWindowMaximize} />
-                  </ToggleButton>
-                </Tooltip>
-                <Tooltip title="Floating clock chip" arrow>
-                  <ToggleButton value="floating" aria-label="floating clock layout">
-                    <FontAwesomeIcon icon={faGaugeHigh} />
-                  </ToggleButton>
-                </Tooltip>
-              </ToggleButtonGroup>
-            )}
-
-            {/* Connection status is shown in the AppHeader via ConnectionStatusIndicator */}
-
-            {/* Exercise Settings */}
-            <Tooltip title="Exercise Settings" arrow>
-              <IconButton
-                onClick={() => setSettingsDialogOpen(true)}
-                size="small"
-                aria-label="Exercise settings"
-              >
-                <FontAwesomeIcon icon={faGear} />
-              </IconButton>
+                sx={{
+                  backgroundColor: 'warning.main',
+                  color: 'white',
+                  fontWeight: 500,
+                  flexShrink: 0,
+                  '& .MuiChip-icon': { color: 'white', fontSize: '0.75rem' },
+                }}
+              />
             </Tooltip>
+          )}
+          <ExerciseTypeChip type={exercise.exerciseType} />
+          <ExerciseStatusChip status={exercise.status} />
+          <HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} />
+        </Stack>
 
-            <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
-              Exit Conduct
-            </CobraLinkButton>
-          </>
-        }
-      />
+        {/* Right: role badge, view toggles, layout toggles, settings */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, flexWrap: 'wrap' }}>
+          {/* User's Exercise Role Badge */}
+          <EffectiveRoleBadge exerciseId={exerciseId ?? null} showOverride />
+
+          {/* View Mode Toggle */}
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            size="small"
+            aria-label="view mode"
+          >
+            <ToggleButton value="controller" aria-label="controller view">
+              <FontAwesomeIcon icon={faGaugeHigh} style={{ marginRight: 6 }} />
+              Controller
+            </ToggleButton>
+            <ToggleButton value="narrative" aria-label="narrative view">
+              <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: 6 }} />
+              Narrative
+            </ToggleButton>
+          </ToggleButtonGroup>
+
+          {/* Layout Mode Toggle (only in Controller view) */}
+          {viewMode === 'controller' && (
+            <ToggleButtonGroup
+              value={layoutMode}
+              exclusive
+              onChange={handleLayoutModeChange}
+              size="small"
+              aria-label="layout mode"
+            >
+              <Tooltip title="Classic layout with clock panel" arrow>
+                <ToggleButton value="classic" aria-label="classic layout">
+                  <FontAwesomeIcon icon={faGrip} />
+                </ToggleButton>
+              </Tooltip>
+              <Tooltip title="Sticky clock header" arrow>
+                <ToggleButton value="sticky" aria-label="sticky header layout">
+                  <FontAwesomeIcon icon={faWindowMaximize} />
+                </ToggleButton>
+              </Tooltip>
+              <Tooltip title="Floating clock chip" arrow>
+                <ToggleButton value="floating" aria-label="floating clock layout">
+                  <FontAwesomeIcon icon={faGaugeHigh} />
+                </ToggleButton>
+              </Tooltip>
+            </ToggleButtonGroup>
+          )}
+
+          {/* Connection status is shown in the AppHeader via ConnectionStatusIndicator */}
+
+          {/* Exercise Settings */}
+          <Tooltip title="Exercise Settings" arrow>
+            <IconButton
+              onClick={() => setSettingsDialogOpen(true)}
+              size="small"
+              aria-label="Exercise settings"
+            >
+              <FontAwesomeIcon icon={faGear} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Stack>
 
       {/* Conditional View Rendering */}
       {viewMode === 'narrative' ? (
@@ -897,16 +627,16 @@ export const ExerciseConductPage = () => {
           <Box
             sx={{
               display: 'flex',
-              gap: 3,
+              gap: { xs: 2, lg: 3 },
               flex: 1,
               minHeight: 0, // Critical for nested flex scrolling
-              flexDirection: { xs: 'column', md: 'row' },
+              flexDirection: { xs: 'column', lg: 'row' },
             }}
           >
             {/* Left Column: Injects (and Clock for classic layout) */}
             <Box
               sx={{
-                flex: { xs: 1, md: 2 },
+                flex: { xs: 1, lg: 2 },
                 display: 'flex',
                 flexDirection: 'column',
                 minWidth: 0, // Prevent flex item overflow
@@ -1027,7 +757,7 @@ export const ExerciseConductPage = () => {
               </Paper>
             </Box>
 
-            {/* Right Column: Observations - Scrollable */}
+            {/* Right Column: Observations Panel */}
             <Box
               sx={{
                 flex: 1,
@@ -1035,124 +765,25 @@ export const ExerciseConductPage = () => {
                 minHeight: 0, // Critical for nested flex scrolling
               }}
             >
-              <Paper
-                sx={{
-                  p: 3,
-                  height: '100%',
-                  overflow: 'hidden',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  minHeight: 0,
-                }}
-              >
-                <Stack
-                  direction="row"
-                  justifyContent="space-between"
-                  alignItems="center"
-                  sx={{ mb: 2, flexShrink: 0 }}
-                >
-                  <Stack direction="row" spacing={1} alignItems="center">
-                    <Typography variant="h6">Observations</Typography>
-                    <IconButton
-                      size="small"
-                      onClick={() => setObservationsExpanded(!observationsExpanded)}
-                    >
-                      <FontAwesomeIcon
-                        icon={observationsExpanded ? faChevronUp : faChevronDown}
-                      />
-                    </IconButton>
-                  </Stack>
-                  {canAddObservations && !showObservationForm && (
-                    <Stack direction="row" spacing={1}>
-                      <CobraPrimaryButton
-                        size="small"
-                        startIcon={<FontAwesomeIcon icon={faPlus} />}
-                        onClick={() => setShowObservationForm(true)}
-                      >
-                        Add
-                      </CobraPrimaryButton>
-                      <CobraPrimaryButton
-                        size="small"
-                        startIcon={<FontAwesomeIcon icon={faClipboardCheck} />}
-                        onClick={handleOpenEegEntry}
-                        sx={{ backgroundColor: 'secondary.main' }}
-                      >
-                        EEG Entry
-                      </CobraPrimaryButton>
-                    </Stack>
-                  )}
-                </Stack>
-
-                {/* Observation Form - Fixed at top (when expanded) */}
-                {observationsExpanded && showObservationForm && (
-                  <Box sx={{ mb: 2, flexShrink: 0 }}>
-                    <ObservationForm
-                      exerciseId={exerciseId!}
-                      inject={
-                        preSelectedInjectId
-                          ? injects.find(i => i.id === preSelectedInjectId)
-                          : undefined
-                      }
-                      injects={injects}
-                      capabilities={capabilities}
-                      targetCapabilityIds={targetCapabilities.map(c => c.id)}
-                      initialValues={
-                        editingObservation
-                          ? {
-                            rating: editingObservation.rating!,
-                            content: editingObservation.content,
-                            recommendation: editingObservation.recommendation ?? undefined,
-                            injectId: editingObservation.injectId ?? undefined,
-                            capabilityIds: editingObservation.capabilities?.map(c => c.id) ?? [],
-                          }
-                          : preSelectedInjectId
-                            ? { rating: undefined as never, content: '', injectId: preSelectedInjectId }
-                            : undefined
-                      }
-                      onSubmit={handleSubmitObservation}
-                      onCancel={handleCancelObservationFormWithReset}
-                      isSubmitting={isSubmittingObservation}
-                    />
-                    <Divider sx={{ my: 2 }} />
-                  </Box>
-                )}
-
-                {/* EEG Coverage Dashboard (when expanded) */}
-                {observationsExpanded && canAddObservations && (
-                  <Box sx={{ mb: 2, flexShrink: 0 }}>
-                    <EegCoverageDashboard
-                      exerciseId={exerciseId!}
-                      compact
-                      onAssessTask={handleAssessTask}
-                      onDetailsClick={() => navigate(`/exercises/${exerciseId}/eeg-entries`)}
-                    />
-                  </Box>
-                )}
-
-                {/* Observation List - Scrollable (when expanded) */}
-                {observationsExpanded && (
-                  <Box
-                    sx={{
-                      flex: 1,
-                      overflowY: 'auto',
-                      overflowX: 'hidden',
-                      pr: `${CobraStyles.Scrollbar.ContentSpacing}px`,
-                      ...CobraStyles.Scrollbar.Styling,
-                    }}
-                  >
-                    <ObservationList
-                      observations={observations}
-                      loading={observationsLoading}
-                      error={observationsError}
-                      canEdit={canAddObservations}
-                      onEdit={handleEditObservation}
-                      onDelete={handleDeleteObservation}
-                      deletingId={deletingObservationId}
-                      onInjectClick={handleInjectClick}
-                    />
-                  </Box>
-                )}
-              </Paper>
+              <ObservationPanel
+                exerciseId={exerciseId!}
+                canAddObservations={canAddObservations}
+                injects={injects}
+                observations={observations}
+                observationsLoading={observationsLoading}
+                observationsError={observationsError}
+                displayTime={displayTime}
+                onInjectClick={handleInjectClick}
+                preSelectedInjectId={preSelectedInjectId}
+                onClearPreSelectedInjectId={() => setPreSelectedInjectId(null)}
+                onSubmitObservation={handleSubmitObservation}
+                onDeleteObservation={handleDeleteObservation}
+                deletingObservationId={deletingObservationId}
+                editingObservation={editingObservation}
+                onSetEditingObservation={setEditingObservation}
+                showObservationForm={showObservationForm}
+                onShowObservationFormChange={setShowObservationForm}
+              />
             </Box>
           </Box>
         </Box>
@@ -1217,26 +848,35 @@ export const ExerciseConductPage = () => {
         onClose={() => setSettingsDialogOpen(false)}
       />
 
-      {/* EEG Entry Form Dialog */}
+      {/* Observation Form Dialog — opened from inject detail drawer */}
       <Dialog
-        open={showEegEntryForm}
-        onClose={handleCloseEegEntry}
-        maxWidth="md"
+        open={!!observationDialogInjectId}
+        onClose={handleObservationDialogClose}
+        maxWidth="sm"
         fullWidth
-        PaperProps={{
-          sx: { minHeight: '600px', maxHeight: '90vh' },
-        }}
+        PaperProps={{ sx: { maxHeight: '90vh' } }}
       >
-        <DialogContent sx={{ p: 0 }}>
-          <EegEntryForm
-            exerciseId={exerciseId!}
-            exerciseTime={displayTime}
-            availableInjects={injects.filter(i => i.status !== 'Draft')}
-            preSelectedCapabilityTargetId={eegPreSelectedCapabilityTargetId ?? undefined}
-            preSelectedTaskId={eegPreSelectedTaskId ?? undefined}
-            onClose={handleCloseEegEntry}
-            onSaved={handleEegEntrySaved}
-          />
+        <DialogTitle>Add Observation</DialogTitle>
+        <DialogContent>
+          {observationDialogInjectId && (
+            <Box sx={{ pt: 1 }}>
+              <ObservationForm
+                exerciseId={exerciseId!}
+                inject={injects.find(i => i.id === observationDialogInjectId)}
+                injects={injects}
+                capabilities={capabilities}
+                targetCapabilityIds={targetCapabilities.map(c => c.id)}
+                initialValues={{
+                  rating: undefined as never,
+                  content: '',
+                  injectId: observationDialogInjectId,
+                }}
+                onSubmit={handleObservationDialogSubmit}
+                onCancel={handleObservationDialogClose}
+                isSubmitting={isDialogSubmitting}
+              />
+            </Box>
+          )}
         </DialogContent>
       </Dialog>
 
@@ -1245,5 +885,3 @@ export const ExerciseConductPage = () => {
     </Box>
   )
 }
-
-export default ExerciseConductPage

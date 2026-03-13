@@ -21,6 +21,7 @@
 
 import { useState, useEffect } from 'react'
 import { Box, Typography, LinearProgress } from '@mui/material'
+import { useTheme, alpha } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faCloudArrowUp, faCircleCheck } from '@fortawesome/free-solid-svg-icons'
 
@@ -35,6 +36,7 @@ export interface PhotoSyncIndicatorProps {
  * Photo sync progress indicator
  */
 export const PhotoSyncIndicator = ({ current, total }: PhotoSyncIndicatorProps) => {
+  const theme = useTheme()
   const [showSuccess, setShowSuccess] = useState(false)
 
   const isComplete = current >= total && total > 0
@@ -73,9 +75,9 @@ export const PhotoSyncIndicator = ({ current, total }: PhotoSyncIndicatorProps) 
         px: 2,
         py: 1.5,
         borderRadius: 1,
-        backgroundColor: isComplete ? 'rgba(34, 197, 94, 0.1)' : 'rgba(59, 130, 246, 0.1)',
+        backgroundColor: isComplete ? alpha(theme.palette.semantic.success, 0.1) : alpha(theme.palette.semantic.info, 0.1),
         border: '1px solid',
-        borderColor: isComplete ? 'rgba(34, 197, 94, 0.3)' : 'rgba(59, 130, 246, 0.3)',
+        borderColor: isComplete ? alpha(theme.palette.semantic.success, 0.3) : alpha(theme.palette.semantic.info, 0.3),
         minWidth: 280,
       }}
       data-testid="photo-sync-indicator"
@@ -94,7 +96,7 @@ export const PhotoSyncIndicator = ({ current, total }: PhotoSyncIndicatorProps) 
             justifyContent: 'center',
             width: 20,
             height: 20,
-            color: isComplete ? '#22c55e' : '#3b82f6',
+            color: isComplete ? theme.palette.semantic.success : theme.palette.semantic.info,
           }}
         >
           <FontAwesomeIcon
@@ -107,7 +109,7 @@ export const PhotoSyncIndicator = ({ current, total }: PhotoSyncIndicatorProps) 
           variant="body2"
           sx={{
             fontWeight: 500,
-            color: isComplete ? '#22c55e' : '#3b82f6',
+            color: isComplete ? theme.palette.semantic.success : theme.palette.semantic.info,
           }}
         >
           {isComplete ? (
@@ -127,9 +129,9 @@ export const PhotoSyncIndicator = ({ current, total }: PhotoSyncIndicatorProps) 
           sx={{
             height: 6,
             borderRadius: 3,
-            backgroundColor: 'rgba(59, 130, 246, 0.1)',
+            backgroundColor: alpha(theme.palette.semantic.info, 0.1),
             '& .MuiLinearProgress-bar': {
-              backgroundColor: '#3b82f6',
+              backgroundColor: theme.palette.semantic.info,
               borderRadius: 3,
             },
           }}

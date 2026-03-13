@@ -58,80 +58,19 @@ public class UserService : IUserService
         page = Math.Max(1, page);
         pageSize = Math.Clamp(pageSize, 1, 100);
 
-        // Start with all users
         var query = _userManager.Users.AsQueryable();
 
-        // Organization filtering: Non-SysAdmins can only see users in their organization
-        if (!_orgContext.IsSysAdmin && _orgContext.CurrentOrganizationId.HasValue)
-        {
-            var currentOrgId = _orgContext.CurrentOrganizationId.Value;
+        // Organization filtering: non-SysAdmins are restricted to their org's members.
+        // Returns null when the caller should short-circuit with an empty response.
+        var filteredQuery = ApplyOrganizationFilter(query);
+        if (filteredQuery == null)
+            return BuildEmptyResponse(page, pageSize);
 
-            // Get user IDs who are members of the current organization
-            var orgMemberUserIds = _context.OrganizationMemberships
-                .Where(m => m.OrganizationId == currentOrgId && m.Status == MembershipStatus.Active)
-                .Select(m => m.UserId);
-
-            query = query.Where(u => orgMemberUserIds.Contains(u.Id));
-        }
-        else if (!_orgContext.IsSysAdmin && !_orgContext.CurrentOrganizationId.HasValue)
-        {
-            // User without org context can only see themselves (edge case)
-            // Return empty list for safety
-            return new UserListResponse
-            {
-                Users = new List<UserDto>(),
-                Pagination = new PaginationInfo
-                {
-                    Page = page,
-                    PageSize = pageSize,
-                    TotalCount = 0,
-                    TotalPages = 0
-                }
-            };
-        }
-
-        // Apply search filter
-        if (!string.IsNullOrWhiteSpace(search))
-        {
-            var searchLower = search.ToLowerInvariant();
-            query = query.Where(u =>
-                u.DisplayName.ToLowerInvariant().Contains(searchLower) ||
-                u.Email!.ToLowerInvariant().Contains(searchLower));
-        }
-
-        // Apply role filter (supports comma-separated values like "Admin,Manager")
-        if (!string.IsNullOrWhiteSpace(role))
-        {
-            var roleNames = role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
-            var validRoles = roleNames
-                .Where(r => Enum.TryParse<SystemRole>(r, out _))
-                .Select(r => Enum.Parse<SystemRole>(r))
-                .ToList();
-
-            if (validRoles.Count > 0)
-            {
-                query = query.Where(u => validRoles.Contains(u.SystemRole));
-            }
-        }
-
-        // Apply status filter
-        if (!string.IsNullOrWhiteSpace(status))
-        {
-            if (Enum.TryParse<UserStatus>(status, ignoreCase: true, out var userStatus))
-            {
-                query = query.Where(u => u.Status == userStatus);
-            }
-        }
-
-        // Apply organization membership filter (SysAdmin only feature)
-        if (organizationId.HasValue && _orgContext.IsSysAdmin)
-        {
-            var orgMemberUserIds = _context.OrganizationMemberships
-                .Where(m => m.OrganizationId == organizationId.Value && m.Status == MembershipStatus.Active)
-                .Select(m => m.UserId);
-
-            query = query.Where(u => orgMemberUserIds.Contains(u.Id));
-        }
+        query = filteredQuery;
+        query = ApplySearchFilter(query, search);
+        query = ApplyRoleFilter(query, role);
+        query = ApplyStatusFilter(query, status);
+        query = ApplyAdminOrganizationFilter(query, organizationId);
 
         // Get total count
         var totalCount = await query.CountAsync();
@@ -157,6 +96,112 @@ public class UserService : IUserService
         };
     }
 
+    /// <summary>
+    /// Restricts the query to members of the current organization for non-SysAdmins.
+    /// Returns <c>null</c> when the caller has no organization context and should receive an empty result.
+    /// SysAdmins receive the unmodified query.
+    /// </summary>
+    private IQueryable<ApplicationUser>? ApplyOrganizationFilter(IQueryable<ApplicationUser> query)
+    {
+        if (_orgContext.IsSysAdmin)
+            return query;
+
+        if (_orgContext.CurrentOrganizationId.HasValue)
+        {
+            var currentOrgId = _orgContext.CurrentOrganizationId.Value;
+            var orgMemberUserIds = _context.OrganizationMemberships
+                .Where(m => m.OrganizationId == currentOrgId && m.Status == MembershipStatus.Active)
+                .Select(m => m.UserId);
+
+            return query.Where(u => orgMemberUserIds.Contains(u.Id));
+        }
+
+        // Non-SysAdmin without org context — signal caller to return empty list
+        return null;
+    }
+
+    /// <summary>
+    /// Filters users by display name or email when a search term is provided.
+    /// </summary>
+    private static IQueryable<ApplicationUser> ApplySearchFilter(
+        IQueryable<ApplicationUser> query, string? search)
+    {
+        if (string.IsNullOrWhiteSpace(search))
+            return query;
+
+        var searchLower = search.ToLowerInvariant();
+        return query.Where(u =>
+            u.DisplayName.ToLowerInvariant().Contains(searchLower) ||
+            u.Email!.ToLowerInvariant().Contains(searchLower));
+    }
+
+    /// <summary>
+    /// Filters users by one or more comma-separated system role names.
+    /// Unrecognized role names are silently ignored.
+    /// </summary>
+    private static IQueryable<ApplicationUser> ApplyRoleFilter(
+        IQueryable<ApplicationUser> query, string? role)
+    {
+        if (string.IsNullOrWhiteSpace(role))
+            return query;
+
+        var roleNames = role.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        var validRoles = roleNames
+            .Where(r => Enum.TryParse<SystemRole>(r, out _))
+            .Select(r => Enum.Parse<SystemRole>(r))
+            .ToList();
+
+        return validRoles.Count > 0
+            ? query.Where(u => validRoles.Contains(u.SystemRole))
+            : query;
+    }
+
+    /// <summary>
+    /// Filters users by account status when a valid <see cref="UserStatus"/> value is provided.
+    /// </summary>
+    private static IQueryable<ApplicationUser> ApplyStatusFilter(
+        IQueryable<ApplicationUser> query, string? status)
+    {
+        if (string.IsNullOrWhiteSpace(status))
+            return query;
+
+        return Enum.TryParse<UserStatus>(status, ignoreCase: true, out var userStatus)
+            ? query.Where(u => u.Status == userStatus)
+            : query;
+    }
+
+    /// <summary>
+    /// Restricts results to members of a specific organization. Only applied for SysAdmins.
+    /// </summary>
+    private IQueryable<ApplicationUser> ApplyAdminOrganizationFilter(
+        IQueryable<ApplicationUser> query, Guid? organizationId)
+    {
+        if (!organizationId.HasValue || !_orgContext.IsSysAdmin)
+            return query;
+
+        var orgMemberUserIds = _context.OrganizationMemberships
+            .Where(m => m.OrganizationId == organizationId.Value && m.Status == MembershipStatus.Active)
+            .Select(m => m.UserId);
+
+        return query.Where(u => orgMemberUserIds.Contains(u.Id));
+    }
+
+    /// <summary>
+    /// Builds a <see cref="UserListResponse"/> with zero results for the given pagination parameters.
+    /// </summary>
+    private static UserListResponse BuildEmptyResponse(int page, int pageSize) =>
+        new()
+        {
+            Users = new List<UserDto>(),
+            Pagination = new PaginationInfo
+            {
+                Page = page,
+                PageSize = pageSize,
+                TotalCount = 0,
+                TotalPages = 0
+            }
+        };
+
     /// <inheritdoc />
     public async Task<UserDto?> GetUserByIdAsync(Guid id)
     {
@@ -167,21 +212,7 @@ public class UserService : IUserService
     /// <inheritdoc />
     public async Task<UserDto> CreateUserAsync(CreateUserRequest request, string createdById, bool isCreatorAdmin)
     {
-        // Validate request
-        if (string.IsNullOrWhiteSpace(request.DisplayName))
-        {
-            throw new ArgumentException("Display name is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Email))
-        {
-            throw new ArgumentException("Email is required");
-        }
-
-        if (string.IsNullOrWhiteSpace(request.Password))
-        {
-            throw new ArgumentException("Password is required");
-        }
+        ValidateCreateUserRequest(request);
 
         // Check for duplicate email
         var existingUser = await _userManager.FindByEmailAsync(request.Email);
@@ -211,26 +242,50 @@ public class UserService : IUserService
         };
 
         var result = await _userManager.CreateAsync(user, request.Password);
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.ToList();
-
-            // Check for duplicate email error from Identity
-            if (errors.Any(e => e.Code == "DuplicateEmail" || e.Code == "DuplicateUserName"))
-            {
-                throw new InvalidOperationException("A user with this email already exists");
-            }
-
-            // Return password validation errors
-            var errorMessages = string.Join("; ", errors.Select(e => e.Description));
-            throw new ArgumentException($"Failed to create user: {errorMessages}");
-        }
+        HandleCreateUserResult(result);
 
         _logger.LogInformation(
             "User {NewUserId} created by {CreatorId} via inline creation. Email: {Email}, Role: {Role}",
             user.Id, createdById, user.Email, user.SystemRole);
 
         return user.ToDto();
+    }
+
+    /// <summary>
+    /// Validates that DisplayName, Email, and Password are all non-empty.
+    /// Throws <see cref="ArgumentException"/> if any field is missing.
+    /// </summary>
+    private static void ValidateCreateUserRequest(CreateUserRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.DisplayName))
+            throw new ArgumentException("Display name is required");
+
+        if (string.IsNullOrWhiteSpace(request.Email))
+            throw new ArgumentException("Email is required");
+
+        if (string.IsNullOrWhiteSpace(request.Password))
+            throw new ArgumentException("Password is required");
+    }
+
+    /// <summary>
+    /// Interprets an <see cref="IdentityResult"/> from <c>CreateAsync</c>.
+    /// Maps duplicate-email/username errors to <see cref="InvalidOperationException"/>
+    /// and all other failures to <see cref="ArgumentException"/>.
+    /// Does nothing when the result succeeded.
+    /// </summary>
+    private static void HandleCreateUserResult(IdentityResult result)
+    {
+        if (result.Succeeded) return;
+
+        var errors = result.Errors.ToList();
+
+        // Check for duplicate email error from Identity
+        if (errors.Any(e => e.Code == "DuplicateEmail" || e.Code == "DuplicateUserName"))
+            throw new InvalidOperationException("A user with this email already exists");
+
+        // Return password validation errors
+        var errorMessages = string.Join("; ", errors.Select(e => e.Description));
+        throw new ArgumentException($"Failed to create user: {errorMessages}");
     }
 
     /// <inheritdoc />

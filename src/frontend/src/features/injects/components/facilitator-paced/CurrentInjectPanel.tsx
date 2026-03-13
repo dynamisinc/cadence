@@ -18,6 +18,7 @@ import {
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
+  faEye,
   faFire,
   faForwardStep,
   faBook,
@@ -59,6 +60,8 @@ interface CurrentInjectPanelProps {
   onFire: () => void
   /** Called when Skip button clicked */
   onSkip: () => void
+  /** Called when View button clicked to open the detail drawer */
+  onView?: () => void
   /** Whether the current user can control injects */
   canControl?: boolean
   /** Whether actions are currently being submitted */
@@ -69,6 +72,7 @@ export const CurrentInjectPanel = ({
   inject,
   onFire,
   onSkip,
+  onView,
   canControl = true,
   isSubmitting = false,
 }: CurrentInjectPanelProps) => {
@@ -85,17 +89,15 @@ export const CurrentInjectPanel = ({
       }}
     >
       <Stack spacing={2}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Stack direction="row" spacing={2} alignItems="center">
+        {/* Header Row: label + type/time chips + action buttons */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+          <Stack direction="row" spacing={1} alignItems="center" sx={{ mr: 'auto' }}>
             <Box sx={{ color: 'primary.main' }}>
               <FontAwesomeIcon icon={faBook} size="lg" />
             </Box>
             <Typography variant="h6" fontWeight={600}>
               CURRENT INJECT
             </Typography>
-          </Stack>
-          <Stack direction="row" spacing={1} alignItems="center">
             <InjectTypeChip type={inject.injectType} />
             {scenarioTimeDisplay && (
               <Chip
@@ -106,6 +108,38 @@ export const CurrentInjectPanel = ({
               />
             )}
           </Stack>
+
+          {/* Action buttons in the header row */}
+          {onView && (
+            <CobraSecondaryButton
+              size="small"
+              startIcon={<FontAwesomeIcon icon={faEye} />}
+              onClick={onView}
+            >
+              View
+            </CobraSecondaryButton>
+          )}
+          {canControl && (
+            <>
+              <CobraSecondaryButton
+                size="small"
+                startIcon={<FontAwesomeIcon icon={faForwardStep} />}
+                onClick={onSkip}
+                disabled={isSubmitting}
+              >
+                Skip
+              </CobraSecondaryButton>
+              <CobraPrimaryButton
+                size="small"
+                startIcon={<FontAwesomeIcon icon={faFire} />}
+                onClick={onFire}
+                disabled={isSubmitting}
+                sx={{ fontWeight: 600 }}
+              >
+                Fire & Continue
+              </CobraPrimaryButton>
+            </>
+          )}
         </Box>
 
         {/* Inject Number and Title */}
@@ -282,31 +316,6 @@ export const CurrentInjectPanel = ({
           </>
         )}
 
-        {/* Action Buttons */}
-        {canControl && (
-          <>
-            <Divider />
-            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, pt: 1 }}>
-              <CobraSecondaryButton
-                onClick={onSkip}
-                disabled={isSubmitting}
-                startIcon={<FontAwesomeIcon icon={faForwardStep} />}
-                size="large"
-              >
-                Skip
-              </CobraSecondaryButton>
-              <CobraPrimaryButton
-                onClick={onFire}
-                disabled={isSubmitting}
-                startIcon={<FontAwesomeIcon icon={faFire} />}
-                size="large"
-                sx={{ px: 4 }}
-              >
-                FIRE & CONTINUE
-              </CobraPrimaryButton>
-            </Box>
-          </>
-        )}
       </Stack>
     </Paper>
   )

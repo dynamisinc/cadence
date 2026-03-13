@@ -29,6 +29,7 @@ import {
   faBell,
   faChevronDown,
   faChevronUp,
+  faEye,
   faFire,
   faForwardStep,
 } from '@fortawesome/free-solid-svg-icons'
@@ -208,14 +209,20 @@ export const ReadyToFireSection = ({
                       <Paper
                         variant="outlined"
                         sx={{
-                          p: 2,
+                          p: 1.5,
                           backgroundColor: 'background.paper',
                           border: '2px solid',
                           borderColor: overdue ? 'error.main' : 'warning.light',
                         }}
                       >
-                        {/* Inject Header */}
-                        <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 1.5 }}>
+                        {/* Inject Header Row: metadata + actions all in one line */}
+                        <Stack
+                          direction="row"
+                          spacing={1}
+                          alignItems="center"
+                          sx={{ mb: 1 }}
+                        >
+                          {/* Left: number, status chips, time */}
                           <Chip
                             label={`#${inject.injectNumber}`}
                             size="small"
@@ -239,7 +246,6 @@ export const ReadyToFireSection = ({
                               {formatDeliveryTime(parseDeliveryTime(inject.deliveryTime) ?? 0)}
                             </Typography>
                           )}
-                          {/* Scenario Time - show if defined */}
                           {formatScenarioTime(inject.scenarioDay, inject.scenarioTime) && (
                             <Chip
                               label={formatScenarioTime(inject.scenarioDay, inject.scenarioTime)}
@@ -249,17 +255,47 @@ export const ReadyToFireSection = ({
                               sx={{ fontFamily: 'monospace' }}
                             />
                           )}
+
+                          {/* Spacer */}
+                          <Box sx={{ flex: 1 }} />
+
+                          {/* Right: View + action buttons */}
+                          {onInjectClick && (
+                            <CobraSecondaryButton
+                              size="small"
+                              startIcon={<FontAwesomeIcon icon={faEye} />}
+                              onClick={() => onInjectClick(inject)}
+                            >
+                              View
+                            </CobraSecondaryButton>
+                          )}
+                          {canControl && (
+                            <>
+                              <CobraSecondaryButton
+                                size="small"
+                                startIcon={<FontAwesomeIcon icon={faForwardStep} />}
+                                onClick={() => handleSkipClick(inject.id)}
+                                disabled={isSubmitting}
+                              >
+                                Skip
+                              </CobraSecondaryButton>
+                              <CobraPrimaryButton
+                                size="small"
+                                startIcon={<FontAwesomeIcon icon={faFire} />}
+                                onClick={() => onFire(inject.id)}
+                                disabled={isSubmitting}
+                                sx={{ fontWeight: 600 }}
+                              >
+                                Fire
+                              </CobraPrimaryButton>
+                            </>
+                          )}
                         </Stack>
 
-                        {/* Inject Title - clickable to open drawer */}
+                        {/* Inject Title */}
                         <Typography
                           variant="h6"
-                          sx={{
-                            mb: 1,
-                            cursor: onInjectClick ? 'pointer' : 'default',
-                            '&:hover': onInjectClick ? { textDecoration: 'underline' } : {},
-                          }}
-                          onClick={() => onInjectClick?.(inject)}
+                          sx={{ mb: 0.5 }}
                         >
                           {inject.title}
                         </Typography>
@@ -269,9 +305,9 @@ export const ReadyToFireSection = ({
                           variant="body2"
                           color="text.secondary"
                           sx={{
-                            mb: 2,
+                            mb: 1,
                             fontStyle: 'italic',
-                            p: 1.5,
+                            p: 1,
                             backgroundColor: 'grey.50',
                             borderRadius: 1,
                             borderLeft: '3px solid',
@@ -282,44 +318,23 @@ export const ReadyToFireSection = ({
                         </Typography>
 
                         {/* Delivery Context */}
-                        <Stack spacing={0.5} sx={{ mb: 2 }}>
-                          {inject.target && (
-                            <Typography variant="body2">
-                              <strong>To:</strong> {inject.target}
-                            </Typography>
-                          )}
-                          {inject.source && (
-                            <Typography variant="body2">
-                              <strong>From:</strong> {inject.source}
-                            </Typography>
-                          )}
-                          {inject.deliveryMethodName && (
-                            <Typography variant="body2">
-                              <strong>Method:</strong> {inject.deliveryMethodName}
-                            </Typography>
-                          )}
-                        </Stack>
-
-                        {/* Action Buttons */}
-                        {canControl && (
-                          <Stack direction="row" spacing={1} justifyContent="flex-end">
-                            <CobraSecondaryButton
-                              size="small"
-                              startIcon={<FontAwesomeIcon icon={faForwardStep} />}
-                              onClick={() => handleSkipClick(inject.id)}
-                              disabled={isSubmitting}
-                            >
-                              Skip
-                            </CobraSecondaryButton>
-                            <CobraPrimaryButton
-                              size="large"
-                              startIcon={<FontAwesomeIcon icon={faFire} />}
-                              onClick={() => onFire(inject.id)}
-                              disabled={isSubmitting}
-                              sx={{ fontWeight: 600 }}
-                            >
-                              FIRE INJECT
-                            </CobraPrimaryButton>
+                        {(inject.target || inject.source || inject.deliveryMethodName) && (
+                          <Stack direction="row" spacing={2} flexWrap="wrap">
+                            {inject.target && (
+                              <Typography variant="body2">
+                                <strong>To:</strong> {inject.target}
+                              </Typography>
+                            )}
+                            {inject.source && (
+                              <Typography variant="body2">
+                                <strong>From:</strong> {inject.source}
+                              </Typography>
+                            )}
+                            {inject.deliveryMethodName && (
+                              <Typography variant="body2">
+                                <strong>Via:</strong> {inject.deliveryMethodName}
+                              </Typography>
+                            )}
                           </Stack>
                         )}
                       </Paper>

@@ -29,6 +29,7 @@ import {
   faInfoCircle,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { cobraTheme } from '@/theme/cobraTheme'
 import { useCapabilityPerformance } from '../hooks/useCapabilityPerformance'
 import type {
   CapabilityPerformanceSummaryDto,
@@ -41,13 +42,13 @@ interface CapabilityPerformancePanelProps {
 }
 
 /**
- * Rating colors matching HSEEP P/S/M/U scale
+ * Rating colors matching HSEEP P/S/M/U scale — sourced from COBRA theme rating palette
  */
 const RATING_COLORS = {
-  performed: '#4CAF50',      // Green
-  satisfactory: '#2196F3',   // Blue
-  marginal: '#FFC107',       // Amber
-  unsatisfactory: '#F44336', // Red
+  performed: cobraTheme.palette.rating.performed.main,
+  satisfactory: cobraTheme.palette.rating.satisfactory.main,
+  marginal: cobraTheme.palette.rating.marginal.main,
+  unsatisfactory: cobraTheme.palette.rating.unsatisfactory.main,
 }
 
 /**
@@ -64,7 +65,7 @@ const getPerformanceColor = (level: string) => {
     case 'Critical':
       return RATING_COLORS.unsatisfactory
     default:
-      return '#9E9E9E'
+      return cobraTheme.palette.rating.unrated.main
   }
 }
 

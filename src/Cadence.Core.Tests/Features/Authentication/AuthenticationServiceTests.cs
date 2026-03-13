@@ -24,6 +24,7 @@ public class AuthenticationServiceTests : IDisposable
     private readonly Mock<ITokenService> _tokenServiceMock;
     private readonly Mock<IRefreshTokenStore> _refreshTokenStoreMock;
     private readonly Mock<ILogger<AuthenticationService>> _loggerMock;
+    private readonly Mock<IPasswordResetService> _passwordResetServiceMock;
     private readonly AuthenticationOptions _options;
     private readonly AuthenticationService _sut;
 
@@ -39,6 +40,7 @@ public class AuthenticationServiceTests : IDisposable
         _tokenServiceMock = new Mock<ITokenService>();
         _refreshTokenStoreMock = new Mock<IRefreshTokenStore>();
         _loggerMock = new Mock<ILogger<AuthenticationService>>();
+        _passwordResetServiceMock = new Mock<IPasswordResetService>();
 
         _options = new AuthenticationOptions
         {
@@ -57,7 +59,8 @@ public class AuthenticationServiceTests : IDisposable
             _refreshTokenStoreMock.Object,
             _context,
             Options.Create(_options),
-            _loggerMock.Object);
+            _loggerMock.Object,
+            _passwordResetServiceMock.Object);
 
         // Setup default token generation behavior
         _tokenServiceMock

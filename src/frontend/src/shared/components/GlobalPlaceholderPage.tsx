@@ -7,6 +7,7 @@
  */
 
 import { Box, Typography, Paper } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faHardHat, faHome } from '@fortawesome/free-solid-svg-icons'
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core'
@@ -24,6 +25,7 @@ export const GlobalPlaceholderPage = ({
   description,
   icon,
 }: GlobalPlaceholderPageProps) => {
+  const theme = useTheme()
   // Set breadcrumbs
   useBreadcrumbs([
     { label: 'Home', path: '/', icon: faHome },
@@ -44,7 +46,7 @@ export const GlobalPlaceholderPage = ({
         <FontAwesomeIcon
           icon={icon ?? faHardHat}
           size="3x"
-          style={{ color: '#f59e0b', marginBottom: 16 }}
+          style={{ color: theme.palette.semantic.warningAmber, marginBottom: 16 }}
         />
         <Typography variant="h5" gutterBottom>
           {featureName}

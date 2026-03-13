@@ -1,8 +1,11 @@
+using System.Diagnostics.CodeAnalysis;
+
 namespace Cadence.Core.Logging;
 
 /// <summary>
 /// Extension methods for structured logging with consistent patterns.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class LoggingExtensions
 {
     // =========================================================================

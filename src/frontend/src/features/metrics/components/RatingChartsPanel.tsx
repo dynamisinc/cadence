@@ -38,6 +38,7 @@ import {
   CartesianGrid,
 } from 'recharts'
 
+import { cobraTheme } from '@/theme/cobraTheme'
 import { useObservationSummary } from '../hooks/useObservationSummary'
 import type {
   RatingDistributionDto,
@@ -49,14 +50,14 @@ interface RatingChartsPanelProps {
 }
 
 /**
- * HSEEP P/S/M/U rating colors
+ * HSEEP P/S/M/U rating colors — sourced from COBRA theme rating palette
  */
 const RATING_COLORS = {
-  performed: '#4CAF50',      // Green
-  satisfactory: '#2196F3',   // Blue
-  marginal: '#FFC107',       // Amber
-  unsatisfactory: '#F44336', // Red
-  unrated: '#9E9E9E',        // Grey
+  performed: cobraTheme.palette.rating.performed.main,
+  satisfactory: cobraTheme.palette.rating.satisfactory.main,
+  marginal: cobraTheme.palette.rating.marginal.main,
+  unsatisfactory: cobraTheme.palette.rating.unsatisfactory.main,
+  unrated: cobraTheme.palette.rating.unrated.main,
 }
 
 type ViewMode = 'overall' | 'byPhase'
@@ -129,7 +130,7 @@ const BarTooltip = ({
             {total > 0 ? ((entry.value / total) * 100).toFixed(0) : 0}%)
           </Typography>
         ))}
-        <Typography variant="body2" sx={{ mt: 0.5, pt: 0.5, borderTop: '1px solid #eee' }}>
+        <Typography variant="body2" sx={{ mt: 0.5, pt: 0.5, borderTop: `1px solid ${cobraTheme.palette.neutral[200]}` }}>
           Total: {total}
         </Typography>
       </Paper>
@@ -346,7 +347,7 @@ export const RatingChartsPanel = ({ exerciseId }: RatingChartsPanelProps) => {
       const html2canvas = html2canvasModule.default
 
       const canvas = await html2canvas(chartRef.current, {
-        backgroundColor: '#ffffff',
+        backgroundColor: cobraTheme.palette.common.white,
         scale: 2, // High resolution
       })
 

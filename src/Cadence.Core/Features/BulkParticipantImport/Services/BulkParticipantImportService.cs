@@ -186,8 +186,6 @@ public class BulkParticipantImportService : IBulkParticipantImportService
         var rowOutcomes = new List<ImportRowOutcome>();
 
         // Use a transaction so all-or-nothing semantics apply to the full import batch.
-        // TODO: migrate _sessions to IDistributedCache (Redis/SQL) so import state
-        //       survives App Service restarts and scale-out. Tracked: CD-C01.
         await using var transaction = await _context.Database.BeginTransactionAsync();
         try
         {

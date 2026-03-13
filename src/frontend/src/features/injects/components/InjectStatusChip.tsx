@@ -1,4 +1,5 @@
 import { Chip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faPencil,
@@ -24,74 +25,18 @@ interface InjectStatusChipProps {
  */
 interface StatusConfig {
   label: string
-  bgColor: string
-  textColor: string
   icon: IconDefinition
 }
 
-const statusConfig: Record<string, StatusConfig> = {
-  Draft: {
-    label: 'Draft',
-    bgColor: '#E0E0E0',
-    textColor: '#616161',
-    icon: faPencil,
-  },
-  Submitted: {
-    label: 'Submitted',
-    bgColor: '#FFE0B2',
-    textColor: '#F57C00',
-    icon: faClock,
-  },
-  Approved: {
-    label: 'Approved',
-    bgColor: '#C8E6C9',
-    textColor: '#388E3C',
-    icon: faCheck,
-  },
-  Synchronized: {
-    label: 'Synchronized',
-    bgColor: '#BBDEFB',
-    textColor: '#1976D2',
-    icon: faCalendarCheck,
-  },
-  Released: {
-    label: 'Released',
-    bgColor: '#E1BEE7',
-    textColor: '#7B1FA2',
-    icon: faPaperPlane,
-  },
-  Complete: {
-    label: 'Complete',
-    bgColor: '#A5D6A7',
-    textColor: '#1B5E20',
-    icon: faCircleCheck,
-  },
-  Deferred: {
-    label: 'Deferred',
-    bgColor: '#FFCC80',
-    textColor: '#E65100',
-    icon: faBan,
-  },
-  Obsolete: {
-    label: 'Obsolete',
-    bgColor: '#F5F5F5',
-    textColor: '#9E9E9E',
-    icon: faArchive,
-  },
-}
-
-/**
- * Get inject status chip configuration
- */
-const getStatusConfig = (status: string): StatusConfig => {
-  return (
-    statusConfig[status] || {
-      label: status,
-      bgColor: '#E0E0E0',
-      textColor: '#616161',
-      icon: faPencil,
-    }
-  )
+const statusIconConfig: Record<string, StatusConfig> = {
+  Draft: { label: 'Draft', icon: faPencil },
+  Submitted: { label: 'Submitted', icon: faClock },
+  Approved: { label: 'Approved', icon: faCheck },
+  Synchronized: { label: 'Synchronized', icon: faCalendarCheck },
+  Released: { label: 'Released', icon: faPaperPlane },
+  Complete: { label: 'Complete', icon: faCircleCheck },
+  Deferred: { label: 'Deferred', icon: faBan },
+  Obsolete: { label: 'Obsolete', icon: faArchive },
 }
 
 /**
@@ -111,7 +56,16 @@ export const InjectStatusChip = ({
   status,
   size = 'small',
 }: InjectStatusChipProps) => {
-  const config = getStatusConfig(status)
+  const theme = useTheme()
+
+  const statusKey = status.toLowerCase() as keyof typeof theme.palette.injectStatus
+  const colors =
+    theme.palette.injectStatus[statusKey] ?? theme.palette.injectStatus.draft
+
+  const config = statusIconConfig[status] ?? {
+    label: status,
+    icon: faPencil,
+  }
 
   return (
     <Chip
@@ -120,16 +74,16 @@ export const InjectStatusChip = ({
       icon={
         <FontAwesomeIcon
           icon={config.icon}
-          style={{ color: config.textColor, marginLeft: 8 }}
+          style={{ color: colors.text, marginLeft: 8 }}
         />
       }
       sx={{
-        backgroundColor: config.bgColor,
-        color: config.textColor,
+        backgroundColor: colors.bg,
+        color: colors.text,
         fontWeight: 500,
         minWidth: 90,
         '& .MuiChip-icon': {
-          color: config.textColor,
+          color: colors.text,
         },
       }}
     />

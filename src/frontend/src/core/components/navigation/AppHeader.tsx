@@ -12,7 +12,7 @@
  */
 
 import React from 'react'
-import { AppBar, Toolbar, IconButton, Typography, Box } from '@mui/material'
+import { AppBar, Toolbar, Typography, Box } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { Link } from 'react-router-dom'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
@@ -21,6 +21,7 @@ import { ProfileMenu } from '../ProfileMenu'
 import { ConnectionStatusIndicator } from '../ConnectionStatusIndicator'
 import { NotificationBell } from '@/features/notifications'
 import { OrganizationSwitcher } from '@/shared/components/OrganizationSwitcher'
+import { CobraIconButton } from '@/theme/styledComponents'
 
 interface AppHeaderProps {
   onMobileMenuToggle: () => void;
@@ -50,18 +51,18 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
         }}
       >
         {/* Mobile Menu Toggle */}
-        {/* COBRA exception: hamburger menu requires color="inherit" for white-on-dark header */}
-        <IconButton
-          color="inherit"
+        <CobraIconButton
           onClick={onMobileMenuToggle}
           data-testid="mobile-menu-toggle"
+          aria-label="Open navigation menu"
           sx={{
             display: { md: 'none' },
             ml: 1,
+            color: 'inherit',
           }}
         >
           <FontAwesomeIcon icon={faBars} />
-        </IconButton>
+        </CobraIconButton>
 
         {/* Logo + Title - links to home */}
         <Link
@@ -88,7 +89,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
             data-testid="app-title"
             sx={{
               fontWeight: 'bold',
-              color: '#ffffff',
+              color: theme.palette.common.white,
               pl: { xs: 1, md: 2 },
             }}
           >

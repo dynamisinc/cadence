@@ -1,4 +1,5 @@
 import { Box, Typography, LinearProgress, Stack } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faMapMarkerAlt,
@@ -11,6 +12,7 @@ import {
 } from '@fortawesome/free-solid-svg-icons'
 import type { ExerciseDto } from '../types'
 import type { ExerciseRole } from '@/features/auth'
+import type { Theme } from '@mui/material/styles'
 
 // =========================================================================
 // Types
@@ -46,17 +48,18 @@ const formatElapsedTime = (seconds: number): string => {
  * Get clock state icon and color based on state
  */
 const getClockDisplay = (
-  clockState?: string | null,
+  clockState: string | null | undefined,
+  theme: Theme,
 ): { icon: typeof faPlay; color: string } => {
   switch (clockState) {
     case 'Running':
-      return { icon: faPlay, color: '#4caf50' } // Green
+      return { icon: faPlay, color: theme.palette.clockStatus.running }
     case 'Paused':
-      return { icon: faPause, color: '#ff9800' } // Orange
+      return { icon: faPause, color: theme.palette.clockStatus.paused }
     case 'Stopped':
-      return { icon: faStop, color: '#757575' } // Gray
+      return { icon: faStop, color: theme.palette.clockStatus.stopped }
     default:
-      return { icon: faStop, color: '#757575' }
+      return { icon: faStop, color: theme.palette.clockStatus.stopped }
   }
 }
 
@@ -78,7 +81,8 @@ export const ExerciseDetailRow = ({
   userRole,
   showOrganization,
 }: ExerciseDetailRowProps) => {
-  const clockDisplay = getClockDisplay(exercise.clockState)
+  const theme = useTheme()
+  const clockDisplay = getClockDisplay(exercise.clockState, theme)
   const progressPercentage =
     exercise.injectCount > 0
       ? (exercise.firedInjectCount / exercise.injectCount) * 100
@@ -113,7 +117,7 @@ export const ExerciseDetailRow = ({
           <Box display="flex" alignItems="center" gap={1}>
             <FontAwesomeIcon
               icon={faMapMarkerAlt}
-              style={{ color: '#666', fontSize: '0.875rem' }}
+              style={{ color: theme.palette.neutral[600], fontSize: '0.875rem' }}
             />
             <Typography variant="body2" color="text.secondary">
               {exercise.location}
@@ -126,7 +130,7 @@ export const ExerciseDetailRow = ({
           <Box display="flex" alignItems="center" gap={1}>
             <FontAwesomeIcon
               icon={faBuilding}
-              style={{ color: '#666', fontSize: '0.875rem' }}
+              style={{ color: theme.palette.neutral[600], fontSize: '0.875rem' }}
             />
             <Typography variant="body2" color="text.secondary">
               {exercise.organizationName}
@@ -139,7 +143,7 @@ export const ExerciseDetailRow = ({
           <Box display="flex" alignItems="center" gap={1}>
             <FontAwesomeIcon
               icon={faClock}
-              style={{ color: '#666', fontSize: '0.875rem' }}
+              style={{ color: theme.palette.neutral[600], fontSize: '0.875rem' }}
             />
             <Typography variant="body2" color="text.secondary">
               Elapsed: {formatElapsedTime(exercise.elapsedSeconds || 0)}
@@ -159,7 +163,7 @@ export const ExerciseDetailRow = ({
           <Box display="flex" alignItems="center" gap={1}>
             <FontAwesomeIcon
               icon={faBolt}
-              style={{ color: '#ff9800', fontSize: '0.875rem' }}
+              style={{ color: theme.palette.semantic.warning, fontSize: '0.875rem' }}
             />
             <Typography variant="body2" sx={{ color: 'warning.main', fontWeight: 500 }}>
               {exercise.readyInjectCount}{' '}

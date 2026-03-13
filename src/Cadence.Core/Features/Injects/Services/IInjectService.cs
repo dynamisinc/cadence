@@ -13,13 +13,19 @@ public interface IInjectService
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="injectId">The inject ID</param>
     /// <param name="userId">The user who fired the inject, or null for system auto-fire</param>
+    /// <param name="notes">Optional delivery notes appended to ControllerNotes</param>
     /// <param name="cancellationToken">Cancellation token</param>
-    Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, string? userId, CancellationToken cancellationToken = default);
+    Task<InjectDto> FireInjectAsync(Guid exerciseId, Guid injectId, string? userId, string? notes = null, CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Skip an inject (intentionally not delivered).
     /// </summary>
-    Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, string userId, CancellationToken cancellationToken = default);
+    /// <param name="exerciseId">The exercise ID</param>
+    /// <param name="injectId">The inject ID</param>
+    /// <param name="userId">The user who is skipping the inject</param>
+    /// <param name="skipReason">Reason for skipping. Defaults to "Skipped". Max 500 characters.</param>
+    /// <param name="cancellationToken">Cancellation token</param>
+    Task<InjectDto> SkipInjectAsync(Guid exerciseId, Guid injectId, string userId, string skipReason = "Skipped", CancellationToken cancellationToken = default);
 
     /// <summary>
     /// Reset an inject back to pending status.
@@ -75,7 +81,8 @@ public interface IInjectService
 
     /// <summary>
     /// Batch approve multiple submitted injects.
-    /// Self-submissions are automatically skipped.
+    /// Self-submissions are automatically skipped based on the organization's self-approval policy.
+    /// Delegates to <see cref="IInjectBatchApprovalService"/> for the canonical implementation.
     /// </summary>
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="injectIds">List of inject IDs to approve</param>
@@ -86,6 +93,7 @@ public interface IInjectService
 
     /// <summary>
     /// Batch reject multiple submitted injects.
+    /// Delegates to <see cref="IInjectBatchApprovalService"/> for the canonical implementation.
     /// </summary>
     /// <param name="exerciseId">The exercise ID</param>
     /// <param name="injectIds">List of inject IDs to reject</param>

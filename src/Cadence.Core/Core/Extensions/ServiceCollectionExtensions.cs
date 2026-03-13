@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Cadence.Core.Data.Interceptors;
 using Cadence.Core.Features.Assignments.Services;
 using Cadence.Core.Features.Autocomplete.Services;
@@ -19,6 +20,7 @@ using Cadence.Core.Features.Observations.Services;
 using Cadence.Core.Features.Phases.Services;
 using Cadence.Core.Features.Organizations.Services;
 using Cadence.Core.Features.Users.Services;
+using Cadence.Core.Features.Authentication.Services;
 using Cadence.Core.Features.Eeg.Services;
 using Cadence.Core.Features.Email.Services;
 using Cadence.Core.Features.Photos.Services;
@@ -31,6 +33,7 @@ namespace Cadence.Core.Extensions;
 /// <summary>
 /// Extension methods for configuring dependency injection.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public static class ServiceCollectionExtensions
 {
     /// <summary>
@@ -48,6 +51,7 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IObservationService, ObservationService>();
         services.AddScoped<IPhotoService, PhotoService>();
         services.AddScoped<IInjectService, InjectService>();
+        services.AddScoped<IInjectBatchApprovalService, InjectBatchApprovalService>();
         services.AddScoped<IInjectCrudService, InjectCrudService>();
         services.AddScoped<IInjectReadinessService, InjectReadinessService>();
         services.AddScoped<IExerciseClockService, ExerciseClockService>();
@@ -63,6 +67,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<IDeliveryMethodService, DeliveryMethodService>();
         services.AddScoped<IAutocompleteService, AutocompleteService>();
         services.AddScoped<IOrganizationSuggestionService, OrganizationSuggestionService>();
+        // ImportSessionStore is a singleton because session state must outlive individual
+        // HTTP requests. The DI-provided instance is injected into ExcelImportService.
+        services.AddSingleton<IImportSessionStore, ImportSessionStore>();
         services.AddScoped<IExcelImportService, ExcelImportService>();
         LegacyExcelReader.EnsureEncodingRegistered(); // Required for .xls (BIFF) file support
         services.AddScoped<IExcelExportService, ExcelExportService>();
@@ -115,6 +122,9 @@ public static class ServiceCollectionExtensions
         services.AddScoped<AuthenticationEmailService>();
         services.AddScoped<Cadence.Core.Features.Authentication.Services.IEmailService>(sp =>
             sp.GetRequiredService<AuthenticationEmailService>());
+
+        // Authentication Services
+        services.AddScoped<IPasswordResetService, PasswordResetService>();
 
         // System Settings Services
         services.AddScoped<ISystemSettingsService, SystemSettingsService>();

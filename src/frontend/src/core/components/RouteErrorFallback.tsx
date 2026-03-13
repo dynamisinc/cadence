@@ -38,6 +38,9 @@ import {
 import CobraStyles from '@/theme/CobraStyles'
 import { useState } from 'react'
 
+/** Duration to show the "Copied!" feedback before resetting (ms) */
+const COPY_FEEDBACK_DURATION_MS = 2000
+
 export const RouteErrorFallback = () => {
   const error = useRouteError()
   const navigate = useNavigate()
@@ -72,7 +75,7 @@ export const RouteErrorFallback = () => {
     try {
       await navigator.clipboard.writeText(text)
       setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      setTimeout(() => setCopied(false), COPY_FEEDBACK_DURATION_MS)
     } catch (err) {
       console.error('Failed to copy error details:', err)
     }
@@ -124,7 +127,7 @@ export const RouteErrorFallback = () => {
             icon={faLifeRing}
             style={{
               fontSize: isTablet ? '36px' : '28px',
-              color: '#1e3a5f',
+              color: theme.palette.buttonPrimary.main,
             }}
           />
         </Box>
@@ -233,7 +236,7 @@ export const RouteErrorFallback = () => {
                       icon={copied ? faCheck : faCopy}
                       style={{
                         fontSize: '14px',
-                        color: copied ? '#08682a' : undefined,
+                        color: copied ? theme.palette.success.main : undefined,
                       }}
                     />
                   </IconButton>

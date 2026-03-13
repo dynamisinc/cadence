@@ -12,6 +12,7 @@ namespace Cadence.Core.Features.Authentication.Services;
 /// <summary>
 /// Orchestrates authentication across multiple providers (local Identity, Azure Entra, etc.).
 /// All authentication flows ultimately issue Cadence JWTs regardless of original auth method.
+/// Password reset flows are delegated to <see cref="IPasswordResetService"/>.
 /// </summary>
 public class AuthenticationService : IAuthenticationService
 {
@@ -22,7 +23,11 @@ public class AuthenticationService : IAuthenticationService
     private readonly AuthenticationOptions _options;
     private readonly ILogger<AuthenticationService> _logger;
     private readonly IEmailService? _emailService;
+    private readonly IPasswordResetService _passwordResetService;
 
+    /// <summary>
+    /// Initializes a new instance of <see cref="AuthenticationService"/>.
+    /// </summary>
     public AuthenticationService(
         UserManager<ApplicationUser> userManager,
         ITokenService tokenService,
@@ -30,6 +35,7 @@ public class AuthenticationService : IAuthenticationService
         AppDbContext context,
         IOptions<AuthenticationOptions> options,
         ILogger<AuthenticationService> logger,
+        IPasswordResetService passwordResetService,
         IEmailService? emailService = null)
     {
         _userManager = userManager;
@@ -38,6 +44,7 @@ public class AuthenticationService : IAuthenticationService
         _context = context;
         _options = options.Value;
         _logger = logger;
+        _passwordResetService = passwordResetService;
         _emailService = emailService;
     }
 
@@ -206,20 +213,7 @@ public class AuthenticationService : IAuthenticationService
                 Organization? organization = null;
                 if (isFirstUser)
                 {
-                    organization = await _context.Organizations.FirstOrDefaultAsync();
-                    if (organization == null)
-                    {
-                        organization = new Organization
-                        {
-                            Id = Guid.NewGuid(),
-                            Name = "Default Organization",
-                            Description = "Default organization for Cadence users",
-                            CreatedAt = DateTime.UtcNow,
-                            UpdatedAt = DateTime.UtcNow
-                        };
-                        _context.Organizations.Add(organization);
-                        await _context.SaveChangesAsync();
-                    }
+                    organization = await EnsureDefaultOrganizationAsync();
                 }
 
                 var user = new ApplicationUser
@@ -252,21 +246,7 @@ public class AuthenticationService : IAuthenticationService
                 // First user gets org membership + admin role; others join via invitations
                 if (isFirstUser && organization != null)
                 {
-                    var membership = new OrganizationMembership
-                    {
-                        Id = Guid.NewGuid(),
-                        UserId = user.Id,
-                        OrganizationId = organization.Id,
-                        Role = OrgRole.OrgAdmin,
-                        Status = MembershipStatus.Active,
-                        JoinedAt = DateTime.UtcNow,
-                        CreatedAt = DateTime.UtcNow,
-                        UpdatedAt = DateTime.UtcNow
-                    };
-                    _context.OrganizationMemberships.Add(membership);
-
-                    user.CurrentOrganizationId = organization.Id;
-                    await _userManager.UpdateAsync(user);
+                    await CreateFirstUserMembershipAsync(user, organization);
                 }
 
                 await transaction.CommitAsync();
@@ -434,18 +414,7 @@ public class AuthenticationService : IAuthenticationService
             });
         }
 
-        // Future: Add Entra when enabled
-        // if (_options.Entra.Enabled)
-        // {
-        //     methods.Add(new AuthMethod
-        //     {
-        //         Provider = "Entra",
-        //         DisplayName = "Sign in with Microsoft",
-        //         Icon = "microsoft",
-        //         IsEnabled = true,
-        //         IsExternal = true
-        //     });
-        // }
+        // Future: Entra ID support (see external auth story)
 
         return methods;
     }
@@ -463,176 +432,74 @@ public class AuthenticationService : IAuthenticationService
 
     /// <summary>
     /// Request a password reset for the specified email address.
+    /// Delegates to <see cref="IPasswordResetService"/> for all reset-specific logic.
     /// Always returns success to prevent email enumeration attacks.
     /// </summary>
-    public async Task<bool> RequestPasswordResetAsync(string email, string? ipAddress = null)
-    {
-        var user = await _userManager.FindByEmailAsync(email);
-        if (user == null)
-        {
-            // Don't reveal whether email exists - always return success
-            _logger.LogInformation("Password reset requested for non-existent email");
-            return true;
-        }
-
-        // Check if user is deactivated
-        if (user.Status == UserStatus.Disabled)
-        {
-            _logger.LogWarning("Password reset requested for deactivated user: {UserId}", user.Id);
-            return true; // Still return success to prevent enumeration
-        }
-
-        // Generate password reset token using ASP.NET Identity
-        var token = await _userManager.GeneratePasswordResetTokenAsync(user);
-
-        // Store hashed token in database
-        var resetToken = new PasswordResetToken
-        {
-            Id = Guid.NewGuid(),
-            UserId = user.Id,
-            TokenHash = _tokenService.HashToken(token),
-            ExpiresAt = DateTime.UtcNow.AddHours(1), // 1 hour expiry
-            IpAddress = ipAddress,
-            CreatedAt = DateTime.UtcNow,
-            UpdatedAt = DateTime.UtcNow
-        };
-
-        _context.PasswordResetTokens.Add(resetToken);
-        await _context.SaveChangesAsync();
-
-        // Construct the frontend reset URL and send email
-        var resetUrl = $"{_options.FrontendBaseUrl}/reset-password?token={Uri.EscapeDataString(token)}&email={Uri.EscapeDataString(email)}";
-
-        if (_emailService != null)
-        {
-            await _emailService.SendPasswordResetEmailAsync(
-                email,
-                user.DisplayName,
-                resetUrl);
-        }
-        else
-        {
-            // Fallback: log the token when email service is not configured
-            _logger.LogWarning(
-                "Password reset token generated for {UserId} but no email service configured. Token: {Token}",
-                user.Id, token);
-        }
-
-        return true;
-    }
+    public Task<bool> RequestPasswordResetAsync(string email, string? ipAddress = null)
+        => _passwordResetService.RequestPasswordResetAsync(email, ipAddress);
 
     /// <summary>
     /// Complete a password reset using the reset token.
+    /// Delegates to <see cref="IPasswordResetService"/> for all reset-specific logic.
     /// Auto-authenticates the user on success.
     /// </summary>
-    public async Task<AuthResponse> ResetPasswordAsync(
+    public Task<AuthResponse> ResetPasswordAsync(
         string token,
         string newPassword,
         string? ipAddress = null,
         string? deviceInfo = null)
-    {
-        // Hash the token to look it up
-        var tokenHash = _tokenService.HashToken(token);
-        var resetToken = await _context.PasswordResetTokens
-            .FirstOrDefaultAsync(t => t.TokenHash == tokenHash && t.UsedAt == null);
-
-        if (resetToken == null)
-        {
-            _logger.LogWarning("Password reset attempted with invalid token");
-            return AuthResponse.Failure(AuthError.InvalidToken);
-        }
-
-        if (resetToken.ExpiresAt < DateTime.UtcNow)
-        {
-            _logger.LogWarning("Password reset attempted with expired token: {TokenId}", resetToken.Id);
-            return AuthResponse.Failure(AuthError.InvalidToken);
-        }
-
-        // Get the user
-        var user = await _userManager.FindByIdAsync(resetToken.UserId);
-        if (user == null)
-        {
-            _logger.LogWarning("User not found for password reset: {UserId}", resetToken.UserId);
-            return AuthResponse.Failure(AuthError.InvalidToken);
-        }
-
-        // Check if user is deactivated
-        if (user.Status == UserStatus.Disabled)
-        {
-            _logger.LogWarning("Password reset attempted for deactivated user: {UserId}", user.Id);
-            return AuthResponse.Failure(AuthError.AccountDeactivated);
-        }
-
-        // Reset the password using Identity
-        var result = await _userManager.ResetPasswordAsync(user, token, newPassword);
-        if (!result.Succeeded)
-        {
-            var errors = result.Errors.ToDictionary(
-                e => ToCamelCase(e.Code),
-                e => new[] { e.Description }
-            );
-
-            _logger.LogWarning(
-                "Password reset failed for {UserId}: {Errors}",
-                user.Id,
-                string.Join(", ", result.Errors.Select(e => e.Description)));
-
-            return AuthResponse.Failure(AuthError.ValidationFailed(errors));
-        }
-
-        // Mark token as used
-        resetToken.UsedAt = DateTime.UtcNow;
-        resetToken.UpdatedAt = DateTime.UtcNow;
-        await _context.SaveChangesAsync();
-
-        // Reset lockout if user was locked out
-        if (await _userManager.IsLockedOutAsync(user))
-        {
-            await _userManager.SetLockoutEndDateAsync(user, null);
-            await _userManager.ResetAccessFailedCountAsync(user);
-        }
-
-        _logger.LogInformation("Password reset completed for user: {UserId}", user.Id);
-
-        // Auto-login after password reset
-        var authResult = await GenerateAuthResponseAsync(
-            user,
-            rememberMe: false,
-            isFirstUser: false,
-            isNewAccount: false,
-            ipAddress,
-            deviceInfo);
-
-        // Send password changed confirmation email (fire-and-forget, after DbContext work is done)
-        if (_emailService != null)
-        {
-            var resetPasswordUrl = $"{_options.FrontendBaseUrl}/forgot-password";
-            var supportUrl = $"{_options.FrontendBaseUrl}/support";
-
-            _ = Task.Run(async () =>
-            {
-                try
-                {
-                    await _emailService.SendPasswordChangedEmailAsync(
-                        user.Email!,
-                        user.DisplayName,
-                        "Password reset",
-                        resetPasswordUrl,
-                        supportUrl);
-                }
-                catch (Exception ex)
-                {
-                    _logger.LogError(ex, "Failed to send password changed email for {UserId}", user.Id);
-                }
-            });
-        }
-
-        return authResult;
-    }
+        => _passwordResetService.ResetPasswordAsync(token, newPassword, ipAddress, deviceInfo);
 
     // =========================================================================
     // Private Helper Methods
     // =========================================================================
+
+    /// <summary>
+    /// Ensures the default organization exists, creating it if none is present.
+    /// Called only for the first user registration to bootstrap the platform.
+    /// </summary>
+    private async Task<Organization> EnsureDefaultOrganizationAsync()
+    {
+        var organization = await _context.Organizations.FirstOrDefaultAsync();
+        if (organization == null)
+        {
+            organization = new Organization
+            {
+                Id = Guid.NewGuid(),
+                Name = "Default Organization",
+                Description = "Default organization for Cadence users",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
+            };
+            _context.Organizations.Add(organization);
+            await _context.SaveChangesAsync();
+        }
+
+        return organization;
+    }
+
+    /// <summary>
+    /// Creates the organization membership and sets the current organization for the
+    /// first registered user. Grants OrgAdmin role to bootstrap the platform.
+    /// </summary>
+    private async Task CreateFirstUserMembershipAsync(ApplicationUser user, Organization organization)
+    {
+        var membership = new OrganizationMembership
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            OrganizationId = organization.Id,
+            Role = OrgRole.OrgAdmin,
+            Status = MembershipStatus.Active,
+            JoinedAt = DateTime.UtcNow,
+            CreatedAt = DateTime.UtcNow,
+            UpdatedAt = DateTime.UtcNow
+        };
+        _context.OrganizationMemberships.Add(membership);
+
+        user.CurrentOrganizationId = organization.Id;
+        await _userManager.UpdateAsync(user);
+    }
 
     /// <summary>
     /// Generate authentication response with JWT tokens.

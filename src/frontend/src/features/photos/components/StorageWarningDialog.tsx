@@ -36,6 +36,7 @@ import {
   Box,
   Typography,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faTriangleExclamation, faCircleExclamation } from '@fortawesome/free-solid-svg-icons'
 import {
@@ -88,9 +89,10 @@ export const StorageWarningDialog = ({
   onSyncNow,
   onClose,
 }: StorageWarningDialogProps) => {
+  const theme = useTheme()
   const isCritical = warningLevel === 'critical'
   const icon = isCritical ? faCircleExclamation : faTriangleExclamation
-  const iconColor = isCritical ? '#ef4444' : '#f59e0b'
+  const iconColor = isCritical ? theme.palette.semantic.error : theme.palette.semantic.warningAmber
   const title = isCritical ? 'Storage Full' : 'Storage Getting Full'
 
   return (

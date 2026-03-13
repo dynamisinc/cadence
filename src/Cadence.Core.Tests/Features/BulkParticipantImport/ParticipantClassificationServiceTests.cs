@@ -503,6 +503,26 @@ public class ParticipantClassificationServiceTests : IDisposable
         classified.IsNewAccount.Should().BeFalse();
     }
 
+    [Fact]
+    public async Task ClassifyAsync_DuplicateEmails_HandlesGracefully()
+    {
+        var user = CreateUser("dupe@test.com");
+        AddOrgMembership(user.Id);
+
+        var rows = new List<ParsedParticipantRow>
+        {
+            CreateParsedRow("dupe@test.com", ExerciseRole.Controller, 1),
+            CreateParsedRow("dupe@test.com", ExerciseRole.Evaluator, 2)
+        };
+
+        var result = await _sut.ClassifyAsync(_exerciseId, rows);
+
+        result.Should().HaveCount(2);
+        // Both rows should be classified independently without error
+        result[0].ParsedRow.Email.Should().Be("dupe@test.com");
+        result[1].ParsedRow.Email.Should().Be("dupe@test.com");
+    }
+
     public void Dispose()
     {
         _context.Database.EnsureDeleted();

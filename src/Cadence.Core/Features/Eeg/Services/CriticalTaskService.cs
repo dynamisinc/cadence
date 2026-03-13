@@ -198,6 +198,84 @@ public class CriticalTaskService : ICriticalTaskService
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Guid>> GetLinkedCriticalTaskIdsForInjectAsync(Guid exerciseId, Guid injectId)
+    {
+        // Validate that the inject belongs to the specified exercise
+        var injectBelongsToExercise = await _context.Injects
+            .AnyAsync(i => i.Id == injectId && i.Msel.ExerciseId == exerciseId);
+
+        if (!injectBelongsToExercise)
+            throw new KeyNotFoundException($"Inject {injectId} not found in exercise {exerciseId}");
+
+        return await _context.InjectCriticalTasks
+            .Where(ict => ict.InjectId == injectId)
+            .Select(ict => ict.CriticalTaskId)
+            .ToListAsync();
+    }
+
+    public async Task<List<CriticalTaskDto>> SetLinkedCriticalTasksForInjectAsync(
+        Guid exerciseId,
+        Guid injectId,
+        IEnumerable<Guid> criticalTaskIds,
+        string userId)
+    {
+        // Validate that the inject belongs to the specified exercise
+        var injectBelongsToExercise = await _context.Injects
+            .AnyAsync(i => i.Id == injectId && i.Msel.ExerciseId == exerciseId);
+
+        if (!injectBelongsToExercise)
+            throw new KeyNotFoundException($"Inject {injectId} not found in exercise {exerciseId}");
+
+        var criticalTaskIdsList = criticalTaskIds.ToList();
+
+        // Validate all task IDs belong to this exercise
+        var validTaskIds = await _context.CriticalTasks
+            .Where(ct => criticalTaskIdsList.Contains(ct.Id))
+            .Where(ct => ct.CapabilityTarget.ExerciseId == exerciseId)
+            .Select(ct => ct.Id)
+            .ToListAsync();
+
+        var invalidTaskIds = criticalTaskIdsList.Except(validTaskIds).ToList();
+        if (invalidTaskIds.Count > 0)
+        {
+            throw new InvalidOperationException(
+                $"Invalid or cross-exercise task IDs: {string.Join(", ", invalidTaskIds)}");
+        }
+
+        // Load existing links for this inject
+        var existingLinks = await _context.InjectCriticalTasks
+            .Where(ict => ict.InjectId == injectId)
+            .ToListAsync();
+
+        // Clear existing links
+        _context.InjectCriticalTasks.RemoveRange(existingLinks);
+
+        // Add new links with audit fields
+        var now = DateTime.UtcNow;
+        foreach (var taskId in validTaskIds)
+        {
+            _context.InjectCriticalTasks.Add(new InjectCriticalTask
+            {
+                InjectId = injectId,
+                CriticalTaskId = taskId,
+                CreatedAt = now,
+                CreatedBy = userId
+            });
+        }
+
+        await _context.SaveChangesAsync();
+
+        // Return the linked tasks with full details
+        var linkedTasks = await _context.CriticalTasks
+            .Include(ct => ct.LinkedInjects)
+            .Include(ct => ct.EegEntries)
+            .Where(ct => validTaskIds.Contains(ct.Id))
+            .OrderBy(ct => ct.SortOrder)
+            .ToListAsync();
+
+        return linkedTasks.Select(ToDto).ToList();
+    }
+
     private async Task<int> GetNextSortOrderAsync(Guid capabilityTargetId)
     {
         var maxSortOrder = await _context.CriticalTasks

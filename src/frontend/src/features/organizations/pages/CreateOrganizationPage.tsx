@@ -10,7 +10,7 @@
  * @module features/organizations/pages
  * @see docs/features/organization-management/OM-02-create-organization.md
  */
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useRef } from 'react'
 import type { FC } from 'react'
 import {
   Box,
@@ -29,7 +29,6 @@ import { useBreadcrumbs } from '@/core/contexts'
 import CobraStyles from '@/theme/CobraStyles'
 import { useCreateOrganization, useCheckSlug } from '../hooks/useOrganizations'
 import { notify } from '@/shared/utils/notify'
-import { debounce } from 'lodash'
 
 /**
  * Generate URL-safe slug from name
@@ -72,14 +71,20 @@ export const CreateOrganizationPage: FC = () => {
     }
   }, [name, slugManuallyEdited])
 
-  // Debounced slug check
+  // Debounced slug check (inline implementation using setTimeout/useRef)
+  const slugCheckTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+
   const debouncedSlugCheck = useMemo(
-    () =>
-      debounce((value: string) => {
+    () => (value: string) => {
+      if (slugCheckTimerRef.current) {
+        clearTimeout(slugCheckTimerRef.current)
+      }
+      slugCheckTimerRef.current = setTimeout(() => {
         if (value.length >= 3) {
           setSlugToCheck(value)
         }
-      }, 500),
+      }, 500)
+    },
     [],
   )
 
@@ -87,7 +92,11 @@ export const CreateOrganizationPage: FC = () => {
     if (slug) {
       debouncedSlugCheck(slug)
     }
-    return () => debouncedSlugCheck.cancel()
+    return () => {
+      if (slugCheckTimerRef.current) {
+        clearTimeout(slugCheckTimerRef.current)
+      }
+    }
   }, [slug, debouncedSlugCheck])
 
   const handleSlugChange = (value: string) => {

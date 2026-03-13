@@ -119,13 +119,13 @@ describe('AssignmentSection', () => {
     it('applies blue color to upcoming section badge', () => {
       renderWithRouter('Upcoming Exercises', 'upcoming', [])
       const badge = screen.getByText('0').closest('.MuiChip-root')
-      expect(badge).toHaveStyle({ backgroundColor: '#2196f3' })
+      expect(badge).toHaveStyle({ backgroundColor: '#1976d2' })
     })
 
     it('applies grey color to completed section badge', () => {
       renderWithRouter('Completed Exercises', 'completed', [])
       const badge = screen.getByText('0').closest('.MuiChip-root')
-      expect(badge).toHaveStyle({ backgroundColor: '#9e9e9e' })
+      expect(badge).toHaveStyle({ backgroundColor: '#757575' })
     })
   })
 

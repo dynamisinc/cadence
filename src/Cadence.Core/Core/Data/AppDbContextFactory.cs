@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.EntityFrameworkCore.Design;
 
 namespace Cadence.Core.Data;
@@ -6,6 +7,7 @@ namespace Cadence.Core.Data;
 /// Design-time factory for AppDbContext.
 /// Used by EF Core tools for migrations when the app isn't running.
 /// </summary>
+[ExcludeFromCodeCoverage]
 public class AppDbContextFactory : IDesignTimeDbContextFactory<AppDbContext>
 {
     public AppDbContext CreateDbContext(string[] args)

@@ -206,4 +206,20 @@ public class LoggingEmailServiceTests
         Assert.Equal(EmailSendStatus.Sent, result.Status);
         Assert.NotNull(result.MessageId);
     }
+
+    [Fact]
+    public async Task SendAsync_EmptySubject_StillSends()
+    {
+        var message = new EmailMessage(
+            Subject: "",
+            HtmlBody: "<p>Body</p>",
+            PlainTextBody: null,
+            To: new EmailRecipient("user@example.com")
+        );
+
+        var result = await _service.SendAsync(message);
+
+        Assert.Equal(EmailSendStatus.Sent, result.Status);
+        Assert.NotNull(result.MessageId);
+    }
 }

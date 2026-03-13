@@ -23,6 +23,7 @@ import {
   faXmark,
 } from '@fortawesome/free-solid-svg-icons'
 
+import { useTheme } from '@mui/material/styles'
 import {
   CobraPrimaryButton,
   CobraSecondaryButton,
@@ -60,6 +61,7 @@ export const FileUploadStep = ({
   onDownloadTemplate,
   isDownloadingTemplate = false,
 }: FileUploadStepProps) => {
+  const theme = useTheme()
   // Warn if both templateUrl and onDownloadTemplate are provided
   useEffect(() => {
     if (templateUrl && onDownloadTemplate) {
@@ -207,7 +209,7 @@ export const FileUploadStep = ({
             <FontAwesomeIcon
               icon={faCloudArrowUp}
               size="3x"
-              style={{ color: '#1976d2', marginBottom: 16 }}
+              style={{ color: theme.palette.semantic.info, marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
               Processing file...
@@ -219,7 +221,7 @@ export const FileUploadStep = ({
             <FontAwesomeIcon
               icon={faCheck}
               size="3x"
-              style={{ color: '#2e7d32', marginBottom: 16 }}
+              style={{ color: theme.palette.semantic.success, marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
               {selectedFile.name}
@@ -243,7 +245,7 @@ export const FileUploadStep = ({
             <FontAwesomeIcon
               icon={faFileExcel}
               size="3x"
-              style={{ color: isDragOver ? '#1976d2' : '#757575', marginBottom: 16 }}
+              style={{ color: isDragOver ? theme.palette.semantic.info : theme.palette.neutral[500], marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
               Drag and drop your Excel file here
@@ -286,7 +288,7 @@ export const FileUploadStep = ({
       {/* Template Download Link */}
       {(onDownloadTemplate || templateUrl) && (
         <Stack direction="row" spacing={1} alignItems="center" sx={{ mt: 3 }}>
-          <FontAwesomeIcon icon={faFileExcel} style={{ color: '#1976d2' }} />
+          <FontAwesomeIcon icon={faFileExcel} style={{ color: theme.palette.semantic.info }} />
           <Typography variant="body2">
             Don&apos;t have a file ready?{' '}
             {onDownloadTemplate ? (

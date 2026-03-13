@@ -20,6 +20,7 @@ module.exports = {
         'tests',
         'seeding',
         'data',
+        'features',
         // Feature modules
         'eeg',
         'exercises',

@@ -7,6 +7,7 @@
 
 import { useState, useRef, useCallback } from 'react'
 import { Box, Typography, Paper, Alert, Stack, Link } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faUpload,
@@ -37,6 +38,7 @@ export const ImportUploadStep = ({
   error,
   exerciseId,
 }: ImportUploadStepProps) => {
+  const theme = useTheme()
   const [validationError, setValidationError] = useState<string | null>(null)
   const [isDragging, setIsDragging] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -169,7 +171,7 @@ export const ImportUploadStep = ({
               icon={faSpinner}
               spin
               size="3x"
-              style={{ color: '#1976d2', marginBottom: 16 }}
+              style={{ color: theme.palette.semantic.info, marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
               Processing file...
@@ -180,7 +182,7 @@ export const ImportUploadStep = ({
             <FontAwesomeIcon
               icon={faUpload}
               size="3x"
-              style={{ color: '#757575', marginBottom: 16 }}
+              style={{ color: theme.palette.neutral[500], marginBottom: 16 }}
             />
             <Typography variant="h6" gutterBottom>
               {isDragging ? 'Drop file here' : 'Drag & drop or click to select'}
@@ -227,7 +229,7 @@ export const ImportUploadStep = ({
       >
         <FontAwesomeIcon
           icon={faFileArrowDown}
-          style={{ color: '#1976d2' }}
+          style={{ color: theme.palette.semantic.info }}
         />
         <Typography variant="body2">
           Download template:{' '}

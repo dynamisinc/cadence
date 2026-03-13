@@ -450,6 +450,159 @@ public class EegDocumentServiceTests
 
     #endregion
 
+    #region Additional GenerateAsync Tests (Builder Integration)
+
+    [Fact]
+    public async Task GenerateAsync_NoExercise_ThrowsKeyNotFound()
+    {
+        // Arrange — random exercise ID that does not exist in DB
+        var (context, org, _, _, _, _) = CreateTestContext();
+        var service = CreateService(context, org.Id);
+        var request = new GenerateEegDocumentRequest { Mode = EegDocumentMode.Blank };
+
+        // Act & Assert — service throws because exercise is not found
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.GenerateAsync(Guid.NewGuid(), request));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WrongOrg_ThrowsKeyNotFound()
+    {
+        // Arrange — exercise exists but belongs to a different org
+        var (context, _, exercise, _, _, _) = CreateTestContext();
+        var differentOrgId = Guid.NewGuid();
+        var service = CreateService(context, differentOrgId);
+        var request = new GenerateEegDocumentRequest { Mode = EegDocumentMode.Blank };
+
+        // Act & Assert — exercise is not visible to this org context
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.GenerateAsync(exercise.Id, request));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_SingleDocFormat_ReturnsSingleXlsx()
+    {
+        // Arrange
+        var (context, org, exercise, _, _, _) = CreateTestContext();
+        var service = CreateService(context, org.Id);
+        var request = new GenerateEegDocumentRequest
+        {
+            Mode = EegDocumentMode.Blank,
+            OutputFormat = EegDocumentOutputFormat.Single
+        };
+
+        // Act
+        var result = await service.GenerateAsync(exercise.Id, request);
+
+        // Assert — single .docx document returned
+        result.ContentType.Should().Be("application/vnd.openxmlformats-officedocument.wordprocessingml.document");
+        result.Filename.Should().EndWith(".docx");
+        result.Content.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task GenerateAsync_PerCapabilityFormat_ReturnsZip()
+    {
+        // Arrange
+        var (context, org, exercise, _, _, _) = CreateTestContext();
+        var service = CreateService(context, org.Id);
+        var request = new GenerateEegDocumentRequest
+        {
+            Mode = EegDocumentMode.Blank,
+            OutputFormat = EegDocumentOutputFormat.PerCapability
+        };
+
+        // Act
+        var result = await service.GenerateAsync(exercise.Id, request);
+
+        // Assert — zip archive returned
+        result.ContentType.Should().Be("application/zip");
+        result.Filename.Should().EndWith(".zip");
+        result.Content.Should().NotBeEmpty();
+    }
+
+    [Fact]
+    public async Task GenerateAsync_NoCapabilityTargets_ReturnsEmptyDocument()
+    {
+        // Arrange — exercise with no capability targets
+        var (context, org, _, _, _, _) = CreateTestContext();
+
+        var emptyExercise = new Exercise
+        {
+            Id = Guid.NewGuid(),
+            Name = "Empty Doc Exercise",
+            ExerciseType = ExerciseType.TTX,
+            Status = ExerciseStatus.Active,
+            DeliveryMode = DeliveryMode.FacilitatorPaced,
+            ScheduledDate = DateOnly.FromDateTime(DateTime.Today),
+            TimeZoneId = "UTC",
+            OrganizationId = org.Id,
+            CreatedBy = "test",
+            ModifiedBy = "test"
+        };
+        context.Exercises.Add(emptyExercise);
+        context.SaveChanges();
+
+        var service = CreateService(context, org.Id);
+        var request = new GenerateEegDocumentRequest { Mode = EegDocumentMode.Blank };
+
+        // Act & Assert — service rejects generation with no targets
+        await Assert.ThrowsAsync<InvalidOperationException>(
+            () => service.GenerateAsync(emptyExercise.Id, request));
+    }
+
+    [Fact]
+    public async Task GenerateAsync_WithEntriesAndTargets_ProducesNonEmptyBytes()
+    {
+        // Arrange — exercise with a capability target, a critical task, and an EEG entry
+        var (context, org, exercise, _, target, evaluator) = CreateTestContext();
+
+        var task = new CriticalTask
+        {
+            Id = Guid.NewGuid(),
+            TaskDescription = "Activate mutual aid agreement",
+            CapabilityTargetId = target.Id,
+            OrganizationId = target.OrganizationId,
+            SortOrder = 0,
+            CreatedBy = evaluator.Id,
+            ModifiedBy = evaluator.Id
+        };
+        context.CriticalTasks.Add(task);
+
+        context.EegEntries.Add(new EegEntry
+        {
+            Id = Guid.NewGuid(),
+            CriticalTaskId = task.Id,
+            ObservationText = "Agreement activated within 5 minutes",
+            Rating = PerformanceRating.Performed,
+            EvaluatorId = evaluator.Id,
+            ObservedAt = DateTime.UtcNow,
+            RecordedAt = DateTime.UtcNow,
+            CreatedBy = evaluator.Id,
+            ModifiedBy = evaluator.Id
+        });
+        context.SaveChanges();
+
+        var service = CreateService(context, org.Id);
+        var request = new GenerateEegDocumentRequest
+        {
+            Mode = EegDocumentMode.Completed,
+            IncludeEvaluatorNames = true
+        };
+
+        // Act
+        var result = await service.GenerateAsync(exercise.Id, request);
+
+        // Assert
+        result.Content.Should().NotBeEmpty();
+        result.Content.Length.Should().BeGreaterThan(100,
+            because: "a real Word document with content should be more than 100 bytes");
+        result.CapabilityTargetCount.Should().Be(1);
+        result.CriticalTaskCount.Should().Be(1);
+    }
+
+    #endregion
+
     #region Observation Truncation Tests
 
     [Fact]

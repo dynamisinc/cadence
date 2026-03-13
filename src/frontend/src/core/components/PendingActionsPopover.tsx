@@ -17,6 +17,7 @@ import {
   Divider,
   CircularProgress,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faBolt,
@@ -30,6 +31,7 @@ import {
   faExclamationTriangle,
 } from '@fortawesome/free-solid-svg-icons'
 import { CobraPrimaryButton } from '@/theme/styledComponents'
+import { cobraTheme } from '@/theme/cobraTheme'
 import { formatDate } from '@/shared/utils/dateUtils'
 import { getPendingActions, type PendingAction, type PendingActionType } from '../offline/db'
 import { useOfflineSyncContext } from '../contexts/OfflineSyncContext'
@@ -50,52 +52,52 @@ const actionConfigs: Record<PendingActionType, ActionConfig> = {
   FIRE_INJECT: {
     icon: faBolt,
     label: 'Fire Inject',
-    color: '#f59e0b', // amber
+    color: cobraTheme.palette.semantic.warningAmber,
   },
   SKIP_INJECT: {
     icon: faForward,
     label: 'Skip Inject',
-    color: '#6b7280', // gray
+    color: cobraTheme.palette.neutral[500],
   },
   RESET_INJECT: {
     icon: faRotateLeft,
     label: 'Reset Inject',
-    color: '#3b82f6', // blue
+    color: cobraTheme.palette.semantic.info,
   },
   CREATE_OBSERVATION: {
     icon: faPlus,
     label: 'Create Observation',
-    color: '#22c55e', // green
+    color: cobraTheme.palette.semantic.success,
   },
   UPDATE_OBSERVATION: {
     icon: faPen,
     label: 'Update Observation',
-    color: '#8b5cf6', // purple
+    color: cobraTheme.palette.semantic.purple,
   },
   DELETE_OBSERVATION: {
     icon: faTrash,
     label: 'Delete Observation',
-    color: '#ef4444', // red
+    color: cobraTheme.palette.semantic.error,
   },
   UPLOAD_PHOTO: {
     icon: faPlus,
     label: 'Upload Photo',
-    color: '#22c55e', // green
+    color: cobraTheme.palette.semantic.success,
   },
   QUICK_PHOTO: {
     icon: faPlus,
     label: 'Quick Photo',
-    color: '#22c55e', // green
+    color: cobraTheme.palette.semantic.success,
   },
   UPDATE_PHOTO: {
     icon: faPen,
     label: 'Update Photo',
-    color: '#8b5cf6', // purple
+    color: cobraTheme.palette.semantic.purple,
   },
   DELETE_PHOTO: {
     icon: faTrash,
     label: 'Delete Photo',
-    color: '#ef4444', // red
+    color: cobraTheme.palette.semantic.error,
   },
 }
 
@@ -140,6 +142,7 @@ export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({
   open,
   onClose,
 }) => {
+  const theme = useTheme()
   const [actions, setActions] = useState<PendingAction[]>([])
   const [loading, setLoading] = useState(true)
   const { manualSync, isSyncing, syncStatus } = useOfflineSyncContext()
@@ -211,7 +214,7 @@ export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({
           <Box sx={{ py: 2, textAlign: 'center' }}>
             <FontAwesomeIcon
               icon={faCheck}
-              style={{ color: '#22c55e', fontSize: 24, marginBottom: 8 }}
+              style={{ color: theme.palette.semantic.success, fontSize: 24, marginBottom: 8 }}
             />
             <Typography variant="body2" color="text.secondary">
               All changes synced
@@ -296,7 +299,7 @@ export const PendingActionsPopover: React.FC<PendingActionsPopoverProps> = ({
                         <ListItemIcon sx={{ minWidth: 32 }}>
                           <FontAwesomeIcon
                             icon={config.icon}
-                            style={{ color: '#ef4444', opacity: 0.7 }}
+                            style={{ color: theme.palette.semantic.error, opacity: 0.7 }}
                           />
                         </ListItemIcon>
                         <ListItemText

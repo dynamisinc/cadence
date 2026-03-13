@@ -1396,4 +1396,414 @@ public class ObservationServiceTests
     }
 
     #endregion
+
+    #region Exercise Status Validation Tests
+
+    [Theory]
+    [InlineData(ExerciseStatus.Draft)]
+    [InlineData(ExerciseStatus.Completed)]
+    [InlineData(ExerciseStatus.Archived)]
+    public async Task CreateObservationAsync_NonActiveNonPausedExercise_ThrowsInvalidOperationException(ExerciseStatus status)
+    {
+        var (context, _, exercise) = CreateTestContext();
+        exercise.Status = status;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+
+        var act = () => service.CreateObservationAsync(exercise.Id, request, Guid.NewGuid().ToString());
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Cannot add observations*");
+    }
+
+    [Fact]
+    public async Task CreateObservationAsync_PausedExercise_Succeeds()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        exercise.Status = ExerciseStatus.Paused;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new CreateObservationRequest { Content = "Test observation" };
+
+        var result = await service.CreateObservationAsync(exercise.Id, request, Guid.NewGuid().ToString());
+
+        result.Should().NotBeNull();
+        result.Content.Should().Be("Test observation");
+    }
+
+    [Theory]
+    [InlineData(ExerciseStatus.Draft)]
+    [InlineData(ExerciseStatus.Completed)]
+    [InlineData(ExerciseStatus.Archived)]
+    public async Task UpdateObservationAsync_NonActiveNonPausedExercise_ThrowsInvalidOperationException(ExerciseStatus status)
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+
+        exercise.Status = status;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Updated content" };
+
+        var act = () => service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*Cannot update observations*");
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_PausedExercise_Succeeds()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+
+        exercise.Status = ExerciseStatus.Paused;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Updated content" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result.Should().NotBeNull();
+        result!.Content.Should().Be("Updated content");
+    }
+
+    #endregion
+
+    #region Draft-to-Complete Promotion Tests
+
+    [Fact]
+    public async Task UpdateObservationAsync_DraftWithSubstantiveContent_PromotesToComplete()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            Content = "Photo captured — add details",
+            Status = ObservationStatus.Draft,
+            ObservedAt = DateTime.UtcNow,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.Observations.Add(observation);
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Real observation content" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Complete);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_DraftWithPhotoPlaceholder_StaysDraft()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            Content = "",
+            Status = ObservationStatus.Draft,
+            ObservedAt = DateTime.UtcNow,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.Observations.Add(observation);
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Photo captured \u2014 add details" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Draft);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_DraftWithWhitespaceContent_StaysDraft()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            Content = "",
+            Status = ObservationStatus.Draft,
+            ObservedAt = DateTime.UtcNow,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.Observations.Add(observation);
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "   " };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Draft);
+    }
+
+    [Fact]
+    public async Task UpdateObservationAsync_CompleteObservation_StaysComplete()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise); // Default is Complete
+
+        var service = CreateService(context);
+        var request = new UpdateObservationRequest { Content = "Updated content" };
+
+        var result = await service.UpdateObservationAsync(observation.Id, request, Guid.NewGuid().ToString());
+
+        result!.Status.Should().Be(ObservationStatus.Complete);
+    }
+
+    #endregion
+
+    #region Delete Cascade Photo Tests
+
+    [Fact]
+    public async Task DeleteObservationAsync_CascadeSoftDeletesPhotos()
+    {
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+
+        _photoServiceMock
+            .Setup(p => p.SoftDeletePhotosForObservationAsync(observation.Id, It.IsAny<string>()))
+            .ReturnsAsync(3);
+
+        var service = CreateService(context);
+
+        await service.DeleteObservationAsync(observation.Id, "deleter");
+
+        _photoServiceMock.Verify(
+            p => p.SoftDeletePhotosForObservationAsync(observation.Id, "deleter"),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task DeleteObservationAsync_NoPhotos_Succeeds()
+    {
+        // Arrange — photo service returns 0 (no photos to cascade-delete)
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+        var userId = Guid.NewGuid().ToString();
+
+        _photoServiceMock
+            .Setup(p => p.SoftDeletePhotosForObservationAsync(observation.Id, It.IsAny<string>()))
+            .ReturnsAsync(0);
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.DeleteObservationAsync(observation.Id, userId);
+
+        // Assert
+        result.Should().BeTrue();
+
+        // Observation should still be soft-deleted
+        var deleted = await context.Observations
+            .IgnoreQueryFilters()
+            .FirstOrDefaultAsync(o => o.Id == observation.Id);
+        deleted.Should().NotBeNull();
+        deleted!.IsDeleted.Should().BeTrue();
+
+        // photo service was still called (it just found nothing)
+        _photoServiceMock.Verify(
+            p => p.SoftDeletePhotosForObservationAsync(observation.Id, userId),
+            Times.Once);
+    }
+
+    #endregion
+
+    #region WithResolvedPhotoUrls Tests
+
+    private ExercisePhoto CreatePhotoForObservation(
+        AppDbContext context,
+        Exercise exercise,
+        Organization org,
+        Observation observation,
+        string thumbnailUri,
+        int displayOrder = 0)
+    {
+        var photo = new ExercisePhoto
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            OrganizationId = org.Id,
+            ObservationId = observation.Id,
+            CapturedById = Guid.NewGuid().ToString(),
+            FileName = "photo.jpg",
+            BlobUri = "https://blob.example.com/full/photo.jpg",
+            ThumbnailUri = thumbnailUri,
+            FileSizeBytes = 1024,
+            CapturedAt = DateTime.UtcNow,
+            DisplayOrder = displayOrder,
+            Status = PhotoStatus.Complete,
+            CreatedBy = Guid.NewGuid().ToString(),
+            ModifiedBy = Guid.NewGuid().ToString()
+        };
+        context.ExercisePhotos.Add(photo);
+        context.SaveChanges();
+        return photo;
+    }
+
+    [Fact]
+    public async Task GetObservationAsync_WithPhotos_ResolvesThumbnailUrls()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+        var rawUri = "https://blob.example.com/thumb/photo.jpg";
+        var sasUri = rawUri + "?sas=token";
+        CreatePhotoForObservation(context, exercise, org, observation, rawUri);
+
+        _blobStorageMock
+            .Setup(x => x.GetReadUri(rawUri, It.IsAny<TimeSpan>()))
+            .Returns(sasUri);
+
+        var service = CreateService(context);
+
+        // Act
+        var result = await service.GetObservationAsync(observation.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Photos.Should().HaveCount(1);
+        result.Photos[0].ThumbnailUri.Should().Be(sasUri);
+
+        _blobStorageMock.Verify(
+            x => x.GetReadUri(rawUri, It.IsAny<TimeSpan>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetObservationAsync_NoPhotos_DoesNotCallGetReadUri()
+    {
+        // Arrange — WithResolvedPhotoUrls early-return branch (Photos.Count == 0)
+        var (context, _, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+        var service = CreateService(context);
+
+        _blobStorageMock.Invocations.Clear();
+
+        // Act
+        var result = await service.GetObservationAsync(observation.Id);
+
+        // Assert
+        result.Should().NotBeNull();
+        result!.Photos.Should().BeEmpty();
+        _blobStorageMock.Verify(
+            x => x.GetReadUri(It.IsAny<string>(), It.IsAny<TimeSpan>()),
+            Times.Never);
+    }
+
+    [Fact]
+    public async Task GetObservationsByExerciseAsync_WithPhotos_ResolvesAllThumbnailUrls()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+        var rawUri1 = "https://blob.example.com/thumb/photo1.jpg";
+        var rawUri2 = "https://blob.example.com/thumb/photo2.jpg";
+        var sasUri1 = rawUri1 + "?sas=token1";
+        var sasUri2 = rawUri2 + "?sas=token2";
+        CreatePhotoForObservation(context, exercise, org, observation, rawUri1, displayOrder: 0);
+        CreatePhotoForObservation(context, exercise, org, observation, rawUri2, displayOrder: 1);
+
+        _blobStorageMock
+            .Setup(x => x.GetReadUri(rawUri1, It.IsAny<TimeSpan>()))
+            .Returns(sasUri1);
+        _blobStorageMock
+            .Setup(x => x.GetReadUri(rawUri2, It.IsAny<TimeSpan>()))
+            .Returns(sasUri2);
+
+        var service = CreateService(context);
+
+        // Act
+        var results = (await service.GetObservationsByExerciseAsync(exercise.Id)).ToList();
+
+        // Assert
+        results.Should().HaveCount(1);
+        results[0].Photos.Should().HaveCount(2);
+        results[0].Photos.Should().ContainSingle(p => p.ThumbnailUri == sasUri1);
+        results[0].Photos.Should().ContainSingle(p => p.ThumbnailUri == sasUri2);
+
+        _blobStorageMock.Verify(
+            x => x.GetReadUri(rawUri1, It.IsAny<TimeSpan>()),
+            Times.Once);
+        _blobStorageMock.Verify(
+            x => x.GetReadUri(rawUri2, It.IsAny<TimeSpan>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetObservationsByInjectAsync_WithPhotos_ResolvesThumbnailUrls()
+    {
+        // Arrange
+        var (context, org, exercise) = CreateTestContext();
+        var (_, inject) = CreateInject(context, exercise);
+        var observation = CreateObservation(context, exercise, inject.Id);
+        var rawUri = "https://blob.example.com/thumb/inject-photo.jpg";
+        var sasUri = rawUri + "?sas=token";
+        CreatePhotoForObservation(context, exercise, org, observation, rawUri);
+
+        _blobStorageMock
+            .Setup(x => x.GetReadUri(rawUri, It.IsAny<TimeSpan>()))
+            .Returns(sasUri);
+
+        var service = CreateService(context);
+
+        // Act
+        var results = (await service.GetObservationsByInjectAsync(inject.Id)).ToList();
+
+        // Assert
+        results.Should().HaveCount(1);
+        results[0].Photos.Should().HaveCount(1);
+        results[0].Photos[0].ThumbnailUri.Should().Be(sasUri);
+
+        _blobStorageMock.Verify(
+            x => x.GetReadUri(rawUri, It.IsAny<TimeSpan>()),
+            Times.Once);
+    }
+
+    [Fact]
+    public async Task GetObservationsByExerciseAsync_SoftDeletedPhotos_AreExcluded()
+    {
+        // Arrange — soft-deleted photos should not appear in the Photos list
+        var (context, org, exercise) = CreateTestContext();
+        var observation = CreateObservation(context, exercise);
+        var activePhoto = CreatePhotoForObservation(
+            context, exercise, org, observation,
+            "https://blob.example.com/thumb/active.jpg");
+        var deletedPhoto = CreatePhotoForObservation(
+            context, exercise, org, observation,
+            "https://blob.example.com/thumb/deleted.jpg",
+            displayOrder: 1);
+
+        // Soft-delete one photo
+        deletedPhoto.IsDeleted = true;
+        deletedPhoto.DeletedAt = DateTime.UtcNow;
+        context.SaveChanges();
+
+        var service = CreateService(context);
+
+        // Act
+        var results = (await service.GetObservationsByExerciseAsync(exercise.Id)).ToList();
+
+        // Assert
+        results.Should().HaveCount(1);
+        results[0].Photos.Should().HaveCount(1);
+        results[0].Photos[0].Id.Should().Be(activePhoto.Id);
+    }
+
+    #endregion
 }

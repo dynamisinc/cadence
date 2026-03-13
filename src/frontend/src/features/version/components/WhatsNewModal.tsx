@@ -12,6 +12,7 @@ import {
   Box,
   Divider,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faStar, faBug, faRocket } from '@fortawesome/free-solid-svg-icons'
 import { appVersion } from '@/config/version'
@@ -28,6 +29,7 @@ interface WhatsNewModalProps {
  * Shows features and fixes for the current version.
  */
 export function WhatsNewModal({ open, onDismiss, onViewAllNotes }: WhatsNewModalProps) {
+  const theme = useTheme()
   const { releaseNotes } = useReleaseNotes()
   const currentNotes = getReleaseNotesForVersion(releaseNotes, appVersion.version)
 
@@ -46,7 +48,7 @@ export function WhatsNewModal({ open, onDismiss, onViewAllNotes }: WhatsNewModal
     >
       <DialogTitle id="whats-new-title">
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <FontAwesomeIcon icon={faRocket} color="#ffc107" />
+          <FontAwesomeIcon icon={faRocket} color={theme.palette.semantic.warning} />
           <Typography variant="h6" component="span">
             What's New in Cadence
           </Typography>
@@ -70,7 +72,7 @@ export function WhatsNewModal({ open, onDismiss, onViewAllNotes }: WhatsNewModal
                   {currentNotes.features.map((feature, index) => (
                     <ListItem key={index} disableGutters>
                       <ListItemIcon sx={{ minWidth: 32 }}>
-                        <FontAwesomeIcon icon={faStar} size="sm" color="#4caf50" />
+                        <FontAwesomeIcon icon={faStar} size="sm" color={theme.palette.semantic.success} />
                       </ListItemIcon>
                       <ListItemText primary={feature} />
                     </ListItem>
@@ -88,7 +90,7 @@ export function WhatsNewModal({ open, onDismiss, onViewAllNotes }: WhatsNewModal
                   {currentNotes.fixes.map((fix, index) => (
                     <ListItem key={index} disableGutters>
                       <ListItemIcon sx={{ minWidth: 32 }}>
-                        <FontAwesomeIcon icon={faBug} size="sm" color="#ff9800" />
+                        <FontAwesomeIcon icon={faBug} size="sm" color={theme.palette.semantic.warning} />
                       </ListItemIcon>
                       <ListItemText primary={fix} />
                     </ListItem>

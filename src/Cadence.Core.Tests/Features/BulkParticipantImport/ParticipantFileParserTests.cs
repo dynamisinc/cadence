@@ -634,4 +634,56 @@ public class ParticipantFileParserTests
         result.Rows[1].NormalizedExerciseRole.Should().Be(ExerciseRole.Evaluator);
         result.Rows[2].NormalizedExerciseRole.Should().Be(ExerciseRole.Observer);
     }
+
+    [Fact]
+    public async Task ParseAsync_UnsupportedExtension_ReturnsError()
+    {
+        var stream = CreateCsvStream("Email\ntest@test.com");
+
+        var result = await _parser.ParseAsync(stream, "test.txt");
+
+        result.IsValid.Should().BeFalse();
+    }
+
+    [Fact]
+    public async Task ParseAsync_TabDelimitedCsv_DetectsDelimiter()
+    {
+        var csv = "Email\tExercise Role\tDisplay Name\nuser@test.com\tController\tJohn Doe";
+        var stream = CreateCsvStream(csv);
+
+        var result = await _parser.ParseAsync(stream, "test.csv");
+
+        result.IsValid.Should().BeTrue();
+        result.Rows.Should().HaveCount(1);
+        result.Rows[0].Email.Should().Be("user@test.com");
+    }
+
+    [Fact]
+    public async Task ParseAsync_ExtraColumns_IgnoredGracefully()
+    {
+        var csv = "Email,Exercise Role,Display Name,Extra1,Extra2\nuser@test.com,Controller,John Doe,foo,bar";
+        var stream = CreateCsvStream(csv);
+
+        var result = await _parser.ParseAsync(stream, "test.csv");
+
+        result.IsValid.Should().BeTrue();
+        result.Rows.Should().HaveCount(1);
+        result.Rows[0].Email.Should().Be("user@test.com");
+    }
+
+    [Fact]
+    public async Task ParseAsync_LargeFile_ParsesAllRows()
+    {
+        var sb = new StringBuilder("Email,Exercise Role,Display Name\n");
+        for (int i = 0; i < 100; i++)
+        {
+            sb.AppendLine($"user{i}@test.com,Controller,User {i}");
+        }
+        var stream = CreateCsvStream(sb.ToString());
+
+        var result = await _parser.ParseAsync(stream, "test.csv");
+
+        result.IsValid.Should().BeTrue();
+        result.Rows.Should().HaveCount(100);
+    }
 }

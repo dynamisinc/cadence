@@ -160,12 +160,16 @@ export const PERFORMANCE_RATING_SHORT_LABELS: Record<PerformanceRating, string> 
 
 /**
  * Colors for performance ratings
+ * Maps EEG PerformanceRating values to COBRA rating palette tokens.
+ * SomeChallenges = Marginal (S), MajorChallenges = Unsatisfactory (M).
  */
+import { cobraTheme } from '@/theme/cobraTheme'
+
 export const PERFORMANCE_RATING_COLORS: Record<PerformanceRating, string> = {
-  [PerformanceRating.Performed]: '#4caf50', // Green
-  [PerformanceRating.SomeChallenges]: '#ff9800', // Orange
-  [PerformanceRating.MajorChallenges]: '#f44336', // Red
-  [PerformanceRating.UnableToPerform]: '#9e9e9e', // Grey
+  [PerformanceRating.Performed]: cobraTheme.palette.rating.performed.main,
+  [PerformanceRating.SomeChallenges]: cobraTheme.palette.rating.marginal.main,
+  [PerformanceRating.MajorChallenges]: cobraTheme.palette.rating.unsatisfactory.main,
+  [PerformanceRating.UnableToPerform]: cobraTheme.palette.rating.unrated.main,
 }
 
 /**

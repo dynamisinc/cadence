@@ -111,6 +111,8 @@ export const ExerciseMetricsPage = () => {
           value={activeTab}
           onChange={handleTabChange}
           aria-label="Exercise metrics tabs"
+          variant="scrollable"
+          scrollButtons="auto"
         >
           <Tab
             icon={<FontAwesomeIcon icon={faFire} />}

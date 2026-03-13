@@ -59,6 +59,9 @@ interface OfflineSyncContextValue {
   clearConflicts: () => Promise<void>
 }
 
+/** Delay before checking for stale pending changes on mount (ms) */
+const SYNC_RETRY_DELAY_MS = 1500
+
 const OfflineSyncContext = createContext<OfflineSyncContextValue | null>(null)
 
 interface OfflineSyncProviderProps {
@@ -239,7 +242,7 @@ export const OfflineSyncProvider: React.FC<OfflineSyncProviderProps> = ({
     ) {
       const checkAndSyncStaleChanges = async () => {
         // Small delay to ensure everything is initialized
-        await new Promise(resolve => setTimeout(resolve, 1500))
+        await new Promise(resolve => setTimeout(resolve, SYNC_RETRY_DELAY_MS))
 
         if (!isMountedRef.current) return
 

@@ -6,6 +6,7 @@
  */
 import { useState } from 'react'
 import { Box, Typography, Skeleton, Alert, Collapse, Chip } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { CobraIconButton } from '@/theme/styledComponents'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -36,18 +37,21 @@ function getSectionIcon(type: string) {
 }
 
 /**
- * Get section color based on type.
+ * Get section color based on type (uses theme tokens, passed as parameter).
  */
-function getSectionColor(type: string): string {
+function getSectionColor(
+  type: string,
+  palette: { semantic: { success: string; info: string }; neutral: { 500: string; 600: string } },
+): string {
   switch (type) {
     case 'active':
-      return '#4caf50'
+      return palette.semantic.success
     case 'upcoming':
-      return '#2196f3'
+      return palette.semantic.info
     case 'completed':
-      return '#9e9e9e'
+      return palette.neutral[500]
     default:
-      return '#666'
+      return palette.neutral[600]
   }
 }
 
@@ -61,9 +65,10 @@ export function AssignmentSection({
 }: AssignmentSectionProps) {
   // Completed section is collapsed by default
   const [isExpanded, setIsExpanded] = useState(type !== 'completed')
+  const theme = useTheme()
 
   const icon = getSectionIcon(type)
-  const color = getSectionColor(type)
+  const color = getSectionColor(type, theme.palette)
 
   const handleToggle = () => {
     setIsExpanded(!isExpanded)

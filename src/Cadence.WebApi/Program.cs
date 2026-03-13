@@ -186,6 +186,23 @@ try
             NameClaimType = JwtRegisteredClaimNames.Name,
             RoleClaimType = ClaimTypes.Role
         };
+
+        // Extract JWT from query string for SignalR negotiate/WebSocket requests
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubs"))
+                {
+                    context.Token = accessToken;
+                }
+
+                return Task.CompletedTask;
+            }
+        };
     });
 
     // Register Authentication Services

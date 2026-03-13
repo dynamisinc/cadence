@@ -18,6 +18,7 @@ import {
   Typography,
   Box,
 } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
   faTriangleExclamation,
@@ -56,6 +57,7 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
   conflicts,
   onClose,
 }) => {
+  const theme = useTheme()
   if (conflicts.length === 0) return null
 
   return (
@@ -67,7 +69,7 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
       data-testid="conflict-dialog"
     >
       <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <FontAwesomeIcon icon={faTriangleExclamation} color="#f59e0b" />
+        <FontAwesomeIcon icon={faTriangleExclamation} color={theme.palette.semantic.warningAmber} />
         <Typography variant="h6" component="span">
           Sync Conflicts
         </Typography>
@@ -90,7 +92,7 @@ export const ConflictDialog: React.FC<ConflictDialogProps> = ({
                 }}
               >
                 <ListItemIcon sx={{ minWidth: 36 }}>
-                  <FontAwesomeIcon icon={faTimesCircle} color="#ef4444" />
+                  <FontAwesomeIcon icon={faTimesCircle} color={theme.palette.semantic.error} />
                 </ListItemIcon>
                 <ListItemText
                   primary={

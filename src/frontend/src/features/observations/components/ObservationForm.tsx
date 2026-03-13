@@ -30,6 +30,8 @@ import type { CreateObservationRequest, UpdateObservationRequest, ObservationDto
 import type { CapabilityDto } from '../../capabilities/types'
 import { ObservationCapabilitySelector } from './ObservationCapabilitySelector'
 import { PhotoAttachmentSection } from '../../photos/components/PhotoAttachmentSection'
+import { SuggestionTextField } from '../../../shared/components/SuggestionTextField'
+import { useLocationNameSuggestions } from '../../autocomplete'
 
 interface ObservationFormProps {
   /** Exercise ID for photo uploads */
@@ -69,7 +71,7 @@ interface ObservationFormProps {
 }
 
 export const ObservationForm = ({
-  exerciseId: _exerciseId,
+  exerciseId,
   inject,
   injects = [],
   capabilities = [],
@@ -89,6 +91,9 @@ export const ObservationForm = ({
   const [content, setContent] = useState(initialValues?.content ?? '')
   const [recommendation, setRecommendation] = useState(initialValues?.recommendation ?? '')
   const [location, setLocation] = useState(initialValues?.location ?? '')
+  const [locationFilter, setLocationFilter] = useState('')
+  const { data: locationSuggestions = [], isLoading: locationLoading } =
+    useLocationNameSuggestions(exerciseId, locationFilter)
   const [selectedInjectId, setSelectedInjectId] = useState<string>(
     inject?.id ?? initialValues?.injectId ?? '',
   )
@@ -258,16 +263,16 @@ export const ObservationForm = ({
           fullWidth
         />
 
-        {/* Location (Optional) */}
-        <CobraTextField
+        {/* Location (Optional) — with autosuggest from inject locations */}
+        <SuggestionTextField
           label="Location (Optional)"
           placeholder="Where did this occur? (e.g., EOC, Field Site A)"
           value={location}
-          onChange={e => setLocation(e.target.value)}
+          onChange={setLocation}
+          suggestions={locationSuggestions}
+          isLoading={locationLoading}
+          onFilterChange={setLocationFilter}
           fullWidth
-          slotProps={{
-            htmlInput: { maxLength: 200 },
-          }}
           helperText={location.length > 0 ? `${location.length}/200` : undefined}
         />
 

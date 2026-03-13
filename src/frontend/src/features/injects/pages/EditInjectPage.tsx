@@ -1,16 +1,10 @@
-import { useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import {
   Box,
   Typography,
   Stack,
   Paper,
-  IconButton,
   Skeleton,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faArrowLeft, faHome } from '@fortawesome/free-solid-svg-icons'
@@ -23,9 +17,10 @@ import { usePhases } from '../../phases/hooks'
 import { useBreadcrumbs } from '../../../core/contexts'
 import {
   CobraPrimaryButton,
-  CobraSecondaryButton,
+  CobraIconButton,
 } from '../../../theme/styledComponents'
 import CobraStyles from '../../../theme/CobraStyles'
+import { useUnsavedChangesWarning } from '@/shared/hooks/useUnsavedChangesWarning'
 import type { UpdateInjectRequest } from '../types'
 
 /**
@@ -61,16 +56,11 @@ export const EditInjectPage = () => {
       : undefined,
   )
 
-  const [showUnsavedDialog, setShowUnsavedDialog] = useState(false)
-  // TODO: Track form changes for unsaved warning - for now always false
-  const hasChanges = false
+  // TODO: Replace `false` with actual form dirty state (e.g. from InjectForm's isDirty)
+  const { UnsavedChangesDialog } = useUnsavedChangesWarning(false)
 
   const handleBackClick = () => {
-    if (hasChanges) {
-      setShowUnsavedDialog(true)
-    } else {
-      navigate(`/exercises/${exerciseId}/injects/${injectId}`)
-    }
+    navigate(`/exercises/${exerciseId}/injects/${injectId}`)
   }
 
   const handleSubmit = async (request: UpdateInjectRequest) => {
@@ -81,20 +71,7 @@ export const EditInjectPage = () => {
   }
 
   const handleCancel = () => {
-    if (hasChanges) {
-      setShowUnsavedDialog(true)
-    } else {
-      navigate(`/exercises/${exerciseId}/injects/${injectId}`)
-    }
-  }
-
-  const handleConfirmLeave = () => {
-    setShowUnsavedDialog(false)
     navigate(`/exercises/${exerciseId}/injects/${injectId}`)
-  }
-
-  const handleCancelLeave = () => {
-    setShowUnsavedDialog(false)
   }
 
   // Error state
@@ -116,9 +93,9 @@ export const EditInjectPage = () => {
     return (
       <Box padding={CobraStyles.Padding.MainWindow}>
         <Stack direction="row" alignItems="center" spacing={1} marginBottom={3}>
-          <IconButton onClick={handleBackClick} size="small">
+          <CobraIconButton onClick={handleBackClick} size="small">
             <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
+          </CobraIconButton>
           <Skeleton variant="text" width={200} height={40} />
         </Stack>
         <Paper sx={{ p: 3 }}>
@@ -140,9 +117,9 @@ export const EditInjectPage = () => {
         marginBottom={1}
       >
         <Stack direction="row" alignItems="center" spacing={1}>
-          <IconButton onClick={handleBackClick} size="small">
+          <CobraIconButton onClick={handleBackClick} size="small">
             <FontAwesomeIcon icon={faArrowLeft} />
-          </IconButton>
+          </CobraIconButton>
           <Box>
             <Typography variant="caption" color="text.secondary">
               INJ-{inject.injectNumber.toString().padStart(3, '0')}
@@ -175,23 +152,7 @@ export const EditInjectPage = () => {
         />
       </Paper>
 
-      {/* Unsaved Changes Dialog */}
-      <Dialog open={showUnsavedDialog} onClose={handleCancelLeave}>
-        <DialogTitle>Unsaved Changes</DialogTitle>
-        <DialogContent>
-          <Typography>
-            You have unsaved changes. Are you sure you want to leave?
-          </Typography>
-        </DialogContent>
-        <DialogActions>
-          <CobraSecondaryButton onClick={handleCancelLeave}>
-            Keep Editing
-          </CobraSecondaryButton>
-          <CobraPrimaryButton onClick={handleConfirmLeave}>
-            Discard Changes
-          </CobraPrimaryButton>
-        </DialogActions>
-      </Dialog>
+      <UnsavedChangesDialog />
     </Box>
   )
 }

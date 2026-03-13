@@ -94,6 +94,10 @@ vi.mock('@microsoft/signalr', () => {
   }
 })
 
+vi.mock('@/contexts/AuthContext', () => ({
+  useAuth: () => ({ accessToken: 'mock-token' }),
+}))
+
 import { useExerciseSignalR } from './useExerciseSignalR'
 
 describe('useExerciseSignalR', () => {
