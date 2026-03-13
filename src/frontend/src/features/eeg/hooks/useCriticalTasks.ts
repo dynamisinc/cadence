@@ -265,12 +265,14 @@ export const useCriticalTask = (id: string | undefined) => {
  * @param exerciseId Exercise ID (required for authorization)
  * @param taskId Critical task ID
  */
+const EMPTY_INJECT_IDS: string[] = []
+
 export const useLinkedInjects = (exerciseId: string, taskId: string) => {
   const queryClient = useQueryClient()
   const queryKey = criticalTaskKeys.linkedInjects(taskId)
 
   const {
-    data: linkedInjectIds = [],
+    data: linkedInjectIds = EMPTY_INJECT_IDS,
     isLoading: loading,
     error,
   } = useQuery({

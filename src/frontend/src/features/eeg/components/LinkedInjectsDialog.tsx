@@ -81,7 +81,12 @@ export const LinkedInjectsDialog: FC<LinkedInjectsDialogProps> = ({
 
   // Sync local state when linked data loads
   useEffect(() => {
-    setLocalLinkedIds(linkedInjectIds)
+    setLocalLinkedIds(prev => {
+      if (prev.length === linkedInjectIds.length && prev.every((id, i) => id === linkedInjectIds[i])) {
+        return prev
+      }
+      return linkedInjectIds
+    })
   }, [linkedInjectIds])
 
   // Reset search on dialog open/close
