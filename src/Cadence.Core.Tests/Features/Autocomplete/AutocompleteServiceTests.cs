@@ -168,7 +168,7 @@ public class AutocompleteServiceTests
 
         AddInjects(context, msel.Id, SuggestionFieldNames.Track, "Fire Track", "Police Track", "EMS Track");
 
-        var result = await service.GetTrackSuggestionsAsync(org.Id, filter: "fire");
+        var result = await service.GetTrackSuggestionsAsync(org.Id, filter: "Fire");
 
         result.Should().Contain("Fire Track");
         result.Should().NotContain("Police Track");

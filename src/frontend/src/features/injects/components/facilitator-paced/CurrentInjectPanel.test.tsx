@@ -216,7 +216,7 @@ describe('CurrentInjectPanel', () => {
       />,
     )
 
-    expect(screen.getByText(/FIRE & CONTINUE/)).toBeInTheDocument()
+    expect(screen.getByText(/Fire & Continue/i)).toBeInTheDocument()
   })
 
   it('shows Skip button when canControl is true', () => {
@@ -246,7 +246,7 @@ describe('CurrentInjectPanel', () => {
       />,
     )
 
-    expect(screen.queryByText(/FIRE & CONTINUE/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/Fire & Continue/i)).not.toBeInTheDocument()
     expect(screen.queryByText('Skip')).not.toBeInTheDocument()
   })
 
@@ -263,7 +263,7 @@ describe('CurrentInjectPanel', () => {
       />,
     )
 
-    const fireButton = screen.getByText(/FIRE & CONTINUE/).closest('button')
+    const fireButton = screen.getByText(/Fire & Continue/i).closest('button')
     if (fireButton) {
       fireEvent.click(fireButton)
     }
@@ -310,7 +310,7 @@ describe('CurrentInjectPanel', () => {
       />,
     )
 
-    const fireButton = screen.getByText(/FIRE & CONTINUE/).closest('button')
+    const fireButton = screen.getByText(/Fire & Continue/i).closest('button')
     const skipButton = screen.getByText('Skip').closest('button')
 
     expect(fireButton).toBeDisabled()

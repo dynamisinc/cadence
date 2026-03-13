@@ -162,7 +162,7 @@ describe('ReadyToFireSection', () => {
     expect(screen.getByText('Emergency Operations Center')).toBeInTheDocument()
     expect(screen.getByText(/From:/)).toBeInTheDocument()
     expect(screen.getByText('State Emergency Services')).toBeInTheDocument()
-    expect(screen.getByText(/Method:/)).toBeInTheDocument()
+    expect(screen.getByText(/Via:/)).toBeInTheDocument()
     expect(screen.getByText('Radio')).toBeInTheDocument()
   })
 
@@ -218,7 +218,7 @@ describe('ReadyToFireSection', () => {
       />,
     )
 
-    const fireButton = screen.getByRole('button', { name: /FIRE INJECT/i })
+    const fireButton = screen.getByRole('button', { name: /^Fire$/i })
     await user.click(fireButton)
 
     expect(onFire).toHaveBeenCalledWith('1')
@@ -356,7 +356,7 @@ describe('ReadyToFireSection', () => {
       />,
     )
 
-    expect(screen.queryByRole('button', { name: /FIRE INJECT/i })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /^Fire$/i })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: /Skip/i })).not.toBeInTheDocument()
   })
 
@@ -373,7 +373,7 @@ describe('ReadyToFireSection', () => {
       />,
     )
 
-    expect(screen.getByRole('button', { name: /FIRE INJECT/i })).toBeDisabled()
+    expect(screen.getByRole('button', { name: /^Fire$/i })).toBeDisabled()
     expect(screen.getByRole('button', { name: /Skip/i })).toBeDisabled()
   })
 
@@ -392,8 +392,8 @@ describe('ReadyToFireSection', () => {
       />,
     )
 
-    const title = screen.getByText('Clickable Inject')
-    await user.click(title)
+    const viewButton = screen.getByRole('button', { name: /View/i })
+    await user.click(viewButton)
 
     expect(onInjectClick).toHaveBeenCalledWith(injects[0])
   })

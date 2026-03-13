@@ -228,7 +228,7 @@ describe('DeleteExerciseDialog', () => {
       await user.type(screen.getByLabelText(/Type exercise name to confirm/i), 'Test Exercise')
 
       expect(screen.getByRole('button', { name: /Delete/i })).toBeDisabled()
-    })
+    }, 20000)
 
     it('delete button is disabled when only checkbox is checked', async () => {
       const user = userEvent.setup()

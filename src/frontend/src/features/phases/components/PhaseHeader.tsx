@@ -140,6 +140,7 @@ export const PhaseHeader = ({
                   size="small"
                   onClick={handleEditClick}
                   disabled={isLoading}
+                  aria-label="Edit phase"
                 >
                   <FontAwesomeIcon icon={faPen} size="sm" />
                 </IconButton>
