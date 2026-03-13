@@ -17,6 +17,7 @@
 
 import { useEffect, useCallback, useState, useRef } from 'react'
 import * as signalR from '@microsoft/signalr'
+import { useAuth } from '@/contexts/AuthContext'
 import { devLog, devWarn } from '@/core/utils/logger'
 import type { ConnectionState } from './signalRTypes'
 import type { InjectDto } from '../../features/injects/types'
@@ -109,6 +110,10 @@ export const useExerciseSignalR = (
     onInjectReverted,
   } = options
 
+  const { accessToken } = useAuth()
+  const accessTokenRef = useRef(accessToken)
+  accessTokenRef.current = accessToken
+
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected')
   const [isJoined, setIsJoined] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -128,7 +133,9 @@ export const useExerciseSignalR = (
     const hubUrl = getHubUrl()
 
     const connection = new signalR.HubConnectionBuilder()
-      .withUrl(hubUrl)
+      .withUrl(hubUrl, {
+        accessTokenFactory: () => accessTokenRef.current || '',
+      })
       .withAutomaticReconnect({
         nextRetryDelayInMilliseconds: (retryContext: signalR.RetryContext) => {
           // Exponential backoff: 0s, 2s, 4s, 8s, 16s, max 30s

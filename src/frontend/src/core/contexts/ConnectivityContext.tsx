@@ -245,27 +245,31 @@ export const ConnectivityProvider: React.FC<ConnectivityProviderProps> = ({ chil
     }
   }, [performHealthCheck])
 
-  // Stable setSignalRState — uses ref for isInExercise to avoid dependency cycle
+  // Track previous SignalR state for toast comparison
+  const prevSignalRStateRef = useRef<SignalRState | null>(null)
+
+  // Stable setSignalRState — uses refs to avoid dependency cycle
   const setSignalRState = useCallback((state: SignalRState | null) => {
-    setSignalRStateInternal(prevState => {
-      // Only show toasts if state actually changed and we're in an exercise
-      if (isInExerciseRef.current && prevState !== state && prevState !== null) {
-        if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
-          notify.dismiss('signalr-status')
-          notify.success('Real-time connection restored', {
-            toastId: 'signalr-restored',
-            autoClose: 2000,
-          })
-        } else if ((state === 'disconnected' || state === 'error') && prevState === 'connected') {
-          notify.warning('Real-time connection lost. Attempting to reconnect...', {
-            toastId: 'signalr-status',
-            autoClose: false,
-          })
-        }
+    const prevState = prevSignalRStateRef.current
+    prevSignalRStateRef.current = state
+    setSignalRStateInternal(state)
+
+    // Show toasts outside the state updater to avoid setState-during-render
+    if (isInExerciseRef.current && prevState !== state && prevState !== null) {
+      if (state === 'connected' && (prevState === 'disconnected' || prevState === 'reconnecting' || prevState === 'error')) {
+        notify.dismiss('signalr-status')
+        notify.success('Real-time connection restored', {
+          toastId: 'signalr-restored',
+          autoClose: 2000,
+        })
+      } else if ((state === 'disconnected' || state === 'error') && prevState === 'connected') {
+        notify.warning('Real-time connection lost. Attempting to reconnect...', {
+          toastId: 'signalr-status',
+          autoClose: false,
+        })
       }
-      return state
-    })
-  }, []) // No deps — uses ref for isInExercise
+    }
+  }, []) // No deps — uses refs for isInExercise and prevState
 
   const setPendingCount = useCallback((count: number) => {
     setPendingCountInternal(Math.max(0, count))
