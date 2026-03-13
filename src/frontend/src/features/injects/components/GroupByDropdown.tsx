@@ -4,7 +4,7 @@
  * A dropdown for selecting how to group injects.
  */
 
-import { Box, Typography, Select, MenuItem } from '@mui/material'
+import { Box, Typography, Select, MenuItem, Tooltip } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faLayerGroup } from '@fortawesome/free-solid-svg-icons'
 import type { GroupBy } from '../types/organization'
@@ -15,19 +15,25 @@ export interface GroupByDropdownProps {
   value: GroupBy
   /** Callback when grouping changes */
   onChange: (groupBy: GroupBy) => void
+  /** When true, hide the "Group:" label text */
+  compact?: boolean
 }
 
-export const GroupByDropdown = ({ value, onChange }: GroupByDropdownProps) => {
+export const GroupByDropdown = ({ value, onChange, compact = false }: GroupByDropdownProps) => {
   const options = getGroupByOptions()
 
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
-        <FontAwesomeIcon icon={faLayerGroup} style={{ fontSize: '0.875rem' }} />
-        <Typography variant="body2" component="span">
-          Group:
-        </Typography>
-      </Box>
+      <Tooltip title={compact ? 'Group' : ''}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'text.secondary' }}>
+          <FontAwesomeIcon icon={faLayerGroup} style={{ fontSize: '0.875rem' }} />
+          {!compact && (
+            <Typography variant="body2" component="span">
+              Group:
+            </Typography>
+          )}
+        </Box>
+      </Tooltip>
       <Select
         value={value}
         onChange={e => onChange(e.target.value as GroupBy)}

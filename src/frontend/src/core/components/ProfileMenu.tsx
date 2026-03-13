@@ -176,7 +176,7 @@ export const ProfileMenu: React.FC = () => {
         slotProps={{
           paper: {
             sx: {
-              minWidth: 300,
+              minWidth: { xs: 260, sm: 300 },
               maxWidth: 360,
             },
           },

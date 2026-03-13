@@ -567,16 +567,16 @@ export const ExerciseConductPage = () => {
           <Box
             sx={{
               display: 'flex',
-              gap: 3,
+              gap: { xs: 2, lg: 3 },
               flex: 1,
               minHeight: 0, // Critical for nested flex scrolling
-              flexDirection: { xs: 'column', md: 'row' },
+              flexDirection: { xs: 'column', lg: 'row' },
             }}
           >
             {/* Left Column: Injects (and Clock for classic layout) */}
             <Box
               sx={{
-                flex: { xs: 1, md: 2 },
+                flex: { xs: 1, lg: 2 },
                 display: 'flex',
                 flexDirection: 'column',
                 minWidth: 0, // Prevent flex item overflow

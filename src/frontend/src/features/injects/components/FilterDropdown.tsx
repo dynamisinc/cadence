@@ -19,6 +19,7 @@ import {
   Badge,
   Divider,
   Stack,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import { faChevronDown, faFilter } from '@fortawesome/free-solid-svg-icons'
@@ -42,6 +43,8 @@ export interface FilterDropdownProps<T> {
   onChange: (selected: T[]) => void
   /** Optional icon to display */
   icon?: typeof faFilter
+  /** When true, show only icon with tooltip (no label text or chevron) */
+  compact?: boolean
 }
 
 export function FilterDropdown<T extends string | null>({
@@ -50,6 +53,7 @@ export function FilterDropdown<T extends string | null>({
   selected,
   onChange,
   icon = faFilter,
+  compact = false,
 }: FilterDropdownProps<T>) {
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
   const buttonRef = useRef<HTMLButtonElement>(null)
@@ -80,51 +84,59 @@ export function FilterDropdown<T extends string | null>({
     onChange([])
   }
 
-  return (
-    <>
-      <Badge
-        badgeContent={hasSelections ? selected.length : 0}
-        color="primary"
-        overlap="rectangular"
-        anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+  const buttonContent = (
+    <Badge
+      badgeContent={hasSelections ? selected.length : 0}
+      color="primary"
+      overlap="rectangular"
+      anchorOrigin={{ vertical: 'top', horizontal: 'right' }}
+      sx={{
+        '& .MuiBadge-badge': {
+          fontSize: '0.65rem',
+          height: 16,
+          minWidth: 16,
+          transform: 'translate(25%, -25%)',
+        },
+      }}
+    >
+      <CobraSecondaryButton
+        ref={buttonRef}
+        onClick={handleOpen}
+        size="small"
+        aria-haspopup="listbox"
+        aria-expanded={open}
+        aria-label={`Filter by ${label}`}
         sx={{
-          '& .MuiBadge-badge': {
-            fontSize: '0.65rem',
-            height: 16,
-            minWidth: 16,
-            transform: 'translate(25%, -25%)',
-          },
+          minWidth: 'auto',
+          px: compact ? 1 : 1.5,
+          borderColor: hasSelections ? 'primary.main' : undefined,
         }}
       >
-        <CobraSecondaryButton
-          ref={buttonRef}
-          onClick={handleOpen}
-          size="small"
-          aria-haspopup="listbox"
-          aria-expanded={open}
-          aria-label={`Filter by ${label}`}
-          sx={{
-            minWidth: 'auto',
-            px: 1.5,
-            borderColor: hasSelections ? 'primary.main' : undefined,
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <FontAwesomeIcon icon={icon} style={{ fontSize: '0.75rem' }} />
-            <Typography variant="body2" component="span">
-              {label}
-            </Typography>
-            <FontAwesomeIcon
-              icon={faChevronDown}
-              style={{
-                fontSize: '0.65rem',
-                transition: 'transform 0.2s',
-                transform: open ? 'rotate(180deg)' : undefined,
-              }}
-            />
-          </Box>
-        </CobraSecondaryButton>
-      </Badge>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <FontAwesomeIcon icon={icon} style={{ fontSize: '0.75rem' }} />
+          {!compact && (
+            <>
+              <Typography variant="body2" component="span">
+                {label}
+              </Typography>
+              <FontAwesomeIcon
+                icon={faChevronDown}
+                style={{
+                  fontSize: '0.65rem',
+                  transition: 'transform 0.2s',
+                  transform: open ? 'rotate(180deg)' : undefined,
+                }}
+              />
+            </>
+          )}
+        </Box>
+      </CobraSecondaryButton>
+    </Badge>
+  )
+
+  return (
+    <>
+      {compact ? <Tooltip title={label}>{buttonContent}</Tooltip> : buttonContent}
 
       <Popover
         open={open}

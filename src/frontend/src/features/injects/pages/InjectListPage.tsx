@@ -9,6 +9,7 @@ import {
   DialogContent,
   DialogActions,
   Portal,
+  Tooltip,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -17,6 +18,7 @@ import {
   faHome,
   faFileImport,
   faFileExport,
+  faLayerGroup,
 } from '@fortawesome/free-solid-svg-icons'
 
 /** Minimum time to show the saving indicator (ms) */
@@ -51,6 +53,7 @@ import type { SortConfig } from '../types/organization'
 import { ImportWizard } from '../../excel-import/components'
 import { ExportDialog } from '../../excel-export/components'
 import { HelpTooltip, PageHeader } from '@/shared/components'
+import { useContainerWidth } from '@/shared/hooks'
 import { InjectTableSkeleton } from '../components/InjectTableSkeleton'
 import { GroupedInjectView } from '../components/GroupedInjectView'
 import { FlatInjectList } from '../components/FlatInjectList'
@@ -102,8 +105,14 @@ interface InjectListPageContentProps {
   exerciseId: string
 }
 
+/** Content area width (px) below which buttons/filters switch to compact (icon-only) mode */
+const COMPACT_BREAKPOINT = 800
+
 const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const navigate = useNavigate()
+  const containerRef = useRef<HTMLDivElement>(null)
+  const containerWidth = useContainerWidth(containerRef)
+  const compactButtons = containerWidth > 0 && containerWidth < COMPACT_BREAKPOINT
   const { exercise, loading: exerciseLoading } = useExercise(exerciseId)
   const {
     injects,
@@ -349,7 +358,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
   const phaseOptions = phases.map(p => ({ id: p.id, name: p.name }))
 
   return (
-    <Box padding={CobraStyles.Padding.MainWindow}>
+    <Box ref={containerRef} padding={CobraStyles.Padding.MainWindow}>
       <PageHeader
         title="MSEL"
         icon={faListCheck}
@@ -359,30 +368,46 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
         chips={<HelpTooltip helpKey="msel.overview" exerciseRole={effectiveRole ?? undefined} compact />}
         actions={(canFireInjects || canManage) ? (
           <>
-            <CobraSecondaryButton
-              startIcon={<FontAwesomeIcon icon={faFileImport} />}
-              onClick={() => setImportWizardOpen(true)}
-            >
-              Import
-            </CobraSecondaryButton>
-            <CobraSecondaryButton
-              startIcon={<FontAwesomeIcon icon={faFileExport} />}
-              onClick={() => setExportDialogOpen(true)}
-            >
-              Export
-            </CobraSecondaryButton>
-            <CobraSecondaryButton
-              startIcon={<FontAwesomeIcon icon={faPlus} />}
-              onClick={handleAddPhaseClick}
-            >
-              Add Phase
-            </CobraSecondaryButton>
-            <CobraPrimaryButton
-              startIcon={<FontAwesomeIcon icon={faPlus} />}
-              onClick={handleCreateClick}
-            >
-              New Inject
-            </CobraPrimaryButton>
+            <Tooltip title="Import">
+              <CobraSecondaryButton
+                startIcon={compactButtons ? undefined : <FontAwesomeIcon icon={faFileImport} />}
+                onClick={() => setImportWizardOpen(true)}
+                aria-label="Import"
+                size={compactButtons ? 'small' : 'medium'}
+              >
+                {compactButtons ? <FontAwesomeIcon icon={faFileImport} /> : 'Import'}
+              </CobraSecondaryButton>
+            </Tooltip>
+            <Tooltip title="Export">
+              <CobraSecondaryButton
+                startIcon={compactButtons ? undefined : <FontAwesomeIcon icon={faFileExport} />}
+                onClick={() => setExportDialogOpen(true)}
+                aria-label="Export"
+                size={compactButtons ? 'small' : 'medium'}
+              >
+                {compactButtons ? <FontAwesomeIcon icon={faFileExport} /> : 'Export'}
+              </CobraSecondaryButton>
+            </Tooltip>
+            <Tooltip title="Add Phase">
+              <CobraSecondaryButton
+                startIcon={compactButtons ? undefined : <FontAwesomeIcon icon={faLayerGroup} />}
+                onClick={handleAddPhaseClick}
+                aria-label="Add Phase"
+                size={compactButtons ? 'small' : 'medium'}
+              >
+                {compactButtons ? <FontAwesomeIcon icon={faLayerGroup} /> : 'Add Phase'}
+              </CobraSecondaryButton>
+            </Tooltip>
+            <Tooltip title="New Inject">
+              <CobraPrimaryButton
+                startIcon={compactButtons ? undefined : <FontAwesomeIcon icon={faPlus} />}
+                onClick={handleCreateClick}
+                aria-label="New Inject"
+                size={compactButtons ? 'small' : 'medium'}
+              >
+                {compactButtons ? <FontAwesomeIcon icon={faPlus} /> : 'New Inject'}
+              </CobraPrimaryButton>
+            </Tooltip>
           </>
         ) : undefined}
       />
@@ -408,6 +433,7 @@ const InjectListPageContent = ({ exerciseId }: InjectListPageContentProps) => {
           showGroupControls={organization.groupBy !== 'none'}
           onExpandAll={organization.expandAllGroups}
           onCollapseAll={organization.collapseAllGroups}
+          compact={compactButtons}
         />
       </Box>
 

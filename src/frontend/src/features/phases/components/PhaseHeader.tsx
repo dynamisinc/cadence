@@ -135,13 +135,15 @@ export const PhaseHeader = ({
 
             {/* Edit button */}
             <Tooltip title="Edit phase">
-              <IconButton
-                size="small"
-                onClick={handleEditClick}
-                disabled={isLoading}
-              >
-                <FontAwesomeIcon icon={faPen} size="sm" />
-              </IconButton>
+              <span>
+                <IconButton
+                  size="small"
+                  onClick={handleEditClick}
+                  disabled={isLoading}
+                >
+                  <FontAwesomeIcon icon={faPen} size="sm" />
+                </IconButton>
+              </span>
             </Tooltip>
 
             {/* Delete button */}

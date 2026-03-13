@@ -113,12 +113,13 @@ export const ExerciseListPage = () => {
         spacing={2}
         marginBottom={2}
         alignItems="center"
+        flexWrap="wrap"
       >
         <CobraTextField
           placeholder="Search exercises..."
           value={searchTerm}
           onChange={e => setSearchTerm(e.target.value)}
-          sx={{ width: 300 }}
+          sx={{ width: { xs: '100%', sm: 300 } }}
         />
         <Box
           component="label"

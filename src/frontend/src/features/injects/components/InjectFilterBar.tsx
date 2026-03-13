@@ -68,6 +68,10 @@ export interface InjectFilterBarProps {
   showGroupControls?: boolean
   onExpandAll?: () => void
   onCollapseAll?: () => void
+
+  // Responsive
+  /** When true, filter/group controls show icon-only with tooltips */
+  compact?: boolean
 }
 
 // Status filter options
@@ -105,6 +109,7 @@ export const InjectFilterBar = ({
   showGroupControls = false,
   onExpandAll,
   onCollapseAll,
+  compact: compactFilters = false,
 }: InjectFilterBarProps) => {
   const theme = useTheme()
   const searchInputRef = useRef<HTMLInputElement>(null)
@@ -145,7 +150,7 @@ export const InjectFilterBar = ({
       }}
     >
       {/* Left side: Search and filters */}
-      <Stack direction="row" spacing={1.5} alignItems="center" flexWrap="wrap">
+      <Stack direction="row" spacing={1.5} alignItems="center" sx={{ flex: 1, minWidth: 0, flexWrap: 'wrap' }}>
         {/* Search input */}
         <CobraTextField
           inputRef={searchInputRef}
@@ -153,7 +158,7 @@ export const InjectFilterBar = ({
           value={searchTerm}
           onChange={e => onSearchChange(e.target.value)}
           size="small"
-          sx={{ width: 360 }}
+          sx={{ minWidth: 130, flex: '1 1 200px', maxWidth: { xs: '100%', md: 280, lg: 360 } }}
           InputProps={{
             startAdornment: (
               <InputAdornment position="start">
@@ -196,6 +201,7 @@ export const InjectFilterBar = ({
           options={statusOptions}
           selected={filters.statuses}
           onChange={onStatusChange}
+          compact={compactFilters}
         />
 
         <FilterDropdown
@@ -204,6 +210,7 @@ export const InjectFilterBar = ({
           options={phaseOptions}
           selected={filters.phaseIds}
           onChange={onPhaseChange}
+          compact={compactFilters}
         />
 
         <FilterDropdown
@@ -212,6 +219,7 @@ export const InjectFilterBar = ({
           options={methodOptions}
           selected={filters.deliveryMethods}
           onChange={onMethodChange}
+          compact={compactFilters}
         />
 
         {objectives.length > 0 && (
@@ -221,13 +229,14 @@ export const InjectFilterBar = ({
             options={objectiveOptions}
             selected={filters.objectiveIds}
             onChange={onObjectiveChange}
+            compact={compactFilters}
           />
         )}
       </Stack>
 
       {/* Right side: Grouping and expand/collapse */}
       <Stack direction="row" spacing={2} alignItems="center">
-        <GroupByDropdown value={groupBy} onChange={onGroupByChange} />
+        <GroupByDropdown value={groupBy} onChange={onGroupByChange} compact={compactFilters} />
 
         {showGroupControls && groupBy !== 'none' && (
           <Stack direction="row" spacing={0.5}>

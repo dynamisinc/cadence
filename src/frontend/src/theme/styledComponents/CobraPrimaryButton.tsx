@@ -27,6 +27,7 @@ export const CobraPrimaryButton = styled(Button, {
   borderRadius: 50,
   color: theme.palette.buttonPrimary.contrastText,
   textTransform: 'none' as const,
+  whiteSpace: 'nowrap' as const,
   ...(size === 'small'
     ? {
       paddingBottom: 3,

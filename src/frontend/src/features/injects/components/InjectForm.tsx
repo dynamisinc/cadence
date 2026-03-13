@@ -543,7 +543,7 @@ export const InjectForm = ({
           </Typography>
 
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12, sm: 3, md: 2 }}>
+            <Grid size={{ xs: 12, sm: 4, md: 3 }}>
               <CobraTextField
                 label="Scheduled Time"
                 type="time"
@@ -559,7 +559,7 @@ export const InjectForm = ({
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 2, md: 1.5 }}>
+            <Grid size={{ xs: 6, sm: 2, md: 2 }}>
               <CobraTextField
                 label="Scenario Day"
                 type="number"
@@ -574,7 +574,7 @@ export const InjectForm = ({
                 }}
               />
             </Grid>
-            <Grid size={{ xs: 6, sm: 3, md: 2 }}>
+            <Grid size={{ xs: 6, sm: 4, md: 3 }}>
               <CobraTextField
                 label="Scenario Time"
                 type="time"
