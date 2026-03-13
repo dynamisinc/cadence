@@ -15,6 +15,7 @@ import { useQueryClient } from '@tanstack/react-query'
 import { useConnectivity } from '../../../core/contexts'
 import { useExerciseSignalR, type ConnectionState } from '../../../shared/hooks'
 import { clockQueryKey } from '../../exercise-clock'
+import { eegEntryKeys } from '../../eeg/hooks/useEegEntries'
 import { injectKeys } from '../../injects'
 import { observationsQueryKey } from '../../observations'
 import {
@@ -91,6 +92,11 @@ export const useExerciseConductSignalR = ({
     queryClient.invalidateQueries({ queryKey: observationsQueryKey(exerciseId) })
   }, [exerciseId, queryClient])
 
+  const handleEegEntryCreated = useCallback(() => {
+    queryClient.invalidateQueries({ queryKey: eegEntryKeys.coverage(exerciseId) })
+    queryClient.invalidateQueries({ queryKey: eegEntryKeys.byExercise(exerciseId) })
+  }, [exerciseId, queryClient])
+
   // Connect to SignalR exercise group
   const { connectionState, isJoined } = useExerciseSignalR({
     exerciseId,
@@ -103,6 +109,7 @@ export const useExerciseConductSignalR = ({
     onObservationAdded: handleObservationAdded,
     onObservationUpdated: handleObservationUpdated,
     onObservationDeleted: handleObservationDeleted,
+    onEegEntryCreated: handleEegEntryCreated,
     onReconnected: handleReconnected,
     enabled: !!exerciseId,
   })

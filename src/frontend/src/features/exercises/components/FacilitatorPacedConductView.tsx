@@ -327,6 +327,7 @@ export const FacilitatorPacedConductView = ({
         inject={currentInject}
         onFire={handleFireAndContinue}
         onSkip={handleSkip}
+        onView={() => setSelectedInject(currentInject)}
         canControl={canControl}
         isSubmitting={isSubmitting}
       />

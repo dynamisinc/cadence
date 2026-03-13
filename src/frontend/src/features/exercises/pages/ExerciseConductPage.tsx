@@ -13,6 +13,7 @@ import { useState, useCallback, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import {
   Box,
+  Chip,
   Typography,
   Paper,
   Stack,
@@ -22,6 +23,9 @@ import {
   ToggleButton,
   ToggleButtonGroup,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
 } from '@mui/material'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
 import {
@@ -32,17 +36,19 @@ import {
   faWindowMaximize,
   faGear,
   faDesktop,
+  faScrewdriverWrench,
 } from '@fortawesome/free-solid-svg-icons'
 
 import { useExercise, useExerciseSettings } from '../hooks'
 import {
-  ExerciseHeader,
   NarrativeView,
   StickyClockHeader,
   FloatingClockChip,
   ClockDrivenConductView,
   FacilitatorPacedConductView,
   ExerciseSettingsDialog,
+  ExerciseTypeChip,
+  ExerciseStatusChip,
 } from '../components'
 import { ObservationPanel } from '../components/ObservationPanel'
 import { CobraLinkButton, CobraPrimaryButton } from '../../../theme/styledComponents'
@@ -69,10 +75,12 @@ import {
   FireConfirmationDialog,
   SkipConfirmationDialog,
 } from '../../injects'
-import { useObservations } from '../../observations'
+import { useObservations, ObservationForm } from '../../observations'
 import type { ObservationDto, CreateObservationRequest } from '../../observations/types'
+import { useCapabilities } from '../../capabilities/hooks/useCapabilities'
+import { useExerciseTargetCapabilities } from '../hooks/useExerciseTargetCapabilities'
 import { ConfirmDialog } from '../../../shared/components/ConfirmDialog'
-import { HelpTooltip, PageHeader } from '@/shared/components'
+import { HelpTooltip } from '@/shared/components'
 import { QuickPhotoFab } from '../../photos'
 
 // Extracted hooks
@@ -138,6 +146,14 @@ export const ExerciseConductPage = () => {
 
   // Pre-selected inject ID for observations (set when adding from inject drawer)
   const [preSelectedInjectId, setPreSelectedInjectId] = useState<string | null>(null)
+
+  // Capabilities for observation form dialog
+  const { capabilities } = useCapabilities(false)
+  const { targetCapabilities } = useExerciseTargetCapabilities(exerciseId!)
+
+  // Observation dialog state — opened from inject detail drawer
+  const [observationDialogInjectId, setObservationDialogInjectId] = useState<string | null>(null)
+  const [isDialogSubmitting, setIsDialogSubmitting] = useState(false)
 
   // Observation panel state — managed here so ObservationPanel can be a controlled component
   const [showObservationForm, setShowObservationForm] = useState(false)
@@ -283,11 +299,23 @@ export const ExerciseConductPage = () => {
     setOpenInjectId(injectId)
   }
 
-  // Handle adding observation from inject drawer — pre-select the inject and open the form
+  // Handle adding observation from inject drawer — open dialog so drawer stays visible
   const handleAddObservationForInject = (injectId: string) => {
-    setPreSelectedInjectId(injectId)
-    setShowObservationForm(true)
-    setOpenInjectId(null) // Close the drawer
+    setObservationDialogInjectId(injectId)
+  }
+
+  const handleObservationDialogSubmit = async (data: CreateObservationRequest) => {
+    setIsDialogSubmitting(true)
+    try {
+      await createObservation(data)
+      setObservationDialogInjectId(null)
+    } finally {
+      setIsDialogSubmitting(false)
+    }
+  }
+
+  const handleObservationDialogClose = () => {
+    setObservationDialogInjectId(null)
   }
 
   // Stop clock with confirmation
@@ -424,88 +452,120 @@ export const ExerciseConductPage = () => {
         boxSizing: 'border-box',
       }}
     >
-      {/* Page Header */}
-      <PageHeader
-        title="Exercise Conduct"
-        icon={faDesktop}
-        subtitle={exercise ? `Conduct ${exercise.name}` : undefined}
-        chips={<HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} />}
-        mb={2}
-      />
-
-      {/* Exercise Info Header */}
-      <ExerciseHeader
-        exercise={exercise}
-        marginBottom={3}
-        actions={
-          <>
-            {/* User's Exercise Role Badge */}
-            <EffectiveRoleBadge exerciseId={exerciseId ?? null} showOverride />
-
-            {/* View Mode Toggle */}
-            <ToggleButtonGroup
-              value={viewMode}
-              exclusive
-              onChange={handleViewModeChange}
-              size="small"
-              aria-label="view mode"
-            >
-              <ToggleButton value="controller" aria-label="controller view">
-                <FontAwesomeIcon icon={faGaugeHigh} style={{ marginRight: 6 }} />
-                Controller
-              </ToggleButton>
-              <ToggleButton value="narrative" aria-label="narrative view">
-                <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: 6 }} />
-                Narrative
-              </ToggleButton>
-            </ToggleButtonGroup>
-
-            {/* Layout Mode Toggle (only in Controller view) */}
-            {viewMode === 'controller' && (
-              <ToggleButtonGroup
-                value={layoutMode}
-                exclusive
-                onChange={handleLayoutModeChange}
+      {/* Consolidated Conduct Header — exercise name, chips, and all controls in one row */}
+      <Stack
+        direction="row"
+        justifyContent="space-between"
+        alignItems="center"
+        sx={{ mb: 2, flexShrink: 0, flexWrap: 'wrap', gap: 1 }}
+      >
+        {/* Left: icon + exercise name + chips + help */}
+        <Stack direction="row" alignItems="center" spacing={1.5} sx={{ minWidth: 0 }}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              color: 'primary.main',
+              fontSize: 22,
+              flexShrink: 0,
+            }}
+          >
+            <FontAwesomeIcon icon={faDesktop} />
+          </Box>
+          <Typography
+            variant="h5"
+            component="h1"
+            fontWeight={600}
+            noWrap
+            sx={{ minWidth: 0 }}
+          >
+            {exercise.name}
+          </Typography>
+          {exercise.isPracticeMode && (
+            <Tooltip title="Practice Mode — excluded from production reports" arrow>
+              <Chip
+                icon={<FontAwesomeIcon icon={faScrewdriverWrench} size="xs" />}
+                label="Practice"
                 size="small"
-                aria-label="layout mode"
-              >
-                <Tooltip title="Classic layout with clock panel" arrow>
-                  <ToggleButton value="classic" aria-label="classic layout">
-                    <FontAwesomeIcon icon={faGrip} />
-                  </ToggleButton>
-                </Tooltip>
-                <Tooltip title="Sticky clock header" arrow>
-                  <ToggleButton value="sticky" aria-label="sticky header layout">
-                    <FontAwesomeIcon icon={faWindowMaximize} />
-                  </ToggleButton>
-                </Tooltip>
-                <Tooltip title="Floating clock chip" arrow>
-                  <ToggleButton value="floating" aria-label="floating clock layout">
-                    <FontAwesomeIcon icon={faGaugeHigh} />
-                  </ToggleButton>
-                </Tooltip>
-              </ToggleButtonGroup>
-            )}
-
-            {/* Connection status is shown in the AppHeader via ConnectionStatusIndicator */}
-
-            {/* Exercise Settings */}
-            <Tooltip title="Exercise Settings" arrow>
-              <IconButton
-                onClick={() => setSettingsDialogOpen(true)}
-                size="small"
-                aria-label="Exercise settings"
-              >
-                <FontAwesomeIcon icon={faGear} />
-              </IconButton>
+                sx={{
+                  backgroundColor: 'warning.main',
+                  color: 'white',
+                  fontWeight: 500,
+                  flexShrink: 0,
+                  '& .MuiChip-icon': { color: 'white', fontSize: '0.75rem' },
+                }}
+              />
             </Tooltip>
+          )}
+          <ExerciseTypeChip type={exercise.exerciseType} />
+          <ExerciseStatusChip status={exercise.status} />
+          <HelpTooltip helpKey="conduct.fire" exerciseRole={effectiveRole ?? undefined} />
+        </Stack>
 
-            <CobraLinkButton onClick={() => navigate(`/exercises/${exerciseId}`)}>
-              Exit Conduct
-            </CobraLinkButton>
-          </>
-        }
-      />
+        {/* Right: role badge, view toggles, layout toggles, settings */}
+        <Stack direction="row" spacing={1} alignItems="center" sx={{ flexShrink: 0, flexWrap: 'wrap' }}>
+          {/* User's Exercise Role Badge */}
+          <EffectiveRoleBadge exerciseId={exerciseId ?? null} showOverride />
+
+          {/* View Mode Toggle */}
+          <ToggleButtonGroup
+            value={viewMode}
+            exclusive
+            onChange={handleViewModeChange}
+            size="small"
+            aria-label="view mode"
+          >
+            <ToggleButton value="controller" aria-label="controller view">
+              <FontAwesomeIcon icon={faGaugeHigh} style={{ marginRight: 6 }} />
+              Controller
+            </ToggleButton>
+            <ToggleButton value="narrative" aria-label="narrative view">
+              <FontAwesomeIcon icon={faBookOpen} style={{ marginRight: 6 }} />
+              Narrative
+            </ToggleButton>
+          </ToggleButtonGroup>
+
+          {/* Layout Mode Toggle (only in Controller view) */}
+          {viewMode === 'controller' && (
+            <ToggleButtonGroup
+              value={layoutMode}
+              exclusive
+              onChange={handleLayoutModeChange}
+              size="small"
+              aria-label="layout mode"
+            >
+              <Tooltip title="Classic layout with clock panel" arrow>
+                <ToggleButton value="classic" aria-label="classic layout">
+                  <FontAwesomeIcon icon={faGrip} />
+                </ToggleButton>
+              </Tooltip>
+              <Tooltip title="Sticky clock header" arrow>
+                <ToggleButton value="sticky" aria-label="sticky header layout">
+                  <FontAwesomeIcon icon={faWindowMaximize} />
+                </ToggleButton>
+              </Tooltip>
+              <Tooltip title="Floating clock chip" arrow>
+                <ToggleButton value="floating" aria-label="floating clock layout">
+                  <FontAwesomeIcon icon={faGaugeHigh} />
+                </ToggleButton>
+              </Tooltip>
+            </ToggleButtonGroup>
+          )}
+
+          {/* Connection status is shown in the AppHeader via ConnectionStatusIndicator */}
+
+          {/* Exercise Settings */}
+          <Tooltip title="Exercise Settings" arrow>
+            <IconButton
+              onClick={() => setSettingsDialogOpen(true)}
+              size="small"
+              aria-label="Exercise settings"
+            >
+              <FontAwesomeIcon icon={faGear} />
+            </IconButton>
+          </Tooltip>
+        </Stack>
+      </Stack>
 
       {/* Conditional View Rendering */}
       {viewMode === 'narrative' ? (
@@ -787,6 +847,38 @@ export const ExerciseConductPage = () => {
         exerciseName={exercise.name}
         onClose={() => setSettingsDialogOpen(false)}
       />
+
+      {/* Observation Form Dialog — opened from inject detail drawer */}
+      <Dialog
+        open={!!observationDialogInjectId}
+        onClose={handleObservationDialogClose}
+        maxWidth="sm"
+        fullWidth
+        PaperProps={{ sx: { maxHeight: '90vh' } }}
+      >
+        <DialogTitle>Add Observation</DialogTitle>
+        <DialogContent>
+          {observationDialogInjectId && (
+            <Box sx={{ pt: 1 }}>
+              <ObservationForm
+                exerciseId={exerciseId!}
+                inject={injects.find(i => i.id === observationDialogInjectId)}
+                injects={injects}
+                capabilities={capabilities}
+                targetCapabilityIds={targetCapabilities.map(c => c.id)}
+                initialValues={{
+                  rating: undefined as never,
+                  content: '',
+                  injectId: observationDialogInjectId,
+                }}
+                onSubmit={handleObservationDialogSubmit}
+                onCancel={handleObservationDialogClose}
+                isSubmitting={isDialogSubmitting}
+              />
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
 
       {/* Quick Photo FAB */}
       <QuickPhotoFab exerciseId={exerciseId!} scenarioTime={displayTime} />

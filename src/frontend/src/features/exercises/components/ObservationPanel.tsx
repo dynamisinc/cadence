@@ -243,73 +243,75 @@ export const ObservationPanel: FC<ObservationPanelProps> = ({
           )}
         </Stack>
 
-        {/* Observation Form (fixed at top when expanded) */}
-        {observationsExpanded && showObservationForm && (
-          <Box sx={{ mb: 2, flexShrink: 0 }}>
-            <ObservationForm
-              exerciseId={exerciseId}
-              inject={
-                preSelectedInjectId
-                  ? injects.find(i => i.id === preSelectedInjectId)
-                  : undefined
-              }
-              injects={injects}
-              capabilities={capabilities}
-              targetCapabilityIds={targetCapabilities.map(c => c.id)}
-              initialValues={
-                editingObservation
-                  ? {
-                    rating: editingObservation.rating!,
-                    content: editingObservation.content,
-                    recommendation: editingObservation.recommendation ?? undefined,
-                    injectId: editingObservation.injectId ?? undefined,
-                    capabilityIds: editingObservation.capabilities?.map(c => c.id) ?? [],
-                  }
-                  : preSelectedInjectId
-                    ? { rating: undefined as never, content: '', injectId: preSelectedInjectId }
-                    : undefined
-              }
-              onSubmit={handleSubmitObservation}
-              onCancel={handleCancelObservationForm}
-              isSubmitting={isSubmittingObservation}
-            />
-            <Divider sx={{ my: 2 }} />
-          </Box>
-        )}
-
-        {/* EEG Coverage Dashboard (compact, when expanded) */}
-        {observationsExpanded && canAddObservations && (
-          <Box sx={{ mb: 2, flexShrink: 0 }}>
-            <EegCoverageDashboard
-              exerciseId={exerciseId}
-              compact
-              onAssessTask={handleAssessTask}
-              onDetailsClick={() => navigate(`/exercises/${exerciseId}/eeg-entries`)}
-            />
-          </Box>
-        )}
-
-        {/* Observation List - Scrollable */}
+        {/* Scrollable content area: form + EEG dashboard + observation list */}
         {observationsExpanded && (
           <Box
             sx={{
               flex: 1,
               overflowY: 'auto',
               overflowX: 'hidden',
+              minHeight: 0,
               pr: `${CobraStyles.Scrollbar.ContentSpacing}px`,
               ...CobraStyles.Scrollbar.Styling,
             }}
           >
-            <ObservationList
-              observations={observations}
-              loading={observationsLoading}
-              error={observationsError}
-              canEdit={canAddObservations}
-              onEdit={handleEditObservation}
-              onDelete={onDeleteObservation}
-              deletingId={deletingObservationId}
-              onInjectClick={onInjectClick}
-            />
+            {showObservationForm ? (
+              /* Observation Form — replaces list while open */
+              <Box sx={{ pt: 1 }}>
+                <ObservationForm
+                  exerciseId={exerciseId}
+                  inject={
+                    preSelectedInjectId
+                      ? injects.find(i => i.id === preSelectedInjectId)
+                      : undefined
+                  }
+                  injects={injects}
+                  capabilities={capabilities}
+                  targetCapabilityIds={targetCapabilities.map(c => c.id)}
+                  initialValues={
+                    editingObservation
+                      ? {
+                        rating: editingObservation.rating!,
+                        content: editingObservation.content,
+                        recommendation: editingObservation.recommendation ?? undefined,
+                        injectId: editingObservation.injectId ?? undefined,
+                        capabilityIds: editingObservation.capabilities?.map(c => c.id) ?? [],
+                      }
+                      : preSelectedInjectId
+                        ? { rating: undefined as never, content: '', injectId: preSelectedInjectId }
+                        : undefined
+                  }
+                  onSubmit={handleSubmitObservation}
+                  onCancel={handleCancelObservationForm}
+                  isSubmitting={isSubmittingObservation}
+                />
+              </Box>
+            ) : (
+              /* EEG Dashboard + Observation List — shown when form is closed */
+              <>
+                {canAddObservations && (
+                  <Box sx={{ mb: 2 }}>
+                    <EegCoverageDashboard
+                      exerciseId={exerciseId}
+                      compact
+                      onAssessTask={handleAssessTask}
+                      onDetailsClick={() => navigate(`/exercises/${exerciseId}/eeg-entries`)}
+                    />
+                  </Box>
+                )}
+
+                <ObservationList
+                  observations={observations}
+                  loading={observationsLoading}
+                  error={observationsError}
+                  canEdit={canAddObservations}
+                  onEdit={handleEditObservation}
+                  onDelete={onDeleteObservation}
+                  deletingId={deletingObservationId}
+                  onInjectClick={onInjectClick}
+                />
+              </>
+            )}
           </Box>
         )}
       </Paper>

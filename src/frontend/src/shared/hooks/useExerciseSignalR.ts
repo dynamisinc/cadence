@@ -62,6 +62,8 @@ interface UseExerciseSignalROptions {
   onInjectRejected?: (inject: InjectDto) => void
   /** Called when an inject approval is reverted */
   onInjectReverted?: (inject: InjectDto) => void
+  /** Called when a new EEG entry is created */
+  onEegEntryCreated?: () => void
 }
 
 interface UseExerciseSignalRReturn {
@@ -108,6 +110,7 @@ export const useExerciseSignalR = (
     onInjectApproved,
     onInjectRejected,
     onInjectReverted,
+    onEegEntryCreated,
   } = options
 
   const { accessToken } = useAuth()
@@ -237,6 +240,11 @@ export const useExerciseSignalR = (
       if (onInjectReverted) {
         connection.on('InjectReverted', onInjectReverted)
       }
+
+      // EEG events
+      if (onEegEntryCreated) {
+        connection.on('EegEntryCreated', onEegEntryCreated)
+      }
     },
     [
       onInjectFired,
@@ -253,6 +261,7 @@ export const useExerciseSignalR = (
       onInjectApproved,
       onInjectRejected,
       onInjectReverted,
+      onEegEntryCreated,
     ],
   )
 
@@ -275,6 +284,7 @@ export const useExerciseSignalR = (
     connection.off('InjectApproved')
     connection.off('InjectRejected')
     connection.off('InjectReverted')
+    connection.off('EegEntryCreated')
   }, [])
 
   /**
