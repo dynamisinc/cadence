@@ -2,6 +2,29 @@
 
 All notable changes to the Cadence API will be documented in this file.
 
+## [3.12.0](https://github.com/dynamisinc/cadence/compare/api-v3.11.0...api-v3.12.0) (2026-03-13)
+
+
+### Features
+
+* **security:** add authenticated DAST scanning and SARIF rollup ([2437228](https://github.com/dynamisinc/cadence/commit/24372280f75a374688be628ff102d7b423ff31cb))
+
+
+### Bug Fixes
+
+* **auth:** resolve OrgAdmin role check, audit trail, and notification bulk ops ([4759a3c](https://github.com/dynamisinc/cadence/commit/4759a3ce6b4dc1067389929f1891aa09bcf560a6))
+* code hardening pass 1 — security, stability, conventions ([0f831c5](https://github.com/dynamisinc/cadence/commit/0f831c5450e2c78053ab74644ba42f86a3887ca7))
+* **core:** address code review issues — security, COBRA compliance, and interface gaps ([03b144b](https://github.com/dynamisinc/cadence/commit/03b144bf91873e1e41b8ab09142e0a6724cb8a32))
+* **core:** code hardening from review findings ([2894a92](https://github.com/dynamisinc/cadence/commit/2894a927e15ad9ab7dead83c3e8c383687559bcc))
+* **data:** make DemoUserSeeder incrementally add new users ([00a4dd2](https://github.com/dynamisinc/cadence/commit/00a4dd277fdab38b7ca447de7c29f62a7667aebb))
+* **minor:** remove dead code, fix conventions, extract magic numbers ([ba57f1c](https://github.com/dynamisinc/cadence/commit/ba57f1ca171c4b95475d906e9d729edfe0c2bba4))
+* **ui:** improve responsive layout for 1024x768 and fix autocomplete query error ([f270bba](https://github.com/dynamisinc/cadence/commit/f270bbaf8cb874ad4c05838cd5d4ec21d20bc2c8))
+
+
+### Performance Improvements
+
+* **core:** add AsNoTracking to read-only queries across services (CD-M02) ([ff5c46b](https://github.com/dynamisinc/cadence/commit/ff5c46b6a5db2dbe7964b331a7f95fe6e411edd3))
+
 ## [3.11.0](https://github.com/dynamisinc/cadence/compare/api-v3.10.0...api-v3.11.0) (2026-03-05)
 
 

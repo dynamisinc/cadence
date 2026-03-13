@@ -5,6 +5,39 @@ All notable changes to Cadence will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [2.13.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.12.0...frontend-v2.13.0) (2026-03-13)
+
+
+### Features
+
+* **assignments:** add help tooltip to My Assignments page header ([ff05e9f](https://github.com/dynamisinc/cadence/commit/ff05e9f3e238fcd635b9a72264dc88dda4e185a8))
+* **observations:** add location autosuggest to observation form ([a7269bc](https://github.com/dynamisinc/cadence/commit/a7269bc7ccb14a6659f719eb4de69b870919408c))
+* **onboarding:** add contextual help tooltips to remaining exercise pages ([613e774](https://github.com/dynamisinc/cadence/commit/613e7745e51deea66ac0a1e05417aaa5b323c856))
+
+
+### Bug Fixes
+
+* **auth:** authorization tests, query key validation, claim fix ([6b78ba5](https://github.com/dynamisinc/cadence/commit/6b78ba5baaeb0746bcddbc0a9a5be96b0d370e39))
+* **auth:** resolve OrgAdmin role check, audit trail, and notification bulk ops ([4759a3c](https://github.com/dynamisinc/cadence/commit/4759a3ce6b4dc1067389929f1891aa09bcf560a6))
+* code hardening pass 1 — security, stability, conventions ([0f831c5](https://github.com/dynamisinc/cadence/commit/0f831c5450e2c78053ab74644ba42f86a3887ca7))
+* code hardening pass 2 — auth gaps, validator tests, minor cleanup ([e034ac5](https://github.com/dynamisinc/cadence/commit/e034ac5712e4a7799844c2d8fc1f613f21e14dc6))
+* **conduct:** consolidate header, improve observation UX, and add EEG SignalR handler ([0b66780](https://github.com/dynamisinc/cadence/commit/0b66780682f0e28aedecb77515510a0dfae6c219))
+* **core:** address code review issues — security, COBRA compliance, and interface gaps ([03b144b](https://github.com/dynamisinc/cadence/commit/03b144bf91873e1e41b8ab09142e0a6724cb8a32))
+* **core:** code hardening from review findings ([2894a92](https://github.com/dynamisinc/cadence/commit/2894a927e15ad9ab7dead83c3e8c383687559bcc))
+* **core:** remove duplicate helpers, standardize error responses ([4f93914](https://github.com/dynamisinc/cadence/commit/4f939149bdb4357b3875f832429ae6bfe6dfa54f))
+* **eeg:** prevent infinite re-render loop in LinkedInjectsDialog ([28b4882](https://github.com/dynamisinc/cadence/commit/28b4882918c68b37c0eebf8d9f5de8a1bf4a9399))
+* **minor:** controller GetUserId safety, autocomplete perf, COBRA compliance, theme tokens ([b31f111](https://github.com/dynamisinc/cadence/commit/b31f1111f3e58a6b6d0e6a8d06bc675943cbbd84))
+* **minor:** remove dead code, fix conventions, extract magic numbers ([ba57f1c](https://github.com/dynamisinc/cadence/commit/ba57f1ca171c4b95475d906e9d729edfe0c2bba4))
+* **offline:** remove duplicate modifiedBy property in cacheService ([ad420e8](https://github.com/dynamisinc/cadence/commit/ad420e83b0edb12b5ec4b5d13273e50415b2448a))
+* **security:** exercise auth on export/observations endpoints, exception handler placement, SignalR cache pattern ([d8f570f](https://github.com/dynamisinc/cadence/commit/d8f570f3fb9d724c5c3835f69e182c61f9385618))
+* **signalr:** authenticate SignalR connections with JWT and fix setState-during-render ([6c74f75](https://github.com/dynamisinc/cadence/commit/6c74f75280ceba055c393e63e0a53f8fb689cbf9))
+* **tests:** fix failing tests — case sensitivity, aria-labels, and test utils ([165d000](https://github.com/dynamisinc/cadence/commit/165d0007e50a5cbd8d4f5a418217ccab25163032))
+* **ui:** correct semantic token mismatches in theme color refactor ([3f2e1d1](https://github.com/dynamisinc/cadence/commit/3f2e1d11ef8d6b41014dff8b866a5cdc46727257))
+* **ui:** improve responsive layout for 1024x768 and fix autocomplete query error ([f270bba](https://github.com/dynamisinc/cadence/commit/f270bbaf8cb874ad4c05838cd5d4ec21d20bc2c8))
+* **ui:** replace Fragment with array in ProfileMenu Menu children ([5c955d9](https://github.com/dynamisinc/cadence/commit/5c955d942c1e5805f6a78ea56da6fe6aa9947400))
+* **ui:** resolve lint errors and build type issues ([5a29cd4](https://github.com/dynamisinc/cadence/commit/5a29cd441c573235c1ebbc16eb311adeafe22b9b))
+* **ui:** resolve lint errors in ObservationPanel, useContainerWidth, useExerciseSignalR ([3b99d1d](https://github.com/dynamisinc/cadence/commit/3b99d1de40250ed7343c804aedd9e8e20ec4323b))
+
 ## [2.12.0](https://github.com/dynamisinc/cadence/compare/frontend-v2.11.0...frontend-v2.12.0) (2026-03-05)
 
 
