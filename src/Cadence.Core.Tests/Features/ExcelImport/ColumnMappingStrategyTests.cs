@@ -330,4 +330,26 @@ public class ColumnMappingStrategyTests
             kvp.Value.Should().NotBeEmpty($"field '{kvp.Key}' should have at least one pattern");
         }
     }
+
+    [Fact]
+    public void FindBestMatchingColumn_ExactFieldName_ReturnsHighConfidence()
+    {
+        var columns = new List<ColumnInfoDto> { Col(0, "inject number") };
+
+        var (index, confidence) = ColumnMappingStrategy.FindBestMatchingColumn("InjectNumber", columns);
+
+        index.Should().Be(0);
+        confidence.Should().BeGreaterOrEqualTo(80);
+    }
+
+    [Fact]
+    public void FindBestMatchingColumn_SynonymMatch_ReturnsModerateConfidence()
+    {
+        var columns = new List<ColumnInfoDto> { Col(2, "track/storyline/thread") };
+
+        var (index, confidence) = ColumnMappingStrategy.FindBestMatchingColumn("Track", columns);
+
+        index.Should().Be(2);
+        confidence.Should().Be(80);
+    }
 }

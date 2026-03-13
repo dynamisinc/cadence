@@ -246,4 +246,50 @@ public class EmailLogServiceTests
 
         Assert.Null(result);
     }
+
+    [Fact]
+    public async Task GetLogsAsync_DateRange_ReturnsInRange()
+    {
+        var earlyLog = new EmailLog
+        {
+            Id = Guid.NewGuid(),
+            OrganizationId = _testOrgId,
+            RecipientEmail = "early@test.com",
+            Subject = "Early Email",
+            Status = EmailDeliveryStatus.Sent,
+            SentAt = new DateTime(2025, 1, 1, 0, 0, 0, DateTimeKind.Utc)
+        };
+        var inRangeLog = new EmailLog
+        {
+            Id = Guid.NewGuid(),
+            OrganizationId = _testOrgId,
+            RecipientEmail = "inrange@test.com",
+            Subject = "In Range Email",
+            Status = EmailDeliveryStatus.Sent,
+            SentAt = new DateTime(2025, 6, 15, 12, 0, 0, DateTimeKind.Utc)
+        };
+        var lateLog = new EmailLog
+        {
+            Id = Guid.NewGuid(),
+            OrganizationId = _testOrgId,
+            RecipientEmail = "late@test.com",
+            Subject = "Late Email",
+            Status = EmailDeliveryStatus.Sent,
+            SentAt = new DateTime(2025, 12, 31, 23, 59, 59, DateTimeKind.Utc)
+        };
+
+        _context.EmailLogs.AddRange(earlyLog, inRangeLog, lateLog);
+        await _context.SaveChangesAsync();
+
+        var fromDate = new DateTime(2025, 6, 1, 0, 0, 0, DateTimeKind.Utc);
+        var toDate = new DateTime(2025, 7, 1, 0, 0, 0, DateTimeKind.Utc);
+
+        var logs = await _service.GetLogsAsync(
+            _testOrgId,
+            fromDate: fromDate,
+            toDate: toDate);
+
+        Assert.Single(logs);
+        Assert.Equal("inrange@test.com", logs[0].RecipientEmail);
+    }
 }

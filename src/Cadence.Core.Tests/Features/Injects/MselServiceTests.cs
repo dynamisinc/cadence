@@ -730,4 +730,32 @@ public class MselServiceTests
         result!.LastModifiedByName.Should().BeNull(
             "LastModifiedByName is intentionally not populated due to type mismatch between BaseEntity.ModifiedBy and ApplicationUser.Id");
     }
+
+    [Fact]
+    public async Task GetActiveMselSummaryAsync_NoMsel_ReturnsNull()
+    {
+        var (context, org, exercise) = CreateTestContext();
+        // No MSEL created for this exercise
+        var sut = CreateService(context);
+
+        var result = await sut.GetActiveMselSummaryAsync(exercise.Id);
+
+        result.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetActiveMselSummaryAsync_MultipleMsels_ReturnsActive()
+    {
+        var (context, org, exercise) = CreateTestContext();
+        var activeMsel = CreateMsel(context, org, exercise, isActive: true, version: 2, name: "Active MSEL");
+        CreateMsel(context, org, exercise, isActive: false, version: 1, name: "Archived MSEL");
+        var sut = CreateService(context);
+
+        var result = await sut.GetActiveMselSummaryAsync(exercise.Id);
+
+        result.Should().NotBeNull();
+        result!.Id.Should().Be(activeMsel.Id);
+        result.Name.Should().Be("Active MSEL");
+        result.IsActive.Should().BeTrue();
+    }
 }

@@ -2920,4 +2920,59 @@ public class ExcelImportServiceTests : IDisposable
     }
 
     #endregion
+
+    #region Missing Session Tests
+
+    [Fact]
+    public async Task SelectWorksheetAsync_InvalidSession_Throws()
+    {
+        var act = () => _service.SelectWorksheetAsync(new SelectWorksheetRequestDto
+        {
+            SessionId = Guid.NewGuid(),
+            WorksheetIndex = 0,
+            HeaderRow = 1,
+            DataStartRow = 2,
+            PreviewRowCount = 5
+        });
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*session not found*");
+    }
+
+    [Fact]
+    public async Task ExecuteImportAsync_InvalidSession_Throws()
+    {
+        var act = () => _service.ExecuteImportAsync(new ExecuteImportRequestDto
+        {
+            SessionId = Guid.NewGuid(),
+            ExerciseId = Guid.NewGuid(),
+            Strategy = "Append"
+        });
+
+        await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*session not found*");
+    }
+
+    [Fact]
+    public async Task CancelImportAsync_ExistingSession_RemovesSession()
+    {
+        var headers = new[] { "Title" };
+        using var stream = CreateExcelStream(headers);
+        var analysis = await _service.AnalyzeFileAsync("test.xlsx", stream);
+
+        await _service.CancelImportAsync(analysis.SessionId);
+
+        var state = await _service.GetSessionStateAsync(analysis.SessionId);
+        state.Should().BeNull();
+    }
+
+    [Fact]
+    public async Task GetSessionStateAsync_NonExistent_ReturnsNull()
+    {
+        var state = await _service.GetSessionStateAsync(Guid.NewGuid());
+
+        state.Should().BeNull();
+    }
+
+    #endregion
 }

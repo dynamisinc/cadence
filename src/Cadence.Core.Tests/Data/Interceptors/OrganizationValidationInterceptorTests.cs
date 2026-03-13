@@ -222,4 +222,52 @@ public class OrganizationValidationInterceptorTests : IDisposable
         var act = () => context.SaveChanges();
         act.Should().Throw<OrganizationAccessException>();
     }
+
+    [Fact]
+    public async Task SavingChanges_NonOrgScopedEntity_Ignored()
+    {
+        var mock = CreateOrgContextMock(orgId: _orgAId);
+        var (context, _) = CreateContextWithInterceptor(mock);
+
+        // Organization is BaseEntity only — NOT IOrganizationScoped
+        context.Add(CreateOrganization(Guid.NewGuid()));
+
+        var act = () => context.SaveChangesAsync();
+        await act.Should().NotThrowAsync("non-org-scoped entities are not subject to org validation");
+    }
+
+    [Fact]
+    public async Task SavingChanges_NewOrgScopedEntity_SetsOrgId()
+    {
+        var mock = CreateOrgContextMock(orgId: _orgAId);
+        var (context, _) = CreateContextWithInterceptor(mock);
+        var exercise = CreateExercise(_orgAId);
+        context.Add(exercise);
+
+        await context.SaveChangesAsync();
+
+        var persisted = await context.Exercises.FindAsync(exercise.Id);
+        persisted.Should().NotBeNull();
+        persisted!.OrganizationId.Should().Be(_orgAId);
+    }
+
+    [Fact]
+    public async Task SavingChangesAsync_SameBehaviorAsSync()
+    {
+        // Async path throws for mismatched org
+        var asyncMock = CreateOrgContextMock(orgId: _orgAId);
+        var (asyncCtx, _) = CreateContextWithInterceptor(asyncMock);
+        asyncCtx.Add(CreateExercise(_orgBId));
+        var asyncAct = () => asyncCtx.SaveChangesAsync();
+        await asyncAct.Should().ThrowAsync<OrganizationAccessException>(
+            "async save path must enforce the same org validation as the sync path");
+
+        // Sync path throws for same mismatch
+        var syncMock = CreateOrgContextMock(orgId: _orgAId);
+        var (syncCtx, _) = CreateContextWithInterceptor(syncMock);
+        syncCtx.Add(CreateExercise(_orgBId));
+        var syncAct = () => syncCtx.SaveChanges();
+        syncAct.Should().Throw<OrganizationAccessException>(
+            "sync save path must also enforce org validation");
+    }
 }

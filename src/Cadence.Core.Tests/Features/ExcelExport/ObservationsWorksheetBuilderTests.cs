@@ -170,4 +170,19 @@ public class ObservationsWorksheetBuilderTests
         var ws = workbook.Worksheet("Observations");
         ws.AutoFilter.IsEnabled.Should().BeFalse();
     }
+
+    [Fact]
+    public void AddObservationsWorksheet_SpecialCharactersInContent_PreservesRawText()
+    {
+        using var workbook = new XLWorkbook();
+        var obs = CreateObservation(
+            content: "Comms failed: \"channel 7\" & backup <EOC> unavailable",
+            recommendation: "Use channel 7 backup; notify all units");
+
+        ObservationsWorksheetBuilder.AddObservationsWorksheet(workbook, new List<Observation> { obs }, false);
+
+        var ws = workbook.Worksheet("Observations");
+        ws.Cell(2, 4).GetString().Should().Be("Comms failed: \"channel 7\" & backup <EOC> unavailable");
+        ws.Cell(2, 6).GetString().Should().Be("Use channel 7 backup; notify all units");
+    }
 }

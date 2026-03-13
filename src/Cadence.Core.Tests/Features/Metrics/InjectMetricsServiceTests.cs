@@ -346,4 +346,63 @@ public class InjectMetricsServiceTests
         ctrl.OnTimeRate.Should().Be(50.0m);
         ctrl.AverageVariance.Should().NotBeNull();
     }
+
+    [Fact]
+    public async Task GetInjectSummaryAsync_AllOnTime_Returns100PercentOnTimeRate()
+    {
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org);
+        var activatedAt = exercise.ActivatedAt!.Value;
+        var (_, injects) = CreateInjects(context, exercise, 3);
+
+        // Fire all injects exactly on time
+        for (var i = 0; i < 3; i++)
+        {
+            injects[i].Status = InjectStatus.Released;
+            injects[i].FiredAt = activatedAt + injects[i].DeliveryTime!.Value;
+        }
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var result = await service.GetInjectSummaryAsync(exercise.Id, onTimeToleranceMinutes: 5);
+
+        result.Should().NotBeNull();
+        result!.OnTimeRate.Should().Be(100.0m);
+        result.OnTimeCount.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task GetInjectSummaryAsync_EarliestAndLatestVariance()
+    {
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org);
+        var activatedAt = exercise.ActivatedAt!.Value;
+        var (_, injects) = CreateInjects(context, exercise, 3);
+
+        // Inject 1: 5 min early (variance = -5 min)
+        injects[0].Status = InjectStatus.Released;
+        injects[0].FiredAt = activatedAt + injects[0].DeliveryTime!.Value - TimeSpan.FromMinutes(5);
+
+        // Inject 2: on time
+        injects[1].Status = InjectStatus.Released;
+        injects[1].FiredAt = activatedAt + injects[1].DeliveryTime!.Value;
+
+        // Inject 3: 15 min late (variance = +15 min)
+        injects[2].Status = InjectStatus.Released;
+        injects[2].FiredAt = activatedAt + injects[2].DeliveryTime!.Value + TimeSpan.FromMinutes(15);
+
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var result = await service.GetInjectSummaryAsync(exercise.Id);
+
+        result.Should().NotBeNull();
+        result!.EarliestVariance.Should().NotBeNull();
+        result.EarliestVariance!.InjectId.Should().Be(injects[0].Id);
+        result.EarliestVariance.Variance.Should().BeCloseTo(TimeSpan.FromMinutes(-5), TimeSpan.FromSeconds(1));
+
+        result.LatestVariance.Should().NotBeNull();
+        result.LatestVariance!.InjectId.Should().Be(injects[2].Id);
+        result.LatestVariance.Variance.Should().BeCloseTo(TimeSpan.FromMinutes(15), TimeSpan.FromSeconds(1));
+    }
 }

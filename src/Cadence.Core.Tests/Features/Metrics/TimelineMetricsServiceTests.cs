@@ -273,4 +273,35 @@ public class TimelineMetricsServiceTests
         result.Should().NotBeNull();
         result!.PlannedDuration.Should().Be(TimeSpan.FromHours(4));
     }
+
+    [Fact]
+    public async Task GetTimelineSummaryAsync_MultipleFiredInjects_FindsBusiestPeriod()
+    {
+        var (context, org) = CreateTestContext();
+        var exercise = CreateExercise(context, org);
+        exercise.ClockElapsedBeforePause = TimeSpan.FromHours(2);
+        context.SaveChanges();
+
+        var msel = new Msel { Id = Guid.NewGuid(), Name = "MSEL", Version = 1, IsActive = true, ExerciseId = exercise.Id, CreatedBy = Guid.Empty.ToString(), ModifiedBy = Guid.Empty.ToString() };
+        context.Msels.Add(msel);
+        exercise.ActiveMselId = msel.Id;
+
+        var baseTime = DateTime.UtcNow.AddHours(-2);
+        // Cluster 4 injects within 10 minutes, then 1 sparse inject 60 min later
+        context.Injects.AddRange(
+            new Inject { Id = Guid.NewGuid(), InjectNumber = 1, Title = "I1", Description = "D", ScheduledTime = new TimeOnly(9, 0), Target = "T", InjectType = InjectType.Standard, Status = InjectStatus.Released, FiredAt = baseTime, Sequence = 1, MselId = msel.Id, CreatedBy = Guid.Empty.ToString(), ModifiedBy = Guid.Empty.ToString() },
+            new Inject { Id = Guid.NewGuid(), InjectNumber = 2, Title = "I2", Description = "D", ScheduledTime = new TimeOnly(9, 3), Target = "T", InjectType = InjectType.Standard, Status = InjectStatus.Released, FiredAt = baseTime.AddMinutes(3), Sequence = 2, MselId = msel.Id, CreatedBy = Guid.Empty.ToString(), ModifiedBy = Guid.Empty.ToString() },
+            new Inject { Id = Guid.NewGuid(), InjectNumber = 3, Title = "I3", Description = "D", ScheduledTime = new TimeOnly(9, 6), Target = "T", InjectType = InjectType.Standard, Status = InjectStatus.Released, FiredAt = baseTime.AddMinutes(6), Sequence = 3, MselId = msel.Id, CreatedBy = Guid.Empty.ToString(), ModifiedBy = Guid.Empty.ToString() },
+            new Inject { Id = Guid.NewGuid(), InjectNumber = 4, Title = "I4", Description = "D", ScheduledTime = new TimeOnly(9, 9), Target = "T", InjectType = InjectType.Standard, Status = InjectStatus.Released, FiredAt = baseTime.AddMinutes(9), Sequence = 4, MselId = msel.Id, CreatedBy = Guid.Empty.ToString(), ModifiedBy = Guid.Empty.ToString() },
+            new Inject { Id = Guid.NewGuid(), InjectNumber = 5, Title = "I5", Description = "D", ScheduledTime = new TimeOnly(10, 30), Target = "T", InjectType = InjectType.Standard, Status = InjectStatus.Released, FiredAt = baseTime.AddMinutes(90), Sequence = 5, MselId = msel.Id, CreatedBy = Guid.Empty.ToString(), ModifiedBy = Guid.Empty.ToString() }
+        );
+        context.SaveChanges();
+
+        var service = CreateService(context);
+        var result = await service.GetTimelineSummaryAsync(exercise.Id);
+
+        result.Should().NotBeNull();
+        result!.InjectPacing.BusiestPeriod.Should().NotBeNull();
+        result.InjectPacing.BusiestPeriod!.InjectCount.Should().BeGreaterOrEqualTo(4);
+    }
 }

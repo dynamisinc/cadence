@@ -344,4 +344,18 @@ public class ExcelFileReaderTests
 
         ExcelFileReader.GetCellValue(ws.Cell(1, 1)).Should().Be(true);
     }
+
+    [Fact]
+    public void GetCellValue_DateTimeCell_ReturnsDateTime()
+    {
+        using var workbook = new XLWorkbook();
+        var ws = workbook.AddWorksheet("Sheet1");
+        ws.Cell(1, 1).Value = new DateTime(2026, 3, 15, 10, 30, 0);
+
+        var result = ExcelFileReader.GetCellValue(ws.Cell(1, 1));
+
+        result.Should().BeOfType<DateTime>();
+        ((DateTime)result!).Hour.Should().Be(10);
+        ((DateTime)result!).Minute.Should().Be(30);
+    }
 }

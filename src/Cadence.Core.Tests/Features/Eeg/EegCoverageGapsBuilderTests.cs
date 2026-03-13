@@ -174,4 +174,77 @@ public class EegCoverageGapsBuilderTests
         var ws = workbook.Worksheet("Coverage Gaps");
         ws.Cell(1, 1).GetString().Should().Be("All Critical Tasks Evaluated");
     }
+
+    // -------------------------------------------------------------------------
+    // Additional coverage-gaps tests
+    // -------------------------------------------------------------------------
+
+    [Fact]
+    public void AddCoverageGapsWorksheet_AllTargetsCovered_ShowsNone()
+    {
+        // Arrange — every task has at least one entry
+        using var workbook = new XLWorkbook();
+        var ct = CreateCapabilityTarget("Operational Communications", "Establish comms within 30 min", 1, ("Task A", 1), ("Task B", 2));
+        var entries = ct.CriticalTasks
+            .Select(t => new EegEntry { Id = Guid.NewGuid(), CriticalTaskId = t.Id })
+            .ToList();
+
+        // Act
+        EegCoverageGapsBuilder.AddCoverageGapsWorksheet(
+            workbook, new List<CapabilityTarget> { ct }, entries, DefaultRequest());
+
+        // Assert — success message, not the warning header
+        var ws = workbook.Worksheet("Coverage Gaps");
+        ws.Cell(1, 1).GetString().Should().Be("All Critical Tasks Evaluated");
+        ws.Cell(2, 1).GetString().Should().BeEmpty(
+            because: "there should be no unevaluated count message when all tasks are covered");
+    }
+
+    [Fact]
+    public void AddCoverageGapsWorksheet_UncoveredTargets_ListsGaps()
+    {
+        // Arrange — one task has entries, two tasks do not
+        using var workbook = new XLWorkbook();
+        var ct = CreateCapabilityTarget(
+            "Public Health",
+            "Activate health operations",
+            1,
+            ("Notify health officer", 1),
+            ("Open dispensing sites", 2),
+            ("Coordinate with hospitals", 3));
+
+        // Only the first task has an entry
+        var entries = new List<EegEntry>
+        {
+            new() { Id = Guid.NewGuid(), CriticalTaskId = ct.CriticalTasks.First().Id }
+        };
+
+        // Act
+        EegCoverageGapsBuilder.AddCoverageGapsWorksheet(
+            workbook, new List<CapabilityTarget> { ct }, entries, DefaultRequest());
+
+        // Assert — two uncovered tasks listed
+        var ws = workbook.Worksheet("Coverage Gaps");
+        ws.Cell(1, 1).GetString().Should().Be("TASKS NEEDING EVALUATION");
+        ws.Cell(2, 1).GetString().Should().Contain("2 critical tasks");
+
+        // Data rows start at row 5 (row 4 = column headers)
+        ws.Cell(5, 3).GetString().Should().Be("Open dispensing sites");
+        ws.Cell(6, 3).GetString().Should().Be("Coordinate with hospitals");
+    }
+
+    [Fact]
+    public void AddCoverageGapsWorksheet_EmptyData_AddsWorksheet()
+    {
+        // Arrange — no targets, no entries
+        using var workbook = new XLWorkbook();
+
+        // Act — should not throw
+        var act = () => EegCoverageGapsBuilder.AddCoverageGapsWorksheet(
+            workbook, new List<CapabilityTarget>(), new List<EegEntry>(), DefaultRequest());
+
+        // Assert
+        act.Should().NotThrow();
+        workbook.Worksheets.TryGetWorksheet("Coverage Gaps", out _).Should().BeTrue();
+    }
 }
