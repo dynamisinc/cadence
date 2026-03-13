@@ -223,3 +223,6 @@ test-results/
 
 # Vitest cache
 .vitest/
+
+# Coverage reports
+coverage-report/

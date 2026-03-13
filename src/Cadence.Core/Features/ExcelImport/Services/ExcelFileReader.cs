@@ -219,7 +219,7 @@ internal static class ExcelFileReader
     public static async Task<List<string>> ReadCsvLinesAsync(Stream stream)
     {
         var lines = new List<string>();
-        using var reader = new StreamReader(stream);
+        using var reader = new StreamReader(stream, leaveOpen: true);
         while (await reader.ReadLineAsync() is { } line)
         {
             lines.Add(line);

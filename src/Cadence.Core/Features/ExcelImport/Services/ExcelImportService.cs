@@ -1023,6 +1023,7 @@ public class ExcelImportService : IExcelImportService
                             };
                             _context.Phases.Add(newPhase);
                             phases[phaseLower] = newPhase;
+                            inject.PhaseId = newPhase.Id;
                             phasesCreated++;
                         }
                         else
