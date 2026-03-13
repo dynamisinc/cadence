@@ -428,6 +428,48 @@ public class InjectsControllerIntegrationTests
     }
 
     // =========================================================================
+    // Critical Tasks
+    // =========================================================================
+
+    [Fact]
+    public async Task GET_CriticalTasks_ExistingInject_Returns200()
+    {
+        var (factory, client) = await SetupAuthenticatedClientAsync();
+        using var _ = factory;
+
+        var exerciseId = await CreateExerciseAsync(client);
+        var created = await CreateInjectAsync(client, exerciseId, "Critical Tasks Inject");
+        var injectId = created.GetProperty("id").GetString();
+
+        var response = await client.GetAsync(
+            $"/api/exercises/{exerciseId}/injects/{injectId}/critical-tasks");
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+
+        var json = await response.Content.ReadAsStringAsync();
+        var tasks = JsonSerializer.Deserialize<JsonElement>(json, JsonOptions);
+        tasks.GetArrayLength().Should().Be(0); // No linked tasks initially
+    }
+
+    [Fact]
+    public async Task PUT_CriticalTasks_ValidRequest_Returns200()
+    {
+        var (factory, client) = await SetupAuthenticatedClientAsync();
+        using var _ = factory;
+
+        var exerciseId = await CreateExerciseAsync(client);
+        var created = await CreateInjectAsync(client, exerciseId, "Link Critical Tasks");
+        var injectId = created.GetProperty("id").GetString();
+
+        // Set empty list (valid request, just clears any links)
+        var response = await client.PutAsJsonAsync(
+            $"/api/exercises/{exerciseId}/injects/{injectId}/critical-tasks",
+            new { CriticalTaskIds = Array.Empty<string>() });
+
+        response.StatusCode.Should().Be(HttpStatusCode.OK);
+    }
+
+    // =========================================================================
     // End-to-End: Create → Update → Fire → Reset → Skip
     // =========================================================================
 
