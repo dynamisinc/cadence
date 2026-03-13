@@ -115,7 +115,10 @@ export const useExerciseSignalR = (
 
   const { accessToken } = useAuth()
   const accessTokenRef = useRef(accessToken)
-  accessTokenRef.current = accessToken
+  // Update ref in effect to avoid setting refs during render
+  useEffect(() => {
+    accessTokenRef.current = accessToken
+  }, [accessToken])
 
   const [connectionState, setConnectionState] = useState<ConnectionState>('disconnected')
   const [isJoined, setIsJoined] = useState(false)

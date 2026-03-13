@@ -25,7 +25,7 @@ export function useContainerWidth(ref: RefObject<HTMLElement | null>): number {
     // Set initial width synchronously (no debounce on mount)
     setWidth(el.offsetWidth)
 
-    const observer = new ResizeObserver((entries) => {
+    const observer = new ResizeObserver(entries => {
       // Debounce: only update state after resizing settles
       if (timerRef.current) {
         clearTimeout(timerRef.current)
