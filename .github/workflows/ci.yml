@@ -17,6 +17,9 @@ jobs:
   build-backend:
     name: Build & Test Backend
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
 
     steps:
       - name: Checkout code
@@ -44,11 +47,53 @@ jobs:
       - name: Build
         run: dotnet build src/Cadence.WebApi/Cadence.WebApi.csproj --no-restore --configuration Release
 
-      - name: Run Core tests
-        run: dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj --no-restore --configuration Release --verbosity normal --logger "trx;LogFileName=core-test-results.trx"
+      - name: Run Core tests with coverage
+        run: >
+          dotnet test src/Cadence.Core.Tests/Cadence.Core.Tests.csproj
+          --no-restore --configuration Release --verbosity normal
+          --logger "trx;LogFileName=core-test-results.trx"
+          --collect:"XPlat Code Coverage"
+          --settings src/Cadence.Core.Tests/coverlet.runsettings
 
-      - name: Run WebApi tests
-        run: dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj --no-restore --configuration Release --verbosity normal --logger "trx;LogFileName=webapi-test-results.trx"
+      - name: Run WebApi tests with coverage
+        run: >
+          dotnet test src/Cadence.WebApi.Tests/Cadence.WebApi.Tests.csproj
+          --no-restore --configuration Release --verbosity normal
+          --logger "trx;LogFileName=webapi-test-results.trx"
+          --collect:"XPlat Code Coverage"
+
+      # =========================================================================
+      # Code Coverage Report
+      # - Merges Core + WebApi coverage into one report
+      # - Posts markdown summary as PR comment and GitHub step summary
+      # - Uploads full HTML report as downloadable artifact
+      # =========================================================================
+      - name: Generate coverage report
+        uses: danielpalme/ReportGenerator-GitHub-Action@5
+        with:
+          reports: "**/TestResults/**/coverage.cobertura.xml"
+          targetdir: coverage-report
+          reporttypes: "Html;MarkdownSummaryGithub;Cobertura"
+          assemblyfilters: "+Cadence.Core;+Cadence.WebApi"
+          classfilters: "-Cadence.Core.Migrations.*"
+
+      - name: Post coverage to step summary
+        run: cat coverage-report/SummaryGithub.md >> $GITHUB_STEP_SUMMARY
+
+      - name: Add coverage PR comment
+        uses: marocchino/sticky-pull-request-comment@v2
+        if: github.event_name == 'pull_request'
+        continue-on-error: true
+        with:
+          header: code-coverage
+          path: coverage-report/SummaryGithub.md
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v7
+        with:
+          name: coverage-report
+          path: coverage-report/
+          retention-days: 14
 
       - name: Upload test results
         uses: actions/upload-artifact@v7
