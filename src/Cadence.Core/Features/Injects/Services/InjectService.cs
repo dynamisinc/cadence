@@ -170,51 +170,14 @@ public class InjectService : IInjectService
     /// <inheritdoc />
     public async Task<IEnumerable<InjectDto>> ReorderInjectsAsync(Guid exerciseId, IEnumerable<Guid> injectIds, CancellationToken cancellationToken = default)
     {
-        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
-            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
-
-        if (exercise.ActiveMselId == null)
-        {
-            throw new InvalidOperationException("Exercise has no active MSEL.");
-        }
-
-        // Block reordering for archived exercises
-        if (exercise.Status == ExerciseStatus.Archived)
-        {
-            throw new InvalidOperationException("Cannot reorder injects in an archived exercise.");
-        }
-
         var injectIdsList = injectIds.ToList();
-        if (injectIdsList.Count == 0)
-        {
-            throw new ArgumentException("InjectIds cannot be empty.", nameof(injectIds));
-        }
-
-        // Get all injects for this MSEL
-        var injects = await _context.Injects
-            .Include(i => i.Phase)
-            .Include(i => i.FiredByUser)
-            .Include(i => i.SkippedByUser)
-            .Include(i => i.InjectObjectives)
-            .Where(i => i.MselId == exercise.ActiveMselId)
-            .ToListAsync(cancellationToken);
-
-        // Verify all provided IDs exist in this MSEL
-        var injectDict = injects.ToDictionary(i => i.Id);
-        foreach (var id in injectIdsList)
-        {
-            if (!injectDict.ContainsKey(id))
-            {
-                throw new KeyNotFoundException($"Inject {id} not found in this exercise.");
-            }
-        }
+        var (_, injectDict) = await ValidateReorderRequest(exerciseId, injectIdsList, cancellationToken);
 
         // Two-phase update to avoid unique constraint violation on (MselId, InjectNumber).
         // Phase 1: Set InjectNumber to negative temporary values to clear the unique index.
         for (int i = 0; i < injectIdsList.Count; i++)
         {
-            var inject = injectDict[injectIdsList[i]];
-            inject.InjectNumber = -(i + 1);
+            injectDict[injectIdsList[i]].InjectNumber = -(i + 1);
         }
         await _context.SaveChangesAsync(cancellationToken);
 
@@ -232,6 +195,54 @@ public class InjectService : IInjectService
 
         // Return the updated injects in the new order
         return injectIdsList.Select(id => injectDict[id].ToDto());
+    }
+
+    /// <summary>
+    /// Validates the reorder request: finds the exercise, checks active MSEL and archived status,
+    /// validates the list is non-empty, loads injects, and verifies every requested ID exists.
+    /// </summary>
+    /// <returns>A tuple of the resolved exercise and a dictionary of inject ID to inject entity.</returns>
+    private async Task<(Exercise exercise, Dictionary<Guid, Inject> injectDict)> ValidateReorderRequest(
+        Guid exerciseId,
+        List<Guid> injectIdsList,
+        CancellationToken cancellationToken)
+    {
+        var exercise = await _context.Exercises.FindAsync(new object[] { exerciseId }, cancellationToken)
+            ?? throw new KeyNotFoundException($"Exercise {exerciseId} not found.");
+
+        if (exercise.ActiveMselId == null)
+        {
+            throw new InvalidOperationException("Exercise has no active MSEL.");
+        }
+
+        if (exercise.Status == ExerciseStatus.Archived)
+        {
+            throw new InvalidOperationException("Cannot reorder injects in an archived exercise.");
+        }
+
+        if (injectIdsList.Count == 0)
+        {
+            throw new ArgumentException("InjectIds cannot be empty.", nameof(injectIdsList));
+        }
+
+        var injects = await _context.Injects
+            .Include(i => i.Phase)
+            .Include(i => i.FiredByUser)
+            .Include(i => i.SkippedByUser)
+            .Include(i => i.InjectObjectives)
+            .Where(i => i.MselId == exercise.ActiveMselId)
+            .ToListAsync(cancellationToken);
+
+        var injectDict = injects.ToDictionary(i => i.Id);
+        foreach (var id in injectIdsList)
+        {
+            if (!injectDict.ContainsKey(id))
+            {
+                throw new KeyNotFoundException($"Inject {id} not found in this exercise.");
+            }
+        }
+
+        return (exercise, injectDict);
     }
 
     /// <inheritdoc />

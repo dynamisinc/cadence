@@ -474,41 +474,9 @@ public class ExerciseCrudService : IExerciseCrudService
         if (exercise == null)
             return null;
 
-        if (request.ClockMultiplier.HasValue)
-        {
-            if (request.ClockMultiplier < 0.5m || request.ClockMultiplier > 20.0m)
-                throw new ArgumentException("Clock multiplier must be between 0.5 and 20.");
-
-            if (exercise.ClockState == ExerciseClockState.Running)
-                throw new InvalidOperationException(
-                    "Cannot change clock multiplier while clock is running. Pause the exercise first.");
-
-            exercise.ClockMultiplier = request.ClockMultiplier.Value;
-            exercise.TimeScale = request.ClockMultiplier.Value;
-        }
-
-        if (request.AutoFireEnabled.HasValue)
-            exercise.AutoFireEnabled = request.AutoFireEnabled.Value;
-
-        if (request.ConfirmFireInject.HasValue)
-            exercise.ConfirmFireInject = request.ConfirmFireInject.Value;
-
-        if (request.ConfirmSkipInject.HasValue)
-            exercise.ConfirmSkipInject = request.ConfirmSkipInject.Value;
-
-        if (request.ConfirmClockControl.HasValue)
-            exercise.ConfirmClockControl = request.ConfirmClockControl.Value;
-
-        if (request.MaxDuration.HasValue)
-        {
-            if (request.MaxDuration.Value <= TimeSpan.Zero)
-                throw new ArgumentException("Max duration must be greater than zero.");
-
-            if (request.MaxDuration.Value > TimeSpan.FromDays(14))
-                throw new ArgumentException("Max duration cannot exceed 336 hours (2 weeks).");
-
-            exercise.MaxDuration = request.MaxDuration.Value;
-        }
+        ApplyClockMultiplier(exercise, request.ClockMultiplier);
+        ApplyBooleanSettings(exercise, request);
+        ApplyMaxDuration(exercise, request.MaxDuration);
 
         await _context.SaveChangesAsync(ct);
 
@@ -523,6 +491,62 @@ public class ExerciseCrudService : IExerciseCrudService
             exercise.ConfirmSkipInject,
             exercise.ConfirmClockControl,
             exercise.MaxDuration);
+    }
+
+    /// <summary>
+    /// Validates and applies the clock multiplier to an exercise.
+    /// Throws if the value is out of range or the clock is currently running.
+    /// </summary>
+    private static void ApplyClockMultiplier(Exercise exercise, decimal? clockMultiplier)
+    {
+        if (!clockMultiplier.HasValue)
+            return;
+
+        if (clockMultiplier < 0.5m || clockMultiplier > 20.0m)
+            throw new ArgumentException("Clock multiplier must be between 0.5 and 20.");
+
+        if (exercise.ClockState == ExerciseClockState.Running)
+            throw new InvalidOperationException(
+                "Cannot change clock multiplier while clock is running. Pause the exercise first.");
+
+        exercise.ClockMultiplier = clockMultiplier.Value;
+        exercise.TimeScale = clockMultiplier.Value;
+    }
+
+    /// <summary>
+    /// Validates and applies the max duration to an exercise.
+    /// Throws if the value is zero, negative, or exceeds two weeks.
+    /// </summary>
+    private static void ApplyMaxDuration(Exercise exercise, TimeSpan? maxDuration)
+    {
+        if (!maxDuration.HasValue)
+            return;
+
+        if (maxDuration.Value <= TimeSpan.Zero)
+            throw new ArgumentException("Max duration must be greater than zero.");
+
+        if (maxDuration.Value > TimeSpan.FromDays(14))
+            throw new ArgumentException("Max duration cannot exceed 336 hours (2 weeks).");
+
+        exercise.MaxDuration = maxDuration.Value;
+    }
+
+    /// <summary>
+    /// Applies all nullable boolean settings from the request to the exercise when present.
+    /// </summary>
+    private static void ApplyBooleanSettings(Exercise exercise, UpdateExerciseSettingsRequest request)
+    {
+        if (request.AutoFireEnabled.HasValue)
+            exercise.AutoFireEnabled = request.AutoFireEnabled.Value;
+
+        if (request.ConfirmFireInject.HasValue)
+            exercise.ConfirmFireInject = request.ConfirmFireInject.Value;
+
+        if (request.ConfirmSkipInject.HasValue)
+            exercise.ConfirmSkipInject = request.ConfirmSkipInject.Value;
+
+        if (request.ConfirmClockControl.HasValue)
+            exercise.ConfirmClockControl = request.ConfirmClockControl.Value;
     }
 
     /// <summary>

@@ -361,94 +361,9 @@ public class MembershipService : IMembershipService
         string addedByUserId,
         CancellationToken ct = default)
     {
-        // Validate organization exists
-        var organization = await _context.Organizations
-            .AsNoTracking()
-            .FirstOrDefaultAsync(o => o.Id == organizationId, ct);
-
-        if (organization == null)
-        {
-            throw new NotFoundException($"Organization with ID '{organizationId}' not found.");
-        }
-
-        // Find user by email
-        var user = await _context.Set<ApplicationUser>()
-            .FirstOrDefaultAsync(u => u.Email == request.Email, ct);
-
-        if (user == null)
-        {
-            throw new NotFoundException($"User with email '{request.Email}' not found. User must be registered first.");
-        }
-
-        // Check for existing active membership
-        var existingMembership = await _context.OrganizationMemberships
-            .FirstOrDefaultAsync(
-                m => m.UserId == user.Id && m.OrganizationId == organizationId && m.Status == MembershipStatus.Active,
-                ct);
-
-        if (existingMembership != null)
-        {
-            throw new ConflictException($"User '{request.Email}' is already a member of this organization.");
-        }
-
-        // Check for existing inactive membership to reactivate
-        var inactiveMembership = await _context.OrganizationMemberships
-            .FirstOrDefaultAsync(
-                m => m.UserId == user.Id && m.OrganizationId == organizationId && m.Status != MembershipStatus.Active,
-                ct);
-
-        OrganizationMembership membership;
-        if (inactiveMembership != null)
-        {
-            // Reactivate
-            inactiveMembership.Status = MembershipStatus.Active;
-            inactiveMembership.Role = request.Role;
-            inactiveMembership.InvitedById = addedByUserId;
-            inactiveMembership.IsDeleted = false;
-            inactiveMembership.DeletedAt = null;
-            membership = inactiveMembership;
-
-            _logger.LogInformation(
-                "Reactivated membership {MembershipId} for user {Email} in organization {OrgId}",
-                membership.Id, request.Email, organizationId);
-        }
-        else
-        {
-            // Create new membership
-            membership = new OrganizationMembership
-            {
-                Id = Guid.NewGuid(),
-                UserId = user.Id,
-                OrganizationId = organizationId,
-                Role = request.Role,
-                Status = MembershipStatus.Active,
-                JoinedAt = DateTime.UtcNow,
-                InvitedById = addedByUserId
-            };
-            _context.OrganizationMemberships.Add(membership);
-
-            _logger.LogInformation(
-                "Created membership {MembershipId} for user {Email} in organization {OrgId}",
-                membership.Id, request.Email, organizationId);
-        }
-
-        // If this is the user's first organization, activate them
-        var hasOtherMemberships = await _context.OrganizationMemberships
-            .AnyAsync(
-                m => m.UserId == user.Id
-                    && m.Id != membership.Id
-                    && m.Status == MembershipStatus.Active,
-                ct);
-
-        if (!hasOtherMemberships && user.Status == UserStatus.Pending)
-        {
-            user.Status = UserStatus.Active;
-            user.CurrentOrganizationId = organizationId;
-
-            _logger.LogInformation(
-                "User {Email} status changed from Pending to Active (first organization assignment)",
-                request.Email);
-        }
+        var user = await FindAndValidateUserForMembership(organizationId, request.Email, ct);
+        var membership = await GetOrCreateMembership(organizationId, user, request.Role, addedByUserId, ct);
+        await ActivateUserIfFirstOrganization(user, membership.Id, organizationId, ct);
 
         await _context.SaveChangesAsync(ct);
 
@@ -460,5 +375,130 @@ public class MembershipService : IMembershipService
             request.Role.ToString(),
             membership.JoinedAt
         );
+    }
+
+    /// <summary>
+    /// Validates the organization exists, finds the user by email, and confirms no active membership
+    /// already exists for the user in that organization.
+    /// </summary>
+    /// <returns>The <see cref="ApplicationUser"/> found by email.</returns>
+    private async Task<ApplicationUser> FindAndValidateUserForMembership(
+        Guid organizationId,
+        string email,
+        CancellationToken ct)
+    {
+        var organization = await _context.Organizations
+            .AsNoTracking()
+            .FirstOrDefaultAsync(o => o.Id == organizationId, ct);
+
+        if (organization == null)
+        {
+            throw new NotFoundException($"Organization with ID '{organizationId}' not found.");
+        }
+
+        var user = await _context.Set<ApplicationUser>()
+            .FirstOrDefaultAsync(u => u.Email == email, ct);
+
+        if (user == null)
+        {
+            throw new NotFoundException($"User with email '{email}' not found. User must be registered first.");
+        }
+
+        var existingMembership = await _context.OrganizationMemberships
+            .FirstOrDefaultAsync(
+                m => m.UserId == user.Id && m.OrganizationId == organizationId && m.Status == MembershipStatus.Active,
+                ct);
+
+        if (existingMembership != null)
+        {
+            throw new ConflictException($"User '{email}' is already a member of this organization.");
+        }
+
+        return user;
+    }
+
+    /// <summary>
+    /// Reactivates an existing inactive membership if one exists, otherwise creates a new one.
+    /// The returned membership is tracked by the context but not yet saved.
+    /// </summary>
+    /// <returns>The reactivated or newly created <see cref="OrganizationMembership"/>.</returns>
+    private async Task<OrganizationMembership> GetOrCreateMembership(
+        Guid organizationId,
+        ApplicationUser user,
+        OrgRole role,
+        string addedByUserId,
+        CancellationToken ct)
+    {
+        var inactiveMembership = await _context.OrganizationMemberships
+            .FirstOrDefaultAsync(
+                m => m.UserId == user.Id && m.OrganizationId == organizationId && m.Status != MembershipStatus.Active,
+                ct);
+
+        if (inactiveMembership != null)
+        {
+            inactiveMembership.Status = MembershipStatus.Active;
+            inactiveMembership.Role = role;
+            inactiveMembership.InvitedById = addedByUserId;
+            inactiveMembership.IsDeleted = false;
+            inactiveMembership.DeletedAt = null;
+
+            _logger.LogInformation(
+                "Reactivated membership {MembershipId} for user {Email} in organization {OrgId}",
+                inactiveMembership.Id, user.Email, organizationId);
+
+            return inactiveMembership;
+        }
+
+        var membership = new OrganizationMembership
+        {
+            Id = Guid.NewGuid(),
+            UserId = user.Id,
+            OrganizationId = organizationId,
+            Role = role,
+            Status = MembershipStatus.Active,
+            JoinedAt = DateTime.UtcNow,
+            InvitedById = addedByUserId
+        };
+        _context.OrganizationMemberships.Add(membership);
+
+        _logger.LogInformation(
+            "Created membership {MembershipId} for user {Email} in organization {OrgId}",
+            membership.Id, user.Email, organizationId);
+
+        return membership;
+    }
+
+    /// <summary>
+    /// Transitions a pending user to active status and sets their current organization when
+    /// the given membership is their first active organization assignment.
+    /// No-ops if the user is already active or already has other active memberships.
+    /// </summary>
+    private async Task ActivateUserIfFirstOrganization(
+        ApplicationUser user,
+        Guid membershipId,
+        Guid organizationId,
+        CancellationToken ct)
+    {
+        if (user.Status != UserStatus.Pending)
+        {
+            return;
+        }
+
+        var hasOtherMemberships = await _context.OrganizationMemberships
+            .AnyAsync(
+                m => m.UserId == user.Id
+                    && m.Id != membershipId
+                    && m.Status == MembershipStatus.Active,
+                ct);
+
+        if (!hasOtherMemberships)
+        {
+            user.Status = UserStatus.Active;
+            user.CurrentOrganizationId = organizationId;
+
+            _logger.LogInformation(
+                "User {Email} status changed from Pending to Active (first organization assignment)",
+                user.Email);
+        }
     }
 }

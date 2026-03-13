@@ -336,61 +336,13 @@ public class PhotoService : IPhotoService
         string capturedById,
         CancellationToken ct = default)
     {
-        // Validate exercise exists and is active or paused
-        var exercise = await _context.Exercises.FindAsync([exerciseId], ct);
-        if (exercise == null)
-        {
-            throw new InvalidOperationException($"Exercise {exerciseId} not found");
-        }
+        var exercise = await ValidateExerciseForPhotos(exerciseId, ct);
 
-        if (exercise.Status != ExerciseStatus.Active && exercise.Status != ExerciseStatus.Paused)
-        {
-            throw new InvalidOperationException(
-                $"Cannot capture photos. Exercise is {exercise.Status}. Photos can only be captured during active or paused exercises.");
-        }
+        var duplicate = await CheckDuplicateQuickPhoto(exerciseId, capturedById, request.IdempotencyKey, ct);
+        if (duplicate != null)
+            return duplicate;
 
-        // Check for duplicate upload via idempotency key
-        if (!string.IsNullOrWhiteSpace(request.IdempotencyKey))
-        {
-            var existingPhoto = await _context.ExercisePhotos
-                .Include(p => p.CapturedByUser)
-                .FirstOrDefaultAsync(p =>
-                    p.ExerciseId == exerciseId &&
-                    p.CapturedById == capturedById &&
-                    p.IdempotencyKey == request.IdempotencyKey, ct);
-
-            if (existingPhoto != null)
-            {
-                _logger.LogInformation(
-                    "Duplicate quick photo detected for idempotency key {Key}. Returning existing photo {PhotoId}.",
-                    request.IdempotencyKey, existingPhoto.Id);
-                return new QuickPhotoResponse(WithResolvedUrls(existingPhoto.ToDto()), existingPhoto.ObservationId ?? Guid.Empty);
-            }
-        }
-
-        // Create draft observation
-        var observation = new Observation
-        {
-            Id = Guid.NewGuid(),
-            ExerciseId = exerciseId,
-            OrganizationId = exercise.OrganizationId,
-            Content = "Photo captured — add details",
-            Status = ObservationStatus.Draft,
-            ObservedAt = request.CapturedAt,
-            Location = (request.Latitude.HasValue && request.Longitude.HasValue)
-                ? $"{request.Latitude:F6}, {request.Longitude:F6}"
-                : null,
-            CreatedByUserId = capturedById,
-            CreatedBy = capturedById,
-            ModifiedBy = capturedById
-        };
-
-        _context.Observations.Add(observation);
-        await _context.SaveChangesAsync(ct);
-
-        _logger.LogInformation(
-            "Created draft observation {ObservationId} for quick photo in exercise {ExerciseId}",
-            observation.Id, exerciseId);
+        var observation = await CreateDraftObservation(exercise, request, capturedById, ct);
 
         // Upload photo with observation link
         var uploadRequest = new UploadPhotoRequest
@@ -414,7 +366,107 @@ public class PhotoService : IPhotoService
             capturedById,
             ct);
 
-        // Reload observation with navigation properties for DTO
+        var observationDto = await BuildObservationDtoWithUrls(observation, ct);
+
+        // Broadcast observation added (photo added was already broadcast in UploadPhotoAsync)
+        await _hubContext.NotifyObservationAdded(exerciseId, observationDto);
+
+        _logger.LogInformation(
+            "Quick photo {PhotoId} created with draft observation {ObservationId} for exercise {ExerciseId}",
+            photoDto.Id, observation.Id, exerciseId);
+
+        return new QuickPhotoResponse(photoDto, observation.Id);
+    }
+
+    /// <summary>
+    /// Finds the exercise, validates it is active or paused, and returns it.
+    /// Throws <see cref="InvalidOperationException"/> if the exercise is not found or has an ineligible status.
+    /// </summary>
+    private async Task<Exercise> ValidateExerciseForPhotos(Guid exerciseId, CancellationToken ct)
+    {
+        var exercise = await _context.Exercises.FindAsync([exerciseId], ct);
+        if (exercise == null)
+            throw new InvalidOperationException($"Exercise {exerciseId} not found");
+
+        if (exercise.Status != ExerciseStatus.Active && exercise.Status != ExerciseStatus.Paused)
+        {
+            throw new InvalidOperationException(
+                $"Cannot capture photos. Exercise is {exercise.Status}. Photos can only be captured during active or paused exercises.");
+        }
+
+        return exercise;
+    }
+
+    /// <summary>
+    /// Checks for a duplicate quick photo upload using the idempotency key.
+    /// Returns a <see cref="QuickPhotoResponse"/> for the existing photo if a duplicate is found, or null otherwise.
+    /// </summary>
+    private async Task<QuickPhotoResponse?> CheckDuplicateQuickPhoto(
+        Guid exerciseId,
+        string capturedById,
+        string? idempotencyKey,
+        CancellationToken ct)
+    {
+        if (string.IsNullOrWhiteSpace(idempotencyKey))
+            return null;
+
+        var existingPhoto = await _context.ExercisePhotos
+            .Include(p => p.CapturedByUser)
+            .FirstOrDefaultAsync(p =>
+                p.ExerciseId == exerciseId &&
+                p.CapturedById == capturedById &&
+                p.IdempotencyKey == idempotencyKey, ct);
+
+        if (existingPhoto == null)
+            return null;
+
+        _logger.LogInformation(
+            "Duplicate quick photo detected for idempotency key {Key}. Returning existing photo {PhotoId}.",
+            idempotencyKey, existingPhoto.Id);
+
+        return new QuickPhotoResponse(WithResolvedUrls(existingPhoto.ToDto()), existingPhoto.ObservationId ?? Guid.Empty);
+    }
+
+    /// <summary>
+    /// Creates and persists a draft observation linked to the quick photo capture.
+    /// </summary>
+    private async Task<Observation> CreateDraftObservation(
+        Exercise exercise,
+        QuickPhotoRequest request,
+        string capturedById,
+        CancellationToken ct)
+    {
+        var observation = new Observation
+        {
+            Id = Guid.NewGuid(),
+            ExerciseId = exercise.Id,
+            OrganizationId = exercise.OrganizationId,
+            Content = "Photo captured — add details",
+            Status = ObservationStatus.Draft,
+            ObservedAt = request.CapturedAt,
+            Location = (request.Latitude.HasValue && request.Longitude.HasValue)
+                ? $"{request.Latitude:F6}, {request.Longitude:F6}"
+                : null,
+            CreatedByUserId = capturedById,
+            CreatedBy = capturedById,
+            ModifiedBy = capturedById
+        };
+
+        _context.Observations.Add(observation);
+        await _context.SaveChangesAsync(ct);
+
+        _logger.LogInformation(
+            "Created draft observation {ObservationId} for quick photo in exercise {ExerciseId}",
+            observation.Id, exercise.Id);
+
+        return observation;
+    }
+
+    /// <summary>
+    /// Loads navigation properties on the observation and resolves blob URIs to SAS URLs.
+    /// </summary>
+    private async Task<ObservationDto> BuildObservationDtoWithUrls(Observation observation, CancellationToken ct)
+    {
         await _context.Entry(observation)
             .Reference(o => o.CreatedByUser)
             .LoadAsync(ct);
@@ -427,7 +479,6 @@ public class PhotoService : IPhotoService
 
         var observationDto = observation.ToDto();
 
-        // Resolve blob URIs to SAS URLs for photo tags in the observation
         if (observationDto.Photos.Count > 0)
         {
             observationDto = observationDto with
@@ -439,14 +490,7 @@ public class PhotoService : IPhotoService
             };
         }
 
-        // Broadcast observation added (photo added was already broadcast in UploadPhotoAsync)
-        await _hubContext.NotifyObservationAdded(exerciseId, observationDto);
-
-        _logger.LogInformation(
-            "Quick photo {PhotoId} created with draft observation {ObservationId} for exercise {ExerciseId}",
-            photoDto.Id, observation.Id, exerciseId);
-
-        return new QuickPhotoResponse(photoDto, observation.Id);
+        return observationDto;
     }
 
     /// <inheritdoc />
