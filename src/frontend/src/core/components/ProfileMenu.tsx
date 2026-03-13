@@ -217,40 +217,39 @@ export const ProfileMenu: React.FC = () => {
         <Divider />
 
         {/* Current Exercise Context - Show prominently when in exercise */}
-        {isInExerciseContext && currentExercise && (
-          <>
-            <Box
-              sx={{
-                px: 2,
-                py: 1.5,
-                bgcolor: `${getRoleColor(currentExercise.userRole)}.50`,
-                borderLeft: '4px solid',
-                borderLeftColor: `${getRoleColor(currentExercise.userRole)}.main`,
-              }}
-            >
-              <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
-                <FontAwesomeIcon icon={faPlay} size="xs" />
-                <Typography variant="caption" fontWeight={600} color="text.secondary">
-                  Current Exercise
-                </Typography>
-              </Stack>
-              <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
-                {currentExercise.name}
+        {isInExerciseContext && currentExercise && [
+          <Box
+            key="exercise-context"
+            sx={{
+              px: 2,
+              py: 1.5,
+              bgcolor: `${getRoleColor(currentExercise.userRole)}.50`,
+              borderLeft: '4px solid',
+              borderLeftColor: `${getRoleColor(currentExercise.userRole)}.main`,
+            }}
+          >
+            <Stack direction="row" spacing={1} alignItems="center" sx={{ mb: 0.5 }}>
+              <FontAwesomeIcon icon={faPlay} size="xs" />
+              <Typography variant="caption" fontWeight={600} color="text.secondary">
+                Current Exercise
               </Typography>
-              <Chip
-                label={getRoleDisplayName(currentExercise.userRole)}
-                size="small"
-                color={getRoleColor(currentExercise.userRole)}
-                sx={{
-                  height: 22,
-                  fontSize: '0.75rem',
-                  fontWeight: 600,
-                }}
-              />
-            </Box>
-            <Divider />
-          </>
-        )}
+            </Stack>
+            <Typography variant="body2" fontWeight={600} sx={{ mb: 0.5 }}>
+              {currentExercise.name}
+            </Typography>
+            <Chip
+              label={getRoleDisplayName(currentExercise.userRole)}
+              size="small"
+              color={getRoleColor(currentExercise.userRole)}
+              sx={{
+                height: 22,
+                fontSize: '0.75rem',
+                fontWeight: 600,
+              }}
+            />
+          </Box>,
+          <Divider key="exercise-context-divider" />,
+        ]}
 
         {/* Exercise Assignments Section */}
         {user && (
